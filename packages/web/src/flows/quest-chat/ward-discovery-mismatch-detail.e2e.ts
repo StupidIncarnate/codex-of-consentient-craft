@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-ward-discovery-mismatch';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-ward-discovery-mismatch' });
 const PANEL_TIMEOUT = 5_000;
 const DETAIL_TIMEOUT = 5_000;
 
@@ -45,7 +47,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Ward Discovery Mismatch Quest',
       userRequest: 'Build the feature',
     });
@@ -59,8 +61,8 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     const discoveredFile = 'packages/web/src/flows/home/quest-delete-from-root.e2e.ts';
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'blocked',
       // The operations ledger holds the ward run as one locked ward operation. The failed ward
@@ -141,7 +143,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

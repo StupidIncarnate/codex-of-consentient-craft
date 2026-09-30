@@ -13,11 +13,11 @@
  * // Returns [] while the fixture repo holds no quest worktree
  * // Call env.cleanup() or rely on afterEach if wired
  */
+import type { Guild, FileName, FilePath } from '@dungeonmaster/shared/contracts';
 import { gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import type { FileName, FilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
@@ -51,7 +51,7 @@ const FIXTURE_PACKAGE_NAME = 'demo';
 export const environmentHarness = ({
   guildPath,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
 }): {
   beforeEach: () => void;
   setupGuildPath: () => void;

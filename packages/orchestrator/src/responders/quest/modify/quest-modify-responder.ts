@@ -6,20 +6,17 @@
  * // Returns ModifyQuestResult with success status
  */
 
+import type { Quest, QuestId, SessionId, SlotIndex, ModifyQuestInput, ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { isAutoResumableQuestStatusGuard } from '@dungeonmaster/shared/guards';
@@ -28,7 +25,7 @@ export const QuestModifyResponder = async ({
   questId,
   input,
 }: {
-  questId: string;
+  questId: Quest['id'];
   input: ModifyQuestInput;
 }): Promise<ModifyQuestResult> => {
   const result = await questModifyBroker({ input: { ...input, questId } as ModifyQuestInput });

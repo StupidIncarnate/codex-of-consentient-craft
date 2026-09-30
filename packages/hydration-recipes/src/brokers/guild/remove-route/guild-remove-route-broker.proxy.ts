@@ -1,10 +1,11 @@
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { guildRemoveBrokerProxy } from '@dungeonmaster/orchestrator/brokers/guild/remove/guild-remove-broker.proxy';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 
 export const guildRemoveRouteBrokerProxy = (): {
-  succeeds: ({ guildId }: { guildId: string }) => void;
+  succeeds: ({ guildId }: { guildId: Guild['id'] }) => void;
 } => {
   const removeProxy = guildRemoveBrokerProxy();
   // dmHttpRequestBroker's own branching (target.request vs global fetch) is exercised in the
@@ -14,7 +15,7 @@ export const guildRemoveRouteBrokerProxy = (): {
   dmHttpRequestBrokerProxy();
 
   return {
-    succeeds: ({ guildId }: { guildId: string }): void => {
+    succeeds: ({ guildId }: { guildId: Guild['id'] }): void => {
       removeProxy.setupConfig({ config: { guilds: [GuildStub({ id: guildId })] } });
     },
   };

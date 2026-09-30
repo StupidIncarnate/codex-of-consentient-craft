@@ -1,3 +1,4 @@
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { questFindBroker } from './quest-find-broker';
 import { questFindBrokerProxy } from './quest-find-broker.proxy';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -9,7 +10,7 @@ describe('questFindBroker', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
-      proxy.setupQuestAt({ root: 'repoLocal', guildId, questId });
+      proxy.setupQuestAt({ root: 'repoLocal', guildId: GuildIdStub({ value: guildId }), questId });
 
       const result = questFindBroker({ questId });
 
@@ -28,7 +29,7 @@ describe('questFindBroker', () => {
         guildIds: ['b2222222-2222-2222-2222-222222222222'],
         questId,
       });
-      proxy.setupQuestAt({ root: 'dev', guildId, questId });
+      proxy.setupQuestAt({ root: 'dev', guildId: GuildIdStub({ value: guildId }), questId });
 
       const result = questFindBroker({ questId });
 
@@ -42,7 +43,7 @@ describe('questFindBroker', () => {
       const questId = QuestIdStub({ value: 'refactor-auth' });
       const guildId = '27a2b0ed-7dfc-24b9-a7b9-eea7daeda4f4';
 
-      proxy.setupQuestAt({ root: 'envHome', guildId, questId });
+      proxy.setupQuestAt({ root: 'envHome', guildId: GuildIdStub({ value: guildId }), questId });
 
       const result = questFindBroker({ questId });
 
@@ -56,7 +57,7 @@ describe('questFindBroker', () => {
       const questId = QuestIdStub({ value: 'add-logging' });
       const guildId = 'c8fe9bf4-8af5-5022-9935-53917347c017';
 
-      proxy.setupQuestAt({ root: 'userGlobal', guildId, questId });
+      proxy.setupQuestAt({ root: 'userGlobal', guildId: GuildIdStub({ value: guildId }), questId });
 
       const result = questFindBroker({ questId });
 
@@ -73,12 +74,12 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({
         root: 'repoLocal',
-        guildId: '5835facb-dad2-2910-81e6-934f831a086a',
+        guildId: GuildIdStub({ value: '5835facb-dad2-2910-81e6-934f831a086a' }),
         questId,
       });
       proxy.setupQuestAt({
         root: 'userGlobal',
-        guildId: '690af1a3-bece-75a4-96db-4203a4c95524',
+        guildId: GuildIdStub({ value: '690af1a3-bece-75a4-96db-4203a4c95524' }),
         questId,
       });
 
@@ -94,7 +95,7 @@ describe('questFindBroker', () => {
       const questId = QuestIdStub({ value: 'missing-root-quest' });
       const guildId = 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c';
 
-      proxy.setupQuestAt({ root: 'dev', guildId, questId });
+      proxy.setupQuestAt({ root: 'dev', guildId: GuildIdStub({ value: guildId }), questId });
 
       const result = questFindBroker({ questId });
 
@@ -111,7 +112,7 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({
         root: 'repoLocal',
-        guildId: 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6',
+        guildId: GuildIdStub({ value: 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6' }),
         questId,
         decoyGuildIds: [
           '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
@@ -145,7 +146,7 @@ describe('questFindBroker', () => {
       const guildId = '88888888-8888-8888-8888-888888888888';
 
       proxy.setupHomeEnvEmptyString();
-      proxy.setupQuestAt({ root: 'userGlobal', guildId, questId });
+      proxy.setupQuestAt({ root: 'userGlobal', guildId: GuildIdStub({ value: guildId }), questId });
 
       const result = questFindBroker({ questId });
 

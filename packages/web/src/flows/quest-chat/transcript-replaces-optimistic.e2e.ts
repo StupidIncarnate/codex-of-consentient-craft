@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { z } from '#gateway/npm/zod';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -11,7 +13,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-transcript-replaces-optimistic';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-replaces-optimistic' });
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 // The delivery path this spec rides is `quest-driven-watchers` (packages/server/src/responders/
@@ -72,7 +74,7 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Transcript Replaces Optimistic Quest',
       userRequest: 'Build feature',
     });
@@ -82,8 +84,8 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     // itself has no status gate at all (it resolves by role + sessionId, since chat work items never
     // reach a terminal status), so this doesn't change how the send/resume behaves.
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -98,7 +100,7 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
 
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack-1' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     // Every recorder installed BEFORE the send, per this file's own authoring rule.

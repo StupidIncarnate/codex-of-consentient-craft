@@ -1,11 +1,13 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;
-const QUEST_ID = 'add-auth';
-const WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+const QUEST_ID = QuestIdStub({ value: 'add-auth' });
+const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
 describe('QuestWorkLayerResponder', () => {
   describe('a successful call', () => {

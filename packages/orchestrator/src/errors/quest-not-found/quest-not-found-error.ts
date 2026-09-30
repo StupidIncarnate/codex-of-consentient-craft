@@ -1,3 +1,4 @@
+import type { Quest } from '@dungeonmaster/shared/contracts';
 /**
  * PURPOSE: Represents an error when no guild on disk contains a quest with the given id (deleted, abandoned, or never existed)
  *
@@ -10,7 +11,7 @@
  * WHEN-NOT-TO-USE: For per-call validation failures or transient I/O errors — those should remain plain Errors.
  */
 export class QuestNotFoundError extends Error {
-  public constructor({ questId }: { questId: string }) {
+  public constructor({ questId }: { questId: Quest['id'] }) {
     super(`Quest with id "${questId}" not found in any guild`);
     this.name = 'QuestNotFoundError';
   }

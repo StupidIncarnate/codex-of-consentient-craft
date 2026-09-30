@@ -7,6 +7,7 @@
  * const response = await client.sendRequest(JsonRpcRequestStub({ ... }));
  * await client.close();
  */
+import type { Guild, Quest, GuildPath } from '@dungeonmaster/shared/contracts';
 import { spawn } from '#gateway/node/child_process';
 import { clearTimeout } from '#gateway/node/clearTimeout';
 import { readFileSync } from '#gateway/node/fs';
@@ -15,7 +16,6 @@ import { join } from '#gateway/node/path';
 import { envSnapshot } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import {
@@ -62,14 +62,14 @@ export const mcpServerHarness = (): {
   }) => ReturnType<typeof ListToolsResultSchema.parse>;
   seedQuest: (params: {
     dungeonmasterHome: GuildPath;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
     quest: unknown;
   }) => Promise<void>;
   readQuestFile: (params: {
     dungeonmasterHome: GuildPath;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
   }) => unknown;
 } => {
   const buildInitRequest = ({ id = 1 }: { id?: RpcId } = {}): JsonRpcRequest =>
@@ -255,8 +255,8 @@ export const mcpServerHarness = (): {
     quest,
   }: {
     dungeonmasterHome: GuildPath;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
     quest: unknown;
   }): Promise<void> => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
@@ -275,8 +275,8 @@ export const mcpServerHarness = (): {
     questFolder,
   }: {
     dungeonmasterHome: GuildPath;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
   }): unknown => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
     const raw = readFileSync(join(questDir, 'quest.json'));

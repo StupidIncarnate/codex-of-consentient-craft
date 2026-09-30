@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -19,7 +21,7 @@ import { questSpecReadonlyHarness } from '../../../test/harnesses/quest-spec-rea
 // popover, and flow-tab switching are already covered by other flows' suites (operations-approval-
 // gate.e2e.ts, quest-begin-transition.e2e.ts, guild-creation.e2e.ts, quest-delete-from-root.e2e.ts,
 // flow-diagram-interaction.e2e.ts) — this file only adds what nothing else covers.
-const GUILD_PATH = '/tmp/dm-e2e-spec-panel-edit-mode-removed';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-spec-panel-edit-mode-removed' });
 const PANEL_TIMEOUT = 10_000;
 const CLARIFY_TIMEOUT = 10_000;
 
@@ -78,14 +80,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: String(guild.id),
+      guildId: GuildIdStub({ value: guild.id }),
       title: 'Surviving Surfaces Quest',
       userRequest: 'Prove the deleted edit mode left everything else standing',
     });
 
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       title: 'Surviving Surfaces Quest',
       status: 'review_observables',
@@ -141,7 +143,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -215,14 +217,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: String(guild.id),
+      guildId: GuildIdStub({ value: guild.id }),
       title: 'Abandon Confirm Quest',
       userRequest: 'Prove the abandon confirm step survives',
     });
 
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'review_observables',
       workItems: [
@@ -230,7 +232,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const abandonBar = page
       .getByTestId('QUEST_SPEC_PANEL')
@@ -268,14 +270,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: String(guild.id),
+      guildId: GuildIdStub({ value: guild.id }),
       title: 'Gate Unmet Quest',
       userRequest: 'Prove no stray edit-mode button appears even with a disabled APPROVE',
     });
 
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'review_observables',
       workItems: [
@@ -288,7 +290,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       flows: [],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const actionBar = page.getByTestId('QUEST_SPEC_PANEL').getByTestId('ACTION_BAR');
     await expect(actionBar).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -316,14 +318,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Clarify Freeform Quest',
       userRequest: 'Build the feature',
     });
 
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -333,7 +335,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
 
     claudeMock.queueResponse({ response: ClarificationResponseStub({ sessionId }) });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     await page.getByTestId('CHAT_INPUT').fill('Start the quest');
     await page.getByTestId('SEND_BUTTON').click();
@@ -361,7 +363,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: String(guild.id),
+      guildId: GuildIdStub({ value: guild.id }),
       title: 'Zero Item Section Quest',
       userRequest: 'Prove SECTION_HEADER_COUNT reads (0) instead of vanishing on an empty list',
     });
@@ -369,8 +371,8 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     // No specReadonly.seedDesignDecisionsAndTooling call — questHarness.writeQuestFile defaults
     // designDecisions and toolingRequirements to [].
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'review_observables',
       workItems: [
@@ -378,7 +380,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -420,14 +422,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       const urlSlug = guilds.extractUrlSlug({ guild });
 
       const created = await quests.createQuest({
-        guildId: String(guild.id),
+        guildId: GuildIdStub({ value: guild.id }),
         title: `Status Matrix Approve ${status} Quest`,
         userRequest: 'Prove ACTION_BAR holds APPROVE-only at this status',
       });
 
       await quests.writeQuestFile({
-        questId: String(created.questId),
-        questFolder: String(created.questFolder),
+        questId: created.questId,
+        questFolder: created.questFolder,
         questFilePath: String(created.filePath),
         status,
         workItems: [
@@ -439,7 +441,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
         ],
       });
 
-      await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+      await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
       const actionBar = page.getByTestId('QUEST_SPEC_PANEL').getByTestId('ACTION_BAR');
       await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' })).toHaveCount(
@@ -470,14 +472,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       const urlSlug = guilds.extractUrlSlug({ guild });
 
       const created = await quests.createQuest({
-        guildId: String(guild.id),
+        guildId: GuildIdStub({ value: guild.id }),
         title: `Status Matrix Empty ${status} Quest`,
         userRequest: 'Prove ACTION_BAR holds zero buttons at this status',
       });
 
       await quests.writeQuestFile({
-        questId: String(created.questId),
-        questFolder: String(created.questFolder),
+        questId: created.questId,
+        questFolder: created.questFolder,
         questFilePath: String(created.filePath),
         status,
         workItems: [
@@ -489,7 +491,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
         ],
       });
 
-      await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+      await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
       const actionBar = page.getByTestId('QUEST_SPEC_PANEL').getByTestId('ACTION_BAR');
       await expect(actionBar).toBeVisible({ timeout: PANEL_TIMEOUT });

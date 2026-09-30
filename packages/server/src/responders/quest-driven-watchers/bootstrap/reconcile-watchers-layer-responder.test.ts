@@ -27,8 +27,8 @@ describe('ReconcileWatchersLayerResponder', () => {
     const questId = QuestIdStub({ value: 'my-quest' });
     const firstSessionId = '33333333-3333-3333-3333-333333333333';
     const secondSessionId = '44444444-4444-4444-4444-444444444444';
-    const firstWorkItemId = '11111111-1111-4111-8111-111111111111';
-    const secondWorkItemId = '22222222-2222-4222-8222-222222222222';
+    const firstWorkItemId = QuestWorkItemIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+    const secondWorkItemId = QuestWorkItemIdStub({ value: '22222222-2222-4222-8222-222222222222' });
 
     const guild = GuildListItemStub();
     proxy.guildsProxy.returns({ guilds: [guild] });
@@ -293,7 +293,7 @@ describe('ReconcileWatchersLayerResponder', () => {
 
         const questId = QuestIdStub({ value: 'spec-phase-quest' });
         const intakeSessionId = '35fd5b8f-551b-8baf-b8fb-a5c4702e7b71';
-        const intakeWorkItemId = '97241aaa-ae56-6f58-b9ec-a952ee85b407';
+        const intakeWorkItemId = QuestWorkItemIdStub({ value: '97241aaa-ae56-6f58-b9ec-a952ee85b407' });
 
         const guild = GuildListItemStub();
         proxy.guildsProxy.returns({ guilds: [guild] });
@@ -380,7 +380,7 @@ describe('ReconcileWatchersLayerResponder', () => {
 
         const questId = QuestIdStub({ value: 'terminal-quest-with-followup' });
         const followupSessionId = '9f7abf0d-ce8a-518c-9781-61bfa3057384';
-        const followupWorkItemId = '88888888-8888-8888-8888-888888888888';
+        const followupWorkItemId = QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-888888888888' });
 
         const guild = GuildListItemStub();
         proxy.guildsProxy.returns({ guilds: [guild] });

@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -6,7 +8,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-spec-panel-user-request-image';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-spec-panel-user-request-image' });
 const PANEL_TIMEOUT = 10_000;
 const SEED_WIDTH_PX = 16;
 const SEED_HEIGHT_PX = 16;
@@ -61,14 +63,14 @@ test.describe('The quest spec panel renders the pinned user request through User
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Spec Panel User Request Image Quest',
       userRequest,
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       userRequest,
@@ -82,7 +84,7 @@ test.describe('The quest spec panel renders the pinned user request through User
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page
       .getByTestId('USER_REQUEST_TEXT')
       .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
@@ -165,14 +167,14 @@ test.describe('The quest spec panel renders the pinned user request through User
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Spec Panel Plain Request Quest',
       userRequest,
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       userRequest,
@@ -186,7 +188,7 @@ test.describe('The quest spec panel renders the pinned user request through User
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page
       .getByTestId('USER_REQUEST_TEXT')
       .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });

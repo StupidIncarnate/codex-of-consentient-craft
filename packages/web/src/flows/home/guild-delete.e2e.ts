@@ -1,9 +1,11 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH_A = '/tmp/dm-e2e-guild-del-a';
-const GUILD_PATH_B = '/tmp/dm-e2e-guild-del-b';
+const GUILD_PATH_A = GuildPathStub({ value: '/tmp/dm-e2e-guild-del-a' });
+const GUILD_PATH_B = GuildPathStub({ value: '/tmp/dm-e2e-guild-del-b' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH_A }), testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH_B }), testObj: test });
@@ -21,7 +23,7 @@ test.describe('Guild Deletion', () => {
     await guildHarness({ request }).createGuild({ name: 'Guild Beta', path: GUILD_PATH_B });
 
     // Delete guild A via API
-    await guildHarness({ request }).deleteGuild({ guildId: String(guildA.id) });
+    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guildA.id }) });
 
     // Refresh and verify only Guild Beta remains
     await page.goto('/');
@@ -40,7 +42,7 @@ test.describe('Guild Deletion', () => {
     await page.getByText('Selected Guild').click();
 
     // Delete the selected guild via API
-    await guildHarness({ request }).deleteGuild({ guildId: String(guild.id) });
+    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guild.id }) });
 
     // Refresh to see updated state
     await page.goto('/');
@@ -56,7 +58,7 @@ test.describe('Guild Deletion', () => {
     });
 
     // Delete the only guild
-    await guildHarness({ request }).deleteGuild({ guildId: String(guild.id) });
+    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guild.id }) });
 
     // Refresh and verify inline creation form appears
     await page.goto('/');

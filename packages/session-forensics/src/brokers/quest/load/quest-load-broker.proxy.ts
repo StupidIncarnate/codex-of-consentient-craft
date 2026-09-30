@@ -1,3 +1,4 @@
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -15,7 +16,7 @@ const DUNGEONMASTER_DIR = '.dungeonmaster';
 const GUILDS_DIR = 'guilds';
 const QUESTS_DIR = 'quests';
 const QUEST_FILE = 'quest.json';
-const GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+const GUILD_ID = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
 export const questLoadBrokerProxy = (): {
   setupQuest: (params: { questId: QuestId; questJson: unknown }) => void;

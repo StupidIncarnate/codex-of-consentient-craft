@@ -12,10 +12,12 @@
  * await comments.openCommentPopoverOnNode();
  * expect(await comments.readQueue()).toStrictEqual([...]);
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { Guild, CommentText } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { commentTextContract } from '@dungeonmaster/shared/contracts';
-import type { CommentText } from '@dungeonmaster/shared/contracts';
 
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';
@@ -306,11 +308,11 @@ export const commentBoxHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
 }): {
   seedAndOpen: (params: {
-    guildName: string;
+    guildName: Guild['name'];
     status: string;
     withSession: boolean;
     preQueuedText?: string;
@@ -477,7 +479,7 @@ export const commentBoxHarness = ({
       withSession,
       preQueuedText,
     }: {
-      guildName: string;
+      guildName: Guild['name'];
       status: string;
       withSession: boolean;
       preQueuedText?: string;
@@ -494,7 +496,7 @@ export const commentBoxHarness = ({
       await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       const created = await quests.createQuest({
-        guildId,
+        guildId: GuildIdStub({ value: guildId }),
         title: 'E2E Comment Box Quest',
         userRequest: 'Build the feature',
       });
@@ -504,8 +506,8 @@ export const commentBoxHarness = ({
       // so the ONLY difference between the two seeds is the sessionId itself, which is what makes
       // "execution state does not gate the comment affordance" assertable.
       await quests.writeQuestFile({
-        questId: seeded.questId,
-        questFolder: String(created.questFolder),
+        questId: QuestIdStub({ value: seeded.questId }),
+        questFolder: created.questFolder,
         questFilePath: String(created.filePath),
         status,
         workItems: [
@@ -535,7 +537,7 @@ export const commentBoxHarness = ({
       const urlSlug = String(guild.urlSlug ?? guild.name)
         .toLowerCase()
         .replace(/\s+/gu, '-');
-      await nav.navigateToQuest({ urlSlug, questId: seeded.questId });
+      await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: seeded.questId }) });
 
       await page
         .getByTestId('QUEST_SPEC_PANEL')

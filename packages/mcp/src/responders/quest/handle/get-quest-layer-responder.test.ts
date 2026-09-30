@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
@@ -17,7 +18,7 @@ describe('GetQuestLayerResponder', () => {
     it('VALID: {flowId, format: json} => returns the rendered slice verbatim', async () => {
       const proxy = GetQuestLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: GetQuestResultStub({ quest: QuestStub(), flowSlice: FLOW_SLICE }),
       });
 
@@ -31,7 +32,7 @@ describe('GetQuestLayerResponder', () => {
     it('VALID: {flowId, packageName} => returns the rendered slice verbatim', async () => {
       const proxy = GetQuestLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: GetQuestResultStub({ quest: QuestStub(), flowSlice: FLOW_SLICE }),
       });
 
@@ -47,7 +48,7 @@ describe('GetQuestLayerResponder', () => {
     it('VALID: {questId, no format} => renders the whole quest as text', async () => {
       const proxy = GetQuestLayerResponderProxy();
       const quest = QuestStub();
-      proxy.setupReturns({ questId: 'add-auth', result: GetQuestResultStub({ quest }) });
+      proxy.setupReturns({ questId: QuestIdStub({ value: 'add-auth' }), result: GetQuestResultStub({ quest }) });
 
       const result = await GetQuestLayerResponder({ args: { questId: 'add-auth' } });
 
@@ -63,7 +64,7 @@ describe('GetQuestLayerResponder', () => {
       // quest.comments defaults to [] via QuestStub — delete it AFTER building questResult, so the
       // deletion only shapes what we expect back, never what fed the mock.
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupReturns({ questId: 'add-auth', result: questResult });
+      proxy.setupReturns({ questId: QuestIdStub({ value: 'add-auth' }), result: questResult });
 
       const result = await GetQuestLayerResponder({
         args: { questId: 'add-auth', format: 'json' },
@@ -83,7 +84,7 @@ describe('GetQuestLayerResponder', () => {
   describe('the orchestrator throws', () => {
     it('ERROR: {adapter rejects} => returns isError with the message', async () => {
       const proxy = GetQuestLayerResponderProxy();
-      proxy.setupThrows({ questId: 'add-auth', error: new Error('Quest not found') });
+      proxy.setupThrows({ questId: QuestIdStub({ value: 'add-auth' }), error: new Error('Quest not found') });
 
       const result = await GetQuestLayerResponder({ args: { questId: 'add-auth' } });
 

@@ -1,10 +1,13 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-operations-ward-recovery';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-operations-ward-recovery' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const LEDGER_TIMEOUT = 15_000;
@@ -15,7 +18,7 @@ const LEDGER_TIMEOUT = 15_000;
 // all.
 const FLOW_OP = '00000000-0000-4000-8000-0000000000f1';
 const WARD_OP = '00000000-0000-4000-8000-0000000000a1';
-const FLOW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000010';
+const FLOW_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e2e00000-0000-4000-8000-000000000010' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
@@ -60,7 +63,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Ward Green Advance Quest',
       userRequest: 'Build the feature',
       operations: [
@@ -76,7 +79,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
       firstWorkItemId: FLOW_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -101,7 +104,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     await expect(rows.filter({ hasText: 'Ward gate (full monorepo)' })).toHaveCount(1);
 
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [
         { role: 'flowrider', outcome: 'done' },
         { role: 'ward', outcome: 'green' },
@@ -113,7 +116,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     // edge only) and no spiritmender operation is spliced — the ledger ends at exactly the two
     // seeded rows.
     const finalQuest = await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&
@@ -170,7 +173,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Ward Red Recovery Quest',
       userRequest: 'Build the feature',
       operations: [
@@ -191,7 +194,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
       worktreePath: GUILD_PATH,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -214,7 +217,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     //   repair    -> done   (routes `done` to `commit`, which routes `done` back to `gate`)
     //   gate#2    -> green
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [
         { role: 'flowrider', outcome: 'done' },
         { role: 'ward', outcome: 'red' },
@@ -226,7 +229,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     // The recovery left the LEDGER untouched: still exactly the two seeded operation items, both
     // complete. Everything the red produced is a work item on the ward scope.
     const finalQuest = await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&

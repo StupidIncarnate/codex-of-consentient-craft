@@ -10,9 +10,9 @@
  * // Returns GetQuestResult carrying `flowSlice` — that flow rendered whole for web
  */
 
+import type { Quest, Flow, GetQuestResult } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { GetQuestResult } from '@dungeonmaster/shared/contracts';
 
 export const QuestGetResponder = async ({
   questId,
@@ -20,9 +20,9 @@ export const QuestGetResponder = async ({
   flowId,
   packageName,
 }: {
-  questId: string;
+  questId: Quest['id'];
   stage?: string;
-  flowId?: string;
+  flowId?: Flow['id'];
   packageName?: string;
 }): Promise<GetQuestResult> => {
   const input = getQuestInputContract.parse({

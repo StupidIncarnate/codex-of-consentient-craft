@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { subagentDurationHarness } from '../../../test/harnesses/subagent-duration/subagent-duration.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-frozen-figure';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-frozen-figure' });
 const PANEL_TIMEOUT = 10_000;
 const CHAIN_TIMEOUT = 10_000;
 
@@ -167,13 +168,13 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Frozen Figure Band Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       operations: [
@@ -249,7 +250,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -372,14 +373,14 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Frozen Figure Notification Branch Quest',
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -415,7 +416,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -480,13 +481,13 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Frozen Figure Duration-Ms Branch Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       operations: [
@@ -514,7 +515,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

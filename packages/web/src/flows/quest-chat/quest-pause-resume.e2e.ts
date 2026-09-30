@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-pause';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-pause' });
 const HTTP_OK = 200;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -31,7 +33,7 @@ test.describe('Quest Pause and Resume', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Pause Quest',
       userRequest: 'Build feature',
     });
@@ -40,7 +42,7 @@ test.describe('Quest Pause and Resume', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: String(questId),
+      questId: questId,
       questFolder,
       questFilePath,
       status: 'in_progress',
@@ -60,7 +62,7 @@ test.describe('Quest Pause and Resume', () => {
     });
 
     const { status: pauseStatus, body: pauseBody } = await quests.pauseQuestResponse({
-      questId: String(questId),
+      questId: questId,
     });
 
     expect(pauseStatus).toBe(HTTP_OK);
@@ -93,7 +95,7 @@ test.describe('Quest Pause and Resume', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Resume Quest',
       userRequest: 'Build feature',
     });
@@ -102,7 +104,7 @@ test.describe('Quest Pause and Resume', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: String(questId),
+      questId: questId,
       questFolder,
       questFilePath,
       status: 'in_progress',
@@ -115,7 +117,7 @@ test.describe('Quest Pause and Resume', () => {
       ],
     });
 
-    const pauseResult = await quests.pauseQuestResponse({ questId: String(questId) });
+    const pauseResult = await quests.pauseQuestResponse({ questId: questId });
 
     expect(pauseResult.status).toBe(HTTP_OK);
 
@@ -125,7 +127,7 @@ test.describe('Quest Pause and Resume', () => {
     expect(pausedData.quest.status).toBe('paused');
 
     const resumeResult = await quests.patchQuestStatusResponse({
-      questId: String(questId),
+      questId: questId,
       status: 'in_progress',
     });
 

@@ -6,6 +6,7 @@
  * // Writes JSON to {questFolderPath}/ward-results/{wardResultId}.json
  */
 
+import type { WardResult } from '@dungeonmaster/shared/contracts';
 import {
   filePathContract,
   type ErrorMessage,
@@ -23,7 +24,7 @@ export const wardPersistResultBroker = async ({
   detailJson,
 }: {
   questFolderPath: FilePath;
-  wardResultId: string;
+  wardResultId: WardResult['id'];
   detailJson: ErrorMessage;
 }): Promise<void> => {
   const wardResultsDir = filePathContract.parse(

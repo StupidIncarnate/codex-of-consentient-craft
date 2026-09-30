@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +6,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-pause-resume-matrix';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-pause-resume-matrix' });
 const HTTP_OK = 200;
 
 // Derive iteration list from statics — NEVER hardcode. Per testing-patterns callout:
@@ -84,7 +85,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
       const created = await quests.createQuest({
-        guildId: String(guildId),
+        guildId: guildId,
         title: `Matrix ${status}`,
         userRequest: 'Build feature',
       });
@@ -92,8 +93,8 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       const questFilePath = created.filePath;
 
       await quests.writeQuestFile({
-        questId: String(questId),
-        questFolder: String(questFolder),
+        questId: questId,
+        questFolder: questFolder,
         questFilePath: String(questFilePath),
         status,
         operations,
@@ -108,7 +109,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       });
 
       // Act: pause via server endpoint
-      const pauseResult = await quests.pauseQuestResponse({ questId: String(questId) });
+      const pauseResult = await quests.pauseQuestResponse({ questId: questId });
 
       expect(pauseResult).toStrictEqual({ status: HTTP_OK, body: { paused: true } });
 
@@ -125,7 +126,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       }).toStrictEqual({ status: 'paused', pausedAtStatus: status });
 
       // Act: resume via server endpoint
-      const resumeResult = await quests.resumeQuestResponse({ questId: String(questId) });
+      const resumeResult = await quests.resumeQuestResponse({ questId: questId });
 
       // Every fixture here carries a drained ledger and no work item the dispatcher would pick up
       // (a chat-role item never counts — see `hasIncompleteQuestWorkGuard`), so resume leaves the

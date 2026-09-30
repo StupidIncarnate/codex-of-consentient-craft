@@ -8,6 +8,7 @@
  * // already registered in config.json, so a broker that resolves the guild (guildGetBroker,
  * // questRepoRootBroker) finds it instead of a folder-name id nothing in config recognizes.
  */
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
@@ -20,7 +21,7 @@ export const questSeedHarness = (): {
   seed: (params: {
     tempDir: string;
     quest: ReturnType<typeof QuestStub>;
-    guildId?: string;
+    guildId?: Guild['id'];
   }) => Promise<void>;
 } => ({
   seed: async ({
@@ -30,7 +31,7 @@ export const questSeedHarness = (): {
   }: {
     tempDir: string;
     quest: ReturnType<typeof QuestStub>;
-    guildId?: string;
+    guildId?: Guild['id'];
   }): Promise<void> => {
     const questDir = path.join(tempDir, 'guilds', guildId, 'quests', quest.folder);
     await fs.promises.mkdir(questDir, { recursive: true });

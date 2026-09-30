@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-ws-update' });
 const PANEL_TIMEOUT = 5_000;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -38,7 +40,7 @@ test.describe('Quest WS Update', () => {
     });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E WS Update Quest',
       userRequest: 'Build the feature',
     });
@@ -49,7 +51,7 @@ test.describe('Quest WS Update', () => {
     // Seed at 'explore_flows' so the subsequent PATCH that adds flows passes the
     // per-status input allowlist (created status only permits title + status).
     await quests.writeQuestFile({
-      questId: String(questId),
+      questId: questId,
       questFolder,
       questFilePath,
       status: 'explore_flows',
@@ -66,14 +68,14 @@ test.describe('Quest WS Update', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     // Quest exists but has no content — spec panel shows immediately with empty quest data
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
 
     // PATCH the quest to add a flow — this triggers quest-modified WS broadcast
     await quests.patchQuestFlows({
-      questId: String(questId),
+      questId: questId,
       flows: [
         {
           id: 'ws-live-flow',
@@ -110,7 +112,7 @@ test.describe('Quest WS Update', () => {
     });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E WS Incremental Quest',
       userRequest: 'Build the feature',
     });
@@ -121,7 +123,7 @@ test.describe('Quest WS Update', () => {
     // Seed at 'flows_approved' so the subsequent PATCH that adds another flow
     // passes the per-status input allowlist (approved status only permits status).
     await quests.writeQuestFile({
-      questId: String(questId),
+      questId: questId,
       questFolder,
       questFilePath,
       status: 'flows_approved',
@@ -137,7 +139,7 @@ test.describe('Quest WS Update', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     // Spec panel should be visible with the initial flow
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -145,7 +147,7 @@ test.describe('Quest WS Update', () => {
 
     // PATCH the quest to add a second flow via WS broadcast
     await quests.patchQuestFlows({
-      questId: String(questId),
+      questId: questId,
       flows: [
         {
           id: 'live-ws-flow',

@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -11,7 +12,7 @@ import { transcriptImagesHarness } from '../../../test/harnesses/transcript-imag
 // actually decode (never a silent re-fetch, never a request that resolved but painted nothing), and
 // two distinct messages must never have their images pooled into one bubble. Neither claim is
 // checkable against a single point-in-time "an image is visible somewhere" read.
-const GUILD_PATH = '/tmp/dm-e2e-transcript-image-request-count';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-image-request-count' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({

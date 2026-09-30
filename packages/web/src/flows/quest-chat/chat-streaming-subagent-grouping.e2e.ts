@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
@@ -8,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-streaming-subagent';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-streaming-subagent' });
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 10_000;
 
@@ -55,7 +56,7 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
       userRequest: 'Stream sub-agent via stdout',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder: created.questFolder,
       questFilePath: created.filePath,
       status: 'review_flows',

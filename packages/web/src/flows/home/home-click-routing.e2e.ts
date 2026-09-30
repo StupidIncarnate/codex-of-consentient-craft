@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { now } from '#gateway/node/Date';
 import { randomUUID } from '#gateway/node/crypto';
 
@@ -7,7 +8,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-home-click-routing';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-home-click-routing' });
 const HTTP_OK = 200;
 const NAV_TIMEOUT = 5_000;
 
@@ -39,13 +40,13 @@ test.describe('Home page session click routing', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the quest feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Routing Quest',
       userRequest: 'Build the quest feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       title: 'Routing Quest',
       status: 'review_flows',

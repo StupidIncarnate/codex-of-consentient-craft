@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
@@ -10,7 +11,7 @@ describe('BlightChecklistLayerResponder', () => {
     it('VALID: {questId} => returns the rendered text VERBATIM, not JSON-stringified', async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: {
           success: true,
           data: ContentTextStub({
@@ -29,13 +30,13 @@ describe('BlightChecklistLayerResponder', () => {
     it('VALID: {questId} => forwards questId to the orchestrator', async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
       });
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
         questId: 'add-auth',
       });
     });
@@ -45,13 +46,13 @@ describe('BlightChecklistLayerResponder', () => {
     it("VALID: {questId, scope: 'commit'} => forwards the scope, so the caller reads the diff it asked for", async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
       });
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'commit' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
         questId: 'add-auth',
         scope: 'commit',
       });
@@ -63,13 +64,13 @@ describe('BlightChecklistLayerResponder', () => {
     it("VALID: {questId, scope: 'unpushed'} => forwards the pass scope", async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
       });
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'unpushed' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
         questId: 'add-auth',
         scope: 'unpushed',
       });
@@ -80,7 +81,7 @@ describe('BlightChecklistLayerResponder', () => {
     it('ERROR: {orchestrator returns success false} => returns the JSON error shape with isError', async () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         result: { success: false, error: ContentTextStub({ value: 'Quest not found' }) as never },
       });
 
@@ -105,7 +106,7 @@ describe('BlightChecklistLayerResponder', () => {
   describe('adapter failures', () => {
     it('ERROR: {orchestrator throws} => returns the JSON error shape with isError', async () => {
       const proxy = BlightChecklistLayerResponderProxy();
-      proxy.setupThrows({ questId: 'add-auth', error: new Error('boom') });
+      proxy.setupThrows({ questId: QuestIdStub({ value: 'add-auth' }), error: new Error('boom') });
 
       const result = await BlightChecklistLayerResponder({ args: { questId: 'add-auth' } });
 

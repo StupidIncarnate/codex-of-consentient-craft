@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-abandoned-quest-chaos-only-transcript';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-abandoned-quest-chaos-only-transcript' });
 const PANEL_TIMEOUT = 5_000;
 const REPLAY_TEXT_TIMEOUT = 5_000;
 
@@ -38,7 +40,7 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     await sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Abandoned Chaos Quest',
       userRequest: 'Build the feature',
     });
@@ -50,8 +52,8 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     // during the chaoswhisperer phase therefore lands with EXACTLY this shape on
     // disk: one chaoswhisperer work item, status `skipped`, sessionId stamped.
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'abandoned',
       workItems: [
@@ -65,7 +67,7 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

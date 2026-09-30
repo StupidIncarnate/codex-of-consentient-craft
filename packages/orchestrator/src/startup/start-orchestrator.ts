@@ -14,38 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type {
-  AddQuestInput,
-  AddQuestResult,
-  AgentPromptResult,
-  BlockedReason,
-  CommentBatchEntry,
-  DirectoryEntry,
-  DispatchState,
-  GetQuestResult,
-  Guild,
-  GuildId,
-  GuildListItem,
-  GuildName,
-  GuildPath,
-  ModifyQuestInput,
-  ModifyQuestResult,
-  OperationItemId,
-  OrchestrationMode,
-  OrchestrationStatus,
-  ProcessId,
-  Quest,
-  QuestId,
-  QuestListItem,
-  QuestListResult,
-  QuestQueueEntry,
-  QuestStatus,
-  QuestType,
-  QuestWorkItemId,
-  RateLimitsSnapshot,
-  SessionId,
-  UrlSlug,
-} from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildId, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestId, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, QuestWorkItemId, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
@@ -181,9 +150,9 @@ export const StartOrchestrator = {
     flowId,
     packageName,
   }: {
-    questId: string;
+    questId: Quest['id'];
     stage?: string;
-    flowId?: string;
+    flowId?: Flow['id'];
     packageName?: string;
   }): Promise<GetQuestResult> =>
     QuestFlow.get({
@@ -196,7 +165,7 @@ export const StartOrchestrator = {
   getPlanningNotes: async ({
     questId,
   }: {
-    questId: string;
+    questId: Quest['id'];
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId }),
 
@@ -205,7 +174,7 @@ export const StartOrchestrator = {
   getQuestSummary: async ({
     questId,
   }: {
-    questId: string;
+    questId: Quest['id'];
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getSummary>>> =>
     QuestFlow.getSummary({ questId }),
 
@@ -214,7 +183,7 @@ export const StartOrchestrator = {
   getQuestProjection: async ({
     questId,
   }: {
-    questId: string;
+    questId: Quest['id'];
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getProjection>>> =>
     QuestFlow.getProjection({ questId }),
 
@@ -228,9 +197,9 @@ export const StartOrchestrator = {
     workItemId,
     operationItemId,
   }: {
-    questId: string;
-    workItemId?: string;
-    operationItemId?: string;
+    questId: Quest['id'];
+    workItemId?: WorkItem['id'];
+    operationItemId?: OperationItem['id'];
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getQuestWork>>> =>
     QuestFlow.getQuestWork({
       questId,
@@ -246,7 +215,7 @@ export const StartOrchestrator = {
     questId,
     scope,
   }: {
-    questId: string;
+    questId: Quest['id'];
     scope?: 'quest' | 'commit' | 'working-tree' | 'unpushed';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getBlightChecklist>>> =>
     QuestFlow.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) }),
@@ -255,7 +224,7 @@ export const StartOrchestrator = {
     questId,
     input,
   }: {
-    questId: string;
+    questId: Quest['id'];
     input: ModifyQuestInput;
   }): Promise<ModifyQuestResult> => QuestFlow.modify({ questId, input }),
 
@@ -472,8 +441,8 @@ export const StartOrchestrator = {
     workItemId,
     payload,
   }: {
-    questId: string;
-    workItemId: string;
+    questId: Quest['id'];
+    workItemId: WorkItem['id'];
     payload: unknown;
   }): Promise<Awaited<ReturnType<typeof QuestFlow.work>>> =>
     QuestFlow.work({ questId, workItemId, payload }),
@@ -506,9 +475,9 @@ export const StartOrchestrator = {
     projectDir: string;
     // The work item whose agent writes this session's MAIN JSONL. Routes its
     // main-session output to that work item's execution row.
-    workerWorkItemId: string;
+    workerWorkItemId: WorkItem['id'];
     // The quest owning that work item — routes the tail's own terminal event.
-    workerQuestId: string;
+    workerQuestId: Quest['id'];
   }): Promise<{ stop: () => void }> =>
     QuestFlow.startMonitorWatcher({ parentSessionId, projectDir, workerWorkItemId, workerQuestId }),
 };

@@ -1,9 +1,11 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-followup-transcript-replay';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-transcript-replay' });
 // Kept under the project's 10s per-test budget on purpose: a poll window LONGER than the test's
 // own timeout can never spend it, so an ordering failure would surface as an opaque "test timeout"
 // instead of the array diff that names which turn moved.
@@ -67,7 +69,7 @@ test.describe('FOLLOW-UP transcript replays after a reload', () => {
     });
 
     const { questId } = await followup.seedAndOpen({
-      guildName: 'Followup Replay Guild',
+      guildName: GuildNameStub({ value: 'Followup Replay Guild' }),
       status: 'complete',
       workItems: [
         { id: PRIOR_WORK_ITEM_ID, role: 'codeweaver', status: 'complete' },

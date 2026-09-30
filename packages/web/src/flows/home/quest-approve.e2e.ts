@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-approve';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-approve' });
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
@@ -38,7 +40,7 @@ test.describe('Quest Approve Button', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Approve Quest',
       userRequest: 'Build the feature',
     });
@@ -63,7 +65,7 @@ test.describe('Quest Approve Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
     await expect(page.getByTestId('PANEL_HEADER')).toHaveText('FLOW APPROVAL');

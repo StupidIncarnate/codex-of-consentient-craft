@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -73,7 +74,7 @@ export const smoketestStampOverrideBrokerProxy = (): {
     },
 
     setupQuestNotFound: ({ questId }: { questId: string }): void => {
-      findQuestPathMock.calledWith([{ questId }]).rejects(new QuestNotFoundError({ questId }));
+      findQuestPathMock.calledWith([{ questId }]).rejects(new QuestNotFoundError({ questId: QuestIdStub({ value: questId }) }));
     },
 
     // Read the `contents` argument straight off every questPersistBroker call this test made,

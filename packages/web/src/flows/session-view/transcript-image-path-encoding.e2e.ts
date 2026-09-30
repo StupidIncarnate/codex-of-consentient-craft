@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -11,7 +12,7 @@ import { transcriptImagesHarness } from '../../../test/harnesses/transcript-imag
 // truncates the query, the server looks for a different file, the GET 404s and the thumbnail
 // breaks — so every row is falsifiable by the real network round trip, not by agreeing with a
 // string computed the same way twice.
-const GUILD_PATH = '/tmp/dm-e2e-transcript-image-path-encoding';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-image-path-encoding' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({

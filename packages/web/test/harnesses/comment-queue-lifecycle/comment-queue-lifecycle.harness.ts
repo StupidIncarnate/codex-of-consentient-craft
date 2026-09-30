@@ -14,6 +14,9 @@
  * await lifecycle.reloadQuest();
  * expect(await lifecycle.readQueue({ which: 'first' })).toStrictEqual([]);
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
@@ -119,10 +122,10 @@ export const commentQueueLifecycleHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedTwoQuests: (params: { guildName: string }) => Promise<void>;
+  seedTwoQuests: (params: { guildName: Guild['name'] }) => Promise<void>;
   openQuest: (params: { which: 'first' | 'second' }) => Promise<void>;
   reloadQuest: () => Promise<void>;
   writeQueue: (params: {
@@ -230,7 +233,7 @@ export const commentQueueLifecycleHarness = ({
     // affordance and the queue bar are UNGATED on both. That matters for every absence assertion
     // below: a missing COMMENT_QUEUE_BAR then means "this quest's queue is empty" rather than "the
     // status or session gate closed it".
-    seedTwoQuests: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedTwoQuests: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       const quests = questHarness({ request });
       const guild = await guildHarness({ request }).createGuild({
         name: guildName,
@@ -249,15 +252,15 @@ export const commentQueueLifecycleHarness = ({
       await ['first', 'second'].reduce(async (previous, which) => {
         await previous;
         const created = await quests.createQuest({
-          guildId,
+          guildId: GuildIdStub({ value: guildId }),
           title: `E2E Comment Lifecycle Quest (${which})`,
           userRequest: 'Build the feature',
         });
         const target = which === 'first' ? seeded.first : seeded.second;
         target.questId = String(created.questId);
         await quests.writeQuestFile({
-          questId: target.questId,
-          questFolder: String(created.questFolder),
+          questId: QuestIdStub({ value: target.questId }),
+          questFolder: created.questFolder,
           questFilePath: String(created.filePath),
           status: 'review_flows',
           workItems: [
@@ -271,7 +274,7 @@ export const commentQueueLifecycleHarness = ({
     openQuest: async ({ which }: { which: 'first' | 'second' }): Promise<void> => {
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
-        questId: questFor({ which }).questId,
+        questId: QuestIdStub({ value: questFor({ which }).questId }),
       });
       await waitForSpecPanel();
     },

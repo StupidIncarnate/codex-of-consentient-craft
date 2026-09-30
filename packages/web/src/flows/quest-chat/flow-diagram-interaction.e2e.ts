@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -9,7 +11,7 @@ import {
   LARGE_FLOW_FIRST_NODE_LABEL,
 } from '../../../test/harnesses/flow-diagram/flow-diagram.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-flow-diagram-interaction';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-flow-diagram-interaction' });
 const PANEL_TIMEOUT = 5_000;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -28,7 +30,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Overlap Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Overlap Guild' }) });
 
     expect(await diagram.hasExpectedNodeCount()).toBe(true);
     expect(await diagram.nodesHaveDistinctCoordinates()).toBe(true);
@@ -42,7 +44,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Fit Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Fit Guild' }) });
 
     await page.getByTestId('FIT_VIEW_BUTTON').click();
 
@@ -54,7 +56,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Tabs Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Tabs Guild' }) });
 
     await diagram.switchToSecondFlowTab();
 
@@ -70,7 +72,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Controls Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Controls Guild' }) });
 
     // Exactly one visible control cluster: the custom RPG buttons. The native React Flow
     // controls must remain in the DOM (they are the zoom/fit actuators) but must not paint, or
@@ -90,7 +92,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Floor Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Floor Guild' }) });
 
     expect(await diagram.canvasKeepsFloorWhileSpecTabScrolls()).toBe(true);
   });
@@ -105,7 +107,7 @@ test.describe('Flow Diagram Interaction', () => {
       request,
     }) => {
       const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-      await diagram.seedAndOpen({ guildName: 'Diagram Fill Guild' });
+      await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Fill Guild' }) });
 
       // The SPEC tab's whole layout contract in one measurement: request on top, diagram taking
       // every remaining pixel. A canvas that pins its own height lands short of the panel edge or
@@ -119,7 +121,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Zoom Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Zoom Guild' }) });
 
     expect(await diagram.zoomInGrowsScale()).toBe(true);
     expect(await diagram.zoomOutShrinksScale()).toBe(true);
@@ -130,7 +132,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Height Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Height Guild' }) });
 
     // The canvas wrapper must resolve a definite height; a maxHeight-only wrapper collapses
     // the React Flow canvas to 0px and the diagram is unusable despite nodes existing.
@@ -142,7 +144,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Edges Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Edges Guild' }) });
 
     // Custom node cards must expose React Flow handles or every edge is dropped. Assert the
     // edges render AND the labeled branch ('yes') paints its label text.
@@ -159,7 +161,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Assertions Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Assertions Guild' }) });
 
     // Assertions are always visible on the canvas (no popup): the open-page observable renders as
     // its own FLOW_OBSERVABLE_NODE card, every observable gets one, and each branches off to the
@@ -176,7 +178,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Large Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Large Guild' }) });
     await diagram.captureLoadZoom();
     await diagram.switchToLargeFlowTab();
 
@@ -202,7 +204,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Pane Deselect Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Pane Deselect Guild' }) });
 
     const openPageNode = page
       .getByTestId('FLOW_NODE')
@@ -226,7 +228,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Recipe Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Recipe Guild' }) });
 
     expect(await diagram.recipeCalloutRendered()).toBe(true);
     expect(await diagram.recipeNamesMatchSeeded()).toBe(true);
@@ -237,7 +239,7 @@ test.describe('Flow Diagram Interaction', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Panel Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Diagram Panel Guild' }) });
 
     // diagram-only terminal: no detail panel before any node is clicked.
     await expect(page.getByTestId('FLOW_NODE_DETAIL_PANEL')).toHaveCount(0);

@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-role-transition-streams-live';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-role-transition-streams-live' });
 const PANEL_TIMEOUT = 10_000;
 const DISPATCH_TIMEOUT = 30_000;
 const STREAM_TIMEOUT = 30_000;
@@ -95,15 +97,15 @@ test.describe('The role after the carve streams into the execution panel with no
     // seeds a quest whose FIRST ledger row is the live one, and the whole point here is that the
     // first row is already behind us.
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Role Transition Streaming Quest',
       userRequest: 'Build the feature',
     });
     const { questId, questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(created.filePath),
       title: 'Role Transition Streaming Quest',
       status: 'in_progress',
@@ -137,14 +139,14 @@ test.describe('The role after the carve streams into the execution panel with no
 
     // ONE navigation, before anything runs, and never again. Everything asserted below has to
     // arrive over the socket this page load opened.
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [{ role: 'codeweaver', outcome: 'done', text: CODEWEAVER_TEXT }],
       agentLineDelayMs: AGENT_LINE_DELAY_MS,
     });
@@ -154,7 +156,7 @@ test.describe('The role after the carve streams into the execution panel with no
     // it timed out on, where a bare "element not found" cannot say whether the role never ran or
     // ran and never streamed.
     await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: DISPATCH_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(

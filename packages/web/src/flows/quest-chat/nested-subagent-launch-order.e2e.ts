@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { subagentLaunchOrderHarness } from '../../../test/harnesses/subagent-launch-order/subagent-launch-order.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-nested-subagent-launch-order';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-nested-subagent-launch-order' });
 
 // The parent sub-agent's own two lines, its background launch, and the acknowledgement that launch
 // returned — in the order the launch happened. A chain painted where it fired sits between the line
@@ -27,7 +29,7 @@ test.describe('A background sub-agent renders where it was launched, not at the 
   }) => {
     const launches = subagentLaunchOrderHarness({ page, request, guildPath: GUILD_PATH, sessions });
 
-    await launches.seedBackgroundLaunchQuest({ guildName: 'Background Launch Order Guild' });
+    await launches.seedBackgroundLaunchQuest({ guildName: GuildNameStub({ value: 'Background Launch Order Guild' }) });
     await launches.revealParentChainEntries();
 
     expect(await launches.paintedOrderInParentChainIs({ order: EXPECTED_ORDER })).toBe(true);

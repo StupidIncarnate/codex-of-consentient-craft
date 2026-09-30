@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { workItemStatusContract } from '@dungeonmaster/shared/contracts';
 
-const GUILD_PATH = '/tmp/dm-e2e-elapsed-duration-absent';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-elapsed-duration-absent' });
 const PANEL_TIMEOUT = 10_000;
 
 // Every scenario below freezes the browser's Date at this exact instant via page.clock, mirroring
@@ -80,7 +82,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const ABSENT_TEXT = 'codeweaver: absent-branch row missing startedAt entirely';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Absent StartedAt Quest',
       userRequest: 'Build the feature',
     });
@@ -88,8 +90,8 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -125,7 +127,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -157,7 +159,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const guildId = String(guild.id);
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Absent Status Matrix Quest',
       userRequest: 'Build the feature',
     });
@@ -165,8 +167,8 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -213,7 +215,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -278,7 +280,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const NOT_RUNNING_TEXT = 'codeweaver: terminal row with startedAt but not in_progress';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Terminal No Figure Quest',
       userRequest: 'Build the feature',
     });
@@ -286,8 +288,8 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -322,7 +324,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -371,7 +373,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const COMPLETED_AT = '2026-01-01T12:06:00.000Z'; // startedAt + 600s => 10m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Not Running Branch Quest',
       userRequest: 'Build the feature',
     });
@@ -379,8 +381,8 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -424,7 +426,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

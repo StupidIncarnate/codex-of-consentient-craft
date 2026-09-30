@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,13 +8,13 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-resume-starts-dispatch';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-resume-starts-dispatch' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const HTTP_OK = 200;
 
 const CODEWEAVER_OP = '00000000-0000-4000-8000-0000000000c1';
-const FIRST_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000030';
+const FIRST_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e2e00000-0000-4000-8000-000000000030' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
@@ -49,7 +52,7 @@ test.describe('Resume starts the dispatch queue', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Resume Starts Dispatch Quest',
       userRequest: 'Build the feature',
       operations: [
@@ -71,11 +74,11 @@ test.describe('Resume starts the dispatch queue', () => {
     });
 
     // Precondition: quest paused, and the dispatcher explicitly NOT playing (beforeEach paused it).
-    await quests.pauseQuest({ questId: String(questId) });
+    await quests.pauseQuest({ questId: questId });
 
     expect(await dispatch.isDispatchPlaying()).toBe(false);
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -107,7 +110,7 @@ test.describe('Resume starts the dispatch queue', () => {
     // And it actually dispatched: the seeded work item ran and the ledger drained — which is the
     // whole point of coupling the two switches.
     const finalQuest = await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.operations.length === 1 && quest.operations.every((op) => op.status === 'complete'),
@@ -130,7 +133,7 @@ test.describe('Resume starts the dispatch queue', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Resume No Work Quest',
       userRequest: 'Build the feature',
     });
@@ -150,9 +153,9 @@ test.describe('Resume starts the dispatch queue', () => {
       ],
     });
 
-    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -66,7 +67,7 @@ describe('QuestGetProjectionResponder', () => {
       const proxy = QuestGetProjectionResponderProxy();
       proxy.setupQuestNotFound();
 
-      await expect(proxy.callResponder({ questId: 'no-such-quest' })).rejects.toThrow(
+      await expect(proxy.callResponder({ questId: QuestIdStub({ value: 'no-such-quest' }) })).rejects.toThrow(
         /no-such-quest/u,
       );
     });

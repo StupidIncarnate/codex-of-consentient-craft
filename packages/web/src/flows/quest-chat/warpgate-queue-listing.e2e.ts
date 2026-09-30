@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
@@ -7,7 +10,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-warpgate-queue-listing';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-warpgate-queue-listing' });
 const PANEL_TIMEOUT = 10_000;
 const QUEUE_TIMEOUT = 10_000;
 const HTTP_OK = 200;
@@ -47,14 +50,14 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     const sessionIdA = `e2e-queue-a-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build the feature' });
     const createdA = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Queue Listing Quest A',
       userRequest: 'Build the feature',
     });
     const questIdA = String(createdA.questId);
     await quests.writeQuestFile({
-      questId: questIdA,
-      questFolder: String(createdA.questFolder),
+      questId: QuestIdStub({ value: questIdA }),
+      questFolder: createdA.questFolder,
       questFilePath: String(createdA.filePath),
       title: 'Queue Listing Quest A',
       // Seeded straight to `paused` rather than driven through POST /start + POST /pause.
@@ -89,7 +92,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     const sessionIdB = `e2e-queue-b-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build the feature' });
     const createdB = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Queue Listing Quest B',
       userRequest: 'Build the feature',
     });
@@ -97,7 +100,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     const questFolderB = String(createdB.questFolder);
     const questFilePathB = String(createdB.filePath);
     await quests.writeQuestFile({
-      questId: questIdB,
+      questId: QuestIdStub({ value: questIdB }),
       questFolder: questFolderB,
       questFilePath: questFilePathB,
       title: 'Queue Listing Quest B',
@@ -119,7 +122,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
       ],
     });
     await dispatchHarness({ request, guildPath: GUILD_PATH }).startQuestViaStartRoute({
-      questId: questIdB,
+      questId: QuestIdStub({ value: questIdB }),
     });
     // Stop the dispatcher this Start just played, before the rewrite to `blocked` below. The pause
     // may land before or after the dispatcher claims a step; this spec wants nothing dispatched, and
@@ -127,7 +130,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     await dispatchPauseHarness({ request }).pause();
 
     await quests.writeQuestFile({
-      questId: questIdB,
+      questId: QuestIdStub({ value: questIdB }),
       questFolder: questFolderB,
       questFilePath: questFilePathB,
       title: 'Queue Listing Quest B',
@@ -142,7 +145,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     });
 
     const { status: mergeStatus, body: mergeBody } = await quests.mergeQuestViaMergeRoute({
-      questId: questIdB,
+      questId: QuestIdStub({ value: questIdB }),
     });
     expect(mergeStatus).toBe(HTTP_OK);
     expect(mergeBody).toStrictEqual({ merging: true });
@@ -158,14 +161,14 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     // non-terminal quest — a bug that renders every quest would pass a suite that only checks rows
     // A and B are present.
     const createdC = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Queue Listing Quest C',
       userRequest: 'Build the feature',
     });
     const questIdC = String(createdC.questId);
     await quests.writeQuestFile({
-      questId: questIdC,
-      questFolder: String(createdC.questFolder),
+      questId: QuestIdStub({ value: questIdC }),
+      questFolder: createdC.questFolder,
       questFilePath: String(createdC.filePath),
       title: 'Queue Listing Quest C',
       status: 'blocked',
@@ -178,7 +181,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questIdA });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdA }) });
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });

@@ -1,5 +1,5 @@
+import type { WardResult, FilePath } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -20,21 +20,21 @@ const resultFilePathFor = ({
   wardResultId,
 }: {
   questFolderPath: FilePath;
-  wardResultId: string;
+  wardResultId: WardResult['id'];
 }): FilePath =>
   filePathContract.parse(
     `${questFolderPath}/${locationsStatics.quest.wardResultsDir}/${wardResultId}${JSON_EXTENSION}`,
   );
 
 export const wardPersistResultBrokerProxy = (): {
-  setupSuccess: (params: { questFolderPath: FilePath; wardResultId: string }) => void;
+  setupSuccess: (params: { questFolderPath: FilePath; wardResultId: WardResult['id'] }) => void;
   setupWriteFailure: (params: {
     questFolderPath: FilePath;
-    wardResultId: string;
+    wardResultId: WardResult['id'];
     error: Error;
   }) => void;
-  getWrittenContent: (params: { questFolderPath: FilePath; wardResultId: string }) => unknown;
-  getWrittenPath: (params: { questFolderPath: FilePath; wardResultId: string }) => unknown;
+  getWrittenContent: (params: { questFolderPath: FilePath; wardResultId: WardResult['id'] }) => unknown;
+  getWrittenPath: (params: { questFolderPath: FilePath; wardResultId: WardResult['id'] }) => unknown;
   getMkdirPaths: () => readonly unknown[];
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -46,7 +46,7 @@ export const wardPersistResultBrokerProxy = (): {
     wardResultId,
   }: {
     questFolderPath: FilePath;
-    wardResultId: string;
+    wardResultId: WardResult['id'];
   }): void => {
     const wardResultsDir = wardResultsDirFor({ questFolderPath });
     joinHandle
@@ -64,7 +64,7 @@ export const wardPersistResultBrokerProxy = (): {
       wardResultId,
     }: {
       questFolderPath: FilePath;
-      wardResultId: string;
+      wardResultId: WardResult['id'];
     }): void => {
       stageDirJoins({ questFolderPath, wardResultId });
       writeHandle.succeeds({ path: resultFilePathFor({ questFolderPath, wardResultId }) });
@@ -76,7 +76,7 @@ export const wardPersistResultBrokerProxy = (): {
       error,
     }: {
       questFolderPath: FilePath;
-      wardResultId: string;
+      wardResultId: WardResult['id'];
       error: Error;
     }): void => {
       stageDirJoins({ questFolderPath, wardResultId });
@@ -91,7 +91,7 @@ export const wardPersistResultBrokerProxy = (): {
       wardResultId,
     }: {
       questFolderPath: FilePath;
-      wardResultId: string;
+      wardResultId: WardResult['id'];
     }): unknown =>
       writeHandle.writtenContentsFor({
         path: resultFilePathFor({ questFolderPath, wardResultId }),
@@ -102,7 +102,7 @@ export const wardPersistResultBrokerProxy = (): {
       wardResultId,
     }: {
       questFolderPath: FilePath;
-      wardResultId: string;
+      wardResultId: WardResult['id'];
     }): unknown => resultFilePathFor({ questFolderPath, wardResultId }),
 
     getMkdirPaths: (): readonly unknown[] =>

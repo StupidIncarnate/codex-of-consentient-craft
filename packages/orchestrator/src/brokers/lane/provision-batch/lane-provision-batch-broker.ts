@@ -110,10 +110,10 @@ export const laneProvisionBatchBroker = async ({
 
       const rawManifest = await siegelenseBrokers.instanceStartBroker({
         specName: laneStatics.defaults.specName,
-        questId: String(quest.id),
+        questId: quest.id,
         // questFindQuestPathBroker always resolves a guildId for an existing quest — every guild
         // owns its quests, so there is no quest this router dispatches for that has none.
-        guildId: String(guildId),
+        guildId: guildId,
         seed: null,
       });
       const manifest = laneManifestReadingContract.parse(rawManifest);

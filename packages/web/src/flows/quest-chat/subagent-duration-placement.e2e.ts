@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -7,7 +8,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { subagentDurationHarness } from '../../../test/harnesses/subagent-duration/subagent-duration.harness';
 import { subagentDurationPlacementHarness } from '../../../test/harnesses/subagent-duration-placement/subagent-duration-placement.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-placement';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-placement' });
 const PANEL_TIMEOUT = 10_000;
 const CHAIN_TIMEOUT = 10_000;
 const CHAIN_DESCRIPTION = 'Sub-agent duration placement work';
@@ -68,13 +69,13 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Placement Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       workItems: [
@@ -90,7 +91,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -140,14 +141,14 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Styling Quest',
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath,
       status: 'in_progress',
       workItems: [
@@ -170,7 +171,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

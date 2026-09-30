@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-execution-active-row-collapse';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-execution-active-row-collapse' });
 const PANEL_TIMEOUT = 5_000;
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
@@ -43,7 +45,7 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Active Row Collapse Quest',
       userRequest: 'Build the feature',
     });
@@ -54,8 +56,8 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     // auto-expand effect under test; the row name resolves from the operation `text`.
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c1';
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'in_progress',
       operations: [
@@ -84,7 +86,7 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

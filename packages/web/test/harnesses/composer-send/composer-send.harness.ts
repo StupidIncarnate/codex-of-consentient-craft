@@ -14,6 +14,7 @@
  * const states = await send.readComposerSendStates();
  * const posts = send.readPosts();
  */
+import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import {
   existsSync,
   readFileBytesSync,
@@ -372,7 +373,7 @@ export const composerSendHarness = ({
   readToastTexts: () => Promise<readonly unknown[]>;
   readThumbnailCount: () => Promise<unknown>;
   readQuestImagesDir: (params: { questFilePath: string }) => Promise<QuestImagesDirSummary>;
-  resolveNewQuestFilePath: (params: { guildId: string; questId: string }) => unknown;
+  resolveNewQuestFilePath: (params: { guildId: Guild['id']; questId: Quest['id'] }) => unknown;
   readImageFileBase64: (params: { filePath: string }) => unknown;
   dispatchEnterKeydown: () => Promise<boolean>;
   clickSendButtonTwiceWithNoAwaitBetween: () => Promise<void>;
@@ -470,8 +471,8 @@ export const composerSendHarness = ({
       guildId,
       questId,
     }: {
-      guildId: string;
-      questId: string;
+      guildId: Guild['id'];
+      questId: Quest['id'];
     }): unknown => {
       const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
       if (dungeonmasterHome === undefined) {

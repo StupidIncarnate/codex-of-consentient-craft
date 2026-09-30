@@ -1,10 +1,11 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { GetQuestWorkLayerResponderProxy } from './get-quest-work-layer-responder.proxy';
 
-const QUEST_ID = 'add-auth';
+const QUEST_ID = QuestIdStub({ value: 'add-auth' });
 const WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const OPERATION_ITEM_ID = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479';
 const PLAN_MARKDOWN = '# Plan for operation item a1b2c3d4\n\n| unit | mark | claimed by |';

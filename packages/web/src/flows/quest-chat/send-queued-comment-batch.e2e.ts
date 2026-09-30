@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -12,7 +14,7 @@ import {
   SEND_OBSERVABLE_ID,
 } from '../../../test/harnesses/comment-queue-send/comment-queue-send.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-send-queued-comment-batch';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-queued-comment-batch' });
 const SEND_TIMEOUT = 15_000;
 // The queue bar's immediate-sibling-of-ACTION_BAR CSS pairing, expressed declaratively rather
 // than via a browser-evaluated conditional — proves DOM adjacency without a JS if/&&.
@@ -52,7 +54,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Empty Queue Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Empty Queue Guild' }) });
 
     await expect(send.queueBar()).toHaveCount(0);
   });
@@ -69,7 +71,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Sibling Order Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Sibling Order Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'sibling order check',
@@ -91,7 +93,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Scroll Visible Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Scroll Visible Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'scroll visibility check',
@@ -117,7 +119,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Three Queued Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Three Queued Guild' }) });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'alpha note' });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'beta' }), text: 'beta note' });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'gamma' }), text: 'gamma note' });
@@ -139,7 +141,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Clear Wipes Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Clear Wipes Guild' }) });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'will be cleared' });
     expect(await send.hasQueueKey()).toBe(true);
 
@@ -162,7 +164,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Requeue After Clear Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Requeue After Clear Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'the original note before clear',
@@ -203,7 +205,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Post Body Shape Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Post Body Shape Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'this step is wrong',
@@ -246,7 +248,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Send Hollows Bubbles Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Send Hollows Bubbles Guild' }) });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'alpha note' });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'beta' }), text: 'beta note' });
     await send.queueCommentOn({ card: send.observableCard(), text: 'observable note' });
@@ -277,7 +279,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Post Observable Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Post Observable Guild' }) });
     await send.queueCommentOn({
       card: send.observableCard(),
       text: 'this assertion is wrong',
@@ -319,7 +321,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Network Failure Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Network Failure Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'never leaves the browser',
@@ -349,7 +351,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Stale Anchor Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Stale Anchor Guild' }) });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'alpha survives' });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'beta' }), text: 'beta gets pruned' });
     await send.queueCommentOn({ card: send.nodeCard({ which: 'gamma' }), text: 'gamma survives' });
@@ -378,7 +380,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Cleared Only After 200 Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Cleared Only After 200 Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'survives a 500, clears on 200',
@@ -427,7 +429,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Badge Appears Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Badge Appears Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'gamma' }),
       text: 'gamma needs a second look',
@@ -460,7 +462,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'User Turn In Chat Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'User Turn In Chat Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'alpha needs a rewrite',
@@ -491,7 +493,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Second Round Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Second Round Guild' }) });
 
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
@@ -533,7 +535,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Requeue After Send Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Requeue After Send Guild' }) });
 
     await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'sent comment' });
     send.queueClaudeResponse({ text: 'Reviewing the sent comment' });
@@ -565,7 +567,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Resend After Prune Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Resend After Prune Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'alpha survives resend',
@@ -620,7 +622,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Clear Then Send Cycle Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Clear Then Send Cycle Guild' }) });
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),
       text: 'discarded before send',
@@ -670,7 +672,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
       sessions,
       claudeMock,
     });
-    await send.seedAndOpen({ guildName: 'Clear Leaves Quest Comments Guild' });
+    await send.seedAndOpen({ guildName: GuildNameStub({ value: 'Clear Leaves Quest Comments Guild' }) });
 
     await send.queueCommentOn({
       card: send.nodeCard({ which: 'alpha' }),

@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -12,7 +13,7 @@ import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/ass
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
-const GUILD_PATH = '/tmp/dm-e2e-chat-stop-pauses-quest';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-chat-stop-pauses-quest' });
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const CHAT_TIMEOUT = 10_000;
@@ -49,7 +50,7 @@ test.describe('Chat STOP pauses quest', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Chat Stop Pauses Quest',
       userRequest: 'Build feature',
     });
@@ -61,8 +62,8 @@ test.describe('Chat STOP pauses quest', () => {
     // which in turn routes the chat STOP button to `questPauseBroker` instead of the
     // generic chat-stop broker.
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'explore_flows',
       workItems: [
@@ -105,7 +106,7 @@ test.describe('Chat STOP pauses quest', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     // Wait for quest data + spec panel to appear so questWithContent is truthy.
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });

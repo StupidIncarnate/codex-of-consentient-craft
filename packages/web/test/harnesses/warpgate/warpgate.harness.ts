@@ -13,11 +13,11 @@
  * warpgate.seedWarpgateQuest({ questId, questFolder, questFilePath, status: 'merging', warpgateStatus: 'in_progress' });
  * warpgate.seedFollowupTurns({ sessionId, turns: [{ role: 'user', text: 'hi' }, { role: 'assistant', text: 'hello' }] });
  */
+import type { Guild, FilePath, GuildId, Quest, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
-import type { FilePath, GuildId, Quest, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -37,9 +37,9 @@ export const warpgateHarness = ({
   guildPath,
 }: {
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
 }): {
-  setup: (params: { guildName: string; title: string }) => Promise<{
+  setup: (params: { guildName: Guild['name']; title: string }) => Promise<{
     guildId: GuildId;
     urlSlug: UrlSlug;
     questId: QuestId;
@@ -52,8 +52,8 @@ export const warpgateHarness = ({
     questFilePath: FilePath;
   }>;
   seedWarpgateQuest: (params: {
-    questId: string;
-    questFolder: string;
+    questId: Quest['id'];
+    questFolder: Quest['folder'];
     questFilePath: string;
     title?: string;
     status: string;
@@ -73,7 +73,7 @@ export const warpgateHarness = ({
     guildName,
     title,
   }: {
-    guildName: string;
+    guildName: Guild['name'];
     title: string;
   }): Promise<{
     guildId: GuildId;
@@ -86,7 +86,7 @@ export const warpgateHarness = ({
     const guildId = guilds.extractGuildId({ guild });
     const urlSlug = guilds.extractUrlSlug({ guild });
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title,
       userRequest: 'Build the feature',
     });
@@ -116,7 +116,7 @@ export const warpgateHarness = ({
     questFilePath: FilePath;
   }> => {
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title,
       userRequest: 'Build the feature',
     });
@@ -141,8 +141,8 @@ export const warpgateHarness = ({
     warpgateStatus,
     tavernkeeperSessionId,
   }: {
-    questId: string;
-    questFolder: string;
+    questId: Quest['id'];
+    questFolder: Quest['folder'];
     questFilePath: string;
     title?: string;
     status: string;

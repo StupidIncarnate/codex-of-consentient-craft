@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -8,7 +10,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-composer-paste-draft-reload';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-paste-draft-reload' });
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
@@ -69,14 +71,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload State Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -89,7 +91,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -151,14 +153,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Send Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -172,7 +174,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -223,14 +225,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Tokens Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -243,7 +245,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -276,14 +278,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Bytes Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -296,7 +298,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -332,14 +334,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Count Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -352,7 +354,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -407,14 +409,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Order Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -427,7 +429,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -483,14 +485,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Renders Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -503,7 +505,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -561,14 +563,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Bounded Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -581,7 +583,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -641,14 +643,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Serialize Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -661,7 +663,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -719,14 +721,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Sends Bytes Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -740,7 +742,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -811,14 +813,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     const sessionIdA = `e2e-draft-reload-writes-a-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Writes A Quest',
       userRequest: 'Build feature',
     });
     const questIdA = String(createdA.questId);
     await quests.writeQuestFile({
-      questId: questIdA,
-      questFolder: String(createdA.questFolder),
+      questId: QuestIdStub({ value: questIdA }),
+      questFolder: createdA.questFolder,
       questFilePath: String(createdA.filePath),
       status: 'explore_flows',
       workItems: [
@@ -834,7 +836,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       response: SimpleTextResponseStub({ sessionId: sessionIdA, text: 'ack a' }),
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questIdA });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdA }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -871,14 +873,14 @@ test.describe('Composer paste — draft persists across reload and restores into
     const sessionIdB = `e2e-draft-reload-writes-b-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Reload Writes B Quest',
       userRequest: 'Build feature',
     });
     const questIdB = String(createdB.questId);
     await quests.writeQuestFile({
-      questId: questIdB,
-      questFolder: String(createdB.questFolder),
+      questId: QuestIdStub({ value: questIdB }),
+      questFolder: createdB.questFolder,
       questFilePath: String(createdB.filePath),
       status: 'explore_flows',
       workItems: [
@@ -894,7 +896,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       response: SimpleTextResponseStub({ sessionId: sessionIdB, text: 'ack b' }),
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questIdB });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdB }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -973,14 +975,14 @@ test.describe('Composer paste — a draft database missing its store heals itsel
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Store Heals Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -1000,7 +1002,7 @@ test.describe('Composer paste — a draft database missing its store heals itsel
     await composer.seedDecoyDraftDatabase();
     expect(await composer.readDraftDatabaseStoreNames()).toStrictEqual(['decoy-store']);
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();

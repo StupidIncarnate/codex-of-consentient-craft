@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
@@ -13,7 +15,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-followup-rejection';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-rejection' });
 
 const HTTP_BAD_REQUEST = 400;
 const HTTP_OK = 200;
@@ -97,7 +99,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
     }) => {
       const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
       const { questId, questFilePath } = await followup.seedAndOpen({
-        guildName: `Followup Rejection ${status} Guild`,
+        guildName: GuildNameStub({ value: `Followup Rejection ${status} Guild` }),
         status: OPENED_AT_STATUS,
       });
 
@@ -138,7 +140,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
     const { questFilePath } = await followup.seedAndOpen({
-      guildName: 'Followup Rejection Hostile Guild',
+      guildName: GuildNameStub({ value: 'Followup Rejection Hostile Guild' }),
       status: OPENED_AT_STATUS,
     });
 
@@ -182,7 +184,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
     });
 
     const { questId } = await followup.seedAndOpen({
-      guildName: 'Followup Rejection Accepted Guild',
+      guildName: GuildNameStub({ value: 'Followup Rejection Accepted Guild' }),
       status: OPENED_AT_STATUS,
     });
 

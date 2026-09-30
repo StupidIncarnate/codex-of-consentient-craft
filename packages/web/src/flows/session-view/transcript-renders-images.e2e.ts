@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -6,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-transcript-renders-images';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-renders-images' });
 const PANEL_TIMEOUT = 8_000;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -40,7 +41,7 @@ test.describe('Transcript renders images', () => {
       userRequest: 'Build the feature',
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
     await expect(page.getByTestId('CHAT_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('CHAT_INPUT')).toHaveCount(1);
 

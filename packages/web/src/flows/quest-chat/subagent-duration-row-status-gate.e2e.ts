@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -6,7 +7,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { subagentDurationHarness } from '../../../test/harnesses/subagent-duration/subagent-duration.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-row-status-gate';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-row-status-gate' });
 const PANEL_TIMEOUT = 10_000;
 const CHAIN_TIMEOUT = 10_000;
 
@@ -96,13 +97,13 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Row Status Gate Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       operations: [
@@ -140,7 +141,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -212,13 +213,13 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration No Start Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       operations: [
@@ -238,7 +239,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

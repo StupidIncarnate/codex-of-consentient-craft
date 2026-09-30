@@ -1,3 +1,4 @@
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { console } from '#gateway/browser/console';
 import * as guildSessionListBrokerModule from '../../brokers/guild/session-list/guild-session-list-broker';
 
@@ -29,7 +30,7 @@ const rejectWithPoisonToString = async (): Promise<never> => {
 export const useSessionListBindingProxy = (): {
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupError: () => void;
-  setupOuterCatchTrigger: (params: { guildId: string }) => void;
+  setupOuterCatchTrigger: (params: { guildId: Guild['id'] }) => void;
   getConsoleErrorCalls: () => unknown[][];
   getConsoleErrorHandle: () => SpyOnHandle;
 } => {
@@ -51,7 +52,7 @@ export const useSessionListBindingProxy = (): {
     setupError: (): void => {
       brokerProxy.setupError();
     },
-    setupOuterCatchTrigger: ({ guildId }: { guildId: string }): void => {
+    setupOuterCatchTrigger: ({ guildId }: { guildId: Guild['id'] }): void => {
       const brokerHandle: MockHandle = registerSpyOn({
         object: guildSessionListBrokerModule,
         method: 'guildSessionListBroker',

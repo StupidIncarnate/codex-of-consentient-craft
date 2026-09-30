@@ -12,6 +12,8 @@
  * await launches.revealParentChainEntries();
  * expect(await launches.paintedOrderInParentChainIs({ order: 'parentBefore|nestedChain' })).toBe(true);
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import {
@@ -128,10 +130,10 @@ export const subagentLaunchOrderHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedBackgroundLaunchQuest: (params: { guildName: string }) => Promise<void>;
+  seedBackgroundLaunchQuest: (params: { guildName: Guild['name'] }) => Promise<void>;
   revealParentChainEntries: () => Promise<void>;
   paintedOrderInParentChainIs: (params: { order: string }) => Promise<boolean>;
 } => {
@@ -296,7 +298,7 @@ export const subagentLaunchOrderHarness = ({
   return {
     // An `in_progress` work item auto-opens its execution row, so both chains are on screen — the
     // arrangement the reader saw the background explorers stranded in.
-    seedBackgroundLaunchQuest: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedBackgroundLaunchQuest: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       const guilds = guildHarness({ request });
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });
@@ -311,14 +313,14 @@ export const subagentLaunchOrderHarness = ({
       });
 
       const created = await quests.createQuest({
-        guildId: String(guild.id),
+        guildId: GuildIdStub({ value: guild.id }),
         title: 'E2E Background Launch Order Quest',
         userRequest: 'Build the shared slice',
       });
 
       await quests.writeQuestFile({
-        questId: String(created.questId),
-        questFolder: String(created.questFolder),
+        questId: created.questId,
+        questFolder: created.questFolder,
         questFilePath: String(created.filePath),
         status: 'in_progress',
         workItems: [
@@ -333,7 +335,7 @@ export const subagentLaunchOrderHarness = ({
 
       await nav.navigateToQuest({
         urlSlug: guilds.extractUrlSlug({ guild }),
-        questId: String(created.questId),
+        questId: created.questId,
       });
       await page
         .getByTestId('execution-panel-widget')

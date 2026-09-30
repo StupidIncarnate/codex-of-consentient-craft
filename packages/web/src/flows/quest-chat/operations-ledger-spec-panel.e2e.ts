@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-operations-ledger-spec-panel';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-operations-ledger-spec-panel' });
 const PANEL_TIMEOUT = 10_000;
 
 // Fixed operation-item ids so the seed and the assertions reference the same ledger rows.
@@ -36,14 +38,14 @@ test.describe('Operations ledger in the quest spec panel', () => {
     // the OTHER ledger surface from the execution panel: the QuestSpecPanelWidget's OPERATIONS
     // section, rendered directly for a pre-execution quest (shouldRenderExecutionPanel = false).
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Spec Panel Ledger Quest',
       userRequest: 'Build the feature',
     });
 
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       title: 'Spec Panel Ledger Quest',
       status: 'review_observables',
@@ -63,7 +65,7 @@ test.describe('Operations ledger in the quest spec panel', () => {
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

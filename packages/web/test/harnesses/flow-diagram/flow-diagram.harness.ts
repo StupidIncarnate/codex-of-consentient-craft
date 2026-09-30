@@ -10,6 +10,8 @@
  * await diagram.seedAndOpen({ guildName: 'Diagram Guild' });
  * expect(await diagram.nodesDoNotOverlap()).toBe(true);
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
@@ -325,10 +327,10 @@ export const flowDiagramHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedAndOpen: (params: { guildName: string }) => Promise<void>;
+  seedAndOpen: (params: { guildName: Guild['name'] }) => Promise<void>;
   hasExpectedNodeCount: () => Promise<boolean>;
   nodesHaveDistinctCoordinates: () => Promise<boolean>;
   nodesDoNotOverlap: () => Promise<boolean>;
@@ -405,7 +407,7 @@ export const flowDiagramHarness = ({
   };
 
   return {
-    seedAndOpen: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedAndOpen: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });
       const guild = await guildHarness({ request }).createGuild({
@@ -418,7 +420,7 @@ export const flowDiagramHarness = ({
       await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       const created = await quests.createQuest({
-        guildId,
+        guildId: GuildIdStub({ value: guildId }),
         title: 'E2E Flow Diagram Quest',
         userRequest: 'Build the feature',
       });
@@ -428,8 +430,8 @@ export const flowDiagramHarness = ({
       // Begin Quest modal on load, which is dismissed below so its overlay doesn't intercept
       // diagram interaction clicks.
       await quests.writeQuestFile({
-        questId: String(created.questId),
-        questFolder: String(created.questFolder),
+        questId: created.questId,
+        questFolder: created.questFolder,
         questFilePath: String(created.filePath),
         status: 'approved',
         workItems: [
@@ -448,7 +450,7 @@ export const flowDiagramHarness = ({
       const urlSlug = String(guild.urlSlug ?? guild.name)
         .toLowerCase()
         .replace(/\s+/gu, '-');
-      await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+      await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
       await page
         .getByTestId('QUEST_SPEC_PANEL')

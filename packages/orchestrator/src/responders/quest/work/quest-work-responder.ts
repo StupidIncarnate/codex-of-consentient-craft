@@ -15,6 +15,7 @@
  * what the message names and calls again.
  */
 
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
 import { questWorkResultContract } from '../../../contracts/quest-work-result/quest-work-result-contract';
 import type { QuestWorkResult } from '../../../contracts/quest-work-result/quest-work-result-contract';
@@ -26,8 +27,8 @@ export const QuestWorkResponder = async ({
   workItemId,
   payload,
 }: {
-  questId: string;
-  workItemId: string;
+  questId: Quest['id'];
+  workItemId: WorkItem['id'];
   payload: unknown;
 }): Promise<QuestWorkResult> => {
   const parsed = questWorkInputContract.parse({ questId, workItemId, payload });

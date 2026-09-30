@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-const GUILD_PATH = '/tmp/dm-e2e-followup-post-quest-bar';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-post-quest-bar' });
 
 // Derive every matrix from the SAME statics source the guards read (isFollowupChatableQuestStatusGuard
 // / isMergeableQuestStatusGuard) — never hand-maintain a parallel list. A status added later is
@@ -47,7 +49,7 @@ test.describe('Post-quest action bar gating', () => {
       request,
     }) => {
       const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-      await followup.seedAndOpen({ guildName: `Bar Visible ${status} Guild`, status });
+      await followup.seedAndOpen({ guildName: GuildNameStub({ value: `Bar Visible ${status} Guild` }), status });
 
       expect(await followup.postQuestBarVisible()).toBe(true);
       expect(await followup.followupButtonVisible()).toBe(true);
@@ -60,7 +62,7 @@ test.describe('Post-quest action bar gating', () => {
   for (const status of EXECUTION_RENDERED_NOT_CHATABLE_STATUSES) {
     test(`INVALID: {status: ${status}} => post-quest bar is absent`, async ({ page, request }) => {
       const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-      await followup.seedAndOpen({ guildName: `Bar Hidden ${status} Guild`, status });
+      await followup.seedAndOpen({ guildName: GuildNameStub({ value: `Bar Hidden ${status} Guild` }), status });
 
       await expect(page.getByTestId('execution-panel-widget')).toBeVisible();
       expect(await followup.postQuestBarVisible()).toBe(false);
@@ -74,7 +76,7 @@ test.describe('Post-quest action bar gating', () => {
       request,
     }) => {
       const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-      await followup.seedAndOpen({ guildName: `Merge Segment ${status} Guild`, status });
+      await followup.seedAndOpen({ guildName: GuildNameStub({ value: `Merge Segment ${status} Guild` }), status });
 
       expect(await followup.postQuestBarVisible()).toBe(true);
       expect(await followup.mergeButtonVisible()).toBe(true);
@@ -90,7 +92,7 @@ test.describe('Post-quest action bar gating', () => {
       request,
     }) => {
       const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-      await followup.seedAndOpen({ guildName: `Merge Segment Absent ${status} Guild`, status });
+      await followup.seedAndOpen({ guildName: GuildNameStub({ value: `Merge Segment Absent ${status} Guild` }), status });
 
       expect(await followup.postQuestBarVisible()).toBe(true);
       expect(await followup.followupButtonVisible()).toBe(true);
@@ -106,7 +108,7 @@ test.describe('Post-quest action bar gating', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: 'Bars Stack Cleanly Guild', status: 'blocked' });
+    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Bars Stack Cleanly Guild' }), status: 'blocked' });
 
     expect(await followup.actionBarVisible()).toBe(true);
     expect(await followup.postQuestBarVisible()).toBe(true);

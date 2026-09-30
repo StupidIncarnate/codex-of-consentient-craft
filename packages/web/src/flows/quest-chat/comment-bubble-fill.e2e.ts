@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { commentBoxHarness } from '../../../test/harnesses/comment-box/comment-box.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-comment-bubble-fill';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-comment-bubble-fill' });
 const REVIEW_FLOWS = 'review_flows';
 // The seeded flow paints three FLOW_NODE cards and two FLOW_OBSERVABLE_NODE cards, so five boxes
 // carry a bubble. Every count assertion below is against this total: "one filled" only means
@@ -33,7 +35,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Alignment Guild',
+      guildName: GuildNameStub({ value: 'Bubble Alignment Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -53,7 +55,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Open Fill Guild',
+      guildName: GuildNameStub({ value: 'Bubble Open Fill Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -77,7 +79,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Cancel Guild',
+      guildName: GuildNameStub({ value: 'Bubble Cancel Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -102,7 +104,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Queue Guild',
+      guildName: GuildNameStub({ value: 'Bubble Queue Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -128,7 +130,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Observable Guild',
+      guildName: GuildNameStub({ value: 'Bubble Observable Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -152,7 +154,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Reload Guild',
+      guildName: GuildNameStub({ value: 'Bubble Reload Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -184,7 +186,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Delete Guild',
+      guildName: GuildNameStub({ value: 'Bubble Delete Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -216,7 +218,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Clear Guild',
+      guildName: GuildNameStub({ value: 'Bubble Clear Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -246,7 +248,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Tab Mark Guild',
+      guildName: GuildNameStub({ value: 'Bubble Tab Mark Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -285,7 +287,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: 'Bubble Tab Mark Clear Guild',
+      guildName: GuildNameStub({ value: 'Bubble Tab Mark Clear Guild' }),
       status: REVIEW_FLOWS,
       withSession: true,
     });

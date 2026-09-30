@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -6,7 +7,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionSubagentDurationHarness } from '../../../test/harnesses/session-subagent-duration/session-subagent-duration.harness';
 import { subagentDurationHarness } from '../../../test/harnesses/subagent-duration/subagent-duration.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-session-no-tick';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-session-no-tick' });
 const PANEL_TIMEOUT = 10_000;
 const CHAIN_TIMEOUT = 10_000;
 
@@ -128,13 +129,13 @@ test.describe('The session transcript route never grows its own elapsed-tick clo
     const RUNNING_TEXT = 'codeweaver: subagent duration session same test id row';
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Session Same Test Id Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       operations: [{ id: RUNNING_OP, role: 'codeweaver', text: RUNNING_TEXT, status: 'complete' }],
@@ -149,7 +150,7 @@ test.describe('The session transcript route never grows its own elapsed-tick clo
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

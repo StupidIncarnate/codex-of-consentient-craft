@@ -1,3 +1,4 @@
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -28,8 +29,8 @@ describe('questMonitorWatcherStartBroker', () => {
       const handle = await questMonitorWatcherStartBroker({
         parentSessionId: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
         projectDir: '/home/user/my-project',
-        workerWorkItemId: String(WorkItemStub().id),
-        workerQuestId: String(QuestIdStub({ value: 'ffffffff-0000-1111-2222-333333333333' })),
+        workerWorkItemId: WorkItemStub().id,
+        workerQuestId: QuestIdStub({ value: 'ffffffff-0000-1111-2222-333333333333' }),
         emit: (): void => {
           // no-op — emit recording covered by per-output assertions below
         },
@@ -71,8 +72,8 @@ describe('questMonitorWatcherStartBroker', () => {
       const handle = await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
-        workerWorkItemId,
-        workerQuestId,
+        workerWorkItemId: QuestWorkItemIdStub({ value: workerWorkItemId }),
+        workerQuestId: QuestIdStub({ value: workerQuestId }),
         emit: (call) => {
           emitted.push(call);
         },
@@ -109,8 +110,8 @@ describe('questMonitorWatcherStartBroker', () => {
       const handle = await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
-        workerWorkItemId: String(WorkItemStub().id),
-        workerQuestId: String(QuestIdStub({ value: 'd1d3dc17-dd42-495e-af8a-8e1e84e470db' })),
+        workerWorkItemId: WorkItemStub().id,
+        workerQuestId: QuestIdStub({ value: 'd1d3dc17-dd42-495e-af8a-8e1e84e470db' }),
         emit: (call) => {
           emitted.push(call);
         },
@@ -169,8 +170,8 @@ describe('questMonitorWatcherStartBroker', () => {
       await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
-        workerWorkItemId,
-        workerQuestId,
+        workerWorkItemId: QuestWorkItemIdStub({ value: workerWorkItemId }),
+        workerQuestId: QuestIdStub({ value: workerQuestId }),
         emit: (call) => {
           emitted.push(call);
         },
@@ -261,8 +262,8 @@ describe('questMonitorWatcherStartBroker', () => {
       await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
-        workerWorkItemId,
-        workerQuestId,
+        workerWorkItemId: QuestWorkItemIdStub({ value: workerWorkItemId }),
+        workerQuestId: QuestIdStub({ value: workerQuestId }),
         emit: (call) => {
           emitted.push(call);
         },

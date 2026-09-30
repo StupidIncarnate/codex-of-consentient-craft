@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -10,7 +11,7 @@ describe('QuestGetPlanningNotesResponder', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
       proxy.setupQuestFound({ quest });
 
-      const result = await proxy.callResponder({ questId: 'add-auth' });
+      const result = await proxy.callResponder({ questId: QuestIdStub({ value: 'add-auth' }) });
 
       expect(result).toStrictEqual({
         success: true,
@@ -34,7 +35,7 @@ describe('QuestGetPlanningNotesResponder', () => {
       });
       proxy.setupQuestFound({ quest });
 
-      const result = await proxy.callResponder({ questId: 'add-auth' });
+      const result = await proxy.callResponder({ questId: QuestIdStub({ value: 'add-auth' }) });
 
       expect(result).toStrictEqual({
         success: true,
@@ -52,7 +53,7 @@ describe('QuestGetPlanningNotesResponder', () => {
       const proxy = QuestGetPlanningNotesResponderProxy();
       proxy.setupQuestNotFound();
 
-      const result = await proxy.callResponder({ questId: 'nonexistent' });
+      const result = await proxy.callResponder({ questId: QuestIdStub({ value: 'nonexistent' }) });
 
       expect(result).toStrictEqual({
         success: false,

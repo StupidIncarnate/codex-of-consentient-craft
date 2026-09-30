@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-execution-panel-paused-row-expandable';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-execution-panel-paused-row-expandable' });
 const PANEL_TIMEOUT = 5_000;
 const REPLAY_TEXT_TIMEOUT = 5_000;
 
@@ -47,7 +49,7 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
     });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Paused Row Expandable Quest',
       userRequest: 'Build the feature',
     });
@@ -56,8 +58,8 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
 
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c2';
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'paused',
       operations: [
@@ -86,7 +88,7 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

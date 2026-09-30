@@ -1,14 +1,6 @@
+import type { WardResult, AbsoluteFilePath, FileContents, FilePath, GuildId, OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import type {
-  AbsoluteFilePath,
-  FileContents,
-  FilePath,
-  GuildId,
-  OrchestrationEventType,
-  ProcessId,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
 
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
 import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';
@@ -106,7 +98,7 @@ export const ServerInitResponderProxy = (): {
     questId: QuestId;
     questPath: AbsoluteFilePath;
     guildId: GuildId;
-    wardResultId: string;
+    wardResultId: WardResult['id'];
     wardResultsPath: FilePath;
     detailFilePath: FilePath;
     contents: FileContents;
@@ -282,7 +274,7 @@ export const ServerInitResponderProxy = (): {
       questId: QuestId;
       questPath: AbsoluteFilePath;
       guildId: GuildId;
-      wardResultId: string;
+      wardResultId: WardResult['id'];
       wardResultsPath: FilePath;
       detailFilePath: FilePath;
       contents: FileContents;

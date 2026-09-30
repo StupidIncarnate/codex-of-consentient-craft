@@ -47,7 +47,7 @@ describe('QuestHandleResponder', () => {
       // quest.comments defaults to [] via QuestStub — delete it AFTER building questResult above,
       // so the deletion only shapes what we expect back, never what fed the mock.
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -74,7 +74,7 @@ describe('QuestHandleResponder', () => {
         quest: QuestStub(),
         flowSlice: '## Flow: #login-flow — "Log in"',
       });
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -92,7 +92,7 @@ describe('QuestHandleResponder', () => {
         quest: QuestStub(),
         flowSlice: '## Flow: #login-flow — "Log in"',
       });
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -109,7 +109,7 @@ describe('QuestHandleResponder', () => {
       const quest = QuestStub();
       const questResult = GetQuestResultStub({ quest });
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -131,7 +131,7 @@ describe('QuestHandleResponder', () => {
       const quest = QuestStub();
       const questResult = GetQuestResultStub({ success: false, quest });
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -160,7 +160,7 @@ describe('QuestHandleResponder', () => {
       });
       const questResult = GetQuestResultStub({ quest });
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -194,7 +194,7 @@ describe('QuestHandleResponder', () => {
         });
         const questResult = GetQuestResultStub({ quest });
         Reflect.deleteProperty(quest, 'comments');
-        proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+        proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
         const result = await proxy.callResponder({
           tool: ToolNameStub({ value: 'get-quest' }),
@@ -217,7 +217,7 @@ describe('QuestHandleResponder', () => {
       const quest = QuestStub();
       const questResult = GetQuestResultStub({ success: false, quest });
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -241,7 +241,7 @@ describe('QuestHandleResponder', () => {
         comments: [QuestCommentStub({ text: TEXT_FORMAT_SENTINEL_COMMENT })],
       });
       const questResult = GetQuestResultStub({ quest });
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -286,7 +286,7 @@ describe('QuestHandleResponder', () => {
       });
       const questResult = GetQuestResultStub({ quest });
       Reflect.deleteProperty(quest, 'comments');
-      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+      proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -308,7 +308,7 @@ describe('QuestHandleResponder', () => {
 
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
-      proxy.setupGetQuestThrows({ questId: 'test-quest-id', error: new Error('Quest not found') });
+      proxy.setupGetQuestThrows({ questId: QuestIdStub({ value: 'test-quest-id' }), error: new Error('Quest not found') });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest' }),
@@ -335,7 +335,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {questId, input} => returns modify result', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -355,7 +355,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {unsuccessful result} => returns isError true', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub({ success: false });
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -376,7 +376,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {workItems in args} => strips workItems before passing to adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -387,7 +387,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -398,7 +398,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {wardResults in args} => strips wardResults before passing to adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -408,7 +408,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -418,7 +418,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {pausedAtStatus in args} => strips pausedAtStatus before passing to adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -428,7 +428,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -438,7 +438,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {comments in args} => strips comments before passing to adapter, and still succeeds', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -456,7 +456,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -477,7 +477,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {comments in args, edit shape {id, text}} => strips comments before passing to adapter, and still succeeds', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -492,7 +492,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -510,7 +510,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {comments in args, delete shape {id, _delete: true}} => strips comments before passing to adapter, and still succeeds', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -525,7 +525,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -543,7 +543,7 @@ describe('QuestHandleResponder', () => {
     it('EDGE: {planningNotes in args} => passes planningNotes through sanitization unchanged', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -565,7 +565,7 @@ describe('QuestHandleResponder', () => {
         },
       });
 
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+      const passedInput = proxy.getLastModifyInput({ questId: QuestIdStub({ value: 'test-quest-id' }) });
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
@@ -597,7 +597,7 @@ describe('QuestHandleResponder', () => {
           },
         ],
       });
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -624,7 +624,7 @@ describe('QuestHandleResponder', () => {
         success: false,
         error: 'Some unrelated failure',
       });
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -665,7 +665,7 @@ describe('QuestHandleResponder', () => {
           },
         ],
       });
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -705,7 +705,7 @@ describe('QuestHandleResponder', () => {
           },
         ],
       });
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -743,7 +743,7 @@ describe('QuestHandleResponder', () => {
           },
         ],
       });
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+      proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -772,7 +772,7 @@ describe('QuestHandleResponder', () => {
 
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
-      proxy.setupModifyQuestThrows({ questId: 'test-quest-id', error: new Error('Modify failed') });
+      proxy.setupModifyQuestThrows({ questId: QuestIdStub({ value: 'test-quest-id' }), error: new Error('Modify failed') });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'modify-quest' }),
@@ -1009,7 +1009,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {questId} => returns wrapped default planning-notes as JSON', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesReturns({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         result: {
           success: true,
           data: {
@@ -1060,7 +1060,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {unsuccessful result} => returns isError true', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesReturns({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         result: { success: false, error: ErrorMessageStub({ value: 'Quest not found' }) },
       });
 
@@ -1087,7 +1087,7 @@ describe('QuestHandleResponder', () => {
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesThrows({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         error: new Error('Notes unavailable'),
       });
 
@@ -1119,7 +1119,7 @@ describe('QuestHandleResponder', () => {
         value: '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed',
       });
       proxy.setupGetBlightChecklistReturns({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         result: { success: true, data: multiLineChecklist },
       });
 
@@ -1144,7 +1144,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {questId} => forwards questId to the blight layer responder', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetBlightChecklistReturns({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
       });
 
@@ -1153,7 +1153,7 @@ describe('QuestHandleResponder', () => {
         args: { questId: 'test-quest-id' },
       });
 
-      expect(proxy.getLastGetBlightChecklistInput({ questId: 'test-quest-id' })).toStrictEqual({
+      expect(proxy.getLastGetBlightChecklistInput({ questId: QuestIdStub({ value: 'test-quest-id' }) })).toStrictEqual({
         questId: 'test-quest-id',
       });
     });
@@ -1161,7 +1161,7 @@ describe('QuestHandleResponder', () => {
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetBlightChecklistThrows({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         error: new Error('Quest not found'),
       });
 
@@ -1256,7 +1256,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {questId} => dispatches to the summary layer responder and returns the RENDERED text', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetQuestSummaryReturns({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         summary: QuestSummaryStub({
           questId: 'test-quest-id',
           flows: [
@@ -1301,7 +1301,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {questId} => forwards it to the summary layer responder', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetQuestSummaryReturns({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         summary: QuestSummaryStub({ questId: 'test-quest-id' }),
       });
 
@@ -1310,7 +1310,7 @@ describe('QuestHandleResponder', () => {
         args: { questId: 'test-quest-id' },
       });
 
-      expect(proxy.getLastGetQuestSummaryInput({ questId: 'test-quest-id' })).toStrictEqual({
+      expect(proxy.getLastGetQuestSummaryInput({ questId: QuestIdStub({ value: 'test-quest-id' }) })).toStrictEqual({
         questId: 'test-quest-id',
       });
     });
@@ -1318,7 +1318,7 @@ describe('QuestHandleResponder', () => {
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetQuestSummaryThrows({
-        questId: 'test-quest-id',
+        questId: QuestIdStub({ value: 'test-quest-id' }),
         error: new Error('Quest not found'),
       });
 

@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import {
@@ -10,7 +12,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-dual-panel';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-dual-panel' });
 const CHAT_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 
@@ -49,7 +51,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Dual Panel Quest',
       userRequest: 'Build the feature',
     });
@@ -58,7 +60,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Overwrite quest.json with desired test data
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -78,7 +80,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
@@ -137,7 +139,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Dual Panel Stale Quest',
       userRequest: 'Build the feature',
     });
@@ -146,7 +148,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Overwrite quest.json with desired test data
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -170,7 +172,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
@@ -227,7 +229,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Dual Panel Load Quest',
       userRequest: 'Build the feature',
     });
@@ -236,7 +238,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Overwrite quest.json with desired test data
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -254,7 +256,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // Bug B: spec panel should load quest data via WebSocket without user interaction
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -283,7 +285,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Dual Panel History Quest',
       userRequest: 'Build the feature',
     });
@@ -292,7 +294,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Overwrite quest.json with flows for the spec panel
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -310,7 +312,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // Wait for history to fully replay — the Phase 1 text from the final assistant entry
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({
@@ -341,7 +343,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Dual Panel Reload Quest',
       userRequest: 'Build the feature',
     });
@@ -350,7 +352,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Overwrite quest.json with flows for the spec panel
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -366,7 +368,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // Wait for initial history load
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({

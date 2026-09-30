@@ -1,3 +1,4 @@
+import type { Guild } from '@dungeonmaster/shared/contracts';
 /**
  * PURPOSE: Represents an error when the requested guild id is not present in the dungeonmaster config (removed or never existed)
  *
@@ -10,7 +11,7 @@
  * WHEN-NOT-TO-USE: For per-call validation failures or transient I/O errors — those should remain plain Errors.
  */
 export class GuildNotFoundError extends Error {
-  public constructor({ guildId }: { guildId: string }) {
+  public constructor({ guildId }: { guildId: Guild['id'] }) {
     super(`Guild not found: ${guildId}`);
     this.name = 'GuildNotFoundError';
   }

@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +9,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-summary-human-check';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-summary-human-check' });
 const PANEL_TIMEOUT = 10_000;
 const SUMMARY_REQUEST_TIMEOUT = 15_000;
 const VERDICT_REQUEST_TIMEOUT = 15_000;
@@ -81,15 +84,15 @@ test.describe('A verifyByHuman criterion is judged from the summary panel', () =
     const guildId = String(guilds.extractGuildId({ guild }));
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Human Check Quest',
       userRequest: 'Ship the raid transition',
     });
     const questId = String(created.questId);
 
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       flows: HUMAN_CHECK_FLOWS,
@@ -117,7 +120,7 @@ test.describe('A verifyByHuman criterion is judged from the summary panel', () =
       { timeout: SUMMARY_REQUEST_TIMEOUT },
     );
 
-    await nav.navigateToQuest({ urlSlug: String(guilds.extractUrlSlug({ guild })), questId });
+    await nav.navigateToQuest({ urlSlug: String(guilds.extractUrlSlug({ guild })), questId: QuestIdStub({ value: questId }) });
 
     await summaryRequestPromise;
 

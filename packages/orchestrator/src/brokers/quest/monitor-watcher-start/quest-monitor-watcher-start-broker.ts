@@ -30,6 +30,7 @@
  * terminal event can be routed per-quest.
  */
 
+import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
 import {
   absoluteFilePathContract,
@@ -67,10 +68,10 @@ export const questMonitorWatcherStartBroker = async ({
   // The work item whose agent writes this session's MAIN JSONL — its own output, not
   // chatter. Names the tail's `proc-worker-` chatProcessId and is stamped on every
   // main-session emit so the web routes them to this work item's execution row.
-  workerWorkItemId: string;
+  workerWorkItemId: WorkItem['id'];
   // The quest owning `workerWorkItemId`, so the tail's stop-time terminal event can be
   // routed by the server's per-quest subscription filter.
-  workerQuestId: string;
+  workerQuestId: Quest['id'];
 }): Promise<{ stop: () => void }> => {
   const homeDir = absoluteFilePathContract.parse(homedir());
   const projectPath = absoluteFilePathContract.parse(projectDir);

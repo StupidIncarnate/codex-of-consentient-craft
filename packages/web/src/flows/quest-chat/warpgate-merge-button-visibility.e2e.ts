@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -6,7 +8,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { warpgateHarness } from '../../../test/harnesses/warpgate/warpgate.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-warpgate-merge-button';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-warpgate-merge-button' });
 const PANEL_TIMEOUT = 10_000;
 const MERGE_LABEL = 'Teleport with Booty (Merge)';
 const FOLLOWUP_LABEL = 'FOLLOW-UP';
@@ -42,7 +44,7 @@ test.describe('Warpgate merge button visibility', () => {
       const warpgate = warpgateHarness({ request, guildPath: GUILD_PATH });
       const nav = navigationHarness({ page });
       const { urlSlug, questId, questFolder, questFilePath } = await warpgate.setup({
-        guildName: `Merge Button ${status} Guild`,
+        guildName: GuildNameStub({ value: `Merge Button ${status} Guild` }),
         title,
       });
 
@@ -82,7 +84,7 @@ test.describe('Warpgate merge button visibility', () => {
     const warpgate = warpgateHarness({ request, guildPath: GUILD_PATH });
     const nav = navigationHarness({ page });
     const { urlSlug, questId, questFolder, questFilePath } = await warpgate.setup({
-      guildName: 'Merged Guild',
+      guildName: GuildNameStub({ value: 'Merged Guild' }),
       title: MARKUP_SHAPED_TITLE,
     });
 
@@ -136,7 +138,7 @@ test.describe('Warpgate merge button visibility', () => {
     // createGuild against this same GUILD_PATH answers an error body with no id and the quest
     // create that follows it fails contract validation instead.
     const completeSetup = await warpgate.setup({
-      guildName: 'Banner Guild',
+      guildName: GuildNameStub({ value: 'Banner Guild' }),
       title: 'Banner Complete Quest',
     });
     await warpgate.seedWarpgateQuest({

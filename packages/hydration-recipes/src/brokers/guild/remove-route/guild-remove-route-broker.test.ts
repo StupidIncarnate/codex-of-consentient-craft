@@ -1,3 +1,4 @@
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { guildRemoveRouteBroker } from './guild-remove-route-broker';
 import { guildRemoveRouteBrokerProxy } from './guild-remove-route-broker.proxy';
 import { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
@@ -10,7 +11,7 @@ describe('guildRemoveRouteBroker', () => {
       const proxy = guildRemoveRouteBrokerProxy();
       const target = DmTargetStub({});
       const guild = GuildStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      proxy.succeeds({ guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.succeeds({ guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }) });
 
       await expect(guildRemoveRouteBroker({ target, record: guild })).resolves.toBe(undefined);
     });

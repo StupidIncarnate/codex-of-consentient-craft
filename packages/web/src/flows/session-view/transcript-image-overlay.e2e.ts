@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -5,7 +6,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-transcript-image-overlay';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-image-overlay' });
 const PANEL_TIMEOUT = 8_000;
 const SQUARE_IMAGE_SIZE_PX = 20;
 const WIDE_IMAGE_WIDTH_PX = 2000;

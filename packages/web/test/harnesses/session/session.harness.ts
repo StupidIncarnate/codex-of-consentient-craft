@@ -6,6 +6,7 @@
  * await sessions.createSessionFile({ sessionId: 'abc', userMessage: 'Hello' });
  * // afterEach: cleans session directory
  */
+import type { Guild, AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { appendFile, ensureDir, readdir, rm, unlink } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
@@ -19,7 +20,6 @@ import {
   toolUseIdContract,
 } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
   AskUserQuestionToolResultStreamLineStub,
@@ -138,7 +138,7 @@ export const sessionHarness = ({
   guildPath,
   target,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
   target?: DmTarget;
 }): {
   beforeEach: () => Promise<void>;

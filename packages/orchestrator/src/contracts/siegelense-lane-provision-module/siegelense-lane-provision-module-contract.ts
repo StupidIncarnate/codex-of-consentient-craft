@@ -12,6 +12,7 @@
  *   siegelenseLaneProvisionModuleContract.parse(await dynamicImport({ path }));
  * await capacityReadBroker({ specName: 'default', poolSize: null });
  */
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export type CapacityReadBrokerFn = (params: {
@@ -20,8 +21,8 @@ export type CapacityReadBrokerFn = (params: {
 }) => Promise<unknown>;
 export type InstanceStartBrokerFn = (params: {
   specName: string;
-  questId: string | null;
-  guildId: string | null;
+  questId: Quest['id'] | null;
+  guildId: Guild['id'] | null;
   seed: string | null;
 }) => Promise<unknown>;
 

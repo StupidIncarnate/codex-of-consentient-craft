@@ -7,6 +7,7 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
  */
 
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
 import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
@@ -50,10 +51,10 @@ type GetPlanningNotesParams = Parameters<typeof StartOrchestrator.getPlanningNot
 
 export const QuestHandleResponderProxy = (): {
   callResponder: typeof QuestHandleResponder;
-  setupGetQuestReturns: (params: { questId: string; result: GetQuestResult }) => void;
-  setupGetQuestThrows: (params: { questId: string; error: Error }) => void;
-  setupModifyQuestReturns: (params: { questId: string; result: ModifyQuestResult }) => void;
-  setupModifyQuestThrows: (params: { questId: string; error: Error }) => void;
+  setupGetQuestReturns: (params: { questId: Quest['id']; result: GetQuestResult }) => void;
+  setupGetQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  setupModifyQuestReturns: (params: { questId: Quest['id']; result: ModifyQuestResult }) => void;
+  setupModifyQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   setupStartQuestReturns: (params: { questId: QuestId; processId: ProcessId }) => void;
   setupStartQuestThrows: (params: { questId: QuestId; error: Error }) => void;
   setupGetQuestStatusReturns: (params: { processId: string; status: OrchestrationStatus }) => void;
@@ -62,22 +63,22 @@ export const QuestHandleResponderProxy = (): {
   setupListQuestsThrows: (params: { guildId: GuildId; error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
   setupGetPlanningNotesReturns: (params: {
-    questId: string;
+    questId: Quest['id'];
     result: GetPlanningNotesResult;
   }) => void;
-  setupGetPlanningNotesThrows: (params: { questId: string; error: Error }) => void;
+  setupGetPlanningNotesThrows: (params: { questId: Quest['id']; error: Error }) => void;
   setupGetBlightChecklistReturns: (params: {
-    questId: string;
+    questId: Quest['id'];
     result: GetBlightChecklistResult;
   }) => void;
-  setupGetBlightChecklistThrows: (params: { questId: string; error: Error }) => void;
-  getLastGetBlightChecklistInput: (params: { questId: string }) => unknown;
+  setupGetBlightChecklistThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  getLastGetBlightChecklistInput: (params: { questId: Quest['id'] }) => unknown;
   setupGetQuestSummaryReturns: (params: {
-    questId: string;
+    questId: Quest['id'];
     summary: GetQuestSummaryResult;
   }) => void;
-  setupGetQuestSummaryThrows: (params: { questId: string; error: Error }) => void;
-  getLastGetQuestSummaryInput: (params: { questId: string }) => unknown;
+  setupGetQuestSummaryThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  getLastGetQuestSummaryInput: (params: { questId: Quest['id'] }) => unknown;
   setupCreateQuestReturns: (params: {
     userRequest: string;
     questId: QuestId;
@@ -91,8 +92,8 @@ export const QuestHandleResponderProxy = (): {
   setupCreateWorktreeThrows: (params: { name: string; error: Error }) => void;
   getLastCreateWorktreeInput: (params: { name: string }) => unknown;
   buildServerConfig: () => QuestGetServerConfigResult;
-  getLastModifyInput: (params: { questId: string }) => unknown;
-  getLastGetPlanningNotesInput: (params: { questId: string }) => unknown;
+  getLastModifyInput: (params: { questId: Quest['id'] }) => unknown;
+  getLastGetPlanningNotesInput: (params: { questId: Quest['id'] }) => unknown;
 } => {
   // Composed for enforce-proxy-child-creation against the responder's own imports; the session
   // resolver reads `meta` directly and needs no mocks.
@@ -116,13 +117,13 @@ export const QuestHandleResponderProxy = (): {
       questId,
       result,
     }: {
-      questId: string;
+      questId: Quest['id'];
       result: GetQuestResult;
     }): void => {
       getQuestProxy.setupReturns({ questId, result });
     },
 
-    setupGetQuestThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+    setupGetQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       getQuestProxy.setupThrows({ questId, error });
     },
 
@@ -130,13 +131,13 @@ export const QuestHandleResponderProxy = (): {
       questId,
       result,
     }: {
-      questId: string;
+      questId: Quest['id'];
       result: ModifyQuestResult;
     }): void => {
       orchestrator.modifyQuestReturns({ questId, result });
     },
 
-    setupModifyQuestThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+    setupModifyQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.modifyQuestThrows({ questId, error });
     },
 
@@ -201,13 +202,13 @@ export const QuestHandleResponderProxy = (): {
       questId,
       result,
     }: {
-      questId: string;
+      questId: Quest['id'];
       result: GetPlanningNotesResult;
     }): void => {
       orchestrator.getPlanningNotesReturns({ questId, result });
     },
 
-    setupGetPlanningNotesThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+    setupGetPlanningNotesThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.getPlanningNotesThrows({ questId, error });
     },
 
@@ -215,7 +216,7 @@ export const QuestHandleResponderProxy = (): {
       questId,
       result,
     }: {
-      questId: string;
+      questId: Quest['id'];
       result: GetBlightChecklistResult;
     }): void => {
       blightChecklistProxy.setupReturns({ questId, result });
@@ -225,30 +226,30 @@ export const QuestHandleResponderProxy = (): {
       questId,
       error,
     }: {
-      questId: string;
+      questId: Quest['id'];
       error: Error;
     }): void => {
       blightChecklistProxy.setupThrows({ questId, error });
     },
 
-    getLastGetBlightChecklistInput: ({ questId }: { questId: string }): unknown =>
+    getLastGetBlightChecklistInput: ({ questId }: { questId: Quest['id'] }): unknown =>
       blightChecklistProxy.getLastCalledInputFor({ questId }),
 
     setupGetQuestSummaryReturns: ({
       questId,
       summary,
     }: {
-      questId: string;
+      questId: Quest['id'];
       summary: GetQuestSummaryResult;
     }): void => {
       questSummaryProxy.setupReturns({ questId, summary });
     },
 
-    setupGetQuestSummaryThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+    setupGetQuestSummaryThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       questSummaryProxy.setupThrows({ questId, error });
     },
 
-    getLastGetQuestSummaryInput: ({ questId }: { questId: string }): unknown =>
+    getLastGetQuestSummaryInput: ({ questId }: { questId: Quest['id'] }): unknown =>
       questSummaryProxy.getLastCalledInputFor({ questId }),
 
     setupCreateQuestReturns: ({
@@ -305,12 +306,12 @@ export const QuestHandleResponderProxy = (): {
 
     buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 
-    getLastModifyInput: ({ questId }: { questId: string }): unknown => {
+    getLastModifyInput: ({ questId }: { questId: Quest['id'] }): unknown => {
       const calls = orchestrator.modifyQuestGetCalls() as ModifyQuestParams[];
       return calls.filter((call) => call.questId === questId).at(-1)?.input;
     },
 
-    getLastGetPlanningNotesInput: ({ questId }: { questId: string }): unknown => {
+    getLastGetPlanningNotesInput: ({ questId }: { questId: Quest['id'] }): unknown => {
       const calls = orchestrator.getPlanningNotesGetCalls() as GetPlanningNotesParams[];
       return calls.filter((call) => call.questId === questId).at(-1);
     },

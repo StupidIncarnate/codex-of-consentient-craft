@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -92,7 +93,7 @@ describe('QuestGetSummaryResponder', () => {
       const proxy = QuestGetSummaryResponderProxy();
       proxy.setupQuestNotFound();
 
-      await expect(proxy.callResponder({ questId: 'no-such-quest' })).rejects.toThrow(
+      await expect(proxy.callResponder({ questId: QuestIdStub({ value: 'no-such-quest' }) })).rejects.toThrow(
         /no-such-quest/u,
       );
     });

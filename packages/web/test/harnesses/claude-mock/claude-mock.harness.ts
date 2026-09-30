@@ -11,6 +11,8 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import type { Guild, ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 import {
   ensureDirSync,
   existsSync,
@@ -24,7 +26,6 @@ import * as path from '#gateway/node/path';
 import { z } from '#gateway/npm/zod';
 
 import { claudeQueueResponseContract } from '@dungeonmaster/shared/contracts';
-import type { ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 
 import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
 import { getEnv } from '#gateway/node/process';
@@ -70,7 +71,7 @@ const getRootQueueDir = () => {
 const encodeCwdScope = ({ cwd }: { cwd: string }) =>
   cwd.replace(ENCODE_NON_SAFE, SCOPE_REPLACEMENT);
 
-const getScopedQueueDir = ({ guildPath }: { guildPath: string }) =>
+const getScopedQueueDir = ({ guildPath }: { guildPath: Guild['path'] }) =>
   path.join(getRootQueueDir(), '__by_cwd__', encodeCwdScope({ cwd: guildPath }));
 
 const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
@@ -128,7 +129,7 @@ export const claudeMockHarness = ({
   guildPath,
   agentCwd,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
   // WHERE THE FAKE CLI WILL ACTUALLY RUN, when that is not the guild path. The queue is scoped by
   // the spawned child's own `process.cwd()`, and the orchestrator sets that to the quest's cwd — so
   // once a quest is CARVED, every agent after riftcarver runs in the WORKTREE and looks for its
@@ -149,7 +150,7 @@ export const claudeMockHarness = ({
   const clearAllScopes = (): void => {
     clearClaudeQueue({ queueDir: getRootQueueDir() });
     clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath }) });
-    clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }) });
+    clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath: GuildPathStub({ value: spawnCwd }) }) });
   };
 
   return {
@@ -158,12 +159,12 @@ export const claudeMockHarness = ({
     // spawns.
     beforeEach: clearAllScopes,
     queueResponse: ({ response }: { response: ClaudeQueueResponse }): void => {
-      queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }), response });
+      queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath: GuildPathStub({ value: spawnCwd }) }), response });
     },
     clearQueue: clearAllScopes,
     readInvocations: (): readonly ClaudeInvocation[] => {
       const invocationsPath = path.join(
-        getScopedQueueDir({ guildPath: spawnCwd }),
+        getScopedQueueDir({ guildPath: GuildPathStub({ value: spawnCwd }) }),
         INVOCATIONS_FILE,
       );
       if (!existsSync(invocationsPath)) {

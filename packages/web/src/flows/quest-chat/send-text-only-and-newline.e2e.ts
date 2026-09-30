@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -9,7 +11,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-send-text-only-newline';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-text-only-newline' });
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
 
@@ -51,14 +53,14 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Text Only Newline Shift Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -72,7 +74,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     send.recordPosts({ urlSuffix: `/api/quests/${questId}/chat` });
@@ -125,14 +127,14 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Text Only Newline Adds Newline Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -145,7 +147,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -179,14 +181,14 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Text Only Newline End Of Content Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -199,7 +201,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -240,14 +242,14 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Text Only Newline Restore Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -260,7 +262,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -315,14 +317,14 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Text Only Newline Caret Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -336,7 +338,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     send.recordPosts({ urlSuffix: `/api/quests/${questId}/chat` });
@@ -398,15 +400,15 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Text Only Newline Plain Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath,
       status: 'explore_flows',
       workItems: [
@@ -424,7 +426,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     // installs via page.addInitScript, which only covers navigations that happen after it is called.
     await send.recordComposerSendStates();
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     send.recordPosts({ urlSuffix: `/api/quests/${questId}/chat` });

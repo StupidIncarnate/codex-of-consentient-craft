@@ -21,6 +21,7 @@
  * const prevented = await composer.pasteImage({ dataUrl });
  * // prevented === false — dispatchEvent returns false once preventDefault fired
  */
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirSync, statSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
@@ -758,8 +759,8 @@ export const composerPasteHarness = ({
   beforeEach: () => Promise<void>;
   openComposerPage: (params: {
     request: APIRequestContext;
-    guildName: string;
-    guildPath: string;
+    guildName: Guild['name'];
+    guildPath: Guild['path'];
   }) => Promise<void>;
   buildImageDataUrl: (params: {
     widthPx: number;
@@ -831,8 +832,8 @@ export const composerPasteHarness = ({
     guildPath,
   }: {
     request: APIRequestContext;
-    guildName: string;
-    guildPath: string;
+    guildName: Guild['name'];
+    guildPath: Guild['path'];
   }): Promise<void> => {
     const guild = await guildHarness({ request }).createGuild({ name: guildName, path: guildPath });
     const urlSlug = String(guild.urlSlug ?? guild.name)

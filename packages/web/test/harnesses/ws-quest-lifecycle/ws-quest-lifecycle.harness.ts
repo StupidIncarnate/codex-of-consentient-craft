@@ -9,6 +9,7 @@
  *   .poll(() => lifecycle.matchedQuestIdsFor({ eventType: 'quest-paused' }).length, { timeout: 10_000 })
  *   .toBe(1);
  */
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import type { Page } from '#gateway/npm/playwright__test';
 import { z } from '#gateway/npm/zod';
 
@@ -33,7 +34,7 @@ export const wsQuestLifecycleHarness = ({
   questId,
 }: {
   page: Page;
-  questId: string;
+  questId: Quest['id'];
 }): {
   beforeEach: () => void;
   matchedQuestIdsFor: (params: {

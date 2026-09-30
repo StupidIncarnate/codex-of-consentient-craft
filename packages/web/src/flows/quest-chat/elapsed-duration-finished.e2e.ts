@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-elapsed-duration-finished';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-elapsed-duration-finished' });
 const PANEL_TIMEOUT = 10_000;
 
 // Every scenario below freezes the browser's Date at this exact instant via page.clock, mirroring
@@ -56,7 +58,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const WHOLE_HOUR_TEXT = 'codeweaver: finished band two hours exactly';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Band Quest',
       userRequest: 'Build the feature',
     });
@@ -64,8 +66,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -135,7 +137,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -178,7 +180,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const COMPLETED_AT = '2026-01-01T12:06:00.000Z'; // startedAt + 600s => 10m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Immediate Quest',
       userRequest: 'Build the feature',
     });
@@ -186,8 +188,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -211,7 +213,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -233,7 +235,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: RUNNING_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
 
     // The clock is never advanced anywhere in this test (no fastForward, no re-freeze) — so with
     // Date frozen, a 60-second tick firing could not have produced this change even if one fired.
@@ -265,7 +267,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const COMPLETED_AT = '2026-01-01T10:04:12.000Z'; // startedAt + 252s => 4m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Terminal Quest',
       userRequest: 'Build the feature',
     });
@@ -273,8 +275,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -299,7 +301,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -343,7 +345,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const COMPLETED_AT = '2026-01-01T10:04:12.000Z'; // startedAt + 252s => 4m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Has Completed At Quest',
       userRequest: 'Build the feature',
     });
@@ -351,8 +353,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -388,7 +390,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -426,7 +428,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const COMPLETED_AT = '2026-01-01T12:03:42.000Z'; // startedAt + 252s => 4m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Under Minute Branch Quest',
       userRequest: 'Build the feature',
     });
@@ -434,8 +436,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -457,7 +459,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -479,7 +481,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
 
     // Rule out the sibling "quest paused" -> paused-no-figure branch, where the figure would be
     // GONE rather than changed: the element must still be PRESENT, carrying the new value.
@@ -509,7 +511,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const COMPLETED_AT = '2026-01-01T13:09:00.000Z'; // startedAt + 4380s => 1h13m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Minutes Branch Quest',
       userRequest: 'Build the feature',
     });
@@ -517,8 +519,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -540,7 +542,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -562,7 +564,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
 
     // Rule out the sibling "quest paused" -> paused-no-figure branch, where the figure would be
     // GONE rather than changed: the element must still be PRESENT, carrying the new value.
@@ -592,7 +594,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const COMPLETED_AT = '2026-01-01T10:51:12.000Z'; // startedAt + 252s => 4m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Finished Hours Branch Quest',
       userRequest: 'Build the feature',
     });
@@ -600,8 +602,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -623,7 +625,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -645,7 +647,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
 
     // Rule out the sibling "quest paused" -> paused-no-figure branch, where the figure would be
     // GONE rather than changed: the element must still be PRESENT, carrying the new value.

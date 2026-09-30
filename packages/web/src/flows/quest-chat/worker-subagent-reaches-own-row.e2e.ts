@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
@@ -11,7 +12,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-worker-subagent-reaches-own-row';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-worker-subagent-reaches-own-row' });
 const PANEL_TIMEOUT = 10_000;
 const NO_CHAIN_TIMEOUT = 3_000;
 // quest-monitor-jsonl-watcher-broker's own subagents-dir re-scan is a 1s poll, plus whatever the
@@ -66,13 +67,13 @@ test.describe("A worker's own Task sub-agent streams live under that worker's ow
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Worker Subagent Reaches Own Row Quest',
       userRequest: 'Build the feature',
     });
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'in_progress',
       operations: [{ id: OP_ID, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -87,7 +88,7 @@ test.describe("A worker's own Task sub-agent streams live under that worker's ow
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +8,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-resume-execution-row-runs-again';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-resume-execution-row-runs-again' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const HTTP_OK = 200;
@@ -72,7 +74,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Resume Execution Row Quest',
       userRequest: 'Build the feature',
     });
@@ -84,8 +86,8 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // quest-pause-broker leaves on disk for a work item that WAS `in_progress` when the quest was
     // paused (pause resets in_progress -> pending immediately, keeping sessionId).
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'paused',
       operations: [
@@ -112,7 +114,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
 
     // Precondition-only write: this PATCH sets the snapshot resume restores TO, not the mutation
     // under test — the mutation is the RESUME button click below.
-    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
 
     // The agent RESUME is about to spawn needs a queued outcome, or it exits red-on-empty.
     dispatch.queueScript({
@@ -125,7 +127,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // the time anything is watching.
     await rowStatus.recordStatuses({ rowTexts: [DONE_OP_TEXT, RUNNING_ROW_IDENTITY] });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -204,7 +206,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // Let the queued outcome land so the run finishes cleanly rather than leaving a live child
     // process behind at test teardown.
     const finalQuest = await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.length === 2 && quest.workItems.every((wi) => wi.status === 'complete'),

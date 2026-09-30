@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-execution-row-rework-readout';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-execution-row-rework-readout' });
 const PANEL_TIMEOUT = 10_000;
 
 const CODEWEAVER_OP = '00000000-0000-4000-8000-0000000000e1';
@@ -44,7 +46,7 @@ test.describe('Execution row rework readout: unit marks, unmet list, scope churn
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Rework Readout Quest',
       userRequest: 'Build the feature',
     });
@@ -52,8 +54,8 @@ test.describe('Execution row rework readout: unit marks, unmet list, scope churn
     const questFilePath = created.filePath;
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'in_progress',
       flows: [
@@ -151,7 +153,7 @@ test.describe('Execution row rework readout: unit marks, unmet list, scope churn
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-execution-panel-pause';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-execution-panel-pause' });
 const PANEL_TIMEOUT = 10_000;
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
@@ -35,7 +37,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Pause Button Seek Walk',
       userRequest: 'Build the feature',
     });
@@ -58,7 +60,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -86,7 +88,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Paused Button',
       userRequest: 'Build the feature',
     });
@@ -109,7 +111,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -137,7 +139,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Blocked Button',
       userRequest: 'Build the feature',
     });
@@ -160,7 +162,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -188,7 +190,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Click Pause',
       userRequest: 'Build the feature',
     });
@@ -211,7 +213,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -249,7 +251,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Click Resume',
       userRequest: 'Build the feature',
     });
@@ -272,10 +274,10 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     // Seed pausedAtStatus as a precondition so the resume responder can restore to in_progress.
-    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { QuestGetResponderProxy } from './quest-get-responder.proxy';
@@ -66,7 +67,7 @@ describe('QuestGetResponder', () => {
       const proxy = QuestGetResponderProxy();
       proxy.setupEmptyFolder();
 
-      const result = await proxy.callResponder({ questId: 'nonexistent-quest' });
+      const result = await proxy.callResponder({ questId: QuestIdStub({ value: 'nonexistent-quest' }) });
 
       expect(result.success).toBe(false);
     });

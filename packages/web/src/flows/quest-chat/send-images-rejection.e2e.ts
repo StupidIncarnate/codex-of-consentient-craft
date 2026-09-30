@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -10,7 +13,7 @@ import { composerPasteHarness } from '../../../test/harnesses/composer-paste/com
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-send-images-rejection';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-images-rejection' });
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
@@ -60,7 +63,7 @@ test.describe('Composer send — images and a rejected send', () => {
     await send.recordComposerSendStates();
 
     const seeded = await followup.seedAndOpen({
-      guildName: 'Send Images Rejection Draft Guild',
+      guildName: GuildNameStub({ value: 'Send Images Rejection Draft Guild' }),
       status: 'blocked',
     });
     const questId = String(seeded.questId);
@@ -159,7 +162,7 @@ test.describe('Composer send — images and a rejected send', () => {
     const composer = composerPasteHarness({ page, surface: 'followup' });
 
     const seeded = await followup.seedAndOpen({
-      guildName: 'Send Images Rejection No Draft Guild',
+      guildName: GuildNameStub({ value: 'Send Images Rejection No Draft Guild' }),
       status: 'blocked',
     });
     const questId = String(seeded.questId);
@@ -232,15 +235,15 @@ test.describe('Composer send — images and a rejected send', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Images Rejection Write Failure Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath,
       status: 'explore_flows',
       workItems: [
@@ -253,7 +256,7 @@ test.describe('Composer send — images and a rejected send', () => {
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     // Forces the write-failure branch: a regular FILE occupies the path the server's recursive
@@ -307,15 +310,15 @@ test.describe('Composer send — images and a rejected send', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Images Rejection Retry Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath,
       status: 'explore_flows',
       workItems: [
@@ -329,7 +332,7 @@ test.describe('Composer send — images and a rejected send', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     send.blockImagesDir({ questFilePath });

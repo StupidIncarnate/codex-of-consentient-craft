@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-start-starts-dispatch';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-start-starts-dispatch' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const HTTP_OK = 200;
@@ -62,7 +64,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Start Starts Dispatch Quest',
       userRequest: 'Build the feature',
     });
@@ -70,7 +72,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
 
     // The state Begin Quest is offered from: the observables gate passed, nothing dispatched yet.
     await quests.writeQuestFile({
-      questId: String(questId),
+      questId: questId,
       questFolder,
       questFilePath: created.filePath,
       status: 'approved',
@@ -92,7 +94,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     // Precondition: the dispatcher is explicitly NOT playing (beforeEach paused it).
     expect(await dispatch.isDispatchPlaying()).toBe(false);
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const beginQuestButton = page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' });
 
@@ -120,7 +122,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     // is the whole point of coupling the two switches. Asserting the ledger rather than the status
     // alone — `in_progress` is reached by the start itself and says nothing about the dispatcher.
     const finalQuest = await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.operations.some((op) => op.role === 'codeweaver' && op.status === 'complete'),

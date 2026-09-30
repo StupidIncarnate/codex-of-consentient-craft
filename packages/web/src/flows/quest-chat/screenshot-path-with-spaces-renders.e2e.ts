@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -9,7 +11,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-screenshot-path-spaces-transcript';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-screenshot-path-spaces-transcript' });
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
 const SEED_WIDTH_PX = 16;
@@ -64,14 +66,14 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-escaped-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Screenshot Path Spaces Escaped Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -85,7 +87,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await page.getByTestId('CHAT_INPUT').click();
@@ -165,14 +167,14 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-quoted-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Screenshot Path Spaces Quoted Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -186,7 +188,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await page.getByTestId('CHAT_INPUT').click();
@@ -259,14 +261,14 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-uppercase-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Screenshot Path Uppercase Extension Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -280,7 +282,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await page.getByTestId('CHAT_INPUT').click();
@@ -354,14 +356,14 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-bare-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Screenshot Path Bare Unescaped Spaces Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -375,7 +377,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await page.getByTestId('CHAT_INPUT').click();

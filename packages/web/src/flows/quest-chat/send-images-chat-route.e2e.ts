@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -15,7 +17,7 @@ import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
-const GUILD_PATH = '/tmp/dm-e2e-send-images-chat-route';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-images-chat-route' });
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
@@ -83,14 +85,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Plain Enter Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -104,7 +106,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -165,14 +167,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Token Order Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -186,7 +188,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -249,14 +251,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send One Enter Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -270,7 +272,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -325,14 +327,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Double Click Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -346,7 +348,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -401,14 +403,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Race Survivor Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -428,7 +430,7 @@ test.describe('Composer send — images ride the chat route', () => {
       delayMs: XHR_RACE_DELAY_MS,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -521,14 +523,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Locked Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -542,7 +544,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -627,14 +629,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Editable Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -668,7 +670,7 @@ test.describe('Composer send — images ride the chat route', () => {
       },
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -736,14 +738,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Aborted Xhr Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -764,7 +766,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await send.recordComposerSendStates();
     await send.abortXhrAfterSend({ urlSuffix: `/api/quests/${questId}/chat` });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -818,14 +820,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Progress Bar Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -839,7 +841,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -955,14 +957,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Forward Accepted Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -996,7 +998,7 @@ test.describe('Composer send — images ride the chat route', () => {
       },
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });
@@ -1046,14 +1048,14 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Send Terminal State Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -1067,7 +1069,7 @@ test.describe('Composer send — images ride the chat route', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const composer = composerPasteHarness({ page });

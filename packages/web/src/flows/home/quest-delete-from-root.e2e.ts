@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { now } from '#gateway/node/Date';
 import { randomUUID } from '#gateway/node/crypto';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -7,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { URL } from '#gateway/node/url';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-delete-from-root';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-delete-from-root' });
 const HTTP_OK = 200;
 const HTTP_BAD_REQUEST = 400;
 const NAV_TIMEOUT = 5_000;
@@ -42,7 +44,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     const questTitle = 'Quest To Banish';
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: questTitle,
       userRequest: 'Build the deletable quest',
     });
@@ -51,8 +53,8 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     // paused => deletable. The skull renders only for deletable statuses.
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath,
       title: questTitle,
       status: 'paused',
@@ -118,7 +120,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     const questTitle = 'Quest To Spare';
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: questTitle,
       userRequest: 'Build the spareable quest',
     });
@@ -126,8 +128,8 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath,
       title: questTitle,
       status: 'paused',
@@ -179,7 +181,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     const questTitle = 'Quest That Goes Active';
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: questTitle,
       userRequest: 'Build the rejected quest',
     });
@@ -189,7 +191,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     // The list snapshot the row renders from is `paused` (deletable) — so the skull shows.
     await quests.writeQuestFile({
-      questId,
+      questId: QuestIdStub({ value: questId }),
       questFolder,
       questFilePath,
       title: questTitle,
@@ -216,7 +218,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     // popover stays open and Banish is still clickable — exactly the render-then-go-active
     // race the error-toast branch exists for.
     await quests.writeQuestFile({
-      questId,
+      questId: QuestIdStub({ value: questId }),
       questFolder,
       questFilePath,
       title: questTitle,

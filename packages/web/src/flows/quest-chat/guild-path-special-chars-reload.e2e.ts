@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -10,7 +11,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 // Both a `.` and a `_` on purpose — the two characters the fake CLI's own encoding (before its
 // fix) left untouched while claudePathSlugEncoderTransformer replaces every non-alphanumeric
 // character alike.
-const GUILD_PATH = '/tmp/dm-e2e-slug.encoding_check';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-slug.encoding_check' });
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const CHAT_TIMEOUT = 10_000;
@@ -54,15 +55,15 @@ test.describe('A guild path carrying `.` and `_` resolves to the same session di
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Slug Encoding Check Quest',
       userRequest: 'Build feature',
     });
     const { questId, questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       // 'complete', not 'in_progress': quest-driven-watchers opens a PERSISTENT tail for any
@@ -85,7 +86,7 @@ test.describe('A guild path carrying `.` and `_` resolves to the same session di
       response: SimpleTextResponseStub({ sessionId, text: REPLY_TEXT }),
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const chatResponsePromise = page.waitForResponse(

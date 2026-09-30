@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
@@ -34,7 +35,7 @@ describe('QuestFlow', () => {
 
   describe('delegation to responders', () => {
     it('VALID: {questId: nonexistent} => get delegates to QuestGetResponder and returns error', async () => {
-      const result = await QuestFlow.get({ questId: 'nonexistent-quest' });
+      const result = await QuestFlow.get({ questId: QuestIdStub({ value: 'nonexistent-quest' }) });
 
       expect(result.success).toBe(false);
     });

@@ -1,3 +1,4 @@
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import * as questListBrokerModule from '../../brokers/quest/list/quest-list-broker';
 
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
@@ -34,7 +35,7 @@ export const useQuestsBindingProxy = (): {
   setupError: () => void;
   setupEmptyBody: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
-  setupOuterCatchTrigger: (params: { guildId: string }) => void;
+  setupOuterCatchTrigger: (params: { guildId: Guild['id'] }) => void;
   getConsoleErrorCalls: () => unknown[][];
   getConsoleErrorHandle: () => SpyOnHandle;
 } => {
@@ -71,7 +72,7 @@ export const useQuestsBindingProxy = (): {
     setupInvalidResponse: ({ data }: { data: unknown }): void => {
       brokerProxy.setupInvalidResponse({ data });
     },
-    setupOuterCatchTrigger: ({ guildId }: { guildId: string }): void => {
+    setupOuterCatchTrigger: ({ guildId }: { guildId: Guild['id'] }): void => {
       const brokerHandle: MockHandle = registerSpyOn({
         object: questListBrokerModule,
         method: 'questListBroker',

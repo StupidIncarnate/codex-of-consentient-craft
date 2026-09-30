@@ -1,9 +1,10 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNotFoundError } from './quest-not-found-error';
 
 describe('QuestNotFoundError', () => {
   describe('constructor()', () => {
     it('VALID: {questId: "add-auth"} => sets name and quoted-id message', () => {
-      const error = new QuestNotFoundError({ questId: 'add-auth' });
+      const error = new QuestNotFoundError({ questId: QuestIdStub({ value: 'add-auth' }) });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'QuestNotFoundError',
@@ -15,7 +16,7 @@ describe('QuestNotFoundError', () => {
 
     it('VALID: {questId: uuid string} => embeds the uuid in the message', () => {
       const error = new QuestNotFoundError({
-        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId: QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({

@@ -13,9 +13,10 @@
  * await sticky.scrollTranscriptToFoot();
  * expect(await sticky.pinnedStackIs({ testIds: 'execution-row-header|SUBAGENT_CHAIN_HEADER' })).toBe(true);
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { Guild, SessionId } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { AssistantReadToolUseStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SuccessfulToolResultStreamLineStub } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
@@ -123,11 +124,11 @@ export const stickyHeaderHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedNestedChainQuest: (params: { guildName: string }) => Promise<void>;
-  seedChatPanelChain: (params: { guildName: string }) => Promise<void>;
+  seedNestedChainQuest: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedChatPanelChain: (params: { guildName: Guild['name'] }) => Promise<void>;
   scrollTranscriptToFoot: () => Promise<void>;
   pinnedStackIs: (params: { testIds: string }) => Promise<boolean>;
   pinnedStackIsContiguous: () => Promise<boolean>;
@@ -223,7 +224,7 @@ export const stickyHeaderHarness = ({
   return {
     // The execution surface: an in_progress work item auto-opens its row, so the transcript is on
     // screen with the row header above it — the arrangement the outermost pin exists for.
-    seedNestedChainQuest: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedNestedChainQuest: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       const guilds = guildHarness({ request });
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });
@@ -231,14 +232,14 @@ export const stickyHeaderHarness = ({
       const sessionId = await seedNestedChainSession();
 
       const created = await quests.createQuest({
-        guildId: String(guild.id),
+        guildId: GuildIdStub({ value: guild.id }),
         title: 'E2E Sticky Header Quest',
         userRequest: 'Build the sticky header feature',
       });
 
       await quests.writeQuestFile({
-        questId: String(created.questId),
-        questFolder: String(created.questFolder),
+        questId: created.questId,
+        questFolder: created.questFolder,
         questFilePath: String(created.filePath),
         status: 'in_progress',
         workItems: [
@@ -254,7 +255,7 @@ export const stickyHeaderHarness = ({
       scrollportTestId = EXECUTION_SCROLLPORT;
       await nav.navigateToQuest({
         urlSlug: guilds.extractUrlSlug({ guild }),
-        questId: String(created.questId),
+        questId: created.questId,
       });
       await page
         .getByTestId('execution-panel-widget')
@@ -267,7 +268,7 @@ export const stickyHeaderHarness = ({
 
     // The chat surface: the same transcript on the session route, where a chain is the OUTERMOST
     // expandable and must pin flush with the top of the transcript area.
-    seedChatPanelChain: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedChatPanelChain: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       const guilds = guildHarness({ request });
       const nav = navigationHarness({ page });
       const guild = await guilds.createGuild({ name: guildName, path: guildPath });

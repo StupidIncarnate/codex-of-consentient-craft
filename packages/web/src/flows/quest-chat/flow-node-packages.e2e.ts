@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -12,7 +14,7 @@ import {
   FLOW_DIAGRAM_API_PACKAGE,
 } from '../../../test/harnesses/flow-diagram/flow-diagram.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-flow-node-packages';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-flow-node-packages' });
 const CARD_TIMEOUT = 10_000;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -34,7 +36,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Package Chip Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Package Chip Guild' }) });
 
     const openPageCard = page
       .getByTestId('FLOW_NODE')
@@ -55,7 +57,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Glue Chip Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Glue Chip Guild' }) });
 
     const glueCard = page
       .getByTestId('FLOW_NODE')
@@ -76,7 +78,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Chip Kind Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Chip Kind Guild' }) });
 
     const glueCard = page
       .getByTestId('FLOW_NODE')
@@ -101,7 +103,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Assertion Package Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Assertion Package Guild' }) });
 
     const uiAssertion = page
       .getByTestId('FLOW_OBSERVABLE_NODE')
@@ -129,7 +131,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Chip Overlap Guild' });
+    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Chip Overlap Guild' }) });
 
     expect(await diagram.noCardOverlapsAnother()).toBe(true);
     // The flow-card-only check too, so a regression that only pushes cards into the assertion

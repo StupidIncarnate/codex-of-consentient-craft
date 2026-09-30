@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { now } from '#gateway/node/Date';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -9,7 +12,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { rateLimitsHarness } from '../../../test/harnesses/rate-limits/rate-limits.harness';
 import { URL } from '#gateway/node/url';
 
-const GUILD_PATH = '/tmp/dm-e2e-multi-widget-coexistence';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-multi-widget-coexistence' });
 const WIDGET_TIMEOUT = 10_000;
 const QUEUE_TIMEOUT = 9_000;
 const BACKEND_WS_PATHNAME = '/ws';
@@ -77,15 +80,15 @@ test.describe('Multi-widget coexistence', () => {
     await sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
     const primary = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Multi Widget Primary Quest',
       userRequest: 'Build the feature',
     });
     const primaryQuestId = String(primary.questId);
 
     await quests.writeQuestFile({
-      questId: primaryQuestId,
-      questFolder: String(primary.questFolder),
+      questId: QuestIdStub({ value: primaryQuestId }),
+      questFolder: primary.questFolder,
       questFilePath: String(primary.filePath),
       title: 'Multi Widget Primary Quest',
       status: 'review_flows',
@@ -105,15 +108,15 @@ test.describe('Multi-widget coexistence', () => {
     await sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
     const queued = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Multi Widget Queued Quest',
       userRequest: 'Add second feature',
     });
     const queuedQuestId = String(queued.questId);
 
     await quests.writeQuestFile({
-      questId: queuedQuestId,
-      questFolder: String(queued.questFolder),
+      questId: QuestIdStub({ value: queuedQuestId }),
+      questFolder: queued.questFolder,
       questFilePath: String(queued.filePath),
       title: 'Multi Widget Queued Quest',
       status: 'approved',
@@ -199,14 +202,14 @@ test.describe('Multi-widget coexistence', () => {
         text: 'Codeweaver scope analysis complete',
       }),
     });
-    await quests.startQuest({ questId: queuedQuestId });
+    await quests.startQuest({ questId: QuestIdStub({ value: queuedQuestId }) });
 
     // 7c-bis. Pause the queued quest immediately so it stays in the execution queue with a stable
     //         status for the duration of the visibility/text assertions below. No dispatcher
     //         auto-runs in e2e (dispatch normalizes to paused on boot), so the quest sits enqueued
     //         either way; the pause just pins the status while the queue bar render settles.
     //         (Pattern mirrored from execution-queue-streaming.e2e.ts.)
-    await quests.pauseQuest({ questId: queuedQuestId });
+    await quests.pauseQuest({ questId: QuestIdStub({ value: queuedQuestId }) });
 
     // 7d. Queue bar must appear via WS — proves the binding received the
     //     execution-queue-updated event and re-fetched the queue without a reload.

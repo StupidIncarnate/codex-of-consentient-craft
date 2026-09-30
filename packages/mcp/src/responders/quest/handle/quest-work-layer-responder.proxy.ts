@@ -8,6 +8,7 @@
  * proxy.setupReturns({ questId: 'add-auth', workItemId: 'f47ac10b-…', result: { kind: 'outcome', word: 'done' } });
  */
 
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
@@ -17,9 +18,9 @@ type QuestWorkResult = Awaited<ReturnType<typeof StartOrchestrator.questWork>>;
 type QuestWorkParams = Parameters<typeof StartOrchestrator.questWork>[0];
 
 export const QuestWorkLayerResponderProxy = (): {
-  setupReturns: (params: { questId: string; workItemId: string; result: QuestWorkResult }) => void;
-  setupThrows: (params: { questId: string; workItemId: string; error: Error }) => void;
-  getLastCalledInputFor: (params: { questId: string; workItemId: string }) => unknown;
+  setupReturns: (params: { questId: Quest['id']; workItemId: WorkItem['id']; result: QuestWorkResult }) => void;
+  setupThrows: (params: { questId: Quest['id']; workItemId: WorkItem['id']; error: Error }) => void;
+  getLastCalledInputFor: (params: { questId: Quest['id']; workItemId: WorkItem['id'] }) => unknown;
 } => {
   const orchestrator = StartOrchestratorProxy();
 
@@ -29,8 +30,8 @@ export const QuestWorkLayerResponderProxy = (): {
       workItemId,
       result,
     }: {
-      questId: string;
-      workItemId: string;
+      questId: Quest['id'];
+      workItemId: WorkItem['id'];
       result: QuestWorkResult;
     }): void => {
       orchestrator.questWorkReturns({ questId, workItemId, result });
@@ -40,8 +41,8 @@ export const QuestWorkLayerResponderProxy = (): {
       workItemId,
       error,
     }: {
-      questId: string;
-      workItemId: string;
+      questId: Quest['id'];
+      workItemId: WorkItem['id'];
       error: Error;
     }): void => {
       orchestrator.questWorkThrows({ questId, workItemId, error });
@@ -50,8 +51,8 @@ export const QuestWorkLayerResponderProxy = (): {
       questId,
       workItemId,
     }: {
-      questId: string;
-      workItemId: string;
+      questId: Quest['id'];
+      workItemId: WorkItem['id'];
     }): unknown => {
       const calls = orchestrator.questWorkGetCalls() as QuestWorkParams[];
       return calls

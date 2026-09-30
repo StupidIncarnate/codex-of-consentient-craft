@@ -9,6 +9,7 @@
  * proxy.setupReturns({ questId: 'add-auth', summary: QuestSummaryStub() });
  */
 
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
@@ -18,9 +19,9 @@ type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQues
 type GetQuestSummaryParams = Parameters<typeof StartOrchestrator.getQuestSummary>[0];
 
 export const QuestSummaryLayerResponderProxy = (): {
-  setupReturns: (params: { questId: string; summary: GetQuestSummaryResult }) => void;
-  setupThrows: (params: { questId: string; error: Error }) => void;
-  getLastCalledInputFor: (params: { questId: string }) => unknown;
+  setupReturns: (params: { questId: Quest['id']; summary: GetQuestSummaryResult }) => void;
+  setupThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  getLastCalledInputFor: (params: { questId: Quest['id'] }) => unknown;
 } => {
   const orchestrator = StartOrchestratorProxy();
 
@@ -29,15 +30,15 @@ export const QuestSummaryLayerResponderProxy = (): {
       questId,
       summary,
     }: {
-      questId: string;
+      questId: Quest['id'];
       summary: GetQuestSummaryResult;
     }): void => {
       orchestrator.getQuestSummaryReturns({ questId, summary });
     },
-    setupThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+    setupThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.getQuestSummaryThrows({ questId, error });
     },
-    getLastCalledInputFor: ({ questId }: { questId: string }): unknown => {
+    getLastCalledInputFor: ({ questId }: { questId: Quest['id'] }): unknown => {
       const calls = orchestrator.getQuestSummaryGetCalls() as GetQuestSummaryParams[];
       return calls.filter((call) => call.questId === questId).at(-1);
     },

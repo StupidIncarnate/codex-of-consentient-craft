@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import {
@@ -10,7 +12,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-clarify-design-decisions';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-clarify-design-decisions' });
 const CHAT_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 
@@ -48,7 +50,7 @@ test.describe('Clarification Design Decisions', () => {
     });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Clarify DD Quest',
       userRequest: 'Build the feature',
     });
@@ -59,7 +61,7 @@ test.describe('Clarification Design Decisions', () => {
     // designDecisions via modify-quest, and the per-status input allowlist only
     // permits designDecisions during the spec-exploration phases.
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'explore_flows',
@@ -84,7 +86,7 @@ test.describe('Clarification Design Decisions', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // No "Keep Chatting" modal at explore_flows; proceed straight to chat.
 
@@ -152,7 +154,7 @@ test.describe('Clarification Design Decisions', () => {
     });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E No Clarify DD Quest',
       userRequest: 'Build the feature',
     });
@@ -160,7 +162,7 @@ test.describe('Clarification Design Decisions', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: String(created.questId),
+      questId: created.questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -181,7 +183,7 @@ test.describe('Clarification Design Decisions', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     // Dismiss the quest approved modal
     const keepChattingBtn = page.getByText('Keep Chatting');

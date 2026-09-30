@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
@@ -92,7 +93,7 @@ describe('QuestGetBlightChecklistResponder', () => {
       const proxy = QuestGetBlightChecklistResponderProxy();
       proxy.setupQuestNotFound();
 
-      const result = await proxy.callResponder({ questId: 'nonexistent' });
+      const result = await proxy.callResponder({ questId: QuestIdStub({ value: 'nonexistent' }) });
 
       expect(result).toStrictEqual({
         success: false,

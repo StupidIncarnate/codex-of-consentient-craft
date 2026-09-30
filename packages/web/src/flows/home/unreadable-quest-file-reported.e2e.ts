@@ -1,9 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-unreadable-quest-report';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-unreadable-quest-report' });
 const HTTP_OK = 200;
 const ROW_TIMEOUT = 10_000;
 // Every folder on disk must be represented by exactly one surface: two readable quest rows
@@ -31,23 +34,23 @@ test.describe('Unreadable quest file is reported on homebase', () => {
     const guildId = String(guilds.extractGuildId({ guild }));
 
     const readableOne = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Readable Quest One',
       userRequest: 'Build one',
     });
     const readableTwo = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Readable Quest Two',
       userRequest: 'Build two',
     });
     const legacy = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Legacy schema quest',
       userRequest: 'Written by an older schema',
     });
     await quests.writeUnparseableQuestFile({
-      questId: String(legacy.questId),
-      questFolder: String(legacy.questFolder),
+      questId: legacy.questId,
+      questFolder: legacy.questFolder,
       questFilePath: String(legacy.filePath),
     });
     const legacyFolder = String(legacy.questFolder);
@@ -66,7 +69,7 @@ test.describe('Unreadable quest file is reported on homebase', () => {
       'Readable Quest One',
       'Readable Quest Two',
     ]);
-    expect(listBody.skipped.map((skip: { questFolder: string }) => skip.questFolder)).toStrictEqual(
+    expect(listBody.skipped.map((skip: { questFolder: Quest['folder'] }) => skip.questFolder)).toStrictEqual(
       [legacyFolder],
     );
     expect(String(listBody.skipped[0].questFilePath)).toBe(String(legacy.filePath));
@@ -126,13 +129,13 @@ test.describe('Unreadable quest file is reported on homebase', () => {
     const guildId = String(guilds.extractGuildId({ guild }));
 
     const legacy = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Legacy schema quest',
       userRequest: 'Written by an older schema',
     });
     await quests.writeUnparseableQuestFile({
-      questId: String(legacy.questId),
-      questFolder: String(legacy.questFolder),
+      questId: legacy.questId,
+      questFolder: legacy.questFolder,
       questFilePath: String(legacy.filePath),
     });
     const legacyFolder = String(legacy.questFolder);

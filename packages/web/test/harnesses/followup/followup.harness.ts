@@ -17,6 +17,7 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
+import type { Guild, Quest, ContentText, FilePath, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { appendFileSync, readFileSync } from '#gateway/node/fs';
 import { writeFile } from '#gateway/node/fs__promises';
 import { dirname } from '#gateway/node/path';
@@ -25,7 +26,6 @@ import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
-import type { ContentText, FilePath, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { guildHarness } from '../guild/guild.harness';
 import { navigationHarness } from '../navigation/navigation.harness';
@@ -80,15 +80,15 @@ export const followupHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
 }): {
   seedAndOpen: (params: {
-    guildName: string;
+    guildName: Guild['name'];
     status: string;
     worktreePath?: string;
     workItems?: WorkItemInput[];
   }) => Promise<{ questId: QuestId; questFilePath: FilePath; urlSlug: UrlSlug }>;
-  reopen: (params: { urlSlug: string; questId: string }) => Promise<void>;
+  reopen: (params: { urlSlug: string; questId: Quest['id'] }) => Promise<void>;
   reloadQuestPage: () => Promise<void>;
   setQuestStatusOnDisk: (params: { questFilePath: string; status: string }) => Promise<void>;
   pressFollowup: () => Promise<void>;
@@ -129,7 +129,7 @@ export const followupHarness = ({
     worktreePath,
     workItems,
   }: {
-    guildName: string;
+    guildName: Guild['name'];
     status: string;
     worktreePath?: string;
     workItems?: WorkItemInput[];
@@ -143,7 +143,7 @@ export const followupHarness = ({
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: `Followup: ${guildName}`,
       userRequest: 'Build the feature',
     });
@@ -151,8 +151,8 @@ export const followupHarness = ({
     const questFilePath = created.filePath;
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status,
       workItems: workItems ?? [],
@@ -170,7 +170,7 @@ export const followupHarness = ({
       await writeFile(String(questFilePath), JSON.stringify(questJson, null, JSON_INDENT));
     }
 
-    await nav.navigateToQuest({ urlSlug: String(urlSlug), questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug: String(urlSlug), questId: questId });
     await page.getByTestId('QUEST_CHAT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     // QUEST_CHAT going visible only proves the ROUTE mounted; the execution panel paints a frame
     // later, once the seeded quest arrives. Every status this harness is called with is an
@@ -191,7 +191,7 @@ export const followupHarness = ({
     questId,
   }: {
     urlSlug: string;
-    questId: string;
+    questId: Quest['id'];
   }): Promise<void> => {
     const nav = navigationHarness({ page });
     await nav.navigateToQuest({ urlSlug, questId });

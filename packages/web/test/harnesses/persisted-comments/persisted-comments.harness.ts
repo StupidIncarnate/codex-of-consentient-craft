@@ -11,6 +11,9 @@
  * await view.seedAndOpenSpecPanel({ guildName: 'View Guild', status: 'review_flows', withSession: true });
  * expect(await view.commentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['2']);
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
@@ -293,11 +296,11 @@ export const persistedCommentsHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
 }): {
   seedAndOpenSpecPanel: (params: {
-    guildName: string;
+    guildName: Guild['name'];
     status: string;
     withSession: boolean;
     withComments?: boolean;
@@ -305,7 +308,7 @@ export const persistedCommentsHarness = ({
     withScrambledOrder?: boolean;
     withSecondFlow?: boolean;
   }) => Promise<void>;
-  seedAndOpenReadOnlySpecTab: (params: { guildName: string }) => Promise<void>;
+  seedAndOpenReadOnlySpecTab: (params: { guildName: Guild['name'] }) => Promise<void>;
   nodeCard: () => Locator;
   contractsOnlyCard: () => Locator;
   bareCard: () => Locator;
@@ -372,7 +375,7 @@ export const persistedCommentsHarness = ({
     withScrambledOrder,
     withSecondFlow,
   }: {
-    guildName: string;
+    guildName: Guild['name'];
     status: string;
     withSession: boolean;
     withComments: boolean;
@@ -387,7 +390,7 @@ export const persistedCommentsHarness = ({
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guild.id),
+      guildId: GuildIdStub({ value: guild.id }),
       title: 'E2E Persisted Comments Quest',
       userRequest: 'Build the feature',
     });
@@ -397,8 +400,8 @@ export const persistedCommentsHarness = ({
       .replace(/\s+/gu, '-');
 
     await quests.writeQuestFile({
-      questId: seeded.questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: seeded.questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status,
       // withSession false drops the sessionId from the chaoswhisperer work item — the role stays,
@@ -458,7 +461,7 @@ export const persistedCommentsHarness = ({
       withScrambledOrder = false,
       withSecondFlow = false,
     }: {
-      guildName: string;
+      guildName: Guild['name'];
       status: string;
       withSession: boolean;
       withComments?: boolean;
@@ -477,7 +480,7 @@ export const persistedCommentsHarness = ({
       });
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
       });
       await page
         .getByTestId('QUEST_SPEC_PANEL')
@@ -491,7 +494,7 @@ export const persistedCommentsHarness = ({
     // A complete quest renders the full-width execution panel instead of the spec panel; its QUEST
     // SPEC tab is the readOnly QuestSpecPanelWidget. Reaching the panel through the real tab is what
     // makes this the read-only surface rather than a second render of the live one.
-    seedAndOpenReadOnlySpecTab: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedAndOpenReadOnlySpecTab: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       await seed({
         guildName,
         status: 'complete',
@@ -503,7 +506,7 @@ export const persistedCommentsHarness = ({
       });
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
       });
       await page
         .getByTestId('execution-panel-widget')

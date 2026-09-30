@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -8,7 +9,7 @@ import { subagentDurationHarness } from '../../../test/harnesses/subagent-durati
 import { subagentDurationTripleChainHarness } from '../../../test/harnesses/subagent-duration-triple-chain/subagent-duration-triple-chain.harness';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
-const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-live-tick';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-live-tick' });
 const PANEL_TIMEOUT = 10_000;
 const CHAIN_TIMEOUT = 10_000;
 const TICK_MS = elapsedDisplayConfigStatics.refresh.tickMs;
@@ -69,14 +70,14 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Live First Render Quest',
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -101,7 +102,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -154,14 +155,14 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Live Tick Advance Quest',
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -187,7 +188,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -287,14 +288,14 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Frozen Beside Live Quest',
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -319,7 +320,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -408,14 +409,14 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Subagent Duration Single Interval Quest',
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: String(created.questId),
-      questFolder: String(created.questFolder),
+      questId: created.questId,
+      questFolder: created.questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -441,7 +442,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+    await nav.navigateToQuest({ urlSlug, questId: created.questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

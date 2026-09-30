@@ -29,10 +29,10 @@
  * // Appends a <task-notification> line to the MAIN session JSONL — the notification landing
  * // mid-test, after the chain already rendered live. Omit durationMs to omit the whole tag.
  */
+import type { Guild, AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
@@ -109,7 +109,7 @@ const buildNotificationLine = ({
 export const subagentDurationHarness = ({
   guildPath,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
 }): {
   beforeEach: () => Promise<void>;
   afterEach: () => Promise<void>;

@@ -11,6 +11,7 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
+import type { Guild, WardQueueResponse } from '@dungeonmaster/shared/contracts';
 import {
   ensureDirSync,
   existsSync,
@@ -22,7 +23,6 @@ import {
 import * as path from '#gateway/node/path';
 
 import { wardQueueResponseContract } from '@dungeonmaster/shared/contracts';
-import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
 
 import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
 import { getEnv } from '#gateway/node/process';
@@ -48,7 +48,7 @@ const getRootQueueDir = () => {
 const encodeCwdScope = ({ cwd }: { cwd: string }) =>
   cwd.replace(ENCODE_NON_SAFE, SCOPE_REPLACEMENT);
 
-const getScopedQueueDir = ({ guildPath }: { guildPath: string }) =>
+const getScopedQueueDir = ({ guildPath }: { guildPath: Guild['path'] }) =>
   path.join(getRootQueueDir(), '__by_cwd__', encodeCwdScope({ cwd: guildPath }));
 
 const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
@@ -105,7 +105,7 @@ const clearWardQueue = ({ queueDir }: { queueDir: string }): void => {
 export const wardMockHarness = ({
   guildPath,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
 }): {
   beforeEach: () => void;
   queueResponse: (params: { response: WardQueueResponse }) => void;

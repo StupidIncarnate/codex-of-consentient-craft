@@ -1,12 +1,13 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_A_PATH = '/tmp/dm-e2e-visual-a';
-const GUILD_B_PATH = '/tmp/dm-e2e-visual-b';
-const GUILD_C_PATH = '/tmp/dm-e2e-visual-c';
-const STATUS_GUILD_PATH = '/tmp/dm-e2e-visual-status';
+const GUILD_A_PATH = GuildPathStub({ value: '/tmp/dm-e2e-visual-a' });
+const GUILD_B_PATH = GuildPathStub({ value: '/tmp/dm-e2e-visual-b' });
+const GUILD_C_PATH = GuildPathStub({ value: '/tmp/dm-e2e-visual-c' });
+const STATUS_GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-visual-status' });
 const HTTP_OK = 200;
 
 // Wire environment harnesses to create guild directories before each test

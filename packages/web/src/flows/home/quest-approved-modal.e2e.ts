@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questApprovedModalHarness } from '../../../test/harnesses/quest-approved-modal/quest-approved-modal.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-approved-modal';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-approved-modal' });
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
@@ -30,13 +32,13 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-approved-modal-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: 'Approved Modal Guild',
+      guildName: GuildNameStub({ value: 'Approved Modal Guild' }),
       sessionId,
       status: 'review_observables',
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -61,13 +63,13 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-begin-quest-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: 'Begin Quest Guild',
+      guildName: GuildNameStub({ value: 'Begin Quest Guild' }),
       sessionId,
       status: 'review_observables',
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -102,13 +104,13 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-keep-chatting-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: 'Keep Chatting Guild',
+      guildName: GuildNameStub({ value: 'Keep Chatting Guild' }),
       sessionId,
       status: 'review_observables',
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -147,13 +149,13 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-no-modal-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: 'No Modal Guild',
+      guildName: GuildNameStub({ value: 'No Modal Guild' }),
       sessionId,
       status: 'review_flows',
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -173,13 +175,13 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-execution-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: 'Execution View Guild',
+      guildName: GuildNameStub({ value: 'Execution View Guild' }),
       sessionId,
       status: 'review_observables',
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 

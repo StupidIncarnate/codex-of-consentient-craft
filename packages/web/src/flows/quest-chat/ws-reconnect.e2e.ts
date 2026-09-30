@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { now } from '#gateway/node/Date';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -9,7 +10,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { URL } from '#gateway/node/url';
 
-const GUILD_PATH = '/tmp/dm-e2e-ws-reconnect';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-ws-reconnect' });
 const CHAT_TIMEOUT = 15_000;
 // The adapter fires a 3 s setTimeout before reopening; give 10 s total so the new
 // socket has time to open even on a slow CI box.
@@ -108,7 +109,7 @@ test.describe('WS Reconnect', () => {
     const { questId, questFolder, filePath: questFilePath } = created;
 
     await quests.writeQuestFile({
-      questId: String(questId),
+      questId: questId,
       questFolder,
       questFilePath,
       status: 'review_flows',
@@ -124,7 +125,7 @@ test.describe('WS Reconnect', () => {
     // ── 2. Navigate to the quest page ─────────────────────────────────────────
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug: guildSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug: guildSlug, questId: questId });
 
     // ── 3. Queue first response and send first chat message ───────────────────
 

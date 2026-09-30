@@ -1,3 +1,4 @@
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
@@ -26,7 +27,7 @@ const QUEST_FILE = 'quest.json';
 export const questFindBrokerProxy = (): {
   setupQuestAt: (params: {
     root: QuestFindRootKind;
-    guildId: string;
+    guildId: Guild['id'];
     questId: QuestId;
     decoyGuildIds?: string[];
   }) => void;
@@ -109,7 +110,7 @@ export const questFindBrokerProxy = (): {
       decoyGuildIds = [],
     }: {
       root: QuestFindRootKind;
-      guildId: string;
+      guildId: Guild['id'];
       questId: QuestId;
       decoyGuildIds?: string[];
     }): void => {

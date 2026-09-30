@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -17,7 +18,7 @@ describe('QuestModifyResponder', () => {
       const input = ModifyQuestInputStub({ questId: 'nonexistent-quest' });
 
       const result = await proxy.callResponder({
-        questId: 'nonexistent-quest',
+        questId: QuestIdStub({ value: 'nonexistent-quest' }),
         input,
       });
 
@@ -42,7 +43,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -71,7 +72,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -99,7 +100,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -139,7 +140,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -185,7 +186,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -224,7 +225,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -252,7 +253,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 
@@ -283,7 +284,7 @@ describe('QuestModifyResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         input,
       });
 

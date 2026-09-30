@@ -1,10 +1,11 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestModifyResponderProxy } from './quest-modify-responder.proxy';
 
 describe('QuestModifyResponder', () => {
   describe('successful modification', () => {
     it('VALID: {valid questId, body} => returns 200 with result', async () => {
       const proxy = QuestModifyResponderProxy();
-      const { expectedData } = proxy.setupModifyQuest({ questId: 'test-quest' });
+      const { expectedData } = proxy.setupModifyQuest({ questId: QuestIdStub({ value: 'test-quest' }) });
 
       const result = await proxy.callResponder({
         params: { questId: 'test-quest' },
@@ -109,7 +110,7 @@ describe('QuestModifyResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestModifyResponderProxy();
-      proxy.setupModifyQuestError({ questId: 'test-quest', message: 'Modification failed' });
+      proxy.setupModifyQuestError({ questId: QuestIdStub({ value: 'test-quest' }), message: 'Modification failed' });
 
       const result = await proxy.callResponder({
         params: { questId: 'test-quest' },

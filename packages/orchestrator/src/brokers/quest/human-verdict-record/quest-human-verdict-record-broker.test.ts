@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -35,7 +36,7 @@ describe('questHumanVerdictRecordBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const result = await questHumanVerdictRecordBroker({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         reason: 'Watched the raid transition twice; it stutters on the third frame.',
@@ -91,7 +92,7 @@ describe('questHumanVerdictRecordBroker', () => {
       proxy.setupQuestFound({ quest });
 
       await questHumanVerdictRecordBroker({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         unitId: 'motion-feels-smooth',
         outcome: 'not-met',
         reason: 'The panel jumps two pixels right before it settles — visibly janky.',
@@ -145,7 +146,7 @@ describe('questHumanVerdictRecordBroker', () => {
       proxy.setupQuestFound({ quest });
 
       await questHumanVerdictRecordBroker({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         reason: 'Watched it end to end.',
@@ -208,7 +209,7 @@ describe('questHumanVerdictRecordBroker', () => {
       proxy.setupQuestFound({ quest });
 
       await questHumanVerdictRecordBroker({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         reason: 'Second look — motion is smooth now.',
@@ -249,7 +250,7 @@ describe('questHumanVerdictRecordBroker', () => {
 
       await expect(
         questHumanVerdictRecordBroker({
-          questId: 'add-auth',
+          questId: QuestIdStub({ value: 'add-auth' }),
           unitId: 'motion-feels-smooth',
           outcome: 'met',
           reason: 'Watched it.',
@@ -287,7 +288,7 @@ describe('questHumanVerdictRecordBroker', () => {
 
       await expect(
         questHumanVerdictRecordBroker({
-          questId: 'add-auth',
+          questId: QuestIdStub({ value: 'add-auth' }),
           unitId: 'check-login-api-called',
           outcome: 'met',
           reason: 'Watched it.',

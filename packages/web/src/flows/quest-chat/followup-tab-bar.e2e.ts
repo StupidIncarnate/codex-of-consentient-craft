@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -7,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-const GUILD_PATH = '/tmp/dm-e2e-followup-tab-bar';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-tab-bar' });
 const PANEL_TIMEOUT = 10_000;
 // A tavernkeeper turn ends on the spawned child's exit, which is a process lifecycle rather than a
 // render — measured at up to ~20s here — so the composer's return to SEND gets its own budget
@@ -47,7 +49,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: 'Tab Bar Baseline Guild', status: 'blocked' });
+    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Tab Bar Baseline Guild' }), status: 'blocked' });
 
     const order = await followup.tabOrder();
 
@@ -64,7 +66,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: 'Tab Bar Appear Guild', status: 'blocked' });
+    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Tab Bar Appear Guild' }), status: 'blocked' });
 
     await followup.pressFollowup();
 
@@ -105,7 +107,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: 'Tab Bar Second Press Guild', status: 'blocked' });
+    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Tab Bar Second Press Guild' }), status: 'blocked' });
 
     const sessionId = SessionIdStub({ value: 'e2e-followup-tabbar-session-0000000000a1' });
     claudeMock.queueResponse({
@@ -211,7 +213,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
     await followup.seedAndOpen({
-      guildName: 'Tab Bar Second Button Press Guild',
+      guildName: GuildNameStub({ value: 'Tab Bar Second Button Press Guild' }),
       status: 'blocked',
     });
 
@@ -259,7 +261,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
     const quests = questHarness({ request });
     const { questId } = await followup.seedAndOpen({
-      guildName: 'Tab Bar Status Survival Guild',
+      guildName: GuildNameStub({ value: 'Tab Bar Status Survival Guild' }),
       status: 'blocked',
     });
 
@@ -287,7 +289,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
 
     // Precondition write only — the quest's status is not the control under test here (that is
     // the title bar's ABANDON control); this merely sets up the state the tab must survive.
-    await quests.patchQuestStatus({ questId: String(questId), status: 'abandoned' });
+    await quests.patchQuestStatus({ questId: questId, status: 'abandoned' });
 
     // Read the bar's DISAPPEARANCE from the EXECUTION tab too. Asserting its absence while the
     // FOLLOW-UP tab is active would pass even with the bar fully intact, since the execution

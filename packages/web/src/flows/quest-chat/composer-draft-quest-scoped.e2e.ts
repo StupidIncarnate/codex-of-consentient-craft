@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -14,7 +16,7 @@ import { composerPasteHarness } from '../../../test/harnesses/composer-paste/com
 // quests) and assert the CORRECT outcome: a quest that was never typed into opens its composer
 // EMPTY, and a quest whose draft was composed earlier restores exactly ITS OWN text and image,
 // unaffected by whatever was typed into a different quest's composer in between.
-const GUILD_PATH = '/tmp/dm-e2e-composer-draft-quest-scoped';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-draft-quest-scoped' });
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 
@@ -55,14 +57,14 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const sessionIdA = `e2e-draft-scope-a-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Scope Quest A',
       userRequest: 'Build feature',
     });
     const questIdA = String(createdA.questId);
     await quests.writeQuestFile({
-      questId: questIdA,
-      questFolder: String(createdA.questFolder),
+      questId: QuestIdStub({ value: questIdA }),
+      questFolder: createdA.questFolder,
       questFilePath: String(createdA.filePath),
       status: 'explore_flows',
       workItems: [
@@ -78,14 +80,14 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const sessionIdB = `e2e-draft-scope-b-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Scope Quest B',
       userRequest: 'Build feature',
     });
     const questIdB = String(createdB.questId);
     await quests.writeQuestFile({
-      questId: questIdB,
-      questFolder: String(createdB.questFolder),
+      questId: QuestIdStub({ value: questIdB }),
+      questFolder: createdB.questFolder,
       questFilePath: String(createdB.filePath),
       status: 'explore_flows',
       workItems: [
@@ -99,7 +101,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     });
 
     // Compose in quest A only — text plus an image — and never send it.
-    await nav.navigateToQuest({ urlSlug, questId: questIdA });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdA }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await composer.focusComposer();
     await page.keyboard.type('DRAFT-FROM-QUEST-A ');
@@ -112,7 +114,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
 
     // Navigate straight to quest B, which nobody has ever typed into.
-    await nav.navigateToQuest({ urlSlug, questId: questIdB });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdB }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     // #check-cross-quest-composer-opens-empty: quest B's composer carries NEITHER quest A's text
@@ -143,14 +145,14 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const sessionIdA = `e2e-draft-scope-rt-a-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Scope Round Trip A',
       userRequest: 'Build feature',
     });
     const questIdA = String(createdA.questId);
     await quests.writeQuestFile({
-      questId: questIdA,
-      questFolder: String(createdA.questFolder),
+      questId: QuestIdStub({ value: questIdA }),
+      questFolder: createdA.questFolder,
       questFilePath: String(createdA.filePath),
       status: 'explore_flows',
       workItems: [
@@ -166,14 +168,14 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const sessionIdB = `e2e-draft-scope-rt-b-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Draft Scope Round Trip B',
       userRequest: 'Build feature',
     });
     const questIdB = String(createdB.questId);
     await quests.writeQuestFile({
-      questId: questIdB,
-      questFolder: String(createdB.questFolder),
+      questId: QuestIdStub({ value: questIdB }),
+      questFolder: createdB.questFolder,
       questFilePath: String(createdB.filePath),
       status: 'explore_flows',
       workItems: [
@@ -187,7 +189,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     });
 
     // Compose quest A's own draft.
-    await nav.navigateToQuest({ urlSlug, questId: questIdA });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdA }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await composer.focusComposer();
     await page.keyboard.type('DRAFT-FROM-QUEST-A ');
@@ -202,7 +204,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const expectedBase64A = String(dataUrlA).slice(String(dataUrlA).indexOf(',') + 1);
 
     // Visit quest B and compose a DIFFERENT draft there — its own text, its own image.
-    await nav.navigateToQuest({ urlSlug, questId: questIdB });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdB }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     await composer.focusComposer();
     await page.keyboard.type('DRAFT-FROM-QUEST-B ');
@@ -215,7 +217,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     await expect(page.getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(1);
 
     // Return to quest A.
-    await nav.navigateToQuest({ urlSlug, questId: questIdA });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questIdA }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     // #check-own-quest-draft-survives-foreign-visit: quest A restores its OWN text and its OWN

@@ -30,21 +30,10 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
+import type { WorkItem, GuildId, GuildName, GuildPath, ProcessId, QuestId, QuestStatus, QuestWorkItemId, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
-import type {
-  GuildId,
-  GuildName,
-  GuildPath,
-  ProcessId,
-  QuestId,
-  QuestStatus,
-  QuestWorkItemId,
-  SessionId,
-  SmoketestSuite,
-  UrlSlug,
-} from '@dungeonmaster/shared/contracts';
 import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -304,10 +293,10 @@ export const StartOrchestratorProxy = (): {
   getServerConfigThrows: (params: { error: Error }) => void;
   questWorkReturns: (params: {
     questId: string;
-    workItemId: string;
+    workItemId: WorkItem['id'];
     result: QuestWorkResult;
   }) => void;
-  questWorkThrows: (params: { questId: string; workItemId: string; error: Error }) => void;
+  questWorkThrows: (params: { questId: string; workItemId: WorkItem['id']; error: Error }) => void;
   // Every call StartOrchestrator.questWork received, first-arg only — mirrors mergeQuestGetCalls.
   // A caller needing the exact forwarded payload (which of the six payload kinds was sent) filters
   // /reads this array itself.
@@ -326,7 +315,7 @@ export const StartOrchestratorProxy = (): {
   startMonitorWatcherWasStopCalled: () => boolean;
   startMonitorWatcherStartedWithWorkerWorkItemId: (params: {
     parentSessionId: string;
-    workerWorkItemId: string;
+    workerWorkItemId: WorkItem['id'];
   }) => boolean;
   startMonitorWatcherStartedWithWorkerQuestId: (params: {
     parentSessionId: string;
@@ -964,7 +953,7 @@ export const StartOrchestratorProxy = (): {
       result,
     }: {
       questId: string;
-      workItemId: string;
+      workItemId: WorkItem['id'];
       result: QuestWorkResult;
     }): void => {
       questWorkHandle.calledWith([{ questId, workItemId }]).resolves(result);
@@ -975,7 +964,7 @@ export const StartOrchestratorProxy = (): {
       error,
     }: {
       questId: string;
-      workItemId: string;
+      workItemId: WorkItem['id'];
       error: Error;
     }): void => {
       questWorkHandle.calledWith([{ questId, workItemId }]).rejects(error);
@@ -1043,7 +1032,7 @@ export const StartOrchestratorProxy = (): {
       workerWorkItemId,
     }: {
       parentSessionId: string;
-      workerWorkItemId: string;
+      workerWorkItemId: WorkItem['id'];
     }): boolean =>
       startMonitorWatcherHandle.callsMatching([{ parentSessionId, workerWorkItemId }]).length > 0,
     startMonitorWatcherStartedWithWorkerQuestId: ({

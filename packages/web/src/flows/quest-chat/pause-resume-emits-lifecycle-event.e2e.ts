@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -7,7 +10,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { wsQuestLifecycleHarness } from '../../../test/harnesses/ws-quest-lifecycle/ws-quest-lifecycle.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-pause-resume-lifecycle';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-pause-resume-lifecycle' });
 const PANEL_TIMEOUT = 10_000;
 const WIRE_TIMEOUT = 10_000;
 
@@ -38,7 +41,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Pause-Emit',
       userRequest: 'Build the feature',
     });
@@ -61,11 +64,11 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     });
 
     const expectedQuestId = String(questId);
-    const wsCapture = wsQuestLifecycleHarness({ page, questId: expectedQuestId });
+    const wsCapture = wsQuestLifecycleHarness({ page, questId: QuestIdStub({ value: expectedQuestId }) });
     wsCapture.beforeEach();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: expectedQuestId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: expectedQuestId }) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -111,7 +114,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Resume-Emit',
       userRequest: 'Build the feature',
     });
@@ -133,14 +136,14 @@ test.describe('Pause/Resume emits lifecycle events', () => {
       ],
     });
 
-    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
 
     const expectedQuestId = String(questId);
-    const wsCapture = wsQuestLifecycleHarness({ page, questId: expectedQuestId });
+    const wsCapture = wsQuestLifecycleHarness({ page, questId: QuestIdStub({ value: expectedQuestId }) });
     wsCapture.beforeEach();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: expectedQuestId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: expectedQuestId }) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

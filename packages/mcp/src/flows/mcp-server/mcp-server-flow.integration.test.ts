@@ -6,6 +6,7 @@
  * repeated subprocess spawn + 2s startup delay per test (16 tests x 2s = 32s saved)
  */
 
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
@@ -289,7 +290,7 @@ describe('McpServerFlow', () => {
 
       await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
-        guildId,
+        guildId: GuildIdStub({ value: guildId }),
         questFolder,
         quest,
       });
@@ -335,7 +336,7 @@ describe('McpServerFlow', () => {
 
       await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
-        guildId,
+        guildId: GuildIdStub({ value: guildId }),
         questFolder,
         quest,
       });
@@ -465,7 +466,7 @@ describe('McpServerFlow', () => {
 
       await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
-        guildId,
+        guildId: GuildIdStub({ value: guildId }),
         questFolder,
         quest,
       });
@@ -496,7 +497,7 @@ describe('McpServerFlow', () => {
   // comments before an agent ever sees them, so verifying a write's effect on quest.comments
   // requires reading the persisted file directly (mcp.readQuestFile), never the get-quest tool.
   describe('comment integrity at the MCP boundary', () => {
-    const GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+    const GUILD_ID = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
     describe('comments-excluded-from-agent-reads — strip on read', () => {
       it('VALID: {get-quest on a quest carrying 3 distinctive comments across 2 flows} => response has no comments key, none of the 3 comment texts appear anywhere, and every other section is unchanged', async () => {
@@ -1561,7 +1562,7 @@ describe('McpServerFlow', () => {
   // against stubs, so this is the only place the registration, the dispatch Map entry, the
   // orchestrator's summary build and the render are proven wired to each other over a live quest.
   describe('tools/call with get-quest-summary', () => {
-    const SUMMARY_GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+    const SUMMARY_GUILD_ID = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
     const SUMMARY_WORK_ITEM_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 
     it('VALID: {questId} => renders the coverage rows, the mid-quest observable, and the notes by kind', async () => {

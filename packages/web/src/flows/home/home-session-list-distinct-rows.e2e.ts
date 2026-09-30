@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { now } from '#gateway/node/Date';
 import { randomUUID } from '#gateway/node/crypto';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -6,7 +8,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-home-session-list-distinct-rows';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-home-session-list-distinct-rows' });
 const HTTP_OK = 200;
 const NAV_TIMEOUT = 5_000;
 
@@ -49,14 +51,14 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
     // invariant: "Quests Only" mode is one-to-one with quest files on disk — so
     // having three sessions tied to this quest must NOT cause three rows to render.
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: questTitle,
       userRequest: 'Same quest userRequest used across sessions',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       title: questTitle,
       status: 'paused',

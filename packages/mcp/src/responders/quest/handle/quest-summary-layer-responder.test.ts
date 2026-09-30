@@ -1,3 +1,4 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
 import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
@@ -16,7 +17,7 @@ describe('QuestSummaryLayerResponder', () => {
     it('VALID: {questId} => returns the RENDERED summary, not the JSON structure', async () => {
       const proxy = QuestSummaryLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         summary: QuestSummaryStub({
           questId: 'add-auth',
           flows: [
@@ -62,7 +63,7 @@ describe('QuestSummaryLayerResponder', () => {
     it('VALID: {quest carrying debt entries} => a cant-meet entry renders its toSettle and an unmet entry renders none recorded', async () => {
       const proxy = QuestSummaryLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         summary: QuestSummaryStub({
           questId: 'add-auth',
           flows: [],
@@ -116,13 +117,13 @@ describe('QuestSummaryLayerResponder', () => {
     it('VALID: {questId} => forwards it to the orchestrator', async () => {
       const proxy = QuestSummaryLayerResponderProxy();
       proxy.setupReturns({
-        questId: 'add-auth',
+        questId: QuestIdStub({ value: 'add-auth' }),
         summary: QuestSummaryStub({ questId: 'add-auth' }),
       });
 
       await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
         questId: 'add-auth',
       });
     });
@@ -131,7 +132,7 @@ describe('QuestSummaryLayerResponder', () => {
   describe('adapter failures', () => {
     it('ERROR: {orchestrator throws} => returns the JSON error shape with isError', async () => {
       const proxy = QuestSummaryLayerResponderProxy();
-      proxy.setupThrows({ questId: 'add-auth', error: new Error('Quest not found: add-auth') });
+      proxy.setupThrows({ questId: QuestIdStub({ value: 'add-auth' }), error: new Error('Quest not found: add-auth') });
 
       const result = await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
 

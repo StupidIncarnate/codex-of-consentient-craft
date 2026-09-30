@@ -155,8 +155,8 @@ export const ReconcileWatchersLayerResponder = async ({
         const handle = await StartOrchestrator.startMonitorWatcher({
           parentSessionId: String(sessionId),
           projectDir: resolvedProjectDir,
-          workerWorkItemId: String(workerWorkItemId),
-          workerQuestId: String(workerQuestId),
+          workerWorkItemId: workerWorkItemId,
+          workerQuestId: workerQuestId,
         });
         return { sessionId, handle };
       } catch (error: unknown) {

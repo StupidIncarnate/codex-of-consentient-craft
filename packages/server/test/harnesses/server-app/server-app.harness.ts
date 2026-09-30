@@ -103,8 +103,8 @@ export const serverAppHarness = (): {
   toPlain: (value: unknown) => unknown;
   seedQuest: (params: {
     dungeonmasterHome: string;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
     quest: unknown;
   }) => Promise<void>;
   // Domain-state seeding through the recipe framework's quest ingredient — the `write` route
@@ -119,7 +119,7 @@ export const serverAppHarness = (): {
   // write route and are never part of `fields` — read them off the returned record, never chosen.
   seedQuestFields: (params: {
     dungeonmasterHome: string;
-    guildId: string;
+    guildId: Guild['id'];
     fields: Partial<QuestFields>;
   }) => Promise<Quest>;
   // Same as seedQuestFields, but the quest hangs off a REAL guild created through the guild
@@ -131,8 +131,8 @@ export const serverAppHarness = (): {
   // what registerRealGuild used to produce by calling StartOrchestrator.addGuild directly.
   seedGuildAndQuestFields: (params: {
     dungeonmasterHome: string;
-    guildName: string;
-    guildPath: string;
+    guildName: Guild['name'];
+    guildPath: Guild['path'];
     fields: Partial<QuestFields>;
   }) => Promise<{ guild: Guild; quest: Quest }>;
   // Writes a REAL file to a real `images` directory in a fresh temp dir — a bytes-match-disk claim
@@ -167,8 +167,8 @@ export const serverAppHarness = (): {
   // recursively removes the temp dir and needs write permission on every directory in it).
   makeQuestDirectoryReadOnly: (params: {
     dungeonmasterHome: string;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
   }) => { restore: () => void };
   // Strips every permission bit from a REAL file (chmod 0o000) so a genuine fs read fails with
   // EACCES — the file-exists check upstream already saw the file, only the read itself must fail.
@@ -182,8 +182,8 @@ export const serverAppHarness = (): {
   // or this chmods a directory the broker never writes to. Restores to 0o755.
   makeQuestImagesDirectoryReadOnly: (params: {
     dungeonmasterHome: string;
-    guildId: string;
-    questId: string;
+    guildId: Guild['id'];
+    questId: Quest['id'];
   }) => { restore: () => void };
   // Registers a REAL guild via the orchestrator package's own public API (the same one this
   // package's adapters call in production) so `guildGetBroker` — invoked deep inside
@@ -214,7 +214,7 @@ export const serverAppHarness = (): {
   // existence, inode (for the not-recreated-on-a-second-send proof) and the raw file name list
   // into one real fs read, so an absent directory reads as `exists: false` rather than a thrown
   // ENOENT a caller has to guess the meaning of.
-  readImagesDir: (params: { dungeonmasterHome: string; guildId: string; questId: string }) => {
+  readImagesDir: (params: { dungeonmasterHome: string; guildId: Guild['id']; questId: Quest['id'] }) => {
     exists: boolean;
     dirPath: FilePath;
     ino: unknown;
@@ -305,8 +305,8 @@ export const serverAppHarness = (): {
     quest,
   }: {
     dungeonmasterHome: string;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
     quest: unknown;
   }): Promise<void> => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
@@ -320,7 +320,7 @@ export const serverAppHarness = (): {
     fields,
   }: {
     dungeonmasterHome: string;
-    guildId: string;
+    guildId: Guild['id'];
     fields: Partial<QuestFields>;
   }): Promise<Quest> => {
     const target = dmTargetContract.parse({
@@ -343,8 +343,8 @@ export const serverAppHarness = (): {
     fields,
   }: {
     dungeonmasterHome: string;
-    guildName: string;
-    guildPath: string;
+    guildName: Guild['name'];
+    guildPath: Guild['path'];
     fields: Partial<QuestFields>;
   }): Promise<{ guild: Guild; quest: Quest }> => {
     const target = dmTargetContract.parse({
@@ -475,8 +475,8 @@ export const serverAppHarness = (): {
     questFolder,
   }: {
     dungeonmasterHome: string;
-    guildId: string;
-    questFolder: string;
+    guildId: Guild['id'];
+    questFolder: Quest['folder'];
   }): { restore: () => void } => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
     // r-xr-xr-x: read+list the existing quest.json, but no write — blocks creating the
@@ -504,8 +504,8 @@ export const serverAppHarness = (): {
     questId,
   }: {
     dungeonmasterHome: string;
-    guildId: string;
-    questId: string;
+    guildId: Guild['id'];
+    questId: Quest['id'];
   }): { restore: () => void } => {
     const imagesDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
     ensureDirSync(imagesDir);
@@ -618,8 +618,8 @@ export const serverAppHarness = (): {
     questId,
   }: {
     dungeonmasterHome: string;
-    guildId: string;
-    questId: string;
+    guildId: Guild['id'];
+    questId: Quest['id'];
   }): { exists: boolean; dirPath: FilePath; ino: unknown; fileNames: readonly FileName[] } => {
     const dirPath = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
     const exists = existsSync(dirPath);

@@ -1,18 +1,22 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-dispatch-resumes-retained-session';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-dispatch-resumes-retained-session' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 20_000;
 
 const OP_ID = '00000000-0000-4000-8000-0000000000a1';
-const FIRST_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000020';
+const FIRST_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e2e00000-0000-4000-8000-000000000020' });
 // The session a dead agent left behind. A fresh spawn would start a NEW session and orphan this
 // one — invisible after the fact, because the fresh child stamps its own id over this field.
-const RETAINED_SESSION_ID = 'a219be5c-ef0f-4987-abea-ed45fb509bbc';
+const RETAINED_SESSION_ID = SessionIdStub({ value: 'a219be5c-ef0f-4987-abea-ed45fb509bbc' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
@@ -47,7 +51,7 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
     // agent's sessionId, but has NO `resume` marker — the state a quest is left in when it halted
     // before orphan recovery could reclaim the item. This is exactly what used to fresh-spawn.
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Retained Session Quest',
       userRequest: 'Build the feature',
       operations: [
@@ -62,7 +66,7 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
       firstWorkItemSessionId: RETAINED_SESSION_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
@@ -70,12 +74,12 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
     // One scripted outcome: the ledger holds exactly one operation item, and nothing is appended
     // beside it when the session completes.
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [{ role: 'siegemaster', outcome: 'done' }],
     });
 
     await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(
@@ -108,7 +112,7 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
     const guildId = String(guild.id);
 
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Fresh Spawn Quest',
       userRequest: 'Build the feature',
       operations: [
@@ -118,12 +122,12 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
     });
 
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [{ role: 'codeweaver', outcome: 'done' }],
     });
 
     await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(

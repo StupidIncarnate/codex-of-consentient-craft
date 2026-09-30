@@ -19,8 +19,8 @@ describe('QuestMonitorWatcherStartResponder', () => {
       const handle = await QuestMonitorWatcherStartResponder({
         parentSessionId: '00118165-fbf1-11d4-8940-5ee9492debae',
         projectDir: '/home/user/proj',
-        workerWorkItemId: String(QuestWorkItemIdStub()),
-        workerQuestId: String(QuestIdStub()),
+        workerWorkItemId: QuestWorkItemIdStub(),
+        workerQuestId: QuestIdStub(),
       });
 
       // The tail's first drain settles before the handle is stopped.

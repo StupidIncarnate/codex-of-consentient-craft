@@ -1,3 +1,7 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-unparseable-sibling';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-unparseable-sibling' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 20_000;
 const LEDGER_TIMEOUT = 15_000;
@@ -13,7 +17,7 @@ const HTTP_OK = 200;
 
 const CW1_OP = '00000000-0000-4000-8000-0000000000d1';
 const CW2_OP = '00000000-0000-4000-8000-0000000000d2';
-const FIRST_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000020';
+const FIRST_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e2e00000-0000-4000-8000-000000000020' });
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
@@ -48,20 +52,20 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     // The poison pill: a real quest folder under this guild whose quest.json fails
     // questContract. Every guild-wide scan re-reads it from disk on every pass.
     const legacy = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Legacy schema quest',
       userRequest: 'Written by an older schema',
     });
     await quests.writeUnparseableQuestFile({
-      questId: String(legacy.questId),
-      questFolder: String(legacy.questFolder),
+      questId: legacy.questId,
+      questFolder: legacy.questFolder,
       questFilePath: String(legacy.filePath),
     });
 
     // The quest under test: in_progress with a two-item ledger, first item already linked to
     // its work item — exactly the state Start Quest leaves behind.
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Dispatchable Quest',
       userRequest: 'Build the feature',
       operations: [
@@ -80,13 +84,13 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     const queueData = await queueResponse.json();
 
     expect(
-      queueData.entries.map((entry: { questId: string; questTitle: string }) => ({
+      queueData.entries.map((entry: { questId: Quest['id']; questTitle: Quest['title'] }) => ({
         questId: entry.questId,
         questTitle: entry.questTitle,
       })),
     ).toStrictEqual([{ questId: String(questId), questTitle: 'Dispatchable Quest' }]);
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -109,7 +113,7 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     // family's scopes the moment it completes, so the FIFO script carries one outcome per family
     // the router mints behind codeweaver.
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         { role: 'codeweaver', outcome: 'done' },
@@ -123,7 +127,7 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     // unparseable sibling on every pass, so this also proves it stays survivable across dispatches
     // rather than only on the first one.
     const finalQuest = await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&

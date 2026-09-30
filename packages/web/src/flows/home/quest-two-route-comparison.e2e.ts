@@ -4,6 +4,8 @@
  * guild-two-route-comparison.e2e.ts, closing scrolls/seigelense/remaining-build-items.md item 7a
  * ("nothing compares [the quest ingredient] to its api route").
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questListResultContract } from '@dungeonmaster/shared/contracts';
 
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
@@ -37,12 +39,12 @@ test.describe('Quest Two-Route Comparison', () => {
     const urlSlug = String(guilds.extractUrlSlug({ guild }));
 
     const apiQuest = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: SHARED_TITLE,
       userRequest: SHARED_USER_REQUEST,
     });
     const writeQuest = await quests.createQuestViaWriteRoute({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: SHARED_TITLE,
       userRequest: SHARED_USER_REQUEST,
     });
@@ -109,12 +111,12 @@ test.describe('Quest Two-Route Comparison', () => {
     // Opening each quest's own workspace renders the same title and pinned user request too.
     const nav = navigationHarness({ page });
 
-    await nav.navigateToQuest({ urlSlug, questId: apiQuestId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: apiQuestId }) });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('QUEST_TITLE')).toHaveText(SHARED_TITLE);
     await expect(page.getByTestId('USER_REQUEST_TEXT')).toHaveText(SHARED_USER_REQUEST);
 
-    await nav.navigateToQuest({ urlSlug, questId: writeQuestId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: writeQuestId }) });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByTestId('QUEST_TITLE')).toHaveText(SHARED_TITLE);
     await expect(page.getByTestId('USER_REQUEST_TEXT')).toHaveText(SHARED_USER_REQUEST);

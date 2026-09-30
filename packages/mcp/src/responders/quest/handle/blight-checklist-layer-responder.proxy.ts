@@ -9,6 +9,7 @@
  * proxy.setupReturns({ questId: 'add-auth', result: { success: true, data: '# BLIGHT CHECKLIST' } });
  */
 
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
@@ -18,9 +19,9 @@ type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getB
 type GetBlightChecklistParams = Parameters<typeof StartOrchestrator.getBlightChecklist>[0];
 
 export const BlightChecklistLayerResponderProxy = (): {
-  setupReturns: (params: { questId: string; result: GetBlightChecklistResult }) => void;
-  setupThrows: (params: { questId: string; error: Error }) => void;
-  getLastCalledInputFor: (params: { questId: string }) => unknown;
+  setupReturns: (params: { questId: Quest['id']; result: GetBlightChecklistResult }) => void;
+  setupThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  getLastCalledInputFor: (params: { questId: Quest['id'] }) => unknown;
 } => {
   const orchestrator = StartOrchestratorProxy();
 
@@ -29,15 +30,15 @@ export const BlightChecklistLayerResponderProxy = (): {
       questId,
       result,
     }: {
-      questId: string;
+      questId: Quest['id'];
       result: GetBlightChecklistResult;
     }): void => {
       orchestrator.getBlightChecklistReturns({ questId, result });
     },
-    setupThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+    setupThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.getBlightChecklistThrows({ questId, error });
     },
-    getLastCalledInputFor: ({ questId }: { questId: string }): unknown => {
+    getLastCalledInputFor: ({ questId }: { questId: Quest['id'] }): unknown => {
       const calls = orchestrator.getBlightChecklistGetCalls() as GetBlightChecklistParams[];
       return calls.filter((call) => call.questId === questId).at(-1);
     },

@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -10,7 +11,7 @@ import { transcriptImagesHarness } from '../../../test/harnesses/transcript-imag
 // reaching into this package-local static directly (see that file's header on the overlay knobs).
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 
-const GUILD_PATH = '/tmp/dm-e2e-transcript-broken-image';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-broken-image' });
 const PANEL_TIMEOUT = 8_000;
 const IMAGE_SIZE_PX = 8;
 // Narrow and very tall — the aspect ratio a full-page screenshot paste has (roughly 1000x4000 in

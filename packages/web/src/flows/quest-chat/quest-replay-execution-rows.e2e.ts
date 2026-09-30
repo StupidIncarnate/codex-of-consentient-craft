@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -5,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-replay-execution-rows';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-replay-execution-rows' });
 const PANEL_TIMEOUT = 5_000;
 const REPLAY_TEXT_TIMEOUT = 5_000;
 
@@ -45,7 +47,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Replay Codeweaver Quest',
       userRequest: 'Build the feature',
     });
@@ -55,8 +57,8 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000011';
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c5';
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'in_progress',
       operations: [
@@ -85,7 +87,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

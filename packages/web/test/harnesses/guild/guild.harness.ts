@@ -7,12 +7,12 @@
  * const guild = await guilds.createGuild({ name: 'Test', path: '/tmp/test' });
  * const guildId = guilds.extractGuildId({ guild });
  */
+import type { Guild, GuildId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 import { guildIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { dmTargetHarness } from '../dm-target/dm-target.harness';
@@ -39,7 +39,7 @@ export const guildHarness = ({
   // Removes one guild through dmRegistryBroker's `remove` route (guildRemoveRouteBroker), which
   // sends `DELETE /api/guilds/:guildId` over HTTP whenever the target carries a `baseUrl` — see
   // that route's own header for the full resolution.
-  deleteGuild: (params: { guildId: string }) => Promise<void>;
+  deleteGuild: (params: { guildId: Guild['id'] }) => Promise<void>;
   extractGuildId: (params: { guild: GuildRecord }) => GuildId;
   extractUrlSlug: (params: { guild: GuildRecord }) => UrlSlug;
 } => {
@@ -96,7 +96,7 @@ export const guildHarness = ({
   // Filters on `id` alone: the intersection widens the ingredient's own `where` type (which has no
   // index signature) to admit `id`, a value `guildAddBroker` mints rather than a settable
   // GuildFields key — the same shape questHarness.patchQuestStatus uses for a quest's `id`.
-  const deleteGuild = async ({ guildId }: { guildId: string }): Promise<void> => {
+  const deleteGuild = async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
     type GuildFilterWhere = Parameters<typeof dmRegistryBroker.guilds.filter>[0]['where'] & {
       id?: GuildId;
     };

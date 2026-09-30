@@ -9,6 +9,7 @@
  * // ... call responder ...
  * proxy.getPatchedBody({ questId: 'quest-abc-123' });
  */
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
 
@@ -22,14 +23,14 @@ const MOCK_PORT = '3737';
 const MOCK_BASE_URL = `http://${environmentStatics.hostname}:${MOCK_PORT}`;
 
 export const HookPostAskQuestionResponderProxy = (): {
-  setupHappyPath: (params: { sessionId: string; questId: string }) => void;
+  setupHappyPath: (params: { sessionId: string; questId: Quest['id'] }) => void;
   setupQuestNotFound: (params: { sessionId: string }) => void;
   setupServerUnreachable: (params: { sessionId: string }) => void;
   setupServer5xx: (params: { sessionId: string; status: number; bodyText: string }) => void;
   setupInvalidResponseShape: (params: { sessionId: string }) => void;
-  setupPatchFails: (params: { sessionId: string; questId: string }) => void;
-  getPatchedBody: (params: { questId: string }) => unknown;
-  getPatchUrl: (params: { questId: string }) => unknown;
+  setupPatchFails: (params: { sessionId: string; questId: Quest['id'] }) => void;
+  getPatchedBody: (params: { questId: Quest['id'] }) => unknown;
+  getPatchUrl: (params: { questId: Quest['id'] }) => unknown;
   getLookupUrls: (params: { sessionId: string }) => readonly unknown[];
   getStderrText: ReturnType<typeof stderrProxy>['getWrittenText'];
   setNowMs: (params: { value: number }) => void;
@@ -45,7 +46,7 @@ export const HookPostAskQuestionResponderProxy = (): {
   const clock = nowProxy();
 
   return {
-    setupHappyPath: ({ sessionId, questId }: { sessionId: string; questId: string }): void => {
+    setupHappyPath: ({ sessionId, questId }: { sessionId: string; questId: Quest['id'] }): void => {
       fetchWithStatus.setupResponse({
         url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
         status: 200,
@@ -88,7 +89,7 @@ export const HookPostAskQuestionResponderProxy = (): {
         bodyText: JSON.stringify({ wrongField: 'no questId here' }),
       });
     },
-    setupPatchFails: ({ sessionId, questId }: { sessionId: string; questId: string }): void => {
+    setupPatchFails: ({ sessionId, questId }: { sessionId: string; questId: Quest['id'] }): void => {
       fetchWithStatus.setupResponse({
         url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
         status: 200,
@@ -96,7 +97,7 @@ export const HookPostAskQuestionResponderProxy = (): {
       });
       fetchJson.setupConnectionRefused({ url: `${MOCK_BASE_URL}/api/quests/${questId}` });
     },
-    getPatchedBody: ({ questId }: { questId: string }): unknown => {
+    getPatchedBody: ({ questId }: { questId: Quest['id'] }): unknown => {
       const lastPatchCall = fetchJson
         .getCallsFor({ url: `${MOCK_BASE_URL}/api/quests/${questId}` })
         .at(-1);
@@ -104,7 +105,7 @@ export const HookPostAskQuestionResponderProxy = (): {
       if (typeof init?.body !== 'string') return init?.body;
       return JSON.parse(init.body) as unknown;
     },
-    getPatchUrl: ({ questId }: { questId: string }): unknown =>
+    getPatchUrl: ({ questId }: { questId: Quest['id'] }): unknown =>
       fetchJson.getCallsFor({ url: `${MOCK_BASE_URL}/api/quests/${questId}` }).at(-1)?.[0],
     getLookupUrls: ({ sessionId }: { sessionId: string }): readonly unknown[] =>
       fetchWithStatus

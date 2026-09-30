@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
-const GUILD_PATH = '/tmp/dm-e2e-elapsed-duration-tick';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-elapsed-duration-tick' });
 const PANEL_TIMEOUT = 10_000;
 const TICK_MS = elapsedDisplayConfigStatics.refresh.tickMs;
 
@@ -43,7 +45,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const RUNNING_TEXT = 'codeweaver: tick single row four minutes at mount';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Single Quest',
       userRequest: 'Build the feature',
     });
@@ -51,8 +53,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -77,7 +79,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -114,7 +116,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const SHARED_STARTED_AT = '2026-01-01T11:56:00.000Z'; // T-240s
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Paired Quest',
       userRequest: 'Build the feature',
     });
@@ -122,8 +124,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -158,7 +160,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -203,7 +205,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const SHARED_STARTED_AT = '2026-01-01T11:56:00.000Z'; // T-240s
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Partial Stop Quest',
       userRequest: 'Build the feature',
     });
@@ -211,8 +213,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -247,7 +249,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -273,7 +275,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       questFilePath,
       items: [{ id: STOPPED_WI, status: 'complete', completedAt: FIXED_NOW }],
     });
-    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
 
     await expect(stoppedRow.getByTestId('execution-row-status-badge')).toHaveText('DONE');
 
@@ -305,7 +307,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const FROZEN_COMPLETED_AT = FIXED_NOW; // startedAt + 4380s => 1h13m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Frozen Quest',
       userRequest: 'Build the feature',
     });
@@ -313,8 +315,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -349,7 +351,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -395,7 +397,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const UNDER_MIN_TEXT = 'codeweaver: triple row under one minute elapsed';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Triple Quest',
       userRequest: 'Build the feature',
     });
@@ -403,8 +405,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -447,7 +449,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -489,7 +491,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const RUNNING_TEXT = 'codeweaver: unmount spec row still running when the logo is clicked';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Unmount Quest',
       userRequest: 'Build the feature',
     });
@@ -497,8 +499,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -523,7 +525,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -567,7 +569,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const ROW_TEXT = 'codeweaver: branch spec row that runs then completes';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Tick Branch Quest',
       userRequest: 'Build the feature',
     });
@@ -575,8 +577,8 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -599,7 +601,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -635,7 +637,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: '2026-01-01T12:01:00.000Z' }],
     });
-    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
 
     // branch: no-longer-running — the same row, the same panel, now past in_progress. The live
     // interval count is the value the still-running branch above and this one produce

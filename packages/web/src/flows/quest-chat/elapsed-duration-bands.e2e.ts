@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-elapsed-duration-bands';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-elapsed-duration-bands' });
 const PANEL_TIMEOUT = 10_000;
 
 // Every scenario below freezes the browser's Date at this exact instant via page.clock, then seeds
@@ -66,7 +68,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const H2H_TEXT = 'codeweaver: elapsed band two hours exactly';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Band Quest',
       userRequest: 'Build the feature',
     });
@@ -74,8 +76,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -165,7 +167,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -231,7 +233,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const ABSENT_TEXT = 'codeweaver: branch row with no startedAt at all';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Present Quest',
       userRequest: 'Build the feature',
     });
@@ -239,8 +241,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -273,7 +275,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -311,7 +313,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const COMPLETED_AT = '2026-01-01T12:06:00.000Z'; // startedAt + 600s => 10m
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Running Quest',
       userRequest: 'Build the feature',
     });
@@ -319,8 +321,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -354,7 +356,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -390,7 +392,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const AT_TEXT = 'codeweaver: pair row sixty seconds at the minute threshold';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Minute Pair Quest',
       userRequest: 'Build the feature',
     });
@@ -398,8 +400,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -433,7 +435,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -473,7 +475,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const AT_TEXT = 'codeweaver: pair row sixty minutes at the hour threshold';
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Elapsed Hour Pair Quest',
       userRequest: 'Build the feature',
     });
@@ -481,8 +483,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -516,7 +518,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

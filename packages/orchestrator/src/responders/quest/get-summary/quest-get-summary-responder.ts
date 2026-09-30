@@ -17,13 +17,13 @@
  * "nothing left to verify".
  */
 
+import type { Quest, QuestSummary } from '@dungeonmaster/shared/contracts';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
-import type { QuestSummary } from '@dungeonmaster/shared/contracts';
 
 import { questGetSummaryBroker } from '../../../brokers/quest/get-summary/quest-get-summary-broker';
 
 export const QuestGetSummaryResponder = async ({
   questId,
 }: {
-  questId: string;
+  questId: Quest['id'];
 }): Promise<QuestSummary> => questGetSummaryBroker({ questId: questIdContract.parse(questId) });

@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -5,7 +8,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-exec-queue-stream';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-exec-queue-stream' });
 const QUEUE_TIMEOUT = 9_000;
 
 // Sentinel the overlap probe returns when either element is absent, so a missing bar fails the
@@ -60,15 +63,15 @@ test.describe('Execution Queue Streaming', () => {
     await sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
     const created1 = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Queue Stream Quest One',
       userRequest: 'Build the feature',
     });
     const questId1 = String(created1.questId);
 
     await quests.writeQuestFile({
-      questId: questId1,
-      questFolder: String(created1.questFolder),
+      questId: QuestIdStub({ value: questId1 }),
+      questFolder: created1.questFolder,
       questFilePath: String(created1.filePath),
       title: 'Queue Stream Quest One',
       status: 'approved',
@@ -94,7 +97,7 @@ test.describe('Execution Queue Streaming', () => {
     //    questExecutionQueueState.enqueue(). That fires the execution-queue-updated event which the
     //    server relays as a global WS broadcast; useQuestQueueBinding re-fetches
     //    GET /api/quests/queue and updates the DOM.
-    await quests.startQuest({ questId: questId1 });
+    await quests.startQuest({ questId: QuestIdStub({ value: questId1 }) });
     // Stop the dispatcher this Start just played. The pause may land before or after the dispatcher
     // claims a step; this spec wants nothing dispatched, and nothing below depends on which.
     await dispatchPauseHarness({ request }).pause();
@@ -102,7 +105,7 @@ test.describe('Execution Queue Streaming', () => {
     // 4b. Pause quest 1 so it stays in the execution queue for the duration of the test. Pause
     //     restores pausedAtStatus and keeps the QueueEntry in place, pinning a stable status while
     //     quest 2 is enqueued alongside it.
-    await quests.pauseQuest({ questId: questId1 });
+    await quests.pauseQuest({ questId: QuestIdStub({ value: questId1 }) });
 
     // 5. Queue bar must appear with 'Quest 1/1' — proves DOM updated via WS,
     //    not a page reload.
@@ -139,15 +142,15 @@ test.describe('Execution Queue Streaming', () => {
     await sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
     const created2 = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Queue Stream Quest Two',
       userRequest: 'Add second feature',
     });
     const questId2 = String(created2.questId);
 
     await quests.writeQuestFile({
-      questId: questId2,
-      questFolder: String(created2.questFolder),
+      questId: QuestIdStub({ value: questId2 }),
+      questFolder: created2.questFolder,
       questFilePath: String(created2.filePath),
       title: 'Queue Stream Quest Two',
       status: 'approved',
@@ -168,7 +171,7 @@ test.describe('Execution Queue Streaming', () => {
       ],
     });
 
-    await quests.startQuest({ questId: questId2 });
+    await quests.startQuest({ questId: QuestIdStub({ value: questId2 }) });
     // Same reasoning as quest 1's own start: stop the dispatcher, whichever side of its next claim
     // the pause lands on.
     await dispatchPauseHarness({ request }).pause();

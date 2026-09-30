@@ -31,10 +31,10 @@
  * // <sessionId>/subagents/agent-<agentId>.jsonl stub per chain. Omitting `notification`, or
  * // omitting `durationMs` inside one, omits the corresponding tag/line entirely.
  */
+import type { Guild, AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { ensureDirSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
@@ -87,7 +87,7 @@ const buildNotificationContent = ({
 export const subagentDurationTripleChainHarness = ({
   guildPath,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
 }): {
   beforeEach: () => void;
   afterEach: () => void;

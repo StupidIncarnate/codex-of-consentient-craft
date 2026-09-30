@@ -1,22 +1,25 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-ward-execution-streaming';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-ward-execution-streaming' });
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const WARD_OUTPUT_TIMEOUT = 15_000;
 
 const CW_OP = '00000000-0000-4000-8000-0000000000c1';
 const WARD_OP = '00000000-0000-4000-8000-0000000000a1';
-const CW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000010';
+const CW_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e2e00000-0000-4000-8000-000000000010' });
 
 const FLOW_CW_OP = '00000000-0000-4000-8000-0000000000c2';
 const FLOW_OP = '00000000-0000-4000-8000-0000000000f2';
 const FLOW_WARD_OP = '00000000-0000-4000-8000-0000000000a2';
-const FLOW_CW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000020';
+const FLOW_CW_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e2e00000-0000-4000-8000-000000000020' });
 const FLOW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000021';
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -55,7 +58,7 @@ test.describe('Ward Execution Streaming', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Ward Streaming Quest',
       userRequest: 'Test ward streaming',
       operations: [
@@ -71,14 +74,14 @@ test.describe('Ward Execution Streaming', () => {
       firstWorkItemId: CW_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // Drive the relay: codeweaver -> done, then the ward gate -> green with real stdout lines.
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         {
@@ -94,7 +97,7 @@ test.describe('Ward Execution Streaming', () => {
     });
 
     await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) => quest.status === 'complete',
     });
@@ -145,7 +148,7 @@ test.describe('Ward Execution Streaming', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const { questId } = await dispatch.seedQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'Ward Streaming Longer Quest',
       userRequest: 'Test ward streaming',
       operations: [
@@ -173,13 +176,13 @@ test.describe('Ward Execution Streaming', () => {
       firstWorkItemId: FLOW_CW_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     await dispatch.playAndDrive({
-      questId: String(questId),
+      questId: questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         { role: 'flowrider', outcome: 'done' },
@@ -197,7 +200,7 @@ test.describe('Ward Execution Streaming', () => {
     });
 
     await dispatch.waitForQuest({
-      questId: String(questId),
+      questId: questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) => quest.status === 'complete',
     });

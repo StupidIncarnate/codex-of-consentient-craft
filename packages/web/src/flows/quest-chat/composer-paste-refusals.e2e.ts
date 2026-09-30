@@ -1,9 +1,11 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-composer-paste-refusals';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-paste-refusals' });
 // Small enough that a canvas encode/decode round trip stays fast across the limit tests' 5-6
 // sequential pastes.
 const IMAGE_SIZE_PX = 20;
@@ -40,7 +42,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Split Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Split Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -63,7 +65,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste No Image Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste No Image Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -81,7 +83,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Mixed Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Mixed Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -107,7 +109,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Append Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Append Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -125,7 +127,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Between Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Between Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -170,7 +172,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Editable Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Editable Guild' }),
       guildPath: GUILD_PATH,
     });
 
@@ -185,7 +187,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Prevented Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Prevented Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -210,7 +212,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Format Bad Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Format Bad Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -241,7 +243,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Empty Type Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Empty Type Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -262,7 +264,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Whitespace Type Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Whitespace Type Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -283,7 +285,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Format Ok Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Format Ok Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -307,7 +309,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Limit Hit Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Limit Hit Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -351,7 +353,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Limit Ok Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Limit Ok Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -394,7 +396,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Limit Race Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Limit Race Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -438,7 +440,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Corrupt Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Corrupt Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -456,7 +458,7 @@ test.describe('Composer paste — refusals and branches', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: 'Composer Paste Over Cap Corrupt Guild',
+      guildName: GuildNameStub({ value: 'Composer Paste Over Cap Corrupt Guild' }),
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();

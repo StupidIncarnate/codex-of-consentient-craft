@@ -7,6 +7,7 @@
  * await nav.navigateToSession({ urlSlug: 'my-guild', sessionId: 'abc-123' });
  * await nav.triggerReplayFromBrowser({ guildId: 'guild-id', sessionIds: ['s1', 's2'] });
  */
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import type { Page } from '#gateway/npm/playwright__test';
 
 const HTTP_OK = 200;
@@ -17,9 +18,9 @@ export const navigationHarness = ({
 }: {
   page: Page;
 }): {
-  navigateToQuest: (params: { urlSlug: string; questId: string }) => Promise<void>;
+  navigateToQuest: (params: { urlSlug: string; questId: Quest['id'] }) => Promise<void>;
   navigateToSession: (params: { urlSlug: string; sessionId: string }) => Promise<void>;
-  triggerReplayFromBrowser: (params: { guildId: string; sessionIds: string[] }) => Promise<void>;
+  triggerReplayFromBrowser: (params: { guildId: Guild['id']; sessionIds: string[] }) => Promise<void>;
   dismissApprovedModalIfPresent: () => Promise<void>;
 } => {
   const navigateToQuest = async ({
@@ -27,7 +28,7 @@ export const navigationHarness = ({
     questId,
   }: {
     urlSlug: string;
-    questId: string;
+    questId: Quest['id'];
   }): Promise<void> => {
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
@@ -54,7 +55,7 @@ export const navigationHarness = ({
     guildId,
     sessionIds,
   }: {
-    guildId: string;
+    guildId: Guild['id'];
     sessionIds: string[];
   }): Promise<void> => {
     await page.evaluate(

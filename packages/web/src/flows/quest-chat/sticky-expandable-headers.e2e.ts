@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { stickyHeaderHarness } from '../../../test/harnesses/sticky-header/sticky-header.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-sticky-expandable-headers';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-sticky-expandable-headers' });
 
 // Outermost first. The execution row opens onto a sub-agent chain which itself opens onto a nested
 // one, so the run is what proves the offsets COMPOUND rather than each level pinning at zero.
@@ -26,7 +28,7 @@ test.describe('Expandable headers stay reachable while their own body scrolls un
   }) => {
     const sticky = stickyHeaderHarness({ page, request, guildPath: GUILD_PATH, sessions });
 
-    await sticky.seedNestedChainQuest({ guildName: 'Sticky Nested Guild' });
+    await sticky.seedNestedChainQuest({ guildName: GuildNameStub({ value: 'Sticky Nested Guild' }) });
     await sticky.scrollTranscriptToFoot();
 
     // All three at once: the row a reader opened, the chain inside it, and the chain inside that.
@@ -47,7 +49,7 @@ test.describe('Expandable headers stay reachable while their own body scrolls un
   }) => {
     const sticky = stickyHeaderHarness({ page, request, guildPath: GUILD_PATH, sessions });
 
-    await sticky.seedNestedChainQuest({ guildName: 'Sticky Closed Row Guild' });
+    await sticky.seedNestedChainQuest({ guildName: GuildNameStub({ value: 'Sticky Closed Row Guild' }) });
     await sticky.scrollTranscriptToFoot();
 
     // A tool row declares `position: sticky` whether it is open or closed, on the reasoning that a

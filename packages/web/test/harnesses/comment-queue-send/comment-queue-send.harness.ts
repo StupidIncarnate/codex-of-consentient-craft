@@ -16,6 +16,9 @@
  * await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'note' });
  * await send.clickSendButton();
  */
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { questContract } from '@dungeonmaster/shared/contracts';
@@ -141,11 +144,11 @@ export const commentQueueSendHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: string;
+  guildPath: Guild['path'];
   sessions: ReturnType<typeof sessionHarness>;
   claudeMock: ReturnType<typeof claudeMockHarness>;
 }): {
-  seedAndOpen: (params: { guildName: string }) => Promise<void>;
+  seedAndOpen: (params: { guildName: Guild['name'] }) => Promise<void>;
   nodeCard: (params: { which: 'alpha' | 'beta' | 'gamma' }) => Locator;
   observableCard: () => Locator;
   filledBubbles: () => Locator;
@@ -260,7 +263,7 @@ export const commentQueueSendHarness = ({
   ];
 
   return {
-    seedAndOpen: async ({ guildName }: { guildName: string }): Promise<void> => {
+    seedAndOpen: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
       const quests = questHarness({ request });
       const guild = await guildHarness({ request }).createGuild({
         name: guildName,
@@ -278,7 +281,7 @@ export const commentQueueSendHarness = ({
       });
 
       const created = await quests.createQuest({
-        guildId,
+        guildId: GuildIdStub({ value: guildId }),
         title: 'E2E Comment Send Quest',
         userRequest: LONG_USER_REQUEST,
       });
@@ -292,7 +295,7 @@ export const commentQueueSendHarness = ({
       });
 
       await quests.writeQuestFile({
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,
         status: 'review_flows',
@@ -309,7 +312,7 @@ export const commentQueueSendHarness = ({
 
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
       });
       await waitForSpecPanel();
     },
@@ -382,7 +385,7 @@ export const commentQueueSendHarness = ({
     // written (same status, same session, same userRequest).
     makeNodeBetaStale: async (): Promise<void> => {
       await questHarness({ request }).writeQuestFile({
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,
         status: 'review_flows',
@@ -398,7 +401,7 @@ export const commentQueueSendHarness = ({
     // ONLY thing that can turn that into a 500 — a genuine one, not a stubbed response.
     corruptQuestFile: async (): Promise<void> => {
       await questHarness({ request }).writeUnparseableQuestFile({
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,
       });
@@ -408,7 +411,7 @@ export const commentQueueSendHarness = ({
     // session and flow — so the very next Send resolves against a loadable quest again.
     restoreQuestFile: async (): Promise<void> => {
       await questHarness({ request }).writeQuestFile({
-        questId: seeded.questId,
+        questId: QuestIdStub({ value: seeded.questId }),
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,
         status: 'review_flows',

@@ -25,7 +25,7 @@
  * Dropping it means minutes of a dead panel with nothing at the call site to show for it.
  */
 
-import type { ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { Quest, ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
@@ -34,7 +34,7 @@ import { questRunStepBroker } from '../run-step/quest-run-step-broker';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 
 const INERT_ACTIVE_QUEST_FACADE: ActiveQuestFacade = {
-  setActive: (_: { questId: string | null }): void => undefined,
+  setActive: (_: { questId: Quest['id'] | null }): void => undefined,
   clear: (): void => undefined,
 };
 

@@ -1,10 +1,11 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { subagentDurationHarness } from '../../../test/harnesses/subagent-duration/subagent-duration.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-session-frozen';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-session-frozen' });
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 10_000;
 // Irrelevant to the figure itself — a landed `reportedDurationMs` wins precedence over

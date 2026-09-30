@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -9,7 +12,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-bughunt-begin-transition';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-bughunt-begin-transition' });
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 10_000;
 const RESPONSE_TIMEOUT = 5_000;
@@ -113,7 +116,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Bug Hunt Begin Quest',
       userRequest: 'The clarify panel commits too early',
     });
@@ -124,8 +127,8 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // Start is what promotes it), and the ledger holds nothing but its intake item. The harness's
     // default flows satisfy the one thing the `approved` gate still measures.
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       title: 'E2E Bug Hunt Begin Quest',
       status: 'review_observables',
@@ -150,7 +153,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
 
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -330,15 +333,15 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     });
 
     const created = await quests.createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Bug Hunt Restart Quest',
       userRequest: 'The clarify panel commits too early',
     });
     const questId = String(created.questId);
 
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       title: 'E2E Bug Hunt Restart Quest',
       status: 'approved',
@@ -365,7 +368,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     // First Start: real, through the same endpoint the button calls. The ledger the rest of this
     // test measures is therefore one Start actually produced, not one the fixture hand-wrote.
-    const firstStart = await dispatch.startQuestViaStartRoute({ questId });
+    const firstStart = await dispatch.startQuestViaStartRoute({ questId: QuestIdStub({ value: questId }) });
     expect(firstStart.status).toBe(HTTP_OK);
 
     // Pause once the carve is RUNNING, same reasoning as the sibling test, before the rewind below
@@ -426,7 +429,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // authored, which is the one thing this test must not measure.
     await quests.rewindQuestStatus({ questFilePath: String(created.filePath), status: 'approved' });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     // No APPROVE click needed: loading an already-`approved` quest re-arms the modal by itself.

@@ -1,10 +1,11 @@
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildNotFoundError } from './guild-not-found-error';
 
 describe('GuildNotFoundError', () => {
   describe('constructor()', () => {
     it('VALID: {guildId: uuid string} => sets name and id-suffixed message', () => {
       const error = new GuildNotFoundError({
-        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({

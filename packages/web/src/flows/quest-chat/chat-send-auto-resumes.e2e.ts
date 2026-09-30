@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -7,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-chat-send-auto-resumes';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-chat-send-auto-resumes' });
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const CHAT_TIMEOUT = 10_000;
@@ -42,7 +43,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Chat Auto Resume Quest',
       userRequest: 'Build feature',
     });
@@ -53,8 +54,8 @@ test.describe('Chat send auto-resumes paused quest', () => {
     // explore_flows, call the pause endpoint once to set the pausedAtStatus snapshot,
     // then let the test exercise the auto-resume-on-send flow.
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(questFilePath),
       status: 'explore_flows',
       workItems: [
@@ -67,7 +68,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
       ],
     });
 
-    await quests.pauseQuest({ questId: String(questId) });
+    await quests.pauseQuest({ questId: questId });
 
     const afterPauseResponse = await request.get(`/api/quests/${questId}`);
     const afterPauseBody = await afterPauseResponse.json();
@@ -83,7 +84,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 

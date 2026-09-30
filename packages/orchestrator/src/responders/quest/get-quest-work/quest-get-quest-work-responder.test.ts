@@ -1,3 +1,6 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -8,9 +11,9 @@ import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-ite
 import { QuestGetQuestWorkResponder } from './quest-get-quest-work-responder';
 import { QuestGetQuestWorkResponderProxy } from './quest-get-quest-work-responder.proxy';
 
-const QUEST_ID = 'add-auth';
-const WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-const OPERATION_ITEM_ID = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479';
+const QUEST_ID = QuestIdStub({ value: 'add-auth' });
+const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+const OPERATION_ITEM_ID = OperationItemIdStub({ value: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' });
 
 const QUEST = QuestStub({
   id: QUEST_ID,

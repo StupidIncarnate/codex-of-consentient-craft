@@ -1,3 +1,6 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -10,7 +13,7 @@ import { composerPasteHarness } from '../../../test/harnesses/composer-paste/com
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-send-images-reach-agent';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-images-reach-agent' });
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;
@@ -55,14 +58,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Branch Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -76,7 +79,7 @@ test.describe('Composer send — images reach the agent', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -134,14 +137,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Forward Once Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -155,7 +158,7 @@ test.describe('Composer send — images reach the agent', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -227,14 +230,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Absolute Path Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -248,7 +251,7 @@ test.describe('Composer send — images reach the agent', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -319,14 +322,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Markdown Path Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -340,7 +343,7 @@ test.describe('Composer send — images reach the agent', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -406,14 +409,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Nth Token Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -427,7 +430,7 @@ test.describe('Composer send — images reach the agent', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -504,14 +507,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Trailer Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -526,7 +529,7 @@ test.describe('Composer send — images reach the agent', () => {
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack-1' }) });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack-2' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -602,14 +605,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent Argv Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -623,7 +626,7 @@ test.describe('Composer send — images reach the agent', () => {
     });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();
@@ -698,7 +701,7 @@ test.describe('Composer send — images reach the agent', () => {
     // trailer identity pipeline as a resumed main chat message (chatPromptBuildTransformer's
     // `if (sessionId)` branch), matching every other test in this file.
     const seeded = await followup.seedAndOpen({
-      guildName: 'Reach Agent Followup Guild',
+      guildName: GuildNameStub({ value: 'Reach Agent Followup Guild' }),
       status: 'blocked',
       workItems: [
         {
@@ -788,7 +791,7 @@ test.describe('Composer send — images reach the agent', () => {
     // the followup route spawns with `--resume <sessionId>`, matching every other follow-up test
     // in this file.
     const seeded = await followup.seedAndOpen({
-      guildName: 'Reach Agent Followup Body Guild',
+      guildName: GuildNameStub({ value: 'Reach Agent Followup Body Guild' }),
       status: 'blocked',
       workItems: [
         {
@@ -888,14 +891,14 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Reach Agent First Token Quest',
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       workItems: [
@@ -910,7 +913,7 @@ test.describe('Composer send — images reach the agent', () => {
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack-1' }) });
     claudeMock.queueResponse({ response: SimpleTextResponseStub({ sessionId, text: 'ack-2' }) });
 
-    await nav.navigateToQuest({ urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     await composer.focusComposer();

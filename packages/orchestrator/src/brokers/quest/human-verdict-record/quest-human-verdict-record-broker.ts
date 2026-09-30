@@ -56,7 +56,7 @@ export const questHumanVerdictRecordBroker = async ({
   outcome,
   reason,
 }: {
-  questId: string;
+  questId: Quest['id'];
   unitId: string;
   outcome: 'met' | 'not-met';
   reason: string;

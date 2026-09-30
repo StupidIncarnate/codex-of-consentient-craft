@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -7,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-spec-phase-chat-streams';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-spec-phase-chat-streams' });
 const PANEL_TIMEOUT = 10_000;
 const STREAM_TIMEOUT = 30_000;
 const ASSISTANT_TEXT = 'Let me pin the reproduction steps.';
@@ -43,7 +44,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     await sessions.createSessionFile({ sessionId, userMessage: 'The rows do not render' });
 
     const created = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Rows do not render',
       userRequest: 'The rows do not render',
     });
@@ -52,8 +53,8 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     // A bug-hunt quest mid-intake: still at explore_flows, with its bughunt work item in_progress
     // and carrying the session the user is talking to.
     await quests.writeQuestFile({
-      questId: String(questId),
-      questFolder: String(questFolder),
+      questId: questId,
+      questFolder: questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       questType: 'bug-hunt',
@@ -68,7 +69,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     // The chat panel must be mounted, not suppressed — the intake transcript is the point.

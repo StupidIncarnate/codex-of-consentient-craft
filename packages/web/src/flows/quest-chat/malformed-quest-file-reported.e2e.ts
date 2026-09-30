@@ -1,10 +1,12 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-malformed-quest-report';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-malformed-quest-report' });
 const PANEL_TIMEOUT = 10_000;
 const REVIEW_FLOWS = 'review_flows';
 
@@ -31,15 +33,15 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
 
     const guild = await guilds.createGuild({ name: 'Malformed Comment Guild', path: GUILD_PATH });
     const created = await quests.createQuest({
-      guildId: String(guilds.extractGuildId({ guild })),
+      guildId: guilds.extractGuildId({ guild }),
       title: 'E2E Malformed Comment Quest',
       userRequest: 'Build the feature',
     });
     const questId = String(created.questId);
 
     await quests.writeMalformedQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: REVIEW_FLOWS,
       workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer' }],
@@ -68,7 +70,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
 
     await navigationHarness({ page }).navigateToQuest({
       urlSlug: String(guilds.extractUrlSlug({ guild })),
-      questId,
+      questId: QuestIdStub({ value: questId }),
     });
 
     const loadError = page.getByTestId('QUEST_LOAD_ERROR');
@@ -93,15 +95,15 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
 
     const guild = await guilds.createGuild({ name: 'Malformed Status Guild', path: GUILD_PATH });
     const created = await quests.createQuest({
-      guildId: String(guilds.extractGuildId({ guild })),
+      guildId: guilds.extractGuildId({ guild }),
       title: 'E2E Malformed Status Quest',
       userRequest: 'Build the feature',
     });
     const questId = String(created.questId);
 
     await quests.writeMalformedQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: BAD_STATUS,
       workItems: [{ id: 'e2e00000-0000-4000-8000-000000000002', role: 'chaoswhisperer' }],
@@ -109,7 +111,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
 
     await navigationHarness({ page }).navigateToQuest({
       urlSlug: String(guilds.extractUrlSlug({ guild })),
-      questId,
+      questId: QuestIdStub({ value: questId }),
     });
 
     await expect(page.getByTestId('QUEST_LOAD_ERROR')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -126,15 +128,15 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
 
     const guild = await guilds.createGuild({ name: 'Healthy Quest Guild', path: GUILD_PATH });
     const created = await quests.createQuest({
-      guildId: String(guilds.extractGuildId({ guild })),
+      guildId: guilds.extractGuildId({ guild }),
       title: 'E2E Healthy Quest',
       userRequest: 'Build the feature',
     });
     const questId = String(created.questId);
 
     await quests.writeQuestFile({
-      questId,
-      questFolder: String(created.questFolder),
+      questId: QuestIdStub({ value: questId }),
+      questFolder: created.questFolder,
       questFilePath: String(created.filePath),
       status: REVIEW_FLOWS,
       workItems: [{ id: 'e2e00000-0000-4000-8000-000000000003', role: 'chaoswhisperer' }],
@@ -142,7 +144,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
 
     await navigationHarness({ page }).navigateToQuest({
       urlSlug: String(guilds.extractUrlSlug({ guild })),
-      questId,
+      questId: QuestIdStub({ value: questId }),
     });
 
     // The healthy control: without it, an error surface that painted on EVERY quest would pass the

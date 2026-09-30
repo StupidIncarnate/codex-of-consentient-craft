@@ -21,9 +21,8 @@
  * be read as a success by the layer above.
  */
 
-import { operationItemIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
-import { questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, OperationItem, ContentText } from '@dungeonmaster/shared/contracts';
+import { operationItemIdContract, questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkView } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import { questGetQuestWorkBroker } from '../../../brokers/quest/get-quest-work/quest-get-quest-work-broker';
@@ -42,9 +41,9 @@ export const QuestGetQuestWorkResponder = async ({
   workItemId,
   operationItemId,
 }: {
-  questId: string;
-  workItemId?: string;
-  operationItemId?: string;
+  questId: Quest['id'];
+  workItemId?: WorkItem['id'];
+  operationItemId?: OperationItem['id'];
 }): Promise<QuestGetQuestWorkResult> => {
   if (workItemId !== undefined && operationItemId !== undefined) {
     throw new Error(

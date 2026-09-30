@@ -1,3 +1,4 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
@@ -11,7 +12,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-tab-stream-isolation';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-tab-stream-isolation' });
 const PANEL_TIMEOUT = 10_000;
 const STREAM_TIMEOUT = 20_000;
 const SETTLE_TIMEOUT = 8_000;
@@ -57,19 +58,19 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
     await sessions.createSessionFile({ sessionId: sessionB, userMessage: 'Beta request' });
 
     const createdA = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Alpha quest',
       userRequest: 'Alpha request',
     });
     const createdB = await quests.createQuest({
-      guildId: String(guildId),
+      guildId: guildId,
       title: 'Beta quest',
       userRequest: 'Beta request',
     });
 
     await quests.writeQuestFile({
-      questId: String(createdA.questId),
-      questFolder: String(createdA.questFolder),
+      questId: createdA.questId,
+      questFolder: createdA.questFolder,
       questFilePath: String(createdA.filePath),
       status: 'explore_flows',
       questType: 'bug-hunt',
@@ -83,8 +84,8 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
       ],
     });
     await quests.writeQuestFile({
-      questId: String(createdB.questId),
-      questFolder: String(createdB.questFolder),
+      questId: createdB.questId,
+      questFolder: createdB.questFolder,
       questFilePath: String(createdB.filePath),
       status: 'explore_flows',
       questType: 'bug-hunt',
@@ -103,11 +104,11 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
 
     await navigationHarness({ page: tabA }).navigateToQuest({
       urlSlug,
-      questId: String(createdA.questId),
+      questId: createdA.questId,
     });
     await navigationHarness({ page: tabB }).navigateToQuest({
       urlSlug,
-      questId: String(createdB.questId),
+      questId: createdB.questId,
     });
 
     await expect(tabA.getByTestId('CHAT_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });

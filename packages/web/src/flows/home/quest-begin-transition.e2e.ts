@@ -1,3 +1,5 @@
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
@@ -7,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
-const GUILD_PATH = '/tmp/dm-e2e-quest-begin-transition';
+const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-begin-transition' });
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
@@ -71,7 +73,7 @@ test.describe('Quest Begin Transition', () => {
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Begin Transition Quest',
       userRequest: 'Build the feature',
     });
@@ -98,7 +100,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -191,7 +193,7 @@ test.describe('Quest Begin Transition', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Execution Roles Quest',
       userRequest: 'Build the feature',
     });
@@ -219,7 +221,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -336,7 +338,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Relay Graph Quest',
       userRequest: 'Build the feature',
     });
@@ -361,7 +363,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -506,7 +508,7 @@ test.describe('Quest Begin Transition', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
-      guildId,
+      guildId: GuildIdStub({ value: guildId }),
       title: 'E2E Carve On Relay Quest',
       userRequest: 'Build the feature',
     });
@@ -531,7 +533,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+    await nav.navigateToQuest({ urlSlug, questId: questId });
 
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
