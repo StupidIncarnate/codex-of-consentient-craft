@@ -1,6 +1,5 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
-import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
@@ -20,7 +19,7 @@ describe('runExecuteStepLayerBroker', () => {
     it('VALID: {goto succeeds} => returns an ok reading and no stoppedAt', async () => {
       const proxy = runExecuteStepLayerBrokerProxy();
       const lane = proxy.laneGotoSucceeds();
-      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const step = StepStub({ step: 'goto', path: '/guilds' });
 
       const outcome = await runExecuteStepLayerBroker({
         lane,
@@ -68,7 +67,7 @@ describe('runExecuteStepLayerBroker', () => {
         // broker's own post-rethrow read (999) once the error unwinds back here.
         serverLogLengthSequence: [100, 250, 999],
       });
-      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const step = StepStub({ step: 'goto', path: '/guilds' });
 
       const outcome = await runExecuteStepLayerBroker({
         lane,
@@ -92,7 +91,7 @@ describe('runExecuteStepLayerBroker', () => {
       const lane = proxy.laneGotoRejects({
         error: new Error('page.goto: Timeout 30000ms exceeded.'),
       });
-      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const step = StepStub({ step: 'goto', path: '/guilds' });
 
       const outcome = await runExecuteStepLayerBroker({
         lane,
@@ -141,7 +140,7 @@ describe('runExecuteStepLayerBroker', () => {
       const lane = proxy.laneGotoRejects({
         error: new Error('page.goto: Timeout 30000ms exceeded.'),
       });
-      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const step = StepStub({ step: 'goto', path: '/guilds' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
 
       const outcome = await runExecuteStepLayerBroker({
@@ -192,7 +191,7 @@ describe('runExecuteStepLayerBroker', () => {
         error: new Error('page.goto: Timeout 30000ms exceeded.'),
         captureError: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/shots/step3.png' }),
       });
-      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const step = StepStub({ step: 'goto', path: '/guilds' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
 
       const outcome = await runExecuteStepLayerBroker({
@@ -402,7 +401,7 @@ describe('runExecuteStepLayerBroker', () => {
       const lane = proxy.laneGotoRejects({ error: new Error('boom') });
       const step = StepStub({
         step: 'goto',
-        path: UrlPathStub({ value: '/guilds' }),
+        path: '/guilds',
         expect: 'error',
       });
 
@@ -448,7 +447,7 @@ describe('runExecuteStepLayerBroker', () => {
       const lane = proxy.laneGotoSucceeds();
       const step = StepStub({
         step: 'goto',
-        path: UrlPathStub({ value: '/guilds' }),
+        path: '/guilds',
         expect: 'error',
       });
 

@@ -65,7 +65,6 @@ import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contrac
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
-import { urlPathContract } from '../../../contracts/url-path/url-path-contract';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
@@ -107,13 +106,13 @@ export const runExecuteStepLayerBroker = async ({
           text: match,
           outputs: outputs(),
         });
-        resolvedStep = { ...step, path: urlPathContract.parse(resolvedPath) };
+        resolvedStep = stepContract.parse({ ...step, path: resolvedPath });
       } else if (step.path.includes('{')) {
         const resolvedPath = stepRefSubstituteTransformer({
           text: step.path,
           outputs: outputs(),
         });
-        resolvedStep = { ...step, path: urlPathContract.parse(resolvedPath) };
+        resolvedStep = stepContract.parse({ ...step, path: resolvedPath });
       }
     } else if (step.step === 'seed' && step.params !== null) {
       const resolvedParams: Record<PropertyKey, unknown> = {};

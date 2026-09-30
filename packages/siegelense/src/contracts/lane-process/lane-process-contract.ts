@@ -26,14 +26,13 @@ import { fileNameContract } from '@dungeonmaster/shared/contracts';
 
 import { laneProcessNameContract } from '../lane-process-name/lane-process-name-contract';
 import { portRoleContract } from '../port-role/port-role-contract';
-import { urlPathContract } from '../url-path/url-path-contract';
 
 export const laneProcessContract = z.object({
   name: laneProcessNameContract,
   command: z.string().brand<'LaneProcessCommand'>(),
   args: z.array(z.string().brand<'LaneProcessArgs'>()).readonly(),
   portRole: portRoleContract.nullable(),
-  readyPath: urlPathContract.nullable(),
+  readyPath: z.string().startsWith('/').brand<'LaneProcessReadyPath'>().nullable(),
   logFileName: fileNameContract,
   env: z.record(z.string().brand<'EnvVarName'>(), z.string().brand<'LaneProcessEnv'>()),
 });

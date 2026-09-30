@@ -1,13 +1,12 @@
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
-import { UrlPathStub } from '../url-path/url-path.stub';
 import { stepContract } from './step-contract';
 import { StepStub } from './step.stub';
 
 // Every member's own minimal fixture, built through StepStub so each override goes through
 // stepContract.parse rather than a raw literal — one entry per member of stepStatics.verbs.all.
 const STEP_FIXTURES = [
-  StepStub({ step: 'goto', path: UrlPathStub() }),
+  StepStub({ step: 'goto', path: '/api/guilds' }),
   StepStub({ step: 'waitFor', target: '[data-testid="GUILD_ADD"]', state: LocatorStateStub() }),
   StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
   StepStub({ step: 'type', target: '[data-testid="GUILD_ADD"]', value: 'Result text' }),

@@ -54,7 +54,6 @@ import { untilConsolePatternContract } from '../until-console-pattern/until-cons
 import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
 import { untilResponseContract } from '../until-response/until-response-contract';
 import { resetLevelContract } from '../reset-level/reset-level-contract';
-import { urlPathContract } from '../url-path/url-path-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 
@@ -73,7 +72,7 @@ export const stepContract = z
         // contains (siegelense-recipes.md:2090-2091) — `{s.nested.url}` does not start with `/`, so
         // `urlPathContract` alone would refuse it. Resolving the reference into a real path is a run's
         // job (holding earlier steps' outputs), not this contract's.
-        path: urlPathContract.or(stepRefContract),
+        path: z.string().startsWith('/').brand<'StepPath'>().or(stepRefContract),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),

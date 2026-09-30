@@ -2,7 +2,6 @@
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
-import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 
 import { runVerbLayerBroker } from './run-verb-layer-broker';
 import { runVerbLayerBrokerProxy } from './run-verb-layer-broker.proxy';
@@ -131,7 +130,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {goto} => returns the path with no resolve call', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const path = UrlPathStub();
+      const path = '/api/guilds';
       const step = StepStub({ step: 'goto', path });
 
       const result = await runVerbLayerBroker({

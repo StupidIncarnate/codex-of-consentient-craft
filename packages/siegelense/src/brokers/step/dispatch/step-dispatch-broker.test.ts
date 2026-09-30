@@ -5,7 +5,6 @@ import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub'
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
 import { NodeLabelStub } from '../../../contracts/node-label/node-label.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
-import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import type { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { stepStatics } from '../../../statics/step/step-statics';
 
@@ -911,7 +910,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {goto} => the reading is the resolved path', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();
-      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/api/guilds' }) });
+      const step = StepStub({ step: 'goto', path: '/api/guilds' });
 
       const result = await stepDispatchBroker({
         lane,

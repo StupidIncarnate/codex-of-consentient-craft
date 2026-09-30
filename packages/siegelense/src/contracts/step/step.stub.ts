@@ -6,7 +6,6 @@ import { RefStub } from '../ref/ref.stub';
 import { ResetLevelStub } from '../reset-level/reset-level.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
-import { UrlPathStub } from '../url-path/url-path.stub';
 import { VideoActionStub } from '../video-action/video-action.stub';
 import { stepContract } from './step-contract';
 import type { Step } from './step-contract';
@@ -16,7 +15,7 @@ import type { Step } from './step-contract';
 // DIFFERENT verb would leave those fields on the object and the parse would reject them as
 // unrecognized keys instead of building the requested member.
 const STEP_DEFAULTS = {
-  goto: { step: 'goto', path: UrlPathStub(), node: null, expect: StepExpectationStub() },
+  goto: { step: 'goto', path: '/api/guilds', node: null, expect: StepExpectationStub() },
   waitFor: {
     step: 'waitFor',
     target: '[data-testid="GUILD_ADD"]',

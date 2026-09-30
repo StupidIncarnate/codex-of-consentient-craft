@@ -9,7 +9,6 @@ import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import type { StepExpectationStub } from '../../../contracts/step-expectation/step-expectation.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
-import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { locationsShotPathFindBroker } from '../../locations/shot-path-find/locations-shot-path-find-broker';
 
 import { runExecuteBroker } from './run-execute-broker';
@@ -17,7 +16,7 @@ import { runExecuteBrokerProxy } from './run-execute-broker.proxy';
 
 const gotoBatch = ({ count }: { count: number }): ReturnType<typeof StepStub>[] =>
   Array.from({ length: count }, (_unused, position) =>
-    StepStub({ step: 'goto', path: UrlPathStub({ value: `/step-${String(position + 1)}` }) }),
+    StepStub({ step: 'goto', path: `/step-${String(position + 1)}` }),
   );
 
 const gotoBatchWithExpectationAtThree = ({
@@ -25,11 +24,11 @@ const gotoBatchWithExpectationAtThree = ({
 }: {
   stepExpectation: ReturnType<typeof StepExpectationStub>;
 }): ReturnType<typeof StepStub>[] => [
-  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
-  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-2' }) }),
-  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }), expect: stepExpectation }),
-  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-4' }) }),
-  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-5' }) }),
+  StepStub({ step: 'goto', path: '/step-1' }),
+  StepStub({ step: 'goto', path: '/step-2' }),
+  StepStub({ step: 'goto', path: '/step-3', expect: stepExpectation }),
+  StepStub({ step: 'goto', path: '/step-4' }),
+  StepStub({ step: 'goto', path: '/step-5' }),
 ];
 
 describe('runExecuteBroker', () => {
@@ -268,13 +267,13 @@ describe('runExecuteBroker', () => {
         instanceId: InstanceIdStub(),
         runId,
         steps: [
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'goto', path: '/step-1' }),
           StepStub({
             step: 'waitFor',
             target: '[data-testid="GUILD_ADD"]',
             state: 'visible',
           }),
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+          StepStub({ step: 'goto', path: '/step-3' }),
         ],
         stopOn: 'error',
         flushCursor: proxy.flushCursor,
@@ -316,13 +315,13 @@ describe('runExecuteBroker', () => {
         instanceId: InstanceIdStub(),
         runId,
         steps: [
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'goto', path: '/step-1' }),
           StepStub({
             step: 'waitFor',
             target: '[data-testid="GUILD_ADD"]',
             state: 'visible',
           }),
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+          StepStub({ step: 'goto', path: '/step-3' }),
         ],
         stopOn: 'never',
         flushCursor: proxy.flushCursor,
@@ -364,14 +363,14 @@ describe('runExecuteBroker', () => {
         instanceId: InstanceIdStub(),
         runId,
         steps: [
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'goto', path: '/step-1' }),
           StepStub({
             step: 'waitFor',
             target: '[data-testid="GUILD_ADD"]',
             state: 'visible',
             expect: 'error',
           }),
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+          StepStub({ step: 'goto', path: '/step-3' }),
         ],
         stopOn: 'error',
         flushCursor: proxy.flushCursor,
@@ -862,7 +861,7 @@ describe('runExecuteBroker', () => {
         instanceId: InstanceIdStub(),
         runId,
         steps: [
-          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'goto', path: '/step-1' }),
           StepStub({ step: 'screenshot', name: shotName }),
         ],
         stopOn: 'error',
