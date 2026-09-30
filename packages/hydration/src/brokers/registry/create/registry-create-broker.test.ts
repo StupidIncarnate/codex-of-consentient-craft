@@ -5,7 +5,6 @@ import { LinkSpecStub } from '../../../contracts/link-spec/link-spec.stub';
 import { RegistryDuplicateNameError } from '../../../errors/registry-duplicate-name/registry-duplicate-name-error';
 import { RegistryDanglingLinkError } from '../../../errors/registry-dangling-link/registry-dangling-link-error';
 import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typescript-program-diagnostics';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { LineCountStub } from '@dungeonmaster/shared/contracts/line-count/line-count.stub';
 import {
   guildIngredient,
@@ -28,75 +27,29 @@ type HydrationOp = ReturnType<typeof HydrationOpStub>;
 
 // ONE ts.createProgram for the whole suite, computed at module scope — see the plan's §10b "Two
 // measurements, and what they settle" and `ingredientDeclareBroker`'s own suite, which this mirrors.
-const CLEAN_FIXTURE = RepoRelativePathStub({
-  value: 'packages/hydration/test/adapter-fixtures/clean.ts',
-});
-const ONE_ERROR_FIXTURE = RepoRelativePathStub({
-  value: 'packages/hydration/test/adapter-fixtures/one-error.ts',
-});
-const DANGLING_LINK = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/declaration/dangling-link.ts',
-});
-const OUT_OF_BOUNDS = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/out-of-bounds.ts',
-});
-const UNKNOWN_FIELD = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/unknown-field.ts',
-});
-const UNREACHABLE_TRANSITION = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/unreachable-transition.ts',
-});
-const NOT_A_STATUS = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/not-a-status.ts',
-});
-const REAL_QUEST_UNREACHABLE_STATUS = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/real-quest-unreachable-status.ts',
-});
-const EXTRA_NOT_DECLARED = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/extra-not-declared.ts',
-});
-const EXTRA_ARG_TYPED = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/extra-arg-typed.ts',
-});
-const CHILD_WRONG_HOST = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/child-wrong-host.ts',
-});
-const CHILD_LINKS_UNSATISFIED = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/child-links-unsatisfied.ts',
-});
-const UNDER_LINKS_UNSATISFIED = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/under-links-unsatisfied.ts',
-});
-const FILTER_HAS_NO_INDEX = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/filter-has-no-index.ts',
-});
-const FILTER_HAS_NO_ADD = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/filter-has-no-add.ts',
-});
-const BAD_EXPECT = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/bad-expect.ts',
-});
-const BAD_WHERE_FIELD = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/bad-where-field.ts',
-});
-const ATTACH_BAD_WHERE_FIELD = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/attach-bad-where-field.ts',
-});
-const DB_UNREACHABLE_STATUS = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/db-unreachable-status.ts',
-});
-const DB_UNKNOWN_COLUMN = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/call-site/db-unknown-column.ts',
-});
-const POSITIVE_EVERY_CHAINABLE = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/positive/every-chainable.ts',
-});
-const POSITIVE_EVERY_CHAINABLE_DB = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/positive/every-chainable-db.ts',
-});
-const POSITIVE_SHAPE_ASSERTIONS = RepoRelativePathStub({
-  value: 'packages/hydration/test/type-fixtures/positive/shape-assertions.ts',
-});
+const CLEAN_FIXTURE = 'packages/hydration/test/adapter-fixtures/clean.ts';
+const ONE_ERROR_FIXTURE = 'packages/hydration/test/adapter-fixtures/one-error.ts';
+const DANGLING_LINK = 'packages/hydration/test/type-fixtures/declaration/dangling-link.ts';
+const OUT_OF_BOUNDS = 'packages/hydration/test/type-fixtures/call-site/out-of-bounds.ts';
+const UNKNOWN_FIELD = 'packages/hydration/test/type-fixtures/call-site/unknown-field.ts';
+const UNREACHABLE_TRANSITION = 'packages/hydration/test/type-fixtures/call-site/unreachable-transition.ts';
+const NOT_A_STATUS = 'packages/hydration/test/type-fixtures/call-site/not-a-status.ts';
+const REAL_QUEST_UNREACHABLE_STATUS = 'packages/hydration/test/type-fixtures/call-site/real-quest-unreachable-status.ts';
+const EXTRA_NOT_DECLARED = 'packages/hydration/test/type-fixtures/call-site/extra-not-declared.ts';
+const EXTRA_ARG_TYPED = 'packages/hydration/test/type-fixtures/call-site/extra-arg-typed.ts';
+const CHILD_WRONG_HOST = 'packages/hydration/test/type-fixtures/call-site/child-wrong-host.ts';
+const CHILD_LINKS_UNSATISFIED = 'packages/hydration/test/type-fixtures/call-site/child-links-unsatisfied.ts';
+const UNDER_LINKS_UNSATISFIED = 'packages/hydration/test/type-fixtures/call-site/under-links-unsatisfied.ts';
+const FILTER_HAS_NO_INDEX = 'packages/hydration/test/type-fixtures/call-site/filter-has-no-index.ts';
+const FILTER_HAS_NO_ADD = 'packages/hydration/test/type-fixtures/call-site/filter-has-no-add.ts';
+const BAD_EXPECT = 'packages/hydration/test/type-fixtures/call-site/bad-expect.ts';
+const BAD_WHERE_FIELD = 'packages/hydration/test/type-fixtures/call-site/bad-where-field.ts';
+const ATTACH_BAD_WHERE_FIELD = 'packages/hydration/test/type-fixtures/call-site/attach-bad-where-field.ts';
+const DB_UNREACHABLE_STATUS = 'packages/hydration/test/type-fixtures/call-site/db-unreachable-status.ts';
+const DB_UNKNOWN_COLUMN = 'packages/hydration/test/type-fixtures/call-site/db-unknown-column.ts';
+const POSITIVE_EVERY_CHAINABLE = 'packages/hydration/test/type-fixtures/positive/every-chainable.ts';
+const POSITIVE_EVERY_CHAINABLE_DB = 'packages/hydration/test/type-fixtures/positive/every-chainable-db.ts';
+const POSITIVE_SHAPE_ASSERTIONS = 'packages/hydration/test/type-fixtures/positive/shape-assertions.ts';
 
 const suiteDiagnostics = typescriptProgramDiagnostics({
   files: [

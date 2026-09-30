@@ -14,15 +14,15 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { resolve } from '#gateway/node/path';
-import { repoRelativePathContract, lineCountContract } from '@dungeonmaster/shared/contracts';
-import type { LineCount, RepoRelativePath } from '@dungeonmaster/shared/contracts';
+import { lineCountContract } from '@dungeonmaster/shared/contracts';
+import type { LineCount } from '@dungeonmaster/shared/contracts';
 
 // Ward spawns this package's jest with `cwd` set to `packages/hydration` itself, not the repo
 // root, so `process.cwd()` cannot resolve a `RepoRelativePath`. This file's own position is a
 // repo-structural constant instead: four directories up from
 // `packages/hydration/test/type-fixtures/` is the repo root.
 interface TypeDiagnostic {
-  file: RepoRelativePath;
+  file: string;
   line: LineCount;
   code: number;
   message: string;
@@ -52,7 +52,7 @@ const compilerOptions: ts.CompilerOptions = {
 export const typescriptProgramDiagnostics = ({
   files,
 }: {
-  files: readonly RepoRelativePath[];
+  files: readonly string[];
 }): readonly TypeDiagnostic[] => {
   const absolutePaths = files.map((file) => resolve(repoRoot, file));
   const program = ts.createProgram(absolutePaths, compilerOptions);
@@ -70,7 +70,7 @@ export const typescriptProgramDiagnostics = ({
       : absoluteFileName;
 
     results.push({
-      file: repoRelativePathContract.parse(repoRelativeFileName),
+      file: repoRelativeFileName,
       line: lineCountContract.parse(line + 1),
       code: diagnostic.code,
       message: ts.flattenDiagnosticMessageText(diagnostic.messageText, ' '),

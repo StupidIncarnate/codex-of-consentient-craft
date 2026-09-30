@@ -1,6 +1,5 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { blightChecklistToTextTransformer } from '../../../transformers/blight-checklist-to-text/blight-checklist-to-text-transformer';
@@ -21,7 +20,7 @@ describe('QuestGetBlightChecklistResponder', () => {
         data: blightChecklistToTextTransformer({
           checklist: blightChecklistBuildTransformer({
             changedFiles: [
-              RepoRelativePathStub({ value: 'packages/web/src/widgets/foo/foo-widget.tsx' }),
+              'packages/web/src/widgets/foo/foo-widget.tsx',
             ],
             ledger: quest.planningNotes.blightLedger,
             baseRef: quest.baseRef!,

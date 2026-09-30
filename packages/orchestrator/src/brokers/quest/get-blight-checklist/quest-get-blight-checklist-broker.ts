@@ -46,7 +46,7 @@
  * have to guess a layout.
  */
 
-import { questContract, repoRelativePathContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import type { BlightChecklist, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -152,7 +152,7 @@ export const questGetBlightChecklistBroker = async ({
     scope === 'working-tree'
       ? await gitWorkingTreeFilesBroker({ cwd: resolution.cwd })
       : (await diffFiles({ cwd: resolution.cwd, baseRef: measuredFrom })).map((file) =>
-          repoRelativePathContract.parse(file),
+          file,
         );
 
   return blightChecklistBuildTransformer({

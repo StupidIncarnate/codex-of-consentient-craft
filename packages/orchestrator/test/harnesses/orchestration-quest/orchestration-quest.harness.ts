@@ -14,7 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type { RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -127,7 +127,7 @@ export const orchestrationQuestHarness = (): {
   // `git diff baseRef...HEAD --name-only` reports exactly these paths as changed.
   commitChangedFiles: (params: {
     repoPath: string;
-    files: readonly { relativePath: RepoRelativePath; content: string }[];
+    files: readonly { relativePath: string; content: string }[];
   }) => Promise<void>;
   // Raw file bytes of quest.json — for asserting a refused gate persisted NOTHING (byte-identical
   // before/after), which a parsed-and-re-compared Quest object cannot prove (parsing normalizes).
@@ -285,7 +285,7 @@ export const orchestrationQuestHarness = (): {
     files,
   }: {
     repoPath: string;
-    files: readonly { relativePath: RepoRelativePath; content: string }[];
+    files: readonly { relativePath: string; content: string }[];
   }): Promise<void> => {
     const cwd = String(repoPath);
     for (const file of files) {

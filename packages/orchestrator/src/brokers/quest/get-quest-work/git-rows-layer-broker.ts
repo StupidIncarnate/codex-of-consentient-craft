@@ -24,7 +24,7 @@
  * dispatched role works in.
  */
 
-import { type Quest, type RepoRelativePath } from '@dungeonmaster/shared/contracts';
+import { type Quest } from '@dungeonmaster/shared/contracts';
 
 import { logNameOnly } from '#gateway/bin/git';
 import {
@@ -43,7 +43,7 @@ export const gitRowsLayerBroker = async ({
   quest: Quest;
 }): Promise<{
   git: QuestWorkGit;
-  uncommittedPaths: RepoRelativePath[];
+  uncommittedPaths: string[];
   committedPaths: QuestWorkCommit[];
 }> => {
   const git = {

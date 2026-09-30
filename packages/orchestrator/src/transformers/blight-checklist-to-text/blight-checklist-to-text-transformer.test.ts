@@ -1,7 +1,6 @@
 import { BlightChecklistItemStub } from '@dungeonmaster/shared/contracts/blight-checklist-item/blight-checklist-item.stub';
 import { BlightChecklistStub } from '@dungeonmaster/shared/contracts/blight-checklist/blight-checklist.stub';
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { blightChecklistLimitsStatics } from '../../statics/blight-checklist-limits/blight-checklist-limits-statics';
@@ -506,7 +505,7 @@ describe('blightChecklistToTextTransformer', () => {
       // stubs, not raw contracts) and without hardcoding the count.
       const singleFileProbe = blightChecklistBuildTransformer({
         changedFiles: [
-          RepoRelativePathStub({ value: 'packages/orchestrator/src/probe/probe-broker.ts' }),
+          'packages/orchestrator/src/probe/probe-broker.ts',
         ],
         baseRef,
       });
@@ -517,19 +516,13 @@ describe('blightChecklistToTextTransformer', () => {
         const folderType = SCALE_TEST_FOLDER_TYPES[index % SCALE_TEST_FOLDER_TYPES.length]!;
         const suffix = folderType.slice(0, -1);
         const domain = `${SCALE_TEST_DOMAIN_STEMS[index % SCALE_TEST_DOMAIN_STEMS.length]!}-${String(index)}`;
-        return RepoRelativePathStub({
-          value: `packages/${packageName}/src/${folderType}/${domain}/${domain}-${suffix}.ts`,
-        });
+        return `packages/${packageName}/src/${folderType}/${domain}/${domain}-${suffix}.ts`;
       });
       const companionFiles = implFiles
         .filter((_implFile, index) => index % SCALE_TEST_COMPANION_EVERY === 0)
         .flatMap((implFile) => [
-          RepoRelativePathStub({
-            value: `${String(implFile).slice(0, -'.ts'.length)}.test.ts`,
-          }),
-          RepoRelativePathStub({
-            value: `${String(implFile).slice(0, -'.ts'.length)}.proxy.ts`,
-          }),
+          `${String(implFile).slice(0, -'.ts'.length)}.test.ts`,
+          `${String(implFile).slice(0, -'.ts'.length)}.proxy.ts`,
         ]);
       const changedFiles = [...implFiles, ...companionFiles];
 
@@ -578,7 +571,7 @@ describe('blightChecklistToTextTransformer', () => {
 
       const singleFileProbe = blightChecklistBuildTransformer({
         changedFiles: [
-          RepoRelativePathStub({ value: 'packages/orchestrator/src/probe/probe-broker.ts' }),
+          'packages/orchestrator/src/probe/probe-broker.ts',
         ],
         baseRef,
       });
@@ -590,9 +583,7 @@ describe('blightChecklistToTextTransformer', () => {
         const folderType = SCALE_TEST_FOLDER_TYPES[index % SCALE_TEST_FOLDER_TYPES.length]!;
         const suffix = folderType.slice(0, -1);
         const domain = `${SCALE_TEST_DOMAIN_STEMS[index % SCALE_TEST_DOMAIN_STEMS.length]!}-${String(index)}`;
-        return RepoRelativePathStub({
-          value: `packages/${packageName}/src/${folderType}/${domain}/${domain}-${suffix}.ts`,
-        });
+        return `packages/${packageName}/src/${folderType}/${domain}/${domain}-${suffix}.ts`;
       });
 
       const baseline = blightChecklistBuildTransformer({ changedFiles: implFiles, baseRef });
@@ -627,15 +618,11 @@ describe('blightChecklistToTextTransformer', () => {
 
       const remainFiles = Array.from({ length: remainFileCount }, (_, index) => {
         const label = `remain-${String(index).padStart(3, '0')}`;
-        return RepoRelativePathStub({
-          value: `packages/orchestrator/src/transformers/${label}/${label}-transformer.ts`,
-        });
+        return `packages/orchestrator/src/transformers/${label}/${label}-transformer.ts`;
       });
       const dispFiles = Array.from({ length: dispFileCount }, (_, index) => {
         const label = `disp-${String(index).padStart(3, '0')}`;
-        return RepoRelativePathStub({
-          value: `packages/orchestrator/src/transformers/${label}/${label}-transformer.ts`,
-        });
+        return `packages/orchestrator/src/transformers/${label}/${label}-transformer.ts`;
       });
       const changedFiles = [...remainFiles, ...dispFiles];
 

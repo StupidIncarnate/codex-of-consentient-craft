@@ -2,7 +2,6 @@ import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/ques
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { questGetBlightChecklistBroker } from './quest-get-blight-checklist-broker';
@@ -23,7 +22,7 @@ describe('questGetBlightChecklistBroker', () => {
       expect(result).toStrictEqual(
         blightChecklistBuildTransformer({
           changedFiles: [
-            RepoRelativePathStub({ value: 'packages/web/src/widgets/foo/foo-widget.tsx' }),
+            'packages/web/src/widgets/foo/foo-widget.tsx',
           ],
           ledger: quest.planningNotes.blightLedger,
           baseRef: quest.baseRef!,
@@ -33,7 +32,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it('VALID: {ledger entry for a unit} => remainingItemIds reflects the persisted blightLedger', async () => {
       const changedFiles = [
-        RepoRelativePathStub({ value: 'packages/web/src/widgets/foo/foo-widget.tsx' }),
+        'packages/web/src/widgets/foo/foo-widget.tsx',
       ];
       const baseline = blightChecklistBuildTransformer({
         changedFiles,

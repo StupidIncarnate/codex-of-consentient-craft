@@ -1,22 +1,15 @@
 import { BlightChecklistStub } from '@dungeonmaster/shared/contracts/blight-checklist/blight-checklist.stub';
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { blightChecklistBuildTransformer } from './blight-checklist-build-transformer';
 
 describe('blightChecklistBuildTransformer', () => {
   describe('pairing: impl + test + proxy', () => {
     it('VALID: {impl.ts + impl.test.ts + impl.proxy.ts} => one group, one unit per concern, pairedFiles holds the two companions', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
-      const testPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts',
-      });
-      const proxyPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.proxy.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
+      const testPath = 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts';
+      const proxyPath = 'packages/orchestrator/src/brokers/foo/foo-broker.proxy.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -71,9 +64,7 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('pairing: test-only diff pulls the impl path into scope', () => {
     it('VALID: {only a .test.tsx changed, .tsx impl absent from the diff} => group implPath is the .tsx', () => {
-      const testTsxPath = RepoRelativePathStub({
-        value: 'packages/web/src/widgets/foo/foo-widget.test.tsx',
-      });
+      const testTsxPath = 'packages/web/src/widgets/foo/foo-widget.test.tsx';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [testTsxPath], baseRef });
@@ -89,9 +80,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {only a .proxy.tsx changed, .tsx impl absent from the diff} => implPath is .tsx because the companion is .tsx', () => {
-      const proxyTsxPath = RepoRelativePathStub({
-        value: 'packages/web/src/widgets/bar/bar-widget.proxy.tsx',
-      });
+      const proxyTsxPath = 'packages/web/src/widgets/bar/bar-widget.proxy.tsx';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -112,15 +101,9 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('pairing: .stub.ts resolves to its -contract.ts implementation', () => {
     it('VALID: {contract + its test + its stub} => group is headed by the -contract.ts and the stub is a paired file', () => {
-      const contractPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts',
-      });
-      const contractTestPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts',
-      });
-      const stubPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts',
-      });
+      const contractPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts';
+      const contractTestPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts';
+      const stubPath = 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -139,15 +122,9 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {contract + its test + its stub} => ONE group, not two, and only the concerns a contract can answer', () => {
-      const contractPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts',
-      });
-      const contractTestPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts',
-      });
-      const stubPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts',
-      });
+      const contractPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts';
+      const contractTestPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts';
+      const stubPath = 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -163,9 +140,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {only the .stub.ts changed, contract unchanged} => pulls the -contract.ts into scope, never a bare <domain>.ts', () => {
-      const stubPath = RepoRelativePathStub({
-        value: 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts',
-      });
+      const stubPath = 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [stubPath], baseRef });
@@ -189,15 +164,9 @@ describe('blightChecklistBuildTransformer', () => {
         'burn-minutes',
       ];
       const changedFiles = domains.flatMap((domain) => [
-        RepoRelativePathStub({
-          value: `packages/server/src/contracts/${domain}/${domain}-contract.ts`,
-        }),
-        RepoRelativePathStub({
-          value: `packages/server/src/contracts/${domain}/${domain}-contract.test.ts`,
-        }),
-        RepoRelativePathStub({
-          value: `packages/server/src/contracts/${domain}/${domain}.stub.ts`,
-        }),
+        `packages/server/src/contracts/${domain}/${domain}-contract.ts`,
+        `packages/server/src/contracts/${domain}/${domain}-contract.test.ts`,
+        `packages/server/src/contracts/${domain}/${domain}.stub.ts`,
       ]);
       const { baseRef } = BlightChecklistStub();
 
@@ -213,9 +182,7 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('pairing: .integration.test.ts', () => {
     it('VALID: {.integration.test.ts changed} => strips the full marker, not mangled by the .test.ts rule', () => {
-      const path = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/startup/start-thing.integration.test.ts',
-      });
+      const path = 'packages/orchestrator/src/startup/start-thing.integration.test.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [path], baseRef });
@@ -233,9 +200,7 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('pairing: self-pairing files', () => {
     it('VALID: {.e2e.ts changed} => its own group, implPath is itself, no pairedFiles', () => {
-      const e2ePath = RepoRelativePathStub({
-        value: 'packages/web/src/flows/quest-chat/foo.e2e.ts',
-      });
+      const e2ePath = 'packages/web/src/flows/quest-chat/foo.e2e.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [e2ePath], baseRef });
@@ -251,9 +216,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {.harness.ts changed} => its own group, implPath is itself, no pairedFiles', () => {
-      const harnessPath = RepoRelativePathStub({
-        value: 'packages/web/test/harnesses/quest/quest.harness.ts',
-      });
+      const harnessPath = 'packages/web/test/harnesses/quest/quest.harness.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [harnessPath], baseRef });
@@ -271,7 +234,7 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('pairing: bare dotfiles with no reviewable extension to strip', () => {
     it('VALID: {.gitignore changed} => self-paired as its own unit, not stripped to an empty path', () => {
-      const dotfilePath = RepoRelativePathStub({ value: '.gitignore' });
+      const dotfilePath = '.gitignore';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [dotfilePath], baseRef });
@@ -293,7 +256,7 @@ describe('blightChecklistBuildTransformer', () => {
     it.each(['.ts', '.tsx'])(
       'VALID: {%s changed — the whole name IS the extension} => self-paired, never an empty group base',
       (path) => {
-        const extensionOnlyPath = RepoRelativePathStub({ value: path });
+        const extensionOnlyPath = path;
         const { baseRef } = BlightChecklistStub();
 
         const result = blightChecklistBuildTransformer({
@@ -320,7 +283,7 @@ describe('blightChecklistBuildTransformer', () => {
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
-        changedFiles: [RepoRelativePathStub({ value: path })],
+        changedFiles: [path],
         baseRef,
       });
 
@@ -335,9 +298,7 @@ describe('blightChecklistBuildTransformer', () => {
     // mean what they did, when the only consumer arrives in the same commit. Assert the exact id
     // list, not a count — the point is WHICH three survive, and that all three do.
     it('VALID: {a -contract.ts} => craft, dedup, and test-cases units only, no perf and no integrity', () => {
-      const contractPath = RepoRelativePathStub({
-        value: 'packages/shared/src/contracts/torch-fuel/torch-fuel-contract.ts',
-      });
+      const contractPath = 'packages/shared/src/contracts/torch-fuel/torch-fuel-contract.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [contractPath], baseRef });
@@ -359,7 +320,7 @@ describe('blightChecklistBuildTransformer', () => {
         const { baseRef } = BlightChecklistStub();
 
         const result = blightChecklistBuildTransformer({
-          changedFiles: [RepoRelativePathStub({ value: path })],
+          changedFiles: [path],
           baseRef,
         });
 
@@ -378,7 +339,7 @@ describe('blightChecklistBuildTransformer', () => {
     // `packages/<x>/<y>.ts` pattern would reintroduce the layout assumption it refuses everywhere
     // else.
     it("VALID: {a re-export file sitting directly in a declared package's root} => craft, dedup, and test-cases units only", () => {
-      const barrelPath = RepoRelativePathStub({ value: 'packages/shared/contracts.ts' });
+      const barrelPath = 'packages/shared/contracts.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -397,9 +358,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {an ordinary impl file} => still crosses every concern, so the gate narrows rather than replaces', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [implPath], baseRef });
@@ -417,12 +376,8 @@ describe('blightChecklistBuildTransformer', () => {
     // otherwise an impl file pulled into review by a companion change would lose two concerns for
     // having a test.
     it('VALID: {an impl file whose only changed companion is its .test.ts} => the impl still crosses every concern', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
-      const testPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
+      const testPath = 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -440,9 +395,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {only a .proxy.ts changed, impl absent} => the resolved impl is NOT declaration-shaped and crosses every concern', () => {
-      const proxyPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.proxy.ts',
-      });
+      const proxyPath = 'packages/orchestrator/src/brokers/foo/foo-broker.proxy.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [proxyPath], baseRef });
@@ -459,9 +412,7 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('package resolution against the quest declarations', () => {
     it("VALID: {file under a declared package's location} => every unit on it carries that package name", () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -482,9 +433,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {location declared with a trailing slash} => resolves the same as the bare form', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -499,9 +448,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {absolute location, projectRoot given} => reduced against the root and matched repo-relatively', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -520,9 +467,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('EMPTY: {absolute location, no projectRoot to reduce it against} => resolves nothing rather than guessing a root', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -540,9 +485,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('EMPTY: {absolute location outside the given projectRoot} => is left absolute and matches nothing', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -561,12 +504,8 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {two declared packages} => each file resolves to the package whose location contains it', () => {
-      const orchestratorFile = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
-      const webFile = RepoRelativePathStub({
-        value: 'packages/web/src/widgets/bar/bar-widget.tsx',
-      });
+      const orchestratorFile = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
+      const webFile = 'packages/web/src/widgets/bar/bar-widget.tsx';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -589,9 +528,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {a package declared inside another package tree} => the longest matching location wins', () => {
-      const nestedFile = RepoRelativePathStub({
-        value: 'apps/shell/plugins/editor/src/editor-broker.ts',
-      });
+      const nestedFile = 'apps/shell/plugins/editor/src/editor-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -607,7 +544,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {a repo that does not lay packages out under packages/} => resolution follows the declared location, not the path shape', () => {
-      const implPath = RepoRelativePathStub({ value: 'libs/core/lib/core-broker.ts' });
+      const implPath = 'libs/core/lib/core-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -620,7 +557,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('EMPTY: {file under none of the declared locations} => the unit carries no package at all', () => {
-      const implPath = RepoRelativePathStub({ value: 'scripts/release.ts' });
+      const implPath = 'scripts/release.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -642,7 +579,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it("EMPTY: {a sibling directory sharing the declared package's name prefix} => does not resolve, because a prefix is only a match on a path boundary", () => {
-      const implPath = RepoRelativePathStub({ value: 'packages/orchestrator-legacy/src/a.ts' });
+      const implPath = 'packages/orchestrator-legacy/src/a.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -657,9 +594,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('EMPTY: {packagesAffected omitted} => no unit carries a package', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [implPath], baseRef });
@@ -674,7 +609,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('EMPTY: {a declared entry whose location is just "./"} => contributes no prefix and matches nothing', () => {
-      const implPath = RepoRelativePathStub({ value: 'scripts/release.ts' });
+      const implPath = 'scripts/release.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -687,7 +622,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it("VALID: {a changed file that IS a declared package's location} => resolves to that package", () => {
-      const implPath = RepoRelativePathStub({ value: 'packages/tools/build.ts' });
+      const implPath = 'packages/tools/build.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -702,12 +637,8 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {an impl file and its colocated test} => both collapse to one unit group carrying the package, so a pair can never straddle a boundary', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
-      });
-      const testPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts',
-      });
+      const implPath = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
+      const testPath = 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -733,9 +664,7 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('coverage against the ledger', () => {
     it('VALID: {empty ledger} => every unit is remaining', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/guards/foo/foo-guard.ts',
-      });
+      const implPath = 'packages/orchestrator/src/guards/foo/foo-guard.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [implPath], baseRef });
@@ -744,9 +673,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {ledger covering one concern} => that unit drops out of remaining', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/guards/foo/foo-guard.ts',
-      });
+      const implPath = 'packages/orchestrator/src/guards/foo/foo-guard.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -768,9 +695,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {ledger entry for a different implPath} => clears nothing here, because ids embed their own impl path', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/guards/foo/foo-guard.ts',
-      });
+      const implPath = 'packages/orchestrator/src/guards/foo/foo-guard.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -793,9 +718,7 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {ledger covering every unit} => remaining is empty, the only gate-clearing state', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/guards/foo/foo-guard.ts',
-      });
+      const implPath = 'packages/orchestrator/src/guards/foo/foo-guard.ts';
       const { baseRef } = BlightChecklistStub();
       const allIds = blightChecklistBuildTransformer({
         changedFiles: [implPath],
@@ -818,9 +741,7 @@ describe('blightChecklistBuildTransformer', () => {
     // must not throw, must not appear among the enumerated items, and must not clear a unit that
     // genuinely still needs a disposition.
     it('VALID: {ledger holding a stale <implPath>:coverage entry beside a live <implPath>:craft one} => the stale id is ignored and only craft clears', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/guards/foo/foo-guard.ts',
-      });
+      const implPath = 'packages/orchestrator/src/guards/foo/foo-guard.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({
@@ -869,8 +790,8 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('ordering', () => {
     it('VALID: {two changed files} => groups are emitted sorted by implPath ascending', () => {
-      const fileA = RepoRelativePathStub({ value: 'packages/orchestrator/src/a/a-thing.ts' });
-      const fileB = RepoRelativePathStub({ value: 'packages/orchestrator/src/b/b-thing.ts' });
+      const fileA = 'packages/orchestrator/src/a/a-thing.ts';
+      const fileB = 'packages/orchestrator/src/b/b-thing.ts';
       const { baseRef } = BlightChecklistStub();
 
       const result = blightChecklistBuildTransformer({ changedFiles: [fileB, fileA], baseRef });
@@ -890,8 +811,8 @@ describe('blightChecklistBuildTransformer', () => {
     });
 
     it('VALID: {same files, input order reversed} => produces the identical items array', () => {
-      const fileA = RepoRelativePathStub({ value: 'packages/orchestrator/src/a/a-thing.ts' });
-      const fileB = RepoRelativePathStub({ value: 'packages/orchestrator/src/b/b-thing.ts' });
+      const fileA = 'packages/orchestrator/src/a/a-thing.ts';
+      const fileB = 'packages/orchestrator/src/b/b-thing.ts';
       const { baseRef } = BlightChecklistStub();
 
       expect(
@@ -904,12 +825,8 @@ describe('blightChecklistBuildTransformer', () => {
 
   describe('determinism', () => {
     it('VALID: {same changedFiles enumerated twice} => produces byte-identical items', () => {
-      const implPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/transformers/foo/foo-transformer.ts',
-      });
-      const testPath = RepoRelativePathStub({
-        value: 'packages/orchestrator/src/transformers/foo/foo-transformer.test.ts',
-      });
+      const implPath = 'packages/orchestrator/src/transformers/foo/foo-transformer.ts';
+      const testPath = 'packages/orchestrator/src/transformers/foo/foo-transformer.test.ts';
       const changedFiles = [implPath, testPath];
       const { baseRef } = BlightChecklistStub();
 

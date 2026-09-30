@@ -14,7 +14,6 @@
  */
 
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { addAllProxy } from '#gateway/bin/git/add-all/add-all.proxy';
@@ -121,7 +120,7 @@ export const stepHandlerCommitBrokerProxy = (): {
     setupWorkingTreeFiles: ({ files }: { files: readonly string[] }): void => {
       workingTreeMock
         .calledWith([{ cwd: DEFAULT_WORKTREE_PATH }])
-        .resolves(files.map((file) => RepoRelativePathStub({ value: file })));
+        .resolves(files.map((file) => file));
     },
 
     setupPushFails: ({ output }: { output: string }): void => {

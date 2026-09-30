@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { worktreeResumeRestoreBroker } from './worktree-resume-restore-broker';
 import { worktreeAdd } from '#gateway/bin/git';
@@ -85,7 +84,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
     const dirtyContent = '# fixture repo\nuncommitted edit from a killed agent session\n';
     git.dirtyTrackedFile({
       repoPath: worktreePath,
-      relativePath: RepoRelativePathStub({ value: 'README.md' }),
+      relativePath: 'README.md',
       content: dirtyContent,
     });
 

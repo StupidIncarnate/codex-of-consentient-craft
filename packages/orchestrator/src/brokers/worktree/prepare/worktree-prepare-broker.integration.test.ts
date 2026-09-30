@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { worktreePrepareBroker } from './worktree-prepare-broker';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
@@ -31,7 +30,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     await git.createBranchAt({ repoPath, branchName: 'develop' });
     const { sha: mainTipSha } = await git.commitFile({
       repoPath,
-      relativePath: RepoRelativePathStub({ value: 'README.md' }),
+      relativePath: 'README.md',
       content: '# fixture repo\nsecond commit on main, past develop\n',
       message: 'advance main past develop',
     });
@@ -106,7 +105,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     // dirty edit a developer or a running agent could plausibly have sitting around.
     git.dirtyTrackedFile({
       repoPath,
-      relativePath: RepoRelativePathStub({ value: 'README.md' }),
+      relativePath: 'README.md',
       content: '# fixture repo\nUNCOMMITTED — must never reach the worktree\n',
     });
 
@@ -160,7 +159,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     // different sha than the branch's own tip — which is what makes the assertion below meaningful.
     await git.commitFile({
       repoPath,
-      relativePath: RepoRelativePathStub({ value: 'README.md' }),
+      relativePath: 'README.md',
       content: '# fixture repo\nmain advanced past the quest branch\n',
       message: 'advance main past the quest branch',
     });

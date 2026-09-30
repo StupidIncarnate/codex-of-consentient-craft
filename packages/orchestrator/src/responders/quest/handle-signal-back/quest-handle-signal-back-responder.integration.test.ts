@@ -9,7 +9,6 @@ import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/ques
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
@@ -32,8 +31,8 @@ const REVIEW_ITEM_ID = 'packages/orchestrator/src/foo/foo-broker.ts:craft';
 // The two files the review-range fixtures commit, ONE PER ROUND, into `packages/shared/` — which
 // `initRepoWithPackages` creates, so `commitFile` can write into it without a mkdir. Neither is
 // declaration-shaped, so each crosses all five concerns.
-const ALPHA_FILE = RepoRelativePathStub({ value: 'packages/shared/alpha-broker.ts' });
-const BETA_FILE = RepoRelativePathStub({ value: 'packages/shared/beta-broker.ts' });
+const ALPHA_FILE = 'packages/shared/alpha-broker.ts';
+const BETA_FILE = 'packages/shared/beta-broker.ts';
 
 // The quest's own pinned review base. The review-coverage gate reads it only as "this quest has a
 // review surface at all" — the RANGE it measures is the work item's own startRef, never this.
@@ -467,7 +466,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
     // Never committed and never `git add`ed — exactly the shape of a net-new file a worker just
     // wrote, which the deleted gate's bare `git diff HEAD --name-only` half would have missed.
-    const strayPath = RepoRelativePathStub({ value: 'packages/shared/stray-broker.ts' });
+    const strayPath = 'packages/shared/stray-broker.ts';
     git.dirtyTrackedFile({
       repoPath: worktreePath,
       relativePath: strayPath,

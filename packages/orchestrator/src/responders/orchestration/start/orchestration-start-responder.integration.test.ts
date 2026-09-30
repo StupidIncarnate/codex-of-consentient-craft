@@ -4,7 +4,6 @@ import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branc
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestTitleStub } from '@dungeonmaster/shared/contracts/quest-title/quest-title.stub';
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { OrchestrationStartResponder } from './orchestration-start-responder';
@@ -159,7 +158,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
       });
       await git.commitFile({
         repoPath,
-        relativePath: RepoRelativePathStub({ value: 'ADVANCE.md' }),
+        relativePath: 'ADVANCE.md',
         content: 'advance main past the taken branch\n',
         message: 'advance main',
       });

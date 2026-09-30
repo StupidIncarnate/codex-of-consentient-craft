@@ -33,7 +33,7 @@ import {
 import { join } from '#gateway/node/path';
 
 import { run } from '#gateway/node/child_process';
-import { type FileName, type RepoRelativePath } from '@dungeonmaster/shared/contracts';
+import { type FileName } from '@dungeonmaster/shared/contracts';
 import { deleteEnv, envSnapshot, getEnv, setEnv } from '#gateway/node/process';
 
 const ARGV_LOG_FILENAME = 'argv.log';
@@ -72,13 +72,13 @@ export const gitWorktreeFixtureHarness = (): {
   checkoutBranch: (params: { repoPath: string; branchName: FileName }) => Promise<void>;
   commitFile: (params: {
     repoPath: string;
-    relativePath: RepoRelativePath;
+    relativePath: string;
     content: string;
     message: string;
   }) => Promise<{ sha: string }>;
   dirtyTrackedFile: (params: {
     repoPath: string;
-    relativePath: RepoRelativePath;
+    relativePath: string;
     content: string;
   }) => void;
   readTextFile: (params: { absolutePath: string }) => string | null;
@@ -220,7 +220,7 @@ export const gitWorktreeFixtureHarness = (): {
     message,
   }: {
     repoPath: string;
-    relativePath: RepoRelativePath;
+    relativePath: string;
     content: string;
     message: string;
   }): Promise<{ sha: string }> => {
@@ -265,7 +265,7 @@ export const gitWorktreeFixtureHarness = (): {
       content,
     }: {
       repoPath: string;
-      relativePath: RepoRelativePath;
+      relativePath: string;
       content: string;
     }): void => {
       writeFileSync(join(repoPath, relativePath), content);

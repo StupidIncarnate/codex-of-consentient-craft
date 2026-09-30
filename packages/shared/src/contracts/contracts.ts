@@ -13,7 +13,6 @@
 
 export * from './relative-file-path/relative-file-path-contract';
 
-export * from './repo-relative-path/repo-relative-path-contract';
 
 
 // File Contents Contracts

@@ -60,13 +60,8 @@
  * the ABSENCE of a disposition, never whether the unit's path resolves.
  */
 
-import {
-  blightChecklistContract,
-  blightChecklistItemContract,
-  blightConcernContract,
-  repoRelativePathContract,
-} from '@dungeonmaster/shared/contracts';
-import type { BlightChecklist, Quest, QuestBlightLedgerEntry, QuestPackageEntry, RepoRelativePath } from '@dungeonmaster/shared/contracts';
+import { blightChecklistContract, blightChecklistItemContract, blightConcernContract } from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, Quest, QuestBlightLedgerEntry, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 
 import { blightConcernGatingStatics } from '../../statics/blight-concern-gating/blight-concern-gating-statics';
 
@@ -98,14 +93,14 @@ export const blightChecklistBuildTransformer = ({
   projectRoot,
   baseRef,
 }: {
-  changedFiles: readonly RepoRelativePath[];
+  changedFiles: readonly string[];
   ledger?: readonly QuestBlightLedgerEntry[];
   packagesAffected?: readonly QuestPackageEntry[];
   projectRoot?: string;
   baseRef: NonNullable<Quest['baseRef']>;
 }): BlightChecklist => {
-  const selfPairedFiles: RepoRelativePath[] = [];
-  const groups = new Map<RepoRelativePath, RepoRelativePath[]>();
+  const selfPairedFiles: string[] = [];
+  const groups = new Map<string, string[]>();
 
   for (const file of changedFiles) {
     const filePath = String(file);
@@ -171,15 +166,15 @@ export const blightChecklistBuildTransformer = ({
       continue;
     }
 
-    const base = repoRelativePathContract.parse(strippedBase);
+    const base = strippedBase;
 
-    const filesInGroup = groups.get(base) ?? ([] as RepoRelativePath[]);
+    const filesInGroup = groups.get(base) ?? ([] as string[]);
     filesInGroup.push(file);
     groups.set(base, filesInGroup);
   }
 
-  const resolvedGroups: { implPath: RepoRelativePath; pairedFiles: RepoRelativePath[] }[] = [
-    ...selfPairedFiles.map((file) => ({ implPath: file, pairedFiles: [] as RepoRelativePath[] })),
+  const resolvedGroups: { implPath: string; pairedFiles: string[] }[] = [
+    ...selfPairedFiles.map((file) => ({ implPath: file, pairedFiles: [] as string[] })),
     ...[...groups.entries()].map(([base, files]) => {
       // A markerless file's own (stripped) path IS the group's base — that equivalence is how a
       // present impl file is told apart from a group made only of its test/proxy/stub companions,
@@ -189,7 +184,7 @@ export const blightChecklistBuildTransformer = ({
         files.find((groupFile) => String(groupFile) === `${base}.tsx`);
       const hasTsxFile = files.some((groupFile) => String(groupFile).endsWith('.tsx'));
       const implPath =
-        markerlessFile ?? repoRelativePathContract.parse(`${base}${hasTsxFile ? '.tsx' : '.ts'}`);
+        markerlessFile ?? `${base}${hasTsxFile ? '.tsx' : '.ts'}`;
       return {
         implPath,
         pairedFiles: files.filter((groupFile) => groupFile !== implPath).sort(),

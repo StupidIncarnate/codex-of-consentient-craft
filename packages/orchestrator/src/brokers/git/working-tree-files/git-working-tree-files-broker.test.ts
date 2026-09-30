@@ -1,4 +1,3 @@
-import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { gitWorkingTreeFilesBroker } from './git-working-tree-files-broker';
 import { gitWorkingTreeFilesBrokerProxy } from './git-working-tree-files-broker.proxy';
@@ -21,10 +20,8 @@ describe('gitWorkingTreeFilesBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        RepoRelativePathStub({ value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts' }),
-        RepoRelativePathStub({
-          value: 'packages/orchestrator/src/brokers/brand-new/brand-new-broker.ts',
-        }),
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+        'packages/orchestrator/src/brokers/brand-new/brand-new-broker.ts',
       ]);
     });
 
@@ -43,12 +40,8 @@ describe('gitWorkingTreeFilesBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        RepoRelativePathStub({
-          value: 'packages/orchestrator/src/statics/new-thing/new-thing-statics.ts',
-        }),
-        RepoRelativePathStub({
-          value: 'packages/orchestrator/src/statics/new-thing/new-thing-statics.test.ts',
-        }),
+        'packages/orchestrator/src/statics/new-thing/new-thing-statics.ts',
+        'packages/orchestrator/src/statics/new-thing/new-thing-statics.test.ts',
       ]);
     });
 
@@ -67,8 +60,8 @@ describe('gitWorkingTreeFilesBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        RepoRelativePathStub({ value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts' }),
-        RepoRelativePathStub({ value: 'packages/orchestrator/src/brokers/bar/bar-broker.ts' }),
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+        'packages/orchestrator/src/brokers/bar/bar-broker.ts',
       ]);
     });
   });

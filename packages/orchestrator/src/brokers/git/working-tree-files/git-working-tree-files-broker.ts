@@ -17,15 +17,14 @@
  * quest never pinned one.
  */
 
-import type { RepoRelativePath } from '@dungeonmaster/shared/contracts';
-import { questContract, repoRelativePathContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { diffFiles, untrackedFiles } from '#gateway/bin/git';
 
 export const gitWorkingTreeFilesBroker = async ({
   cwd,
 }: {
   cwd: string;
-}): Promise<RepoRelativePath[]> => {
+}): Promise<string[]> => {
   const [trackedDiff, untrackedAdditions] = await Promise.all([
     diffFiles({
       cwd,
@@ -35,10 +34,10 @@ export const gitWorkingTreeFilesBroker = async ({
     untrackedFiles({ cwd }),
   ]);
 
-  const trackedChanges = trackedDiff.map((file) => repoRelativePathContract.parse(file));
-  const untrackedChanges = untrackedAdditions.map((file) => repoRelativePathContract.parse(file));
+  const trackedChanges = trackedDiff.map((file) => file);
+  const untrackedChanges = untrackedAdditions.map((file) => file);
 
-  const seen = new Set<RepoRelativePath>();
+  const seen = new Set<string>();
 
   return [...trackedChanges, ...untrackedChanges].filter((file) => {
     if (seen.has(file)) {
