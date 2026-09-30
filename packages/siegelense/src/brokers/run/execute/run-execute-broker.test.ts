@@ -952,7 +952,7 @@ describe('runExecuteBroker', () => {
         })),
       ).toStrictEqual([
         { step: 1, path: firstShotPath, pixelChange: null, blank: false },
-        { step: 2, path: secondShotPath, pixelChange: '0%', blank: false },
+        { step: 2, path: secondShotPath, pixelChange: '0 px', blank: false },
       ]);
     });
   });
