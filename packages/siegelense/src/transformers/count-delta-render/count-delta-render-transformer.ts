@@ -9,8 +9,6 @@
  * // Returns '+2' as branded CountDelta
  */
 
-import { countDeltaContract } from '../../contracts/count-delta/count-delta-contract';
-import type { CountDelta } from '../../contracts/count-delta/count-delta-contract';
 
 export const countDeltaRenderTransformer = ({
   before,
@@ -18,8 +16,8 @@ export const countDeltaRenderTransformer = ({
 }: {
   before: number;
   after: number;
-}): CountDelta => {
+}): string => {
   const delta = after - before;
   const sign = delta >= 0 ? '+' : '';
-  return countDeltaContract.parse(`${sign}${delta}`);
+  return `${sign}${delta}`;
 };

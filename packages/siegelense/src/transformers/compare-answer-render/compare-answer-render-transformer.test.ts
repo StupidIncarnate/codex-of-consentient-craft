@@ -1,5 +1,4 @@
 import { CompareAnswerStub } from '../../contracts/compare-answer/compare-answer.stub';
-import { CountDeltaStub } from '../../contracts/count-delta/count-delta.stub';
 import { ElementDeltaStub } from '../../contracts/element-delta/element-delta.stub';
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { KeyRowStub } from '../../contracts/key-row/key-row.stub';
@@ -14,15 +13,15 @@ describe('compareAnswerRenderTransformer', () => {
         runA: RunIdStub({ value: 'run_4' }),
         runB: RunIdStub({ value: 'run_5' }),
         console: {
-          errors: CountDeltaStub({ value: '+2' }),
+          errors: '+2',
           new: [],
         },
         server: {
-          errors: CountDeltaStub({ value: '+0' }),
+          errors: '+0',
           new: [],
         },
         network: {
-          errors: CountDeltaStub({ value: '+1' }),
+          errors: '+1',
           new: [],
         },
         pixels: 'last capture differs 12%',

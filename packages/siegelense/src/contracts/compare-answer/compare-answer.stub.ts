@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { CountDeltaStub } from '../count-delta/count-delta.stub';
 import { ElementDeltaStub } from '../element-delta/element-delta.stub';
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
 import { RunIdStub } from '../run-id/run-id.stub';
@@ -13,15 +12,15 @@ export const CompareAnswerStub = ({ ...props }: StubArgument<CompareAnswer> = {}
     runA: RunIdStub({ value: 'run_4' }),
     runB: RunIdStub({ value: 'run_5' }),
     console: {
-      errors: CountDeltaStub({ value: '+2' }),
+      errors: '+2',
       new: ['Cannot read properties of null'],
     },
     server: {
-      errors: CountDeltaStub({ value: '+0' }),
+      errors: '+0',
       new: [],
     },
     network: {
-      errors: CountDeltaStub({ value: '+1' }),
+      errors: '+1',
       new: ['POST /api/guilds 500'],
     },
     pixels: 'last capture differs 12%',

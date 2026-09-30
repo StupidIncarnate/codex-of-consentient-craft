@@ -89,7 +89,6 @@ export * from './compare-answer/compare-answer-contract';
 
 export * from './compare-query/compare-query-contract';
 
-export * from './count-delta/count-delta-contract';
 
 export * from './left-alone/left-alone-contract';
 
