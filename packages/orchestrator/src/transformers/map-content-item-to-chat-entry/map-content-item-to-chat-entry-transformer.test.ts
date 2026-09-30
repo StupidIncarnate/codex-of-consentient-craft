@@ -1,3 +1,4 @@
+import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { mapContentItemToChatEntryTransformer } from './map-content-item-to-chat-entry-transformer';
 import { mapContentItemToChatEntryTransformerProxy } from './map-content-item-to-chat-entry-transformer.proxy';
@@ -322,7 +323,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: { type: 'text', text: 'hello' },
         usage: undefined,
-        agentId: 'agent-1',
+        agentId: AgentIdStub({ value: 'agent-1' }),
       });
 
       expect(result).toStrictEqual({
@@ -528,7 +529,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
         item: { type: 'tool_result', toolUseId: 'toolu_123', content: 'data' },
         usage: undefined,
         source: 'subagent',
-        agentId: 'agent-1',
+        agentId: AgentIdStub({ value: 'agent-1' }),
       });
 
       expect(result).toStrictEqual({

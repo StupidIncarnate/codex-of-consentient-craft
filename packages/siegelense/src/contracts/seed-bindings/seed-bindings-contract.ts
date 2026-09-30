@@ -16,9 +16,17 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { seedBindingNameContract } from '../seed-binding-name/seed-binding-name-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
 
-export const seedBindingsContract = z.record(seedBindingNameContract, seedResultContract);
+export const seedBindingsContract = z.record(
+  z
+    .string()
+    .regex(
+      /^[A-Za-z_][A-Za-z0-9_]*$/u,
+      'A seed binding name is a bare identifier — letters, digits and underscores, starting with a letter or underscore, and no dot. The dot is what separates the binding from the field in `{g.guildSlug}`',
+    )
+    .brand<'SeedBindingsKey'>(),
+  seedResultContract,
+);
 
 export type SeedBindings = z.infer<typeof seedBindingsContract>;

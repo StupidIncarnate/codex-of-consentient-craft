@@ -26,7 +26,6 @@
 
 import { appendFile, copyDirContents, ensureDir } from '#gateway/node/fs__promises';
 
-import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
@@ -58,9 +57,7 @@ export const snapshotCaptureBroker = async ({
   // The RAW write log, not the collapsed reader's view: the next payload directory is numbered off
   // how many captures have happened, and collapsing duplicate names away would reuse a number.
   const existing = await snapshotIndexReadBroker({ homePath });
-  const ordinal = snapshotOrdinalContract.parse(
-    existing.length + snapshotStatics.numbering.firstPayload,
-  );
+  const ordinal = existing.length + snapshotStatics.numbering.firstPayload;
 
   const { storeDir, index, payload } = locationsSnapshotPathsFindBroker({ homePath, ordinal });
 

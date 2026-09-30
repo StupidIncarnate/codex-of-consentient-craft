@@ -13,19 +13,16 @@ import { z } from '#gateway/npm/zod';
 
 import { askUserQuestionContract } from '../ask-user-question/ask-user-question-contract';
 
-const answerValueContract = z.union([
-  z.string().brand<'AnswerValue'>(),
-  z.array(z.string().brand<'AnswerValue'>()),
-]);
-
 export const askUserQuestionResponseContract = askUserQuestionContract
   .extend({
     answers: z.record(
       askUserQuestionContract.shape.questions.element.shape.question,
-      answerValueContract,
+      z.union([
+        z.string().brand<'AskUserQuestionResponseAnswers'>(),
+        z.array(z.string().brand<'AskUserQuestionResponseAnswers'>()),
+      ]),
     ),
   })
   .brand<'AskUserQuestionResponse'>();
 
 export type AskUserQuestionResponse = z.infer<typeof askUserQuestionResponseContract>;
-export type AnswerValue = z.infer<typeof answerValueContract>;

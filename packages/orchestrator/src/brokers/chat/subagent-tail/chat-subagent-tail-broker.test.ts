@@ -3,7 +3,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import { ChatLineAgentDetectedStub } from '../../../contracts/chat-line-output/chat-line-output.stub';
-import { ToolUseIdStub } from '../../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
 import { chatSubagentTailBroker } from './chat-subagent-tail-broker';
@@ -167,7 +166,7 @@ describe('chatSubagentTailBroker', () => {
           ...chatLineProcessTransformer(),
           processLine: () => [
             ChatLineAgentDetectedStub({
-              toolUseId: ToolUseIdStub({ value: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ' }),
+              toolUseId: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
               agentId: AgentIdStub({ value: 'agent-real-internal' }),
             }),
           ],

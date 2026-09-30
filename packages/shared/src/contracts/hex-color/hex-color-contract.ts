@@ -1,15 +1,14 @@
 /**
- * PURPOSE: Defines a branded string type for CSS hex color values (#RRGGBB format)
+ * PURPOSE: Validates a CSS hex color value (#RRGGBB format)
  *
  * USAGE:
  * const color: HexColor = hexColorContract.parse('#ff6b35');
- * // Returns a branded HexColor string type
+ * // Returns the validated hex color string
  */
 import { z } from '#gateway/npm/zod';
 
 export const hexColorContract = z
   .string()
-  .regex(/^#[0-9a-fA-F]{6}$/u, 'Must be a valid hex color (#RRGGBB)')
-  .brand<'HexColor'>();
+  .regex(/^#[0-9a-fA-F]{6}$/u, 'Must be a valid hex color (#RRGGBB)');
 
 export type HexColor = z.infer<typeof hexColorContract>;

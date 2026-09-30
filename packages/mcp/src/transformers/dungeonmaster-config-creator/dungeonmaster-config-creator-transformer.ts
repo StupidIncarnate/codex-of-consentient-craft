@@ -5,20 +5,19 @@
  * const config = dungeonmasterConfigCreatorTransformer();
  * // Returns: { dungeonmaster: { type: 'stdio', command: 'node', args: [...] } }
  *
- * CONTRACTS: Output: Record<McpServerName, McpServerConfig>
+ * CONTRACTS: Output: Record<string, McpServerConfig>
  */
 
-import type {
-  McpServerConfig,
-  McpServerName,
-} from '../../contracts/mcp-config/mcp-config-contract';
+import { mcpConfigContract, type McpConfig } from '../../contracts/mcp-config/mcp-config-contract';
 import { mcpServerStatics } from '../../statics/mcp-server/mcp-server-statics';
 
-export const dungeonmasterConfigCreatorTransformer = (): Record<McpServerName, McpServerConfig> =>
-  ({
-    dungeonmaster: {
-      type: 'stdio' as const,
-      command: 'node' as const,
-      args: ['-e', mcpServerStatics.resolveScript] as const,
+export const dungeonmasterConfigCreatorTransformer = (): NonNullable<McpConfig['mcpServers']> =>
+  mcpConfigContract.parse({
+    mcpServers: {
+      dungeonmaster: {
+        type: 'stdio',
+        command: 'node',
+        args: ['-e', mcpServerStatics.resolveScript],
+      },
     },
-  }) as Record<McpServerName, McpServerConfig>;
+  }).mcpServers ?? {};

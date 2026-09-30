@@ -9,11 +9,11 @@
  *
  * USAGE:
  * pieceIdContract.parse('pc-1');
- * // Returns a branded PieceId
+ * // Returns the validated PieceId string
  */
 
 import { z } from '#gateway/npm/zod';
 
-export const pieceIdContract = z.string().min(1).brand<'PieceId'>();
+export const pieceIdContract = z.string().min(1);
 
 export type PieceId = z.infer<typeof pieceIdContract>;

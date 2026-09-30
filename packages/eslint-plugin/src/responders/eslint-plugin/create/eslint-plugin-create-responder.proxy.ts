@@ -85,6 +85,7 @@ import { ruleBanInventedFailuresBrokerProxy } from '../../../brokers/rule/ban-in
 import { ruleEnforceGatewaySchemaFieldsBrokerProxy } from '../../../brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.proxy';
 import { ruleBanContractTypePredicatesBrokerProxy } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.proxy';
 import { ruleRequireObjectContractBrandsBrokerProxy } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker.proxy';
+import { ruleRequireObjectContractBrandsIndexedBrokerProxy } from '../../../brokers/rule/require-object-contract-brands-indexed/rule-require-object-contract-brands-indexed-broker.proxy';
 import { ruleBanTypeAliasesBrokerProxy } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker.proxy';
 import { ruleBanTestSupportInProductionBrokerProxy } from '../../../brokers/rule/ban-test-support-in-production/rule-ban-test-support-in-production-broker.proxy';
 import { ruleBanJoinIdBesideChildBrokerProxy } from '../../../brokers/rule/ban-join-id-beside-child/rule-ban-join-id-beside-child-broker.proxy';
@@ -180,6 +181,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceGatewaySchemaFieldsBrokerProxy();
   ruleBanContractTypePredicatesBrokerProxy();
   ruleRequireObjectContractBrandsBrokerProxy();
+  ruleRequireObjectContractBrandsIndexedBrokerProxy();
   ruleBanTypeAliasesBrokerProxy();
   ruleBanTestSupportInProductionBrokerProxy();
   ruleBanJoinIdBesideChildBrokerProxy();

@@ -1,6 +1,5 @@
 import { locationsSnapshotPathsFindBroker } from './locations-snapshot-paths-find-broker';
 import { locationsSnapshotPathsFindBrokerProxy } from './locations-snapshot-paths-find-broker.proxy';
-import { SnapshotOrdinalStub } from '../../../contracts/snapshot-ordinal/snapshot-ordinal.stub';
 
 const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
 
@@ -11,7 +10,7 @@ describe('locationsSnapshotPathsFindBroker', () => {
 
       const result = locationsSnapshotPathsFindBroker({
         homePath: HOME_PATH,
-        ordinal: SnapshotOrdinalStub({ value: 2 }),
+        ordinal: 2,
       });
 
       expect(result).toStrictEqual({
@@ -26,7 +25,7 @@ describe('locationsSnapshotPathsFindBroker', () => {
 
       const result = locationsSnapshotPathsFindBroker({
         homePath: HOME_PATH,
-        ordinal: SnapshotOrdinalStub({ value: 1 }),
+        ordinal: 1,
       });
 
       expect(result).toStrictEqual({
@@ -43,11 +42,11 @@ describe('locationsSnapshotPathsFindBroker', () => {
 
       const first = locationsSnapshotPathsFindBroker({
         homePath: HOME_PATH,
-        ordinal: SnapshotOrdinalStub({ value: 1 }),
+        ordinal: 1,
       });
       const second = locationsSnapshotPathsFindBroker({
         homePath: HOME_PATH,
-        ordinal: SnapshotOrdinalStub({ value: 2 }),
+        ordinal: 2,
       });
 
       expect([first.payload, second.payload]).toStrictEqual([
@@ -63,11 +62,11 @@ describe('locationsSnapshotPathsFindBroker', () => {
 
       const first = locationsSnapshotPathsFindBroker({
         homePath: HOME_PATH,
-        ordinal: SnapshotOrdinalStub({ value: 1 }),
+        ordinal: 1,
       });
       const second = locationsSnapshotPathsFindBroker({
         homePath: '/tmp/dm-siege-inst_9b2c4d1e',
-        ordinal: SnapshotOrdinalStub({ value: 1 }),
+        ordinal: 1,
       });
 
       expect([first.storeDir, second.index]).toStrictEqual([
@@ -83,7 +82,7 @@ describe('locationsSnapshotPathsFindBroker', () => {
 
       const { storeDir } = locationsSnapshotPathsFindBroker({
         homePath: HOME_PATH,
-        ordinal: SnapshotOrdinalStub({ value: 1 }),
+        ordinal: 1,
       });
 
       expect(storeDir).toBe('/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots');

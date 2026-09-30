@@ -24,7 +24,6 @@ import {
 import type { Quest, FlowNode, Flow, FlowObservable } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -34,16 +33,16 @@ const { colors } = emberDepthsThemeStatics;
 const DROPDOWN_WIDTH = 260;
 const PRIMARY_VARIANT = 'primary';
 const DANGER_VARIANT = 'danger';
-const BUBBLE_LABEL = buttonLabelContract.parse('Comment on this box');
+const BUBBLE_LABEL = 'Comment on this box';
 const BUBBLE_TEST_ID = 'COMMENT_BUTTON';
 const BUBBLE_ROW_TEST_ID = 'COMMENT_BUTTON_ROW';
-const QUEUE_LABEL = buttonLabelContract.parse('Queue comment');
+const QUEUE_LABEL = 'Queue comment';
 const QUEUE_TEST_ID = 'COMMENT_QUEUE_BUTTON';
-const CANCEL_LABEL = buttonLabelContract.parse('Cancel comment');
+const CANCEL_LABEL = 'Cancel comment';
 const CANCEL_TEST_ID = 'COMMENT_CANCEL_BUTTON';
-const EDIT_LABEL = buttonLabelContract.parse('Edit queued comment');
+const EDIT_LABEL = 'Edit queued comment';
 const EDIT_TEST_ID = 'COMMENT_EDIT_BUTTON';
-const DELETE_LABEL = buttonLabelContract.parse('Delete queued comment');
+const DELETE_LABEL = 'Delete queued comment';
 const DELETE_TEST_ID = 'COMMENT_DELETE_BUTTON';
 
 export interface CommentPopoverWidgetProps {

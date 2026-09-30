@@ -24,10 +24,11 @@ export const normalizedStreamLineContentItemContract = z
     toolUseId: z.string().brand<'NormalizedStreamLineContentItemToolUseId'>().optional(),
     toolName: z.string().brand<'NormalizedStreamLineContentItemToolName'>().optional(),
     title: z.string().brand<'NormalizedStreamLineContentItemTitle'>().optional(),
-    content: z.unknown().optional(),
+    content: z.json().optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'NormalizedStreamLineContentItemSource'>().optional(),
-    agentId: agentContract.shape.id.optional(),
+    // `.catch(undefined)`: an empty or non-string agentId must not reject the item.
+    agentId: agentContract.shape.id.optional().catch(undefined),
   })
   .loose()
   .brand<'NormalizedStreamLineContentItem'>();

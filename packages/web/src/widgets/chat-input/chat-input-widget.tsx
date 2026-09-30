@@ -41,8 +41,6 @@ import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-ima
 import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/pasted-image-attach-broker';
 import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
 import { composerSendPayloadContract } from '../../contracts/composer-send-payload/composer-send-payload-contract';
-import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
-import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { isAllowedPasteMediaTypeGuard } from '../../guards/is-allowed-paste-media-type/is-allowed-paste-media-type-guard';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
@@ -140,7 +138,7 @@ export const ChatInputWidget = ({
   // paints the byte-tracked bar while that POST is in flight. Neither survives past `.finally` —
   // see handleSend.
   const [isSending, setIsSending] = useState(false);
-  const [uploadPercent, setUploadPercent] = useState<UploadPercent | null>(null);
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
 
   // Stamps/clears the "this draft's send already left the browser" marker — see
   // chatComposerStatics.draftDispatchedKeyPrefix's own header for the full mechanics. Two tiny
@@ -421,7 +419,7 @@ export const ChatInputWidget = ({
     // in `.then`/`.catch` below the moment THIS document learns the outcome either way.
     markDraftDispatched();
     if (images.length > 0) {
-      setUploadPercent(uploadPercentContract.parse(chatComposerStatics.upload.minPercent));
+      setUploadPercent(chatComposerStatics.upload.minPercent);
     }
 
     onSendMessage({

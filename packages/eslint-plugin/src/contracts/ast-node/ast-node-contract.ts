@@ -33,7 +33,7 @@ export const astNodeContract = z
       })
       .brand<'AstNodeLoc'>()
       .optional(),
-    parent: z.unknown().optional(),
+    parent: z.json().optional(),
   })
   .brand<'AstNode'>();
 

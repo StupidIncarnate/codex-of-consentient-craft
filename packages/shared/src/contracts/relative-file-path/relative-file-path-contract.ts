@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const path = relativeFilePathContract.parse('./src/utils.ts');
- * // Returns branded RelativeFilePath type that starts with ./ or ../
+ * // Returns the validated RelativeFilePath string that starts with ./ or ../
  */
 
 import { z } from '#gateway/npm/zod';
@@ -18,7 +18,6 @@ export const relativeFilePathContract = z
     {
       message: 'Path must be relative (start with ./ or ../)',
     },
-  )
-  .brand<'RelativeFilePath'>();
+  );
 
 export type RelativeFilePath = z.infer<typeof relativeFilePathContract>;

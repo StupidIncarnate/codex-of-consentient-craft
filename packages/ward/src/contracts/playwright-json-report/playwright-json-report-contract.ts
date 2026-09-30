@@ -51,8 +51,8 @@ const playwrightSuiteContract = z
       return z.array(playwrightSuiteContract).optional();
     },
   })
-  .brand<'PlaywrightSuite'>()
-  .loose();
+  .loose()
+  .brand<'PlaywrightSuite'>();
 
 export type PlaywrightSuite = z.infer<typeof playwrightSuiteContract>;
 

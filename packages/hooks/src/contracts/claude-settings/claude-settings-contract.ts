@@ -15,24 +15,20 @@
 
 import { z } from '#gateway/npm/zod';
 
-const hookTypeContract = z.string().brand<'HookType'>();
-const hookCommandContract = z.string().brand<'HookCommand'>();
-const hookMatcherContract = z.string().brand<'HookMatcher'>();
-
 // Loose at every level a user may hold keys of their own (`timeout`, `url`, `prompt`, events this
 // contract does not name): a settings.json read through it is written back whole, so a stripped key
 // would be a deleted key. `command` is optional because only command-type hooks carry one.
 const hookEntryContract = z
   .object({
-    type: hookTypeContract,
-    command: hookCommandContract.optional(),
+    type: z.string().brand<'HookEntryType'>(),
+    command: z.string().brand<'HookEntryCommand'>().optional(),
   })
   .brand<'HookEntry'>()
   .loose();
 
 const preToolUseHookContract = z
   .object({
-    matcher: hookMatcherContract.optional(),
+    matcher: z.string().brand<'PreToolUseHookMatcher'>().optional(),
     hooks: z.array(hookEntryContract),
   })
   .brand<'PreToolUseHook'>()
@@ -47,7 +43,7 @@ const sessionStartHookContract = z
 
 const postToolUseHookContract = z
   .object({
-    matcher: hookMatcherContract.optional(),
+    matcher: preToolUseHookContract.shape.matcher,
     hooks: z.array(hookEntryContract),
   })
   .brand<'PostToolUseHook'>()
@@ -86,35 +82,26 @@ const hooksConfigContract = z
   .brand<'HooksConfig'>()
   .loose();
 
-const permissionStringContract = z.string().brand<'PermissionString'>();
-
 const permissionsConfigContract = z
   .object({
-    allow: z.array(permissionStringContract).optional(),
-    deny: z.array(permissionStringContract).optional(),
+    allow: z.array(z.string().brand<'PermissionsConfigAllow'>()).optional(),
+    deny: z.array(z.string().brand<'PermissionsConfigDeny'>()).optional(),
   })
   .brand<'PermissionsConfig'>()
   .loose();
 
-const envValueContract = z.string().brand<'EnvValue'>();
-
-const envConfigContract = z.record(z.string(), envValueContract);
-
-// Plain strings, not enums: Claude Code owns these values and adds new ones. Init writes its own
-// default only when the consumer's file carries none, and reads neither, so a value newer than this
-// contract must round-trip rather than make `dungeonmaster init` throw.
-const promptCacheTtlContract = z.string().brand<'PromptCacheTtl'>();
-
-const crossSessionInboundContract = z.string().brand<'CrossSessionInbound'>();
-
+// `promptCacheTtl` and `crossSessionInbound` are plain strings, not enums: Claude Code owns these
+// values and adds new ones. Init writes its own default only when the consumer's file carries none,
+// and reads neither, so a value newer than this contract must round-trip rather than make
+// `dungeonmaster init` throw.
 export const claudeSettingsContract = z
   .object({
     hooks: hooksConfigContract.optional(),
     permissions: permissionsConfigContract.optional(),
-    env: envConfigContract.optional(),
-    crossSessionInbound: crossSessionInboundContract.optional(),
-    promptCacheTtl: promptCacheTtlContract.optional(),
-    subagentPromptCacheTtl: promptCacheTtlContract.optional(),
+    env: z.record(z.string(), z.string().brand<'ClaudeSettingsEnv'>()).optional(),
+    crossSessionInbound: z.string().brand<'ClaudeSettingsCrossSessionInbound'>().optional(),
+    promptCacheTtl: z.string().brand<'ClaudeSettingsPromptCacheTtl'>().optional(),
+    subagentPromptCacheTtl: z.string().brand<'ClaudeSettingsSubagentPromptCacheTtl'>().optional(),
     promptSuggestionEnabled: z.boolean().optional(),
   })
   .loose()
@@ -125,16 +112,8 @@ export type HooksConfig = z.infer<typeof hooksConfigContract>;
 export type PreToolUseHook = z.infer<typeof preToolUseHookContract>;
 export type SessionStartHook = z.infer<typeof sessionStartHookContract>;
 export type HookEntry = z.infer<typeof hookEntryContract>;
-export type HookType = z.infer<typeof hookTypeContract>;
-export type HookCommand = z.infer<typeof hookCommandContract>;
 export type PostToolUseHook = z.infer<typeof postToolUseHookContract>;
 export type WorktreeCreateHook = z.infer<typeof worktreeCreateHookContract>;
 export type SubagentStartHook = z.infer<typeof subagentStartHookContract>;
 export type SubagentStopHook = z.infer<typeof subagentStopHookContract>;
-export type HookMatcher = z.infer<typeof hookMatcherContract>;
 export type PermissionsConfig = z.infer<typeof permissionsConfigContract>;
-export type PermissionString = z.infer<typeof permissionStringContract>;
-export type EnvConfig = z.infer<typeof envConfigContract>;
-export type EnvValue = z.infer<typeof envValueContract>;
-export type PromptCacheTtl = z.infer<typeof promptCacheTtlContract>;
-export type CrossSessionInbound = z.infer<typeof crossSessionInboundContract>;

@@ -40,8 +40,7 @@ const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`
 // literal shape by hand — whatever that shape is, this stays in sync with it automatically.
 type MintIdsParams = Parameters<ReturnType<typeof pastedImageAttachBrokerProxy>['mintsIds']>[0];
 
-// Derived from UploadProgressBarWidgetProxy's own return type rather than importing UploadPercent
-// from its contract — proxy files cannot import contract types, and this stays in sync with
+// Derived from UploadProgressBarWidgetProxy's own return type, so this stays in sync with
 // whatever that proxy's getPercent actually returns.
 type ProgressPercent = ReturnType<ReturnType<typeof UploadProgressBarWidgetProxy>['getPercent']>;
 

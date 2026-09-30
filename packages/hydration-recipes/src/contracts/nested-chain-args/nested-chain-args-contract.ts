@@ -3,7 +3,7 @@
  * to recurse. Reach for this over `@dungeonmaster/eslint-plugin`'s `depthCountContract`: that brand
  * measures a FOLDER's nesting under `src/[folder-type]/`, a package this one does not depend on, and
  * a coincidentally-named brand from an unrelated domain is exactly the drift the no-restating rule
- * warns about — so this file mints its own `ChainDepth` instead.
+ * warns about — so this file brands its own `depth` field instead.
  *
  * USAGE:
  * nestedChainArgsContract.parse({ depth: 2 });
@@ -11,13 +11,9 @@
  */
 import { z } from '#gateway/npm/zod';
 
-const chainDepthContract = z.number().int().positive().brand<'ChainDepth'>();
-
-export type ChainDepth = z.infer<typeof chainDepthContract>;
-
 export const nestedChainArgsContract = z
   .object({
-    depth: chainDepthContract,
+    depth: z.number().int().positive().brand<'NestedChainArgsDepth'>(),
   })
   .brand<'NestedChainArgs'>();
 

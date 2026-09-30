@@ -32,21 +32,19 @@ import type { HydrationRunResult } from '../hydration-run-result/hydration-run-r
 import type { PlanRunsResult } from '../plan-runs-result/plan-runs-result-contract';
 import type { PlanMakesEntry } from '../plan-makes-entry/plan-makes-entry-contract';
 
-const urlContract = z.url().brand<'Url'>();
-
-export type Url = z.infer<typeof urlContract>;
-
 export const hydrationTargetContract = z
   .object({
-    baseUrl: urlContract.optional(),
+    baseUrl: z.url().brand<'HydrationTargetBaseUrl'>().optional(),
   })
   .brand<'HydrationTarget'>();
+
+export type Url = NonNullable<z.infer<typeof hydrationTargetContract>['baseUrl']>;
 
 // A plain structural type, not `z.infer` of the branded contract: `HydrationTarget` is only a
 // generic constraint (`TTarget extends HydrationTarget`), and a brand would make it unsatisfiable
 // by any repo's own target.
 export interface HydrationTarget {
-  baseUrl?: Url | undefined;
+  baseUrl?: string | undefined;
 }
 
 /**

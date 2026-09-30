@@ -101,7 +101,8 @@ export const spyOnRegisterMiddleware = <T extends object>({
     calledWith: (args: readonly unknown[]): MockStaging => {
       const staged = stagedBySpy.get(spy) ?? [];
       const record: StagedCall = {
-        ...stagedCallContract.parse({ args, once: false, consumed: false }),
+        ...stagedCallContract.parse({ once: false, consumed: false }),
+        args,
         impl: () => undefined,
       };
 

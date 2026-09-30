@@ -1,6 +1,5 @@
 import { duplicateDetectionDetectBroker } from './duplicate-detection-detect-broker';
 import { duplicateDetectionDetectBrokerProxy } from './duplicate-detection-detect-broker.proxy';
-import { OccurrenceThresholdStub } from '../../../contracts/occurrence-threshold/occurrence-threshold.stub';
 
 // Helper function to create file test data
 const createFile = (params: { filePath: string; sourceCode: string }) => {
@@ -20,7 +19,7 @@ describe('duplicateDetectionDetectBroker', () => {
       sourceCode: 'const z = "error";',
     });
     const files = [file1, file2];
-    const threshold = OccurrenceThresholdStub({ value: 3 });
+    const threshold = 3;
 
     brokerProxy.setupFiles({ pattern, files });
 
@@ -52,7 +51,7 @@ describe('duplicateDetectionDetectBroker', () => {
       sourceCode: 'const y = "test";',
     });
     const files = [file1, file2];
-    const threshold = OccurrenceThresholdStub({ value: 3 });
+    const threshold = 3;
 
     brokerProxy.setupFiles({ pattern, files });
 
@@ -73,7 +72,7 @@ describe('duplicateDetectionDetectBroker', () => {
       sourceCode: 'const d = "error"; const e = "warning"; const f = "warning";',
     });
     const files = [file1, file2];
-    const threshold = OccurrenceThresholdStub({ value: 2 });
+    const threshold = 2;
 
     brokerProxy.setupFiles({ pattern, files });
 
@@ -119,7 +118,7 @@ describe('duplicateDetectionDetectBroker', () => {
       sourceCode: 'const a = "short"; const b = "very-long-string";',
     });
     const files = [file1, file2, file3];
-    const threshold = OccurrenceThresholdStub({ value: 3 });
+    const threshold = 3;
 
     brokerProxy.setupFiles({ pattern, files });
 
@@ -143,7 +142,7 @@ describe('duplicateDetectionDetectBroker', () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
     const pattern = '**/*.ts';
     const files = [] as const;
-    const threshold = OccurrenceThresholdStub({ value: 3 });
+    const threshold = 3;
 
     brokerProxy.setupFiles({ pattern, files });
 
@@ -164,7 +163,7 @@ describe('duplicateDetectionDetectBroker', () => {
       sourceCode: 'const z = 456;',
     });
     const files = [file1, file2];
-    const threshold = OccurrenceThresholdStub({ value: 2 });
+    const threshold = 2;
 
     brokerProxy.setupFiles({ pattern, files });
 
@@ -186,7 +185,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const p3 = /test/g;',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -218,7 +217,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const p3 = /test/;',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -250,7 +249,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const p3 = /test/gimsu;',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -282,7 +281,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const s3 = "error"; const r2 = /test/g; const r3 = /test/g;',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -324,7 +323,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const r3 = /pattern/i;',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -385,7 +384,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const e = "abc"; const f = "abc";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -416,7 +415,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const x = "test"; const y = "test"; const z = "test";',
       });
       const files = [file1];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, cwd, files });
 
@@ -444,7 +443,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const x = "test"; const y = "test"; const z = "test";',
       });
       const files = [file1];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -478,7 +477,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "He said \\"hello\\"";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -510,7 +509,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "line1\\nline2";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -542,7 +541,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "Hello 👋 世界";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -574,7 +573,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "C:\\\\path\\\\to\\\\file";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -608,7 +607,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "exact";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -640,7 +639,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const b = "below";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -661,7 +660,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const d = "thrice"; const e = "thrice"; const f = "thrice";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 2 });
+      const threshold = 2;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -704,7 +703,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "abc";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -736,7 +735,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "ab";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 
@@ -757,7 +756,7 @@ describe('duplicateDetectionDetectBroker', () => {
         sourceCode: 'const c = "x";',
       });
       const files = [file1, file2];
-      const threshold = OccurrenceThresholdStub({ value: 3 });
+      const threshold = 3;
 
       brokerProxy.setupFiles({ pattern, files });
 

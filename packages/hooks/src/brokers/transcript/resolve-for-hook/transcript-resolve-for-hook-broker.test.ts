@@ -1,3 +1,4 @@
+import { AgentStub } from '@dungeonmaster/shared/contracts/agent/agent.stub';
 import { transcriptResolveForHookBroker } from './transcript-resolve-for-hook-broker';
 import { transcriptResolveForHookBrokerProxy } from './transcript-resolve-for-hook-broker.proxy';
 
@@ -28,7 +29,7 @@ describe('transcriptResolveForHookBroker', () => {
     it('VALID: {subagents/agent-<id>.jsonl candidate exists} => returns it', () => {
       const proxy = transcriptResolveForHookBrokerProxy();
       const transcriptPath = '/home/user/.claude/projects/-repo/session123.jsonl';
-      const agentId = 'abc123';
+      const agentId = AgentStub({ id: 'abc123' }).id;
       const subagentsCandidate =
         '/home/user/.claude/projects/-repo/session123/subagents/agent-abc123.jsonl';
       proxy.setupExists({ path: subagentsCandidate, exists: true });
@@ -43,7 +44,7 @@ describe('transcriptResolveForHookBroker', () => {
     it('VALID: {transcriptPath is already the agent own file and exists} => returns it', () => {
       const proxy = transcriptResolveForHookBrokerProxy();
       const transcriptPath = '/home/user/.claude/projects/-repo/subagents/agent-def456.jsonl';
-      const agentId = 'def456';
+      const agentId = AgentStub({ id: 'def456' }).id;
       proxy.setupExists({ path: transcriptPath, exists: true });
 
       const result = transcriptResolveForHookBroker({ transcriptPath, agentId });
@@ -54,7 +55,7 @@ describe('transcriptResolveForHookBroker', () => {
     it('VALID: {first candidate missing, later candidate exists} => returns the later candidate', () => {
       const proxy = transcriptResolveForHookBrokerProxy();
       const transcriptPath = '/home/user/.claude/projects/-repo/session789.jsonl';
-      const agentId = 'xyz789';
+      const agentId = AgentStub({ id: 'xyz789' }).id;
       const firstCandidate =
         '/home/user/.claude/projects/-repo/session789/subagents/agent-xyz789.jsonl';
       const laterCandidate = '/home/user/.claude/projects/-repo/agent-xyz789.jsonl';
@@ -69,7 +70,7 @@ describe('transcriptResolveForHookBroker', () => {
     it('EMPTY: {no candidate exists but transcriptPath itself does} => returns null, never the parent transcript', () => {
       const proxy = transcriptResolveForHookBrokerProxy();
       const transcriptPath = '/home/user/.claude/projects/-repo/session999.jsonl';
-      const agentId = 'never-fallback';
+      const agentId = AgentStub({ id: 'never-fallback' }).id;
       proxy.setupExists({
         path: '/home/user/.claude/projects/-repo/session999/subagents/agent-never-fallback.jsonl',
         exists: false,

@@ -1,3 +1,5 @@
+import { AgentStub } from '@dungeonmaster/shared/contracts/agent/agent.stub';
+
 import { transcriptTaskToolResultLineTransformer } from './transcript-task-tool-result-line-transformer';
 
 describe('transcriptTaskToolResultLineTransformer', () => {
@@ -5,7 +7,7 @@ describe('transcriptTaskToolResultLineTransformer', () => {
     const result = transcriptTaskToolResultLineTransformer({
       toolUseId: 'toolu_seed_nested_1',
       content: 'done',
-      agentId: 'seed-agent-1',
+      agentId: AgentStub({ id: 'seed-agent-1' }).id,
     });
 
     expect(result).toStrictEqual({

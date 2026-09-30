@@ -24,7 +24,7 @@ export const applyOverridesTransformer = ({
     return preset;
   }
 
-  const result: FrameworkPreset = { ...preset };
+  const merged: Record<string, string[]> = {};
 
   // Apply each override
   for (const [folder, override] of Object.entries(config.architecture.overrides)) {
@@ -33,18 +33,15 @@ export const applyOverridesTransformer = ({
     }
 
     // Get current value using bracket access — folder is narrowed to keyof FrameworkPreset by the guard above
-    const currentValues = result[folder];
+    const currentValues = merged[folder] ?? preset[folder];
 
     // Only add to folders that allow packages (not null)
-    if (!Array.isArray(currentValues)) {
+    if (currentValues === null) {
       continue;
     }
 
-    result[folder] = frameworkPresetsContract.shape.contracts.parse([
-      ...currentValues,
-      ...override.add,
-    ]);
+    merged[folder] = [...currentValues, ...override.add];
   }
 
-  return result;
+  return frameworkPresetsContract.parse({ ...preset, ...merged });
 };

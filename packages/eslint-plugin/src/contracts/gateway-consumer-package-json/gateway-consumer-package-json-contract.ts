@@ -16,23 +16,26 @@
  */
 import { z } from '#gateway/npm/zod';
 
-const gatewayImportsTargetContract = z.union([
-  z.string().brand<'GatewayImportsTarget'>(),
-  z
-    .object({
-      source: z.string().brand<'GatewayImportsTargetSource'>().optional(),
-      import: z.string().brand<'GatewayImportsTargetImport'>().optional(),
-      require: z.string().brand<'GatewayImportsTargetRequire'>().optional(),
-      default: z.string().brand<'GatewayImportsTargetDefault'>().optional(),
-    })
-    .brand<'GatewayImportsTarget'>()
-    .loose(),
-]);
-
 export const gatewayConsumerPackageJsonContract = z
   .object({
     name: z.string().min(1).brand<'GatewayConsumerPackageJsonName'>(),
-    imports: z.record(z.string(), gatewayImportsTargetContract).optional(),
+    imports: z
+      .record(
+        z.string(),
+        z.union([
+          z.string().brand<'GatewayConsumerPackageJsonImports'>(),
+          z
+            .object({
+              source: z.string().brand<'GatewayConsumerPackageJsonImportsSource'>().optional(),
+              import: z.string().brand<'GatewayConsumerPackageJsonImportsImport'>().optional(),
+              require: z.string().brand<'GatewayConsumerPackageJsonImportsRequire'>().optional(),
+              default: z.string().brand<'GatewayConsumerPackageJsonImportsDefault'>().optional(),
+            })
+            .brand<'GatewayConsumerPackageJsonImports'>()
+            .loose(),
+        ]),
+      )
+      .optional(),
     dependencies: z
       .record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDependencies'>())
       .optional(),

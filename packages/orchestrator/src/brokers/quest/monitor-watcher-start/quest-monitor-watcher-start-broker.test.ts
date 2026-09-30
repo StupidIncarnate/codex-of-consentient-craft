@@ -26,7 +26,7 @@ describe('questMonitorWatcherStartBroker', () => {
       });
 
       const handle = await questMonitorWatcherStartBroker({
-        parentSessionId: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
+        parentSessionId: SessionIdStub({ value: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595' }),
         projectDir: '/home/user/my-project',
         workerWorkItemId: WorkItemStub().id,
         workerQuestId: QuestIdStub({ value: 'ffffffff-0000-1111-2222-333333333333' }),
@@ -57,7 +57,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '88888888-8888-8888-8888-888888888888';
+      const parentSessionId = SessionIdStub({ value: '88888888-8888-8888-8888-888888888888' });
       const workerWorkItemId = String(WorkItemStub().id);
       const workerQuestId = String(QuestIdStub({ value: 'a1e884c2-5f67-6af6-97dd-5819484fba4d' }));
       proxy.setupSessionFile({
@@ -86,7 +86,7 @@ describe('questMonitorWatcherStartBroker', () => {
           processId: `proc-worker-${parentSessionId}`,
           payload: {
             chatProcessId: `proc-worker-${parentSessionId}`,
-            sessionId: SessionIdStub({ value: parentSessionId }),
+            sessionId: parentSessionId,
             questId: QuestIdStub({ value: workerQuestId }),
             workItemId: WorkItemStub().id,
           },
@@ -98,7 +98,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6';
+      const parentSessionId = SessionIdStub({ value: 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6' });
       proxy.setupSessionFile({
         homeDir: '/home/user',
         projectDir: '/home/user/p',
@@ -128,7 +128,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '55555555-5555-5555-5555-555555555555';
+      const parentSessionId = SessionIdStub({ value: '55555555-5555-5555-5555-555555555555' });
       const workerWorkItemId = String(WorkItemStub().id);
       const workerQuestId = String(QuestIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }));
 
@@ -203,7 +203,7 @@ describe('questMonitorWatcherStartBroker', () => {
                 timestamp: '2026-05-13T09:59:59.000Z',
               },
             ],
-            sessionId: SessionIdStub({ value: parentSessionId }),
+            sessionId: parentSessionId,
             workItemId: WorkItemStub().id,
           },
         },
@@ -223,7 +223,7 @@ describe('questMonitorWatcherStartBroker', () => {
                 timestamp: '2026-05-13T10:00:00.000Z',
               },
             ],
-            sessionId: SessionIdStub({ value: parentSessionId }),
+            sessionId: parentSessionId,
             // A sub-agent carries no work item of its own — it falls back to the tailed
             // session's own worker work item, since every sub-agent this watcher tails
             // belongs to the run that spawned it.
@@ -237,7 +237,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '9f7abf0d-ce8a-518c-9781-61bfa3057384';
+      const parentSessionId = SessionIdStub({ value: '9f7abf0d-ce8a-518c-9781-61bfa3057384' });
       const workerWorkItemId = String(WorkItemStub().id);
       const workerQuestId = String(QuestIdStub({ value: 'ffffffff-6666-7777-8888-999999999999' }));
 
@@ -286,7 +286,7 @@ describe('questMonitorWatcherStartBroker', () => {
                 timestamp: '2026-05-13T10:00:00.000Z',
               },
             ],
-            sessionId: SessionIdStub({ value: parentSessionId }),
+            sessionId: parentSessionId,
             workItemId: WorkItemStub().id,
           },
         },

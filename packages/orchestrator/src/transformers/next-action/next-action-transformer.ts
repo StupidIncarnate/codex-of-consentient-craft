@@ -352,12 +352,10 @@ export const nextActionTransformer = ({
 
   // --- QUESTION 3: are there unstarted plan batches left AT THE CURRENT STEP?
   const startedPieceIds = new Set(
-    quest.workItems.flatMap((item) => (item.pieceId === undefined ? [] : [String(item.pieceId)])),
+    quest.workItems.flatMap((item) => (item.pieceId === undefined ? [] : [item.pieceId])),
   );
   const hasUnstartedHere = (plan?.batches ?? []).some((planBatch) =>
-    planBatch.pieces.some(
-      (piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)),
-    ),
+    planBatch.pieces.some((piece) => String(piece.step) === step && !startedPieceIds.has(piece.id)),
   );
 
   // A step nothing has entered yet has no outcome to fold — it has to RUN before question 4 can ask

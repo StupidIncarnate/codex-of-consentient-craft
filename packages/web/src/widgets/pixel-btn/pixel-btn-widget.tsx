@@ -8,7 +8,6 @@
 
 import { UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -20,7 +19,7 @@ const BORDER_RADIUS = 2;
 const DISABLED_OPACITY = 0.4;
 
 export interface PixelBtnWidgetProps {
-  label: ButtonLabel;
+  label: string;
   onClick: () => void;
   variant?: ButtonVariant;
   icon?: boolean;

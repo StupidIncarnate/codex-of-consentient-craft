@@ -85,7 +85,8 @@ export const mockRegisterMiddleware = ({ fn }: { fn: MockFunction }): MockHandle
     calledWith: (args: readonly unknown[]): MockStaging => {
       const staged = stagedByMock.get(mock) ?? [];
       const record: StagedCall = {
-        ...stagedCallContract.parse({ args, once: false, consumed: false }),
+        ...stagedCallContract.parse({ once: false, consumed: false }),
+        args,
         impl: () => undefined,
       };
 

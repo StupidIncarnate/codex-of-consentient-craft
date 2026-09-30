@@ -18,8 +18,6 @@ const routePointContract = z
   })
   .brand<'RoutePoint'>();
 
-export const flowEdgeRouteMapContract = z
-  .record(z.string(), z.array(routePointContract))
-  .brand<'FlowEdgeRouteMap'>();
+export const flowEdgeRouteMapContract = z.record(z.string(), z.array(routePointContract));
 
 export type FlowEdgeRouteMap = z.infer<typeof flowEdgeRouteMapContract>;

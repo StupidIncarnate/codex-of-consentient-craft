@@ -11,14 +11,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-const tokenCountContract = z.number().int().min(0).brand<'TokenCount'>();
-
 export const usageBucketContract = z
   .object({
-    input: tokenCountContract,
-    cacheCreation: tokenCountContract,
-    cacheRead: tokenCountContract,
-    output: tokenCountContract,
+    input: z.number().int().min(0).brand<'UsageBucketInput'>(),
+    cacheCreation: z.number().int().min(0).brand<'UsageBucketCacheCreation'>(),
+    cacheRead: z.number().int().min(0).brand<'UsageBucketCacheRead'>(),
+    output: z.number().int().min(0).brand<'UsageBucketOutput'>(),
   })
   .brand<'UsageBucket'>();
 

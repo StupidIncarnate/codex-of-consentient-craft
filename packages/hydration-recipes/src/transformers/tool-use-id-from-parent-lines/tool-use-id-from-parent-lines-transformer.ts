@@ -7,13 +7,10 @@
  *
  * USAGE:
  * toolUseIdFromParentLinesTransformer({ parentLines: [line1, line2], agentId: AgentIdStub() });
- * // Returns the correlated ToolUseId if found, else undefined
+ * // Returns the correlated tool_use id if found, else undefined
  */
 import { userToolResultStreamLineContract, agentContract } from '@dungeonmaster/shared/contracts';
 import type { Agent } from '@dungeonmaster/shared/contracts';
-
-import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
-import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 
 export const toolUseIdFromParentLinesTransformer = ({
   parentLines,
@@ -21,7 +18,7 @@ export const toolUseIdFromParentLinesTransformer = ({
 }: {
   parentLines: readonly string[];
   agentId: Agent['id'];
-}): ToolUseId | undefined => {
+}): string | undefined => {
   // `toolUseResult` is a three-shape union (object-with-agentId / unknown[] / branded error
   // string) — the same narrowing `chat-line-process-transformer.ts` uses for this exact contract.
   // Its `agentId` is branded `AgentIdCorrelation`, a different brand than this file's `AgentId`,
@@ -58,5 +55,5 @@ export const toolUseIdFromParentLinesTransformer = ({
     return undefined;
   }
 
-  return toolUseIdContract.parse(firstContentItem.tool_use_id);
+  return firstContentItem.tool_use_id;
 };

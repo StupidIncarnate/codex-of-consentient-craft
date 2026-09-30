@@ -65,14 +65,14 @@ export const stepOutstandingUnitsTransformer = ({
 
   const startedPieceIds = new Set(
     quest.workItems.flatMap((workItem) =>
-      workItem.pieceId === undefined ? [] : [String(workItem.pieceId)],
+      workItem.pieceId === undefined ? [] : [workItem.pieceId],
     ),
   );
 
   const claimedUnitIds = new Set(
     plan.batches
       .flatMap((batch) => batch.pieces)
-      .filter((piece) => !startedPieceIds.has(String(piece.id)))
+      .filter((piece) => !startedPieceIds.has(piece.id))
       .flatMap((piece) => piece.assignedUnitIds.map(String)),
   );
 

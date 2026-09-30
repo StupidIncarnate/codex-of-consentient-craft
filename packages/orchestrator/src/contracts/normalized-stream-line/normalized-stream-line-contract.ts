@@ -30,7 +30,7 @@ const _contentItem = z
     content: z.union([z.string(), z.array(normalizedStreamLineContentItemContract)]).optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'ContentItemSource'>().optional(),
-    agentId: agentContract.shape.id.optional(),
+    agentId: agentContract.shape.id.optional().catch(undefined),
   })
   .brand<'ContentItem'>()
   .loose();
@@ -41,11 +41,11 @@ const _contentItem = z
 const message = z
   .object({
     role: z.string().brand<'MessageRole'>().nullish(),
-    // Items stay `unknown`: a null or non-object entry must not reject the whole line, and every
+    // Items stay any JSON value: a null or non-object entry must not reject the whole line, and every
     // reader re-parses each item through normalizedStreamLineContentItemContract at its own index.
     // The object form is the XML-inflated <task-notification> envelope, lifted by the chat-line processor.
     content: z
-      .union([z.string(), z.array(z.unknown()), inflatedTaskNotificationContentContract])
+      .union([z.string(), z.array(z.json()), inflatedTaskNotificationContentContract])
       .nullish(),
     // camelCase: the line is normalized before it reaches this contract.
     usage: z
@@ -103,8 +103,8 @@ const taskNotification = z
 const toolUseResult = z.union([
   z
     .object({
-      // unknown: the CLI has emitted a non-string agentId, and the processor narrows to string before use.
-      agentId: agentContract.shape.id.optional(),
+      // `.catch(undefined)`: the CLI has emitted a non-string agentId, and one bad id must not reject the line.
+      agentId: agentContract.shape.id.optional().catch(undefined),
       // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
       // sub-agent run. An async launch's result object carries no such field.
       totalDurationMs: z.number().brand<'ToolUseResultTotalDurationMs'>().nullish(),
@@ -112,7 +112,7 @@ const toolUseResult = z.union([
     .brand<'ToolUseResult'>()
     .loose(),
   z.array(z.json()),
-  z.string().brand<'NormalizedToolUseResultErrorMessage'>(),
+  z.string(),
 ]);
 
 export const normalizedStreamLineContract = z
@@ -128,7 +128,7 @@ export const normalizedStreamLineContract = z
     toolUseResult: toolUseResult.optional(),
     taskNotification: taskNotification.optional(),
     source: z.string().brand<'NormalizedStreamLineSource'>().optional(),
-    agentId: agentContract.shape.id.optional(),
+    agentId: agentContract.shape.id.optional().catch(undefined),
     sessionId: sessionContract.shape.id.optional(),
     timestamp: z.string().brand<'NormalizedStreamLineTimestamp'>().optional(),
     uuid: z.string().brand<'NormalizedStreamLineUuid'>().optional(),

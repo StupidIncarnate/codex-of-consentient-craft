@@ -28,7 +28,6 @@ import { mkdir, rm, writeFile } from '#gateway/node/fs__promises';
 import { locationsInstanceHomePathFindBroker } from '../../../src/brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker';
 import { locationsSnapshotPathsFindBroker } from '../../../src/brokers/locations/snapshot-paths-find/locations-snapshot-paths-find-broker';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
-import { SnapshotOrdinalStub } from '../../../src/contracts/snapshot-ordinal/snapshot-ordinal.stub';
 import type { SnapshotRecord } from '../../../src/contracts/snapshot-record/snapshot-record-contract';
 import { instanceLifecycleStatics } from '../../../src/statics/instance-lifecycle/instance-lifecycle-statics';
 import { snapshotStatics } from '../../../src/statics/snapshot/snapshot-statics';
@@ -64,7 +63,7 @@ export const snapshotStoreHarness = (): {
   }): string =>
     locationsSnapshotPathsFindBroker({
       homePath: homePath({ instanceId }),
-      ordinal: SnapshotOrdinalStub({ value: ordinal }),
+      ordinal,
     }).payload;
 
   const writeIndex = async ({
@@ -77,7 +76,7 @@ export const snapshotStoreHarness = (): {
     const home = homePath({ instanceId });
     const { storeDir, index } = locationsSnapshotPathsFindBroker({
       homePath: home,
-      ordinal: SnapshotOrdinalStub({ value: snapshotStatics.numbering.firstPayload }),
+      ordinal: snapshotStatics.numbering.firstPayload,
     });
 
     mintedHomePaths.push(home);

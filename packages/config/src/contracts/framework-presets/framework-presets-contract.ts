@@ -9,23 +9,20 @@
 
 import { z } from '#gateway/npm/zod';
 
-const packageNameArrayContract = z.array(z.string().brand<'PackageName'>());
-const nullablePackageNameArrayContract = packageNameArrayContract.nullable();
-
 // Base preset structure - what each framework allows by default
 export const frameworkPresetsContract = z
   .object({
-    widgets: nullablePackageNameArrayContract,
-    bindings: nullablePackageNameArrayContract,
-    state: nullablePackageNameArrayContract,
-    flows: nullablePackageNameArrayContract,
-    responders: nullablePackageNameArrayContract,
-    contracts: packageNameArrayContract,
-    brokers: packageNameArrayContract,
-    transformers: packageNameArrayContract,
-    errors: packageNameArrayContract,
-    middleware: packageNameArrayContract,
-    startup: packageNameArrayContract,
+    widgets: z.array(z.string().brand<'FrameworkPresetsWidgets'>()).nullable(),
+    bindings: z.array(z.string().brand<'FrameworkPresetsBindings'>()).nullable(),
+    state: z.array(z.string().brand<'FrameworkPresetsState'>()).nullable(),
+    flows: z.array(z.string().brand<'FrameworkPresetsFlows'>()).nullable(),
+    responders: z.array(z.string().brand<'FrameworkPresetsResponders'>()).nullable(),
+    contracts: z.array(z.string().brand<'FrameworkPresetsContracts'>()),
+    brokers: z.array(z.string().brand<'FrameworkPresetsBrokers'>()),
+    transformers: z.array(z.string().brand<'FrameworkPresetsTransformers'>()),
+    errors: z.array(z.string().brand<'FrameworkPresetsErrors'>()),
+    middleware: z.array(z.string().brand<'FrameworkPresetsMiddleware'>()),
+    startup: z.array(z.string().brand<'FrameworkPresetsStartup'>()),
   })
   .brand<'FrameworkPresets'>();
 

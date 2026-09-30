@@ -3,14 +3,13 @@
  *
  * USAGE:
  * const filename = fileNameContract.parse('my-file.ts');
- * // Returns branded FileName; throws on '/path/file.ts' or empty string
+ * // Returns a validated file name; throws on '/path/file.ts' or empty string
  */
 import { z } from '#gateway/npm/zod';
 
 export const fileNameContract = z
   .string()
   .min(1, 'Filename cannot be empty')
-  .regex(/^[^/\\]+$/u, 'Filename cannot contain path separators (/ or \\)')
-  .brand<'FileName'>();
+  .regex(/^[^/\\]+$/u, 'Filename cannot contain path separators (/ or \\)');
 
 export type FileName = z.infer<typeof fileNameContract>;

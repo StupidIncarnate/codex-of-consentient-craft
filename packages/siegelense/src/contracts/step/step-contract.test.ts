@@ -308,6 +308,15 @@ describe('stepContract', () => {
       });
     });
 
+    it.each(['', '1g', 'g.x', 'g h', 'g-h'])(
+      'INVALID: {step: seed, as: %s} => throws naming the identifier rule',
+      (as) => {
+        expect(() =>
+          stepContract.parse({ step: 'seed', recipe: 'guild-mid-execution', as }),
+        ).toThrow(/A seed binding name is a bare identifier/u);
+      },
+    );
+
     it('VALID: {step: key} => parses the complete key member', () => {
       const result = stepContract.parse({
         step: 'key',

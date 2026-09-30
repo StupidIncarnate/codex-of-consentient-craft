@@ -36,7 +36,7 @@ describe('astToViolationTransformer', () => {
 
   it('VALID: {node, violation with messageId and data} => returns RuleViolation with all fields', () => {
     const node = AstNodeStub();
-    const data = Object.create(null) as Record<PropertyKey, unknown>;
+    const data = Object.create(null) as Record<string, string>;
     data.functionName = 'testFunc';
     data.issue = 'no params';
     const violation = RuleViolationStub({
@@ -65,7 +65,7 @@ describe('astToViolationTransformer', () => {
       },
       parent: undefined,
     });
-    const data = Object.create(null) as Record<PropertyKey, unknown>;
+    const data = Object.create(null) as Record<string, string>;
     data.varName = 'x';
     data.type = 'let';
     const violation = RuleViolationStub({ message: 'Variable issue', data });

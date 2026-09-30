@@ -29,7 +29,6 @@ import { locationsSnapshotPathsFindResultContract } from '../../../contracts/loc
 import type { LocationsSnapshotPathsFindResult } from '../../../contracts/locations-snapshot-paths-find-result/locations-snapshot-paths-find-result-contract';
 import { join } from '#gateway/node/path';
 
-import type { SnapshotOrdinal } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
 
 export const locationsSnapshotPathsFindBroker = ({
@@ -37,7 +36,7 @@ export const locationsSnapshotPathsFindBroker = ({
   ordinal,
 }: {
   homePath: string;
-  ordinal: SnapshotOrdinal;
+  ordinal: number;
 }): LocationsSnapshotPathsFindResult => {
   const storeDir = join(homePath, snapshotStatics.store.dirName);
 

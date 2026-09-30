@@ -63,13 +63,11 @@ export const stepEntryBatchTransformer = ({
   // the same reading `stepOutstandingUnitsTransformer` takes, so the two cannot disagree about
   // which pieces are still to come.
   const startedPieceIds = new Set(
-    quest.workItems.flatMap((item) => (item.pieceId === undefined ? [] : [String(item.pieceId)])),
+    quest.workItems.flatMap((item) => (item.pieceId === undefined ? [] : [item.pieceId])),
   );
 
   const batch = (plan?.batches ?? []).find((candidate) =>
-    candidate.pieces.some(
-      (piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)),
-    ),
+    candidate.pieces.some((piece) => String(piece.step) === step && !startedPieceIds.has(piece.id)),
   );
 
   if (batch === undefined) {
@@ -95,7 +93,7 @@ export const stepEntryBatchTransformer = ({
   }
 
   return batch.pieces
-    .filter((piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)))
+    .filter((piece) => String(piece.step) === step && !startedPieceIds.has(piece.id))
     .map((piece) => {
       const assignedUnitIds = piece.assignedUnitIds.filter((unitId) => {
         const mark = unitCurrentMarkTransformer({ quest, unitId });

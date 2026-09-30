@@ -104,7 +104,7 @@ export const ChatEntryListWidget = ({
   const singleAnnotations = computeTokenAnnotationsTransformer({ items: mergedSingles });
 
   const trailingEmptyThinkingIndex = swapTrailingEmptyThinkingForIndicator
-    ? Number(findTrailingEmptyThinkingIndexTransformer({ groups: groupedEntries }))
+    ? findTrailingEmptyThinkingIndexTransformer({ groups: groupedEntries })
     : -1;
 
   const pairTails = collectPairTailEntriesTransformer({ entries: singleEntries });

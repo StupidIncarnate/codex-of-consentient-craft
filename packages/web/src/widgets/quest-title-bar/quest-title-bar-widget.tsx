@@ -12,15 +12,14 @@ import { Box, Group, Text } from '#gateway/npm/mantine__core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
-const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
-const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON' as ButtonLabel;
-const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
+const ABANDON_LABEL = 'ABANDON QUEST';
+const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON';
+const CANCEL_LABEL = 'CANCEL';
 const GHOST_VARIANT = 'ghost' as ButtonVariant;
 const DANGER_VARIANT = 'danger' as ButtonVariant;
 

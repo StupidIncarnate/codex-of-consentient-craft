@@ -145,7 +145,7 @@ export const ReconcileWatchersLayerResponder = async ({
           );
         }
         const handle = await StartOrchestrator.startMonitorWatcher({
-          parentSessionId: String(sessionId),
+          parentSessionId: sessionId,
           projectDir: resolvedProjectDir,
           workerWorkItemId,
           workerQuestId,

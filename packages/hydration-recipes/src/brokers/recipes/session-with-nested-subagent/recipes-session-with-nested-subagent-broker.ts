@@ -29,6 +29,7 @@
  * // Writes the three JSONL files and returns { session: { sessionId, outer, nested } }
  */
 
+import { agentContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
@@ -113,7 +114,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
         ...transcriptTaskToolResultLineTransformer({
           toolUseId: fixture.outerToolUseId,
           content: fixture.completionText,
-          agentId: fixture.outerAgentId,
+          agentId: agentContract.shape.id.parse(fixture.outerAgentId),
         }),
         uuid: `${fixture.sessionId}-task-outer-result`,
         timestamp: transcriptTimestampTransformer({
@@ -157,7 +158,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
         ...transcriptTaskToolResultLineTransformer({
           toolUseId: fixture.nestedToolUseId,
           content: fixture.completionText,
-          agentId: fixture.nestedAgentId,
+          agentId: agentContract.shape.id.parse(fixture.nestedAgentId),
         }),
         uuid: `${fixture.sessionId}-task-nested-result`,
         timestamp: transcriptTimestampTransformer({

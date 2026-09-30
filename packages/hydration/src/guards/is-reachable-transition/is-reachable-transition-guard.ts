@@ -21,5 +21,5 @@ export const isReachableTransitionGuard = ({
     return false;
   }
 
-  return spec.to.includes(to);
+  return spec.to.some((state) => state === to);
 };

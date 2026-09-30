@@ -12,26 +12,22 @@
  */
 import { z } from '#gateway/npm/zod';
 
-// Type-only: extracted so `suggest`'s intersection type below has a name, never parsed as a
-// runtime value of its own (`suggest` stays out of the schema — see the header comment on
-// `ruleViolationContract`).
-const _suggestionDescriptionContract = z.string().min(1).brand<'SuggestionDescription'>();
-type SuggestionDescription = z.infer<typeof _suggestionDescriptionContract>;
+import { astNodeContract } from '../ast-node/ast-node-contract';
 
 // `fix` and each `suggest[].fix` are functions — a Zod object schema cannot check callability, so
 // both stay out of the parse and are attached only through the type intersection below.
 // `.loose()` carries `fix` through `.parse()` unvalidated when a real caller supplies one.
 export const ruleViolationContract = z
   .object({
-    node: z.unknown(),
+    node: astNodeContract,
     message: z.string().min(1).brand<'RuleViolationMessage'>(),
     messageId: z.string().brand<'RuleViolationMessageId'>().optional(),
-    data: z.record(z.string(), z.unknown()).optional(),
+    data: z.record(z.string(), z.json()).optional(),
   })
   .loose()
   .brand<'RuleViolation'>();
 
 export type RuleViolation = z.infer<typeof ruleViolationContract> & {
   fix?: (...args: unknown[]) => unknown;
-  suggest?: readonly { desc: SuggestionDescription; fix: (...args: unknown[]) => unknown }[];
+  suggest?: readonly { desc: string; fix: (...args: unknown[]) => unknown }[];
 };

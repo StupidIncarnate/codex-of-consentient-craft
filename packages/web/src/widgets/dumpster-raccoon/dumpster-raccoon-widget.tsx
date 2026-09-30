@@ -18,7 +18,6 @@ import { setInterval } from '#gateway/browser/setInterval';
 import { Box, Group, Text } from '#gateway/npm/mantine__core';
 import { useEffect, useState } from '#gateway/npm/react';
 
-import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import { dumpsterFirePixelsStatics } from '../../statics/dumpster-fire-pixels/dumpster-fire-pixels-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
@@ -30,13 +29,11 @@ const RACCOON_SCALE = 8;
 const FIRE_SCALE = 6;
 const ORNAMENT_PADDING = 12;
 
-const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
-  pixelCoordinateContract.parse(p),
-);
+const raccoonPixels = raccoonWizardPixelsStatics.pixels;
 
-const fireFrameA = dumpsterFirePixelsStatics.frameA.map((p) => pixelCoordinateContract.parse(p));
+const fireFrameA = dumpsterFirePixelsStatics.frameA;
 
-const fireFrameB = dumpsterFirePixelsStatics.frameB.map((p) => pixelCoordinateContract.parse(p));
+const fireFrameB = dumpsterFirePixelsStatics.frameB;
 
 export interface DumpsterRaccoonWidgetProps {
   ornament?: boolean;

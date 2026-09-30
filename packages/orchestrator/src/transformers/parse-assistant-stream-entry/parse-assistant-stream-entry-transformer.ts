@@ -9,6 +9,7 @@
  * // identically.
  */
 import { randomUUID } from '#gateway/node/crypto';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
@@ -94,7 +95,7 @@ export const parseAssistantStreamEntryTransformer = ({
       usage,
       ...(validModel ? { model: validModel } : {}),
       ...(resolvedSource ? { source: resolvedSource } : {}),
-      ...(resolvedAgentId ? { agentId: resolvedAgentId } : {}),
+      ...(resolvedAgentId ? { agentId: agentContract.shape.id.parse(resolvedAgentId) } : {}),
       uuid: `${resolvedLineUuid}:${String(index)}`,
       timestamp: resolvedTimestamp,
     });

@@ -28,7 +28,6 @@ import {
 } from '@dungeonmaster/shared/transformers';
 
 import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -44,7 +43,7 @@ import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { FlowsLayerWidget } from './flows-layer-widget';
 import { UserRequestLayerWidget } from './user-request-layer-widget';
 
-const APPROVE_LABEL = 'APPROVE' as ButtonLabel;
+const APPROVE_LABEL = 'APPROVE';
 const SCROLLABLE_STYLE = { flex: 1, overflowY: 'auto' as const, padding: 16 };
 const ACTION_BAR_STYLE_BASE = { padding: 12, flexShrink: 0 };
 const HEADER_FONT_SIZE = 'xs' as const;

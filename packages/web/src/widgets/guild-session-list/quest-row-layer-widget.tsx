@@ -19,7 +19,6 @@ import {
 } from '@dungeonmaster/shared/guards';
 import type { QuestListItem, QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
 
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
@@ -38,7 +37,7 @@ const STATUS_FONT_SIZE = 10;
 const TERMINAL_ROW_OPACITY = 0.5;
 const TERMINAL_STATUSES = new Set(['abandoned']);
 const DANGER_VARIANT = 'danger';
-const DELETE_QUEST_LABEL = buttonLabelContract.parse('Delete quest');
+const DELETE_QUEST_LABEL = 'Delete quest';
 
 const ROW_BASE_STYLE = {
   fontFamily: 'monospace' as const,

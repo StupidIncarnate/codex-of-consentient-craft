@@ -28,7 +28,6 @@ import type {
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -97,10 +96,10 @@ const TAB_FONT_SIZE = 10;
 const TAB_FONT_WEIGHT = 600;
 const ACTIVE_BORDER_WIDTH = 2;
 const TAB_PADDING_VERTICAL = 5;
-const PAUSE_LABEL = 'PAUSE QUEST' as ButtonLabel;
-const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
-const FOLLOWUP_LABEL = 'FOLLOW-UP' as ButtonLabel;
-const MERGE_LABEL = 'Teleport with Booty (Merge)' as ButtonLabel;
+const PAUSE_LABEL = 'PAUSE QUEST';
+const RESUME_LABEL = 'RESUME QUEST';
+const FOLLOWUP_LABEL = 'FOLLOW-UP';
+const MERGE_LABEL = 'Teleport with Booty (Merge)';
 const ACTION_BAR_PADDING = 12;
 // Floors the ledger/rows container so the tab bar, title bar, banner, and (on a blocked
 // quest) both the pause/resume bar and the post-quest bar can never squeeze it to nothing —

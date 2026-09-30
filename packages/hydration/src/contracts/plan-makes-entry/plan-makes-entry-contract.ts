@@ -11,8 +11,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-const planMakesCountContract = z.number().int().positive().brand<'PlanMakesCount'>();
-
 export const planMakesEntryContract = z
   .object({
     ingredient: z
@@ -23,7 +21,10 @@ export const planMakesEntryContract = z
         'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode',
       )
       .brand<'PlanMakesEntryIngredient'>(),
-    count: z.union([planMakesCountContract, z.literal('varies')]),
+    count: z.union([
+      z.number().int().positive().brand<'PlanMakesEntryCount'>(),
+      z.literal('varies'),
+    ]),
   })
   .brand<'PlanMakesEntry'>();
 

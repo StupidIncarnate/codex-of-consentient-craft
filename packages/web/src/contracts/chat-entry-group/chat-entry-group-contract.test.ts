@@ -72,10 +72,16 @@ describe('chatEntryGroupContract', () => {
       }).toThrow(/Invalid input/u);
     });
 
-    it('VALID: {kind: "subagent-chain", agentId: ""} => parses a chain keyed by the empty agentId', () => {
-      const stub = SubagentChainGroupStub({ agentId: '' });
+    it('VALID: {kind: "subagent-chain", no agentId} => parses a chain with no agentId', () => {
+      const stub = SubagentChainGroupStub({ agentId: undefined });
 
       expect(chatEntryGroupContract.parse(stub)).toStrictEqual(stub);
+    });
+
+    it('INVALID: {kind: "subagent-chain", agentId: ""} => throws validation error', () => {
+      expect(() => {
+        SubagentChainGroupStub({ agentId: '' });
+      }).toThrow(/too_small/u);
     });
 
     it('INVALID: {kind: "subagent-chain", missing innerGroups} => throws validation error', () => {

@@ -27,7 +27,7 @@ const transcriptRecordMessageContract = z
         z.array(transcriptRecordContentBlockContract),
       ])
       .optional(),
-    usage: z.record(z.string(), z.unknown()).optional(),
+    usage: z.record(z.string(), z.json()).optional(),
   })
   .brand<'TranscriptRecordMessage'>();
 

@@ -36,8 +36,6 @@ import {
   normalizedStreamLineContract,
   type NormalizedStreamLine,
 } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
-import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 import { streamJsonToChatEntryTransformer } from '../stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 import { taskPromptsFromContentTransformer } from '../task-prompts-from-content/task-prompts-from-content-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
@@ -52,13 +50,13 @@ export const chatLineProcessTransformer = ({
   serverBaseUrl?: string;
 } = {}): ChatLineProcessor => {
   // Forward map: toolUseId → realAgentId, populated as user tool_result lines are processed.
-  const agentIdMap = new Map<ToolUseId, Agent['id']>();
+  const agentIdMap = new Map<string, Agent['id']>();
   // Reverse map: realAgentId → toolUseId, kept in sync so file-sourced sub-agent lines
   // (tagged with realAgentId) can resolve back to the Task toolUseId in O(1).
-  const reverseAgentIdMap = new Map<Agent['id'], ToolUseId>();
-  // Parent-chain map: childChainKey (ToolUseId) → parentChainKey (AgentId, toolUseId-form).
+  const reverseAgentIdMap = new Map<Agent['id'], string>();
+  // Parent-chain map: childChainKey (toolUseId) → parentChainKey (AgentId, toolUseId-form).
   // Populated live when a nested tool_result is processed and by registerParentChain for replay.
-  const parentChainMap = new Map<ToolUseId, Agent['id']>();
+  const parentChainMap = new Map<string, Agent['id']>();
 
   // Outstanding Task prompts: toolUseId → { prompt, containerChainKey }. A Task is "outstanding"
   // from the moment its assistant tool_use line is processed until its completion tool_result
@@ -68,7 +66,7 @@ export const chatLineProcessTransformer = ({
   // for top-level Tasks in the main session, set when one sub-agent spawned another) so the pair
   // can also register the parent-chain link for nested grouping.
   const outstandingTasks = new Map<
-    ToolUseId,
+    string,
     { prompt: string; containerChainKey: Agent['id'] | undefined }
   >();
 
@@ -101,13 +99,13 @@ export const chatLineProcessTransformer = ({
       agentId: realAgentId,
     }: {
       agentId: Agent['id'];
-    }): ToolUseId | undefined => reverseAgentIdMap.get(realAgentId),
+    }): string | undefined => reverseAgentIdMap.get(realAgentId),
     registerAgentTranslation: ({
       agentId: realAgentId,
       toolUseId,
     }: {
       agentId: Agent['id'];
-      toolUseId: ToolUseId;
+      toolUseId: string;
     }): void => {
       agentIdMap.set(toolUseId, realAgentId);
       reverseAgentIdMap.set(realAgentId, toolUseId);
@@ -116,7 +114,7 @@ export const chatLineProcessTransformer = ({
       childToolUseId,
       parentAgentId,
     }: {
-      childToolUseId: ToolUseId;
+      childToolUseId: string;
       parentAgentId: Agent['id'];
     }): void => {
       parentChainMap.set(childToolUseId, parentAgentId);
@@ -130,7 +128,7 @@ export const chatLineProcessTransformer = ({
       if (childChainKey === undefined) return undefined;
       const parentChainKey = parentChainMap.get(childChainKey);
       if (parentChainKey === undefined) return undefined;
-      return agentIdMap.get(toolUseIdContract.parse(String(parentChainKey)));
+      return agentIdMap.get(parentChainKey);
     },
     processLine: ({
       parsed,
@@ -345,9 +343,7 @@ export const chatLineProcessTransformer = ({
           ? String(ownChainKeyRaw)
           : undefined;
       const parentAgentIdVal =
-        ownChainKey === undefined
-          ? undefined
-          : parentChainMap.get(toolUseIdContract.parse(ownChainKey));
+        ownChainKey === undefined ? undefined : parentChainMap.get(ownChainKey);
 
       const { entries } = streamJsonToChatEntryTransformer({
         parsed: original,

@@ -20,8 +20,8 @@ const singleGroupContract = z
 
 const baseSubagentChainGroupContract = z.object({
   kind: z.literal('subagent-chain'),
-  // Empty is legal: a Task line that carries no toolUseId still becomes a chain, keyed by ''.
-  agentId: agentContract.shape.id,
+  // Absent is legal: a Task line that carries no toolUseId still becomes a chain, with no agentId.
+  agentId: agentContract.shape.id.optional(),
   description: z.string().brand<'SubagentChainGroupDescription'>(),
   taskToolUse: chatEntryContract.nullable(),
   taskNotification: chatEntryContract.nullable(),

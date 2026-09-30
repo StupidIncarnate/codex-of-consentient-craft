@@ -19,12 +19,10 @@ import { z } from '#gateway/npm/zod';
 
 import { agentContract } from '@dungeonmaster/shared/contracts';
 
-import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
-
 export const subagentRecordContract = z
   .object({
     agentId: agentContract.shape.id,
-    toolUseId: toolUseIdContract,
+    toolUseId: z.string().min(1).brand<'SubagentRecordToolUseId'>(),
     filePath: z
       .string()
       .min(1)

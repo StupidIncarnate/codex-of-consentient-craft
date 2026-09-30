@@ -7,7 +7,6 @@
  */
 import type { DuplicateLiteralReport } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
-import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
 import { glob } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
 import { typescriptParseBroker } from '../../typescript/parse/typescript-parse-broker';
@@ -24,7 +23,7 @@ export const duplicateDetectionDetectBroker = async ({
 }: {
   pattern: string;
   cwd?: string;
-  threshold?: OccurrenceThreshold;
+  threshold?: number;
   minLength?: number;
 }): Promise<readonly DuplicateLiteralReport[]> => {
   const actualThreshold = threshold ?? duplicateDetectionStatics.defaults.threshold;

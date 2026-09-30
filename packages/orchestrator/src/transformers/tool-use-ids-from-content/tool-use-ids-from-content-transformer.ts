@@ -3,15 +3,13 @@
  *
  * USAGE:
  * toolUseIdsFromContentTransformer({ entry: { message: { content: [{ type: 'tool_result', toolUseId: 'toolu_01X' }] } } });
- * // Returns ['toolu_01X'] as ToolUseId[]
+ * // Returns ['toolu_01X']
  */
 
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
-import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 
-export const toolUseIdsFromContentTransformer = ({ entry }: { entry: unknown }): ToolUseId[] => {
+export const toolUseIdsFromContentTransformer = ({ entry }: { entry: unknown }): string[] => {
   const lineParse = normalizedStreamLineContract.safeParse(entry);
   if (!lineParse.success) {
     return [];
@@ -21,14 +19,14 @@ export const toolUseIdsFromContentTransformer = ({ entry }: { entry: unknown }):
     return [];
   }
 
-  const ids: ToolUseId[] = [];
+  const ids: string[] = [];
   for (const rawItem of content) {
     const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
     if (!itemParse.success) continue;
     const item = itemParse.data;
     if (item.type !== 'tool_result') continue;
     if (typeof item.toolUseId === 'string') {
-      ids.push(toolUseIdContract.parse(String(item.toolUseId)));
+      ids.push(item.toolUseId);
     }
   }
 

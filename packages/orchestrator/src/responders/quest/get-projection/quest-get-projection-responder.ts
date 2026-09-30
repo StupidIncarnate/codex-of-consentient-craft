@@ -14,7 +14,7 @@
  * real scopes, so there is no honest empty value to return when the quest cannot be found.
  */
 
-import type { QuestProjection, Quest } from '@dungeonmaster/shared/contracts';
+import type { QuestProjection } from '@dungeonmaster/shared/contracts';
 import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetProjectionBroker } from '../../../brokers/quest/get-projection/quest-get-projection-broker';
@@ -22,6 +22,6 @@ import { questGetProjectionBroker } from '../../../brokers/quest/get-projection/
 export const QuestGetProjectionResponder = async ({
   questId,
 }: {
-  questId: Quest['id'];
+  questId: string;
 }): Promise<QuestProjection> =>
   questGetProjectionBroker({ questId: questContract.shape.id.parse(questId) });

@@ -47,7 +47,7 @@ const reachFnContract = z.custom<ReachFn<unknown, unknown>>(
 export const transitionSpecContract = z
   .object({
     field: z.string().min(1).brand<'TransitionSpecField'>(),
-    to: z.array(z.unknown()).min(1),
+    to: z.array(z.json()).min(1),
     reach: reachFnContract,
   })
   .brand<'TransitionSpec'>();

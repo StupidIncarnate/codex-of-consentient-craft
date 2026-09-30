@@ -6,10 +6,8 @@
  * // Renders a div with box-shadow painting each pixel at the given scale
  */
 
-import type { PixelCoordinate } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
-
 export interface PixelSpriteWidgetProps {
-  pixels: readonly PixelCoordinate[];
+  pixels: readonly string[];
   scale: number;
   width: number;
   height: number;

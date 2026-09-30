@@ -16,6 +16,7 @@ import {
   type InstallContext,
   type InstallResult,
   installResultContract,
+  packageJsonContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
@@ -60,7 +61,9 @@ export const InstallSetupGatewayResponder = async ({
   const rootPackageJson = packageJsonRawContract.parse(JSON.parse(rawRootPackageJson));
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
-  const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
+  const rootPackageJsonName = packageJsonContract.shape.name.parse(
+    typeof rootNameValue === 'string' ? rootNameValue : undefined,
+  );
   const fallbackName = basename(context.targetProjectRoot);
   const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
   if (scope === undefined) {

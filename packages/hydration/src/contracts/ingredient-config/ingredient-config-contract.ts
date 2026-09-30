@@ -41,8 +41,6 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
 
 const RESERVED_VERBS: readonly string[] = reservedVerbStatics.verbs;
 
-const ingredientDescriptionContract = z.string().min(1).brand<'IngredientDescription'>();
-
 const ingredientDefaultsFnContract = z.custom<(index: number) => Record<string, unknown>>(
   (value) => typeof value === 'function',
   { message: 'Expected a defaults function' },
@@ -81,7 +79,7 @@ export const ingredientConfigContract = z
         'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode',
       )
       .brand<'IngredientConfigName'>(),
-    description: ingredientDescriptionContract,
+    description: z.string().min(1).brand<'IngredientConfigDescription'>(),
     fields: zodSchemaContract,
     record: zodSchemaContract,
     routes: hydrationRoutesContract,

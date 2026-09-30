@@ -21,13 +21,12 @@ import type {
   QuestContractEntry,
 } from '@dungeonmaster/shared/contracts';
 
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowDetailPanelCommentRowLayerWidget } from './flow-detail-panel-comment-row-layer-widget';
 import { FlowDetailPanelContractEntryLayerWidget } from './flow-detail-panel-contract-entry-layer-widget';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
-const CLOSE_LABEL = buttonLabelContract.parse('Close detail panel');
+const CLOSE_LABEL = 'Close detail panel';
 const CLOSE_TEST_ID = 'FLOW_DETAIL_PANEL_CLOSE';
 
 export interface FlowNodeDetailPanelLayerWidgetProps {

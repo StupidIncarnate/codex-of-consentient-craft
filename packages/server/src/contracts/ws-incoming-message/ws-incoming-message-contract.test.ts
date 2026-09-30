@@ -64,7 +64,7 @@ describe('wsIncomingMessageContract', () => {
       expect(() => {
         wsIncomingMessageContract.parse({
           type: 'ward-detail-request',
-          wardResultId: 'ward-result-1',
+          wardResultId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         });
       }).toThrow(/received undefined/u);
     });

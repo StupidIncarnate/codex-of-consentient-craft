@@ -7,14 +7,12 @@
  *
  * USAGE:
  * rgbaToHexTransformer({
- *   red: ColourChannelStub({ value: 13 }),
- *   green: ColourChannelStub({ value: 9 }),
- *   blue: ColourChannelStub({ value: 7 }),
+ *   red: 13,
+ *   green: 9,
+ *   blue: 7,
  * });
- * // Returns '#0d0907' as branded HexColour
+ * // Returns '#0d0907'
  */
-
-import type { ColourChannel } from '../../contracts/colour-channel/colour-channel-contract';
 
 const HEX_RADIX = 16;
 const HEX_DIGITS_PER_CHANNEL = 2;
@@ -24,9 +22,9 @@ export const rgbaToHexTransformer = ({
   green,
   blue,
 }: {
-  red: ColourChannel;
-  green: ColourChannel;
-  blue: ColourChannel;
+  red: number;
+  green: number;
+  blue: number;
 }): string => {
   const hexValue = `#${red.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_CHANNEL, '0')}${green.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_CHANNEL, '0')}${blue.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_CHANNEL, '0')}`;
 

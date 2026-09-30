@@ -3,7 +3,6 @@ import {
   AssistantTextStreamLineStub,
 } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
-import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { contentItemAgentIdAtIndexTransformer } from '../content-item-agent-id-at-index/content-item-agent-id-at-index-transformer';
 import { contentItemAgentIdSetAtIndexTransformer } from '../content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer';
 import { taskToolUseIdsFromContentTransformer } from './task-tool-use-ids-from-content-transformer';
@@ -146,7 +145,7 @@ const TaskToolUseWithNumericId = () => ({
 describe('taskToolUseIdsFromContentTransformer', () => {
   describe('valid extraction + stamping', () => {
     it('VALID: {assistant entry with Task tool_use} => returns id and stamps agentId on the item', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_task_01' });
+      const toolUseId = 'toolu_task_01';
       const entry = AssistantTaskEntry({ toolUseId });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });
@@ -156,7 +155,7 @@ describe('taskToolUseIdsFromContentTransformer', () => {
     });
 
     it('VALID: {assistant entry with Agent tool_use} => returns id and stamps agentId on the item', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_agent_01' });
+      const toolUseId = 'toolu_agent_01';
       const entry = AssistantAgentEntry({ toolUseId });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });
@@ -168,7 +167,7 @@ describe('taskToolUseIdsFromContentTransformer', () => {
 
   describe('non-Task/Agent tool_use', () => {
     it('VALID: {assistant entry with Read tool_use} => returns empty and does NOT stamp agentId', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_read_01' });
+      const toolUseId = 'toolu_read_01';
       const entry = AssistantReadToolEntry({ toolUseId });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });
@@ -178,7 +177,7 @@ describe('taskToolUseIdsFromContentTransformer', () => {
     });
 
     it('VALID: {assistant entry with Bash tool_use} => returns empty and does NOT stamp agentId', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_bash_01' });
+      const toolUseId = 'toolu_bash_01';
       const entry = AssistantNonTaskToolEntry({ toolUseId });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });
@@ -188,8 +187,8 @@ describe('taskToolUseIdsFromContentTransformer', () => {
     });
 
     it('VALID: {mixed Task and Read items} => only Task is returned and only Task is stamped', () => {
-      const taskId = ToolUseIdStub({ value: 'toolu_task_mix' });
-      const readId = ToolUseIdStub({ value: 'toolu_read_mix' });
+      const taskId = 'toolu_task_mix';
+      const readId = 'toolu_read_mix';
       const entry = AssistantMixedTaskAndReadEntry({ taskId, readId });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });
@@ -210,7 +209,7 @@ describe('taskToolUseIdsFromContentTransformer', () => {
 
   describe('pre-existing agentId handling', () => {
     it('EDGE: {Task item already has non-empty agentId} => preserves existing, does NOT overwrite, still returns id', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_task_pre' });
+      const toolUseId = 'toolu_task_pre';
       const entry = AssistantTaskEntry({ toolUseId });
       setContentItemAgentId({ entry, index: 0, value: 'pre-existing' });
 
@@ -221,7 +220,7 @@ describe('taskToolUseIdsFromContentTransformer', () => {
     });
 
     it('EDGE: {Task item has empty-string agentId} => overwrites with id and returns id', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_task_empty' });
+      const toolUseId = 'toolu_task_empty';
       const entry = AssistantTaskEntry({ toolUseId });
       setContentItemAgentId({ entry, index: 0, value: '' });
 
@@ -286,8 +285,8 @@ describe('taskToolUseIdsFromContentTransformer', () => {
 
   describe('multiple items', () => {
     it('VALID: {multiple Task tool_use items} => returns all ids and stamps each item with its own id', () => {
-      const toolUseId1 = ToolUseIdStub({ value: 'toolu_task_a' });
-      const toolUseId2 = ToolUseIdStub({ value: 'toolu_task_b' });
+      const toolUseId1 = 'toolu_task_a';
+      const toolUseId2 = 'toolu_task_b';
       const entry = AssistantMultipleTaskEntry({ toolUseId1, toolUseId2 });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });
@@ -298,8 +297,8 @@ describe('taskToolUseIdsFromContentTransformer', () => {
     });
 
     it('VALID: {mixed Task and Agent tool_use items} => returns all ids and stamps each independently', () => {
-      const toolUseId1 = ToolUseIdStub({ value: 'toolu_task_c' });
-      const toolUseId2 = ToolUseIdStub({ value: 'toolu_agent_d' });
+      const toolUseId1 = 'toolu_task_c';
+      const toolUseId2 = 'toolu_agent_d';
       const entry = AssistantMixedAgentTaskEntry({ toolUseId1, toolUseId2 });
 
       const result = taskToolUseIdsFromContentTransformer({ entry });

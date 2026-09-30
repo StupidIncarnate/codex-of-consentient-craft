@@ -12,6 +12,7 @@
 import { glob } from '#gateway/npm/glob';
 import { readJsonFile } from '#gateway/node/fs__promises';
 import { dirname, join, relative } from '#gateway/node/path';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 import { censusRepoLayoutContract } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import { censusRootPackageContract } from '../../../contracts/census-root-package/census-root-package-contract';
@@ -31,7 +32,9 @@ export const censusRepoReadLayoutBroker = async ({
       });
     }),
   );
-  const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName: root.name });
+  const scope = workspaceScopeFromRootNameTransformer({
+    rootPackageJsonName: packageJsonContract.parse({ name: root.name }).name,
+  });
 
   const manifests = await glob([...censusLayoutStatics.packageJsonGlobs], {
     cwd: repoRoot,

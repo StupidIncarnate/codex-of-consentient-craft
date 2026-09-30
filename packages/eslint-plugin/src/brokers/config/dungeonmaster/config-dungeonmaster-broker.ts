@@ -195,6 +195,11 @@ export const configDungeonmasterBroker = ({
     // text. Off until the brand migration has branded every contract: it flags every object contract
     // that has no brand yet. Reads only the linted file, so it is tagged 'pre-edit'.
     '@dungeonmaster/require-object-contract-brands': 'off',
+    // R7: the indexed half of the brand rules: a leaf with no brand (skipping keys
+    // enforce-owner-field-reuse claims) and a layer contract's text and importers, with an autofix.
+    // Ward-only (reads every package's owner index), so it carries no dungeonmasterRuleEnforceOnStatics
+    // entry. Off until its scan reads 0.
+    '@dungeonmaster/require-object-contract-brands-indexed': 'off',
     // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): a proxy
     // constructor stages no catch-all default, and a test or proxy never authors an outside failure
     // inline. The one file-scoped `off` is in eslint.config.js (EPIC.md concession 13).

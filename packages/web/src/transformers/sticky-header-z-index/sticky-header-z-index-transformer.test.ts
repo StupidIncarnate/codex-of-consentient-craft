@@ -17,7 +17,7 @@ describe('stickyHeaderZIndexTransformer', () => {
     it('VALID: {stickyTop: 0} => returns the base band for a header pinned flush to the panel', () => {
       const result = stickyHeaderZIndexTransformer({ stickyTop: 0 });
 
-      expect(Number(result)).toBe(100);
+      expect(result).toBe(100);
     });
 
     it('VALID: {stickyTop: 23} => returns 77 for a header pinned under an execution row', () => {
@@ -25,7 +25,7 @@ describe('stickyHeaderZIndexTransformer', () => {
         stickyTop: heights.executionRow,
       });
 
-      expect(Number(result)).toBe(77);
+      expect(result).toBe(77);
     });
 
     it('VALID: {stickyTop: 54} => returns 46 for a tool row inside a chain inside a row', () => {
@@ -33,7 +33,7 @@ describe('stickyHeaderZIndexTransformer', () => {
         stickyTop: heights.executionRow + heights.subagentChain,
       });
 
-      expect(Number(result)).toBe(46);
+      expect(result).toBe(46);
     });
   });
 
@@ -43,13 +43,13 @@ describe('stickyHeaderZIndexTransformer', () => {
         stickyTop: zIndexBase - zIndexFloor,
       });
 
-      expect(Number(result)).toBe(1);
+      expect(result).toBe(1);
     });
 
     it('EDGE: {stickyTop: 400} => clamps to the floor rather than painting behind the container', () => {
       const result = stickyHeaderZIndexTransformer({ stickyTop: 400 });
 
-      expect(Number(result)).toBe(1);
+      expect(result).toBe(1);
     });
   });
 
@@ -58,7 +58,7 @@ describe('stickyHeaderZIndexTransformer', () => {
     // wins on paint order at `z-index: auto` and would slide across an already-pinned outer one.
     it('VALID: {row > chain > tool offsets} => band strictly decreases with depth', () => {
       const bands = NESTED_STACK_OFFSETS.map((offset) =>
-        Number(stickyHeaderZIndexTransformer({ stickyTop: offset })),
+        stickyHeaderZIndexTransformer({ stickyTop: offset }),
       );
 
       expect(bands).toStrictEqual([100, 77, 46, 21]);

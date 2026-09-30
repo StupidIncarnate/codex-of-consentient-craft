@@ -11,8 +11,6 @@
 import { z } from '#gateway/npm/zod';
 import type { Plan } from '../hydration-plan/hydration-plan-contract';
 
-const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
-
 // The schema itself, not its shape — `z.custom` with no type argument (so it infers `unknown`)
 // hands the same reference back rather than expanding a `ZodTypeAny`'s own methods through
 // `StubArgument`.
@@ -23,7 +21,7 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
 export const recipeDefContract = z
   .object({
     recipeName: z.string().min(1).brand<'RecipeDefRecipeName'>(),
-    description: recipeDescriptionContract,
+    description: z.string().min(1).brand<'RecipeDefDescription'>(),
     inputs: zodSchemaContract.optional(),
   })
   .brand<'RecipeDef'>();

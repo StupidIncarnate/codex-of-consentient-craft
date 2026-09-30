@@ -9,23 +9,20 @@
 
 import { z } from '#gateway/npm/zod';
 
-const packageNameArrayContract = z.array(z.string().brand<'PackageName'>());
-const nullablePackageNameArrayContract = packageNameArrayContract.nullable();
-
 // The computed structure that lint rules actually check
 export const folderConfigContract = z
   .object({
-    widgets: nullablePackageNameArrayContract,
-    bindings: nullablePackageNameArrayContract,
-    state: nullablePackageNameArrayContract,
-    flows: nullablePackageNameArrayContract,
-    responders: nullablePackageNameArrayContract,
-    contracts: packageNameArrayContract,
-    brokers: packageNameArrayContract,
-    transformers: packageNameArrayContract,
-    errors: packageNameArrayContract,
-    middleware: packageNameArrayContract,
-    startup: packageNameArrayContract,
+    widgets: z.array(z.string().brand<'FolderConfigWidgets'>()).nullable(),
+    bindings: z.array(z.string().brand<'FolderConfigBindings'>()).nullable(),
+    state: z.array(z.string().brand<'FolderConfigState'>()).nullable(),
+    flows: z.array(z.string().brand<'FolderConfigFlows'>()).nullable(),
+    responders: z.array(z.string().brand<'FolderConfigResponders'>()).nullable(),
+    contracts: z.array(z.string().brand<'FolderConfigContracts'>()),
+    brokers: z.array(z.string().brand<'FolderConfigBrokers'>()),
+    transformers: z.array(z.string().brand<'FolderConfigTransformers'>()),
+    errors: z.array(z.string().brand<'FolderConfigErrors'>()),
+    middleware: z.array(z.string().brand<'FolderConfigMiddleware'>()),
+    startup: z.array(z.string().brand<'FolderConfigStartup'>()),
   })
   .brand<'FolderConfig'>();
 

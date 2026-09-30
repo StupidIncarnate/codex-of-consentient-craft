@@ -16,8 +16,6 @@ import { normalizedStreamLineContentItemContract } from '../../contracts/normali
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { taskAgentToolInputContract } from '../../contracts/task-agent-tool-input/task-agent-tool-input-contract';
 import type { TaskAgentToolInput } from '../../contracts/task-agent-tool-input/task-agent-tool-input-contract';
-import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
-import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 
 export const taskPromptsFromContentTransformer = ({
   entry,
@@ -33,7 +31,7 @@ export const taskPromptsFromContentTransformer = ({
     return [];
   }
 
-  const prompts: { toolUseId: ToolUseId; prompt: TaskAgentToolInput['prompt'] }[] = [];
+  const prompts: { toolUseId: string; prompt: TaskAgentToolInput['prompt'] }[] = [];
   for (const rawItem of content) {
     const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
     if (!itemParse.success) continue;
@@ -44,7 +42,7 @@ export const taskPromptsFromContentTransformer = ({
     const inputParse = taskAgentToolInputContract.safeParse(item.input);
     if (!inputParse.success) continue;
     prompts.push({
-      toolUseId: toolUseIdContract.parse(String(item.id)),
+      toolUseId: item.id,
       prompt: inputParse.data.prompt,
     });
   }

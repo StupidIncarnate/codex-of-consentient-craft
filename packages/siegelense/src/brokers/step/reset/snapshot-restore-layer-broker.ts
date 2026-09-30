@@ -150,8 +150,8 @@ export const snapshotRestoreLayerBroker = async ({
   // never decided by mtime, which a capture-then-restore cycle always changes (DEF-81).
   const contentDiffers = await Promise.all(
     sameSizeCandidates.map(async (relPath) => {
-      const homeContent = await readFile(`${homePath}${String(relPath).slice(1)}`);
-      const payloadContent = await readFile(`${payloadPath}${String(relPath).slice(1)}`);
+      const homeContent = await readFile(`${homePath}${relPath.slice(1)}`);
+      const payloadContent = await readFile(`${payloadPath}${relPath.slice(1)}`);
       const homeHash = createHash('sha256').update(homeContent).digest('hex');
       const payloadHash = createHash('sha256').update(payloadContent).digest('hex');
       return homeHash !== payloadHash;

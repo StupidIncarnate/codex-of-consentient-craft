@@ -28,7 +28,6 @@ import { QuestRowLayerWidget } from './quest-row-layer-widget';
 import { SessionRowLayerWidget } from './session-row-layer-widget';
 import { UnreadableQuestRowLayerWidget } from './unreadable-quest-row-layer-widget';
 
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 
 export interface GuildSessionListWidgetProps {
@@ -76,12 +75,7 @@ export const GuildSessionListWidget = ({
         <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
           SESSIONS
         </Text>
-        <PixelBtnWidget
-          label={'+' as ButtonLabel}
-          onClick={onAdd}
-          variant={'ghost' as ButtonVariant}
-          icon
-        />
+        <PixelBtnWidget label={'+'} onClick={onAdd} variant={'ghost' as ButtonVariant} icon />
       </Group>
       <SegmentedControl
         data-testid="SESSION_FILTER"

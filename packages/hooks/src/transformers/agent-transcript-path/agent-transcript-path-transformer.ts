@@ -16,6 +16,7 @@
  */
 
 import type { Agent } from '@dungeonmaster/shared/contracts';
+
 const JSONL_SUFFIX = '.jsonl';
 
 export const agentTranscriptPathTransformer = ({

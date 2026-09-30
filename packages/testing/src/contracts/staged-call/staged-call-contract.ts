@@ -8,11 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-// `impl` is a function — zod validates only the data fields; `.loose()` carries `impl`
-// through `.parse()` unvalidated, since a Zod object schema cannot check callability.
+// `args` (matchers: strings, regexes, functions) and `impl` are not JSON — zod validates only the
+// data fields; `.loose()` carries `args` and `impl` through `.parse()` unvalidated, and the
+// TypeScript intersection below types them.
 export const stagedCallContract = z
   .object({
-    args: z.array(z.unknown()).readonly(),
     once: z.boolean(),
     consumed: z.boolean(),
   })
@@ -20,5 +20,6 @@ export const stagedCallContract = z
   .brand<'StagedCall'>();
 
 export type StagedCall = z.infer<typeof stagedCallContract> & {
+  args: readonly unknown[];
   impl: (...args: unknown[]) => unknown;
 };

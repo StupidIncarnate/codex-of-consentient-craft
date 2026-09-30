@@ -26,13 +26,12 @@ import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-wid
 import { RateLimitsStackWidgetProxy } from '../rate-limits-stack/rate-limits-stack-widget.proxy';
 import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
 
-import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 // The channel this proxy's own socket answers, kept apart from the url every binding proxy stages so a
 // count read here holds only the sockets opened on it.
-const SHARED_CHANNEL_URL = WsUrlStub({ value: 'ws://localhost:4747/ws' });
+const SHARED_CHANNEL_URL = 'ws://localhost:4747/ws';
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;

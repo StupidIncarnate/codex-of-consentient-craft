@@ -45,7 +45,6 @@ import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-li
 import { normalizedStreamLineContentItemContract } from '../../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { taskAgentToolInputContract } from '../../../contracts/task-agent-tool-input/task-agent-tool-input-contract';
-import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
 import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
@@ -220,7 +219,7 @@ export const chatHistoryReplayBroker = async ({
     ...subagentFiles.map((f) => ({ lines: f.lines, container: f.agentId })),
   ];
   const childParentCandidates: {
-    childToolUseId: ReturnType<typeof toolUseIdContract.parse>;
+    childToolUseId: string;
     container: ReturnType<typeof agentContract.shape.id.parse>;
   }[] = [];
 
@@ -257,11 +256,11 @@ export const chatHistoryReplayBroker = async ({
         if (typeof tuid !== 'string' || tuid.length === 0) continue;
         processor.registerAgentTranslation({
           agentId: agentContract.shape.id.parse(realAgentIdRaw),
-          toolUseId: toolUseIdContract.parse(tuid),
+          toolUseId: tuid,
         });
         if (container !== null) {
           childParentCandidates.push({
-            childToolUseId: toolUseIdContract.parse(tuid),
+            childToolUseId: tuid,
             container,
           });
         }
@@ -319,7 +318,7 @@ export const chatHistoryReplayBroker = async ({
         if (firstContent !== String(promptValue)) continue;
         processor.registerAgentTranslation({
           agentId: file.agentId,
-          toolUseId: toolUseIdContract.parse(String(item.id)),
+          toolUseId: item.id,
         });
         break;
       }
@@ -336,7 +335,7 @@ export const chatHistoryReplayBroker = async ({
     if (parentChainKey === undefined) return;
     processor.registerParentChain({
       childToolUseId,
-      parentAgentId: agentContract.shape.id.parse(String(parentChainKey)),
+      parentAgentId: agentContract.shape.id.parse(parentChainKey),
     });
   });
 

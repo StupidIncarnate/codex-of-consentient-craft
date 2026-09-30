@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
 import { PixelBtnWidget } from './pixel-btn-widget';
 import { PixelBtnWidgetProxy } from './pixel-btn-widget.proxy';
 
@@ -9,7 +8,7 @@ describe('PixelBtnWidget', () => {
   describe('rendering', () => {
     it('VALID: {label: "CREATE"} => renders button with label text', () => {
       const proxy = PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'CREATE' });
+      const label = 'CREATE';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
@@ -19,7 +18,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {variant: "primary"} => renders with primary background color', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'GO' });
+      const label = 'GO';
       const variant = 'primary';
       const onClick = jest.fn();
 
@@ -34,7 +33,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {variant: "ghost"} => renders with ghost background color', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'CANCEL' });
+      const label = 'CANCEL';
       const variant = 'ghost';
       const onClick = jest.fn();
 
@@ -49,7 +48,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {icon: true} => renders with icon font size', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'X' });
+      const label = 'X';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -63,7 +62,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {icon not set} => renders with normal font size', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'SAVE' });
+      const label = 'SAVE';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
@@ -77,7 +76,7 @@ describe('PixelBtnWidget', () => {
   describe('danger variant', () => {
     it('VALID: {variant: "danger"} => renders with danger background color', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'DELETE' });
+      const label = 'DELETE';
       const variant = 'danger';
       const onClick = jest.fn();
 
@@ -92,7 +91,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {variant: "danger"} => renders with bg-deep foreground color', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'DELETE' });
+      const label = 'DELETE';
       const variant = 'danger';
       const onClick = jest.fn();
 
@@ -109,7 +108,7 @@ describe('PixelBtnWidget', () => {
   describe('disabled state', () => {
     it('VALID: {disabled: true} => renders with reduced opacity', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'NOPE' });
+      const label = 'NOPE';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -123,7 +122,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {disabled: true} => renders with default cursor', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'NOPE' });
+      const label = 'NOPE';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -137,7 +136,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {disabled: true} => renders with pointer-events none', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'NOPE' });
+      const label = 'NOPE';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -151,7 +150,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {disabled: true} => carries the native disabled attribute, not just the styling', () => {
       const proxy = PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'NOPE' });
+      const label = 'NOPE';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -163,7 +162,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {disabled not set} => carries no disabled attribute', () => {
       const proxy = PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'GO' });
+      const label = 'GO';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
@@ -173,7 +172,7 @@ describe('PixelBtnWidget', () => {
 
     it('VALID: {disabled: false} => carries no disabled attribute', () => {
       const proxy = PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'GO' });
+      const label = 'GO';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -187,7 +186,7 @@ describe('PixelBtnWidget', () => {
   describe('danger + disabled combination', () => {
     it('VALID: {variant: "danger", disabled: true} => renders danger colors with disabled opacity', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'DELETE' });
+      const label = 'DELETE';
       const variant = 'danger';
       const onClick = jest.fn();
 
@@ -210,7 +209,7 @@ describe('PixelBtnWidget', () => {
   describe('interaction', () => {
     it('VALID: {click} => calls onClick handler', async () => {
       const proxy = PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'CLICK ME' });
+      const label = 'CLICK ME';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
@@ -224,7 +223,7 @@ describe('PixelBtnWidget', () => {
   describe('default variant', () => {
     it('VALID: {no variant} => defaults to primary styling', () => {
       PixelBtnWidgetProxy();
-      const label = ButtonLabelStub({ value: 'DEFAULT' });
+      const label = 'DEFAULT';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });

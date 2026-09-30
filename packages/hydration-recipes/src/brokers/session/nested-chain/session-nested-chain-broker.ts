@@ -32,7 +32,6 @@ import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { z } from '#gateway/npm/zod';
 import { subagentWriteRouteBroker } from '../../subagent/write-route/subagent-write-route-broker';
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
-import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 import { transcriptAssistantTaskToolUseLineTransformer } from '../../../transformers/transcript-assistant-task-tool-use-line/transcript-assistant-task-tool-use-line-transformer';
 import { transcriptAssistantTextLineTransformer } from '../../../transformers/transcript-assistant-text-line/transcript-assistant-text-line-transformer';
@@ -67,7 +66,7 @@ export const sessionNestedChainBroker = async ({
     const agentId = agentContract.shape.id.parse(
       `seed-agent-1${NESTING_SUFFIX.repeat(previousLevel)}`,
     );
-    const toolUseId = toolUseIdContract.parse(`toolu_seed_nested_${level}`);
+    const toolUseId = `toolu_seed_nested_${level}`;
     const parentFilePath =
       level === 1
         ? sessionFilePath

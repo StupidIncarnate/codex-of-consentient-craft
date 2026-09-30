@@ -142,6 +142,19 @@ describe('configDungeonmasterBroker', () => {
       expect(typescript.rules?.['@dungeonmaster/require-object-contract-brands']).toBe('off');
     });
 
+    it('VALID: {} => typescript config lands require-object-contract-brands-indexed off with no ruleEnforceOn entry', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript, ruleEnforceOn } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/require-object-contract-brands-indexed']).toBe(
+        'off',
+      );
+      expect(
+        Reflect.has(ruleEnforceOn, '@dungeonmaster/require-object-contract-brands-indexed'),
+      ).toBe(false);
+    });
+
     it.each(['@dungeonmaster/ban-primitives', '@dungeonmaster/require-zod-on-primitives'])(
       'VALID: {} => typescript config and ruleEnforceOn no longer carry %s',
       (ruleName) => {

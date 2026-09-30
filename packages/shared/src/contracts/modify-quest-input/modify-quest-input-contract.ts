@@ -59,20 +59,17 @@ const deleteMarker = z.literal(true);
 
 // One spelling of "the server owns this field", reused at every attachment point below so the
 // instruction an agent reads is identical wherever it meets a timestamp.
-const serverStampedTimestamp = z.iso
-  .datetime()
-  .brand<'IsoTimestamp'>()
-  .optional()
-  .describe(
-    'OMIT THIS FIELD. Stamped server-side at write time from the server clock; any value you send ' +
-      'is ignored and overwritten. An LLM has no reliable clock, so a value invented here is ' +
-      'fabricated audit data — agent-written timestamps have been observed identical across a whole ' +
-      'quest and dated into a future that never happened.',
-  );
+const serverStampedTimestampDescription =
+  'OMIT THIS FIELD. Stamped server-side at write time from the server clock; any value you send ' +
+  'is ignored and overwritten. An LLM has no reliable clock, so a value invented here is ' +
+  'fabricated audit data — agent-written timestamps have been observed identical across a whole ' +
+  'quest and dated into a future that never happened.';
 
 const questBlightLedgerEntryForUpsertContract = questBlightLedgerEntryContract
   .extend({
-    createdAt: serverStampedTimestamp,
+    createdAt: questBlightLedgerEntryContract.shape.createdAt
+      .optional()
+      .describe(serverStampedTimestampDescription),
   })
   .brand<'QuestBlightLedgerEntryForUpsert'>();
 
@@ -81,7 +78,9 @@ const questBlightLedgerEntryForUpsertContract = questBlightLedgerEntryContract
 // refinement is what keeps every OTHER kind an execution agent writes through modify-quest still
 // owing a reader "who wrote this" — the widening at the base contract must not loosen this path too.
 const questNoteForUpsertContract = questNoteContract
-  .extend({ at: serverStampedTimestamp })
+  .extend({
+    at: questNoteContract.shape.at.optional().describe(serverStampedTimestampDescription),
+  })
   .brand<'QuestNoteForUpsert'>()
   .superRefine((value, ctx) => {
     const hasNoWorkItemId = value.workItemId === undefined || value.workItemId === null;
@@ -96,7 +95,9 @@ const questNoteForUpsertContract = questNoteContract
   });
 
 const operationPlanForUpsertContract = operationPlanContract
-  .extend({ at: serverStampedTimestamp })
+  .extend({
+    at: operationPlanContract.shape.at.optional().describe(serverStampedTimestampDescription),
+  })
   .brand<'OperationPlanForUpsert'>();
 
 const fullFlowObservable = flowObservableContract

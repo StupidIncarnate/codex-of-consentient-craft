@@ -230,7 +230,15 @@ export const stepContract = z
         // `recipe` would shadow the step's own keys, and the collision would be silent
         // (siegelense-tooling.md lines 882-883).
         params: z.record(z.string().min(1), z.json()).nullable().default(null),
-        as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
+        as: z
+          .string()
+          .regex(
+            /^[A-Za-z_][A-Za-z0-9_]*$/u,
+            'A seed binding name is a bare identifier — letters, digits and underscores, starting with a letter or underscore, and no dot. The dot is what separates the binding from the field in `{g.guildSlug}`',
+          )
+          .brand<'StepAs'>()
+          .nullable()
+          .default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

@@ -1,5 +1,3 @@
-import { ColourChannelStub } from '../../contracts/colour-channel/colour-channel.stub';
-
 import { rgbaToHexTransformer } from './rgba-to-hex-transformer';
 
 describe('rgbaToHexTransformer', () => {
@@ -10,9 +8,9 @@ describe('rgbaToHexTransformer', () => {
   ])('channels (%i, %i, %i)', (red, green, blue, expected) => {
     it(`VALID: {red: ${String(red)}, green: ${String(green)}, blue: ${String(blue)}} => returns '${expected}'`, () => {
       const result = rgbaToHexTransformer({
-        red: ColourChannelStub({ value: red }),
-        green: ColourChannelStub({ value: green }),
-        blue: ColourChannelStub({ value: blue }),
+        red,
+        green,
+        blue,
       });
 
       expect(result).toBe(expected);

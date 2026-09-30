@@ -56,8 +56,6 @@ export * from './instance-status/instance-status-contract';
 
 export * from './last-step-reading/last-step-reading-contract';
 
-export * from './load-average/load-average-contract';
-
 export * from './machine-reading/machine-reading-contract';
 
 export * from './monitored-metric/monitored-metric-contract';
@@ -77,8 +75,6 @@ export * from './left-alone/left-alone-contract';
 export * from './reaped-instance/reaped-instance-contract';
 
 export * from './file-stat/file-stat-contract';
-
-export * from './colour-channel/colour-channel-contract';
 
 export * from './start-args/start-args-contract';
 

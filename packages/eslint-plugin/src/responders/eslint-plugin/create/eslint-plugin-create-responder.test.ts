@@ -94,6 +94,7 @@ describe('EslintPluginCreateResponder', () => {
         'require-contract-parse',
         'require-contract-validation',
         'require-object-contract-brands',
+        'require-object-contract-brands-indexed',
         'require-validation-on-untyped-property-access',
         'require-zod-on-primitives',
       ]);

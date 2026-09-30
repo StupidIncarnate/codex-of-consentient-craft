@@ -9,7 +9,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract, agentContract } from '@dungeonmaster/shared/contracts';
-import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
 const chatLineEntriesContract = z
   .object({
@@ -26,7 +25,7 @@ const chatLineEntriesContract = z
 const chatLineAgentDetectedContract = z
   .object({
     type: z.literal('agent-detected'),
-    toolUseId: toolUseIdContract,
+    toolUseId: z.string().min(1).brand<'ChatLineAgentDetectedToolUseId'>(),
     agentId: agentContract.shape.id,
   })
   .brand<'ChatLineAgentDetected'>();

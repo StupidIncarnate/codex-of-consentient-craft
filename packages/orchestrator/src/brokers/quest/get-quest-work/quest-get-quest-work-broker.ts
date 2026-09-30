@@ -174,7 +174,7 @@ export const questGetQuestWorkBroker = async ({
 
   const piece = (plan?.batches ?? [])
     .flatMap((batch) => batch.pieces)
-    .find((candidate) => String(candidate.id) === String(workItem.pieceId));
+    .find((candidate) => candidate.id === String(workItem.pieceId));
 
   const minter =
     workItem.mintedBy === undefined

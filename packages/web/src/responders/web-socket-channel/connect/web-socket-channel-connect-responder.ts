@@ -8,11 +8,10 @@
 
 import { location } from '#gateway/browser/location';
 
-import { wsUrlContract } from '../../../contracts/ws-url/ws-url-contract';
 import { webSocketChannelState } from '../../../state/web-socket-channel/web-socket-channel-state';
 
 export const WebSocketChannelConnectResponder = (): void => {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  const url = wsUrlContract.parse(`${protocol}://${location.host}/ws`);
+  const url = `${protocol}://${location.host}/ws`;
   webSocketChannelState.connect({ url });
 };

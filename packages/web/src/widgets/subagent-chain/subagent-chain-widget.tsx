@@ -129,7 +129,7 @@ export const SubagentChainWidget = ({
             ? {
                 position: 'sticky' as const,
                 top: stickyTop,
-                zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop })),
+                zIndex: stickyHeaderZIndexTransformer({ stickyTop }),
                 height: stickyHeaderStatics.heights.subagentChain,
                 boxSizing: 'border-box' as const,
                 backgroundColor: colors['bg-surface'],

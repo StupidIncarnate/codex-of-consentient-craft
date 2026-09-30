@@ -7,11 +7,9 @@
  *
  * USAGE:
  * uploadPercentTransformer({ bytesSent: ByteLengthStub({ value: 512 }), bytesTotal: ByteLengthStub({ value: 1024 }) });
- * // Returns: UploadPercent branded number
+ * // Returns: 50
  */
 
-import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
-import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 
 export const uploadPercentTransformer = ({
@@ -20,16 +18,14 @@ export const uploadPercentTransformer = ({
 }: {
   bytesSent: number;
   bytesTotal: number;
-}): UploadPercent => {
+}): number => {
   if (bytesTotal === 0) {
-    return uploadPercentContract.parse(chatComposerStatics.upload.minPercent);
+    return chatComposerStatics.upload.minPercent;
   }
 
   if (bytesSent >= bytesTotal) {
-    return uploadPercentContract.parse(chatComposerStatics.upload.maxPercent);
+    return chatComposerStatics.upload.maxPercent;
   }
 
-  return uploadPercentContract.parse(
-    Math.round((bytesSent / bytesTotal) * chatComposerStatics.upload.maxPercent),
-  );
+  return Math.round((bytesSent / bytesTotal) * chatComposerStatics.upload.maxPercent);
 };

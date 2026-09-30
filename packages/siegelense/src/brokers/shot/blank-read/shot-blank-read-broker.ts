@@ -16,7 +16,6 @@ import { decodePng } from '#gateway/npm/pngjs';
 
 import { blankReadingContract } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
-import { colourChannelContract } from '../../../contracts/colour-channel/colour-channel-contract';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';
 import { rgbaToHexTransformer } from '../../../transformers/rgba-to-hex/rgba-to-hex-transformer';
 import { Buffer } from '#gateway/node/buffer';
@@ -74,9 +73,9 @@ export const shotBlankReadBroker = async ({
   return blankReadingContract.parse({
     blank: true,
     colour: rgbaToHexTransformer({
-      red: colourChannelContract.parse(referenceRed),
-      green: colourChannelContract.parse(referenceGreen),
-      blue: colourChannelContract.parse(referenceBlue),
+      red: referenceRed,
+      green: referenceGreen,
+      blue: referenceBlue,
     }),
   });
 };

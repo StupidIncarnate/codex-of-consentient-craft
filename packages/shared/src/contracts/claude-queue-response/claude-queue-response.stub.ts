@@ -84,7 +84,7 @@ const toolUseLine = ({
             type: 'tool_use' as const,
             id,
             name: toolUseBlockParamContract.shape.name.parse(name),
-            input,
+            input: toolUseBlockParamContract.shape.input.parse(input),
           },
         ],
         stop_reason: null,

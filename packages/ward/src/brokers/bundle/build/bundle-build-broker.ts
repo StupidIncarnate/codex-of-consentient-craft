@@ -58,7 +58,7 @@ export const bundleBuildBroker = async ({
   const hash = bundleHashFilesBroker({ rootPath: repoRoot, relativePaths });
 
   const bundleParent = `${packageRoot}/${bundleStatics.parentDir}`;
-  const bundleDir = `${bundleParent}/${String(hash)}`;
+  const bundleDir = `${bundleParent}/${hash}`;
 
   if (existsSync(bundleDir)) {
     return bundleBuildResultContract.parse({ bundleDir, error: null });

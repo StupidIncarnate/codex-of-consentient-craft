@@ -13,8 +13,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const resultRowContract = z.union([
-  z.record(z.string(), z.unknown()),
-  z.unknown().transform((): Record<string, unknown> => ({})),
+  z.record(z.string(), z.json()),
+  z.json().transform((): Record<string, never> => ({})),
 ]);
 
 export type ResultRow = z.infer<typeof resultRowContract>;

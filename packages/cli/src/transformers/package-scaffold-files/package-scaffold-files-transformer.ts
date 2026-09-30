@@ -139,7 +139,7 @@ export const packageScaffoldFilesTransformer = ({
       PLACEHOLDER_PAIRS.reduce((acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub), key),
       PLACEHOLDER_PAIRS.reduce(
         (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
-        String(value),
+        value,
       ),
     ]),
   );
@@ -147,7 +147,7 @@ export const packageScaffoldFilesTransformer = ({
   const substitutedDependencies = Object.fromEntries(
     Object.entries(seed.dependencies).map(([key, value]) => [
       PLACEHOLDER_PAIRS.reduce((acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub), key),
-      String(value),
+      value,
     ]),
   );
   const gatewayImports = gatewayImportsFieldTransformer({

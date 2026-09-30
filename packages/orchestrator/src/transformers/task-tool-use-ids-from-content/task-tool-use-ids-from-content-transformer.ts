@@ -3,7 +3,7 @@
  *
  * USAGE:
  * taskToolUseIdsFromContentTransformer({ entry: { message: { content: [{ type: 'tool_use', name: 'Task', id: 'toolu_01X' }] } } });
- * // Returns ['toolu_01X'] as ToolUseId[]. The matching item is mutated with agentId = 'toolu_01X'.
+ * // Returns ['toolu_01X']. The matching item is mutated with agentId = 'toolu_01X'.
  */
 
 import {
@@ -14,14 +14,9 @@ import {
   normalizedStreamLineContract,
   type NormalizedStreamLine,
 } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
-import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
-export const taskToolUseIdsFromContentTransformer = ({
-  entry,
-}: {
-  entry: unknown;
-}): ToolUseId[] => {
+export const taskToolUseIdsFromContentTransformer = ({ entry }: { entry: unknown }): string[] => {
   // Validate the line shape first; if invalid, nothing to extract.
   const lineParse = normalizedStreamLineContract.safeParse(entry);
   if (!lineParse.success) {
@@ -37,7 +32,7 @@ export const taskToolUseIdsFromContentTransformer = ({
     return [];
   }
 
-  const ids: ToolUseId[] = [];
+  const ids: string[] = [];
   for (const rawItem of originalContent) {
     const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
     if (!itemParse.success) continue;
@@ -45,11 +40,11 @@ export const taskToolUseIdsFromContentTransformer = ({
     if (item.type !== 'tool_use') continue;
     if (item.name !== 'Task' && item.name !== 'Agent') continue;
     if (typeof item.id !== 'string') continue;
-    const parsedId = toolUseIdContract.parse(String(item.id));
-    ids.push(parsedId);
+    const stampedAgentId = agentContract.shape.id.parse(item.id);
+    ids.push(item.id);
     if (typeof item.agentId !== 'string' || String(item.agentId).length === 0) {
       const mutTarget = rawItem as NormalizedStreamLineContentItem;
-      mutTarget.agentId = parsedId as unknown as NormalizedStreamLineContentItem['agentId'];
+      mutTarget.agentId = stampedAgentId;
     }
   }
 

@@ -6,7 +6,7 @@
  *
  * USAGE:
  * bundleHashContract.parse('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
- * // Returns a BundleHash branded string
+ * // Returns a lowercase-hex string of bundleStatics.hashLength characters
  */
 
 import { z } from '#gateway/npm/zod';
@@ -16,7 +16,6 @@ import { bundleStatics } from '../../statics/bundle/bundle-statics';
 export const bundleHashContract = z
   .string()
   .length(bundleStatics.hashLength)
-  .regex(/^[a-f0-9]+$/u, 'Invalid BundleHash format: expected lowercase hex')
-  .brand<'BundleHash'>();
+  .regex(/^[a-f0-9]+$/u, 'Invalid BundleHash format: expected lowercase hex');
 
 export type BundleHash = z.infer<typeof bundleHashContract>;

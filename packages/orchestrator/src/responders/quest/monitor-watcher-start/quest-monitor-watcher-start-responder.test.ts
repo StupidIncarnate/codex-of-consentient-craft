@@ -1,3 +1,4 @@
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -17,7 +18,7 @@ describe('QuestMonitorWatcherStartResponder', () => {
       });
 
       const handle = await QuestMonitorWatcherStartResponder({
-        parentSessionId: '00118165-fbf1-11d4-8940-5ee9492debae',
+        parentSessionId: SessionIdStub({ value: '00118165-fbf1-11d4-8940-5ee9492debae' }),
         projectDir: '/home/user/proj',
         workerWorkItemId: QuestWorkItemIdStub(),
         workerQuestId: QuestIdStub(),

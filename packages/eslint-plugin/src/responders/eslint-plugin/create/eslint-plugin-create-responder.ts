@@ -91,6 +91,7 @@ import { ruleBanProxyEmptyCalledWithBroker } from '../../../brokers/rule/ban-pro
 import { ruleBanInventedFailuresBroker } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker';
 import { ruleBanContractTypePredicatesBroker } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker';
 import { ruleRequireObjectContractBrandsBroker } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker';
+import { ruleRequireObjectContractBrandsIndexedBroker } from '../../../brokers/rule/require-object-contract-brands-indexed/rule-require-object-contract-brands-indexed-broker';
 import { ruleBanTypeAliasesBroker } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker';
 import { ruleBanTestSupportInProductionBroker } from '../../../brokers/rule/ban-test-support-in-production/rule-ban-test-support-in-production-broker';
 import { ruleBanJoinIdBesideChildBroker } from '../../../brokers/rule/ban-join-id-beside-child/rule-ban-join-id-beside-child-broker';
@@ -236,6 +237,9 @@ export const EslintPluginCreateResponder = (): {
     readonly 'require-object-contract-brands': ReturnType<
       typeof ruleRequireObjectContractBrandsBroker
     >;
+    readonly 'require-object-contract-brands-indexed': ReturnType<
+      typeof ruleRequireObjectContractBrandsIndexedBroker
+    >;
     readonly 'ban-type-aliases': ReturnType<typeof ruleBanTypeAliasesBroker>;
     readonly 'ban-test-support-in-production': ReturnType<
       typeof ruleBanTestSupportInProductionBroker
@@ -337,6 +341,7 @@ export const EslintPluginCreateResponder = (): {
       'enforce-gateway-schema-fields': ruleEnforceGatewaySchemaFieldsBroker(),
       'ban-contract-type-predicates': ruleBanContractTypePredicatesBroker(),
       'require-object-contract-brands': ruleRequireObjectContractBrandsBroker(),
+      'require-object-contract-brands-indexed': ruleRequireObjectContractBrandsIndexedBroker(),
       'ban-type-aliases': ruleBanTypeAliasesBroker(),
       'ban-test-support-in-production': ruleBanTestSupportInProductionBroker(),
       'ban-join-id-beside-child': ruleBanJoinIdBesideChildBroker(),

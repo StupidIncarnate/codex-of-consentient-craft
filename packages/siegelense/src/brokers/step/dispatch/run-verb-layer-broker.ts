@@ -24,10 +24,6 @@
 
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import {
-  seedBindingNameContract,
-  type SeedBindingName,
-} from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
@@ -71,13 +67,13 @@ export const runVerbLayerBroker = async ({
   index: number;
   shotPath: string | null;
   browserWindowStart: BufferLengths | null;
-  recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
+  recordBinding: (params: { name: string; result: unknown }) => void;
 }): Promise<string> => {
   if (step.step === 'seed') {
     const reading = await stepSeedBroker({ lane, step });
     if (step.as !== null) {
       recordBinding({
-        name: seedBindingNameContract.parse(step.as),
+        name: step.as,
         result: seedResultContract.parse(JSON.parse(reading)),
       });
     }

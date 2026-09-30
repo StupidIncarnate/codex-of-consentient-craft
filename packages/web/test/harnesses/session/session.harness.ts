@@ -15,7 +15,6 @@ import {
   dmTargetContract,
   sessionFieldsContract,
   subagentFieldsContract,
-  toolUseIdContract,
 } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import {
@@ -34,6 +33,7 @@ import {
   TaskNotificationUserTextStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
+import type { ToolUseBlockParam } from '@dungeonmaster/shared/contracts';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 import { getEnv } from '#gateway/node/process';
@@ -194,7 +194,7 @@ export const sessionHarness = ({
     userMessage: string;
     taskDescription: string;
     subagentToolName: string;
-    subagentToolInput: Record<string, unknown>;
+    subagentToolInput: ToolUseBlockParam['input'];
     subagentToolResult: string;
   }) => Promise<void>;
   createBackgroundAgentSession: (params: {
@@ -737,7 +737,7 @@ export const sessionHarness = ({
     userMessage: string;
     taskDescription: string;
     subagentToolName: string;
-    subagentToolInput: Record<string, unknown>;
+    subagentToolInput: ToolUseBlockParam['input'];
     subagentToolResult: string;
   }): Promise<void> => {
     const mainLines = [
@@ -1103,7 +1103,7 @@ export const sessionHarness = ({
       cwd: guildPath,
       sessionId,
       agentId,
-      toolUseId: toolUseIdContract.parse(`toolu_tail_${agentId}`),
+      toolUseId: `toolu_tail_${agentId}`,
       taskDescription: 'Sub-agent tail only',
       taskPrompt: 'Tail-only fixture',
       lines: subagentLines,
@@ -1124,7 +1124,7 @@ export const sessionHarness = ({
       cwd: guildPath,
       sessionId,
       agentId,
-      toolUseId: toolUseIdContract.parse(`toolu_tail_${agentId}`),
+      toolUseId: `toolu_tail_${agentId}`,
       taskDescription: 'Sub-agent tail only',
       taskPrompt: 'Tail-only fixture',
       lines,

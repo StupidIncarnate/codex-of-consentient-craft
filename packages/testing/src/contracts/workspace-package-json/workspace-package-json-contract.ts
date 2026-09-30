@@ -40,7 +40,7 @@ const workspacePackageExportEntryContract = z
 // so without this union `workspacePackageJsonReadMiddleware` returns null for a real, valid
 // package.json, and `nearestPackageJsonFindMiddleware` climbs straight past it looking for another.
 const workspacePackageExportValueContract = z.union([
-  z.string().brand<'WorkspacePackageJsonExports'>(),
+  z.string(),
   workspacePackageExportEntryContract,
 ]);
 

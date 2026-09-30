@@ -290,7 +290,7 @@ export const ExecutionRowLayerWidget = ({
                 backgroundColor: colors['bg-raised'],
                 position: 'sticky' as const,
                 top: STICKY_TOP_ROOT,
-                zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop: STICKY_TOP_ROOT })),
+                zIndex: stickyHeaderZIndexTransformer({ stickyTop: STICKY_TOP_ROOT }),
                 height: stickyHeaderStatics.heights.executionRow,
                 boxSizing: 'border-box' as const,
               }

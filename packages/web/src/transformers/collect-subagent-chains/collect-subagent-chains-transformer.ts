@@ -18,8 +18,6 @@ import { computeEntryContextTransformer } from '../compute-entry-context/compute
 import { extractTaskDescriptionTransformer } from '../extract-task-description/extract-task-description-transformer';
 import { indexSubagentEntriesTransformer } from '../index-subagent-entries/index-subagent-entries-transformer';
 
-type ChainAgentId = SubagentChainGroup['agentId'];
-
 export const collectSubagentChainsTransformer = ({
   entries,
 }: {
@@ -28,7 +26,7 @@ export const collectSubagentChainsTransformer = ({
   const subagentMap = indexSubagentEntriesTransformer({ entries });
   const consumed = new Set<ChatEntry>();
   const groups: ChatEntryGroup[] = [];
-  const chainsByAgentId = new Map<ChainAgentId, SubagentChainGroup>();
+  const chainsByAgentId = new Map<string, SubagentChainGroup>();
   // Where each entry sits in the transcript. A nested chain is inserted at the position of the Task
   // line that launched it, so it lands between the parent's own lines rather than after all of them.
   // Built by inference rather than an explicit `Map<ChatEntry, number>` so no branded index contract
@@ -42,9 +40,7 @@ export const collectSubagentChainsTransformer = ({
     }
 
     if (isTaskToolUseGuard({ entry })) {
-      const agentId = (
-        'agentId' in entry && entry.agentId !== undefined ? String(entry.agentId) : ''
-      ) as ChainAgentId;
+      const agentId = 'agentId' in entry ? entry.agentId : undefined;
 
       // Two independent delivery paths (a live JSONL tail's from-byte-0 first attach, and the
       // independent subscribe-time replay) can hand this transformer the SAME Task tool-use line as
@@ -53,14 +49,14 @@ export const collectSubagentChainsTransformer = ({
       // the first, not a second invocation. agentId IS the toolUseId (the wire key this transformer
       // groups on), so chainsByAgentId already answers "have we built this chain" for free. Skip the
       // duplicate outright so exactly one subagent-chain group exists per toolUseId whatever the
-      // delivery path does. Empty agentId (malformed data with no toolUseId to key on) has no
+      // delivery path does. A missing agentId (malformed data with no toolUseId to key on) has no
       // reliable identity to dedupe against, so it is exempt and always gets its own chain.
-      if (agentId !== '' && chainsByAgentId.has(agentId)) {
+      if (agentId !== undefined && chainsByAgentId.has(agentId)) {
         consumed.add(entry);
         continue;
       }
 
-      const fullBucket = subagentMap.get(agentId) ?? [];
+      const fullBucket = agentId === undefined ? [] : (subagentMap.get(agentId) ?? []);
       const subagentEntries = fullBucket.filter((e) => e !== entry);
 
       for (const subEntry of fullBucket) {
@@ -155,7 +151,8 @@ export const collectSubagentChainsTransformer = ({
 
       const chain = {
         kind: 'subagent-chain' as const,
-        agentId,
+        // A Task line with no toolUseId has no agent to name, so its chain carries no agentId.
+        ...(agentId === undefined ? {} : { agentId }),
         description,
         taskToolUse: entry,
         innerGroups,
@@ -165,15 +162,16 @@ export const collectSubagentChainsTransformer = ({
         contextTokens,
       } as SubagentChainGroup;
 
-      chainsByAgentId.set(agentId, chain);
+      if (agentId !== undefined) {
+        chainsByAgentId.set(agentId, chain);
+      }
 
       const parentKey =
         'parentAgentId' in entry && entry.parentAgentId !== undefined
           ? String(entry.parentAgentId)
           : '';
 
-      const parentChain =
-        parentKey === '' ? undefined : chainsByAgentId.get(parentKey as ChainAgentId);
+      const parentChain = parentKey === '' ? undefined : chainsByAgentId.get(parentKey);
 
       if (parentChain === undefined) {
         // A subagent map entry can be buffered here before its owning Task line is reached (the

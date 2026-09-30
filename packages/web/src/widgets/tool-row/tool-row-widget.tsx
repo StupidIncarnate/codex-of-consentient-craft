@@ -180,7 +180,7 @@ export const ToolRowWidget = ({
           // once open: without it the detail scrolling underneath reads through the pinned bar.
           position: 'sticky',
           top: stickyTop,
-          zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop })),
+          zIndex: stickyHeaderZIndexTransformer({ stickyTop }),
           height: stickyHeaderStatics.heights.toolRow,
           boxSizing: 'border-box',
           backgroundColor: colors['bg-raised'],

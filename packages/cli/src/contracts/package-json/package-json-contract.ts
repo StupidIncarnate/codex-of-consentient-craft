@@ -9,12 +9,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-const packageJsonKeyContract = z.string().brand<'PackageJsonKey'>();
-
 export const packageJsonContract = z
   .object({
     devDependencies: z
-      .record(packageJsonKeyContract, z.string().brand<'PackageJsonDevDependencies'>())
+      .record(z.string(), z.string().brand<'PackageJsonDevDependencies'>())
       .optional(),
     workspaces: z.array(z.string().brand<'PackageJsonWorkspaces'>()).optional(),
   })

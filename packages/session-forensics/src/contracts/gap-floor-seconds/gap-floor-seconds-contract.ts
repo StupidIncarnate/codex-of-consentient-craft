@@ -7,14 +7,10 @@
  *
  * USAGE:
  * gapFloorSecondsContract.parse('30');
- * // Returns: 30 as GapFloorSeconds
+ * // Returns: 30
  */
 import { z } from '#gateway/npm/zod';
 
-export const gapFloorSecondsContract = z.coerce
-  .number()
-  .int()
-  .positive()
-  .brand<'GapFloorSeconds'>();
+export const gapFloorSecondsContract = z.coerce.number().int().positive();
 
 export type GapFloorSeconds = z.infer<typeof gapFloorSecondsContract>;

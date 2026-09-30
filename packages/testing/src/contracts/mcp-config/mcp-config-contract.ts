@@ -11,7 +11,7 @@ import { z } from '#gateway/npm/zod';
 
 export const mcpConfigContract = z
   .object({
-    mcpServers: z.record(z.string(), z.unknown()).optional(),
+    mcpServers: z.record(z.string(), z.json()).optional(),
   })
   .loose()
   .brand<'McpConfig'>();

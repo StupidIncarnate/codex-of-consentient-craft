@@ -1,6 +1,7 @@
 import { locationsClaudeSessionFilePathFindBroker } from './locations-claude-session-file-path-find-broker';
 import { locationsClaudeSessionFilePathFindBrokerProxy } from './locations-claude-session-file-path-find-broker.proxy';
 import { SessionIdStub } from '../../../contracts/session-id/session-id.stub';
+import { GuildStub } from '../../../contracts/guild/guild.stub';
 
 describe('locationsClaudeSessionFilePathFindBroker', () => {
   describe('session file path resolution', () => {
@@ -10,7 +11,7 @@ describe('locationsClaudeSessionFilePathFindBroker', () => {
       proxy.setupSessionFilePath({ userHome: '/home/user' });
 
       const result = locationsClaudeSessionFilePathFindBroker({
-        guildPath: '/home/user/my-project',
+        guildPath: GuildStub({ path: '/home/user/my-project' }).path,
         sessionId: SessionIdStub({ value: 'abc-123' }),
       });
 

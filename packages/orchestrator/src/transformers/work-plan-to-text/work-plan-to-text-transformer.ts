@@ -75,12 +75,12 @@ export const workPlanToTextTransformer = ({
       : 'Each piece below runs only once the one above it has drained.',
     '',
     ...batch.pieces.flatMap((piece) => [
-      `### ${String(piece.id)} — step \`${String(piece.step)}\``,
+      `### ${piece.id} — step \`${String(piece.step)}\``,
       String(piece.context),
       ...(piece.recipeId === undefined ? [] : [`Recipe: \`${String(piece.recipeId)}\``]),
       ...(piece.baselineFor === undefined
         ? []
-        : [`Baseline: measures against piece \`${String(piece.baselineFor)}\``]),
+        : [`Baseline: measures against piece \`${piece.baselineFor}\``]),
       ...piece.notes.map((note) => `- note: ${String(note)}`),
       '',
       ...(piece.assignedUnitIds.length === 0
@@ -106,7 +106,7 @@ export const workPlanToTextTransformer = ({
   // piece claims it, so the hole a planner most needs to see is the one row that says so.
   const coverageRows = inScopeUnits.map((unit) => {
     const claims = claimedBy.get(unit.unitId) ?? [];
-    const claimText = claims.map((pieceId) => `\`${String(pieceId)}\``).join(', ');
+    const claimText = claims.map((pieceId) => `\`${pieceId}\``).join(', ');
     const unclaimedText = plannerMarked.has(unit.unitId)
       ? 'planner recorded it as `cant-meet`'
       : UNCLAIMED;

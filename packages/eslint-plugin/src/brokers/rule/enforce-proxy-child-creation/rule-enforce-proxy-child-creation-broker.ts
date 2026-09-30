@@ -52,6 +52,7 @@ import { barrelWrapperPathsReadBroker } from '../../barrel-wrapper-paths/read/ba
 import { packageRootSourcePathTransformer } from '../../../transformers/package-root-source-path/package-root-source-path-transformer';
 import { workspaceFolderBarrelProxyPathTransformer } from '../../../transformers/workspace-folder-barrel-proxy-path/workspace-folder-barrel-proxy-path-transformer';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -187,11 +188,15 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     // and a published consumer's own `@acme/orders` both resolve through this one call; a repo with no
     // discoverable workspace root yields undefined, and every bare-root check below then safely skips
     // rather than matching nothing or matching the wrong scope.
+    const workspaceRootName = filename
+      ? workspaceRootFindBroker({ startDir: dirname(filename) })?.rootPackageJsonName
+      : undefined;
     const workspaceScope = filename
       ? workspaceScopeFromRootNameTransformer({
-          rootPackageJsonName: workspaceRootFindBroker({
-            startDir: dirname(filename),
-          })?.rootPackageJsonName,
+          rootPackageJsonName:
+            workspaceRootName === undefined
+              ? undefined
+              : packageJsonContract.parse({ name: workspaceRootName }).name,
         })
       : undefined;
 

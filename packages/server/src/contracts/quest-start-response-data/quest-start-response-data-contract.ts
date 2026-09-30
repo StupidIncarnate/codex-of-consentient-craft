@@ -13,7 +13,9 @@ export const questStartResponseDataContract = z
     processId: z.string(),
     dispatch: z.union([
       z.strictObject({ started: z.boolean() }).brand<'QuestStartResponseDataDispatch'>(),
-      z.strictObject({ started: z.boolean(), reason: z.string() }).brand<'QuestStartResponseDataDispatch'>(),
+      z
+        .strictObject({ started: z.boolean(), reason: z.string() })
+        .brand<'QuestStartResponseDataDispatch'>(),
     ]),
   })
   .brand<'QuestStartResponseData'>();

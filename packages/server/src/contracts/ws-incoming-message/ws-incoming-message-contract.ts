@@ -7,7 +7,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, guildContract, sessionContract, wardResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  guildContract,
+  sessionContract,
+  wardResultContract,
+} from '@dungeonmaster/shared/contracts';
 
 export const wsIncomingMessageContract = z.discriminatedUnion('type', [
   z

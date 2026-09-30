@@ -216,7 +216,9 @@ export const planPreflightBroker = ({
             typeof op.transition.to === 'string'
               ? op.transition.to
               : JSON.stringify(op.transition.to),
-          reachableStates: transitionSpec.to.map((state) => String(state)),
+          reachableStates: transitionSpec.to.map((state) =>
+            typeof state === 'string' ? state : JSON.stringify(state),
+          ),
         });
       }
     }

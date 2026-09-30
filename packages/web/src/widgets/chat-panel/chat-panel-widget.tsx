@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from '#gateway/npm/react';
 
 import type { ChatEntry, PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -50,9 +49,7 @@ const RACCOON_SCALE = 8;
 const BOUNCE_UP = raccoonAnimationConfigStatics.bounceOffsetPx;
 const BOUNCE_REST = raccoonAnimationConfigStatics.bounceRestPx;
 
-const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
-  pixelCoordinateContract.parse(p),
-);
+const raccoonPixels = raccoonWizardPixelsStatics.pixels;
 
 const CHAT_MESSAGES_AREA_TEST_ID = 'CHAT_MESSAGES_AREA';
 const CHAT_INSET = 16;

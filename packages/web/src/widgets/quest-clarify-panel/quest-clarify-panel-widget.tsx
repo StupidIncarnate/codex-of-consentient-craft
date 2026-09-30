@@ -13,7 +13,6 @@ import { useState } from '#gateway/npm/react';
 import { Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { AskUserQuestionItem, AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -116,7 +115,7 @@ export const QuestClarifyPanelWidget = ({
                 autoFocus={true}
               />
               <PixelBtnWidget
-                label={'Send' as ButtonLabel}
+                label={'Send'}
                 onClick={(): void => {
                   if (freeformValue.length > 0 && currentQuestion) {
                     const freeLabel = freeformValue as unknown as AskUserQuestionOption['label'];

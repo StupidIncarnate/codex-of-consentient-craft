@@ -2,6 +2,7 @@ import { locationsClaudeSubagentSessionFilePathFindBroker } from './locations-cl
 import { locationsClaudeSubagentSessionFilePathFindBrokerProxy } from './locations-claude-subagent-session-file-path-find-broker.proxy';
 import { SessionIdStub } from '../../../contracts/session-id/session-id.stub';
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
+import { GuildStub } from '../../../contracts/guild/guild.stub';
 
 describe('locationsClaudeSubagentSessionFilePathFindBroker', () => {
   describe('subagent session file path resolution', () => {
@@ -11,7 +12,7 @@ describe('locationsClaudeSubagentSessionFilePathFindBroker', () => {
       proxy.setupSubagentSessionFilePath({ userHome: '/home/user' });
 
       const result = locationsClaudeSubagentSessionFilePathFindBroker({
-        guildPath: '/home/user/my-project',
+        guildPath: GuildStub({ path: '/home/user/my-project' }).path,
         sessionId: SessionIdStub({ value: 'abc-123' }),
         agentId: AgentIdStub({ value: 'xyz' }),
       });

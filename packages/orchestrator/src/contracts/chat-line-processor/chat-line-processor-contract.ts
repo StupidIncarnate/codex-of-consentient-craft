@@ -25,7 +25,6 @@
 
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';
 import type { ChatLineSource } from '../chat-line-source/chat-line-source-contract';
-import type { ToolUseId } from '../tool-use-id/tool-use-id-contract';
 import type { Agent } from '@dungeonmaster/shared/contracts';
 
 export interface ChatLineProcessor {
@@ -44,7 +43,7 @@ export interface ChatLineProcessor {
   // Populated as the processor sees user tool_result lines. Used by replay + subagent-tail
   // paths to translate sub-agent lines (which only carry the real agentId) into the same
   // `parent_tool_use_id` wire shape that streaming emits natively.
-  resolveToolUseIdForAgent: ({ agentId }: { agentId: Agent['id'] }) => ToolUseId | undefined;
+  resolveToolUseIdForAgent: ({ agentId }: { agentId: Agent['id'] }) => string | undefined;
 
   // Pre-seed the realAgentId→toolUseId map before processing lines. Used by the replay
   // path which does a two-pass scan: first pass registers every translation it finds in
@@ -56,7 +55,7 @@ export interface ChatLineProcessor {
     toolUseId,
   }: {
     agentId: Agent['id'];
-    toolUseId: ToolUseId;
+    toolUseId: string;
   }) => void;
 
   // Register the parent-chain link for a nested sub-agent: the child sub-agent's chain key
@@ -67,7 +66,7 @@ export interface ChatLineProcessor {
     childToolUseId,
     parentAgentId,
   }: {
-    childToolUseId: ToolUseId;
+    childToolUseId: string;
     parentAgentId: Agent['id'];
   }) => void;
 

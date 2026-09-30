@@ -7,7 +7,7 @@
  */
 import { cwd as processCwd, stdout } from '#gateway/node/process';
 import { duplicateDetectionDetectBroker } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
-import { occurrenceThresholdContract } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
+import { duplicateDetectionArgsContract } from '../../../contracts/duplicate-detection-args/duplicate-detection-args-contract';
 import { duplicateDetectionStatics } from '../../../statics/duplicate-detection/duplicate-detection-statics';
 
 const DECIMAL_BASE = 10;
@@ -24,14 +24,14 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
 
   const pattern = (patternArg ? patternArg.split('=')[1] : undefined) ?? '**/*.ts';
   const cwd = cwdArg ? (cwdArg.split('=')[1] ?? '') : processCwd();
-  const threshold = occurrenceThresholdContract.parse(
-    thresholdArg
+  const { threshold } = duplicateDetectionArgsContract.parse({
+    threshold: thresholdArg
       ? parseInt(
           thresholdArg.split('=')[1] ?? String(duplicateDetectionStatics.defaults.threshold),
           DECIMAL_BASE,
         )
       : duplicateDetectionStatics.defaults.threshold,
-  );
+  });
   const minLength = minLengthArg
     ? parseInt(
         minLengthArg.split('=')[1] ?? String(duplicateDetectionStatics.defaults.minLength),

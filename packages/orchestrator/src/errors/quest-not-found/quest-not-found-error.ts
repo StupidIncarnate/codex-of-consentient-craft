@@ -9,9 +9,8 @@
  * to distinguish a gone-quest from other load failures.
  * WHEN-NOT-TO-USE: For per-call validation failures or transient I/O errors — those should remain plain Errors.
  */
-import type { Quest } from '@dungeonmaster/shared/contracts';
 export class QuestNotFoundError extends Error {
-  public constructor({ questId }: { questId: Quest['id'] }) {
+  public constructor({ questId }: { questId: string }) {
     super(`Quest with id "${questId}" not found in any guild`);
     this.name = 'QuestNotFoundError';
   }

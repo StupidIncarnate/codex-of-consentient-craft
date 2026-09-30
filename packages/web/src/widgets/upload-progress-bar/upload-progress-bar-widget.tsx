@@ -4,18 +4,17 @@
  * widget a percent to paint — this file owns only the drawing, never when the bar is shown or hidden.
  *
  * USAGE:
- * <UploadProgressBarWidget percent={uploadPercentContract.parse(37)} />
+ * <UploadProgressBarWidget percent={37} />
  * // Renders a filled bar at 37%, with the composer's upload testid on the wrapping element
  */
 
 import { Progress } from '#gateway/npm/mantine__core';
 
-import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface UploadProgressBarWidgetProps {
-  percent: UploadPercent;
+  percent: number;
 }
 
 export const UploadProgressBarWidget = ({

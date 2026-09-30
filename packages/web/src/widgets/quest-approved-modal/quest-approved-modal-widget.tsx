@@ -12,13 +12,12 @@
 
 import { Modal, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
-const KEEP_CHATTING_LABEL = 'Keep Chatting' as ButtonLabel;
-const BEGIN_QUEST_LABEL = 'Begin Quest' as ButtonLabel;
+const KEEP_CHATTING_LABEL = 'Keep Chatting';
+const BEGIN_QUEST_LABEL = 'Begin Quest';
 const GHOST_VARIANT = 'ghost' as ButtonVariant;
 
 export interface QuestApprovedModalWidgetProps {

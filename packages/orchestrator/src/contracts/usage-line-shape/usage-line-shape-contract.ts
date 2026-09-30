@@ -12,8 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-const rawTokenCountContract = z.number().int().min(0).brand<'TokenCount'>();
-
 export const usageLineShapeContract = z
   .object({
     timestamp: z.string().min(1).brand<'UsageLineShapeTimestamp'>(),
@@ -24,10 +22,30 @@ export const usageLineShapeContract = z
         // assistant turn that happened to spend nothing measurable.
         usage: z
           .object({
-            input_tokens: rawTokenCountContract.nullish(),
-            cache_creation_input_tokens: rawTokenCountContract.nullish(),
-            cache_read_input_tokens: rawTokenCountContract.nullish(),
-            output_tokens: rawTokenCountContract.nullish(),
+            input_tokens: z
+              .number()
+              .int()
+              .min(0)
+              .brand<'UsageLineShapeMessageUsageInputTokens'>()
+              .nullish(),
+            cache_creation_input_tokens: z
+              .number()
+              .int()
+              .min(0)
+              .brand<'UsageLineShapeMessageUsageCacheCreationInputTokens'>()
+              .nullish(),
+            cache_read_input_tokens: z
+              .number()
+              .int()
+              .min(0)
+              .brand<'UsageLineShapeMessageUsageCacheReadInputTokens'>()
+              .nullish(),
+            output_tokens: z
+              .number()
+              .int()
+              .min(0)
+              .brand<'UsageLineShapeMessageUsageOutputTokens'>()
+              .nullish(),
           })
           .brand<'UsageLineShapeMessageUsage'>(),
       })

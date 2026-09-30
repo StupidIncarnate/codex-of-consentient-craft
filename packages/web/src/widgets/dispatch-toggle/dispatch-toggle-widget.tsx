@@ -20,12 +20,11 @@ import { consoleError } from '#gateway/browser/console';
 import { useDispatchStateBinding } from '../../bindings/use-dispatch-state/use-dispatch-state-binding';
 import { orchestrationDispatchPauseBroker } from '../../brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker';
 import { orchestrationDispatchPlayBroker } from '../../brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker';
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import { DispatchHoldNoticeWidget } from '../dispatch-hold-notice/dispatch-hold-notice-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
-const PLAY_LABEL = 'PLAY' as ButtonLabel;
-const PAUSE_LABEL = 'PAUSE' as ButtonLabel;
+const PLAY_LABEL = 'PLAY';
+const PAUSE_LABEL = 'PAUSE';
 
 export const DispatchToggleWidget = (): React.JSX.Element | null => {
   const { state, isLoading } = useDispatchStateBinding();

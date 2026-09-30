@@ -31,8 +31,6 @@ export type HttpRequestFn = (args: {
   body?: unknown;
 }) => Promise<unknown>;
 
-const urlContract = z.url().brand<'Url'>();
-
 const httpRequestFnContract = z.custom<HttpRequestFn>((value) => typeof value === 'function', {
   message: 'Expected a request function',
 });
@@ -71,7 +69,7 @@ export const dmTargetContract = z
         { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
       )
       .brand<'DmTargetClaudeHome'>(),
-    baseUrl: urlContract.optional(),
+    baseUrl: z.url().brand<'DmTargetBaseUrl'>().optional(),
     request: httpRequestFnContract.optional(),
   })
   .refine((target) => target.request === undefined || target.baseUrl !== undefined, {

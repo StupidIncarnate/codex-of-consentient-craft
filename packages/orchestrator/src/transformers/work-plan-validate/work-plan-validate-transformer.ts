@@ -90,15 +90,13 @@ export const workPlanValidateTransformer = ({
 
   // Check 2: every piece.id is unique within the file.
   allPieces.forEach(({ piece }) => {
-    const sharers = allPieces.filter(
-      (candidate) => String(candidate.piece.id) === String(piece.id),
-    );
+    const sharers = allPieces.filter((candidate) => candidate.piece.id === piece.id);
     if (sharers.length > 1) {
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
           check: numbers.duplicatePieceId,
-          message: `piece id '${String(piece.id)}' is used by two pieces in this plan — piece ids must be unique within the file`,
+          message: `piece id '${piece.id}' is used by two pieces in this plan — piece ids must be unique within the file`,
         }),
       );
     }
@@ -112,7 +110,7 @@ export const workPlanValidateTransformer = ({
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
           check: numbers.unknownStep,
-          message: `${String(piece.id)}: step '${String(piece.step)}' does not exist in the ${parsedPlan.family} step graph`,
+          message: `${piece.id}: step '${String(piece.step)}' does not exist in the ${parsedPlan.family} step graph`,
         }),
       );
     }
@@ -134,7 +132,7 @@ export const workPlanValidateTransformer = ({
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
             check: numbers.unresolvedUnit,
-            message: `${String(piece.id)}: ${field} names '${String(unitId)}', which is not a unit on flow '${String(unitId).split(':')[0]}'`,
+            message: `${piece.id}: ${field} names '${String(unitId)}', which is not a unit on flow '${String(unitId).split(':')[0]}'`,
           }),
         );
       }
@@ -175,7 +173,7 @@ export const workPlanValidateTransformer = ({
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
             check: numbers.outOfScopeAssignedUnit,
-            message: `${String(piece.id)}: assigned unit '${String(unitId)}' is not in scope for operation item '${String(parsedPlan.operationItemId)}'`,
+            message: `${piece.id}: assigned unit '${String(unitId)}' is not in scope for operation item '${String(parsedPlan.operationItemId)}'`,
           }),
         );
       }
@@ -192,7 +190,7 @@ export const workPlanValidateTransformer = ({
         .filter((claim) => String(claim.unitId) === String(unitId))
         .map((claim) => claim.piece);
       if (claimantPieces.length > 1) {
-        const names = claimantPieces.map((claimant) => String(claimant.id)).join(' and ');
+        const names = claimantPieces.map((claimant) => claimant.id).join(' and ');
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
@@ -256,7 +254,7 @@ export const workPlanValidateTransformer = ({
             workPlanValidationFailureContract.parse({
               pieceId: piece.id,
               check: numbers.fileOutsideOwnedPackage,
-              message: `${String(piece.id)}: payload.files[].path '${String(file.path)}' is outside the packages this operation item owns (${parsedPlan.packageNames.map((name) => String(name)).join(', ')})`,
+              message: `${piece.id}: payload.files[].path '${String(file.path)}' is outside the packages this operation item owns (${parsedPlan.packageNames.map((name) => String(name)).join(', ')})`,
             }),
           );
         }
@@ -298,7 +296,7 @@ export const workPlanValidateTransformer = ({
             workPlanValidationFailureContract.parse({
               pieceId: piece.id,
               check: numbers.observableTargetMismatch,
-              message: `${String(piece.id)}: observableTarget for unit '${String(unit.unitId)}' does not resolve to the node or edge that unit actually hangs on`,
+              message: `${piece.id}: observableTarget for unit '${String(unit.unitId)}' does not resolve to the node or edge that unit actually hangs on`,
             }),
           );
         }
@@ -348,7 +346,7 @@ export const workPlanValidateTransformer = ({
         return;
       }
       const sharers = allPieces.filter(({ piece: candidate }) => {
-        if (String(candidate.id) === String(piece.id)) {
+        if (candidate.id === piece.id) {
           return false;
         }
         const candidatePayload = workPlanPayloadSiegemasterContract.parse(candidate.payload);
@@ -356,7 +354,7 @@ export const workPlanValidateTransformer = ({
       });
       if (sharers.length > 0) {
         const names = [piece, ...sharers.map((sharer) => sharer.piece)]
-          .map((claimant) => String(claimant.id))
+          .map((claimant) => claimant.id)
           .join(', ');
         failures.push(
           workPlanValidationFailureContract.parse({
@@ -402,11 +400,11 @@ export const workPlanValidateTransformer = ({
       (claim) => `${claim.batchIndex}\u0000${claim.path}` === key,
     );
     const uniqueClaimantPieces = [
-      ...new Map(claimants.map((claim) => [String(claim.piece.id), claim.piece])).values(),
+      ...new Map(claimants.map((claim) => [claim.piece.id, claim.piece])).values(),
     ];
     if (uniqueClaimantPieces.length > 1) {
       const path = claimants[0]?.path ?? '';
-      const names = uniqueClaimantPieces.map((claimant) => String(claimant.id)).join(' and ');
+      const names = uniqueClaimantPieces.map((claimant) => claimant.id).join(' and ');
       uniqueClaimantPieces.forEach((piece) => {
         failures.push(
           workPlanValidationFailureContract.parse({
@@ -448,7 +446,7 @@ export const workPlanValidateTransformer = ({
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
           check: numbers.adversarialBaseline,
-          message: `${String(piece.id)}: baselineFor '${String(piece.baselineFor)}' does not resolve to any piece in this plan`,
+          message: `${piece.id}: baselineFor '${piece.baselineFor}' does not resolve to any piece in this plan`,
         }),
       );
       return;
@@ -458,7 +456,7 @@ export const workPlanValidateTransformer = ({
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
           check: numbers.adversarialBaseline,
-          message: `${String(piece.id)}: baselineFor '${String(piece.baselineFor)}' resolves to a piece in ${
+          message: `${piece.id}: baselineFor '${piece.baselineFor}' resolves to a piece in ${
             baselineBatchIndex === batchIndex ? 'the SAME' : 'a LATER'
           } batch, not an earlier one`,
         }),
@@ -500,7 +498,7 @@ export const workPlanValidateTransformer = ({
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
           check: numbers.recipeNotRecorded,
-          message: `${String(piece.id)}: recipeId '${String(piece.recipeId)}' is not recorded on flow '${
+          message: `${piece.id}: recipeId '${String(piece.recipeId)}' is not recorded on flow '${
             flow === undefined ? String(parsedPlan.flowId) : String(flow.id)
           }'`,
         }),

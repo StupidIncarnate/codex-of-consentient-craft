@@ -18,7 +18,6 @@
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
 
-import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import { SnapshotIndexUnreadableError } from '../../../errors/snapshot-index-unreadable/snapshot-index-unreadable-error';
@@ -35,7 +34,7 @@ export const snapshotIndexReadBroker = async ({
   // ignores what comes back for it.
   const { index } = locationsSnapshotPathsFindBroker({
     homePath,
-    ordinal: snapshotOrdinalContract.parse(snapshotStatics.numbering.firstPayload),
+    ordinal: snapshotStatics.numbering.firstPayload,
   });
 
   // `statIfExists` answers null for ENOENT rather than throwing, which is exactly the "no captures

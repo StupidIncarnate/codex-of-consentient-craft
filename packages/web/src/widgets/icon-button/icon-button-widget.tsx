@@ -13,7 +13,6 @@
 import { ActionIcon } from '#gateway/npm/mantine__core';
 import type { TablerIcon } from '#gateway/npm/tabler__icons-react';
 
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import type { IconButtonSize } from '../../contracts/icon-button-size/icon-button-size-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -25,7 +24,7 @@ const DISABLED_OPACITY = 0.4;
 
 export interface IconButtonWidgetProps {
   /** Accessible name — an icon-only control has no text to announce itself with. */
-  label: ButtonLabel;
+  label: string;
   /** The glyph component itself, not an element: this widget sizes it from `size`. */
   icon: TablerIcon;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -72,7 +71,7 @@ export const IconButtonWidget = ({
 
   return (
     <ActionIcon
-      aria-label={String(label)}
+      aria-label={label}
       data-testid={testId}
       // Spread rather than passed: under exactOptionalPropertyTypes an explicit `undefined` is not
       // the same as an absent prop, and every one of these is absent at most call sites.

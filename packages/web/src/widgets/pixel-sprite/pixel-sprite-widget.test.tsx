@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { PixelCoordinateStub } from '../../contracts/pixel-coordinate/pixel-coordinate.stub';
 import { PixelSpriteWidget } from './pixel-sprite-widget';
 import { PixelSpriteWidgetProxy } from './pixel-sprite-widget.proxy';
 
@@ -10,7 +9,7 @@ describe('PixelSpriteWidget', () => {
     it('VALID: {single pixel} => renders div with box-shadow', () => {
       PixelSpriteWidgetProxy();
 
-      const pixels = [PixelCoordinateStub({ value: '2 3 #ff4500' })] as const;
+      const pixels = ['2 3 #ff4500'] as const;
       const scale = 4;
       const width = 8;
       const height = 20;
@@ -33,10 +32,7 @@ describe('PixelSpriteWidget', () => {
     it('VALID: {multiple pixels} => renders comma-separated box-shadows', () => {
       PixelSpriteWidgetProxy();
 
-      const pixels = [
-        PixelCoordinateStub({ value: '0 0 #ff0000' }),
-        PixelCoordinateStub({ value: '1 1 #00ff00' }),
-      ] as const;
+      const pixels = ['0 0 #ff0000', '1 1 #00ff00'] as const;
       const scale = 2;
       const width = 4;
       const height = 4;
@@ -53,7 +49,7 @@ describe('PixelSpriteWidget', () => {
     it('VALID: {flip: true} => mirrors x coordinates', () => {
       PixelSpriteWidgetProxy();
 
-      const pixels = [PixelCoordinateStub({ value: '2 0 #ff4500' })] as const;
+      const pixels = ['2 0 #ff4500'] as const;
       const scale = 4;
       const width = 8;
       const height = 20;
@@ -75,7 +71,7 @@ describe('PixelSpriteWidget', () => {
     it('VALID: {flip: false} => uses normal margins', () => {
       PixelSpriteWidgetProxy();
 
-      const pixels = [PixelCoordinateStub({ value: '0 0 #ff4500' })] as const;
+      const pixels = ['0 0 #ff4500'] as const;
       const scale = 4;
       const width = 8;
       const height = 20;
@@ -98,7 +94,7 @@ describe('PixelSpriteWidget', () => {
     it('VALID: {flip: true} => uses flipped margins', () => {
       PixelSpriteWidgetProxy();
 
-      const pixels = [PixelCoordinateStub({ value: '0 0 #ff4500' })] as const;
+      const pixels = ['0 0 #ff4500'] as const;
       const scale = 4;
       const width = 8;
       const height = 20;
@@ -115,7 +111,7 @@ describe('PixelSpriteWidget', () => {
     it('EMPTY: {pixels: []} => renders div with empty box-shadow', () => {
       PixelSpriteWidgetProxy();
 
-      const pixels: readonly ReturnType<typeof PixelCoordinateStub>[] = [];
+      const pixels: readonly string[] = [];
       const scale = 4;
       const width = 8;
       const height = 20;

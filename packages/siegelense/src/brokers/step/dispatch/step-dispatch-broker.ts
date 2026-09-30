@@ -63,7 +63,6 @@ import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-len
 import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
@@ -94,7 +93,7 @@ export const stepDispatchBroker = async ({
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;
-  recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
+  recordBinding: (params: { name: string; result: unknown }) => void;
 }): Promise<StepReading> => {
   const verb = stepVerbContract.parse(step.step);
 

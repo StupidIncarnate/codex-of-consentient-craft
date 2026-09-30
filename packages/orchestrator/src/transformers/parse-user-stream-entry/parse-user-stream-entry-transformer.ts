@@ -56,9 +56,7 @@ export const parseUserStreamEntryTransformer = ({
     rawSource === 'session' || rawSource === 'subagent' ? rawSource : undefined;
   const rawAgentId = line.agentId;
   const validAgentId =
-    typeof rawAgentId === 'string' && String(rawAgentId).length > 0
-      ? String(rawAgentId)
-      : undefined;
+    typeof rawAgentId === 'string' && String(rawAgentId).length > 0 ? rawAgentId : undefined;
 
   // If the orchestrator already parsed <task-notification> XML on the server side, it attaches
   // the structured fields as `taskNotification` on the line. Build the task_notification

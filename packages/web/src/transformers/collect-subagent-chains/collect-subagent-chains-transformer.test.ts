@@ -439,7 +439,7 @@ describe('collectSubagentChainsTransformer', () => {
       ]);
     });
 
-    it('EDGE: {Task tool_use without agentId} => still creates chain with empty agentId and empty innerGroups', () => {
+    it('EDGE: {Task tool_use without agentId} => still creates chain with no agentId and empty innerGroups', () => {
       const taskToolUse = TaskToolUseChatEntryStub();
 
       const result = collectSubagentChainsTransformer({ entries: [taskToolUse] });
@@ -447,7 +447,6 @@ describe('collectSubagentChainsTransformer', () => {
       expect(result).toStrictEqual([
         {
           kind: 'subagent-chain',
-          agentId: '',
           description: 'Run tests',
           taskToolUse,
           innerGroups: [],
@@ -469,7 +468,6 @@ describe('collectSubagentChainsTransformer', () => {
       expect(result).toStrictEqual([
         {
           kind: 'subagent-chain',
-          agentId: '',
           description: 'Explore codebase',
           taskToolUse: agentToolUse,
           innerGroups: [],

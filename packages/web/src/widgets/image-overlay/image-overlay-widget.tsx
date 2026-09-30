@@ -14,12 +14,11 @@
 import { Modal } from '#gateway/npm/mantine__core';
 import { IconX } from '#gateway/npm/tabler__icons-react';
 
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
-const CLOSE_LABEL = buttonLabelContract.parse('Close image');
+const CLOSE_LABEL = 'Close image';
 const CLOSE_TEST_ID = 'IMAGE_OVERLAY_CLOSE';
 
 export interface ImageOverlayWidgetProps {

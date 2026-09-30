@@ -16,7 +16,6 @@ import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 import type { QuestNote, QuestSummaryObservable, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questHumanVerdictBroker } from '../../brokers/quest/human-verdict/quest-human-verdict-broker';
-import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -24,8 +23,8 @@ import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 const ROW_FONT_SIZE = 10;
 const ROW_GAP = 6;
 const ROW_INDENT = 10;
-const MET_LABEL = 'MET' as ButtonLabel;
-const NOT_MET_LABEL = 'NOT MET' as ButtonLabel;
+const MET_LABEL = 'MET';
+const NOT_MET_LABEL = 'NOT MET';
 const DANGER_VARIANT = 'danger' as ButtonVariant;
 
 export interface HumanCheckRowLayerWidgetProps {

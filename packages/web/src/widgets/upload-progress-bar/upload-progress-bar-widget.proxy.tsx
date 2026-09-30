@@ -1,18 +1,15 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { UploadPercentStub } from '../../contracts/upload-percent/upload-percent.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
-
-type UploadPercent = ReturnType<typeof UploadPercentStub>;
 
 // No child proxies to create — this widget imports no binding, broker or adapter, so there is
 // nothing here for a mock to intercept.
 export const UploadProgressBarWidgetProxy = (): {
   hasBar: () => boolean;
-  getPercent: () => UploadPercent | null;
+  getPercent: () => number | null;
 } => ({
   hasBar: (): boolean => screen.queryByTestId(chatComposerStatics.upload.testId) !== null,
-  getPercent: (): UploadPercent | null => {
+  getPercent: (): number | null => {
     const bar = screen.queryByTestId(chatComposerStatics.upload.testId);
     if (bar === null) {
       return null;
@@ -21,6 +18,6 @@ export const UploadProgressBarWidgetProxy = (): {
     if (raw === null) {
       return null;
     }
-    return UploadPercentStub({ value: Number(raw) });
+    return Number(raw);
   },
 });

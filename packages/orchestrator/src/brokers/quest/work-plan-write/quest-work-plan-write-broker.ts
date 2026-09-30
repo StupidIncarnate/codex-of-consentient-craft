@@ -65,13 +65,13 @@ export const questWorkPlanWriteBroker = async ({
 
         if (failures.length > 0) {
           const totalPieces = stamped.batches.flatMap((batch) => batch.pieces).length;
-          const failedPieceIds = new Set(failures.map((failure) => String(failure.pieceId)));
+          const failedPieceIds = new Set(failures.map((failure) => failure.pieceId));
 
           throw new Error(
             [
               `quest-work: plan refused — ${String(failedPieceIds.size)} of ${String(totalPieces)} pieces failed validation. Nothing was written.`,
               '',
-              ...failures.map((failure) => `  ${String(failure.pieceId)}   ${failure.message}`),
+              ...failures.map((failure) => `  ${failure.pieceId}   ${failure.message}`),
               '',
               'Fix each and resubmit the whole plan in this turn.',
             ].join('\n'),

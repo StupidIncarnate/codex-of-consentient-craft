@@ -13,7 +13,7 @@ export const toolUseBlockParamContract = z
     type: z.literal('tool_use'),
     id: z.string().min(1).brand<'ToolUseBlockParamId'>(),
     name: z.string().brand<'ToolUseBlockParamName'>(),
-    input: z.unknown(),
+    input: z.json(),
   })
   .brand<'ToolUseBlockParam'>();
 

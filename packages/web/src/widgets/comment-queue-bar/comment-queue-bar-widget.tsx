@@ -30,7 +30,6 @@ import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comm
 
 import { notifications } from '#gateway/npm/mantine__notifications';
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { staleAnchorNoticeTransformer } from '../../transformers/stale-anchor-notice/stale-anchor-notice-transformer';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
@@ -39,9 +38,9 @@ const { colors } = emberDepthsThemeStatics;
 const CONTAINER_STYLE = { padding: 12, flexShrink: 0 };
 const PRIMARY_VARIANT = 'primary';
 const DANGER_VARIANT = 'danger';
-const CLEAR_LABEL = buttonLabelContract.parse('Clear queued comments');
+const CLEAR_LABEL = 'Clear queued comments';
 const CLEAR_TEST_ID = 'COMMENT_CLEAR_BUTTON';
-const SEND_LABEL = buttonLabelContract.parse('Send queued comments');
+const SEND_LABEL = 'Send queued comments';
 const SEND_TEST_ID = 'COMMENT_SEND_BUTTON';
 // The one generic fallback shown when the POST rejects before any response arrives (a network
 // failure) — the same red Mantine toast the rest of the app raises for a failed broker call.

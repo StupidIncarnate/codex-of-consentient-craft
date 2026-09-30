@@ -1,7 +1,6 @@
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 
-import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { toolUseIdsFromContentTransformer } from './tool-use-ids-from-content-transformer';
 
 const UserToolResultEntry = ({ toolUseId }: { toolUseId: string }) => ({
@@ -62,7 +61,7 @@ const UserMultipleToolResultEntry = ({
 describe('toolUseIdsFromContentTransformer', () => {
   describe('valid extraction', () => {
     it('VALID: {entry with tool_result content} => returns toolUseId array', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_01X' });
+      const toolUseId = 'toolu_01X';
       const entry = UserToolResultEntry({ toolUseId });
 
       const result = toolUseIdsFromContentTransformer({ entry });
@@ -139,8 +138,8 @@ describe('toolUseIdsFromContentTransformer', () => {
 
   describe('multiple items', () => {
     it('VALID: {multiple tool_result items} => returns all toolUseIds', () => {
-      const toolUseId1 = ToolUseIdStub({ value: 'toolu_01A' });
-      const toolUseId2 = ToolUseIdStub({ value: 'toolu_01B' });
+      const toolUseId1 = 'toolu_01A';
+      const toolUseId2 = 'toolu_01B';
       const entry = UserMultipleToolResultEntry({ toolUseId1, toolUseId2 });
 
       const result = toolUseIdsFromContentTransformer({ entry });

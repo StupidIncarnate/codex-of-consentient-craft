@@ -10,7 +10,14 @@ describe('clarificationRequestPayloadContract', () => {
 
       expect(result).toStrictEqual({
         chatProcessId: 'proc-12345',
-        questions: [],
+        questions: [
+          {
+            question: 'Which option do you prefer?',
+            header: 'Preference',
+            options: [{ label: 'Option A', description: 'First option' }],
+            multiSelect: false,
+          },
+        ],
       });
     });
   });
@@ -18,8 +25,16 @@ describe('clarificationRequestPayloadContract', () => {
   describe('invalid payloads', () => {
     it('INVALID: {missing chatProcessId} => throws validation error', () => {
       expect(() => {
-        clarificationRequestPayloadContract.parse({ questions: [] });
+        clarificationRequestPayloadContract.parse({
+          questions: ClarificationRequestPayloadStub().questions,
+        });
       }).toThrow(/received undefined/u);
+    });
+
+    it('INVALID: {questions: []} => throws validation error', () => {
+      expect(() => {
+        clarificationRequestPayloadContract.parse({ chatProcessId: 'proc-12345', questions: [] });
+      }).toThrow(/too_small/u);
     });
   });
 });

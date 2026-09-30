@@ -11,6 +11,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const eslintRawReportContract = z.array(z.unknown());
+export const eslintRawReportContract = z.array(z.json());
 
 export type EslintRawReport = z.infer<typeof eslintRawReportContract>;

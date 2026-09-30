@@ -33,20 +33,6 @@ const chatUsageContract = z
 export type ChatUsage = z.infer<typeof chatUsageContract>;
 
 const sourceContract = z.enum(['session', 'subagent']).optional();
-const agentIdContract = z.string().min(1).brand<'AgentId'>().optional();
-
-const modelContract = z.string().min(1).brand<'ModelName'>().optional();
-
-// `uuid` is a per-entry correlation key, stable across sources. Format is
-// `<line-uuid>:<content-item-index>` for entries derived from a parsed Claude CLI line, OR a
-// raw uuid for synthetic web-side entries. The web binding uses this as a Map key for
-// dedup — both the parent stdout and the sub-agent JSONL tail emit the same key for the
-// same content, collapsing duplicates that arise from the dual-source convergence.
-const uuidContract = z.string().min(1).brand<'ChatEntryUuid'>();
-const timestampContract = z.iso.datetime().brand<'IsoTimestamp'>();
-
-export type ChatEntryUuid = z.infer<typeof uuidContract>;
-export type IsoTimestamp = z.infer<typeof timestampContract>;
 
 const userEntryContract = z
   .object({
@@ -54,10 +40,10 @@ const userEntryContract = z
     content: z.string().min(1).brand<'UserEntryContent'>(),
     isInjectedPrompt: z.boolean().optional(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'UserEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'UserEntryTimestamp'>(),
   })
   .brand<'UserEntry'>();
 
@@ -66,13 +52,13 @@ const assistantTextEntryContract = z
     role: z.literal('assistant'),
     type: z.literal('text'),
     content: z.string().brand<'AssistantTextEntryContent'>(),
-    model: modelContract,
+    model: z.string().min(1).brand<'AssistantTextEntryModel'>().optional(),
     usage: chatUsageContract.optional(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'AssistantTextEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'AssistantTextEntryTimestamp'>(),
   })
   .brand<'AssistantTextEntry'>();
 
@@ -83,13 +69,13 @@ const assistantToolUseEntryContract = z
     toolUseId: z.string().min(1).brand<'AssistantToolUseEntryToolUseId'>().optional(),
     toolName: z.string().min(1).brand<'AssistantToolUseEntryToolName'>(),
     toolInput: z.string().brand<'AssistantToolUseEntryToolInput'>(),
-    model: modelContract,
+    model: z.string().min(1).brand<'AssistantToolUseEntryModel'>().optional(),
     usage: chatUsageContract.optional(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'AssistantToolUseEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'AssistantToolUseEntryTimestamp'>(),
   })
   .brand<'AssistantToolUseEntry'>();
 
@@ -98,12 +84,12 @@ const assistantThinkingEntryContract = z
     role: z.literal('assistant'),
     type: z.literal('thinking'),
     content: z.string().brand<'AssistantThinkingEntryContent'>(),
-    model: modelContract,
+    model: z.string().min(1).brand<'AssistantThinkingEntryModel'>().optional(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'AssistantThinkingEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'AssistantThinkingEntryTimestamp'>(),
   })
   .brand<'AssistantThinkingEntry'>();
 
@@ -126,10 +112,10 @@ const assistantToolResultEntryContract = z
       .brand<'AssistantToolResultEntryDurationMs'>()
       .optional(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'AssistantToolResultEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'AssistantToolResultEntryTimestamp'>(),
   })
   .brand<'AssistantToolResultEntry'>();
 
@@ -155,10 +141,10 @@ const taskNotificationEntryContract = z
       .brand<'TaskNotificationEntryDurationMs'>()
       .optional(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'TaskNotificationEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'TaskNotificationEntryTimestamp'>(),
   })
   .brand<'TaskNotificationEntry'>();
 
@@ -168,10 +154,10 @@ const systemErrorEntryContract = z
     type: z.literal('error'),
     content: z.string().min(1).brand<'SystemErrorEntryContent'>(),
     source: sourceContract,
-    agentId: agentContract.shape.id,
-    parentAgentId: agentContract.shape.id,
-    uuid: uuidContract,
-    timestamp: timestampContract,
+    agentId: agentContract.shape.id.optional(),
+    parentAgentId: agentContract.shape.id.optional(),
+    uuid: z.string().min(1).brand<'SystemErrorEntryUuid'>(),
+    timestamp: z.iso.datetime().brand<'SystemErrorEntryTimestamp'>(),
   })
   .brand<'SystemErrorEntry'>();
 
@@ -186,3 +172,11 @@ export const chatEntryContract = z.union([
 ]);
 
 export type ChatEntry = z.infer<typeof chatEntryContract>;
+
+// `uuid` is a per-entry correlation key, stable across sources. Format is
+// `<line-uuid>:<content-item-index>` for entries derived from a parsed Claude CLI line, OR a
+// raw uuid for synthetic web-side entries. The web binding uses this as a Map key for
+// dedup — both the parent stdout and the sub-agent JSONL tail emit the same key for the
+// same content, collapsing duplicates that arise from the dual-source convergence.
+export type ChatEntryUuid = ChatEntry['uuid'];
+export type IsoTimestamp = ChatEntry['timestamp'];

@@ -8,7 +8,6 @@
 
 import { Group } from '#gateway/npm/mantine__core';
 
-import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { fireballPixelsStatics } from '../../statics/fireball-pixels/fireball-pixels-statics';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
@@ -18,7 +17,7 @@ const LOGO_LINE_HEIGHT = 1.15;
 const LOGO_GAP = 40;
 const SPRITE_SCALE = 4;
 
-const spritePixels = fireballPixelsStatics.pixels.map((p) => pixelCoordinateContract.parse(p));
+const spritePixels = fireballPixelsStatics.pixels;
 
 const logo = `\
 ██████╗ ██╗   ██╗███╗   ██╗ ██████╗ ███████╗ ██████╗ ███╗   ██╗███╗   ███╗ █████╗ ███████╗████████╗███████╗██████╗

@@ -30,9 +30,8 @@ export const expectedExportNameTransformer = ({
   const basename = fileBasenameTransformer({ filename });
 
   // Remove the file suffix to get the base name
-  // Convert basename to plain string for string manipulation
   const suffixes = Array.isArray(fileSuffix) ? fileSuffix : [fileSuffix];
-  let baseName = String(basename);
+  let baseName = basename;
 
   for (const suffix of suffixes) {
     const suffixStr = String(suffix);

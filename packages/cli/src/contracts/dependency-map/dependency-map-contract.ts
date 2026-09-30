@@ -8,11 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-const dependencyKeyContract = z.string().brand<'DependencyKey'>();
-const dependencyVersionContract = z.string().brand<'DependencyVersion'>();
-
-export const dependencyMapContract = z.record(dependencyKeyContract, dependencyVersionContract);
+export const dependencyMapContract = z.record(z.string(), z.string());
 
 export type DependencyMap = z.infer<typeof dependencyMapContract>;
-export type DependencyKey = z.infer<typeof dependencyKeyContract>;
-export type DependencyVersion = z.infer<typeof dependencyVersionContract>;

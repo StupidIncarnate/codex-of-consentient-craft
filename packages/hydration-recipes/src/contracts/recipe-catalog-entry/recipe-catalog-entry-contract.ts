@@ -19,10 +19,6 @@ import type {
 } from '@dungeonmaster/hydration/contracts';
 import type { DmTarget } from '../dm-target/dm-target-contract';
 
-const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
-
-export type RecipeDescription = z.infer<typeof recipeDescriptionContract>;
-
 // The schema itself, not its shape — `z.custom` with no type argument hands the same reference
 // back rather than expanding a `ZodTypeAny`'s own methods through `StubArgument`.
 const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
@@ -32,7 +28,7 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
 export const recipeCatalogEntryContract = z
   .object({
     recipeName: z.string().min(1).brand<'RecipeCatalogEntryRecipeName'>(),
-    description: recipeDescriptionContract,
+    description: z.string().min(1).brand<'RecipeCatalogEntryDescription'>(),
     inputs: zodSchemaContract.optional(),
   })
   .brand<'RecipeCatalogEntry'>();

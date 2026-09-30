@@ -88,7 +88,7 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
         ctx.addIssue({
           code: 'custom',
           path: [...path],
-          message: `piece '${String(piece.id)}': payload does not match the ${plan.family} shape — ${parsed.error.issues
+          message: `piece '${piece.id}': payload does not match the ${plan.family} shape — ${parsed.error.issues
             .map((issue) => issue.message)
             .join('; ')}`,
         });
@@ -108,7 +108,7 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
             code: 'custom',
             path: [...path, 'units'],
             message:
-              `piece '${String(piece.id)}': payload.units[] holds ${payloadUnits.length} ` +
+              `piece '${piece.id}': payload.units[] holds ${payloadUnits.length} ` +
               `entries for ${piece.assignedUnitIds.length} assignedUnitIds${
                 missingFromUnits.length > 0
                   ? ` — '${String(missingFromUnits[0])}' has none`

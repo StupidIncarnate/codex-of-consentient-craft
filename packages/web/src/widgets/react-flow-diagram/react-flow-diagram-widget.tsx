@@ -36,7 +36,6 @@ import type { CommentAnchor } from '../../contracts/comment-anchor/comment-ancho
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -85,11 +84,11 @@ const MIN_CANVAS_HEIGHT = 420;
 // The canvas controls are the one place in the app that takes the large size — they float over the
 // diagram rather than sitting inside a row of text, so they are sized to be hit without aiming.
 const CONTROL_SIZE = iconButtonStatics.sizes.large;
-const ZOOM_IN_LABEL = buttonLabelContract.parse('Zoom in');
+const ZOOM_IN_LABEL = 'Zoom in';
 const ZOOM_IN_TEST_ID = 'ZOOM_IN_BUTTON';
-const ZOOM_OUT_LABEL = buttonLabelContract.parse('Zoom out');
+const ZOOM_OUT_LABEL = 'Zoom out';
 const ZOOM_OUT_TEST_ID = 'ZOOM_OUT_BUTTON';
-const FIT_VIEW_LABEL = buttonLabelContract.parse('Fit diagram to view');
+const FIT_VIEW_LABEL = 'Fit diagram to view';
 const FIT_VIEW_TEST_ID = 'FIT_VIEW_BUTTON';
 
 const NODE_TYPES = {

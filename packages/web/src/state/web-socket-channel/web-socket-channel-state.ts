@@ -2,7 +2,7 @@
  * PURPOSE: Single shared WebSocket connection per browser tab. All WS-consuming bindings (chat, queue, rate-limits, dispatch-state, session-replay, ward-detail) subscribe to typed observables on this state instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
  *
  * USAGE:
- * webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://host/ws' }) });
+ * webSocketChannelState.connect({ url: 'ws://host/ws' });
  * const sub = webSocketChannelState.chatOutput$().subscribe((p) => ...);
  * webSocketChannelState.sendSubscribeQuest({ questId });
  * sub.unsubscribe();
@@ -31,9 +31,6 @@ import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-p
 import { questModifiedPayloadContract } from '../../contracts/quest-modified-payload/quest-modified-payload-contract';
 import { wardDetailResponseContract } from '../../contracts/ward-detail-response/ward-detail-response-contract';
 import type { WardDetailResponse } from '../../contracts/ward-detail-response/ward-detail-response-contract';
-import type { WsUrl } from '../../contracts/ws-url/ws-url-contract';
-
-type WardResultId = WardResult['id'];
 
 type WsConnection = ReturnType<typeof connect>;
 
@@ -43,7 +40,7 @@ const RECONNECT_DELAY_MS_VALUE = 3000;
 
 const internalState: {
   socket: WsConnection | null;
-  url: WsUrl | null;
+  url: string | null;
   isOpen: boolean;
   reconnectTimer: ReturnType<typeof setTimeout> | null;
   shouldReconnect: boolean;
@@ -76,7 +73,7 @@ const internalState: {
 };
 
 export const webSocketChannelState = {
-  connect: ({ url }: { url: WsUrl }): void => {
+  connect: ({ url }: { url: string }): void => {
     internalState.url = url;
     internalState.shouldReconnect = true;
     webSocketChannelState.openConnection();

@@ -32,8 +32,6 @@ export * from './subagent-fields/subagent-fields-contract';
 
 export * from './subagent-record/subagent-record-contract';
 
-export * from './tool-use-id/tool-use-id-contract';
-
 export * from './ward-result-detail-args/ward-result-detail-args-contract';
 
 export * from './recipe-context/recipe-context-contract';

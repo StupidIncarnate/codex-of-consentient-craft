@@ -16,17 +16,15 @@ import { setTimeoutProxy } from '#gateway/browser/setTimeout/set-timeout/set-tim
 import { TimeoutHandleStub } from '#gateway/browser/setTimeout/timeout-handle.stub';
 import { connectProxy } from '#gateway/browser/WebSocket/connect/connect.proxy';
 
-import type { WsUrl } from '../../contracts/ws-url/ws-url-contract';
-import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
 import { webSocketChannelState } from './web-socket-channel-state';
 
 const RECONNECT_DELAY_MS = 3000;
 
 export const webSocketChannelStateProxy = ({
-  url: defaultUrl = WsUrlStub(),
-}: { url?: WsUrl } = {}): {
+  url: defaultUrl = 'ws://localhost:3001/ws',
+}: { url?: string } = {}): {
   setupEmpty: () => void;
-  connect: ({ url }?: { url?: WsUrl }) => void;
+  connect: ({ url }?: { url?: string }) => void;
   deliverMessage: ({ data }: { data: string }) => void;
   triggerOpen: () => void;
   triggerClose: () => void;
@@ -35,7 +33,7 @@ export const webSocketChannelStateProxy = ({
   getSentMessages: () => unknown[];
 } => {
   // The underlying socket mock is staged for whichever URL this proxy was built with — callers
-  // that don't pass one get the default test port (WsUrlStub()); WebSocketChannelConnectResponderProxy
+  // that don't pass one get the default test port (3001); WebSocketChannelConnectResponderProxy
   // passes the real jsdom-derived URL because that responder computes its own url and never
   // accepts one from the caller.
   const wsProxy = connectProxy({ url: defaultUrl });
@@ -47,7 +45,7 @@ export const webSocketChannelStateProxy = ({
     setupEmpty: (): void => {
       webSocketChannelState.clear();
     },
-    connect: ({ url = defaultUrl }: { url?: WsUrl } = {}) => {
+    connect: ({ url = defaultUrl }: { url?: string } = {}) => {
       webSocketChannelState.connect({ url });
     },
     deliverMessage: ({ data }: { data: string }) => {
