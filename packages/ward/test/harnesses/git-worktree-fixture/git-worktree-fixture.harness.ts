@@ -25,7 +25,6 @@ import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { GitBranchName } from '../../../src/contracts/git-branch-name/git-branch-name-contract';
 import type { GitRelativePath } from '../../../src/contracts/git-relative-path/git-relative-path-contract';
 
 // Real committer identity + disabled GPG signing, passed as `-c` config so these throwaway fixture
@@ -46,15 +45,15 @@ export const wardGitWorktreeFixtureHarness = (): {
   initRepo: (params: { repoPath: AbsoluteFilePath }) => Promise<void>;
   initBareRemote: (params: { remotePath: AbsoluteFilePath }) => Promise<void>;
   addRemote: (params: { cwd: AbsoluteFilePath; remotePath: AbsoluteFilePath }) => Promise<void>;
-  pushBranch: (params: { cwd: AbsoluteFilePath; branchName: GitBranchName }) => Promise<void>;
+  pushBranch: (params: { cwd: AbsoluteFilePath; branchName: string }) => Promise<void>;
   checkoutNewBranch: (params: {
     cwd: AbsoluteFilePath;
-    branchName: GitBranchName;
+    branchName: string;
   }) => Promise<void>;
   addWorktree: (params: {
     repoPath: AbsoluteFilePath;
     worktreePath: AbsoluteFilePath;
-    branchName: GitBranchName;
+    branchName: string;
   }) => Promise<void>;
   commitFile: (params: {
     cwd: AbsoluteFilePath;
@@ -117,7 +116,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       branchName,
     }: {
       cwd: AbsoluteFilePath;
-      branchName: GitBranchName;
+      branchName: string;
     }): Promise<void> => {
       await runGit({ cwd, args: ['push', '-u', 'origin', branchName] });
     },
@@ -127,7 +126,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       branchName,
     }: {
       cwd: AbsoluteFilePath;
-      branchName: GitBranchName;
+      branchName: string;
     }): Promise<void> => {
       await runGit({ cwd, args: ['checkout', '-b', branchName] });
     },
@@ -139,7 +138,7 @@ export const wardGitWorktreeFixtureHarness = (): {
     }: {
       repoPath: AbsoluteFilePath;
       worktreePath: AbsoluteFilePath;
-      branchName: GitBranchName;
+      branchName: string;
     }): Promise<void> => {
       await runGit({ cwd: repoPath, args: ['worktree', 'add', worktreePath, '-b', branchName] });
     },

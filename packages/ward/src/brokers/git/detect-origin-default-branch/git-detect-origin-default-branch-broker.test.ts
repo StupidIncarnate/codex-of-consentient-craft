@@ -1,6 +1,5 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
-import { GitBranchNameStub } from '../../../contracts/git-branch-name/git-branch-name.stub';
 
 import { gitDetectOriginDefaultBranchBroker } from './git-detect-origin-default-branch-broker';
 import { gitDetectOriginDefaultBranchBrokerProxy } from './git-detect-origin-default-branch-broker.proxy';
@@ -15,7 +14,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toStrictEqual(GitBranchNameStub({ value: 'origin/main' }));
+      expect(result).toStrictEqual('origin/main');
     });
 
     it('VALID: {origin/main verifies} => never asks git about origin/master', async () => {
@@ -41,7 +40,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toStrictEqual(GitBranchNameStub({ value: 'origin/master' }));
+      expect(result).toStrictEqual('origin/master');
     });
 
     // Pinning the WHOLE arg list also proves the branch's own `@{upstream}` is never consulted. A

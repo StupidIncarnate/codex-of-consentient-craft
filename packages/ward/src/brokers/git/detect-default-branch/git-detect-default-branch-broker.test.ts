@@ -1,6 +1,5 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
-import { GitBranchNameStub } from '../../../contracts/git-branch-name/git-branch-name.stub';
 
 import { gitDetectDefaultBranchBroker } from './git-detect-default-branch-broker';
 import { gitDetectDefaultBranchBrokerProxy } from './git-detect-default-branch-broker.proxy';
@@ -15,7 +14,7 @@ describe('gitDetectDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBe(GitBranchNameStub({ value: 'main' }));
+      expect(result).toBe('main');
     });
 
     it('VALID: {repo has master branch only} => returns "master"', async () => {
@@ -26,7 +25,7 @@ describe('gitDetectDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBe(GitBranchNameStub({ value: 'master' }));
+      expect(result).toBe('master');
     });
 
     it('EMPTY: {repo has neither main nor master} => returns null', async () => {
