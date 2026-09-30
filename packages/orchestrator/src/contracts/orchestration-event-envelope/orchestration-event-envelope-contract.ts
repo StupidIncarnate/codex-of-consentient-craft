@@ -15,7 +15,7 @@ export const orchestrationEventEnvelopeContract = z
   .object({
     type: z.string().brand<'OrchestrationEventEnvelopeType'>().optional(),
     processId: z.string().brand<'OrchestrationEventEnvelopeProcessId'>().optional(),
-    payload: z.record(z.string().brand<'OrchestrationEventEnvelopePayloadKey'>(), z.unknown()).optional(),
+    payload: z.record(z.string().brand<'OrchestrationEventEnvelopePayloadKey'>(), z.json()).optional(),
   })
   .loose().brand<'OrchestrationEventEnvelope'>();
 

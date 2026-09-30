@@ -15,7 +15,7 @@ export const workspaceRootPackageJsonContract = z
     name: z.string().brand<'WorkspaceRootPackageJsonName'>(),
     workspaces: z.union([
       z.array(z.string().brand<'WorkspaceRootPackageJsonWorkspaces'>()),
-      z.record(z.string().brand<'WorkspaceRootPackageJsonWorkspacesKey'>(), z.unknown()),
+      z.record(z.string().brand<'WorkspaceRootPackageJsonWorkspacesKey'>(), z.json()),
     ]),
   })
   .loose().brand<'WorkspaceRootPackageJson'>();

@@ -17,6 +17,6 @@
 import { z } from '#gateway/npm/zod';
 import { savedRecordNameContract } from '../saved-record-name/saved-record-name-contract';
 
-export const hydrationRunResultContract = z.record(savedRecordNameContract, z.unknown());
+export const hydrationRunResultContract = z.record(savedRecordNameContract, z.json());
 
 export type HydrationRunResult = z.infer<typeof hydrationRunResultContract>;

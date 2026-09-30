@@ -9,6 +9,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const mcpToolInputContract = z.record(z.string().brand<'McpToolInputKey'>(), z.unknown());
+export const mcpToolInputContract = z.record(z.string().brand<'McpToolInputKey'>(), z.json());
 
 export type McpToolInput = z.infer<typeof mcpToolInputContract>;

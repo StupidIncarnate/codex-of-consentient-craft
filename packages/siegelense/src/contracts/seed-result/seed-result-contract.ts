@@ -19,7 +19,7 @@ import { z } from '#gateway/npm/zod';
 
 export const seedResultContract = z.record(
   contentTextContract,
-  z.union([contentTextContract, z.record(contentTextContract, z.unknown())]),
+  z.union([contentTextContract, z.record(contentTextContract, z.json())]),
 );
 
 export type SeedResult = z.infer<typeof seedResultContract>;

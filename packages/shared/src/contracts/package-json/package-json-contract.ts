@@ -22,7 +22,7 @@ export const packageJsonContract = z
     dependencies: z
       .record(z.string().brand<'PackageJsonDependenciesKey'>(), z.string().brand<'PackageJsonDependencies'>())
       .optional(),
-    exports: z.record(z.string().brand<'PackageJsonExportsKey'>(), z.unknown()).optional(),
+    exports: z.record(z.string().brand<'PackageJsonExportsKey'>(), z.json()).optional(),
   })
   .loose().brand<'PackageJson'>();
 

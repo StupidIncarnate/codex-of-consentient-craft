@@ -8,6 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const normalizedLineContract = z.unknown().brand<'NormalizedLine'>();
+export const normalizedLineContract = z.json().brand<'NormalizedLine'>();
 
 export type NormalizedLine = z.infer<typeof normalizedLineContract>;

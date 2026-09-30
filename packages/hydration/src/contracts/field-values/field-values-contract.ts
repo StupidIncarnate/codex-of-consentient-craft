@@ -17,7 +17,7 @@ import { fieldNameContract } from '../field-name/field-name-contract';
 import { savedRefContract } from '../saved-ref/saved-ref-contract';
 import type { SavedRef } from '../saved-ref/saved-ref-contract';
 
-const fieldValueContract = z.unknown().superRefine((value, ctx) => {
+const fieldValueContract = z.json().superRefine((value, ctx) => {
   if (typeof value !== 'object' || value === null) {
     return;
   }

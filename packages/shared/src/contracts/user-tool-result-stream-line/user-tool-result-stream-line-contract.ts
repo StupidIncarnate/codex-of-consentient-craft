@@ -31,7 +31,7 @@ export const userToolResultStreamLineContract = z.object({
   toolUseResult: z
     .union([
       z.object({ agentId: z.string().brand<'UserToolResultStreamLineToolUseResultAgentId'>().optional() }).brand<'UserToolResultStreamLineToolUseResult'>().loose(),
-      z.array(z.unknown()),
+      z.array(z.json()),
       z.string().brand<'UserToolResultStreamLineToolUseResult'>(),
     ])
     .optional(),

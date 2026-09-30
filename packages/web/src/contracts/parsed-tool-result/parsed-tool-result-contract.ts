@@ -13,6 +13,6 @@ import { z } from '#gateway/npm/zod';
 
 import { toolResultKeyContract } from '../tool-result-key/tool-result-key-contract';
 
-export const parsedToolResultContract = z.record(toolResultKeyContract, z.unknown());
+export const parsedToolResultContract = z.record(toolResultKeyContract, z.json());
 
 export type ParsedToolResult = z.infer<typeof parsedToolResultContract>;

@@ -13,6 +13,9 @@
  * to read. Validation guarantees the shapes we DO read; the rest are preserved by passthrough.
  */
 import { z } from '#gateway/npm/zod';
+import { normalizedStreamLineContentItemContract } from '../normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { usageLineShapeContract } from '../usage-line-shape/usage-line-shape-contract';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
 const _contentItem = z
   .object({
@@ -22,9 +25,9 @@ const _contentItem = z
     signature: z.string().brand<'ContentItemSignature'>().optional(),
     id: z.string().brand<'ContentItemId'>().optional(),
     name: z.string().brand<'ContentItemName'>().optional(),
-    input: z.unknown().optional(),
+    input: z.json().optional(),
     toolUseId: z.string().brand<'ContentItemToolUseId'>().optional(),
-    content: z.unknown().optional(),
+    content: z.union([z.string(), z.array(normalizedStreamLineContentItemContract)]).optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'ContentItemSource'>().optional(),
     agentId: z.string().brand<'ContentItemAgentId'>().optional(),
@@ -37,8 +40,8 @@ const _contentItem = z
 const message = z
   .object({
     role: z.string().brand<'MessageRole'>().nullish(),
-    content: z.unknown().nullish(),
-    usage: z.unknown().nullish(),
+    content: z.union([z.string(), z.array(normalizedStreamLineContentItemContract)]).nullish(),
+    usage: usageLineShapeContract.shape.message.shape.usage.nullish(),
     stopReason: z.string().brand<'MessageStopReason'>().nullish(),
     model: z.string().brand<'MessageModel'>().nullish(),
   }).brand<'Message'>()
@@ -79,13 +82,13 @@ const taskNotification = z
 const toolUseResult = z.union([
   z
     .object({
-      agentId: z.unknown().optional(),
+      agentId: agentContract.shape.id.optional(),
       // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
       // sub-agent run. An async launch's result object carries no such field.
       totalDurationMs: z.number().brand<'ToolUseResultTotalDurationMs'>().nullish(),
     }).brand<'ToolUseResult'>()
     .loose(),
-  z.array(z.unknown()),
+  z.array(z.json()),
   z.string().brand<'NormalizedToolUseResultErrorMessage'>(),
 ]);
 

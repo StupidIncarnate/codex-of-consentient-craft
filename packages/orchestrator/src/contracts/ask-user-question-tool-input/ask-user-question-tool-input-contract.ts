@@ -10,11 +10,12 @@
  * `.loose()` so other tool-specific keys (rare; primarily `questions`) survive validation.
  */
 import { z } from '#gateway/npm/zod';
+import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
 
 export const askUserQuestionToolInputContract = z
   .object({
     questions: z
-      .union([z.string().brand<'AskUserQuestionToolInputQuestions'>(), z.array(z.unknown())])
+      .union([z.string().brand<'AskUserQuestionToolInputQuestions'>(), askUserQuestionContract.shape.questions])
       .optional(),
   })
   .loose().brand<'AskUserQuestionToolInput'>();

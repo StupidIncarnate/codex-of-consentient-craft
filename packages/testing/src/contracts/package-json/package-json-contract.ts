@@ -17,8 +17,8 @@ export const packageJsonContract = z
     devDependencies: z
       .record(z.string().brand<'PackageJsonDevDependenciesKey'>(), z.string().brand<'PackageJsonDevDependencies'>())
       .optional(),
-    eslintConfig: z.unknown().optional(),
-    jest: z.unknown().optional(),
+    eslintConfig: z.json().optional(),
+    jest: z.json().optional(),
   })
   .loose().brand<'PackageJson'>();
 

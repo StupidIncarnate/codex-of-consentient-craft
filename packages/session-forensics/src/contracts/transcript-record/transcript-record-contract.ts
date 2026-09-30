@@ -44,7 +44,7 @@ export const transcriptRecordContract = z
     agentId: agentContract.shape.id.optional(),
     promptSource: z.string().brand<'TranscriptRecordPromptSource'>().optional(),
     message: transcriptRecordMessageContract.optional(),
-    toolUseResult: z.unknown().optional(),
+    toolUseResult: z.json().optional(),
   })
   .brand<'TranscriptRecord'>();
 

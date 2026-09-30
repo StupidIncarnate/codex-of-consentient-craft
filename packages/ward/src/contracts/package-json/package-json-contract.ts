@@ -12,7 +12,7 @@ export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>().optional(),
     workspaces: z.array(z.string().brand<'PackageJsonWorkspaces'>()).optional(),
-    scripts: z.record(z.string().brand<'PackageJsonScriptsKey'>(), z.unknown()).optional(),
+    scripts: z.record(z.string().brand<'PackageJsonScriptsKey'>(), z.string().brand<'PackageJsonScriptsValue'>()).optional(),
     dependencies: z
       .record(z.string().brand<'PackageJsonDependenciesKey'>(), z.string().brand<'PackageJsonDependencies'>())
       .optional(),

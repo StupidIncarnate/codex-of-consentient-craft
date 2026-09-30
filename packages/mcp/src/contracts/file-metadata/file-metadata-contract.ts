@@ -29,7 +29,7 @@ export const fileMetadataContract = z.object({
   purpose: z.string().brand<'FileMetadataPurpose'>().optional(),
   signature: functionSignatureContract.optional(),
   usage: z.string().brand<'FileMetadataUsage'>().optional(),
-  metadata: z.record(z.string().brand<'FileMetadataMetadataKey'>(), z.unknown()).optional(),
+  metadata: z.record(z.string().brand<'FileMetadataMetadataKey'>(), z.json()).optional(),
   relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
 }).brand<'FileMetadata'>();

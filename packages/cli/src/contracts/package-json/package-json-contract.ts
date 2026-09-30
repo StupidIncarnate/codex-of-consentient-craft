@@ -13,7 +13,7 @@ const packageJsonKeyContract = z.string().brand<'PackageJsonKey'>();
 
 export const packageJsonContract = z
   .object({
-    devDependencies: z.record(packageJsonKeyContract, z.unknown()).optional(),
+    devDependencies: z.record(packageJsonKeyContract, z.string().brand<'PackageJsonDevDependenciesValue'>()).optional(),
     workspaces: z.array(z.string().brand<'PackageJsonWorkspaces'>()).optional(),
   })
   .loose().brand<'PackageJson'>();

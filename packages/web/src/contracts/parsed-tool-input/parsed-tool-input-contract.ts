@@ -10,6 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 import { toolInputKeyContract } from '../tool-input-key/tool-input-key-contract';
 
-export const parsedToolInputContract = z.record(toolInputKeyContract, z.unknown());
+export const parsedToolInputContract = z.record(toolInputKeyContract, z.json());
 
 export type ParsedToolInput = z.infer<typeof parsedToolInputContract>;

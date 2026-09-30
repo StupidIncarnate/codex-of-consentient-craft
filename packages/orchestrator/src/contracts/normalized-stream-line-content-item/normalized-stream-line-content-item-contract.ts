@@ -19,7 +19,7 @@ export const normalizedStreamLineContentItemContract = z
     signature: z.string().brand<'NormalizedStreamLineContentItemSignature'>().optional(),
     id: z.string().brand<'NormalizedStreamLineContentItemId'>().optional(),
     name: z.string().brand<'NormalizedStreamLineContentItemName'>().optional(),
-    input: z.unknown().optional(),
+    input: z.json().optional(),
     toolUseId: z.string().brand<'NormalizedStreamLineContentItemToolUseId'>().optional(),
     toolName: z.string().brand<'NormalizedStreamLineContentItemToolName'>().optional(),
     title: z.string().brand<'NormalizedStreamLineContentItemTitle'>().optional(),

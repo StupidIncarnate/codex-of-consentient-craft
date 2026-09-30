@@ -16,6 +16,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { askUserQuestionContract, chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 export const devLogEventPayloadContract = z
   .object({
@@ -26,8 +27,8 @@ export const devLogEventPayloadContract = z
     phase: z.string().min(1).brand<'DevLogEventPayloadPhase'>().nullish(),
     slotIndex: z.number().int().nonnegative().brand<'DevLogEventPayloadSlotIndex'>().nullish(),
     role: z.string().min(1).brand<'DevLogEventPayloadRole'>().nullish(),
-    questions: z.array(z.unknown()).nullish(),
-    entries: z.array(z.unknown()).nullish(),
+    questions: askUserQuestionContract.shape.questions.nullish(),
+    entries: z.array(chatEntryContract).nullish(),
   })
   .loose().brand<'DevLogEventPayload'>();
 

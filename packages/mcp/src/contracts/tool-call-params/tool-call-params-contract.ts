@@ -9,8 +9,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const toolCallParamsContract = z.object({
-  args: z.record(z.string().brand<'ToolCallParamsArgsKey'>(), z.unknown()),
-  meta: z.record(z.string().brand<'ToolCallParamsMetaKey'>(), z.unknown()).optional(),
+  args: z.record(z.string().brand<'ToolCallParamsArgsKey'>(), z.json()),
+  meta: z.record(z.string().brand<'ToolCallParamsMetaKey'>(), z.json()).optional(),
 }).brand<'ToolCallParams'>();
 
 export type ToolCallParams = z.infer<typeof toolCallParamsContract>;

@@ -85,7 +85,7 @@ export const workPlanPieceContract = z.object({
     .brand<'WorkPlanPieceContext'>()
     .describe('What a session needs to know before it starts, in the planner’s own words.'),
   notes: z.array(z.string().min(1).brand<'WorkPlanPieceNotes'>()).default([]),
-  payload: z.unknown(),
+  payload: z.json(),
 }).brand<'WorkPlanPiece'>();
 
 export type WorkPlanPiece = z.infer<typeof workPlanPieceContract>;

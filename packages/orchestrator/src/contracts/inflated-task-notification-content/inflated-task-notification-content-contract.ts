@@ -15,7 +15,7 @@ import { z } from '#gateway/npm/zod';
 
 export const inflatedTaskNotificationContentContract = z
   .object({
-    taskNotification: z.unknown().optional(),
+    taskNotification: z.json().optional(),
   })
   .loose().brand<'InflatedTaskNotificationContent'>();
 
