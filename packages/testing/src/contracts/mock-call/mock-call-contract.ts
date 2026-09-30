@@ -11,11 +11,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { factoryFunctionTextContract } from '../factory-function-text/factory-function-text-contract';
 
 export const mockCallContract = z.object({
   moduleName: z.string().min(1).brand<'MockCallModuleName'>(),
-  factory: factoryFunctionTextContract.nullable(),
+  factory: z.string().brand<'MockCallFactory'>().nullable(),
   sourceFile: z.string().min(1).brand<'MockCallSourceFile'>(),
   identifierNames: z.array(z.string().min(1).brand<'MockCallIdentifierNames'>()).default([]),
   // A property-access `registerMock({fn: X.method})` records X here, never in identifierNames — the

@@ -8,7 +8,6 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
-import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
 import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mock-fn-identifier-names-transformer';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 
@@ -51,7 +50,7 @@ export const astMockCallsTransformer = ({
         if (firstArg && ts.isStringLiteral(firstArg)) {
           const moduleName = firstArg.text;
           const factoryText = secondArg
-            ? factoryFunctionTextContract.parse(secondArg.getText(tsSourceFile))
+            ? secondArg.getText(tsSourceFile)
             : null;
 
           mockCalls.push(

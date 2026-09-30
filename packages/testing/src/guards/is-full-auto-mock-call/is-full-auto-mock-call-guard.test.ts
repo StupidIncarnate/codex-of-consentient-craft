@@ -1,6 +1,5 @@
 import { isFullAutoMockCallGuard } from './is-full-auto-mock-call-guard';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
-import { FactoryFunctionTextStub } from '../../contracts/factory-function-text/factory-function-text.stub';
 
 describe('isFullAutoMockCallGuard', () => {
   describe('full-auto requests', () => {
@@ -40,7 +39,7 @@ describe('isFullAutoMockCallGuard', () => {
 
     it('INVALID: {factory set, both arrays empty} => returns false', () => {
       const mock = MockCallStub({
-        factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
+        factory: '() => ({ get: jest.fn() })',
         identifierNames: [],
         objectIdentifierNames: [],
       });

@@ -1,6 +1,5 @@
 import { mockCallContract } from './mock-call-contract';
 import { MockCallStub } from './mock-call.stub';
-import { FactoryFunctionTextStub } from '../factory-function-text/factory-function-text.stub';
 
 describe('mockCallContract', () => {
   describe('valid mock calls', () => {
@@ -25,7 +24,7 @@ describe('mockCallContract', () => {
     it('VALID: {moduleName, factory, sourceFile} => parses with factory', () => {
       const mockCall = MockCallStub({
         moduleName: 'fs',
-        factory: FactoryFunctionTextStub({ value: '() => ({ readFile: jest.fn() })' }),
+        factory: '() => ({ readFile: jest.fn() })',
         sourceFile: 'adapter.proxy.ts',
       });
 

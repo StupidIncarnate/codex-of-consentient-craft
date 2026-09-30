@@ -1,6 +1,5 @@
 import { mockCallsMergeByModuleTransformer } from './mock-calls-merge-by-module-transformer';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
-import { FactoryFunctionTextStub } from '../../contracts/factory-function-text/factory-function-text.stub';
 
 describe('mockCallsMergeByModuleTransformer', () => {
   describe('two specifiers for the same Node builtin', () => {
@@ -67,7 +66,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
       });
       const factoryMock = MockCallStub({
         moduleName: 'axios',
-        factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
+        factory: '() => ({ get: jest.fn() })',
       });
 
       const result = mockCallsMergeByModuleTransformer({
@@ -82,7 +81,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {factory mock then identifier mock, same module} => the factory stays and the later identifier is dropped', () => {
       const factoryMock = MockCallStub({
         moduleName: 'axios',
-        factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
+        factory: '() => ({ get: jest.fn() })',
       });
       const identifierMock = MockCallStub({
         moduleName: 'axios',
@@ -309,7 +308,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
       });
       const factoryMock = MockCallStub({
         moduleName: 'axios',
-        factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
+        factory: '() => ({ get: jest.fn() })',
       });
 
       const result = mockCallsMergeByModuleTransformer({
@@ -322,7 +321,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {factory mock then full-auto request, same module} => the factory stays and the auto-mock request is dropped', () => {
       const factoryMock = MockCallStub({
         moduleName: 'axios',
-        factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
+        factory: '() => ({ get: jest.fn() })',
       });
       const fullAutoMock = MockCallStub({
         moduleName: 'axios',

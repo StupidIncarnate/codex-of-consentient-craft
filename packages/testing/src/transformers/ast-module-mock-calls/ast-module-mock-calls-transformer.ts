@@ -44,9 +44,7 @@ export const astModuleMockCallsTransformer = ({
               moduleProp = prop.initializer.text;
             }
             if (prop.name.text === 'factory') {
-              factoryProp = factoryFunctionTextContract.parse(
-                prop.initializer.getText(tsSourceFile),
-              );
+              factoryProp = prop.initializer.getText(tsSourceFile);
             }
           }
         }
