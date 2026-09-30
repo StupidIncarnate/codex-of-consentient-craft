@@ -16,7 +16,7 @@
  * the session fixes what the message names and calls again.
  */
 
-import { unitObservationContract } from '@dungeonmaster/shared/contracts';
+import { unitObservationContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -159,7 +159,7 @@ export const questWorkRecordBroker = async ({
         questFilePath,
         questId,
         workItemId,
-        patch: { requestedStep: payload.step, requestedReason: payload.reason },
+        patch: { requestedStep: workItemContract.shape.requestedStep.parse(payload.step), requestedReason: payload.reason },
         nowAt,
       });
 

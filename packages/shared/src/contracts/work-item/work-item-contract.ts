@@ -10,7 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
-import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { unitObservationContract } from '../unit-observation/unit-observation-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
@@ -78,7 +77,7 @@ export const workItemContract = z.object({
   smoketestPromptOverride: z.string().min(1).brand<'WorkItemSmoketestPromptOverride'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),
   actualSignal: streamSignalKindContract.optional(),
-  step: stepNameContract.optional(),
+  step: z.string().min(1).brand<'WorkItemStep'>().optional(),
   // One entry per unit this work item was ASSIGNED — not a shared log sessions append to. Each
   // session gets a fresh, complete set that freezes when the step signals; a re-mint writes its
   // own set of the same units from scratch rather than amending its predecessor's.
@@ -118,7 +117,7 @@ export const workItemContract = z.object({
   // Set by `quest-work`'s `request` payload — the step this work item is blocked on, and why.
   // `nextActionTransformer` takes this as its `request` argument for the identical reason
   // `declaredWord` is an argument rather than a derivation: it is pure and cannot read a live call.
-  requestedStep: stepNameContract.optional(),
+  requestedStep: z.string().min(1).brand<'WorkItemRequestedStep'>().optional(),
   requestedReason: z.string().min(1).brand<'RequestReason'>().optional(),
   // Copied off the minting step's config (`agentFlowStatics.<family>.steps.<step>.needsLane`) by
   // `questRouteScopeBroker` at mint time. `true` means the ROUTER starts a siegelense instance

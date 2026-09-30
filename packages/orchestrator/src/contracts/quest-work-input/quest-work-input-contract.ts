@@ -30,7 +30,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questNoteContract, stepNameContract, unitObservationContract, unitObservationFieldsContract, questContract, workItemContract, flowContract } from '@dungeonmaster/shared/contracts';
+import { questNoteContract, unitObservationContract, unitObservationFieldsContract, questContract, workItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 import { workPlanContract } from '../work-plan/work-plan-contract';
@@ -93,7 +93,7 @@ const invalidationPayloadContract = z
 const requestPayloadContract = z
   .object({
     kind: z.literal('request'),
-    step: stepNameContract,
+    step: z.string().min(1).brand<'RequestPayloadStep'>(),
     reason: z.string().min(1).brand<'RequestReason'>(),
   })
   .strict();

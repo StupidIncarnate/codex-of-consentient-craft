@@ -29,7 +29,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { operationItemContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
@@ -84,7 +84,7 @@ export const questAdvanceBroker = async ({ questId }: { questId: Quest['id'] }):
         status: 'pending',
         // The step the scope ENTERS at. Without it the router has no current step to read and
         // treats a scope with work items as one that has not started.
-        ...(entryStep === undefined ? {} : { step: stepNameContract.parse(entryStep) }),
+        ...(entryStep === undefined ? {} : { step: entryStep }),
         // `spawnerType` is read off the command-role subset rather than a role name, so a role
         // added to `workItemRoleStatics.command` becomes a command here without an edit — a missed
         // edit would hand it to agentRoleContract, which throws on a name it does not enumerate.

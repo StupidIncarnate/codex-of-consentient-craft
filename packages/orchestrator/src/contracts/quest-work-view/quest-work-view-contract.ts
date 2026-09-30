@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
@@ -86,7 +86,7 @@ const questWorkFlow = z.object({
 
 const questWorkPiece = z.object({
   pieceId: pieceIdContract,
-  step: stepNameContract,
+  step: z.string().min(1).brand<'QuestWorkPieceStep'>(),
   context: workPlanPieceContract.shape.context,
   recipeId: recipeIdContract.nullable(),
   baselineFor: pieceIdContract.nullable(),
@@ -156,7 +156,7 @@ export const questWorkViewContract = z.object({
   questId: questContract.shape.id,
   workItemId: workItemContract.shape.id,
   family: z.string().min(1).brand<'QuestWorkViewFamily'>(),
-  step: stepNameContract,
+  step: z.string().min(1).brand<'QuestWorkViewStep'>(),
   role: z.enum(['planner', 'worker', 'reviewer']),
   scope: questWorkScope,
   assignedUnits: z.array(questWorkUnit).default([]),

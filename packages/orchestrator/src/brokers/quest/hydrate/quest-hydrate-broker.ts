@@ -17,7 +17,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { addQuestInputContract, operationItemContract, questContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, operationItemContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { QuestSource, QuestStatus, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -153,7 +153,7 @@ export const questHydrateBroker = async ({
             dependsOn: [],
             maxAttempts: 1,
             createdAt: createdAt ?? now,
-            ...(entryStep === undefined ? {} : { step: stepNameContract.parse(entryStep) }),
+            ...(entryStep === undefined ? {} : { step: entryStep }),
             ...(blueprint.rolePromptOverrides[firstActionable.role] === undefined
               ? {}
               : { smoketestPromptOverride: blueprint.rolePromptOverrides[firstActionable.role] }),

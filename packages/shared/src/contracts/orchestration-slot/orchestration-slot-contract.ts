@@ -10,7 +10,7 @@ import { z } from '#gateway/npm/zod';
 
 export const orchestrationSlotContract = z.object({
   slotId: z.number().int().nonnegative().brand<'SlotId'>(),
-  step: z.string().brand<'StepName'>().optional(),
+  step: z.string().brand<'OrchestrationSlotStep'>().optional(),
   status: z.enum(['idle', 'running', 'completed', 'failed']),
 });
 

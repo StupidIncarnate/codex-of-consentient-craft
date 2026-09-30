@@ -1,6 +1,5 @@
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
@@ -15,7 +14,7 @@ const OPERATION_ITEM = OperationItemStub({
 });
 const { id: OPERATION_ITEM_ID } = OPERATION_ITEM;
 const OPERATIONS_REF = `operations/${String(OPERATION_ITEM_ID)}`;
-const WORK_STEP = StepNameStub({ value: 'work' });
+const WORK_STEP = 'work';
 const BADGE_UNIT_ID = UnitIdStub({ value: 'send-flow:observable:check-badge-count-text' });
 
 // Deliberately MIXED statuses — terminal, failed and one in_progress — so a status filter on the
@@ -286,7 +285,7 @@ describe('mintNextActionTransformer', () => {
         maxVisits: 40,
         maxConcurrent: undefined,
         invalidatedUnitIds: [],
-        from: StepNameStub({ value: 'plan' }),
+        from: 'plan',
         outcome: 'done',
       });
 

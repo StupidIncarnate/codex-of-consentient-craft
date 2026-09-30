@@ -3,7 +3,6 @@ import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -190,7 +189,7 @@ describe('nextActionTransformer', () => {
         questFlowStatics,
         request: {
           fromWorkItemId: HAPPY_WORK_ITEM_ID,
-          step: StepNameStub({ value: 'recipe' }),
+          step: 'recipe',
           reason: 'the seeds this walk needs do not exist yet',
         },
       });

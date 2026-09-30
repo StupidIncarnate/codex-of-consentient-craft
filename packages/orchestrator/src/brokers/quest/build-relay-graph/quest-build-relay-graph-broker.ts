@@ -27,7 +27,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { operationItemContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
@@ -101,7 +101,7 @@ export const questBuildRelayGraphBroker = ({
     dependsOn: priorWorkItemIds,
     maxAttempts: 1,
     createdAt: now,
-    ...(entryStep === undefined ? {} : { step: stepNameContract.parse(entryStep) }),
+    ...(entryStep === undefined ? {} : { step: entryStep }),
   });
 
   return {

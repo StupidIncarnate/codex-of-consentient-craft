@@ -1,5 +1,4 @@
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { selectBatchLayerBroker } from './select-batch-layer-broker';
@@ -144,7 +143,7 @@ describe('selectBatchLayerBroker', () => {
   describe('the same-step invariant', () => {
     it('VALID: {batch items share one explicit step} => returns the batch', () => {
       selectBatchLayerBrokerProxy();
-      const step = StepNameStub({ value: 'work' });
+      const step = 'work';
       const a = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'ddd00001-1111-4222-9333-444444444444' }),
         role: 'codeweaver',
@@ -182,12 +181,12 @@ describe('selectBatchLayerBroker', () => {
       const a = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'ddd00005-1111-4222-9333-444444444444' }),
         role: 'codeweaver',
-        step: StepNameStub({ value: 'plan' }),
+        step: 'plan',
       });
       const b = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'ddd00006-1111-4222-9333-444444444444' }),
         role: 'codeweaver',
-        step: StepNameStub({ value: 'work' }),
+        step: 'work',
       });
 
       expect(() => selectBatchLayerBroker({ ready: [a, b], selected: [a.id, b.id] })).toThrow(

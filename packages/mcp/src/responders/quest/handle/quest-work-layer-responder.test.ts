@@ -1,6 +1,5 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';
@@ -42,7 +41,7 @@ describe('QuestWorkLayerResponder', () => {
       proxy.setupReturns({
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        result: { kind: 'request', step: StepNameStub({ value: 'recipe' }) },
+        result: { kind: 'request', step: 'recipe' },
       });
 
       await QuestWorkLayerResponder({

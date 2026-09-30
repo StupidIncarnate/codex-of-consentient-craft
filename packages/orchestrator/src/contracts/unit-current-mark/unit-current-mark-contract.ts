@@ -17,7 +17,7 @@
  * // Returns: UnitCurrentMark
  */
 
-import { stepNameContract, unitMarkContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import { unitMarkContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const unitCurrentMarkContract = z.object({
@@ -31,7 +31,7 @@ export const unitCurrentMarkContract = z.object({
   toSettle: z.string().min(1).brand<'ToSettleInstruction'>().optional(),
   workItemId: workItemContract.shape.id,
   // `.optional()` — a chat-role work item runs no step of a family graph and carries none.
-  step: stepNameContract.optional(),
+  step: z.string().min(1).brand<'UnitCurrentMarkStep'>().optional(),
   // The moment the unit was SETTLED, taken verbatim off the observation — not the moment the
   // session that settled it ended.
   at: z.iso.datetime().brand<'UnitCurrentMarkAt'>(),

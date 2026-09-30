@@ -9,7 +9,7 @@
  * // Returns: QuestWorkRecordResult
  */
 
-import { stepNameContract, flowContract, questNoteContract } from '@dungeonmaster/shared/contracts';
+import { flowContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
@@ -31,7 +31,7 @@ export const questWorkRecordResultContract = z.discriminatedUnion('kind', [
   }),
   z.object({
     kind: z.literal('request'),
-    step: stepNameContract,
+    step: z.string().min(1).brand<'QuestWorkRecordResultStep'>(),
   }),
 ]);
 

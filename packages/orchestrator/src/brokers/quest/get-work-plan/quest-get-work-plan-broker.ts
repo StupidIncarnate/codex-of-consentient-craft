@@ -20,7 +20,6 @@
  * empty table.
  */
 
-import { stepNameContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -65,7 +64,7 @@ export const questGetWorkPlanBroker = async ({
       : stepInScopeUnitsTransformer({
           quest,
           operationItemId,
-          step: stepNameContract.parse(entryStep),
+          step: entryStep,
         });
 
   const plan = await plannedWorkReadBroker({ questFolderPath: questPath, operationItemId });

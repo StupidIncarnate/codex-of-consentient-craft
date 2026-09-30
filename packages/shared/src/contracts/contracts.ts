@@ -215,7 +215,6 @@ export * from './riftcarver-result/riftcarver-result-contract';
 
 export * from './quest-session/quest-session-contract';
 
-export * from './step-name/step-name-contract';
 
 export * from './piece-id/piece-id-contract';
 

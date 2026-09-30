@@ -20,7 +20,7 @@
  * //  work items: <workItemId>"
  */
 
-import type { StepName, UnitObservation, WorkItemRole, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { UnitObservation, WorkItemRole, WorkItem } from '@dungeonmaster/shared/contracts';
 
 // Every label padded to the width of the longest one (`cant-meet` + 1 space = 10), so the three
 // value columns line up.
@@ -34,7 +34,7 @@ export const commitMessageBuildTransformer = ({
   workItems,
 }: {
   family: WorkItemRole;
-  step: StepName;
+  step: string;
   scope: string;
   workItems: readonly { id: WorkItem['id']; observations: readonly UnitObservation[] }[];
 }): string => {

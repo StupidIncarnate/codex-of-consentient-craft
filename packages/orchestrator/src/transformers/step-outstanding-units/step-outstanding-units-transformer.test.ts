@@ -2,7 +2,6 @@ import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-nod
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
@@ -99,7 +98,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -164,7 +163,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -203,7 +202,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -256,7 +255,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -308,7 +307,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -356,7 +355,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -401,7 +400,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -436,7 +435,7 @@ describe('stepOutstandingUnitsTransformer', () => {
           quest,
           plan,
           operationItemId: ABSENT_OPERATION_ITEM_ID,
-          step: StepNameStub({ value: 'adversarial' }),
+          step: 'adversarial',
         }),
       ).toThrow(
         "stepOutstandingUnitsTransformer: quest 'send-batch' holds no operation item 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479'",
@@ -486,7 +485,7 @@ describe('stepOutstandingUnitsTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(JSON.stringify(quest)).toBe(before);

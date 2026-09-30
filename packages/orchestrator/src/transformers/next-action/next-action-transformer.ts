@@ -60,8 +60,8 @@
  * the minted step's `done` returns to the session that asked for it.
  */
 
-import type { Quest, StepName, WorkItem, OperationItem, QaChecklistItem, Flow } from '@dungeonmaster/shared/contracts';
-import { stepNameContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, OperationItem, QaChecklistItem, Flow } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -119,7 +119,7 @@ export const nextActionTransformer = ({
   questFlowStatics: Readonly<
     Record<string, { families: Readonly<Record<string, { role: string } | undefined>> } | undefined>
   >;
-  request?: { fromWorkItemId: WorkItem['id']; step: StepName; reason: string };
+  request?: { fromWorkItemId: WorkItem['id']; step: string; reason: string };
   invalidatedFlowIds?: readonly Flow['id'][];
   declaredWord?: StepOutcome;
   hitWall?: boolean;
@@ -170,7 +170,7 @@ export const nextActionTransformer = ({
   // timestamp, so a sort over it is unstable. `unitCurrentMarkTransformer` reads the ledger the same
   // way and for the same reason.
   const lastStepped = [...scopeItems].reverse().find((item) => item.step !== undefined);
-  const step = stepNameContract.parse(lastStepped?.step ?? graph.entry);
+  const step = (lastStepped?.step ?? graph.entry);
   const node = graph.steps[String(step)];
 
   if (node === undefined) {
@@ -296,7 +296,7 @@ export const nextActionTransformer = ({
       quest,
       operationItemId,
       family,
-      step: stepNameContract.parse(unmetTarget),
+      step: unmetTarget,
       batch: [
         ...claimedGroups.map((group) => {
           const payload = pieceBriefPayloadTransformer({
@@ -444,7 +444,7 @@ export const nextActionTransformer = ({
       });
     }
 
-    const minterStep = stepNameContract.parse(String(minter.step));
+    const minterStep = String(minter.step);
     const minterNode = graph.steps[String(minterStep)];
 
     if (minterNode === undefined) {
@@ -572,7 +572,7 @@ export const nextActionTransformer = ({
     });
   }
 
-  const routeTarget = stepNameContract.parse(target);
+  const routeTarget = target;
   const routeBatch = stepEntryBatchTransformer({
     quest,
     plan,

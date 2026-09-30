@@ -26,7 +26,7 @@
  */
 
 import type { Quest, QuestProjection, WorkItem } from '@dungeonmaster/shared/contracts';
-import { questProjectionContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import { questProjectionContract } from '@dungeonmaster/shared/contracts';
 import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { agentFlowFamilyResolveTransformer } from '../agent-flow-family-resolve/agent-flow-family-resolve-transformer';
@@ -75,7 +75,7 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
 
     const plannedSteps = agentFlowPlannedStepsWalkTransformer({ graph, cursor: plannedStart }).map(
       (step) => ({
-        step: stepNameContract.parse(String(step)),
+        step: String(step),
         kind: 'planned' as const,
       }),
     );

@@ -37,7 +37,7 @@
  * // { outcome: 'done' | 'empty', detail }
  */
 
-import { getQuestInputContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { addAll, commit, push } from '#gateway/bin/git';
 
@@ -50,7 +50,7 @@ import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questWithModifyLockBroker } from '../../quest/with-modify-lock/quest-with-modify-lock-broker';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-const DEFAULT_STEP_NAME = stepNameContract.parse('commit');
+const DEFAULT_STEP_NAME = 'commit';
 const OPERATIONS_REF_PREFIX = 'operations/';
 
 export const stepHandlerCommitBroker = async ({

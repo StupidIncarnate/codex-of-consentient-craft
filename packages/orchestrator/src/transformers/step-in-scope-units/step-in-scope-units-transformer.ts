@@ -31,7 +31,7 @@
  * derived from the graph, so a second derivation drifts and nothing reports it.
  */
 
-import type { Quest, StepName, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
 import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
@@ -54,7 +54,7 @@ export const stepInScopeUnitsTransformer = ({
 }: {
   quest: Quest;
   operationItemId: OperationItem['id'];
-  step: StepName;
+  step: string;
 }): QaChecklistItem['id'][] => {
   const operationItem = quest.operations.find((item) => item.id === operationItemId);
 
@@ -73,7 +73,7 @@ export const stepInScopeUnitsTransformer = ({
   }
 
   const family: StepFamily = operationItem.role;
-  const familySteps: Record<StepName, StepScope> = stepScopeStatics.byFamilyStep[family];
+  const familySteps: Record<string, StepScope> = stepScopeStatics.byFamilyStep[family];
   const declaredScope = familySteps[step];
 
   // A step with NO declared scope inherits its family's whole in-scope set UNFILTERED. Every

@@ -18,7 +18,7 @@
  * // Returns {statusLabel: 'reviewing_by_dragon', statusColor: 'text-dim', roleColor: 'primary'}
  */
 
-import type { StepName, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -55,7 +55,7 @@ export const executionRowDisplayResolveTransformer = ({
   > = executionStepStatusConfigStatics.roleColors;
   const stepColorLookup: Partial<
     Record<
-      StepName,
+      string,
       (typeof executionStepStatusConfigStatics.stepColors)[keyof typeof executionStepStatusConfigStatics.stepColors]
     >
   > = executionStepStatusConfigStatics.stepColors;

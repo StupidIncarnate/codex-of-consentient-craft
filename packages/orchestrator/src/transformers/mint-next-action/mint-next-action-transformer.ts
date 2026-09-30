@@ -33,7 +33,7 @@
  * units and its absent mark is then the state.
  */
 
-import type { Quest, StepName, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -60,7 +60,7 @@ export const mintNextActionTransformer = ({
   quest: Quest;
   operationItemId: OperationItem['id'];
   family: string;
-  step: StepName;
+  step: string;
   batch: readonly MintedWorkItem[];
   cause: Extract<NextAction, { kind: 'mint' }>['cause'];
   maxVisits: number;
@@ -69,7 +69,7 @@ export const mintNextActionTransformer = ({
   // those call sites for a value the step already spells.
   maxConcurrent: { limit: number; counts: string } | undefined;
   invalidatedUnitIds: readonly QaChecklistItem['id'][];
-  from?: StepName;
+  from?: string;
   outcome?: StepOutcome;
 }): NextAction => {
   const scopeRef = `operations/${String(operationItemId)}`;

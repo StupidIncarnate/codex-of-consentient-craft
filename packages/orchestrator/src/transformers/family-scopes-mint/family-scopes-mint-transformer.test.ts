@@ -4,7 +4,6 @@ import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 
 import { familyScopesMintTransformer } from './family-scopes-mint-transformer';
 import { familyScopesMintTransformerProxy } from './family-scopes-mint-transformer.proxy';
@@ -317,7 +316,7 @@ describe('familyScopesMintTransformer', () => {
         stepInScopeUnitsTransformer({
           quest: QuestStub({ ...quest, operations: [scope!] }),
           operationItemId: scope!.id,
-          step: StepNameStub({ value: 'review' }),
+          step: 'review',
         }),
       ).toStrictEqual(['late-flow:terminal:late-node', 'late-flow:observable:check-late-drain']);
     });

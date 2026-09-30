@@ -3,7 +3,6 @@ import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observa
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 
 import { stepInScopeUnitsTransformer } from './step-in-scope-units-transformer';
 
@@ -59,7 +58,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(result).toStrictEqual([
@@ -115,12 +114,12 @@ describe('stepInScopeUnitsTransformer', () => {
       const codeweaverScope = stepInScopeUnitsTransformer({
         quest,
         operationItemId: codeweaverItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
       const flowriderScope = stepInScopeUnitsTransformer({
         quest,
         operationItemId: flowriderItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(codeweaverScope).toStrictEqual([
@@ -181,12 +180,12 @@ describe('stepInScopeUnitsTransformer', () => {
       const codeweaverScope = stepInScopeUnitsTransformer({
         quest,
         operationItemId: codeweaverItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
       const flowriderScope = stepInScopeUnitsTransformer({
         quest,
         operationItemId: flowriderItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(codeweaverScope).toStrictEqual([
@@ -233,7 +232,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(result).toStrictEqual(['send-flow:terminal:web-node']);
@@ -271,7 +270,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const scopeBefore = stepInScopeUnitsTransformer({
         quest: questBefore,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       const flowAfter = FlowStub({
@@ -297,7 +296,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const scopeAfter = stepInScopeUnitsTransformer({
         quest: questAfter,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(scopeBefore).toStrictEqual([
@@ -341,7 +340,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
       });
 
       expect(result).toStrictEqual([
@@ -383,7 +382,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'happyWalk' }),
+        step: 'happyWalk',
       });
 
       expect(result).toStrictEqual([]);
@@ -424,7 +423,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'work' }),
+        step: 'work',
       });
 
       expect(result).toStrictEqual([
@@ -458,7 +457,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(result).toStrictEqual([]);
@@ -492,7 +491,7 @@ describe('stepInScopeUnitsTransformer', () => {
       const result = stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(result).toStrictEqual([]);
@@ -520,7 +519,7 @@ describe('stepInScopeUnitsTransformer', () => {
         stepInScopeUnitsTransformer({
           quest,
           operationItemId: absentOperationItemId,
-          step: StepNameStub({ value: 'review' }),
+          step: 'review',
         }),
       ).toThrow(
         "stepInScopeUnitsTransformer: quest 'send-batch' holds no operation item 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479'",
@@ -562,7 +561,7 @@ describe('stepInScopeUnitsTransformer', () => {
       stepInScopeUnitsTransformer({
         quest,
         operationItemId,
-        step: StepNameStub({ value: 'review' }),
+        step: 'review',
       });
 
       expect(JSON.stringify(quest)).toBe(before);

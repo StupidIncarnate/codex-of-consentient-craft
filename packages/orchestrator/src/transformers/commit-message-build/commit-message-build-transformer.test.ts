@@ -1,12 +1,11 @@
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 
 import { commitMessageBuildTransformer } from './commit-message-build-transformer';
 
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 const FAMILY = 'codeweaver';
-const STEP = StepNameStub({ value: 'commit' });
+const STEP = 'commit';
 const SCOPE = 'add-auth — package: auth · flow: login-flow';
 
 describe('commitMessageBuildTransformer', () => {
@@ -70,7 +69,7 @@ describe('commitMessageBuildTransformer', () => {
     it('EMPTY: {no observations} => the body skips straight to the work items line', () => {
       const result = commitMessageBuildTransformer({
         family: 'spiritmender',
-        step: StepNameStub({ value: 'repair' }),
+        step: 'repair',
         scope: 'fix ward (committed) failures',
         workItems: [{ id: WORK_ITEM_ID, observations: [] }],
       });

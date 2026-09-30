@@ -60,7 +60,6 @@ import { z } from '#gateway/npm/zod';
 
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
-import { stepNameContract } from '../step-name/step-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 import { questContract } from '../quest/quest-contract';
@@ -78,7 +77,7 @@ const projectedStepCountContract = z
 
 const questProjectionStepContract = z
   .object({
-    step: stepNameContract.describe(
+    step: z.string().min(1).brand<'QuestProjectionStepStep'>().describe(
       'A real key into `agentFlowStatics[family].steps` — never a display label.',
     ),
     kind: z

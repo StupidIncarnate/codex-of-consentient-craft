@@ -96,7 +96,7 @@ const requestPayloadContract = z
     step: z
       .string()
       .min(1)
-      .brand<'StepName'>()
+      .brand<'RequestPayloadStep'>()
       .describe("Must be mintableOnRequest: true in the asking work item's own family graph."),
     reason: z
       .string()

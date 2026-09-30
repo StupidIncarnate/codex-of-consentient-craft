@@ -10,7 +10,6 @@
  * // Returns true
  */
 
-import type { StepName } from '@dungeonmaster/shared/contracts';
 
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 
@@ -27,7 +26,7 @@ export const isStepMintableOnRequestGuard = ({
   step,
 }: {
   family?: string;
-  step?: StepName;
+  step?: string;
 }): boolean => {
   if (family === undefined || step === undefined) {
     return false;

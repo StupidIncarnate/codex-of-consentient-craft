@@ -30,7 +30,6 @@
  * SERIALIZED string, so nothing can decide whether a section fits until the whole object exists.
  */
 
-import { stepNameContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { questFlowSliceTransformer } from '@dungeonmaster/shared/transformers';
@@ -101,7 +100,7 @@ export const questGetQuestWorkBroker = async ({
     );
   }
 
-  const step = stepNameContract.parse(workItem.step ?? entryStep);
+  const step = (workItem.step ?? entryStep);
   const stepNodes = familyGraphs.flatMap((entry) => Object.entries(entry[1].steps));
   // `agentStepNodeContract` rather than a member read: `Object.entries` over a union of six
   // differently-shaped `steps` maps widens the value to `any`, and an `any` walked into the return

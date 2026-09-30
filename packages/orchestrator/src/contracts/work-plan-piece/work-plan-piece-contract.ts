@@ -49,7 +49,7 @@
  * a plan for omitting (`id`, `step`, `context`).
  */
 
-import { pieceIdContract, stepNameContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import { pieceIdContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { recipeIdContract } from '../recipe-id/recipe-id-contract';
@@ -65,7 +65,7 @@ export const workPlanPieceContract = z.object({
         'never what it proves or which files it touches. Renders on the execution panel as ' +
         '`step - pieceName` once a scope holds more than one piece at that step.',
     ),
-  step: stepNameContract.describe(
+  step: z.string().min(1).brand<'WorkPlanPieceStep'>().describe(
     "Which step of this family's graph the piece runs — resolved against that graph by the plan validator, not here.",
   ),
   assignedUnitIds: z

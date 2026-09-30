@@ -2,7 +2,6 @@ import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-nod
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -59,7 +58,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan: null,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'plan' }),
+        step: 'plan',
         itemRole: 'siegemaster',
         stepRole: 'planner',
         deterministic: false,
@@ -80,7 +79,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan: null,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'ward' }),
+        step: 'ward',
         itemRole: 'siegemaster',
         stepRole: 'reviewer',
         deterministic: true,
@@ -101,7 +100,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan: null,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
         itemRole: 'siegemaster',
         stepRole: 'reviewer',
         deterministic: false,
@@ -149,7 +148,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'happyWalk' }),
+        step: 'happyWalk',
         itemRole: 'siegemaster',
         stepRole: 'reviewer',
         deterministic: false,
@@ -213,7 +212,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'fixHappy' }),
+        step: 'fixHappy',
         itemRole: 'siegemaster',
         stepRole: 'worker',
         deterministic: false,
@@ -297,7 +296,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'fixHappy' }),
+        step: 'fixHappy',
         itemRole: 'siegemaster',
         stepRole: 'worker',
         deterministic: false,
@@ -372,7 +371,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'adversarial' }),
+        step: 'adversarial',
         itemRole: 'siegemaster',
         stepRole: 'worker',
         deterministic: false,
@@ -405,7 +404,7 @@ describe('stepEntryBatchTransformer', () => {
         quest,
         plan: null,
         operationItemId: SIEGE_OPERATION_ITEM_ID,
-        step: StepNameStub({ value: 'fixHappy' }),
+        step: 'fixHappy',
         itemRole: 'siegemaster',
         stepRole: 'worker',
         deterministic: false,
