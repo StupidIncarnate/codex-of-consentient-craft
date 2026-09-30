@@ -12,10 +12,6 @@
  * quotes a path can never read as this crash.
  */
 
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../contracts/git-relative-path/git-relative-path-contract';
 
 const IGNORED_SENTENCE =
   /You are linting "(?<linted>[^"]+)", but all of the files matching the glob pattern "(?<glob>[^"]+)" are ignored\./u;
@@ -24,12 +20,12 @@ export const eslintIgnoredPatternExtractTransformer = ({
   output,
 }: {
   output: string;
-}): GitRelativePath | undefined => {
+}): string | undefined => {
   const groups = IGNORED_SENTENCE.exec(output)?.groups;
 
   if (groups?.linted === undefined || groups.linted !== groups.glob) {
     return undefined;
   }
 
-  return gitRelativePathContract.parse(groups.linted);
+  return groups.linted;
 };

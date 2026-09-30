@@ -14,7 +14,6 @@ import {
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import { gitRelativePathContract } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { msPerSecondStatics } from '../../../statics/ms-per-second/ms-per-second-statics';
@@ -57,7 +56,7 @@ export const singlePackageLayerBroker = async ({
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
 
   const fileList = hasPassthrough
-    ? (config.passthrough ?? []).map((arg) => gitRelativePathContract.parse(arg))
+    ? (config.passthrough ?? []).map((arg) => arg)
     : [];
 
   const CHECK_PAD = 12;

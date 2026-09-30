@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { wardGitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 import { gitDiffUncommittedBroker } from './git-diff-uncommitted-broker';
@@ -23,14 +22,14 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     // Committed, so HEAD already has it — it belongs to `--committed`, not here.
     await git.commitFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'committed-work.ts' }),
+      relativePath: 'committed-work.ts',
       content: 'export const committed = 1;\n',
     });
 
     // An edit to a TRACKED file. `git diff` reports this one.
     await git.writeUncommittedFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'base.txt' }),
+      relativePath: 'base.txt',
       content: 'base edited but never committed\n',
     });
 
@@ -38,7 +37,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     // broker takes a second reading.
     await git.writeUncommittedFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'brand-new.ts' }),
+      relativePath: 'brand-new.ts',
       content: 'export const brandNew = 2;\n',
     });
 
@@ -49,8 +48,8 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     // toStrictEqual on the COMPLETE list: asserting brand-new.ts is present would not show that
     // committed-work.ts stayed out, and asserting its absence alone would be vacuous.
     expect(result).toStrictEqual([
-      GitRelativePathStub({ value: 'base.txt' }),
-      GitRelativePathStub({ value: 'brand-new.ts' }),
+      'base.txt',
+      'brand-new.ts',
     ]);
   }, 30_000);
 
@@ -63,18 +62,18 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     await git.initRepo({ repoPath });
     await git.commitFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: '.gitignore' }),
+      relativePath: '.gitignore',
       content: 'dist/\n',
     });
 
     await git.writeUncommittedFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'dist/generated.js' }),
+      relativePath: 'dist/generated.js',
       content: 'module.exports = {};\n',
     });
     await git.writeUncommittedFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'src/real.ts' }),
+      relativePath: 'src/real.ts',
       content: 'export const real = 1;\n',
     });
 
@@ -82,6 +81,6 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
 
     testbed.cleanup();
 
-    expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/real.ts' })]);
+    expect(result).toStrictEqual(['src/real.ts']);
   }, 30_000);
 });

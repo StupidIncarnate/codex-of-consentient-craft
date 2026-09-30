@@ -1,5 +1,4 @@
 
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
 import { gitDiffCommittedBroker } from './git-diff-committed-broker';
 import { gitDiffCommittedBrokerProxy } from './git-diff-committed-broker.proxy';
@@ -15,8 +14,8 @@ describe('gitDiffCommittedBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        GitRelativePathStub({ value: 'src/file1.ts' }),
-        GitRelativePathStub({ value: 'src/file2.ts' }),
+        'src/file1.ts',
+        'src/file2.ts',
       ]);
     });
 
@@ -80,7 +79,7 @@ describe('gitDiffCommittedBroker', () => {
         cwd: '/project',
       });
 
-      expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/offline.ts' })]);
+      expect(result).toStrictEqual(['src/offline.ts']);
     });
 
     it('EMPTY: {no origin refs and no local main or master} => returns empty array', async () => {

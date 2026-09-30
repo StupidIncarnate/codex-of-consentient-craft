@@ -6,14 +6,10 @@
  * // Returns [GitRelativePath('src/file1.ts'), GitRelativePath('src/file2.ts')]
  */
 
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../contracts/git-relative-path/git-relative-path-contract';
 
-export const parseDiffOutputTransformer = ({ output }: { output: string }): GitRelativePath[] =>
+export const parseDiffOutputTransformer = ({ output }: { output: string }): string[] =>
   output
     .trim()
     .split('\n')
     .filter((line) => line.length > 0)
-    .map((line) => gitRelativePathContract.parse(line));
+    .map((line) => line);

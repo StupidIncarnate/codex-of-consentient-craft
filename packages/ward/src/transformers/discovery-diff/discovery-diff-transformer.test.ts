@@ -1,5 +1,4 @@
 
-import { GitRelativePathStub } from '../../contracts/git-relative-path/git-relative-path.stub';
 
 import { discoveryDiffTransformer } from './discovery-diff-transformer';
 
@@ -8,12 +7,12 @@ describe('discoveryDiffTransformer', () => {
     it('VALID: {same files in both lists} => returns empty arrays', () => {
       const result = discoveryDiffTransformer({
         discoveredFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/b.ts' }),
+          'src/a.ts',
+          'src/b.ts',
         ],
         processedFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/b.ts' }),
+          'src/a.ts',
+          'src/b.ts',
         ],
         cwd: '/project',
       });
@@ -29,13 +28,13 @@ describe('discoveryDiffTransformer', () => {
     it('VALID: {discovered has extra file} => returns it in onlyDiscovered', () => {
       const result = discoveryDiffTransformer({
         discoveredFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/b.ts' }),
-          GitRelativePathStub({ value: 'src/c.ts' }),
+          'src/a.ts',
+          'src/b.ts',
+          'src/c.ts',
         ],
         processedFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/b.ts' }),
+          'src/a.ts',
+          'src/b.ts',
         ],
         cwd: '/project',
       });
@@ -50,10 +49,10 @@ describe('discoveryDiffTransformer', () => {
   describe('only processed', () => {
     it('VALID: {processed has extra file} => returns it in onlyProcessed', () => {
       const result = discoveryDiffTransformer({
-        discoveredFiles: [GitRelativePathStub({ value: 'src/a.ts' })],
+        discoveredFiles: ['src/a.ts'],
         processedFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: '@types/error-cause.d.ts' }),
+          'src/a.ts',
+          '@types/error-cause.d.ts',
         ],
         cwd: '/project',
       });
@@ -69,12 +68,12 @@ describe('discoveryDiffTransformer', () => {
     it('VALID: {processed files have absolute paths} => normalizes to relative before comparing', () => {
       const result = discoveryDiffTransformer({
         discoveredFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/b.ts' }),
+          'src/a.ts',
+          'src/b.ts',
         ],
         processedFiles: [
-          GitRelativePathStub({ value: '/project/src/a.ts' }),
-          GitRelativePathStub({ value: '/project/src/b.ts' }),
+          '/project/src/a.ts',
+          '/project/src/b.ts',
         ],
         cwd: '/project',
       });
@@ -90,12 +89,12 @@ describe('discoveryDiffTransformer', () => {
     it('VALID: {both have unique files} => returns diffs in both arrays', () => {
       const result = discoveryDiffTransformer({
         discoveredFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/only-discovered.ts' }),
+          'src/a.ts',
+          'src/only-discovered.ts',
         ],
         processedFiles: [
-          GitRelativePathStub({ value: 'src/a.ts' }),
-          GitRelativePathStub({ value: 'src/only-processed.ts' }),
+          'src/a.ts',
+          'src/only-processed.ts',
         ],
         cwd: '/project',
       });

@@ -2,24 +2,23 @@ import { Buffer } from '#gateway/node/buffer';
 import { readFileBytesSyncProxy } from '#gateway/node/fs/read-file-bytes-sync/read-file-bytes-sync.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 
 export const bundleHashFilesBrokerProxy = (): {
   hasFile: (params: {
     rootPath: string;
-    relativePath: GitRelativePath;
+    relativePath: string;
     contents: string;
   }) => void;
   hasBytes: (params: {
     rootPath: string;
-    relativePath: GitRelativePath;
+    relativePath: string;
     bytes: readonly number[];
   }) => void;
-  isDirectory: (params: { rootPath: string; relativePath: GitRelativePath }) => void;
-  isMissing: (params: { rootPath: string; relativePath: GitRelativePath }) => void;
+  isDirectory: (params: { rootPath: string; relativePath: string }) => void;
+  isMissing: (params: { rootPath: string; relativePath: string }) => void;
   failsWith: (params: {
     rootPath: string;
-    relativePath: GitRelativePath;
+    relativePath: string;
     code: string;
   }) => void;
 } => {
@@ -30,7 +29,7 @@ export const bundleHashFilesBrokerProxy = (): {
     relativePath,
   }: {
     rootPath: string;
-    relativePath: GitRelativePath;
+    relativePath: string;
   }): string => `${String(rootPath)}/${String(relativePath)}`;
 
   return {
@@ -40,7 +39,7 @@ export const bundleHashFilesBrokerProxy = (): {
       contents,
     }: {
       rootPath: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
       contents: string;
     }): void => {
       readProxy.returns({
@@ -54,7 +53,7 @@ export const bundleHashFilesBrokerProxy = (): {
       bytes,
     }: {
       rootPath: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
       bytes: readonly number[];
     }): void => {
       readProxy.returns({ path: addressOf({ rootPath, relativePath }), bytes: Buffer.from(bytes) });
@@ -64,7 +63,7 @@ export const bundleHashFilesBrokerProxy = (): {
       relativePath,
     }: {
       rootPath: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
     }): void => {
       readProxy.isDirectory({ path: addressOf({ rootPath, relativePath }) });
     },
@@ -73,7 +72,7 @@ export const bundleHashFilesBrokerProxy = (): {
       relativePath,
     }: {
       rootPath: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
     }): void => {
       readProxy.missing({ path: addressOf({ rootPath, relativePath }) });
     },
@@ -83,7 +82,7 @@ export const bundleHashFilesBrokerProxy = (): {
       code,
     }: {
       rootPath: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
       code: string;
     }): void => {
       const path = addressOf({ rootPath, relativePath });

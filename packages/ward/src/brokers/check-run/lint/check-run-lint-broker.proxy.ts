@@ -5,7 +5,6 @@ import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.prox
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 
 export const checkRunLintBrokerProxy = (): {
@@ -20,7 +19,7 @@ export const checkRunLintBrokerProxy = (): {
   setupNonJsonFailure: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupForFiles: (params: {
     projectFolder: ProjectFolder;
-    files: readonly GitRelativePath[];
+    files: readonly string[];
     exitCode: number;
     stdout: string;
   }) => void;
@@ -113,7 +112,7 @@ export const checkRunLintBrokerProxy = (): {
       stdout,
     }: {
       projectFolder: ProjectFolder;
-      files: readonly GitRelativePath[];
+      files: readonly string[];
       exitCode: number;
       stdout: string;
     }): void => {

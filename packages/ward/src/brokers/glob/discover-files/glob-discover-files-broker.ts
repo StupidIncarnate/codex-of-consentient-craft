@@ -14,10 +14,6 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../../contracts/git-relative-path/git-relative-path-contract';
 
 type DiscoveredCount = ProjectResult['discoveredCount'];
 
@@ -31,9 +27,9 @@ export const globDiscoverFilesBroker = ({
   patterns: readonly string[];
   cwd: string;
   exclude?: readonly string[];
-}): { discoveredCount: DiscoveredCount; discoveredFiles: GitRelativePath[] } => {
-  const seen = new Set<GitRelativePath>();
-  const uniqueFiles: GitRelativePath[] = [];
+}): { discoveredCount: DiscoveredCount; discoveredFiles: string[] } => {
+  const seen = new Set<string>();
+  const uniqueFiles: string[] = [];
   for (const pattern of patterns) {
     const matches = globSync({
       patterns: pattern,
@@ -41,7 +37,7 @@ export const globDiscoverFilesBroker = ({
       ...(exclude === undefined ? {} : { exclude: [...exclude] }),
     });
     for (const match of matches) {
-      const parsed = gitRelativePathContract.parse(match);
+      const parsed = match;
       if (!seen.has(parsed)) {
         seen.add(parsed);
         uniqueFiles.push(parsed);

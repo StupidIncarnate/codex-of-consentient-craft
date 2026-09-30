@@ -25,7 +25,6 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractPlaywrightLineFilesTransformer } from '../../../transformers/extract-playwright-line-files/extract-playwright-line-files-transformer';
@@ -51,7 +50,7 @@ export const checkRunE2eBroker = async ({
   testNamePattern,
 }: {
   projectFolder: ProjectFolder;
-  fileList: GitRelativePath[];
+  fileList: string[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const packageRoot = projectFolder.path;
@@ -266,7 +265,7 @@ export const checkRunE2eBroker = async ({
   // the process that wrote the directory is still holding a port until then.
   await e2eArtifactsRemoveBroker({ packageRoot, port: networkPortContract.parse(serverPort) });
 
-  const processedFiles: GitRelativePath[] = [];
+  const processedFiles: string[] = [];
   const lineFiles =
     result.output.length > 0
       ? extractPlaywrightLineFilesTransformer({ output: result.output })

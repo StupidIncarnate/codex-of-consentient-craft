@@ -2,7 +2,6 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
 import { checkRunTypecheckBroker } from './check-run-typecheck-broker';
 import { checkRunTypecheckBrokerProxy } from './check-run-typecheck-broker.proxy';
@@ -150,7 +149,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
 
       const elsewhereError = ErrorEntryStub({
@@ -192,7 +191,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -235,7 +234,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
 
       const namedError = ErrorEntryStub({
@@ -287,7 +286,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -324,7 +323,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+        fileList: ['src/widgets'],
       });
 
       const elsewhereError = ErrorEntryStub({
@@ -366,7 +365,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+        fileList: ['src/widgets'],
       });
 
       expect(result).toStrictEqual(
@@ -409,7 +408,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+        fileList: ['src/widgets'],
       });
 
       const insideError = ErrorEntryStub({
@@ -461,7 +460,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+        fileList: ['src/widgets'],
       });
 
       expect(result).toStrictEqual(
@@ -495,7 +494,7 @@ describe('checkRunTypecheckBroker', () => {
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/widget' })],
+        fileList: ['src/widget'],
       });
 
       const siblingError = ErrorEntryStub({

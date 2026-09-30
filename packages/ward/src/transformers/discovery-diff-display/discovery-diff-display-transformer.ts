@@ -6,7 +6,6 @@
  * // Returns: WardSummary '\n  only processed: @types/foo.d.ts'
  */
 
-import type { GitRelativePath } from '../../contracts/git-relative-path/git-relative-path-contract';
 
 export const discoveryDiffDisplayTransformer = ({
   hasMismatch,
@@ -15,8 +14,8 @@ export const discoveryDiffDisplayTransformer = ({
   maxDisplay,
 }: {
   hasMismatch: boolean;
-  onlyProcessed: GitRelativePath[];
-  onlyDiscovered: GitRelativePath[];
+  onlyProcessed: string[];
+  onlyDiscovered: string[];
   maxDisplay: number;
 }): string => {
   if (!hasMismatch) {

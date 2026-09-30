@@ -9,7 +9,6 @@ import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { bundleHashFilesBrokerProxy } from '../hash-files/bundle-hash-files-broker.proxy';
 import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.proxy';
@@ -88,22 +87,22 @@ export const bundleBuildBrokerProxy = (): {
 
       hashProxy.hasFile({
         rootPath: REPO_ROOT,
-        relativePath: GitRelativePathStub({ value: bundleStatics.lockfileName }),
+        relativePath: bundleStatics.lockfileName,
         contents: '{"lockfileVersion":3}',
       });
       hashProxy.hasFile({
         rootPath: REPO_ROOT,
-        relativePath: GitRelativePathStub({ value: 'packages/shared/src/statics.ts' }),
+        relativePath: 'packages/shared/src/statics.ts',
         contents: 'export const s = 2;',
       });
       hashProxy.hasFile({
         rootPath: REPO_ROOT,
-        relativePath: GitRelativePathStub({ value: 'packages/web/index.html' }),
+        relativePath: 'packages/web/index.html',
         contents: '<!doctype html>',
       });
       hashProxy.hasFile({
         rootPath: REPO_ROOT,
-        relativePath: GitRelativePathStub({ value: 'packages/web/src/app.tsx' }),
+        relativePath: 'packages/web/src/app.tsx',
         contents: 'export const App = 1;',
       });
 
@@ -195,12 +194,12 @@ export const bundleBuildBrokerProxy = (): {
 
       hashProxy.hasFile({
         rootPath: packageRoot,
-        relativePath: GitRelativePathStub({ value: bundleStatics.lockfileName }),
+        relativePath: bundleStatics.lockfileName,
         contents: '{"lockfileVersion":3}',
       });
       hashProxy.hasFile({
         rootPath: packageRoot,
-        relativePath: GitRelativePathStub({ value: SOLO_SOURCE_FILE }),
+        relativePath: SOLO_SOURCE_FILE,
         contents: 'export const App = 1;',
       });
       // The bundled package's globs also match its HTML shell, so its bytes are part of the hash.
@@ -208,7 +207,7 @@ export const bundleBuildBrokerProxy = (): {
       // readFileSync paths with '' — and the digest would silently be one over an empty file.
       hashProxy.hasFile({
         rootPath: packageRoot,
-        relativePath: GitRelativePathStub({ value: SOLO_SHELL_FILE }),
+        relativePath: SOLO_SHELL_FILE,
         contents: '<!doctype html>',
       });
 

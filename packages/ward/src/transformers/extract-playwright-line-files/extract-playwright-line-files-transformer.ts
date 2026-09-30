@@ -7,10 +7,6 @@
  */
 
 
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../contracts/git-relative-path/git-relative-path-contract';
 
 const LINE_REPORTER_PATTERN = /› ([\w/./-]+\.e2e\.ts):\d+/gu;
 
@@ -18,13 +14,13 @@ export const extractPlaywrightLineFilesTransformer = ({
   output,
 }: {
   output: string;
-}): GitRelativePath[] => {
-  const seen = new Set<GitRelativePath>();
+}): string[] => {
+  const seen = new Set<string>();
   let match = LINE_REPORTER_PATTERN.exec(output);
   while (match !== null) {
     const [, filePath] = match;
     if (filePath !== undefined) {
-      seen.add(gitRelativePathContract.parse(filePath));
+      seen.add(filePath);
     }
     match = LINE_REPORTER_PATTERN.exec(output);
   }

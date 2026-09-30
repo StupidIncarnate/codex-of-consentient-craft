@@ -24,7 +24,6 @@ import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 
-import type { GitRelativePath } from '../../../src/contracts/git-relative-path/git-relative-path-contract';
 
 // Real committer identity + disabled GPG signing, passed as `-c` config so these throwaway fixture
 // commits never depend on, or mutate, the developer's real global git config. `user.*` sets both
@@ -56,12 +55,12 @@ export const wardGitWorktreeFixtureHarness = (): {
   }) => Promise<void>;
   commitFile: (params: {
     cwd: string;
-    relativePath: GitRelativePath;
+    relativePath: string;
     content: string;
   }) => Promise<void>;
   writeUncommittedFile: (params: {
     cwd: string;
-    relativePath: GitRelativePath;
+    relativePath: string;
     content: string;
   }) => Promise<void>;
 } => {
@@ -148,7 +147,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       content,
     }: {
       cwd: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
       content: string;
     }): Promise<void> => {
       const targetPath = join(cwd, relativePath);
@@ -164,7 +163,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       content,
     }: {
       cwd: string;
-      relativePath: GitRelativePath;
+      relativePath: string;
       content: string;
     }): Promise<void> => {
       const targetPath = join(cwd, relativePath);

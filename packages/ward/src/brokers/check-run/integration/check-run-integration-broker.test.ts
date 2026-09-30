@@ -2,7 +2,6 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { OpenHandleStub } from '../../../contracts/open-handle/open-handle.stub';
 
@@ -171,7 +170,7 @@ describe('checkRunIntegrationBroker', () => {
 
       await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -204,7 +203,7 @@ describe('checkRunIntegrationBroker', () => {
 
       await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/flows/chat-replay' })],
+        fileList: ['src/flows/chat-replay'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -234,8 +233,8 @@ describe('checkRunIntegrationBroker', () => {
       await checkRunIntegrationBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/flows/quest' }),
-          GitRelativePathStub({ value: 'src/flows/install' }),
+          'src/flows/quest',
+          'src/flows/install',
         ],
       });
 
@@ -260,9 +259,7 @@ describe('checkRunIntegrationBroker', () => {
       await checkRunIntegrationBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({
-            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-          }),
+          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
         ],
       });
 
@@ -292,9 +289,7 @@ describe('checkRunIntegrationBroker', () => {
       const result = await checkRunIntegrationBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({
-            value: 'src/brokers/quest/orchestration-loop/spawn-ward-layer-broker.test.ts',
-          }),
+          'src/brokers/quest/orchestration-loop/spawn-ward-layer-broker.test.ts',
         ],
       });
 
@@ -324,12 +319,8 @@ describe('checkRunIntegrationBroker', () => {
       await checkRunIntegrationBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({
-            value: 'src/brokers/quest/spawn-ward-layer-broker.test.ts',
-          }),
-          GitRelativePathStub({
-            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-          }),
+          'src/brokers/quest/spawn-ward-layer-broker.test.ts',
+          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
         ],
       });
 
@@ -360,7 +351,7 @@ describe('checkRunIntegrationBroker', () => {
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/transformers' })],
+        fileList: ['src/transformers'],
       });
 
       expect(result).toStrictEqual(
@@ -550,7 +541,7 @@ describe('checkRunIntegrationBroker', () => {
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'testing.ts' })],
+        fileList: ['testing.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -887,9 +878,7 @@ describe('checkRunIntegrationBroker', () => {
       await checkRunIntegrationBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({
-            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-          }),
+          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
         ],
       });
       const fileScopeArgs = String(fileScopeProxy.getSpawnedArgs()).split(',');
@@ -901,7 +890,7 @@ describe('checkRunIntegrationBroker', () => {
       directoryScopeProxy.setupPass({ projectFolder });
       await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/flows/chat-replay' })],
+        fileList: ['src/flows/chat-replay'],
       });
       const directoryScopeArgs = String(directoryScopeProxy.getSpawnedArgs()).split(',');
 
@@ -910,10 +899,8 @@ describe('checkRunIntegrationBroker', () => {
       await checkRunIntegrationBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({
-            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-          }),
-          GitRelativePathStub({ value: 'src/flows/install' }),
+          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          'src/flows/install',
         ],
       });
       const mixedScopeArgs = String(mixedScopeProxy.getSpawnedArgs()).split(',');

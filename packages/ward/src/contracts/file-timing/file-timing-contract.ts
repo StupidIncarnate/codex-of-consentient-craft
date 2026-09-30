@@ -7,11 +7,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
 import { durationMsContract } from '../duration-ms/duration-ms-contract';
 
 export const fileTimingContract = z.object({
-  filePath: gitRelativePathContract,
+  filePath: z.string().min(1).brand<'FileTimingFilePath'>(),
   // Jest's `endTime - startTime` for the suite. It spans everything the file cost the run,
   // including the ts-jest LanguageService and TypeScript program that the FIRST file to transform
   // in a package pays for on everyone's behalf — measured at 46.2s against 83ms of actual test

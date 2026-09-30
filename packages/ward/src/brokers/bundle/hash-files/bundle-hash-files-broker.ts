@@ -23,7 +23,6 @@ import {
   bundleHashContract,
   type BundleHash,
 } from '../../../contracts/bundle-hash/bundle-hash-contract';
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 
@@ -37,7 +36,7 @@ export const bundleHashFilesBroker = ({
   relativePaths,
 }: {
   rootPath: string;
-  relativePaths: readonly GitRelativePath[];
+  relativePaths: readonly string[];
 }): BundleHash => {
   const hash = createHash(bundleStatics.hashAlgorithm);
 

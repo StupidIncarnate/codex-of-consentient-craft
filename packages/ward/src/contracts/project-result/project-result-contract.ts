@@ -12,7 +12,6 @@ import { checkStatusContract } from '../check-status/check-status-contract';
 import { errorEntryContract } from '../error-entry/error-entry-contract';
 import { testFailureContract } from '../test-failure/test-failure-contract';
 import { rawOutputContract } from '../raw-output/raw-output-contract';
-import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
 import { fileTimingContract } from '../file-timing/file-timing-contract';
 import { passingTestContract } from '../passing-test/passing-test-contract';
 import { openHandleContract } from '../open-handle/open-handle-contract';
@@ -37,8 +36,8 @@ export const projectResultContract = z.object({
   // schema's own output type, and a bare number can never satisfy a branded type.
   filesCount: z.number().int().nonnegative().default(0).brand<'FilesCount'>(),
   discoveredCount: z.number().int().nonnegative().default(0).brand<'DiscoveredCount'>(),
-  onlyDiscovered: z.array(gitRelativePathContract).default([]),
-  onlyProcessed: z.array(gitRelativePathContract).default([]),
+  onlyDiscovered: z.array(z.string().min(1).brand<'ProjectResultOnlyDiscovered'>()).default([]),
+  onlyProcessed: z.array(z.string().min(1).brand<'ProjectResultOnlyProcessed'>()).default([]),
   fileTimings: z.array(fileTimingContract).default([]),
   passingTests: z.array(passingTestContract).default([]),
   // Async resources still open when the suite finished. Jest can only collect these while running

@@ -7,24 +7,20 @@
  */
 
 
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../contracts/git-relative-path/git-relative-path-contract';
 
 export const normalizeToRelativeTransformer = ({
   filePath,
   cwd,
 }: {
-  filePath: GitRelativePath;
+  filePath: string;
   cwd: string;
-}): GitRelativePath => {
+}): string => {
   const fileString = String(filePath);
   const cwdString = String(cwd);
   const cwdPrefix = cwdString.endsWith('/') ? cwdString : `${cwdString}/`;
 
   if (fileString.startsWith(cwdPrefix)) {
-    return gitRelativePathContract.parse(fileString.slice(cwdPrefix.length));
+    return fileString.slice(cwdPrefix.length);
   }
 
   return filePath;

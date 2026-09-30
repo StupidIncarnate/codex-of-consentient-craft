@@ -16,7 +16,6 @@
 
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
 import { gitDiffCommittedBroker } from '../../git/diff-committed/git-diff-committed-broker';
 import { gitDiffUncommittedBroker } from '../../git/diff-uncommitted/git-diff-uncommitted-broker';
@@ -39,7 +38,7 @@ export const gitScopeLayerBroker = async ({
 
   // A file committed on this branch AND edited again since sits in both readings. De-duplicate on
   // first appearance — a check runner handed the same path twice reports it twice.
-  const seen = new Set<GitRelativePath>();
+  const seen = new Set<string>();
   const files = [...committedFiles, ...uncommittedFiles].filter((file) => {
     if (seen.has(file)) {
       return false;

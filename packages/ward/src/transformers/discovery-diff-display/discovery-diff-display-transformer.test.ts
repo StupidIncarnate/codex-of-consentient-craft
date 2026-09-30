@@ -1,4 +1,3 @@
-import { GitRelativePathStub } from '../../contracts/git-relative-path/git-relative-path.stub';
 
 import { discoveryDiffDisplayTransformer } from './discovery-diff-display-transformer';
 
@@ -7,7 +6,7 @@ describe('discoveryDiffDisplayTransformer', () => {
     it('VALID: {hasMismatch: false} => returns empty string', () => {
       const result = discoveryDiffDisplayTransformer({
         hasMismatch: false,
-        onlyProcessed: [GitRelativePathStub({ value: 'a.ts' })],
+        onlyProcessed: ['a.ts'],
         onlyDiscovered: [],
         maxDisplay: 10,
       });
@@ -20,7 +19,7 @@ describe('discoveryDiffDisplayTransformer', () => {
     it('VALID: {onlyProcessed has files} => shows only processed section', () => {
       const result = discoveryDiffDisplayTransformer({
         hasMismatch: true,
-        onlyProcessed: [GitRelativePathStub({ value: '@types/error-cause.d.ts' })],
+        onlyProcessed: ['@types/error-cause.d.ts'],
         onlyDiscovered: [],
         maxDisplay: 10,
       });
@@ -34,7 +33,7 @@ describe('discoveryDiffDisplayTransformer', () => {
       const result = discoveryDiffDisplayTransformer({
         hasMismatch: true,
         onlyProcessed: [],
-        onlyDiscovered: [GitRelativePathStub({ value: 'src/orphan.ts' })],
+        onlyDiscovered: ['src/orphan.ts'],
         maxDisplay: 10,
       });
 
@@ -46,8 +45,8 @@ describe('discoveryDiffDisplayTransformer', () => {
     it('VALID: {both lists have files} => shows both sections', () => {
       const result = discoveryDiffDisplayTransformer({
         hasMismatch: true,
-        onlyProcessed: [GitRelativePathStub({ value: 'extra.ts' })],
-        onlyDiscovered: [GitRelativePathStub({ value: 'missing.ts' })],
+        onlyProcessed: ['extra.ts'],
+        onlyDiscovered: ['missing.ts'],
         maxDisplay: 10,
       });
 
@@ -58,7 +57,7 @@ describe('discoveryDiffDisplayTransformer', () => {
   describe('truncation', () => {
     it('VALID: {more files than maxDisplay} => truncates with count', () => {
       const files = Array.from({ length: 5 }, (_, i) =>
-        GitRelativePathStub({ value: `file-${String(i)}.ts` }),
+        `file-${String(i)}.ts`,
       );
 
       const result = discoveryDiffDisplayTransformer({

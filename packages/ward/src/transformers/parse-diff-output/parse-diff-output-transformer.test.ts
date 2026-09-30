@@ -1,4 +1,3 @@
-import { GitRelativePathStub } from '../../contracts/git-relative-path/git-relative-path.stub';
 import { parseDiffOutputTransformer } from './parse-diff-output-transformer';
 
 describe('parseDiffOutputTransformer', () => {
@@ -9,8 +8,8 @@ describe('parseDiffOutputTransformer', () => {
       });
 
       expect(result).toStrictEqual([
-        GitRelativePathStub({ value: 'src/file1.ts' }),
-        GitRelativePathStub({ value: 'src/file2.ts' }),
+        'src/file1.ts',
+        'src/file2.ts',
       ]);
     });
 
@@ -19,7 +18,7 @@ describe('parseDiffOutputTransformer', () => {
         output: 'src/changed.ts\n',
       });
 
-      expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/changed.ts' })]);
+      expect(result).toStrictEqual(['src/changed.ts']);
     });
   });
 

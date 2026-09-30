@@ -19,7 +19,6 @@
 
 import { diffFiles, gitRun, GitNotInstalledError } from '#gateway/bin/git';
 
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-output/parse-diff-output-transformer';
 import { gitDetectDefaultBranchBroker } from '../detect-default-branch/git-detect-default-branch-broker';
 import { gitDetectOriginDefaultBranchBroker } from '../detect-origin-default-branch/git-detect-origin-default-branch-broker';
@@ -28,7 +27,7 @@ export const gitDiffCommittedBroker = async ({
   cwd,
 }: {
   cwd: string;
-}): Promise<GitRelativePath[]> => {
+}): Promise<string[]> => {
   // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
   // result — folded into an empty answer so it reads as "no merge base" / "empty diff", exactly as
   // it always has.

@@ -2,7 +2,6 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 
@@ -206,7 +205,7 @@ describe('checkRunE2eBroker', () => {
 
       await checkRunE2eBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'packages/web/src/flows/home/login.e2e.ts' })],
+        fileList: ['packages/web/src/flows/home/login.e2e.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -226,8 +225,8 @@ describe('checkRunE2eBroker', () => {
       const result = await checkRunE2eBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/brokers/user/user-broker.ts' }),
-          GitRelativePathStub({ value: 'src/guards/is-admin/is-admin-guard.test.ts' }),
+          'src/brokers/user/user-broker.ts',
+          'src/guards/is-admin/is-admin-guard.test.ts',
         ],
       });
 
@@ -255,8 +254,8 @@ describe('checkRunE2eBroker', () => {
       await checkRunE2eBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/brokers/user/user-broker.ts' }),
-          GitRelativePathStub({ value: 'packages/web/src/flows/app/smoke.e2e.ts' }),
+          'src/brokers/user/user-broker.ts',
+          'packages/web/src/flows/app/smoke.e2e.ts',
         ],
       });
 

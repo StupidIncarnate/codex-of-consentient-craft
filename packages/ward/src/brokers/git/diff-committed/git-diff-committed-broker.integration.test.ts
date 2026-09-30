@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GitBranchNameStub } from '../../../contracts/git-branch-name/git-branch-name.stub';
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { wardGitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 import { gitDiffCommittedBroker } from './git-diff-committed-broker';
@@ -35,7 +34,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     // This is the file the observable says must never appear in a diff computed from the worktree.
     await git.commitFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'repo-root-only.txt' }),
+      relativePath: 'repo-root-only.txt',
       content: 'only in the repo root\n',
     });
 
@@ -43,12 +42,12 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     // fixture member (FIXTURE REQUIREMENTS): a directory segment containing a space.
     await git.commitFile({
       cwd: worktreePath,
-      relativePath: GitRelativePathStub({ value: 'worktree-file.txt' }),
+      relativePath: 'worktree-file.txt',
       content: 'only in the worktree\n',
     });
     await git.commitFile({
       cwd: worktreePath,
-      relativePath: GitRelativePathStub({ value: 'folder with space/file name.ts' }),
+      relativePath: 'folder with space/file name.ts',
       content: 'hostile path segment\n',
     });
 
@@ -60,8 +59,8 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     // would be vacuous unless this same assertion also shows the worktree files present. Order
     // matches git's own tree-order output (lexicographic on this fixture's flat + one-level shape).
     expect(result).toStrictEqual([
-      GitRelativePathStub({ value: 'folder with space/file name.ts' }),
-      GitRelativePathStub({ value: 'worktree-file.txt' }),
+      'folder with space/file name.ts',
+      'worktree-file.txt',
     ]);
   }, 30_000);
 
@@ -85,14 +84,14 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     // invisible, because HEAD is that branch; measured against origin/main it is the answer.
     await git.commitFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'unpushed-work.ts' }),
+      relativePath: 'unpushed-work.ts',
       content: 'export const unpushed = 1;\n',
     });
 
     // An uncommitted edit to a TRACKED file. It belongs to `--uncommitted`, so it must not appear.
     await git.writeUncommittedFile({
       cwd: repoPath,
-      relativePath: GitRelativePathStub({ value: 'base.txt' }),
+      relativePath: 'base.txt',
       content: 'edited but never committed\n',
     });
 
@@ -100,6 +99,6 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
 
     testbed.cleanup();
 
-    expect(result).toStrictEqual([GitRelativePathStub({ value: 'unpushed-work.ts' })]);
+    expect(result).toStrictEqual(['unpushed-work.ts']);
   }, 30_000);
 });

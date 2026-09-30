@@ -7,10 +7,6 @@
  */
 
 
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../contracts/git-relative-path/git-relative-path-contract';
 import { normalizeToRelativeTransformer } from '../normalize-to-relative/normalize-to-relative-transformer';
 
 export const discoveryDiffTransformer = ({
@@ -18,10 +14,10 @@ export const discoveryDiffTransformer = ({
   processedFiles,
   cwd,
 }: {
-  discoveredFiles: GitRelativePath[];
-  processedFiles: GitRelativePath[];
+  discoveredFiles: string[];
+  processedFiles: string[];
   cwd: string;
-}): { onlyDiscovered: GitRelativePath[]; onlyProcessed: GitRelativePath[] } => {
+}): { onlyDiscovered: string[]; onlyProcessed: string[] } => {
   const normalizedDiscovered = new Set(
     discoveredFiles.map((file) => String(normalizeToRelativeTransformer({ filePath: file, cwd }))),
   );
@@ -31,11 +27,11 @@ export const discoveryDiffTransformer = ({
 
   const onlyDiscovered = [...normalizedDiscovered]
     .filter((file) => !normalizedProcessed.has(file))
-    .map((file) => gitRelativePathContract.parse(file));
+    .map((file) => file);
 
   const onlyProcessed = [...normalizedProcessed]
     .filter((file) => !normalizedDiscovered.has(file))
-    .map((file) => gitRelativePathContract.parse(file));
+    .map((file) => file);
 
   return { onlyDiscovered, onlyProcessed };
 };

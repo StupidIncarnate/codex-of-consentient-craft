@@ -18,14 +18,13 @@
 
 import { diffFiles, untrackedFiles, GitNotInstalledError } from '#gateway/bin/git';
 
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-output/parse-diff-output-transformer';
 
 export const gitDiffUncommittedBroker = async ({
   cwd,
 }: {
   cwd: string;
-}): Promise<GitRelativePath[]> => {
+}): Promise<string[]> => {
   // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
   // result — folded into an empty reading, exactly as it always has. The two readings run in
   // sequence so a missing git stops at the first instead of leaving a second spawn in flight.
@@ -46,7 +45,7 @@ export const gitDiffUncommittedBroker = async ({
     // An intent-to-add (`git add -N`) puts one path in BOTH readings, so the union is
     // de-duplicated on first appearance rather than concatenated — a check runner handed the same
     // path twice reports it twice.
-    const seen = new Set<GitRelativePath>();
+    const seen = new Set<string>();
 
     return [...tracked, ...untracked].filter((file) => {
       if (seen.has(file)) {

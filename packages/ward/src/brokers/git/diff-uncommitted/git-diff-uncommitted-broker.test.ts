@@ -1,5 +1,4 @@
 
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
 import { gitDiffUncommittedBroker } from './git-diff-uncommitted-broker';
 import { gitDiffUncommittedBrokerProxy } from './git-diff-uncommitted-broker.proxy';
@@ -18,8 +17,8 @@ describe('gitDiffUncommittedBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        GitRelativePathStub({ value: 'packages/ward/src/edited.ts' }),
-        GitRelativePathStub({ value: 'packages/ward/src/brand-new.ts' }),
+        'packages/ward/src/edited.ts',
+        'packages/ward/src/brand-new.ts',
       ]);
     });
 
@@ -39,9 +38,9 @@ describe('gitDiffUncommittedBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        GitRelativePathStub({ value: 'a/one.ts' }),
-        GitRelativePathStub({ value: 'a/two.ts' }),
-        GitRelativePathStub({ value: 'b/three.ts' }),
+        'a/one.ts',
+        'a/two.ts',
+        'b/three.ts',
       ]);
     });
   });
@@ -94,9 +93,9 @@ describe('gitDiffUncommittedBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        GitRelativePathStub({ value: 'shared.ts' }),
-        GitRelativePathStub({ value: 'edited.ts' }),
-        GitRelativePathStub({ value: 'new.ts' }),
+        'shared.ts',
+        'edited.ts',
+        'new.ts',
       ]);
     });
   });

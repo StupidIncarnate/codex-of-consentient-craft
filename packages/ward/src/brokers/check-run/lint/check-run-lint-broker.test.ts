@@ -2,7 +2,6 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 
 import { checkRunLintBroker } from './check-run-lint-broker';
@@ -371,7 +370,7 @@ describe('checkRunLintBroker', () => {
       'Oops! Something went wrong! :(\n\nESLint: 9.36.0\n\nYou are linting "somewhere/else", but all of the files matching the glob pattern "somewhere/else" are ignored.\n';
 
     it('EMPTY: {scope is one folder eslint refuses} => returns skip, never a pass or a crash', async () => {
-      const folder = GitRelativePathStub({ value: 'test/fixtures/json-only' });
+      const folder = 'test/fixtures/json-only';
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunLintBrokerProxy();
       proxy.setupForFiles({
@@ -401,8 +400,8 @@ describe('checkRunLintBroker', () => {
     });
 
     it('VALID: {scope mixes the refused folder with a real file} => lints the real file and passes', async () => {
-      const folder = GitRelativePathStub({ value: 'test/fixtures/json-only' });
-      const file = GitRelativePathStub({ value: 'src/index.ts' });
+      const folder = 'test/fixtures/json-only';
+      const file = 'src/index.ts';
       const eslintOutput = JSON.stringify([{ filePath: 'src/index.ts', messages: [] }]);
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunLintBrokerProxy();
@@ -430,8 +429,8 @@ describe('checkRunLintBroker', () => {
     });
 
     it('VALID: {mixed scope, the real file has an error} => the real file still fails', async () => {
-      const folder = GitRelativePathStub({ value: 'test/fixtures/json-only' });
-      const file = GitRelativePathStub({ value: 'src/index.ts' });
+      const folder = 'test/fixtures/json-only';
+      const file = 'src/index.ts';
       const eslintOutput = JSON.stringify([
         {
           filePath: 'src/index.ts',
@@ -475,7 +474,7 @@ describe('checkRunLintBroker', () => {
     });
 
     it('ERROR: {crash names a path this run did not pass} => stays a fail with the raw output kept', async () => {
-      const file = GitRelativePathStub({ value: 'src/index.ts' });
+      const file = 'src/index.ts';
       const output = elsewhereCrash;
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunLintBrokerProxy();

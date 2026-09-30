@@ -20,10 +20,6 @@ import {
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
 import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../../contracts/git-relative-path/git-relative-path-contract';
-import {
   fileTimingContract,
   type FileTiming,
 } from '../../../contracts/file-timing/file-timing-contract';
@@ -54,7 +50,7 @@ export const checkRunIntegrationBroker = async ({
   testNamePattern,
 }: {
   projectFolder: ProjectFolder;
-  fileList: GitRelativePath[];
+  fileList: string[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args, relatedTestsIgnorePattern } = checkCommandsStatics.integration;
@@ -237,7 +233,7 @@ export const checkRunIntegrationBroker = async ({
   let resolvedStatus = status;
   let filesCount = 0;
   let numPassedTests = 0;
-  const processedFiles: GitRelativePath[] = [];
+  const processedFiles: string[] = [];
   const fileTimings: FileTiming[] = [];
   const openHandles: OpenHandle[] = [];
 
@@ -271,13 +267,13 @@ export const checkRunIntegrationBroker = async ({
       for (const tr of parsed.testResults) {
         const { name } = tr;
         if (name !== undefined && String(name).length > 0) {
-          processedFiles.push(gitRelativePathContract.parse(String(name)));
+          processedFiles.push(String(name));
           const { startTime } = tr;
           const { endTime } = tr;
           if (startTime !== undefined && endTime !== undefined) {
             fileTimings.push(
               fileTimingContract.parse({
-                filePath: gitRelativePathContract.parse(String(name)),
+                filePath: String(name),
                 durationMs: Number(endTime) - Number(startTime),
                 testMs: (tr.assertionResults ?? []).reduce(
                   (sum, assertion) => sum + Number(assertion.duration ?? 0),

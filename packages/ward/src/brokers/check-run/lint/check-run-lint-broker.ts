@@ -17,7 +17,6 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { FileTiming } from '../../../contracts/file-timing/file-timing-contract';
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
@@ -33,7 +32,7 @@ export const checkRunLintBroker = async ({
   fileList,
 }: {
   projectFolder: ProjectFolder;
-  fileList: GitRelativePath[];
+  fileList: string[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args } = checkCommandsStatics.lint;

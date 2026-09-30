@@ -1,4 +1,3 @@
-import { GitRelativePathStub } from '../../contracts/git-relative-path/git-relative-path.stub';
 
 import { eslintIgnoredPatternExtractTransformer } from './eslint-ignored-pattern-extract-transformer';
 
@@ -11,7 +10,7 @@ describe('eslintIgnoredPatternExtractTransformer', () => {
       const result = eslintIgnoredPatternExtractTransformer({ output });
 
       expect(result).toBe(
-        GitRelativePathStub({ value: 'test/fixtures/ban-proxy-empty-called-with' }),
+        'test/fixtures/ban-proxy-empty-called-with',
       );
     });
   });

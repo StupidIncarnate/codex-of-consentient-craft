@@ -20,10 +20,6 @@ import {
   dependencyGraphClosureWalkTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -39,7 +35,7 @@ export const collectInputsLayerBroker = async ({
   packageRoot,
 }: {
   packageRoot: string;
-}): Promise<{ repoRoot: string; relativePaths: GitRelativePath[] }> => {
+}): Promise<{ repoRoot: string; relativePaths: string[] }> => {
   const workspaceRoot = await resolveWorkspaceRootLayerBroker({ startPath: packageRoot });
   const repoRoot = workspaceRoot ?? packageRoot;
 
@@ -103,12 +99,12 @@ export const collectInputsLayerBroker = async ({
       closure.some((name) => String(name) === String(manifest.name)),
   );
 
-  const relativePaths: GitRelativePath[] = [];
-  const seen = new Set<GitRelativePath>();
+  const relativePaths: string[] = [];
+  const seen = new Set<string>();
 
   // The lockfile: a dependency version bump edits no file inside any workspace package, and the
   // bundle it produces is a different bundle.
-  const lockfile = gitRelativePathContract.parse(bundleStatics.lockfileName);
+  const lockfile = bundleStatics.lockfileName;
   seen.add(lockfile);
   relativePaths.push(lockfile);
 
@@ -125,7 +121,7 @@ export const collectInputsLayerBroker = async ({
         : `${String(folder.path).slice(String(repoRoot).length + 1)}/`;
 
     for (const file of discoveredFiles) {
-      const repoRelative = gitRelativePathContract.parse(`${prefix}${String(file)}`);
+      const repoRelative = `${prefix}${String(file)}`;
       if (!seen.has(repoRelative)) {
         seen.add(repoRelative);
         relativePaths.push(repoRelative);

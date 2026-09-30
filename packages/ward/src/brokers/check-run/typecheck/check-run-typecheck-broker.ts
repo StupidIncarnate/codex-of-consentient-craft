@@ -33,10 +33,6 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tscOutputParseTransformer } from '../../../transformers/tsc-output-parse/tsc-output-parse-transformer';
 import { tsconfigDiscoverPatternsTransformer } from '../../../transformers/tsconfig-discover-patterns/tsconfig-discover-patterns-transformer';
@@ -51,7 +47,7 @@ export const checkRunTypecheckBroker = async ({
   fileList,
 }: {
   projectFolder: ProjectFolder;
-  fileList: GitRelativePath[];
+  fileList: string[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const cwd = projectFolder.path;
@@ -219,12 +215,12 @@ export const checkRunTypecheckBroker = async ({
       : [];
 
   const cwdPrefix = `${String(cwd)}/`;
-  const processedFiles: GitRelativePath[] = [];
+  const processedFiles: string[] = [];
   const tscLines = result.output.split('\n');
 
   for (const line of tscLines) {
     if (line.startsWith(cwdPrefix) && !line.includes('node_modules')) {
-      processedFiles.push(gitRelativePathContract.parse(line.slice(cwdPrefix.length)));
+      processedFiles.push(line.slice(cwdPrefix.length));
     }
   }
 

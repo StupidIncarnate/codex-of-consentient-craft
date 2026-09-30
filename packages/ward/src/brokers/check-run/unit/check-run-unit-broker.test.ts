@@ -4,7 +4,6 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
-import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 import { OpenHandleStub } from '../../../contracts/open-handle/open-handle.stub';
@@ -104,7 +103,7 @@ describe('checkRunUnitBroker', () => {
 
       const result = await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.test.ts' })],
+        fileList: ['src/index.test.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -361,7 +360,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -391,7 +390,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/brokers/quest/orchestration-loop' })],
+        fileList: ['src/brokers/quest/orchestration-loop'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -422,8 +421,8 @@ describe('checkRunUnitBroker', () => {
       await checkRunUnitBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/brokers/quest' }),
-          GitRelativePathStub({ value: 'src/transformers' }),
+          'src/brokers/quest',
+          'src/transformers',
         ],
       });
 
@@ -451,9 +450,7 @@ describe('checkRunUnitBroker', () => {
       const result = await checkRunUnitBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({
-            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-          }),
+          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
         ],
       });
 
@@ -483,10 +480,8 @@ describe('checkRunUnitBroker', () => {
       await checkRunUnitBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/brokers/quest/spawn-ward-layer-broker.test.ts' }),
-          GitRelativePathStub({
-            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-          }),
+          'src/brokers/quest/spawn-ward-layer-broker.test.ts',
+          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
         ],
       });
 
@@ -514,7 +509,7 @@ describe('checkRunUnitBroker', () => {
 
       const result = await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/transformers' })],
+        fileList: ['src/transformers'],
       });
 
       expect(result).toStrictEqual(
@@ -572,7 +567,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/brokers/quest' })],
+        fileList: ['src/brokers/quest'],
         testNamePattern: 'foo|bar',
       });
 
@@ -729,7 +724,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/foo/foo.ts' })],
+        fileList: ['src/foo/foo.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -774,7 +769,7 @@ describe('checkRunUnitBroker', () => {
 
       const result = await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/flows/cli/cli-flow.ts' })],
+        fileList: ['src/flows/cli/cli-flow.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -802,7 +797,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/foo/foo.test.ts' })],
+        fileList: ['src/foo/foo.test.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -833,8 +828,8 @@ describe('checkRunUnitBroker', () => {
       await checkRunUnitBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/a/a.ts' }),
-          GitRelativePathStub({ value: 'src/b/b.ts' }),
+          'src/a/a.ts',
+          'src/b/b.ts',
         ],
       });
 
@@ -870,7 +865,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/widgets/app.tsx' })],
+        fileList: ['src/widgets/app.tsx'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -915,7 +910,7 @@ describe('checkRunUnitBroker', () => {
 
       const result = await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/foo/foo.proxy.ts' })],
+        fileList: ['src/foo/foo.proxy.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -943,7 +938,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/orphan.test.ts' })],
+        fileList: ['src/orphan.test.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -1273,7 +1268,7 @@ describe('checkRunUnitBroker', () => {
       fileScopeProxy.setupPass({ projectFolder });
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.ts' })],
+        fileList: ['src/index.ts'],
       });
       const fileScopeArgs = String(fileScopeProxy.getSpawnedArgs()).split(',');
 
@@ -1284,7 +1279,7 @@ describe('checkRunUnitBroker', () => {
       directoryScopeProxy.setupPass({ projectFolder });
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/brokers/quest/orchestration-loop' })],
+        fileList: ['src/brokers/quest/orchestration-loop'],
       });
       const directoryScopeArgs = String(directoryScopeProxy.getSpawnedArgs()).split(',');
 
@@ -1298,8 +1293,8 @@ describe('checkRunUnitBroker', () => {
       await checkRunUnitBroker({
         projectFolder,
         fileList: [
-          GitRelativePathStub({ value: 'src/index.ts' }),
-          GitRelativePathStub({ value: 'src/brokers/quest' }),
+          'src/index.ts',
+          'src/brokers/quest',
         ],
       });
       const mixedScopeArgs = String(mixedScopeProxy.getSpawnedArgs()).split(',');
@@ -1348,7 +1343,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src/index.test.ts' })],
+        fileList: ['src/index.test.ts'],
       });
 
       expect(proxy.getSpawnedHandleReportPath()).toBe(getEnv(openHandleReportStatics.env.pathVar));
