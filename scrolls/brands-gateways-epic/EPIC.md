@@ -128,7 +128,30 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Handoff (2026-09-30, 07:40) — READ THIS FIRST
+### In flight (operator session 2026-09-30, from 09:56) — READ THIS FIRST
+
+**Step 1 of the 07:40 handoff is done except `check:consumer`.**
+- Full bare ward 1790787377705-edd0 (1,048 s): lint, typecheck, unit (4,129) and integration (226) green in all 21
+  packages. E2e 130 of 131: `warpgate-queue-listing.e2e.ts` "the queue bar lists BOTH" failed again and passed alone
+  (1790788433563-9763). Rule 21 applies (F106), but it has now failed in two full runs, so Z08 looks at it first.
+- `build:clean` exit 0. `check:published` exit 0. `check:consumer` running (log `tmp/check-consumer.log`).
+
+**Plans written this session (EPIC rule 14):** `items/b16-*.md` "## Plan", `items/f124-bigbang-hand-steps.md`,
+`items/f120-f129-bigbang-followups.md`, `items/f125-script-bugs.md`. **The operator accepts every recommendation in
+all three** (B16 decisions 1 to 6; F124 D1 option A, D2 (a), D3 (ii), D4 leave both, D5 close as json, D6 do, D7
+optional keys; F120-F129 D1 to D7). F129's decision is concession 29.
+
+**F125 done:** all six script bugs fixed in `phase34-scripts/`, each proven on a fixture repo under `tmp/f125/`;
+`b15-id-brands` has only a smoke run for its guards (see `items/f125-script-bugs.md`).
+
+**Waves (five agents at most):**
+1. Wave 1: B16-shared (S1 to S4, one agent in order), B16-plugin (E1, E2), F124-shared (H2-1, H3-T1, H5A-1, then SB),
+   F124-rest (H5B, H7, H8-1), F120-F129 docs and eslint-plugin (F129, F127, F121, F123).
+2. Then: build shared; B16 E3 to E5, then E6 to E8, scans, fixes, switch-on; F124 consumer batches; F126, F120, F122
+   (an operator `npm install --package-lock-only`), F128.
+3. Then: R1 rescan and switch-on; F100's plugin half; F107, F115, F116, F119, F30, F63, F105; then Phase 6.
+
+### Handoff (2026-09-30, 07:40) — SUPERSEDED by "In flight" above; kept for its record
 
 **State.** Nothing is running, nothing is uncommitted (HEAD after 7e8db9b9f), and `npm run build` passed at 07:40, so
 the live hooks run the fixed code. The big-bang run below is finished: every Phase 4 wave is applied, the five
@@ -462,6 +485,7 @@ was planned. Add a row whenever execution forces another.
 | 26 | Rule F (concession 16): each wave gated green before the next; EPIC rule 18: gate every commit. | The big-bang run (user, 2026-09-29 evening): every Phase 4 script applied back to back on `gateway-pivot` with each run's output committed red, then fixer rounds by check type (typecheck, unit, lint, integration, e2e), then W8 `--responders`, W9 and W10 on a green tree. | Each file is touched once instead of once per wave, and the per-wave integration and e2e runs are paid once. Every script run is its own commit, so a bad script is still revertable alone. Record: "Big-bang run" above. |
 | 27 | Brands doc B1: every leaf in an object contract is branded. | A value of a top-level `z.record` or `z.array` contract takes no brand; only a record or array that is a FIELD of an object contract brands its values (owner + key). R7 skips a leaf with no key between it and its const, matching R2. | The brands doc: a value that is not a field of an object contract gets no brand. R7's fix had branded `DependencyMapValue` and friends and R2 then reported them (7e8db9b9f). |
 | 28 | B4 (R8 `enforce-owner-field-reuse`): a parameter that holds an owner's id is typed as that owner's field. | R8 does not grade parameters in `errors/` files. | `errors/` may import nothing, so R8's autofix broke the import rule in two error classes (7e8db9b9f). F129 covers the wider disagreement. |
+| 29 | Concession 25 and `bigbang/FIXER-BRIEF.md` decision 1: parameters stay plain; only returns are branded. | A parameter that holds an owner's id takes that owner's field type (`Quest['id']`), as R8 (`enforce-owner-field-reuse`) enforces everywhere but `errors/` (concession 28). Every other parameter may still take a raw `string`. The texts change to say so (F129). | The rule is one enforced place, and a consumer gets it through the plugin. The F129 planner measured 604 owner-id annotations already typed `Owner['field']` and no claimable plain one, so no code changes. |
 | 18 | EPIC rule 5: agents share one checkout. | Chunk L2 runs in its own worktree and branch, merged back when eslint-plugin and local-eslint are green. | `eslint.config.js` loads the rules from eslint-plugin's source, and L2's script leaves 226 type errors before the hand queue fixes them; in the shared checkout that breaks lint for every agent. |
 
 ## Status key
@@ -898,6 +922,12 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 
 Do this phase last. Every code item above may still change the layout the docs describe.
 
+**Who runs it (user, 2026-09-30):** the operator hands the whole of Phase 6 (Z01 to Z06, with T09) to ONE opus agent.
+That agent may dispatch sub-agents of its own, overriding `agent-brief.md` rule 6 for this phase only. It uses them
+to deep-dive the epic's change set (`git log` and diffs from the branch point to HEAD, the concessions, the item
+files) so it knows what actually changed before it rewrites any doc. Its sub-agents are fresh agents with written
+briefs, never forks. It still never builds or commits, and the five-agent cap counts its sub-agents.
+
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
 | Z01 | [The `gateway` folder-type doc](items/z01-gateway-folder-type-doc.md) | every A, B, G, T item | Z02–Z06 | todo | |
@@ -927,12 +957,12 @@ Work that execution found and no item file owns. Each runs like an item.
 | F121 | `@dungeonmaster/require-contract-validation`'s message still names `filePathContract`, which the big-bang deleted, and fixer batch B0003 rewrote its dynamic-import path check as a `startsWith('/', './', '../')` test, a guess at the deleted contract. Point the message at the gateway `dynamicImport` wrapper and confirm the check against the old contract in `tmp/deletions/`. | big-bang lint and integration rounds | open | |
 | F122 | `packages/testing` imports `@dungeonmaster/shared/contracts` (`execResultContract`) without `@dungeonmaster/shared` in its `package.json` dependencies. Declare it, or move the contract; then `check:consumer`. | big-bang R9 agent | open | |
 | F123 | `packages/eslint-plugin/src/contracts/ast-node/ast-node-contract.ts`: `parent` is `z.json().optional()`, so a real ESLint node's cyclic `parent` would not parse. Only stubs and tests parse it today; decide whether the contract should exist now that rules use `TSESTree`. | big-bang W10 agent | open | |
-| F124 | The RUNBOOK's hand steps the big-bang deferred: H2 `PieceId` (owner in orchestrator, shared reads it); H3 `ToolUseId` (owner rename first); H4 the four new W4 owners get their other fields; H5 `packageJsonRaw` lift, `GetQuestInput` to `McpGetQuestInput`, and the folder and file renames W2 left; H7 W8's gateway-schema rows and orchestrator's rows 46, 47, 72; H8 `SmoketestRunId`'s shared references. H6 (NOT PLAIN YET) was handled by W10's R2 round. Details: `bigbang/RUNBOOK.md` "Hand pre-steps". | big-bang run | open | |
-| F125 | Script bugs to fix before the scripts run on another repo (`bigbang/PORTING.md` section 0): `b15-value-brands`' build-through-root-parse rewriter wraps at wrong offsets; `b12-object-brand-fallout` parses objects that hold functions; W1 and W5 drop the validation a deleted standalone brand carried; scripts wrap `parse` around un-awaited Promises; `b15-dead-reparse` removes parses a comment calls deliberate; `b13-test-fallout` retypes harness inputs. | big-bang run | open | |
+| F124 | The RUNBOOK's hand steps the big-bang deferred: H2 `PieceId` (owner in orchestrator, shared reads it); H3 `ToolUseId` (owner rename first); H4 the four new W4 owners get their other fields; H5 `packageJsonRaw` lift, `GetQuestInput` to `McpGetQuestInput`, and the folder and file renames W2 left; H7 W8's gateway-schema rows and orchestrator's rows 46, 47, 72; H8 `SmoketestRunId`'s shared references. H6 (NOT PLAIN YET) was handled by W10's R2 round. Details: `bigbang/RUNBOOK.md` "Hand pre-steps". | big-bang run | planned | `items/f124-bigbang-hand-steps.md`; decisions accepted (In flight). H8 is already done. |
+| F125 | Script bugs to fix before the scripts run on another repo (`bigbang/PORTING.md` section 0): `b15-value-brands`' build-through-root-parse rewriter wraps at wrong offsets; `b12-object-brand-fallout` parses objects that hold functions; W1 and W5 drop the validation a deleted standalone brand carried; scripts wrap `parse` around un-awaited Promises; `b15-dead-reparse` removes parses a comment calls deliberate; `b13-test-fallout` retypes harness inputs. | big-bang run | done (the F125 commit) | `items/f125-script-bugs.md`; each fix proven on a fixture repo in `tmp/f125/`; `b15-id-brands`' guards smoke-run only. |
 | F126 | `processId` / `chatProcessId` fields in server's response-data contracts carry their own owner+key brands, because `orchestrationProcessContract.shape.processId` is not exported from `@dungeonmaster/orchestrator`. Export it and reuse the owner field (B4). | big-bang R7 agent | open | |
 | F127 | Two departures from B11's keeper table in the R9 round (e7530699e): testing's `packageJson` renamed to `testGuildPackageJsonContract` instead of dropped (it keeps its required-field checks, and testing cannot depend on shared's), and the `commentBatch` rename landed on web (`commentBatchReplyContract`) instead of server. Confirm or reverse. | big-bang R9 agent | open | |
 | F128 | Big-bang leftovers files not yet worked: `b14-shape-contracts/out/leftovers.txt` (88 shapes), `b15-unknown-fields/out/leftovers.json` (W8 rows left: 9 refused by the error check, 3 gateway schemas, 2 unknown data), `b15-dead-reparse` kept sites (`tmp/bigbang/logs/w9-kept.tsv`). | big-bang run | open | |
-| F129 | `enforce-owner-field-reuse` (R8, on at error) flags a plain-`string` owner-id parameter everywhere but `errors/`, while concession 25 and FIXER-BRIEF decision 1 say parameters stay plain and returns are branded. The final agent settled only `errors/` (concession 28) and three responders typed `unknown`. Decide which one wins and make the other agree. | big-bang final agent | open | |
+| F129 | `enforce-owner-field-reuse` (R8, on at error) flags a plain-`string` owner-id parameter everywhere but `errors/`, while concession 25 and FIXER-BRIEF decision 1 say parameters stay plain and returns are branded. The final agent settled only `errors/` (concession 28) and three responders typed `unknown`. Decide which one wins and make the other agree. | big-bang final agent | planned | The rule wins (concession 29); texts only. Plan in `items/f120-f129-bigbang-followups.md`, with F120 to F123 and F126 to F128. |
 | F119 | R7 grades neither an unbranded leaf inside a `*-layer-contract.ts` file (the syntax rule skips layers; the layer half checks brand text only) nor a non-contract file importing a layer (`contractIndexBuildBroker`'s `nestedInFiles` records contract files only). No layer file exists yet; close both before C7's layers land. | R7 | open | |
 
 ## Blocked items

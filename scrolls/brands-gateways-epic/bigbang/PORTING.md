@@ -6,8 +6,8 @@ section "Big-bang run". This page is the procedure. All paths below are relative
 
 ## 0. Readiness for assayer (as of 2026-09-30) — read before starting
 
-**Usable, but not as one push-button run.** The tooling ports; the target is not ready yet; and some script bugs from
-the first run are documented here rather than fixed in the scripts.
+**Usable, but not as one push-button run.** The tooling ports; the target is not ready yet; and the driver has not run
+end to end on a second repo.
 
 What works now:
 
@@ -26,27 +26,29 @@ What assayer needs before any brand step (section 1 has the general list):
 | `--zod-spec=zod` | assayer has no gateway packages yet |
 | Its `cli` package is named `assayer` (unscoped) | The scripts refer to it by folder name |
 
-What is not proven:
+What is not proven: **the portable `run-all.sh` has never run end to end.** It commits as it goes; the porting agent
+could not run git. Run segment A on a scratch branch first and read the first few commits.
 
-1. **The portable `run-all.sh` has never run end to end.** It commits as it goes; the porting agent could not run
-   git. Run segment A on a scratch branch first and read the first few commits.
-2. **Four script bugs from the first run are documented, not fixed in the scripts.** On a second repo they recur
-   unless someone fixes them first:
-   - W5's build-through-root-parse rewriter (`b15-value-brands`) wraps parses at wrong offsets: `.parse(return)`,
-     triple-nested wraps, a contract referenced inside its own definition. Repair: `strip-w5-wraps.py`.
-   - W6 (`b12-object-brand-fallout`) wraps objects that hold functions in a zod parse, which strips the functions at
-     runtime (MCP handlers, testbed `cleanup`). Repair: FIXER-BRIEF decision 4.
-   - W1 and W5 delete standalone brands and their validation with them; INVALID tests stop throwing. Repair:
-     FIXER-BRIEF "Unit-test stage".
-   - Scripts wrap `contract.parse(...)` around un-awaited Promises. Repair: `promise-parse-scan.cjs`, then add the
-     `await`.
-   Plus W9 (`b15-dead-reparse`) removes parses that a comment calls deliberate, and SD12 over-brands test-harness
-   inputs; both are in section "Traps".
+What the scripts guard against: six defects the first run repaired by hand. Each guard refuses the edit, or writes the
+safe form, and lists the site in the script's leftovers. Each has a throwaway fixture repo (one package, a contract or two,
+a broker per case, under `<repoRoot>/tmp/f125/`, not committed) that reproduces the defect; the guarded script's output on
+it is free of the defect, and typechecks under the script's own measure or `lib/verify-sample.cjs`.
 
-**Recommended order for assayer:** fix the W5 rewriter and W6's function handling in the scripts first (an estimated
-hour of agent work, and it saves the repair passes); meet the prerequisites above; draft and review the decision
-tables; then run the scripts in order with a commit after each, the repair scripts, and fixer rounds, exactly as the
-first run did. assayer is about a seventh the size of this repo (154 contract files against 1,170), so the fixer
+| Defect | Script | The guard | Proof on the fixture |
+|---|---|---|---|
+| W5's rewriter wrapped at wrong offsets: `.parse(return)`, triple-nested wraps, a contract parsed inside its own definition, a field schema parsing a whole value | `b15-value-brands`, `b15-id-brands` (`lib/rewrite-guards.cjs`) | The wrap target is the statement's expression, the declaration's initializer, the call's argument or the arrow's body, never a keyword, a name or a callee. It must be a plain value (string, number, boolean, null, undefined, arrays and unions of those), must not already be a parse or a parse argument, must match the brand the slot asks for, and never sits in a `-contract.ts` file | `return raw.trim()` kept its `return`; an optional field wrapped once, not three times; the `.default(...)` inside `userContract` and `nameOfUser(user)` (a whole `User`) go to leftovers |
+| W6 parsed objects that hold functions; zod dropped `handler` and `cleanup` | `b12-object-brand-fallout`, and W5's root wrap | The data part goes through the parse and the functions sit beside it: `({ ...toolContract.parse({ name, description }), handler })`. A function nested in a value, or under a key the contract lists, goes to `leftovers.holdsFunction` | the fixture's `handler` literal typechecks after the rewrite; the nested `extra.fn` and the contract-listed `run` stay in the leftovers |
+| W1 and W5 deleted a standalone brand and the check it carried | `feasibility/b15/codemod.cjs`, `b15-value-brands` (`lib/base-schema.cjs`) | The inlined schema gets what it reads: imports re-added, top-level declarations of the standalone file copied into the owning contract. A brand with a real check (`.regex`, `.refine`, `.uuid`, a named constant) that still has a `C.parse(x)` site, a field it could not inline, or a reference left behind is refused with exit 3 and nothing is written. `--allow-drop-validation` accepts the loss | a `.refine((p) => ABSOLUTE.test(p))` brand: the field carries the refine and copies `ABSOLUTE`; with one `C.parse(home)` site the script refuses |
+| Scripts wrapped `parse` around un-awaited Promises | every rewriter that wraps a non-literal (`lib/repo.cjs`, `lib/rewrite-guards.cjs`) | `diagnosticsWithOverlay` and `gateEdits` report `x.parse(promise)` as a new diagnostic (code 90001), so `b14-shape-contracts`' gate, and every other gate, drops the shape; W5 and W3/W4 refuse a Promise-typed target; W8's responder data awaits it in an async function and skips it elsewhere | `return load()` in an async broker: the shape goes to leftovers with `TS90001`; the responder's `data: pending` becomes `parse(await pending)` |
+| W9 removed parses a comment calls deliberate | `b15-dead-reparse` | A comment before, inside or after the statement that says `deliberate`, `on purpose`, `by design`, `validates`, routes a value through a contract, or names the parsed contract keeps the parse; it is listed as `deliberate-comment` in the kept file | two commented parses kept, two bare ones removed |
+| SD12 retyped harness parameters | `b13-test-fallout` (`feasibility/b13/retype.cjs`) | Files under `test/harnesses/` and `*.harness.ts` are not candidates | the harness parameters stay `string`; a `.proxy.ts` parameter is still retyped |
+
+`b15-id-brands` (W3, W4) carries the wrap guards but not the standalone-brand check rules: its owner takes the
+standalone's schema, and a schema that reads a local constant of the standalone file is not copied there. The fixture
+runs W3 to the same output with and without its guards, so those guards are proved only by smoke.
+
+**Recommended order for assayer:** meet the prerequisites above; draft and review the decision tables; then run the
+scripts in order with a commit after each, the repair scripts, and fixer rounds, exactly as the first run did. assayer is about a seventh the size of this repo (154 contract files against 1,170), so the fixer
 rounds should be short.
 
 ## 1. Prerequisites
@@ -118,7 +120,8 @@ file) writes the tables in the shapes above, and the operator derives the run li
 | Unbranded object contracts | `node <scrolls>/phase34-scripts/b12-object-brand-fallout/run.cjs --census` | W6 expectation |
 
 A standalone brand whose production check matters (a regex, a range) is `NOT PLAIN YET` in 2.8: move the check into
-the owning contract field first, or W1 deletes it (trap 4).
+the owning contract field first (trap 4). W1 and W5 refuse such a brand while a `C.parse(x)` site or an un-inlineable field
+remains.
 
 ## 4. Run order
 
@@ -153,7 +156,7 @@ W8 `--responders` and `b15-unknown-fields/measure.cjs` assume dungeonmaster's se
 | W2 `rename.cjs` | SAFE-STACKED | TypeScript symbol rename; misses only files whose import no longer resolves |
 | SD12 `b13-test-fallout` | SAFE-STACKED | syntactic retype; baseline keyed by code and message |
 | W3, W4 `b15-id-brands` | SAFE-STACKED | acts only on new diagnostics naming its brand |
-| W5 `b15-value-brands` | SAFE-STACKED, degrades to leftovers | a broken contextual type yields a leftover, not a wrap. Its wrap rewriter misplaced wraps anyway (trap 1) |
+| W5 `b15-value-brands` | SAFE-STACKED, degrades to leftovers | a broken contextual type yields a leftover, not a wrap; the wrap guards of section 0 refuse a misplaced one |
 | W6 `b12-object-brand-fallout` | SAFE-IF-RUN-IMMEDIATELY-AFTER W5 | wraps literals by contextual owner brand; run it before any hand fix |
 | W6 R2, R7 autofix | SAFE-STACKED | syntax, or the syntactic owner index |
 | W7 `b14-shape-contracts` | SAFE-STACKED | gate baseline from disk; a red tree drops more shapes to leftovers |

@@ -24,6 +24,8 @@
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
+const G = require('../lib/rewrite-guards.cjs');
+const B = require('../lib/base-schema.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const flag = (n) => process.argv.includes(`--${n}`);
@@ -40,9 +42,10 @@ const brandName = arg('brand');
 const loadDef = (contractFile) => {
   const csf = lib.parse(contractFile);
   let initText = null;
+  let initNode = null;
   let typeName = null;
   for (const st of csf.statements) {
-    if (ts.isVariableStatement(st)) for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name) && d.name.text === brandName) initText = d.initializer.getText(csf);
+    if (ts.isVariableStatement(st)) for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name) && d.name.text === brandName) { initText = d.initializer.getText(csf); initNode = d.initializer; }
     if (ts.isTypeAliasDeclaration(st) && st.type.getText(csf).includes(`typeof ${brandName}`)) typeName = st.name.text;
   }
   if (!initText) return null;
@@ -57,25 +60,13 @@ const loadDef = (contractFile) => {
     const m = /value(?:\s*=\s*|:\s*)('[^'\n]*'|"[^"\n]*"|-?\d+(?:\.\d+)?)/u.exec(st.replace(/value:\s*(string|number)/gu, ''));
     stubDefault = m ? m[1] : null;
   }
-  // The base schema may name other contracts (a union of two brands) or zod's own methods only. Every such name must be an
-  // import of the standalone contract's file, so the contract files that inline it can import the same thing.
-  const stripped = baseSchema.replace(/\/(?:[^/\\\n]|\\.)+\/[a-z]*/gu, '').replace(/'[^']*'|"[^"]*"/gu, '');
-  const baseIds = [...new Set([...stripped.matchAll(/(^|[^.\w$])([A-Za-z_$][\w$]*)/gu)].map((m) => m[2]).filter((n) => n !== 'z'))];
-  const baseImportFiles = new Map();
-  for (const id of baseIds) {
-    for (const st of csf.statements) {
-      if (!ts.isImportDeclaration(st) || !st.importClause?.namedBindings || !ts.isNamedImports(st.importClause.namedBindings)) continue;
-      for (const e of st.importClause.namedBindings.elements) {
-        if (e.name.text !== id) continue;
-        const r = resolver(st.moduleSpecifier.text, contractFile);
-        const d = r && lib.findDeclaringFile(r, (e.propertyName ?? e.name).text, resolver);
-        if (d) baseImportFiles.set(id, d.file);
-      }
-    }
-  }
+  // The base schema may name imports or top-level declarations of the standalone file. Each is re-imported or copied into the
+  // contract file that inlines the schema (lib/base-schema.cjs), or the schema is not inlineable and the brand is kept.
+  const base = B.analyze({ csf, init: initNode, contractFile, resolver, lib, baseSchema });
   return {
-    contractFile, typeName, kind, baseSchema, stubBase, stubFile, testFile, stubDefault, baseIds, baseImportFiles,
-    inlineOk: baseIds.every((id) => baseImportFiles.has(id)),
+    contractFile, typeName, kind, baseSchema, stubBase, stubFile, testFile, stubDefault, baseIds: base.baseIds, baseImportFiles: base.importFiles,
+    locals: base.locals, rich: base.rich, problems: base.problems,
+    inlineOk: base.inlineOk,
     standaloneText: /\.brand<\s*['"]([^'"]+)['"]\s*>/u.exec(initText)?.[1],
   };
 };
@@ -122,6 +113,7 @@ const pascal = (s) => s.replace(/(^|[_\-\s]+)([a-zA-Z0-9])/gu, (_, __, c) => c.t
 const stats = { userFiles: users.length, typeRefs: 0, parseCalls: 0, stubValue: 0, stubDefault: 0, fieldInline: 0, siblingBrands: 0 };
 const leftovers = { fieldNotInObject: [], notInlineable: [], remainingRefs: [], stubOther: [], rewriter: [] };
 const fieldNeeds = new Map(); // file -> Map(name -> declaring file) the inlined base schema needs imported
+const fieldLocals = new Map(); // file -> top-level declarations of the standalone file the inlined base schema reads, copied beside it
 const owners = new Map(); // derived brand text -> { ownerConst, ownerFile, keys }
 const needParen = (n) => ts.isBinaryExpression(n) || ts.isConditionalExpression(n) || ts.isArrowFunction(n) || ts.isAsExpression(n) || ts.isAwaitExpression(n);
 const isObjectCtor = (call) => {
@@ -183,6 +175,7 @@ const collectFor = (f, text) => {
       else {
         owners.set(info.text, info);
         if (dd.baseIds.length) { const m = fieldNeeds.get(f) ?? new Map(); for (const id of dd.baseIds) m.set(id, dd.baseImportFiles.get(id)); fieldNeeds.set(f, m); }
+        if (dd.locals.length) { const arr = fieldLocals.get(f) ?? []; for (const l of dd.locals) if (!arr.some((x) => x.text === l.text)) arr.push(l); fieldLocals.set(f, arr); }
         add(n, n.getStart(sf), n.end, `${dd.baseSchema}.brand<'${info.text}'>()`, 'field-inline');
       }
     } else if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) && n.expression.name.text === 'brand' && n.typeArguments?.length === 1 && ts.isLiteralTypeNode(n.typeArguments[0]) && n.typeArguments[0].literal.text === standaloneText && n.parent && !(ts.isPropertyAccessExpression(n.parent) && n.parent.name.text === 'brand')) {
@@ -371,6 +364,7 @@ const collectRewrites = (prog, list0, editsByFile) => {
     const descend = (n) => { for (const c of n.getChildren(sf)) if (c.getStart(sf) <= d.start && d.start + d.length <= c.end) { node = c; descend(c); return; } };
     descend(sf);
     const support = lib.isTestSupport(f);
+    if (G.isContractFile(f)) { skip(f, d, 'inside a contract file: a parse written there runs at module load, and can name the contract it sits in'); continue; }
     const list = editsByFile.get(f) ?? { f, edits: [], imports: new Map() };
     editsByFile.set(f, list);
     // the property assignment or assignment whose value failed
@@ -406,6 +400,8 @@ const collectRewrites = (prog, list0, editsByFile) => {
     }
     own = own ?? owners.get(brand) ?? null;
     if (!own) { skip(f, d, 'owner of the field not found'); continue; }
+    // the owner's parse must return the brand the slot asks for, or the wrap leaves the diagnostic standing and the next round wraps again
+    if (tType && !brandsIn(fullText).includes(own.text)) { skip(f, d, `slot wants ${brandsIn(fullText).join('|')}, the owner parse returns ${own.text}`); continue; }
     if (owners.get(own.text) === undefined) owners.set(own.text, own);
     const ownerName = ownerTypeNameOf(prog, own.ownerFile, own.ownerConst) ?? pascal(own.ownerConst.replace(/Contract$/u, ''));
     const stubPath = path.join(path.dirname(own.ownerFile), `${path.basename(own.ownerFile).replace(/-contract\.ts$/u, '')}.stub.ts`);
@@ -427,7 +423,10 @@ const collectRewrites = (prog, list0, editsByFile) => {
       const sig = (ty) => checker.getPropertiesOfType(ty).map((pp) => `${pp.name}${pp.flags & ts.SymbolFlags.Optional ? '?' : ''}`).sort().join(',');
       const complete = ownerType && members.some((m2) => sig(m2) === sig(ownerType));
       if (ts.isCallExpression(root.parent) && root.parent.expression.getText(sf) === callee && root.parent.arguments[0] === root) { skip(f, d, 'already inside the owner parse'); continue; }
+      if (G.alreadyParsed(root)) { skip(f, d, 'already inside a parse'); continue; }
       if (complete) {
+        const holders = G.functionHolders(checker, root);
+        if (holders.length) { skip(f, d, `literal holds a function (${holders.map((h) => h.name).join(', ')}): the owner parse would drop it`); continue; }
         const spec = specFor(f, importFile, importName);
         if (!spec) { skip(f, d, `no import path for ${importName}`); continue; }
         list.edits.push({ start: root.getStart(sf), end: root.end, text: wrapText(root.getText(sf)), kindName: 'root-parse' });
@@ -436,7 +435,10 @@ const collectRewrites = (prog, list0, editsByFile) => {
       } else if (own.keys.length === 1 && !support) {
         const spec = specFor(f, own.ownerFile, own.ownerConst);
         if (!spec) { skip(f, d, `no import path for ${own.ownerConst}`); continue; }
-        const v2 = ts.isShorthandPropertyAssignment(prop) ? prop.name.getText(sf) : prop.initializer.getText(sf);
+        const valueExpr = ts.isShorthandPropertyAssignment(prop) ? prop.name : prop.initializer;
+        if (G.alreadyParsed(valueExpr)) { skip(f, d, 'value is already parsed'); continue; }
+        if (!G.isPlainValueType(checker, checker.getTypeAtLocation(valueExpr))) { skip(f, d, `value is ${checker.typeToString(checker.getTypeAtLocation(valueExpr))}, not a plain field value`); continue; }
+        const v2 = valueExpr.getText(sf);
         const w = `${own.ownerConst}.shape.${own.keys[0]}.parse(${v2})`;
         list.edits.push(ts.isShorthandPropertyAssignment(prop) ? { start: prop.getStart(sf), end: prop.end, text: `${prop.name.getText(sf)}: ${w}`, kindName: 'field-parse' } : { start: prop.initializer.getStart(sf), end: prop.initializer.end, text: w, kindName: 'field-parse' });
         list.imports.set(own.ownerConst, spec);
@@ -445,10 +447,12 @@ const collectRewrites = (prog, list0, editsByFile) => {
       continue;
     }
     // a bare value handed to a field-typed slot: assignment right side, call argument, return
-    let target = null;
-    if (prop && ts.isBinaryExpression(prop) && prop.operatorToken.kind === ts.SyntaxKind.EqualsToken && (prop.left === valueNode || prop.left.getStart(sf) === d.start)) target = prop.right;
-    else if (ts.isCallExpression(valueNode.parent) || ts.isReturnStatement(valueNode.parent) || ts.isVariableDeclaration(valueNode.parent) || ts.isArrowFunction(valueNode.parent)) target = valueNode;
+    const target = G.bareValueTarget({ sf, d, valueNode, prop });
     if (target && own.keys.length === 1 && !support) {
+      if (G.alreadyParsed(target)) { skip(f, d, 'value is already parsed'); continue; }
+      const tt = checker.getTypeAtLocation(target);
+      if (G.isPromiseType(tt)) { skip(f, d, 'value is a Promise: a parse of it needs an await first'); continue; }
+      if (!G.isPlainValueType(checker, tt)) { skip(f, d, `value is ${checker.typeToString(tt)}, not a plain field value`); continue; }
       const spec = specFor(f, own.ownerFile, own.ownerConst);
       if (!spec) { skip(f, d, `no import path for ${own.ownerConst}`); continue; }
       list.edits.push({ start: target.getStart(sf), end: target.end, text: `${own.ownerConst}.shape.${own.keys[0]}.parse(${target.getText(sf)})`, kindName: 'field-parse' });
@@ -499,6 +503,35 @@ for (const [f, m] of fieldNeeds) {
     text = text.slice(0, at) + (last ? '\n' : '') + add.join('\n') + (last ? '' : '\n') + text.slice(at);
     overlay.set(f, lib.mergeDuplicateImports(f, text));
   }
+}
+
+for (const [f, locals] of fieldLocals) {
+  const r = B.addLocals(overlay.get(f), f, locals, lib);
+  if (r.conflicts.length) for (const c of r.conflicts) leftovers.notInlineable.push(`${rel(f)}: ${c}`);
+  else overlay.set(f, r.text);
+}
+
+// A brand that carries a real check (regex, refine, a named constant) is deleted with that check unless every use can hold it.
+// A field can: the schema is inlined with what it reads. A `C.parse(x)` outside a field cannot: no owner takes the check. Such
+// a brand is refused, not applied; move the check into its owning contract first (PORTING.md "NOT PLAIN YET"), or pass
+// --allow-drop-validation to accept the loss.
+const unmoved = [];
+for (const d of defs) {
+  if (!d.rich) continue;
+  for (const p of d.problems) unmoved.push(`${rel(d.contractFile)}: schema not inlineable (${p})`);
+}
+if (defs.some((d) => d.rich)) {
+  if (stats.parseCalls) unmoved.push(`${stats.parseCalls} \`${brandName}.parse(x)\` call(s) would become \`x\`: no owning field takes the check`);
+  for (const l of [...leftovers.notInlineable, ...leftovers.fieldNotInObject, ...leftovers.remainingRefs]) unmoved.push(`not moved into an owning field: ${l}`);
+}
+if (unmoved.length && !flag('allow-drop-validation')) {
+  const outDirR = lib.outDir(__dirname);
+  fs.mkdirSync(outDirR, { recursive: true });
+  const lfR = arg('leftovers') ? path.resolve(ROOT, arg('leftovers')) : path.join(outDirR, `${brandName}-leftovers.json`);
+  fs.writeFileSync(lfR, JSON.stringify({ brand: brandName, refused: unmoved, stats, leftovers }, null, 1));
+  console.log(`REFUSED ${brandName}: its check would be lost (nothing written; pass --allow-drop-validation to accept the loss)`);
+  for (const u of unmoved) console.log(`  ${u}`);
+  process.exit(3);
 }
 
 const rounds = flag('no-rewrite') ? 0 : Number(arg('rounds') ?? 3);

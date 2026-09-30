@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const lib = require('../../lib/repo.cjs');
+const B = require('../../lib/base-schema.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const ws = lib.workspaces();
@@ -22,13 +23,14 @@ if (!contractFile) {
 }
 const csf = lib.parse(contractFile);
 let initText = null;
+let initNode = null;
 let typeName = null;
 for (const st of csf.statements) {
-  if (ts.isVariableStatement(st)) for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name) && d.name.text === brandName) initText = d.initializer.getText(csf);
+  if (ts.isVariableStatement(st)) for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name) && d.name.text === brandName) { initText = d.initializer.getText(csf); initNode = d.initializer; }
   if (ts.isTypeAliasDeclaration(st) && st.type.getText(csf).includes(`typeof ${brandName}`)) typeName = st.name.text;
 }
 const kind = /^z\s*\.\s*number/u.test(initText) ? 'number' : 'string';
-const baseSchema = initText.replace(/\s+/gu, ' ').replace(/\.brand<[^>]*>\(\)\s*$/u, '');
+const baseSchema = initText.replace(/\s+/gu, ' ').replace(/\s*\.brand<[^>]*>\(\)\s*$/u, '').replace(/ (?=\.)/gu, '').trim();
 const stubBase = path.basename(contractFile).replace(/-contract\.ts$/u, '');
 const stubFile = path.join(path.dirname(contractFile), `${stubBase}.stub.ts`);
 const testFile = contractFile.replace(/\.ts$/u, '.test.ts');
@@ -40,9 +42,12 @@ if (fs.existsSync(stubFile)) {
   const m = /value(?:\s*=\s*|:\s*)('[^'\n]*'|"[^"\n]*"|-?\d+(?:\.\d+)?)/u.exec(st.replace(/value:\s*(string|number)/gu, ''));
   stubDefault = m ? m[1] : null;
 }
-const inlineOk = !/[A-Z_]{4,}|statics|Statics/u.test(baseSchema.replace(/\/[^/]+\/[a-z]*/gu, ''));
+// The schema names imports or top-level declarations of the standalone file: each is re-imported or copied into the contract
+// file that inlines it (lib/base-schema.cjs), or the schema is not inlineable and a brand with a real check is refused.
+const base = B.analyze({ csf, init: initNode, contractFile, resolver, lib, baseSchema });
+const inlineOk = base.inlineOk;
 
-console.log(JSON.stringify({ brandName, typeName, kind, contractFile: rel(contractFile), baseSchema, stubDefault, inlineOk }));
+console.log(JSON.stringify({ brandName, typeName, kind, contractFile: rel(contractFile), baseSchema, stubDefault, inlineOk, rich: base.rich, problems: base.problems }));
 
 // ---- gather user files ----
 const all = [];
@@ -67,6 +72,48 @@ const declaringFileOf = (f, sf, name) => {
   return null;
 };
 const sameFile = (a, b) => a && b && path.resolve(a) === path.resolve(b);
+const specFor = (fromFile, targetFile, name) => {
+  const wf = lib.workspaceOf(fromFile, ws);
+  const wt = lib.workspaceOf(targetFile, ws);
+  if (wf === wt) {
+    let r = path.relative(path.dirname(fromFile), targetFile).replace(/\.tsx?$/u, '').split(path.sep).join('/');
+    if (!r.startsWith('.')) r = `./${r}`;
+    return r;
+  }
+  for (const s of [`${wt.name}/contracts`, `${wt.name}/${path.relative(path.join(wt.dir, 'src'), targetFile).replace(/\.tsx?$/u, '').split(path.sep).join('/')}`]) {
+    const r = resolver(s, fromFile);
+    const d = r && lib.findDeclaringFile(r, name, resolver);
+    if (d && sameFile(d.file, targetFile)) return s;
+  }
+  return null;
+};
+// What an inlined base schema reads, written into the contract file that holds the inline copy.
+const needProblems = [];
+const addBaseNeeds = (f, text) => {
+  let out = text;
+  const sf = lib.parse(f, out);
+  const have = new Set();
+  for (const st of sf.statements) if (ts.isImportDeclaration(st) && st.importClause?.namedBindings && ts.isNamedImports(st.importClause.namedBindings)) for (const e of st.importClause.namedBindings.elements) have.add(e.name.text);
+  const add = [];
+  for (const id of base.baseIds) {
+    if (have.has(id)) continue;
+    const spec = specFor(f, base.importFiles.get(id), id);
+    if (spec) add.push(`import { ${id} } from '${spec}';`);
+    else needProblems.push(`${rel(f)}: no import path for ${id}`);
+  }
+  if (add.length) {
+    const last = [...sf.statements].filter(ts.isImportDeclaration).pop();
+    const at = last ? last.end : 0;
+    out = out.slice(0, at) + (last ? '\n' : '') + add.join('\n') + (last ? '' : '\n') + out.slice(at);
+    out = lib.mergeDuplicateImports(f, out);
+  }
+  if (base.locals.length) {
+    const r = B.addLocals(out, f, base.locals, lib);
+    if (r.conflicts.length) for (const c of r.conflicts) needProblems.push(`${rel(f)}: ${c}`);
+    else out = r.text;
+  }
+  return out;
+};
 
 // ---- build candidate edits per file ----
 const live = new Map();
@@ -144,6 +191,7 @@ const importDropEdits = (f, out) => {
   return lib.applyEdits(out, drop);
 };
 const overlay = new Map();
+const inlinedIn = new Set();
 for (const f of users) {
   let text = fs.readFileSync(f, 'utf8');
   const svc = svcFor(f);
@@ -151,11 +199,15 @@ for (const f of users) {
   for (let round = 0; round < 5; round++) {
     const pf = collectFor(f, text);
     if (!pf.cands.length) break;
-    const render = (acc) => importDropEdits(f, lib.applyEdits(text, acc));
+    const render = (acc) => {
+      const o = importDropEdits(f, lib.applyEdits(text, acc));
+      return acc.some((c) => c.kindName === 'field-inline') ? addBaseNeeds(f, o) : o;
+    };
     const accepted = lib.gateEdits({ service: svc.service, live, file: f, text, cands: pf.cands, render });
     stats.restoredByGate += pf.cands.length - accepted.length;
     stats.acceptedEdits += accepted.length;
     for (const c of accepted) stats[{ type: 'typeRefs', parse: 'parseCalls', 'stub-value': 'stubValue', 'stub-default': 'stubDefault', 'field-inline': 'fieldInline' }[c.kindName]]++;
+    if (accepted.some((c) => c.kindName === 'field-inline')) inlinedIn.add(f);
     if (!accepted.length) break;
     text = lib.applyEdits(text, accepted);
     any = true;
@@ -163,9 +215,34 @@ for (const f of users) {
     if (accepted.length === pf.cands.length && !collectFor(f, text).cands.length) break;
   }
   if (!any) continue;
-  const out = importDropEdits(f, text);
+  let out = importDropEdits(f, text);
+  if (inlinedIn.has(f)) out = addBaseNeeds(f, out);
   overlay.set(f, out);
   live.set(f, { v: (live.get(f)?.v ?? 0) + 1, text: out });
+}
+// ---- a brand with a real check goes plain only when every use carried it ----
+// A field carries it (the schema is inlined with what it reads). A parse site, a restored edit or a reference the script left
+// has no owning field, so the check would be deleted with the contract: refuse, and let a person move it first.
+if (base.rich && !process.argv.includes('--allow-drop-validation')) {
+  const unmoved = [...base.problems.map((p) => `schema not inlineable (${p})`), ...needProblems];
+  if (stats.parseCalls) unmoved.push(`${stats.parseCalls} \`${brandName}.parse(x)\` call(s) would become \`x\`: no owning field takes the check`);
+  if (stats.restoredByGate) unmoved.push(`${stats.restoredByGate} edit(s) restored by the gate: their sites still name ${brandName}`);
+  if (stats.leftoverOther) unmoved.push(`${stats.leftoverOther} field(s) not inlined`);
+  for (const [f, t] of overlay) {
+    if (t === null) continue;
+    const sfx = lib.parse(f, t);
+    const v = (n) => {
+      if (ts.isImportDeclaration(n)) return;
+      if (ts.isIdentifier(n) && n.text === brandName) unmoved.push(`still names ${brandName}: ${rel(f)}:${sfx.getLineAndCharacterOfPosition(n.getStart(sfx)).line + 1}`);
+      ts.forEachChild(n, v);
+    };
+    sfx.statements.forEach(v);
+  }
+  if (unmoved.length) {
+    console.log(`REFUSED ${brandName}: its check would be lost (nothing written; pass --allow-drop-validation to accept the loss)`);
+    for (const u of unmoved.slice(0, 40)) console.log(`  ${u}`);
+    process.exit(3);
+  }
 }
 // ---- delete contract / stub / test, strip barrel lines ----
 const removed = [contractFile, stubFile, testFile].filter((f) => fs.existsSync(f));

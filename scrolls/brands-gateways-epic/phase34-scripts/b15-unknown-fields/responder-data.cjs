@@ -40,6 +40,7 @@ const measure = ({ pkgDir = path.join(ROOT, 'packages/server'), overlay = new Ma
   const prog = service.getProgram();
   const chk = prog.getTypeChecker();
   const sites = [];
+  const skippedPromise = [];
   for (const f of fileNames) {
     if (lib.isTestSupport(f) || !f.includes('/src/responders/')) continue;
     const sf = prog.getSourceFile(f);
@@ -49,14 +50,22 @@ const measure = ({ pkgDir = path.join(ROOT, 'packages/server'), overlay = new Ma
         const dp = n.arguments[0].properties.find((p) => (ts.isPropertyAssignment(p) || ts.isShorthandPropertyAssignment(p)) && p.name.getText(sf) === 'data');
         if (dp) {
           const node = ts.isShorthandPropertyAssignment(dp) ? dp.name : dp.initializer;
-          sites.push({ file: f, sf, dp, node, type: chk.getTypeAtLocation(node), line: sf.getLineAndCharacterOfPosition(dp.getStart()).line + 1 });
+          const rawType = chk.getTypeAtLocation(node);
+          // A Promise is parsed after an await, in an async function; in any other function the site is left alone. A parse of
+          // the Promise itself typechecks (parse takes unknown) and validates nothing.
+          const promise = lib.isPromiseType(rawType) && !ts.isAwaitExpression(node);
+          let fn = node.parent;
+          while (fn && !ts.isFunctionLike(fn)) fn = fn.parent;
+          const asyncFn = !!fn && !!ts.getCombinedModifierFlags(fn) && (ts.getCombinedModifierFlags(fn) & ts.ModifierFlags.Async) !== 0;
+          if (promise && !asyncFn) skippedPromise.push(`${rel(f)}:${sf.getLineAndCharacterOfPosition(dp.getStart()).line + 1}`);
+          else sites.push({ file: f, sf, dp, node, promise, type: promise ? chk.getAwaitedType(rawType) ?? rawType : rawType, line: sf.getLineAndCharacterOfPosition(dp.getStart()).line + 1 });
         }
       }
       ts.forEachChild(n, visit);
     };
     visit(sf);
   }
-  return { sites, chk, prog };
+  return { sites, chk, prog, skippedPromise };
 };
 
 const printer = (chk, brands, siteFile) => {
@@ -254,8 +263,9 @@ const mergeImports = (imports) => {
 };
 const wrap = (s, cname) => {
   const sf = s.sf;
-  if (ts.isShorthandPropertyAssignment(s.dp)) return { start: s.dp.getStart(sf), end: s.dp.end, text: `data: ${cname}.parse(${s.node.getText(sf)})` };
-  return { start: s.node.getStart(sf), end: s.node.end, text: `${cname}.parse(${s.node.getText(sf)})` };
+  const operand = `${s.promise ? 'await ' : ''}${s.node.getText(sf)}`;
+  if (ts.isShorthandPropertyAssignment(s.dp)) return { start: s.dp.getStart(sf), end: s.dp.end, text: `data: ${cname}.parse(${operand})` };
+  return { start: s.node.getStart(sf), end: s.node.end, text: `${cname}.parse(${operand})` };
 };
 
 module.exports = { plan, measure };

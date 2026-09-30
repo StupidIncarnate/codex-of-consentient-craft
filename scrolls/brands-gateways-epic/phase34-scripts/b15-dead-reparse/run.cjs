@@ -455,6 +455,30 @@ const isLiteralUnion = (t) => {
   return ms.length > 0 && ms.every((m) => (m.flags & (ts.TypeFlags.StringLiteral | ts.TypeFlags.NumberLiteral | ts.TypeFlags.BooleanLiteral | ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
 };
 
+// ---------- deliberate parses ----------
+// A parse a comment calls deliberate stays, whatever the checker says about its argument: the comment records a decision the
+// type system cannot see (a boundary check, a literal routed through the contract to satisfy a rule). The comments that count
+// are the ones attached to the parse's statement (before it, inside it, after it on its last line) that say the parse is on
+// purpose, say it validates, route a value through a contract, or name the parsed contract. Over-keeping costs a line in the
+// kept file; under-keeping drops a check.
+const DELIBERATE_COMMENT = /\b(?:deliberate(?:ly)?|intentional(?:ly)?|on purpose|by design|re-?validat\w*|validates?|keeps? (?:the|this) parse)\b|\b(?:through|via|into) (?:the|that|this|its|same|a)\b[^.]{0,40}\bcontract\b/iu;
+const deliberateComment = (sf, call, cname) => {
+  const { stmtStart, stmtEnd } = lib.enclosingStatement(call, sf);
+  const text = sf.text;
+  const spans = new Map();
+  const take = (ranges) => { for (const r of ranges ?? []) if (r.end > stmtStart - 400 && r.pos < stmtEnd + 200) spans.set(r.pos, text.slice(r.pos, r.end)); };
+  const visit = (n) => {
+    if (n.getStart(sf) >= stmtStart && n.end <= stmtEnd) { take(ts.getLeadingCommentRanges(text, n.getFullStart())); take(ts.getTrailingCommentRanges(text, n.end)); }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  // a comment block right above the statement belongs to it: leading ranges of the statement's own first token
+  take(ts.getLeadingCommentRanges(text, stmtStart));
+  const named = new RegExp(`\\b${cname.replace(/Contract$/u, '')}\\b`, 'iu');
+  for (const c of spans.values()) if (DELIBERATE_COMMENT.test(c) || named.test(c)) return c.replace(/\s+/gu, ' ').replace(/^(\/\*+|\/\/)\s*|\s*\*\/$/gu, '').slice(0, 160);
+  return null;
+};
+
 // ---------- census ----------
 const perPkg = {};
 const kept = [];
@@ -491,7 +515,11 @@ for (const p of progs) {
             const line = sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1;
             const cname = n.expression.expression.text;
             const rec = { file: rel(f), line, contract: cname, arg: a.getText(sf).replace(/\s+/gu, ' ').slice(0, 90) };
-            if (hasTransform(c, n.expression.expression)) {
+            const deliberate = deliberateComment(sf, n, cname);
+            if (deliberate) {
+              bump(pk, 'keptDeliberate');
+              kept.push({ ...rec, reason: 'deliberate-comment', detail: deliberate });
+            } else if (hasTransform(c, n.expression.expression)) {
               bump(pk, 'keptTransform');
               kept.push({ ...rec, reason: 'transform-contract', detail: '' });
             } else {

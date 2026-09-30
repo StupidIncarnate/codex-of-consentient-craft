@@ -17,6 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
+const G = require('../lib/rewrite-guards.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const flag = (n) => process.argv.includes(`--${n}`);
@@ -136,7 +137,7 @@ const summarize = (res) => {
 };
 
 // ---------- step 2: the rewriter ----------
-const leftovers = { partial: [], incomplete: [], ambiguous: [], noImport: [] };
+const leftovers = { partial: [], incomplete: [], ambiguous: [], noImport: [], holdsFunction: [] };
 const brandTextsOf = (checker, type) => {
   const out = [];
   for (const p of checker.getPropertiesOfType(type)) {
@@ -165,6 +166,26 @@ const typeOnlyNames = (sf) => {
   const s = new Set();
   for (const st of sf.statements) if (ts.isImportDeclaration(st) && st.importClause?.namedBindings && ts.isNamedImports(st.importClause.namedBindings)) for (const e of st.importClause.namedBindings.elements) if (st.importClause.isTypeOnly || e.isTypeOnly) s.add(e.name.text);
   return s;
+};
+// Keys a contract lists anywhere in its definition: a parse keeps exactly these, so a function value under one of them is a
+// decision (z.custom / z.function), and a function under any other key is dropped.
+const listedKeysCache = new Map();
+const listedKeys = (c) => {
+  const k = `${c.file}\0${c.const}`;
+  if (listedKeysCache.has(k)) return listedKeysCache.get(k);
+  const keys = new Set();
+  const sf = lib.parse(c.file);
+  const visit = (n) => {
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.name.text === c.const && n.initializer) {
+      const inner = (x) => { if (ts.isPropertyAssignment(x) && x.name) keys.add(x.name.getText(sf).replace(/['"]/gu, '')); ts.forEachChild(x, inner); };
+      inner(n.initializer);
+      return;
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  listedKeysCache.set(k, keys);
+  return keys;
 };
 const collectRewrites = (prog, list, editsByFile) => {
   const checker = prog.getTypeChecker();
@@ -210,11 +231,27 @@ const collectRewrites = (prog, list, editsByFile) => {
     }
     if (!cand) { leftovers.noImport.push(`${where} ${text}${tag}`); return false; }
     const name = useStub ? `${cand.typeName}Stub` : cand.const;
-    const lit = n.getText(sf);
-    const wrapped = !useStub ? `${name}.parse(${lit})` : stubStyle === 'value' ? `${name}({ value: ${lit} })` : `${name}(${lit})`;
+    // a parse keeps only the keys its schema lists: the data part goes through the parse, the functions sit beside it
+    const holders = G.functionHolders(checker, n);
+    const nestedHolders = holders.filter((h) => !h.direct);
+    const listed = listedKeys(cand);
+    const listedHolders = holders.filter((h) => h.direct && listed.has(h.name));
+    if (nestedHolders.length || listedHolders.length) {
+      leftovers.holdsFunction.push(`${where} ${text}${tag} ${[...nestedHolders, ...listedHolders].map((h) => h.name).join(',')}: ${nestedHolders.length ? 'function nested in a value' : 'function under a key the contract lists'}`);
+      return false;
+    }
+    const besideNames = new Set(holders.map((h) => h.name));
+    const propName = (p) => p.name?.getText(sf).replace(/['"]/gu, '');
+    const besideProps = n.properties.filter((p) => besideNames.has(propName(p)));
+    const dataProps = n.properties.filter((p) => !besideNames.has(propName(p)));
+    const lit = besideProps.length ? `{ ${dataProps.map((p) => p.getText(sf)).join(', ')} }` : n.getText(sf);
+    const parsed = !useStub ? `${name}.parse(${lit})` : stubStyle === 'value' ? `${name}({ value: ${lit} })` : `${name}(${lit})`;
     let outer = n;
     while (ts.isParenthesizedExpression(outer.parent)) outer = outer.parent;
     if (outer.parent && (ts.isAsExpression(outer.parent) || ts.isSatisfiesExpression(outer.parent)) && outer.parent.expression === outer) outer = outer.parent;
+    // an object literal opens a block where an arrow body or a statement starts: keep it in parentheses there
+    const spread = `{ ...${parsed}, ${besideProps.map((p) => p.getText(sf)).join(', ')} }`;
+    const wrapped = !besideProps.length ? parsed : ts.isArrowFunction(outer.parent) || ts.isExpressionStatement(outer.parent) ? `(${spread})` : spread;
     entry.edits.push({ start: outer.getStart(sf), end: outer.end, text: wrapped });
     entry.imports.set(name, spec);
     count++;
@@ -340,7 +377,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const lf = arg('leftovers') ? path.resolve(ROOT, arg('leftovers')) : path.join(outDir, 'leftovers.json');
 fs.writeFileSync(lf, JSON.stringify({ ...result, rewrittenFiles: rewritten.size, leftovers, standing }, null, 1));
 console.log('RESULT', JSON.stringify(result));
-console.log('leftovers file', rel(lf), fs.statSync(lf).size, 'bytes; standing', standing.length, '; partial', leftovers.partial.length, '; incomplete', leftovers.incomplete.length, '; ambiguous', leftovers.ambiguous.length, '; noImport', leftovers.noImport.length, '; rewritten files', rewritten.size);
+console.log('leftovers file', rel(lf), fs.statSync(lf).size, 'bytes; standing', standing.length, '; partial', leftovers.partial.length, '; incomplete', leftovers.incomplete.length, '; ambiguous', leftovers.ambiguous.length, '; noImport', leftovers.noImport.length, '; holdsFunction', leftovers.holdsFunction.length, '; rewritten files', rewritten.size);
 const sampleOut = arg('sample-out');
 if (sampleOut) for (const [f, t] of overlay) { if (t === null) continue; const d = path.join(ROOT, sampleOut, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, t); }
 if (process.argv.includes('apply')) {

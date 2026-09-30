@@ -417,6 +417,41 @@ const packageCompilerOptions = (pkgDir) => {
   return options;
 };
 
+// A Promise, or a union holding one.
+const isPromiseType = (type) => {
+  if (type.isUnion()) return type.types.some(isPromiseType);
+  const s = type.getSymbol() ?? type.aliasSymbol;
+  return s !== undefined && s.getName() === 'Promise';
+};
+
+// `x.parse(arg)` / `x.safeParse(arg)` whose argument is a Promise that is not awaited: the parse sees a Promise object, not
+// the value, and typechecks anyway (parse takes `unknown`). Reported as a diagnostic of code 90001 so every gate that
+// compares a file's diagnostics before and after an edit refuses the edit that introduced one. The message holds the
+// argument's text, so a site that already stood in the baseline cancels out.
+const PROMISE_PARSE_CODE = 90001;
+const promiseParseDiagnostics = (program, sf) => {
+  const checker = program.getTypeChecker();
+  const out = [];
+  const visit = (n) => {
+    if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) && ['parse', 'safeParse'].includes(n.expression.name.text) && n.arguments.length === 1) {
+      const a = n.arguments[0];
+      if (!ts.isAwaitExpression(a) && isPromiseType(checker.getTypeAtLocation(a))) {
+        out.push({
+          file: sf,
+          start: a.getStart(sf),
+          length: a.getWidth(sf),
+          code: PROMISE_PARSE_CODE,
+          category: ts.DiagnosticCategory.Error,
+          messageText: `${n.expression.getText(sf)}() is handed a Promise without await: ${a.getText(sf).replace(/\s+/gu, ' ').slice(0, 80)}`,
+        });
+      }
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  return out;
+};
+
 // Semantic + syntactic diagnostics of `files` in a program whose host sees `overlay` in place of disk.
 const diagnosticsWithOverlay = (files, overlay, options) => {
   const host = ts.createCompilerHost(options, true);
@@ -436,7 +471,7 @@ const diagnosticsWithOverlay = (files, overlay, options) => {
   const out = new Map();
   for (const f of files) {
     const sf = program.getSourceFile(f);
-    out.set(f, sf ? [...program.getSyntacticDiagnostics(sf), ...program.getSemanticDiagnostics(sf)] : null);
+    out.set(f, sf ? [...program.getSyntacticDiagnostics(sf), ...program.getSemanticDiagnostics(sf), ...promiseParseDiagnostics(program, sf)] : null);
   }
   return { program, diagnostics: out };
 };
@@ -488,7 +523,7 @@ const makeLanguageService = (pkgDir, live = new Map()) => {
 const gateEdits = ({ service, live, file, text, cands, render, ignore }) => {
   const setText = (t) => live.set(file, { v: (live.get(file)?.v ?? 0) + 1, text: t });
   const diag = () =>
-    [...service.getSyntacticDiagnostics(file), ...service.getSemanticDiagnostics(file)].map((d) => ({
+    [...service.getSyntacticDiagnostics(file), ...service.getSemanticDiagnostics(file), ...(service.getProgram().getSourceFile(file) ? promiseParseDiagnostics(service.getProgram(), service.getProgram().getSourceFile(file)) : [])].map((d) => ({
       // No line in the key: in a file that is already red, an edit that shifts lines would otherwise make every
       // old diagnostic look new and restore every edit. The baseline is a count per code and message instead.
       key: `${d.code}:${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`,
@@ -622,6 +657,9 @@ module.exports = {
   enclosingStatement,
   makeLanguageService,
   mergeDuplicateImports,
+  isPromiseType,
+  promiseParseDiagnostics,
+  PROMISE_PARSE_CODE,
   plannedExportsOverlay,
   packageCompilerOptions,
   diagnosticsWithOverlay,

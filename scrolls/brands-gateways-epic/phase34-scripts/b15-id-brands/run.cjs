@@ -26,6 +26,7 @@
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
+const G = require('../lib/rewrite-guards.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const flag = (n) => process.argv.includes(`--${n}`);
@@ -542,6 +543,7 @@ const collectRewrites = (prog, list0, editsByFile) => {
     const descend = (n) => { for (const c of n.getChildren(sf)) if (c.getStart(sf) <= d.start && d.start + d.length <= c.end) { node = c; descend(c); return; } };
     descend(sf);
     const support = lib.isTestSupport(f);
+    if (G.isContractFile(f)) { skip(f, d, 'inside a contract file: a parse written there runs at module load, and can name the contract it sits in'); continue; }
     const list = editsByFile.get(f) ?? { f, edits: [], imports: new Map() };
     editsByFile.set(f, list);
     let prop = node;
@@ -554,17 +556,22 @@ const collectRewrites = (prog, list0, editsByFile) => {
     const spec = specTo(f, ownerFile, ownerConst);
     if (!spec) { skip(f, d, `no import path for ${ownerConst}`); continue; }
     if (prop && (ts.isPropertyAssignment(prop) || ts.isShorthandPropertyAssignment(prop)) && ts.isObjectLiteralExpression(prop.parent) && !support) {
-      const v2 = ts.isShorthandPropertyAssignment(prop) ? prop.name.getText(sf) : prop.initializer.getText(sf);
+      const valueExpr = ts.isShorthandPropertyAssignment(prop) ? prop.name : prop.initializer;
+      if (G.alreadyParsed(valueExpr)) { skip(f, d, 'value is already parsed'); continue; }
+      if (!G.isPlainValueType(checker, checker.getTypeAtLocation(valueExpr))) { skip(f, d, `value is ${checker.typeToString(checker.getTypeAtLocation(valueExpr))}, not a plain field value`); continue; }
+      const v2 = valueExpr.getText(sf);
       const w = `${ownerConst}.shape.${key}.parse(${v2})`;
       list.edits.push(ts.isShorthandPropertyAssignment(prop) ? { start: prop.getStart(sf), end: prop.end, text: `${prop.name.getText(sf)}: ${w}`, kindName: 'field-parse' } : { start: prop.initializer.getStart(sf), end: prop.initializer.end, text: w, kindName: 'field-parse' });
       list.imports.set(ownerConst, spec);
       count++;
       continue;
     }
-    let tgt = null;
-    if (prop && ts.isBinaryExpression(prop) && prop.operatorToken.kind === ts.SyntaxKind.EqualsToken && prop.left.getStart(sf) === d.start) tgt = prop.right;
-    else if (ts.isCallExpression(valueNode.parent) || ts.isReturnStatement(valueNode.parent) || ts.isVariableDeclaration(valueNode.parent) || ts.isArrowFunction(valueNode.parent)) tgt = valueNode;
+    const tgt = G.bareValueTarget({ sf, d, valueNode, prop });
     if (tgt && !support) {
+      if (G.alreadyParsed(tgt)) { skip(f, d, 'value is already parsed'); continue; }
+      const tt = checker.getTypeAtLocation(tgt);
+      if (G.isPromiseType(tt)) { skip(f, d, 'value is a Promise: a parse of it needs an await first'); continue; }
+      if (!G.isPlainValueType(checker, tt)) { skip(f, d, `value is ${checker.typeToString(tt)}, not a plain field value`); continue; }
       list.edits.push({ start: tgt.getStart(sf), end: tgt.end, text: `${ownerConst}.shape.${key}.parse(${tgt.getText(sf)})`, kindName: 'field-parse' });
       list.imports.set(ownerConst, spec);
       count++;

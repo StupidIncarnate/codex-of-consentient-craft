@@ -47,14 +47,17 @@ const barrelExports = (pkgName, name) => {
   return ok;
 };
 
+// A harness is a test boundary: its parameters take raw input (plain strings), and its callers pass plain values. A retype
+// to `Owner['key']` there makes every caller wrap what it passes.
+const HARNESS_FILE = /(^|\/)test\/harnesses\/|\.harness\.tsx?$/u;
 const candidates = [];
-const skipped = { ambiguous: 0, unreachable: 0, nameClash: 0, notBarrel: 0 };
+const skipped = { ambiguous: 0, unreachable: 0, nameClash: 0, notBarrel: 0, harness: 0 };
 const fileTexts = new Map();
 for (const w of ws) {
   if (w.isGateway) continue;
   if (onlyPkgs && !onlyPkgs.includes(w.short)) continue;
   const reachable = reach(w);
-  const files = lib.walk(w.dir).filter((f) => !f.includes('/dist/') && (includeTests || !lib.isTestSupport(f)));
+  const files = lib.walk(w.dir).filter((f) => !f.includes('/dist/') && (includeTests || !lib.isTestSupport(f)) && (!HARNESS_FILE.test(rel(f)) || (skipped.harness++, false)));
   for (const f of files) {
     const text = fs.readFileSync(f, 'utf8');
     if (!/:\s*string\b/u.test(text)) continue;
