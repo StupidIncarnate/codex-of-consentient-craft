@@ -10,11 +10,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { installedPackageVersionContract } from '../installed-package-version/installed-package-version-contract';
 
 export const duplicateInstallLocationContract = z.object({
   location: z.string().min(1).brand<'DuplicateInstallLocationPath'>(),
-  version: installedPackageVersionContract,
+  version: z.string().min(1).brand<'DuplicateInstallLocationVersion'>(),
 });
 
 export type DuplicateInstallLocation = z.infer<typeof duplicateInstallLocationContract>;
