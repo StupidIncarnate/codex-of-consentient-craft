@@ -8,8 +8,6 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { SlotCount } from '@dungeonmaster/shared/contracts';
-import { slotCountContract } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { agentOutputConfigStatics } from '../../statics/agent-output-config/agent-output-config-statics';
 
@@ -43,5 +41,5 @@ export const agentOutputState = {
 
   getAll: (): Map<SlotIndex, ChatEntry[]> => new Map(state.slots),
 
-  size: (): SlotCount => slotCountContract.parse(state.slots.size),
+  size: (): number => state.slots.size,
 } as const;

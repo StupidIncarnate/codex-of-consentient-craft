@@ -20,8 +20,6 @@ import type {
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
-import type { SlotCount } from '@dungeonmaster/shared/contracts';
-import { slotCountContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
@@ -61,7 +59,7 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   userMessage?: UserInput;
-  slotCount?: SlotCount;
+  slotCount?: number;
 }): Promise<void> => {
   if (abortSignal.aborted) {
     return;
@@ -72,8 +70,8 @@ export const questOrchestrationLoopBroker = async ({
   // not an error — fall back to the curated default the contract would have produced.
   const slotCount =
     providedSlotCount ??
-    (await (async (): Promise<SlotCount> => {
-      const fallbackSlotCount = slotCountContract.parse(DEFAULT_SLOT_COUNT);
+    (await (async (): Promise<number> => {
+      const fallbackSlotCount = DEFAULT_SLOT_COUNT;
       try {
         const config = await configResolveBroker({ filePath: startPath });
         return config.orchestration?.slotCount ?? fallbackSlotCount;

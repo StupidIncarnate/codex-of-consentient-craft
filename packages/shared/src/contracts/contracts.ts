@@ -164,7 +164,6 @@ export * from './orchestration-slot/orchestration-slot-contract';
 
 export * from './slot-index/slot-index-contract';
 
-export * from './slot-count/slot-count-contract';
 
 // Execution Progress Count Contracts
 
