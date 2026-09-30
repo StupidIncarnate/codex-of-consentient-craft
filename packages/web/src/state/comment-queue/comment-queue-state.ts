@@ -20,6 +20,7 @@ import { keys, readItem, removeItem, writeItem } from '#gateway/browser/localSto
 import { questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
+import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueStoredContract } from '../../contracts/comment-queue-stored/comment-queue-stored-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
@@ -83,7 +84,11 @@ export const commentQueueState = {
     const key = `${commentQueueStatics.storage.keyPrefix}${questId}`;
     const existing = state.readEntries({ key });
     const withoutMatch = existing.filter(
-      (candidate) => !isSameCommentAnchorGuard({ left: candidate, right: entry }),
+      (candidate) =>
+        !isSameCommentAnchorGuard({
+          left: commentAnchorContract.parse(candidate),
+          right: commentAnchorContract.parse(entry),
+        }),
     );
     state.write({ key, entries: [...withoutMatch, entry] });
     state.notify({ questId });
@@ -93,7 +98,8 @@ export const commentQueueState = {
     const key = `${commentQueueStatics.storage.keyPrefix}${questId}`;
     const existing = state.readEntries({ key });
     const remaining = existing.filter(
-      (candidate) => !isSameCommentAnchorGuard({ left: candidate, right: anchor }),
+      (candidate) =>
+        !isSameCommentAnchorGuard({ left: commentAnchorContract.parse(candidate), right: anchor }),
     );
     state.write({ key, entries: remaining });
     state.notify({ questId });

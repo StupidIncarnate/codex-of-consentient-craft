@@ -355,7 +355,7 @@ export const ExecutionPanelWidget = ({
       // under the sentinel.
       const pieceGroups = new Map<string, WorkItem[]>();
       stepGroup.forEach((wi) => {
-        const payloadPieceName = wi.payload?.['pieceName'];
+        const payloadPieceName = Object.entries(wi.payload ?? {}).find(([key]) => key === 'pieceName')?.[1];
         const pieceLabel =
           wi.pieceId === undefined
             ? undefined

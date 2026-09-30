@@ -7,7 +7,7 @@
  */
 
 import type { ModifyQuestInput, QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
-import { modifyQuestInputContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
@@ -51,7 +51,7 @@ export const buildHydrateInputLayerBroker = ({
     {},
   );
 
-  const flowsAdditions: Partial<ModifyQuestInput> =
+  const flowsAdditions: { flows?: QuestBlueprint['flows'] } =
     strategy.flowsMode === 'full' ? { flows: blueprint.flows } : {};
 
   return modifyQuestInputContract.parse({

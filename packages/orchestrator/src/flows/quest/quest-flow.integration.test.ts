@@ -56,14 +56,16 @@ describe('QuestFlow', () => {
         questId,
         operations: [],
         workItems: [],
-        planningNotes: {
-          blightLedger: [],
-          questNotes: [
-            QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' }),
-            QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' }),
-          ],
-          operationPlans: [],
-        },
+        planningNotes: QuestStub({
+          planningNotes: {
+            blightLedger: [],
+            questNotes: [
+              QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' }),
+              QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' }),
+            ],
+            operationPlans: [],
+          },
+        }).planningNotes,
         flows: [
           FlowStub({
             id: 'login-flow',

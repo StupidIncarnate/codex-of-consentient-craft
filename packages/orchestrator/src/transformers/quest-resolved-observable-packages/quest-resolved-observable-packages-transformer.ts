@@ -9,7 +9,7 @@
  * questResolvedObservablePackagesTransformer({flows: quest.flows});
  * // Returns the same flows with each single-package node's observables carrying that node's package
  */
-import { packageNameContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { flowObservableContract } from '@dungeonmaster/shared/contracts';
 import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questResolvedObservablePackagesTransformer = ({ flows }: { flows: Flow[] }): Flow[] =>
@@ -44,9 +44,12 @@ export const questResolvedObservablePackagesTransformer = ({ flows }: { flows: F
           // observable is a finding the attribution rule owes the author by name, and overwriting it
           // here would silently erase the claim instead of reporting it.
           observables: node.observables.map((observable) =>
-            packageNameContract.safeParse(observable.package).success
+            flowObservableContract.shape.package.safeParse(observable.package).success
               ? observable
-              : { ...observable, package: onlyPackage },
+              : {
+                  ...observable,
+                  package: flowObservableContract.shape.package.parse(onlyPackage),
+                },
           ),
         };
       }),

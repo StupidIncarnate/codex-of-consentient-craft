@@ -31,7 +31,8 @@
  * // Returns StartArgs whose `seed` names the recipe to run once the lane is up
  */
 
-import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { z } from '#gateway/npm/zod';
+import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
@@ -143,10 +144,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
             flag: IDLE_TIMEOUT_MS_FLAG,
             raw: idleTimeoutValue,
             accepts: `a whole number of ${driverStatics.idle.timeoutMs} (the default) or more — this flag only raises the ceiling`,
-            parse: (value) =>
-              timeoutMsContract
-                .refine((parsed) => parsed >= driverStatics.idle.timeoutMs)
-                .parse(value),
+            parse: (value) => z.number().int().min(driverStatics.idle.timeoutMs).parse(value),
           }),
         }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),

@@ -56,7 +56,7 @@ export const localImageCopyBrokerProxy = (): {
           path: (value: unknown): boolean =>
             typeof value === 'string' && stagedIds.includes(value.split('/').pop()?.split('.')[0]),
         })
-        .map((call) => call[0]),
+        .map((call) => String(call[0])),
     writtenBytesFor: ({ filePath }: { filePath: string }): unknown =>
       writeProxy.writtenBytesFor({ path: filePath }),
     sourceReadAttemptedPaths: (): unknown[] =>

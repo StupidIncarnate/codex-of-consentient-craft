@@ -28,7 +28,7 @@ export const sessionQueryRouteBroker = ({
   where: Record<string, unknown>;
 }): SessionRecord[] => {
   const { cwd: cwdValue, ...rest } = where;
-  const cwd = cwdValue;
+  const cwd = sessionRecordContract.shape.cwd.parse(cwdValue);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,

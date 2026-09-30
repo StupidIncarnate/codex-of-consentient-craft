@@ -317,7 +317,7 @@ export const serverAppHarness = (): {
         .add(1, (q) => [q[0].setRaw(fields), q[0].saveRecordAs({ name: QUEST_SAVE_NAME })]),
     ])();
     const result = await dmRegistryBroker.run(plan, target);
-    return result[QUEST_SAVE_NAME]!;
+    return questContract.parse(result[QUEST_SAVE_NAME]);
   };
 
   const seedGuildAndQuestFields = async ({

@@ -46,11 +46,11 @@ export const gitRowsLayerBroker = async ({
   uncommittedPaths: string[];
   committedPaths: QuestWorkCommit[];
 }> => {
-  const git = {
+  const git = questWorkViewContract.shape.git.parse({
     baseBranch: quest.baseBranch ?? null,
     worktreePath: quest.worktreePath ?? null,
     baseRef: quest.baseRef ?? null,
-  };
+  });
 
   const resolution = await questCwdResolveBroker({ questId });
 

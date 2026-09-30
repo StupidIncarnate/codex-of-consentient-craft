@@ -29,9 +29,7 @@ export const instanceReserveBrokerProxy = (): {
   // this broker asks for `claimAttempts` pairs UPFRONT (they don't depend on each other), so
   // every scenario stages exactly that many pairs; a scenario needing fewer real candidates
   // repeats its last (uncontested) pair for the remainder.
-  setupPortCandidates: (params: {
-    pairs: readonly { api: number; web: number }[];
-  }) => void;
+  setupPortCandidates: (params: { pairs: readonly { api: number; web: number }[] }) => void;
   setupCwd: (params: { value: string }) => void;
   setupBranch: (params: { branch: string | null }) => void;
   setupBranchFailure: (params: { exitCode: number; output: string }) => void;
@@ -94,11 +92,7 @@ export const instanceReserveBrokerProxy = (): {
 
     // Staged in the SAME order this broker asks the OS for candidates (upfront, before it ever
     // reads the registry), so pairs[0] answers the first call, pairs[1] the second, and so on.
-    setupPortCandidates: ({
-      pairs,
-    }: {
-      pairs: readonly { api: number; web: number }[];
-    }): void => {
+    setupPortCandidates: ({ pairs }: { pairs: readonly { api: number; web: number }[] }): void => {
       portPairProxy.returnsSequence({
         pairs: pairs.map(({ api, web }) => ({ server: api, web })),
       });

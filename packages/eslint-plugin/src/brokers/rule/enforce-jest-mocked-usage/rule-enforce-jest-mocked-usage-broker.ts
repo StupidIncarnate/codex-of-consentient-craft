@@ -11,7 +11,6 @@ import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
-import { modulePathContract } from '@dungeonmaster/shared/contracts';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const ruleEnforceJestMockedUsageBroker = (): TSESLint.RuleModule<
@@ -73,9 +72,8 @@ export const ruleEnforceJestMockedUsageBroker = (): TSESLint.RuleModule<
                 firstArg.type === AST_NODE_TYPES.Literal &&
                 typeof firstArg.value === 'string'
               ) {
-                const parseResult = modulePathContract.safeParse(firstArg.value);
-                if (parseResult.success) {
-                  jestMockedModules.set(parseResult.data, node);
+                if (firstArg.value.length > 0) {
+                  jestMockedModules.set(firstArg.value, node);
                 }
               }
             }

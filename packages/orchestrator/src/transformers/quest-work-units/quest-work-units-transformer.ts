@@ -27,10 +27,10 @@
 
 import type { OperationItem, Quest, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
+import { questWorkViewContract } from '../../contracts/quest-work-view/quest-work-view-contract';
 import type { QuestWorkUnit } from '../../contracts/quest-work-view/quest-work-view-contract';
 import { qaChecklistBuildTransformer } from '../qa-checklist-build/qa-checklist-build-transformer';
 import { unitCurrentMarkTransformer } from '../unit-current-mark/unit-current-mark-transformer';
-import { unitObservationFieldsContract } from '@dungeonmaster/shared/contracts';
 
 export const questWorkUnitsTransformer = ({
   quest,
@@ -66,7 +66,7 @@ export const questWorkUnitsTransformer = ({
     const current = unitCurrentMarkTransformer({ quest, unitId });
 
     return [
-      {
+      questWorkViewContract.shape.assignedUnits.unwrap().element.parse({
         unitId,
         kind: item.kind,
         text: item.label,
@@ -80,7 +80,7 @@ export const questWorkUnitsTransformer = ({
         toSettle: current?.toSettle ?? null,
         markedBy: current?.workItemId ?? null,
         markedAt: current?.at ?? null,
-      },
+      }),
     ];
   });
 };

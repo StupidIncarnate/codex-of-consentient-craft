@@ -74,7 +74,7 @@ export const proxyMockCollectorMiddleware = ({
       }
       const sourceDir = dirname(entry.filePath);
       const absoluteModuleName = resolve(sourceDir, mock.moduleName);
-      return { ...mock, moduleName: absoluteModuleName };
+      return mockCallContract.parse({ ...mock, moduleName: absoluteModuleName });
     });
 
     mockCalls.push(...resolvedMocks);
@@ -114,7 +114,8 @@ export const proxyMockCollectorMiddleware = ({
         continue;
       }
 
-      const overlap = edge.names.filter((name) => entry.requestedNames?.includes(name));
+      const requested: string[] = entry.requestedNames;
+      const overlap = edge.names.filter((name) => requested.includes(name));
       if (overlap.length > 0) {
         filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: overlap }));
       }

@@ -71,7 +71,6 @@ import type { WorkItemToPrompt } from '../../contracts/work-item-to-prompt/work-
 import { agentPromptResultContract, workItemRoleContract, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
-import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { questWorkInstanceContract } from '../../contracts/quest-work-instance/quest-work-instance-contract';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
@@ -92,8 +91,9 @@ export const workItemToPromptTransformer = ({
   const promptName =
     node?.kind === 'prompt' && node.prompt !== undefined
       ? node.prompt
-      : (agentPromptNameContract.safeParse(agentName).data ??
-        workItem.role);
+      : agentName.length > 0
+        ? agentName
+        : workItem.role;
 
   const isWorkItemRole = workItemRoleContract.safeParse(promptName).success;
   const isMinionName = agentPromptClassificationStatics.minionNames.some(
@@ -228,7 +228,7 @@ export const workItemToPromptTransformer = ({
   // `Base branch`'s own guard above exists to avoid.
   if (workItem.needsLane === true) {
     const parsedInstance = questWorkInstanceContract.safeParse(
-      workItem.payload?.['instance'],
+      Object.entries(workItem.payload ?? {}).find(([key]) => key === 'instance')?.[1],
     );
     if (parsedInstance.success) {
       parts.push(

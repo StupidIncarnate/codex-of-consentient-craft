@@ -250,7 +250,7 @@ export const resultsReadBroker = async ({
         ? []
         : query.step === null
           ? storedReturn.shots
-          : storedReturn.shots.filter((shot) => shot.step === query.step);
+          : storedReturn.shots.filter((shot) => Number(shot.step) === Number(query.step));
     const rows = shots.map((shot) => JSON.stringify(shot));
     const capped = rows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
@@ -277,7 +277,7 @@ export const resultsReadBroker = async ({
   if (query.kind === null || query.kind === 'steps') {
     const readings = await transcriptReadLayerBroker({ transcriptPath: transcript });
     const stepFiltered =
-      query.step === null ? readings : readings.filter((reading) => reading.step === query.step);
+      query.step === null ? readings : readings.filter((reading) => Number(reading.step) === Number(query.step));
     const stepRange = query.where?.steps ?? null;
     const filtered =
       stepRange === null

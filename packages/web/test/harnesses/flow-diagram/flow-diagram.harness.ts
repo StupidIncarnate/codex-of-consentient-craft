@@ -11,7 +11,6 @@
  * expect(await diagram.nodesDoNotOverlap()).toBe(true);
  */
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';

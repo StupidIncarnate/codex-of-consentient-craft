@@ -39,7 +39,13 @@ export const createPackageArgsParseTransformer = ({
 }: {
   args: readonly string[];
 }): CreatePackageArgs => {
-  const parsed: Partial<CreatePackageArgs> = {};
+  const parsed: {
+    name?: string;
+    packageType?: CreatePackageArgs['packageType'];
+    description?: string;
+    packagesDir?: string;
+    dryRun?: boolean;
+  } = {};
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];

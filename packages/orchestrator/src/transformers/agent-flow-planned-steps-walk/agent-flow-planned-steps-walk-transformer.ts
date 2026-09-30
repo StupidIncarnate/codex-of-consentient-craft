@@ -37,13 +37,13 @@ export const agentFlowPlannedStepsWalkTransformer = ({
     return [];
   }
 
-  const node = graph.nodes[cursor];
+  const node = Object.entries(graph.nodes).find(([key]) => key === cursor)?.[1];
 
   if (node === undefined) {
     return [];
   }
 
-  const doneCursor = node.routes['done'];
+  const doneCursor = Object.entries(node.routes).find(([key]) => key === 'done')?.[1];
 
   return [cursor, ...agentFlowPlannedStepsWalkTransformer({ graph, cursor: doneCursor })];
 };

@@ -250,7 +250,7 @@ export const relayTailFanOutTransformer = ({
               {
                 text: textContract.parse(`${entry.text} — package: ${String(slice.name)}`),
                 flowIds: [],
-                packageNames: [slice.name],
+                packageNames: operationItemContract.shape.packageNames.parse([slice.name]),
               },
             ]
           : slice.flowIds.map((flowId) => ({
@@ -258,7 +258,7 @@ export const relayTailFanOutTransformer = ({
                 `${entry.text} — package: ${String(slice.name)} · flow: ${String(flowId)}`,
               ),
               flowIds: [flowId],
-              packageNames: [slice.name],
+              packageNames: operationItemContract.shape.packageNames.parse([slice.name]),
             })),
       );
     }

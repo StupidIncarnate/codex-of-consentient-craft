@@ -10,12 +10,11 @@
  * // Returns MatchedSetData
  */
 import { z } from '#gateway/npm/zod';
-import { rowRefContract } from '../row-ref/row-ref-contract';
 import type { RowVerbs, ExtraMethods } from '../ingredient-handle/ingredient-handle-contract';
 
 export const matchedSetContract = z.object({
   ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'MatchedSetIngredient'>(),
-  matchedRef: rowRefContract,
+  matchedRef: z.string().min(1).brand<'MatchedSetMatchedRef'>(),
 }).brand<'MatchedSet'>();
 
 export type MatchedSetData = z.infer<typeof matchedSetContract>;

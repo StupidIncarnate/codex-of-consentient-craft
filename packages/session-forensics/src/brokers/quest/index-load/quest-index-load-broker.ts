@@ -19,7 +19,7 @@ import type { QuestIndexLoadResult } from '../../../contracts/quest-index-load-r
 import { readFileSync } from '#gateway/node/fs';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import {
-  contentTextContract,
+  questContract,
   workItemContract,
   operationItemContract,
   wardResultContract,
@@ -60,7 +60,7 @@ export const questIndexLoadBroker = ({
   }
 
   const userRequestResult =
-    'userRequest' in questJson ? contentTextContract.safeParse(questJson.userRequest) : undefined;
+    'userRequest' in questJson ? questContract.shape.userRequest.safeParse(questJson.userRequest) : undefined;
   const workItemsResult =
     'workItems' in questJson ? workItemContract.array().safeParse(questJson.workItems) : undefined;
   const operationsResult =

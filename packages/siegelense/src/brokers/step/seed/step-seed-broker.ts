@@ -40,7 +40,8 @@ export const stepSeedBroker = async ({
   }
 
   const listing = await recipesReadBroker();
-  const entry = listing.find((candidate) => candidate.recipeName === step.recipe);
+  const wantedRecipeName: string = step.recipe;
+  const entry = listing.find((candidate) => candidate.recipeName === wantedRecipeName);
   if (entry === undefined) {
     throw new RecipeUnknownError({
       recipeName: step.recipe,

@@ -3,6 +3,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
+import { NextStepStub } from '../../../contracts/next-step/next-step.stub';
 import { LaneManifestReadingStub } from '../../../contracts/lane-manifest-reading/lane-manifest-reading.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { laneProvisionBatchBroker } from './lane-provision-batch-broker';
@@ -20,7 +21,7 @@ describe('laneProvisionBatchBroker', () => {
       const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [] });
       proxy.setupQuestFound({ quest });
 
-      const result = await laneProvisionBatchBroker({ quest, step: { type: 'idle' } });
+      const result = await laneProvisionBatchBroker({ quest, step: NextStepStub() });
 
       expect(result).toStrictEqual({ type: 'idle' });
     });
@@ -55,7 +56,7 @@ describe('laneProvisionBatchBroker', () => {
 
       const result = await laneProvisionBatchBroker({
         quest,
-        step: { type: 'spawn-agents', agents: [agent] },
+        step: NextStepStub({ type: 'spawn-agents', agents: [agent] }),
       });
 
       expect(result).toStrictEqual({ type: 'spawn-agents', agents: [agent] });
@@ -87,7 +88,7 @@ describe('laneProvisionBatchBroker', () => {
 
       const result = await laneProvisionBatchBroker({
         quest,
-        step: { type: 'spawn-agents', agents },
+        step: NextStepStub({ type: 'spawn-agents', agents }),
       });
 
       expect(result).toStrictEqual({ type: 'spawn-agents', agents });
@@ -132,7 +133,7 @@ describe('laneProvisionBatchBroker', () => {
 
       const result = await laneProvisionBatchBroker({
         quest,
-        step: { type: 'spawn-agents', agents: [agentOne, agentTwo] },
+        step: NextStepStub({ type: 'spawn-agents', agents: [agentOne, agentTwo] }),
       });
 
       expect(result).toStrictEqual({ type: 'spawn-agents', agents: [agentOne] });
@@ -203,7 +204,10 @@ describe('laneProvisionBatchBroker', () => {
 
       const result = await laneProvisionBatchBroker({
         quest,
-        step: { type: 'spawn-agents', agents: [agentOne, agentTwo, agentThree] },
+        step: NextStepStub({
+          type: 'spawn-agents',
+          agents: [agentOne, agentTwo, agentThree],
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -232,7 +236,7 @@ describe('laneProvisionBatchBroker', () => {
 
       const result = await laneProvisionBatchBroker({
         quest,
-        step: { type: 'spawn-agents', agents: [agent] },
+        step: NextStepStub({ type: 'spawn-agents', agents: [agent] }),
       });
 
       expect(result).toBe(null);
@@ -273,7 +277,7 @@ describe('laneProvisionBatchBroker', () => {
 
       const result = await laneProvisionBatchBroker({
         quest,
-        step: { type: 'spawn-agents', agents: [agent] },
+        step: NextStepStub({ type: 'spawn-agents', agents: [agent] }),
       });
 
       expect(result).toStrictEqual({ type: 'spawn-agents', agents: [agent] });

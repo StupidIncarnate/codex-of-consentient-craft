@@ -7,7 +7,7 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { guildListItemContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { guildListItemContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';

@@ -41,7 +41,10 @@ export const usageLedgerWriteBroker = async ({
   // A cursor for a transcript nobody has touched in a week cannot contribute to any window either,
   // and the tree holds thousands of them.
   const cursors = Object.fromEntries(
-    Object.entries(ledger.cursors).filter(([, cursor]) => cursor.mtimeMs >= oldestUsefulMs),
+    Object.entries(ledger.cursors).filter(([, cursor]) => {
+      const parsedCursor = usageLedgerContract.shape.cursors.valueType.safeParse(cursor);
+      return parsedCursor.success && parsedCursor.data.mtimeMs >= oldestUsefulMs;
+    }),
   );
 
   const persisted = usageLedgerContract.parse({

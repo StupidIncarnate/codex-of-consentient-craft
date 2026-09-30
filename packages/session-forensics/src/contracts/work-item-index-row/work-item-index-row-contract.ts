@@ -28,8 +28,8 @@ export const workItemIndexRowContract = z
     operationText: z.string().brand<'WorkItemIndexRowOperationText'>().optional(),
     flowIds: z.array(z.string().brand<'WorkItemIndexRowFlowIds'>()).default([]),
     packageNames: z.array(z.string().brand<'WorkItemIndexRowPackageNames'>()).default([]),
-    transcriptSizeBytes: z.number().int().nonnegative().brand<'WorkItemIndexRowTranscriptSizeBytes'>().default(0),
-    subagentCount: z.number().int().nonnegative().brand<'WorkItemIndexRowSubagentCount'>().default(0),
+    transcriptSizeBytes: z.number().int().nonnegative().default(0).brand<'WorkItemIndexRowTranscriptSizeBytes'>(),
+    subagentCount: z.number().int().nonnegative().default(0).brand<'WorkItemIndexRowSubagentCount'>(),
     wardRiftcarverSummary: z.string().brand<'WorkItemIndexRowWardRiftcarverSummary'>().optional(),
   })
   .brand<'WorkItemIndexRow'>();

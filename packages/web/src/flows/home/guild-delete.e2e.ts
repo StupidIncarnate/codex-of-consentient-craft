@@ -22,7 +22,7 @@ test.describe('Guild Deletion', () => {
     await guildHarness({ request }).createGuild({ name: 'Guild Beta', path: GUILD_PATH_B });
 
     // Delete guild A via API
-    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guildA.id }) });
+    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guildHarness({ request }).extractGuildId({ guild: guildA }) }) });
 
     // Refresh and verify only Guild Beta remains
     await page.goto('/');
@@ -41,7 +41,7 @@ test.describe('Guild Deletion', () => {
     await page.getByText('Selected Guild').click();
 
     // Delete the selected guild via API
-    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guild.id }) });
+    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guildHarness({ request }).extractGuildId({ guild: guild }) }) });
 
     // Refresh to see updated state
     await page.goto('/');
@@ -57,7 +57,7 @@ test.describe('Guild Deletion', () => {
     });
 
     // Delete the only guild
-    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guild.id }) });
+    await guildHarness({ request }).deleteGuild({ guildId: GuildIdStub({ value: guildHarness({ request }).extractGuildId({ guild: guild }) }) });
 
     // Refresh and verify inline creation form appears
     await page.goto('/');

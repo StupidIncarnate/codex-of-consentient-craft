@@ -19,6 +19,7 @@
  * await subagentQueryRouteBroker({ target, where: { cwd: '/tmp/guild-1', sessionId: 'seed-session-1' } });
  * // Returns every completed subagent transcript under that session
  */
+import { z } from '#gateway/npm/zod';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
@@ -41,7 +42,7 @@ export const subagentQueryRouteBroker = ({
   where: Record<string, unknown>;
 }): SubagentRecord[] => {
   const { cwd: cwdValue, sessionId: sessionIdValue, ...rest } = where;
-  const cwd = cwdValue;
+  const cwd = z.string().min(1).parse(cwdValue);
   const sessionId = sessionContract.shape.id.parse(sessionIdValue);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,

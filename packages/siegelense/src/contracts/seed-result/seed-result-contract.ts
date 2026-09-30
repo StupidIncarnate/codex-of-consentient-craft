@@ -14,12 +14,8 @@
  * // Returns the parsed record of saved rows
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const seedResultContract = z.record(
-  contentTextContract,
-  z.union([contentTextContract, z.record(contentTextContract, z.json())]),
-);
+export const seedResultContract = z.record(z.string(), z.union([z.string(), z.record(z.string(), z.json())]));
 
 export type SeedResult = z.infer<typeof seedResultContract>;

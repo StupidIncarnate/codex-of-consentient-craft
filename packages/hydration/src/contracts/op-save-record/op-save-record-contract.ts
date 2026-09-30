@@ -8,11 +8,10 @@
  * // Returns an OpSaveRecord
  */
 import { z } from '#gateway/npm/zod';
-import { rowRefContract } from '../row-ref/row-ref-contract';
 
 export const opSaveRecordContract = z.object({
   op: z.literal('saveRecord'),
-  ref: rowRefContract,
+  ref: z.string().min(1).brand<'OpSaveRecordRef'>(),
   name: z.string().min(1).brand<'OpSaveRecordName'>(),
 }).brand<'OpSaveRecord'>();
 

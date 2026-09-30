@@ -1006,11 +1006,7 @@ describe('QuestHandleResponder', () => {
         questId: QuestIdStub({ value: 'test-quest-id' }),
         result: {
           success: true,
-          data: {
-            blightLedger: [],
-            questNotes: [],
-            operationPlans: [],
-          },
+          data: QuestStub().planningNotes,
         },
       });
 

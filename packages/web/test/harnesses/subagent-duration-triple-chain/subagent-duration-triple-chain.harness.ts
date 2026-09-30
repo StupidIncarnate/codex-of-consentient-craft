@@ -31,7 +31,6 @@
  * // <sessionId>/subagents/agent-<agentId>.jsonl stub per chain. Omitting `notification`, or
  * // omitting `durationMs` inside one, omits the corresponding tag/line entirely.
  */
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import { ensureDirSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 

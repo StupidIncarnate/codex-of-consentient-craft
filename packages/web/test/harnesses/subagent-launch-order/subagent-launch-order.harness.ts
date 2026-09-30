@@ -12,8 +12,6 @@
  * await launches.revealParentChainEntries();
  * expect(await launches.paintedOrderInParentChainIs({ order: 'parentBefore|nestedChain' })).toBe(true);
  */
-import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import {
@@ -313,7 +311,7 @@ export const subagentLaunchOrderHarness = ({
       });
 
       const created = await quests.createQuest({
-        guildId: GuildIdStub({ value: guild.id }),
+        guildId: String(guild.id),
         title: 'E2E Background Launch Order Quest',
         userRequest: 'Build the shared slice',
       });

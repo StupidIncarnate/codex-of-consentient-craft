@@ -42,9 +42,10 @@ export const HookAgyPreToolResponder = async ({
   }
 
   const { name, args } = toolCall;
+  const argsBag = Object.fromEntries(Object.entries(args ?? {}));
 
   if (name === 'run_command') {
-    const rawCommandLine = args?.CommandLine;
+    const rawCommandLine = argsBag.CommandLine;
     const command = typeof rawCommandLine === 'string' ? rawCommandLine : '';
 
     if (isBlockedGitDestructiveCommandGuard({ command })) {
@@ -86,8 +87,8 @@ export const HookAgyPreToolResponder = async ({
   }
 
   if (name === 'write_to_file') {
-    const rawTargetFile = args?.TargetFile;
-    const rawCodeContent = args?.CodeContent;
+    const rawTargetFile = argsBag.TargetFile;
+    const rawCodeContent = argsBag.CodeContent;
     const filePath = typeof rawTargetFile === 'string' ? rawTargetFile : '';
     const content = typeof rawCodeContent === 'string' ? rawCodeContent : '';
 
@@ -119,9 +120,9 @@ export const HookAgyPreToolResponder = async ({
   }
 
   if (name === 'replace_file_content') {
-    const rawTargetFile = args?.TargetFile;
-    const rawTargetContent = args?.TargetContent;
-    const rawReplacementContent = args?.ReplacementContent;
+    const rawTargetFile = argsBag.TargetFile;
+    const rawTargetContent = argsBag.TargetContent;
+    const rawReplacementContent = argsBag.ReplacementContent;
     const filePath = typeof rawTargetFile === 'string' ? rawTargetFile : '';
     const oldString = typeof rawTargetContent === 'string' ? rawTargetContent : '';
     const newString = typeof rawReplacementContent === 'string' ? rawReplacementContent : '';

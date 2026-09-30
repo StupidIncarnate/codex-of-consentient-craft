@@ -14,7 +14,6 @@
  */
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 

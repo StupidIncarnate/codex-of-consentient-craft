@@ -20,7 +20,6 @@ import { pendingClarificationState } from '../../../state/pending-clarification/
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
 import { streamJsonToClarificationTransformer } from '../../../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
 import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
-import { pendingClarificationEntryContract } from '../../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 
 export const ChatStartResponder = async ({
   guildId,
@@ -311,11 +310,11 @@ export const ChatStartResponder = async ({
           }
 
           if (chatQuestId) {
-            pendingClarificationState.setForProcess(pendingClarificationEntryContract.parse({
+            pendingClarificationState.setForProcess({
               processId: chatProcessId,
               questId: chatQuestId,
               questions: clarification.questions,
-            }));
+            });
             stderr.write(
               `[CLARIFICATION-DEBUG] onEntries: stored in pendingClarificationState for processId=${chatProcessId}\n`,
             );

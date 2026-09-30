@@ -12,7 +12,7 @@
 
 export const extractFirstSegmentTransformer = ({ str }: { str: string }): string => {
   const match = /^([^-]+)/u.exec(str);
-  const segment = match ? match[1] : '';
+  const segment = match?.[1] ?? '';
 
   return segment;
 };

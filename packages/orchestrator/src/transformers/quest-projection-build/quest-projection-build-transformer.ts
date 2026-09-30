@@ -26,7 +26,7 @@
  */
 
 import type { Quest, QuestProjection, WorkItem } from '@dungeonmaster/shared/contracts';
-import { questProjectionContract } from '@dungeonmaster/shared/contracts';
+import { questProjectionContract, routedGraphContract } from '@dungeonmaster/shared/contracts';
 import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { agentFlowFamilyResolveTransformer } from '../agent-flow-family-resolve/agent-flow-family-resolve-transformer';
@@ -68,10 +68,18 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
     // current step, along that step's own `routes.done` — never the current step again. No separate
     // `'@done'` / `'@blocked'` check: `agentFlowPlannedStepsWalkTransformer` already stops the moment
     // a cursor names no declared node, which is what either terminal marker resolves to.
+    const currentNodeEntry = Object.entries(graph.nodes).find(([key]) => key === currentStepKey);
+    const currentNode =
+      currentNodeEntry === undefined
+        ? undefined
+        : routedGraphContract.shape.nodes.valueType.parse(currentNodeEntry[1]);
+    const doneRoute = Object.entries(currentNode?.routes ?? {}).find(([key]) => key === 'done')?.[1];
     const plannedStart: string | undefined =
       actualSteps.length === 0
         ? graph.entry
-        : graph.nodes[currentStepKey]?.routes['done'];
+        : routedGraphContract.shape.nodes.valueType.shape.routes.valueType
+            .optional()
+            .parse(doneRoute);
 
     const plannedSteps = agentFlowPlannedStepsWalkTransformer({ graph, cursor: plannedStart }).map(
       (step) => ({

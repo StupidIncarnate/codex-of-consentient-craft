@@ -15,7 +15,7 @@ describe('questModifyResponseContract', () => {
 
     it('VALID: {success: false, error: msg} => parses successfully', () => {
       const response = QuestModifyResponseStub({
-        value: { success: false, error: 'boom' as never },
+        value: { success: false, error: 'boom' },
       });
 
       const result = questModifyResponseContract.parse(response);

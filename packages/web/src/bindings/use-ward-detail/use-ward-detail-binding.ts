@@ -59,7 +59,7 @@ export const useWardDetailBinding = ({
 
       const filtered = webSocketChannelState
         .wardDetailResponse$()
-        .pipe(filter((p) => p.wardResultId === wardResultId));
+        .pipe(filter((p) => String(p.wardResultId) === String(wardResultId)));
       const oneShot = filtered.pipe(take(ONE_EMISSION));
       const guarded = oneShot.pipe(timeout({ first: WARD_DETAIL_TIMEOUT_MS }));
 

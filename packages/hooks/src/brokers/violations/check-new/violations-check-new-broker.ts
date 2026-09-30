@@ -97,7 +97,7 @@ export const violationsCheckNewBroker = async ({
   const { oldContent, newContent } = firstChange;
 
   // Skip if content is identical
-  if (oldContent === newContent) {
+  if (String(oldContent) === String(newContent)) {
     return violationComparisonContract.parse({
       hasNewViolations: false,
       newViolations: [],

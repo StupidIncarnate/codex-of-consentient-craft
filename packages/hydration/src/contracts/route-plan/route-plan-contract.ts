@@ -9,9 +9,8 @@
  * // Returns a RoutePlan
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { hydrationRouteContract } from '../hydration-route/hydration-route-contract';
 
-export const routePlanContract = z.record(ingredientNameContract, hydrationRouteContract);
+export const routePlanContract = z.record(z.string().min(1), hydrationRouteContract);
 
 export type RoutePlan = z.infer<typeof routePlanContract>;

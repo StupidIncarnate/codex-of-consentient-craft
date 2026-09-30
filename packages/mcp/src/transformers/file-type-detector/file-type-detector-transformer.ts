@@ -10,7 +10,6 @@
  * WHEN-TO-USE: Need to categorize files by their location or naming pattern
  * WHEN-NOT-TO-USE: When file type is already known or provided explicitly
  */
-import { fileTypeContract } from '../../contracts/file-type/file-type-contract';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
 export const fileTypeDetectorTransformer = ({ filepath }: { filepath: string }): string => {
@@ -41,8 +40,8 @@ export const fileTypeDetectorTransformer = ({ filepath }: { filepath: string }):
   // Fallback: extract from file suffix pattern (name-TYPE.ts)
   const fileName = pathParts[pathParts.length - 1] ?? '';
   const suffixMatch = /-(\w+)\.(ts|tsx|js|jsx)$/u.exec(fileName);
-  if (suffixMatch) {
-    return fileTypeContract.parse(suffixMatch[1]);
+  if (suffixMatch?.[1]) {
+    return suffixMatch[1];
   }
 
   return 'unknown';

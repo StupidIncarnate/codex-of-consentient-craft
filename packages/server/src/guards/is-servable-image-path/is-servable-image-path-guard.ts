@@ -8,11 +8,10 @@
  * isServableImagePathGuard({ path: '/a/../../../../etc/passwd' }); // false
  */
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { imageServeStatics } from '../../statics/image-serve/image-serve-statics';
 
 export const isServableImagePathGuard = ({ path }: { path?: string }): boolean => {
-  if (!path || !absoluteFilePathContract.safeParse(path).success) {
+  if (!path || !path.startsWith('/')) {
     return false;
   }
 

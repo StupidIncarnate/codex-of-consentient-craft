@@ -6,6 +6,7 @@
  * // Transforms structured answers into design decisions and upserts them to the quest
  */
 
+import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
@@ -25,9 +26,7 @@ export const ClarifyAnswerResponder = async ({
 
   if (decisions.length > 0) {
     await questModifyBroker({
-      input: { questId, designDecisions: decisions } as Parameters<
-        typeof questModifyBroker
-      >[0]['input'],
+      input: modifyQuestInputContract.parse({ questId, designDecisions: decisions }),
     });
   }
 };

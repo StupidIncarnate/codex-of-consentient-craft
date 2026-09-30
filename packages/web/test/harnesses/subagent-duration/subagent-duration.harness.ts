@@ -29,7 +29,6 @@
  * // Appends a <task-notification> line to the MAIN session JSONL — the notification landing
  * // mid-test, after the chain already rendered live. Omit durationMs to omit the whole tag.
  */
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 

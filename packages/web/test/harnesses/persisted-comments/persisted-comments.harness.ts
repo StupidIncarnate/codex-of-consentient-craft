@@ -11,9 +11,7 @@
  * await view.seedAndOpenSpecPanel({ guildName: 'View Guild', status: 'review_flows', withSession: true });
  * expect(await view.commentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['2']);
  */
-import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
@@ -390,7 +388,7 @@ export const persistedCommentsHarness = ({
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: GuildIdStub({ value: guild.id }),
+      guildId: String(guild.id),
       title: 'E2E Persisted Comments Quest',
       userRequest: 'Build the feature',
     });

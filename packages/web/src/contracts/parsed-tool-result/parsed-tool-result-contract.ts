@@ -6,13 +6,11 @@
  *
  * USAGE:
  * parsedToolResultContract.parse(JSON.parse(rawJson));
- * // Returns ParsedToolResult — a Record<ToolResultKey, unknown>
+ * // Returns ParsedToolResult — a Record<string, unknown>
  */
 
 import { z } from '#gateway/npm/zod';
 
-import { toolResultKeyContract } from '../tool-result-key/tool-result-key-contract';
-
-export const parsedToolResultContract = z.record(toolResultKeyContract, z.json());
+export const parsedToolResultContract = z.record(z.string(), z.json());
 
 export type ParsedToolResult = z.infer<typeof parsedToolResultContract>;

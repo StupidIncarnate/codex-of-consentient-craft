@@ -13,7 +13,6 @@ import { configRootFindBroker } from '../../config-root/find/config-root-find-br
 import { projectRootFindBroker } from '../../project-root/find/project-root-find-broker';
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
 import { guildPathWalkUpLayerBroker } from './guild-path-walk-up-layer-broker';
-import { dungeonmasterHomeCwdContract } from '../../../contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd-contract';
 
 export type CwdKind = 'repo-root' | 'project-root' | 'guild-path' | 'dungeonmaster-home';
 
@@ -51,7 +50,8 @@ export const cwdResolveBroker = async <K extends CwdKind>({
 
   if (kind === 'dungeonmaster-home') {
     const { homePath } = dungeonmasterHomeFindBroker();
-    return dungeonmasterHomeCwdContract.parse(homePath) as ResolvedCwdFor<K>;
+    const homeDir: string = homePath;
+    return homeDir as ResolvedCwdFor<K>;
   }
 
   throw new Error(`Unknown cwd kind: ${String(kind)}`);

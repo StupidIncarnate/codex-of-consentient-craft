@@ -11,7 +11,7 @@
  * questUnresolvedObservablePackagesTransformer({flows: quest.flows});
  * // Returns ErrorMessage[] — one sentence per observable still carrying no package
  */
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
+import { flowObservableContract } from '@dungeonmaster/shared/contracts';
 import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questUnresolvedObservablePackagesTransformer = ({
@@ -43,7 +43,7 @@ export const questUnresolvedObservablePackagesTransformer = ({
       for (const observable of node.observables) {
         // The persisted contract's own schema is the predicate, so this can never disagree with the
         // parse it is standing in front of.
-        if (packageNameContract.safeParse(observable.package).success) {
+        if (flowObservableContract.shape.package.safeParse(observable.package).success) {
           continue;
         }
 

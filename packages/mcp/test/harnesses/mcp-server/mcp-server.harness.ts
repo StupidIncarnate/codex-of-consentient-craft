@@ -7,7 +7,6 @@
  * const response = await client.sendRequest(JsonRpcRequestStub({ ... }));
  * await client.close();
  */
-import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { spawn } from '#gateway/node/child_process';
 import { clearTimeout } from '#gateway/node/clearTimeout';
 import { readFileSync } from '#gateway/node/fs';

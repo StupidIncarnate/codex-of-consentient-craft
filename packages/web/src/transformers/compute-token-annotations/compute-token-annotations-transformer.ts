@@ -46,7 +46,7 @@ export const computeTokenAnnotationsTransformer = ({
       const isMidToolRun = nextToolUse !== null && nextSource === source;
 
       let cumulativeContext: number | null = null;
-      let contextDelta: TokenAnnotation['contextDelta'] = null;
+      let contextDelta: number | null = null;
 
       if (totalContext !== null && !isMidToolRun) {
         const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;

@@ -1,3 +1,4 @@
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questClarifyBroker } from './quest-clarify-broker';
@@ -13,14 +14,16 @@ describe('questClarifyBroker', () => {
       const result = await questClarifyBroker({
         questId: QuestIdStub({ value: 'quest-1' }),
         answers: [{ header: 'Database', label: 'PostgreSQL' }],
-        questions: [
-          {
-            question: 'Which DB?' as never,
-            header: 'Database' as never,
-            options: [{ label: 'PostgreSQL' as never, description: 'Relational DB' as never }],
-            multiSelect: false,
-          },
-        ],
+        questions: AskUserQuestionStub({
+            questions: [
+              {
+                question: 'Which DB?',
+                header: 'Database',
+                options: [{ label: 'PostgreSQL', description: 'Relational DB' }],
+                multiSelect: false,
+              },
+            ],
+          }).questions,
       });
 
       expect(result).toStrictEqual({ chatProcessId: 'clarify-proc-1' });
@@ -36,14 +39,16 @@ describe('questClarifyBroker', () => {
         questClarifyBroker({
           questId: QuestIdStub({ value: 'quest-1' }),
           answers: [{ header: 'Database', label: 'PostgreSQL' }],
-          questions: [
-            {
-              question: 'Which DB?' as never,
-              header: 'Database' as never,
-              options: [{ label: 'PostgreSQL' as never, description: 'Relational DB' as never }],
-              multiSelect: false,
-            },
-          ],
+          questions: AskUserQuestionStub({
+              questions: [
+                {
+                  question: 'Which DB?',
+                  header: 'Database',
+                  options: [{ label: 'PostgreSQL', description: 'Relational DB' }],
+                  multiSelect: false,
+                },
+              ],
+            }).questions,
         }),
       ).rejects.toThrow(/too_small/u);
     });
@@ -56,14 +61,16 @@ describe('questClarifyBroker', () => {
         questClarifyBroker({
           questId: QuestIdStub({ value: 'quest-1' }),
           answers: [{ header: 'Database', label: 'PostgreSQL' }],
-          questions: [
-            {
-              question: 'Which DB?' as never,
-              header: 'Database' as never,
-              options: [{ label: 'PostgreSQL' as never, description: 'Relational DB' as never }],
-              multiSelect: false,
-            },
-          ],
+          questions: AskUserQuestionStub({
+              questions: [
+                {
+                  question: 'Which DB?',
+                  header: 'Database',
+                  options: [{ label: 'PostgreSQL', description: 'Relational DB' }],
+                  multiSelect: false,
+                },
+              ],
+            }).questions,
         }),
       ).rejects.toThrow(/expected string/u);
     });
@@ -78,14 +85,16 @@ describe('questClarifyBroker', () => {
         questClarifyBroker({
           questId: QuestIdStub({ value: 'quest-1' }),
           answers: [{ header: 'Database', label: 'PostgreSQL' }],
-          questions: [
-            {
-              question: 'Which DB?' as never,
-              header: 'Database' as never,
-              options: [{ label: 'PostgreSQL' as never, description: 'Relational DB' as never }],
-              multiSelect: false,
-            },
-          ],
+          questions: AskUserQuestionStub({
+              questions: [
+                {
+                  question: 'Which DB?',
+                  header: 'Database',
+                  options: [{ label: 'PostgreSQL', description: 'Relational DB' }],
+                  multiSelect: false,
+                },
+              ],
+            }).questions,
         }),
       ).rejects.toThrow(/^Failed to fetch$/u);
     });

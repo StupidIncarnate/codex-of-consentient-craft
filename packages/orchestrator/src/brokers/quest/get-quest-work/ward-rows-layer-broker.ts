@@ -28,7 +28,7 @@
  * together and why neither is derived from the other.
  */
 
-import { filePathContract, wardDetailContract } from '@dungeonmaster/shared/contracts';
+import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readFileIfExists } from '#gateway/node/fs__promises';
@@ -40,6 +40,7 @@ import type { QuestWorkWard } from '../../../contracts/quest-work-view/quest-wor
 const GREEN_EXIT_CODE = 0;
 const JSON_EXTENSION = '.json';
 const LOG_EXTENSION = '.log';
+const failingPathContract = questWorkViewContract.shape.ward.unwrap().shape.failingPaths.unwrap().element;
 
 export const wardRowsLayerBroker = async ({
   questPath,
@@ -99,7 +100,7 @@ export const wardRowsLayerBroker = async ({
           failingChecks.flatMap((check) =>
             (check.projectResults ?? []).flatMap((project) =>
               (project.errors ?? []).flatMap((error) => {
-                const parsedPath = filePathContract.safeParse(String(error.filePath ?? ''));
+                const parsedPath = failingPathContract.safeParse(String(error.filePath ?? ''));
 
                 return parsedPath.success ? [parsedPath.data] : [];
               }),

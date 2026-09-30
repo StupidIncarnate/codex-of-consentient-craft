@@ -358,7 +358,7 @@ export const keyReadTransformer = (): {
             reading.rows
               .filter((row) => row.testId === testId)
               .map((row) => {
-                const parent = reading.rows.find((candidate) => candidate.ref === row.parentRef);
+                const parent = reading.rows.find((candidate) => Number(candidate.ref) === row.parentRef);
                 return parent === undefined
                   ? DOCUMENT_ROOT_LABEL
                   : (parent.testId ?? `(${parent.tag})`);

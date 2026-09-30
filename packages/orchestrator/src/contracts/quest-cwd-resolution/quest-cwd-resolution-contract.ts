@@ -4,10 +4,10 @@
  * with a discriminated read of the quest's own recorded worktree state.
  *
  * USAGE:
- * questCwdResolutionContract.parse({ kind: 'session', cwd: repoRootCwdContract.parse('/repo') });
- * questCwdResolutionContract.parse({ kind: 'worktree', cwd: repoRootCwdContract.parse('/repo/worktrees/quest-1') });
- * questCwdResolutionContract.parse({ kind: 'repo-root', cwd: repoRootCwdContract.parse('/repo') });
- * questCwdResolutionContract.parse({ kind: 'missing-worktree', worktreePath: absoluteFilePathContract.parse('/repo/worktrees/quest-1') });
+ * questCwdResolutionContract.parse({ kind: 'session', cwd: '/repo' });
+ * questCwdResolutionContract.parse({ kind: 'worktree', cwd: '/repo/worktrees/quest-1' });
+ * questCwdResolutionContract.parse({ kind: 'repo-root', cwd: '/repo' });
+ * questCwdResolutionContract.parse({ kind: 'missing-worktree', worktreePath: '/repo/worktrees/quest-1' });
  * // Returns: QuestCwdResolution variant
  *
  * Three of the four carry a `cwd`, so a caller that has narrowed out `missing-worktree` reads the
@@ -16,8 +16,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
-
 export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   // The cwd this SESSION was recorded running in, read off the quest's `sessions` ledger. It
   // outranks both derived kinds because it is measured rather than inferred, and it is served
@@ -25,15 +23,15 @@ export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   // `~/.claude/projects/`, so it outlives the directory it was written from.
   z.object({
     kind: z.literal('session'),
-    cwd: repoRootCwdContract,
+    cwd: z.string().min(1).brand<'QuestCwdResolutionCwd'>(),
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('worktree'),
-    cwd: repoRootCwdContract,
+    cwd: z.string().min(1).brand<'QuestCwdResolutionCwd'>(),
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('repo-root'),
-    cwd: repoRootCwdContract,
+    cwd: z.string().min(1).brand<'QuestCwdResolutionCwd'>(),
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('missing-worktree'),

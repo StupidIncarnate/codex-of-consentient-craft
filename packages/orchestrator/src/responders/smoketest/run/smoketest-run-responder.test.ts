@@ -2,7 +2,7 @@ import type { QuestSourceStub } from '@dungeonmaster/shared/contracts/quest-sour
 import type { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts/smoketest-suite/smoketest-suite.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts/smoketest-run-id/smoketest-run-id.stub';
+import { ActiveSmoketestRunStub } from '../../../contracts/active-smoketest-run/active-smoketest-run.stub';
 
 import { smoketestCaseCatalogStatics } from '../../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
@@ -52,7 +52,7 @@ describe('SmoketestRunResponder', () => {
       SmoketestRunResponderProxy();
       smoketestRunState.end();
       smoketestRunState.start({
-        runId: SmoketestRunIdStub(),
+        runId: ActiveSmoketestRunStub().runId,
         suite: 'mcp',
       });
 

@@ -1,4 +1,5 @@
 import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 
 import { usageBucketsToWeightedTotalTransformer } from './usage-buckets-to-weighted-total-transformer';
 
@@ -112,13 +113,12 @@ describe('usageBucketsToWeightedTotalTransformer', () => {
     });
 
     it('EDGE: {a non-numeric bucket key} => is skipped rather than poisoning the total', () => {
-      // The branded stub, not a literal property name — `BucketStartKeyStub` enforces no numeric
-      // shape (see that contract's own header), so 'corrupt' parses through it exactly as any other
-      // string does, and the RESULT is what a non-numeric-but-branded key looks like on the wire.
-      const corruptKey = 'corrupt';
-      const result = usageBucketsToWeightedTotalTransformer({
+      // Parsed through the ledger's own buckets schema: a bucket key enforces no numeric shape, so
+      // 'corrupt' parses exactly as any other string does, and the RESULT is what a non-numeric
+      // key looks like on the wire.
+      const { buckets } = UsageLedgerStub({
         buckets: {
-          [corruptKey]: UsageBucketStub({ input: 0, cacheCreation: 0, cacheRead: 0, output: 9 }),
+          corrupt: UsageBucketStub({ input: 0, cacheCreation: 0, cacheRead: 0, output: 9 }),
           [String(NOW - HOUR)]: UsageBucketStub({
             input: 0,
             cacheCreation: 0,
@@ -126,6 +126,9 @@ describe('usageBucketsToWeightedTotalTransformer', () => {
             output: 2,
           }),
         },
+      });
+      const result = usageBucketsToWeightedTotalTransformer({
+        buckets,
         windowStartMs: NOW - 5 * HOUR,
         nowMs: NOW,
       });

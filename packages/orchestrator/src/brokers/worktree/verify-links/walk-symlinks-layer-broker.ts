@@ -17,7 +17,6 @@
  * // [{ linkPath, storedTarget, resolvedTarget, relative: true, inside: true }, ...]
  */
 
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { readlinkIfLink } from '#gateway/node/fs__promises';
 import { join, resolve } from '#gateway/node/path';
@@ -47,17 +46,13 @@ export const walkSymlinksLayerBroker = async ({
 
       if (entry.kind === 'symlink') {
         const rawTarget = await readlinkIfLink(entryPath);
-        const parsedTarget = filePathContract.safeParse(rawTarget);
 
-        // Nothing readable, or a target `filePathContract` cannot brand — exactly one shape: a bare
-        // relative path with no `./` or `../` lead. That shape is relative by construction and a
-        // relative path cannot climb out of the tree it starts in without a `../` this one lacks,
-        // so it is safe and there is nothing to record.
-        if (!parsedTarget.success) {
+        // Nothing readable: there is no target to record.
+        if (typeof rawTarget !== 'string' || rawTarget.length === 0) {
           return [];
         }
 
-        const storedTarget = parsedTarget.data;
+        const storedTarget = rawTarget;
 
         // Resolved against the LINK'S OWN directory, which is what a relative target means on disk.
         const resolvedTarget = resolve(dirPath, storedTarget);
@@ -69,7 +64,7 @@ export const walkSymlinksLayerBroker = async ({
             linkPath: entryPath,
             storedTarget,
             resolvedTarget,
-            relative: !absoluteFilePathContract.safeParse(storedTarget).success,
+            relative: !(storedTarget.startsWith(PATH_SEPARATOR) || storedTarget.startsWith(':\\', 1)),
             // The trailing separator matters: a bare prefix test would read a sibling worktree
             // named `probe-two` as living inside `probe`.
             inside: resolved === root || resolved.startsWith(`${root}${PATH_SEPARATOR}`),

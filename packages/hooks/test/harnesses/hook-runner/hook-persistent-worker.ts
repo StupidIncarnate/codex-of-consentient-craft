@@ -82,7 +82,13 @@ const processEnvelope = async (params: {
 };
 
 const main = async (): Promise<void> => {
-  const flowModule = (await import(argv[2])) as FlowModule;
+  const [, , flowPath] = argv;
+  if (flowPath === undefined) {
+    stderr.write('No flow path argument given\n');
+    exit(1);
+    return;
+  }
+  const flowModule = (await import(flowPath)) as FlowModule;
 
   stdout.write('READY\n');
 

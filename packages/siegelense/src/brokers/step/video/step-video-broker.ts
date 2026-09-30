@@ -20,7 +20,7 @@
  * // Returns 'video recording stopped — saved to <repo-local path>' as ContentText
  */
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { isAbsolute } from '#gateway/node/path';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import type { VideoAction } from '../../../contracts/video-action/video-action-contract';
@@ -41,13 +41,12 @@ export const stepVideoBroker = async ({
     return videoReadingRenderTransformer({ result });
   }
 
-  const parsedPath = absoluteFilePathContract.safeParse(result.path);
-  if (!parsedPath.success) {
+  if (!isAbsolute(result.path)) {
     return videoReadingRenderTransformer({ result });
   }
 
   const { path: reportedPath } = await locationsRepoLinkPathFindBroker({
-    homePath: parsedPath.data,
+    homePath: result.path,
   });
 
   return videoReadingRenderTransformer({

@@ -1,6 +1,7 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 
 import { ChatCompletePayloadStub } from '../../contracts/chat-complete-payload/chat-complete-payload.stub';
 import { ChatHistoryCompletePayloadStub } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload.stub';
@@ -321,7 +322,8 @@ describe('webSocketChannelState', () => {
       proxy.connect();
       proxy.triggerOpen();
 
-      const { wardResultId } = WardDetailResponseStub();
+      const { wardResultId: responseWardResultId } = WardDetailResponseStub();
+      const { id: wardResultId } = WardResultStub({ id: String(responseWardResultId) });
       const captured: ReturnType<typeof WardDetailResponseStub>[] = [];
       const sub = webSocketChannelState.wardDetailResponse$().subscribe((p) => {
         captured.push(p);
@@ -510,7 +512,8 @@ describe('webSocketChannelState', () => {
       proxy.triggerOpen();
 
       const questId = QuestIdStub({ value: 'quest-ward' });
-      const { wardResultId } = WardDetailResponseStub();
+      const { wardResultId: responseWardResultId } = WardDetailResponseStub();
+      const { id: wardResultId } = WardResultStub({ id: String(responseWardResultId) });
 
       webSocketChannelState.sendWardDetailRequest({ questId, wardResultId });
 

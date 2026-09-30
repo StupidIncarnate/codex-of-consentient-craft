@@ -23,12 +23,12 @@ export const questCwdResolveBrokerProxy = (): {
   return {
     setupWorktreePresent: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      accessibleProxy.present({ path: quest.worktreePath });
+      accessibleProxy.present({ path: quest.worktreePath ?? '' });
     },
 
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      accessibleProxy.missing({ path: quest.worktreePath });
+      accessibleProxy.missing({ path: quest.worktreePath ?? '' });
     },
 
     // Stages the quest read and NOTHING ELSE. The absent pathExists staging is the

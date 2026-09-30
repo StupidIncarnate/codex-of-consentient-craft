@@ -21,7 +21,6 @@
  * const prevented = await composer.pasteImage({ dataUrl });
  * // prevented === false — dispatchEvent returns false once preventDefault fired
  */
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirSync, statSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 

@@ -6,7 +6,10 @@
  * // Returns modified preset with override packages added to each folder array
  */
 
-import type { FrameworkPreset } from '../../contracts/framework-presets/framework-presets-contract';
+import {
+  frameworkPresetsContract,
+  type FrameworkPreset,
+} from '../../contracts/framework-presets/framework-presets-contract';
 import type { DungeonmasterConfig } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { isFrameworkPresetKeyGuard } from '../../guards/is-framework-preset-key/is-framework-preset-key-guard';
 
@@ -37,7 +40,10 @@ export const applyOverridesTransformer = ({
       continue;
     }
 
-    result[folder] = [...currentValues, ...override.add];
+    result[folder] = frameworkPresetsContract.shape.contracts.parse([
+      ...currentValues,
+      ...override.add,
+    ]);
   }
 
   return result;

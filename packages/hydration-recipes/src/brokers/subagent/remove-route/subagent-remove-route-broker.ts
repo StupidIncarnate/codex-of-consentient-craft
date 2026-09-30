@@ -7,6 +7,7 @@
  */
 import { rm } from '#gateway/node/fs__promises';
 
+import { subagentRecordContract } from '../../../contracts/subagent-record/subagent-record-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
 export const subagentRemoveRouteBroker = async ({
@@ -15,5 +16,5 @@ export const subagentRemoveRouteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<void> => {
-  await rm(record.filePath);
+  await rm(subagentRecordContract.parse(record).filePath);
 };

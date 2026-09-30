@@ -70,13 +70,15 @@ export const mcpDiscoverBroker = async ({
   }
 
   // Tree format for non-verbose queries
-  const treeItems = fileResults.map((file) => ({
-    name: file.name,
-    type: file.fileType,
-    purpose: file.purpose,
-    path: file.path,
-    ...(file.hits && { hits: file.hits }),
-  }));
+  const treeItems = fileResults.map((file) =>
+    treeItemContract.parse({
+      name: file.name,
+      type: file.fileType,
+      purpose: file.purpose,
+      path: file.path,
+      ...(file.hits && { hits: file.hits }),
+    }),
+  );
 
   const treeOutput = treeFormatterTransformer({ items: treeItems });
 

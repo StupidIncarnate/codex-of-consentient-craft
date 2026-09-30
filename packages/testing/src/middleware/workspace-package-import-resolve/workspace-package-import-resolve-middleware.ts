@@ -57,7 +57,8 @@ export const workspacePackageImportResolveMiddleware = ({
       const packageJson = workspacePackageJsonReadMiddleware({
         packageJsonPath: join(packageDirPath, 'package.json'),
       });
-      if (!packageJson || packageJson.name !== specifierParts.packageName) {
+      const candidateName: string | undefined = packageJson?.name;
+      if (!packageJson || candidateName !== specifierParts.packageName) {
         continue;
       }
 

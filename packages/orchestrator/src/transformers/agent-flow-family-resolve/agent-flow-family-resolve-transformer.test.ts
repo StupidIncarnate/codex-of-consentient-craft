@@ -35,9 +35,9 @@ describe('agentFlowFamilyResolveTransformer', () => {
         operationItem: OperationItemStub({ role: 'siegemaster' }),
       });
 
-      const wardNode = graph.nodes['ward'];
+      const wardNode = new Map(Object.entries(graph.nodes)).get('ward');
 
-      expect(wardNode?.routes['done']).toBe('sweepOut');
+      expect(new Map(Object.entries(wardNode?.routes ?? {})).get('done')).toBe('sweepOut');
     });
   });
 

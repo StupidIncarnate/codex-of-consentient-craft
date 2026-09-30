@@ -78,13 +78,17 @@ export const validateGatewaySpecifierLayerBroker = ({
     gatewayTestSupportSuffixStatics.suffixes.some((suffix) => filename.endsWith(suffix)) ||
     filename.startsWith(`${dirname(packageJsonPath)}/test/`);
 
-  const declaredInDependencies = Boolean(packageJson.dependencies?.[targetPackageName]);
+  const declaredInDependencies = Object.entries(packageJson.dependencies ?? {}).some(
+    ([name, version]) => name === targetPackageName && Boolean(version),
+  );
 
   if (declaredInDependencies) {
     return true;
   }
 
-  const declaredInDevDependencies = Boolean(packageJson.devDependencies?.[targetPackageName]);
+  const declaredInDevDependencies = Object.entries(packageJson.devDependencies ?? {}).some(
+    ([name, version]) => name === targetPackageName && Boolean(version),
+  );
 
   if (isTestSupportFile && declaredInDevDependencies) {
     return true;

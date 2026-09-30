@@ -27,7 +27,13 @@ export const gatewayMatchFindTransformer = ({
 
   for (const call of outsideCalls) {
     if (call.module.startsWith(gatewayPrefix)) {
-      if (!found.some((entry) => entry.importPath === call.module && entry.name === call.name)) {
+      if (
+        !found.some(
+          (entry) =>
+            String(entry.importPath) === String(call.module) &&
+            String(entry.name) === String(call.name),
+        )
+      ) {
         found.push(
           gatewayExportContract.parse({ importPath: call.module, name: call.name, match: 'exact' }),
         );
@@ -44,14 +50,16 @@ export const gatewayMatchFindTransformer = ({
           gatewayModuleDirTransformer({ specifier: inner.module }) === moduleDir,
       );
       const alreadyFound = found.some(
-        (entry) => entry.importPath === importPath && entry.name === name,
+        (entry) =>
+          String(entry.importPath) === String(importPath) && String(entry.name) === String(name),
       );
-      if (!alreadyFound && (name === call.name || callsSame)) {
+      const sameName = String(name) === String(call.name);
+      if (!alreadyFound && (sameName || callsSame)) {
         found.push(
           gatewayExportContract.parse({
             importPath,
             name,
-            match: name === call.name ? 'exact' : 'related',
+            match: sameName ? 'exact' : 'related',
           }),
         );
       }

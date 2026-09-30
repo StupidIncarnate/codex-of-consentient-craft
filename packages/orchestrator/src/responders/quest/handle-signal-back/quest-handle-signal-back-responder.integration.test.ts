@@ -6,6 +6,7 @@ import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -100,7 +101,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     await questHelper.seedInProgressRelay({
       questId,
       baseRef: RANGE_BASE_REF,
-      worktreePath,
+      worktreePath: questContract.shape.worktreePath.unwrap().parse(worktreePath),
       branchName,
       planningNotes: QuestStub({
         planningNotes: {
@@ -216,7 +217,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       await questHelper.seedInProgressRelay({
         questId,
         baseRef: RANGE_BASE_REF,
-        worktreePath,
+        worktreePath: questContract.shape.worktreePath.unwrap().parse(worktreePath),
         branchName,
         planningNotes: QuestStub({
           planningNotes: {
@@ -379,7 +380,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     await questHelper.seedInProgressRelay({
       questId,
       baseRef: RANGE_BASE_REF,
-      worktreePath,
+      worktreePath: questContract.shape.worktreePath.unwrap().parse(worktreePath),
       branchName,
       operations: [
         OperationItemStub({
@@ -477,7 +478,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
     await questHelper.seedInProgressRelay({
       questId,
-      worktreePath,
+      worktreePath: questContract.shape.worktreePath.unwrap().parse(worktreePath),
       branchName,
       operations: [
         OperationItemStub({
@@ -564,7 +565,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
     await questHelper.seedInProgressRelay({
       questId,
-      worktreePath,
+      worktreePath: questContract.shape.worktreePath.unwrap().parse(worktreePath),
       branchName,
       planningNotes: QuestStub({
         planningNotes: {
@@ -921,7 +922,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     await questHelper.seedInProgressRelay({
       questId,
       status: 'merging',
-      worktreePath,
+      worktreePath: questContract.shape.worktreePath.unwrap().parse(worktreePath),
       branchName,
       operations: [
         OperationItemStub({

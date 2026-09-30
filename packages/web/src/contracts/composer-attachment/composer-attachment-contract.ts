@@ -20,14 +20,12 @@ import { z } from '#gateway/npm/zod';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { imageDataUrlContract } from '../image-data-url/image-data-url-contract';
-
 export const composerAttachmentContract = z.object({
   attachmentId: z.uuid().brand<'ComposerAttachmentAttachmentId'>(),
   // The type AFTER the downscale ladder has run, which is not always the type that was pasted: a
   // PNG that failed the byte ceiling comes back re-encoded as image/jpeg.
   mediaType: pastedImageMediaTypeContract,
-  dataUrl: imageDataUrlContract,
+  dataUrl: z.string().startsWith('data:image/').brand<'ComposerAttachmentDataUrl'>(),
   // The decoded size after downscaling; feeds the per-message byte total.
   byteLength: z.number().int().nonnegative().brand<'ComposerAttachmentByteLength'>().refine((value) => value <= pastedImageStatics.maxBytesPerImage, {
     message: `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,

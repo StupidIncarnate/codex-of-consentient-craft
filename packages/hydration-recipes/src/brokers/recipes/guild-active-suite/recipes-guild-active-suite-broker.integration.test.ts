@@ -75,6 +75,9 @@ describe('recipesGuildActiveSuiteBroker', () => {
       >;
       const guild = result.guild as Record<PropertyKey, unknown>;
       const guildPath = guild.path;
+      if (typeof guildPath !== 'string') {
+        throw new Error('guild record carries no string path');
+      }
       const sessionsDir = claudePathSlugEncoderTransformer({
         homeDir: target.claudeHome,
         projectPath: guildPath,

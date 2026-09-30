@@ -126,8 +126,9 @@ export const collectSubagentChainsTransformer = ({
 
       const description = extractTaskDescriptionTransformer({ entry });
 
+      // `as SingleGroup`, not a parse: a parse copies the entry, and identity is what callers key on.
       const innerGroups: ChatEntryGroup[] = subagentEntries.map(
-        (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
+        (e) => ({ kind: 'single', entry: e }) as SingleGroup,
       );
 
       // Compute contextTokens delta from the SingleGroup entries at creation time so
@@ -181,7 +182,7 @@ export const collectSubagentChainsTransformer = ({
         // once as an orphan single from this flush.
         const flushedSingles: SingleGroup[] = normalBuffer
           .filter((e) => !consumed.has(e))
-          .map((e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup);
+          .map((e) => ({ kind: 'single', entry: e }) as SingleGroup);
         groups.push(...flushedSingles);
         normalBuffer = [];
         groups.push(chain as ChatEntryGroup);
@@ -212,7 +213,7 @@ export const collectSubagentChainsTransformer = ({
   // must not also come out here as an orphan single.
   const trailingSingles: SingleGroup[] = normalBuffer
     .filter((e) => !consumed.has(e))
-    .map((e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup);
+    .map((e) => ({ kind: 'single', entry: e }) as SingleGroup);
   groups.push(...trailingSingles);
 
   // Validated, then the ORIGINAL groups are returned: the parse copies every entry, and callers key

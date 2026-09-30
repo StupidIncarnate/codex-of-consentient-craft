@@ -10,7 +10,6 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 
 export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
@@ -65,9 +64,10 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
 
         // Allow string literals that are valid file paths (not npm modules)
         if (arg.type === AST_NODE_TYPES.Literal && typeof arg.value === 'string') {
-          const parseResult = filePathContract.safeParse(arg.value);
+          const isFilePath =
+            arg.value.startsWith('/') || arg.value.startsWith('./') || arg.value.startsWith('../');
 
-          if (!parseResult.success) {
+          if (!isFilePath) {
             // Not a valid file path (npm module or invalid)
             ctx.report({
               node,
@@ -114,9 +114,12 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
 
         // Allow string literals that are valid file paths (not npm modules)
         if (source.type === AST_NODE_TYPES.Literal && typeof source.value === 'string') {
-          const parseResult = filePathContract.safeParse(source.value);
+          const isFilePath =
+            source.value.startsWith('/') ||
+            source.value.startsWith('./') ||
+            source.value.startsWith('../');
 
-          if (!parseResult.success) {
+          if (!isFilePath) {
             // Not a valid file path (npm module or invalid)
             ctx.report({
               node,

@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
 import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
-import { askUserQuestionContract, chatEntryContract, questContract, slotIndexContract } from '@dungeonmaster/shared/contracts';
+import { askUserQuestionContract, chatEntryContract, questContract } from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,
@@ -405,9 +405,8 @@ export const useQuestChatBinding = ({
           );
         }
 
-        const slotIndexParsed = slotIndexContract.safeParse(payload.slotIndex);
-        if (slotIndexParsed.success) {
-          const slotKey = slotIndexParsed.data;
+        const slotKey = payload.slotIndex;
+        if (typeof slotKey === 'number') {
           setSlotEntriesInternal((prev) =>
             upsertChatEntriesByUuidTransformer({ prev, key: slotKey, newEntries: validEntries }),
           );

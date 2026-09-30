@@ -228,14 +228,11 @@ export const laneBootBrokerProxy = (): {
     getBrowserLaunchCallCount: (): ReadingCount =>
       browserProxy.getLaunchCalls().length,
 
-    getInheritedEnvSnapshot: (): Record<PropertyKey, string> =>
+    getInheritedEnvSnapshot: (): Record<string, string> =>
       Object.fromEntries(
-        Object.entries(envSnapshot())
-          .filter(([, value]) => value !== undefined)
-          .map(([key, value]): [PropertyKey, string] => [
-            key,
-            value,
-          ]),
+        Object.entries(envSnapshot()).flatMap(([key, value]): [string, string][] =>
+          value === undefined ? [] : [[key, value]],
+        ),
       ),
   };
 };

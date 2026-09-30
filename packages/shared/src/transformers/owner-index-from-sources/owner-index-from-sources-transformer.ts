@@ -13,6 +13,7 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
+import { ownerIndexFieldContract } from '../../contracts/owner-index-field/owner-index-field-contract';
 import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
 import type { OwnerIndexPackage } from '../../contracts/owner-index-package/owner-index-package-contract';
@@ -21,7 +22,6 @@ import { ownerIndexContract } from '../../contracts/owner-index/owner-index-cont
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
 import { isProductionSourceFileGuard } from '../../guards/is-production-source-file/is-production-source-file-guard';
 import { contractFileOwnersReadLayerTransformer } from './contract-file-owners-read-layer-transformer';
-import { ownerIndexFieldContract } from '../../contracts/owner-index-field/owner-index-field-contract';
 
 const CONTRACT_FILE_PATTERN = /\/contracts\/(?:.*\/)?[^/]+-contract\.ts$/u;
 const LAYER_FILE_SUFFIX = '-layer-contract.ts';
@@ -78,7 +78,7 @@ export const ownerIndexFromSourcesTransformer = ({
             : [];
         const [onlyText] = texts;
         return texts.length === 1 && onlyText !== undefined
-          ? { ...field, kind: 'brand-ref' as const, brandText: onlyText }
+          ? ownerIndexFieldContract.parse({ ...field, kind: 'brand-ref', brandText: onlyText })
           : field;
       }),
     }));

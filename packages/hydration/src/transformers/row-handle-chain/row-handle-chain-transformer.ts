@@ -63,7 +63,8 @@ export const rowHandleChainTransformer = <
   under?: Record<string, unknown>;
 }): Handle<R, I, Anc> => {
   const identity = ingredientHandleContract.parse({ ingredient: ingredientConfig.name, ref });
-  const namesWithMe = [...ancestorNames, ingredientConfig.name];
+  const hostName: string = ingredientConfig.name;
+  const namesWithMe: string[] = [...ancestorNames, hostName];
 
   const extraEntries = Object.entries(ingredientConfig.extras ?? {}).map(([verb]) => [
     verb,
@@ -82,8 +83,14 @@ export const rowHandleChainTransformer = <
       const childConfig = token as unknown as IngredientConfigData;
       const links = childConfig.links ?? [];
       return (
-        links.some((link) => link.of === ingredientConfig.name) &&
-        links.every((link) => namesWithMe.includes(link.of))
+        links.some((link) => {
+          const linkOf: string = link.of;
+          return linkOf === hostName;
+        }) &&
+        links.every((link) => {
+          const linkOf: string = link.of;
+          return namesWithMe.includes(linkOf);
+        })
       );
     })
     .map(([key, token]) => [

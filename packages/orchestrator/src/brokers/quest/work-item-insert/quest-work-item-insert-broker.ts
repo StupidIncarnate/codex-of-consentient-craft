@@ -9,7 +9,8 @@
 
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { ModifyQuestInput, ModifyQuestResult } from '@dungeonmaster/shared/contracts';
+import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { replacementEntryContract } from '../../../contracts/replacement-entry/replacement-entry-contract';
 import type { ReplacementEntry } from '../../../contracts/replacement-entry/replacement-entry-contract';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -45,9 +46,9 @@ export const questWorkItemInsertBroker = async ({
   // re-opens the quest to in_progress — which is exactly what the work items now imply. The modify
   // result is returned rather than discarded, so a caller can tell a failed splice from a real one.
   return questModifyBroker({
-    input: {
+    input: modifyQuestInputContract.parse({
       questId,
       workItems: updatedWorkItems,
-    } as ModifyQuestInput,
+    }),
   });
 };

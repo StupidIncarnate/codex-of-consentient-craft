@@ -4,7 +4,6 @@ import { laneSessionContract } from './lane-session-contract';
 import type { LaneSession } from './lane-session-contract';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
 import { PortPairStub } from '../port-pair/port-pair.stub';
-import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
 
 export const LaneSessionStub = ({
   ...props
@@ -25,7 +24,7 @@ export const LaneSessionStub = ({
     const sequence = serverLogLengthSequence ?? [];
     const entryIndex = Math.min(serverLogLengthCallCount, sequence.length - 1);
     serverLogLengthCallCount += 1;
-    return sequence[entryIndex];
+    return sequence[entryIndex] ?? 0;
   };
 
   return {
@@ -41,7 +40,7 @@ export const LaneSessionStub = ({
       apiBaseUrl: (dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0'),
       pgids:
         dataProps.pgids === undefined
-          ? [ProcessGroupIdStub()]
+          ? [12345]
           : dataProps.pgids.map((value) => value),
       browser: dataProps.browser === null ? null : BrowserSessionStub(dataProps.browser),
       logFds:

@@ -15,7 +15,6 @@
 import type { CappedGrepHits } from '../../contracts/capped-grep-hits/capped-grep-hits-contract';
 import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
-import { treeNodeContract } from '../../contracts/tree-node/tree-node-contract';
 
 export const formatTreeNodeTransformer = ({
   node,

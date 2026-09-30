@@ -31,9 +31,11 @@ export const resultRowProjectTransformer = ({
 
   const source = resultRowContract.parse(JSON.parse(row));
 
+  const sourceEntries = new Map<PropertyKey, unknown>(Object.entries(source));
+
   const projected = fields.reduce<Record<PropertyKey, unknown>>((accumulated, field) => {
-    if (field in source) {
-      accumulated[field] = source[field];
+    if (sourceEntries.has(field)) {
+      accumulated[field] = sourceEntries.get(field);
     }
     return accumulated;
   }, {});

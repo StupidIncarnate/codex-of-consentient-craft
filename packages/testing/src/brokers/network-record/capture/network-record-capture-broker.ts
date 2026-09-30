@@ -52,7 +52,7 @@ export const networkRecordCaptureBroker = ({
             .then((body) => {
               const existing = pendingRequests.get(parsedRequestId);
               if (existing && body.length > 0) {
-                existing.requestBody = networkLogEntryContract.shape.requestBody
+                existing.requestBody = pendingRequestContract.shape.requestBody
                   .unwrap()
                   .parse(body.slice(0, networkLogStatics.limits.maxBodyLength));
               }

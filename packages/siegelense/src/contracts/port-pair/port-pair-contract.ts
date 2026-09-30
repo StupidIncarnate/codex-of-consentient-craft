@@ -14,14 +14,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
-
 export const portPairContract = z
   .object({
-    api: networkPortContract,
-    web: networkPortContract,
+    api: z.number().int().min(1).max(65535).brand<'PortPairApi'>(),
+    web: z.number().int().min(1).max(65535).brand<'PortPairWeb'>(),
   })
-  .refine((pair) => pair.api !== pair.web, {
+  .refine((pair) => pair.api !== Number(pair.web), {
     message: 'api and web ports must differ — Playwright waits on one while Vite binds the other',
     path: ['web'],
   }).brand<'PortPair'>();

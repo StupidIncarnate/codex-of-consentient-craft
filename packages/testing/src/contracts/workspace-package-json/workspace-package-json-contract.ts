@@ -24,7 +24,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { workspacePackageExportSourcePathContract } from '../workspace-package-export-source-path/workspace-package-export-source-path-contract';
 
 // Keys stay unbranded: they are structural export-map path segments ('./testing', './*'), matched
 // and indexed by plain-string subpaths rather than exchanged as a domain value.
@@ -40,7 +39,7 @@ const workspacePackageExportEntryContract = z
 // so without this union `workspacePackageJsonReadMiddleware` returns null for a real, valid
 // package.json, and `nearestPackageJsonFindMiddleware` climbs straight past it looking for another.
 const workspacePackageExportValueContract = z.union([
-  workspacePackageExportSourcePathContract,
+  z.string().brand<'WorkspacePackageJsonExports'>(),
   workspacePackageExportEntryContract,
 ]);
 

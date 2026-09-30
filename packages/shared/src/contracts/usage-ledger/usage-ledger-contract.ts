@@ -12,7 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { usageBucketContract } from '../usage-bucket/usage-bucket-contract';
 
 export const usageLedgerContract = z.object({
@@ -22,7 +21,7 @@ export const usageLedgerContract = z.object({
   // One entry per transcript file already counted, keyed by absolute path. A file is re-read only
   // when its size or mtime moved, which is what keeps a 600 MB tree to a few MB of reads per scan.
   cursors: z.record(
-    absoluteFilePathContract,
+    z.string(),
     z.object({
       mtimeMs: z.number().min(0).brand<'UsageLedgerCursorsMtimeMs'>(),
       size: z.number().int().min(0).brand<'UsageLedgerCursorsSize'>(),

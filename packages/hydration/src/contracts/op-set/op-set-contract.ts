@@ -17,12 +17,11 @@
  * // Returns an OpSet
  */
 import { z } from '#gateway/npm/zod';
-import { rowRefContract } from '../row-ref/row-ref-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 
 export const opSetContract = z.object({
   op: z.literal('set'),
-  ref: rowRefContract,
+  ref: z.string().min(1).brand<'OpSetRef'>(),
   written: fieldValuesContract,
   transition: z
     .object({

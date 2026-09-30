@@ -34,6 +34,7 @@ import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transfor
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
+import { z } from '#gateway/npm/zod';
 import { sessionUniqueIdResolveBroker } from '../unique-id-resolve/session-unique-id-resolve-broker';
 import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 import { sessionRecordContract } from '../../../contracts/session-record/session-record-contract';
@@ -48,7 +49,7 @@ export const sessionWriteRouteBroker = async ({
   target: DmTarget;
   fields: Record<string, unknown>;
 }): Promise<SessionRecord> => {
-  const cwd = fields.cwd;
+  const cwd = z.string().parse(fields.cwd);
   const requestedSessionId = sessionContract.shape.id.parse(fields.sessionId);
   const sessionId = sessionUniqueIdResolveBroker({ target, cwd, sessionId: requestedSessionId });
   const sessionsDir = claudePathSlugEncoderTransformer({

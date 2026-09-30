@@ -52,7 +52,7 @@ export const foldBatchLayerBroker = async ({
       }
 
       const key = String(sample.bucketStartMs);
-      const already = inner[key];
+      const already = Object.entries(inner).find(([existing]) => existing === key)?.[1];
 
       return {
         ...inner,

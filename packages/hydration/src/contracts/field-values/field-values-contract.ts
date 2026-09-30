@@ -13,7 +13,6 @@
  * // Returns FieldValues
  */
 import { z } from '#gateway/npm/zod';
-import { fieldNameContract } from '../field-name/field-name-contract';
 import { savedRefContract } from '../saved-ref/saved-ref-contract';
 import type { SavedRef } from '../saved-ref/saved-ref-contract';
 
@@ -44,7 +43,7 @@ const fieldValueContract = z.json().superRefine((value, ctx) => {
   });
 });
 
-export const fieldValuesContract = z.record(fieldNameContract, fieldValueContract);
+export const fieldValuesContract = z.record(z.string().min(1), fieldValueContract);
 
 export type FieldValues = z.infer<typeof fieldValuesContract>;
 

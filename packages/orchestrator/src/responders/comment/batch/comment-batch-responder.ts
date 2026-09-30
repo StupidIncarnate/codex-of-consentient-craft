@@ -14,7 +14,11 @@ import { commentBatchResponderResultContract } from '../../../contracts/comment-
 import type { CommentBatchResponderResult } from '../../../contracts/comment-batch-responder-result/comment-batch-responder-result-contract';
 import { randomUUID } from '#gateway/node/crypto';
 import type { CommentBatchEntry, QuestComment, Quest } from '@dungeonmaster/shared/contracts';
-import { getQuestInputContract, questCommentContract } from '@dungeonmaster/shared/contracts';
+import {
+  getQuestInputContract,
+  modifyQuestInputContract,
+  questCommentContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -38,7 +42,7 @@ export const CommentBatchResponder = async ({
   );
 
   const modifyResult = await questModifyBroker({
-    input: { questId, comments: minted } as Parameters<typeof questModifyBroker>[0]['input'],
+    input: modifyQuestInputContract.parse({ questId, comments: minted }),
   });
 
   if (!modifyResult.success) {

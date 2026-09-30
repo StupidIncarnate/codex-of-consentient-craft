@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
+import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueEntryContract } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
@@ -48,7 +49,7 @@ export const useCommentQueueBinding = ({
 
   const entryFor = useCallback(
     ({ anchor }: { anchor: CommentAnchor }): CommentQueueEntry | undefined =>
-      entries.find((entry) => isSameCommentAnchorGuard({ left: entry, right: anchor })),
+      entries.find((entry) => isSameCommentAnchorGuard({ left: commentAnchorContract.parse(entry), right: anchor })),
     [entries],
   );
 

@@ -250,8 +250,7 @@ export const instanceStartBroker = async ({
     // env override — is never the one call site still relying on Node's default.
     const inheritedEnv = Object.fromEntries(
       Object.entries(envSnapshot())
-        .filter(([, value]) => value !== undefined)
-        .map(([key, value]): [PropertyKey, string] => [key, value]),
+        .flatMap(([key, value]): [string, string][] => (value === undefined ? [] : [[key, value]])),
     );
 
     spawnDetached({
@@ -387,10 +386,12 @@ export const instanceStartBroker = async ({
     // spelling with a package name but decides nothing about one.
     const hasWebSurface = spec.processes.some(
       (laneProcess) =>
-        laneProcessPortResolveTransformer({
-          portRole: laneProcess.portRole,
-          ports: bootedEntry.ports,
-        }) === bootedEntry.ports.web,
+        Number(
+          laneProcessPortResolveTransformer({
+            portRole: laneProcess.portRole,
+            ports: bootedEntry.ports,
+          }),
+        ) === Number(bootedEntry.ports.web),
     );
 
     // Same reasoning as `hasWebSurface`, for the `api` half of the pair — both built-in specs

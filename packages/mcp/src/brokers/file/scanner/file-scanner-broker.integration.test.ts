@@ -1,7 +1,7 @@
 import { fileScannerBroker } from './file-scanner-broker';
 import { resolvePackageRoot } from '#gateway/node/module';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
+import { discoverInputContract } from '../../../contracts/discover-input/discover-input-contract';
 
 describe('fileScannerBroker (integration: real shared package resolution)', () => {
   it('VALID: {specifier @dungeonmaster/shared/contracts} => resolves the real shared package root directory', () => {
@@ -16,7 +16,7 @@ describe('fileScannerBroker (integration: real shared package resolution)', () =
     });
 
     const results = await fileScannerBroker({
-      glob: GlobPatternStub({ value: '**/content-text-contract.ts' }),
+      glob: discoverInputContract.shape.glob.unwrap().parse('**/content-text-contract.ts'),
       rootPath: String(testbed.guildPath),
     });
     testbed.cleanup();

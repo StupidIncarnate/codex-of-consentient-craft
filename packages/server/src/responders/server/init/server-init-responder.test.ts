@@ -6,6 +6,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { WsMessageStub } from '@dungeonmaster/shared/contracts/ws-message/ws-message.stub';
@@ -177,9 +178,9 @@ describe('ServerInitResponder', () => {
       const questId = QuestIdStub({ value: 'quest-ward-detail-1' });
       const questPath = '/guilds/g1/quests/quest-ward-detail-1';
       const guildId = GuildIdStub();
-      const wardResultId = 'ward-result-abc';
+      const wardResultId = WardResultStub().id;
       const wardResultsPath = '/guilds/g1/quests/quest-ward-detail-1/ward-results';
-      const detailFilePath = '/guilds/g1/quests/quest-ward-detail-1/ward-results/ward-result-abc.json';
+      const detailFilePath = `/guilds/g1/quests/quest-ward-detail-1/ward-results/${wardResultId}.json`;
       const detail = WardDetailStub();
       proxy.setupWardDetailSuccess({
         questId,

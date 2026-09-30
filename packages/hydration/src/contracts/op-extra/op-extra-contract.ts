@@ -10,14 +10,19 @@
  * // Returns an OpExtra
  */
 import { z } from '#gateway/npm/zod';
-import { rowRefContract } from '../row-ref/row-ref-contract';
-import { extraVerbNameContract } from '../extra-verb-name/extra-verb-name-contract';
+import { reservedVerbStatics } from '../../statics/reserved-verb/reserved-verb-statics';
 import { fieldValuesContract } from '../field-values/field-values-contract';
+
+const reservedVerbs: readonly string[] = reservedVerbStatics.verbs;
 
 export const opExtraContract = z.object({
   op: z.literal('extra'),
-  ref: rowRefContract,
-  verb: extraVerbNameContract,
+  ref: z.string().min(1).brand<'OpExtraRef'>(),
+  verb: z
+    .string()
+    .min(1)
+    .refine((verb) => !reservedVerbs.includes(verb), { message: 'must not be a reserved verb' })
+    .brand<'OpExtraVerb'>(),
   args: fieldValuesContract,
 }).brand<'OpExtra'>();
 

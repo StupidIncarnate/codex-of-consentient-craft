@@ -8,6 +8,7 @@
  * const census = adapterCensusBuildBroker({ layout, sources });
  * // Returns { scope, packages: [{ name, dir, adapters: [...] }], totals }
  */
+import { packageCensusContract } from '../../../contracts/package-census/package-census-contract';
 import { adapterCensusContract } from '../../../contracts/adapter-census/adapter-census-contract';
 import { isAdapterEntryFileGuard } from '../../../guards/is-adapter-entry-file/is-adapter-entry-file-guard';
 import { adapterCensusTotalsTransformer } from '../../../transformers/adapter-census-totals/adapter-census-totals-transformer';
@@ -88,14 +89,16 @@ export const adapterCensusBuildBroker = ({
         pkg.dir === packageFilter ||
         pkg.dir.endsWith(`/${packageFilter}`),
     )
-    .map((pkg) => ({
-      ...pkg,
-      adapters: records.filter(
-        (record) =>
-          censusPackageOfFileTransformer({ file: record.file, packages: layout.packages })?.dir ===
-          pkg.dir,
-      ),
-    }))
+    .map((pkg) =>
+      packageCensusContract.parse({
+        ...pkg,
+        adapters: records.filter(
+          (record) =>
+            censusPackageOfFileTransformer({ file: record.file, packages: layout.packages })
+              ?.dir === pkg.dir,
+        ),
+      }),
+    )
     .filter((pkg) => pkg.adapters.length > 0);
 
   return adapterCensusContract.parse({

@@ -6,6 +6,7 @@
  * // Returns merged configuration with package config overriding root config
  */
 
+import { dungeonmasterConfigContract } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { DungeonmasterConfig } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const mergeConfigsTransformer = ({
@@ -44,23 +45,25 @@ export const mergeConfigsTransformer = ({
 
     // Merge architecture settings
     if (config.architecture) {
-      merged.architecture ??= {};
+      const architecture =
+        merged.architecture ?? dungeonmasterConfigContract.shape.architecture.unwrap().parse({});
+      merged.architecture = architecture;
 
       // Merge overrides
       if (config.architecture.overrides) {
-        merged.architecture.overrides = {
-          ...merged.architecture.overrides,
+        architecture.overrides = {
+          ...architecture.overrides,
           ...config.architecture.overrides,
         };
       }
 
       // Package-specific settings win
       if (config.architecture.allowedRootFiles) {
-        merged.architecture.allowedRootFiles = config.architecture.allowedRootFiles;
+        architecture.allowedRootFiles = config.architecture.allowedRootFiles;
       }
 
       if (config.architecture.booleanFunctionPrefixes) {
-        merged.architecture.booleanFunctionPrefixes = config.architecture.booleanFunctionPrefixes;
+        architecture.booleanFunctionPrefixes = config.architecture.booleanFunctionPrefixes;
       }
     }
   }

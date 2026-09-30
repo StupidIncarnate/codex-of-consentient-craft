@@ -24,7 +24,7 @@ import {
 } from '@dungeonmaster/shared/transformers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 import type { AddQuestInput, Guild, GuildListItem, QuestType, Session } from '@dungeonmaster/shared/contracts';
-import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 import { guildCoversRepoRootGuard } from '../../../guards/guild-covers-repo-root/guild-covers-repo-root-guard';
 import { guildAddBroker } from '../../guild/add/guild-add-broker';
@@ -60,7 +60,7 @@ export const questMcpCreateBroker = async ({
   }
 
   const guilds = await guildListBroker();
-  const coveringGuild = guilds.find((guild) => guildCoversRepoRootGuard({ guild, repoRoot }));
+  const coveringGuild = guilds.find((guild) => guildCoversRepoRootGuard({ guild: guildContract.parse(guild), repoRoot }));
 
   const selectedGuild: Guild | GuildListItem =
     coveringGuild ??

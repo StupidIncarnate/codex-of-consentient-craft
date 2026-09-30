@@ -6,7 +6,8 @@
  * // Returns IsoTimestamp '2025-01-01T00:00:00.000Z'
  */
 
-import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
+import { z } from '#gateway/npm/zod';
+
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 
 const EPOCH_FALLBACK = '1970-01-01T00:00:00.000Z';
@@ -22,7 +23,7 @@ export const extractTimestampFromJsonlLineTransformer = ({
   }
   const raw = lineParse.data.timestamp;
   if (typeof raw === 'string') {
-    const parseResult = isoTimestampContract.safeParse(String(raw));
+    const parseResult = z.iso.datetime().safeParse(raw);
     if (parseResult.success) {
       return parseResult.data;
     }

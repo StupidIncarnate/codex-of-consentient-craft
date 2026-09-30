@@ -7,17 +7,16 @@
  * const map = responderAnnotationMapContract.parse(new Map([
  *   [filePath, { suffix: contentTextContract.parse('[POST /api/x]'), childLines: [] }],
  * ]));
- * // Returns Map<AbsoluteFilePath, ResponderAnnotation>
+ * // Returns Map<string, ResponderAnnotation>
  *
  * WHEN-TO-USE: Threading per-package annotation lookups through the boot-tree call chain
  */
 
 import { z } from '#gateway/npm/zod';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { responderAnnotationContract } from '../responder-annotation/responder-annotation-contract';
 
 export const responderAnnotationMapContract = z.map(
-  absoluteFilePathContract,
+  z.string(),
   responderAnnotationContract,
 );
 

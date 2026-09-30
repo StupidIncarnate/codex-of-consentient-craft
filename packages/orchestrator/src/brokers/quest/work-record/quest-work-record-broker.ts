@@ -16,12 +16,18 @@
  * the session fixes what the message names and calls again.
  */
 
-import { unitObservationContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  flowContract,
+  questNoteContract,
+  unitObservationContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
+import type { z } from '#gateway/npm/zod';
 
-import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
+import type { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
 import { questWorkInstanceContract } from '../../../contracts/quest-work-instance/quest-work-instance-contract';
 import { questWorkRecordResultContract } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
 import type { QuestWorkRecordResult } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
@@ -36,7 +42,12 @@ import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify
 import { invalidationApplyLayerBroker } from './invalidation-apply-layer-broker';
 import { workItemPatchLayerBroker } from './work-item-patch-layer-broker';
 
-type RecordPayload = Exclude<QuestWorkInput['payload'], { kind: 'plan' } | { kind: 'amendment' }>;
+// The INPUT side of the payload union: plain strings in, parsed into each owner's field where the
+// value is stored.
+type RecordPayload = Exclude<
+  z.input<typeof questWorkInputContract>['payload'],
+  { kind: 'plan' } | { kind: 'amendment' }
+>;
 
 export const questWorkRecordBroker = async ({
   questId,
@@ -95,7 +106,10 @@ export const questWorkRecordBroker = async ({
           questFilePath,
           questId,
           workItemId,
-          patch: { declaredWord: derived, declaredReason: payload.reason },
+          patch: {
+            declaredWord: derived,
+            declaredReason: workItemContract.shape.declaredReason.unwrap().parse(payload.reason),
+          },
           nowAt,
         });
 
@@ -107,7 +121,7 @@ export const questWorkRecordBroker = async ({
         // and its own instance.
         if (workItem.needsLane === true) {
           const parsedInstance = questWorkInstanceContract.safeParse(
-            workItem.payload?.['instance'],
+            workItem.payload?.[workItemContract.shape.payload.unwrap().keyType.parse('instance')],
           );
           if (parsedInstance.success) {
             await laneKillBroker({ instanceId: parsedInstance.data.instanceId });
@@ -124,8 +138,8 @@ export const questWorkRecordBroker = async ({
           workItemId,
           questId,
           questFilePath,
-          flowId: payload.flowId,
-          reason: payload.reason,
+          flowId: flowContract.shape.id.parse(payload.flowId),
+          reason: questNoteContract.shape.detail.parse(payload.reason),
           nowAt,
         });
       }
@@ -159,7 +173,10 @@ export const questWorkRecordBroker = async ({
         questFilePath,
         questId,
         workItemId,
-        patch: { requestedStep: payload.step, requestedReason: payload.reason },
+        patch: {
+          requestedStep: workItemContract.shape.requestedStep.unwrap().parse(payload.step),
+          requestedReason: workItemContract.shape.requestedReason.unwrap().parse(payload.reason),
+        },
         nowAt,
       });
 

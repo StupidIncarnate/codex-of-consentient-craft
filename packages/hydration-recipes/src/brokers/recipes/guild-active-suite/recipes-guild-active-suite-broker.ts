@@ -25,11 +25,11 @@
 
 
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
-import { subagentFieldsContract, subagentFieldsShape } from '../../../contracts/subagent-fields/subagent-fields-contract';
+import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
 import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
-import { sessionFieldsShape } from '../../../contracts/session-fields/session-fields-contract';
+import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 
 const { recipe } = recipesHydrationCreateBroker();
 
@@ -48,6 +48,30 @@ const SUBAGENT_TASK_PROMPT = subagentFieldsContract.parse({
   sessionId: 'probe-session',
   cwd: '/tmp/guild-active-suite-probe',
 }).taskPrompt;
+
+// The field schemas' shapes are not exported, so branded `lines` are minted through the public
+// field contracts, the same way the task prompt is.
+const SESSION_LINES = sessionFieldsContract.parse({
+  sessionId: 'probe-session',
+  cwd: '/tmp/guild-active-suite-probe',
+  lines: [
+    '{"type":"user","message":{"role":"user","content":"What is the status of active development?"}}',
+    '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Checking the active suite now."}]}}',
+  ],
+}).lines;
+
+const SUBAGENT_LINES = subagentFieldsContract.parse({
+  agentId: 'probe-agent',
+  toolUseId: 'toolu_probe',
+  taskDescription: 'Probe for branded lines',
+  taskPrompt: 'Investigate the active development suite',
+  lines: [
+    '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Sub-agent investigating the active suite."}]}}',
+  ],
+  completed: true,
+  sessionId: 'probe-session',
+  cwd: '/tmp/guild-active-suite-probe',
+}).lines;
 
 export const recipesGuildActiveSuiteBroker = recipe(
   {
@@ -79,17 +103,12 @@ export const recipesGuildActiveSuiteBroker = recipe(
       ]),
       g[0].sessions.add(1, (s) => [
         s[0].set({
-          lines: sessionFieldsShape.shape.lines.parse([
-            '{"type":"user","message":{"role":"user","content":"What is the status of active development?"}}',
-            '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Checking the active suite now."}]}}',
-          ]),
+          lines: SESSION_LINES,
         }),
         s[0].subagents.add(1, (a) => [
           a[0].set({
             taskPrompt: SUBAGENT_TASK_PROMPT,
-            lines: subagentFieldsShape.shape.lines.parse([
-              '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Sub-agent investigating the active suite."}]}}',
-            ]),
+            lines: SUBAGENT_LINES,
           }),
           a[0].saveRecordAs({ name: 'subagent' }),
         ]),

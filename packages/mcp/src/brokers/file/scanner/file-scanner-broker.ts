@@ -85,9 +85,7 @@ export const fileScannerBroker = async ({
   }
 
   // Build a set of shared file paths for later path conversion
-  const sharedFileSet = new Set<FileMetadata['path']>(
-    sharedFilePaths.map((fp) => fp),
-  );
+  const sharedFileSet = new Set<string>(sharedFilePaths);
 
   // Combine project files and shared files, deduped by absolute path.
   // A broad glob run from the monorepo root can hit the same shared source both

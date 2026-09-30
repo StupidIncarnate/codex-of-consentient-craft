@@ -145,7 +145,7 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
     getSpawnedStderrMode: (): unknown => lastSpawnOptions().stdio?.[2],
 
     getSpawnedEnvValue: ({ name }: { name: string }): unknown =>
-      lastSpawnOptions().env?.[name],
+      Object.entries(lastSpawnOptions().env ?? {}).find(([key]) => key === name)?.[1],
 
     getSettingsReads: (): readonly unknown[][] => [
       ...settingsProxy.getCallsFor({ path: isSettingsFilePath }),

@@ -7,10 +7,13 @@
  * });
  * // Returns: { raw: '...', parameters: [...], returnType: 'string' }
  */
+import { fileMetadataContract } from '../../contracts/file-metadata/file-metadata-contract';
 import type { FunctionSignature } from '../../contracts/file-metadata/file-metadata-contract';
 import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transformer';
 
 // Allows one level of `{}` nesting inside a `{...}` block — e.g. `{ x: { y: string } }`.
+const functionSignatureContract = fileMetadataContract.shape.signature.unwrap();
+
 const BALANCED_BRACES = '\\{(?:[^{}]|\\{[^{}]*\\})*\\}';
 // Allows one level of `<>` nesting inside a `<...>` block — e.g. `<T extends Array<U>>`.
 const BALANCED_GENERICS = '<(?:[^<>]|<[^<>]*>)*>';
@@ -95,7 +98,7 @@ export const signatureExtractorTransformer = ({
       }
     }
 
-    return {
+    return functionSignatureContract.parse({
       raw: matchWithParams[0],
       parameters: [
         {
@@ -104,7 +107,7 @@ export const signatureExtractorTransformer = ({
         },
       ],
       returnType: returnTypeStr,
-    };
+    });
   }
 
   // Pattern 2: no parameters `()`, optionally with generic `<T>`.
@@ -127,11 +130,11 @@ export const signatureExtractorTransformer = ({
       }
     }
 
-    return {
+    return functionSignatureContract.parse({
       raw: matchNoParams[0],
       parameters: [],
       returnType: returnTypeStr,
-    };
+    });
   }
 
   return null;

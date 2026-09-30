@@ -29,6 +29,7 @@ import {
 } from '@dungeonmaster/shared/transformers';
 
 import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
+import { z } from '#gateway/npm/zod';
 import { subagentWriteRouteBroker } from '../../subagent/write-route/subagent-write-route-broker';
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
@@ -51,7 +52,7 @@ export const sessionNestedChainBroker = async ({
 }): Promise<void> => {
   const { depth } = nestedChainArgsContract.parse(args);
   const sessionId = sessionContract.shape.id.parse(record.sessionId);
-  const cwd = record.cwd;
+  const cwd = z.string().parse(record.cwd);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,

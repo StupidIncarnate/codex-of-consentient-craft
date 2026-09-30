@@ -10,10 +10,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-
 export const transcriptReadContract = z.object({
-  path: absoluteFilePathContract,
+  path: z
+    .string()
+    .min(1)
+    .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
+      message: 'Path must be absolute (start with / or C:\\ on Windows)',
+    })
+    .brand<'TranscriptReadPath'>(),
   fromByte: z.number().int().min(0).brand<'TranscriptReadFromByte'>(),
 }).brand<'TranscriptRead'>();
 

@@ -27,11 +27,11 @@
  * await session.close();
  */
 
+import { z } from '#gateway/npm/zod';
 import { chromium } from '#gateway/npm/playwright__test';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { getEnv, setEnv, stderr } from '#gateway/node/process';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
 import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
@@ -359,7 +359,7 @@ export const browserSessionLaunchBroker = async ({
       // Self-invoked for the same reason describeMatches is, above — a bare `() => ...` source
       // string is never called by Playwright at all, so it takes no `arg` to begin with.
       const raw = await page.evaluate(`(${NEAREST_NAMES_SOURCE})()`);
-      const parsed = contentTextContract.array().parse(raw);
+      const parsed = z.array(z.string()).parse(raw);
       const unique = Array.from(new Set(parsed)).sort();
       return unique.slice(0, NEAREST_NAMES_LIMIT);
     },

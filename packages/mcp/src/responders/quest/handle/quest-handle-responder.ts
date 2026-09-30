@@ -7,7 +7,7 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { questContract } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, questContract } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
@@ -263,7 +263,7 @@ export const QuestHandleResponder = async ({
       // server's watcher reactor tails to stream this conversation into the browser chat panel.
       const sessionId = ResolveCallerSessionLayerResponder({ meta });
       const { questId, guildSlug } = await StartOrchestrator.createQuestForMcp({
-        userRequest,
+        userRequest: addQuestInputContract.shape.userRequest.parse(userRequest),
         ...(questType !== undefined && { questType }),
         ...(sessionId !== undefined && { sessionId }),
       });

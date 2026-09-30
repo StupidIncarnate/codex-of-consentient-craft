@@ -79,7 +79,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: GuildIdStub({ value: guild.id }),
+      guildId: GuildIdStub({ value: guilds.extractGuildId({ guild }) }),
       title: 'Surviving Surfaces Quest',
       userRequest: 'Prove the deleted edit mode left everything else standing',
     });
@@ -216,7 +216,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: GuildIdStub({ value: guild.id }),
+      guildId: GuildIdStub({ value: guilds.extractGuildId({ guild }) }),
       title: 'Abandon Confirm Quest',
       userRequest: 'Prove the abandon confirm step survives',
     });
@@ -269,7 +269,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: GuildIdStub({ value: guild.id }),
+      guildId: GuildIdStub({ value: guilds.extractGuildId({ guild }) }),
       title: 'Gate Unmet Quest',
       userRequest: 'Prove no stray edit-mode button appears even with a disabled APPROVE',
     });
@@ -362,7 +362,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const created = await quests.createQuest({
-      guildId: GuildIdStub({ value: guild.id }),
+      guildId: GuildIdStub({ value: guilds.extractGuildId({ guild }) }),
       title: 'Zero Item Section Quest',
       userRequest: 'Prove SECTION_HEADER_COUNT reads (0) instead of vanishing on an empty list',
     });
@@ -421,7 +421,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       const urlSlug = guilds.extractUrlSlug({ guild });
 
       const created = await quests.createQuest({
-        guildId: GuildIdStub({ value: guild.id }),
+        guildId: GuildIdStub({ value: guilds.extractGuildId({ guild }) }),
         title: `Status Matrix Approve ${status} Quest`,
         userRequest: 'Prove ACTION_BAR holds APPROVE-only at this status',
       });
@@ -471,7 +471,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       const urlSlug = guilds.extractUrlSlug({ guild });
 
       const created = await quests.createQuest({
-        guildId: GuildIdStub({ value: guild.id }),
+        guildId: GuildIdStub({ value: guilds.extractGuildId({ guild }) }),
         title: `Status Matrix Empty ${status} Quest`,
         userRequest: 'Prove ACTION_BAR holds zero buttons at this status',
       });

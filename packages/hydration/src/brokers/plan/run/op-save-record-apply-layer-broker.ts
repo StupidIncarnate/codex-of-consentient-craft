@@ -18,6 +18,6 @@ export const opSaveRecordApplyLayerBroker = ({
   op: OpSaveRecord;
   state: HydrationRunState;
 }): HydrationRunState => {
-  state.saved.set(op.name, state.records.get(op.ref));
+  state.saved.set(hydrationRunStateContract.shape.saved.keyType.parse(op.name), state.records.get(op.ref));
   return state;
 };

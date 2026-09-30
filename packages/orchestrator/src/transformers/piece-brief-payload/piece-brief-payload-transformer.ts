@@ -59,12 +59,12 @@ export const pieceBriefPayloadTransformer = ({
   const retained = new Set(unitIds.map(String));
   const assignment = workItemAssignmentContract.safeParse(carried);
 
-  return {
+  return mintedWorkItemContract.shape.payload.unwrap().parse({
     ...carried,
-    ['pieceName']: piece.pieceName,
+    pieceName: piece.pieceName,
     ...('units' in carried && assignment.success
       ? { units: assignment.data.units.filter((unit) => retained.has(String(unit.unitId))) }
       : {}),
     ...(piece.baselineFor === undefined ? {} : { baselineFor: piece.baselineFor }),
-  };
+  });
 };

@@ -18,7 +18,5 @@ export const profileMeasuredDateRenderTransformer = ({
 }: {
   measuredAtMs: number;
 }): string => {
-  const [datePart] = new Date(measuredAtMs).toISOString().split('T');
-
-  return datePart;
+  return new Date(measuredAtMs).toISOString().slice(0, 'YYYY-MM-DD'.length);
 };

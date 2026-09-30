@@ -101,7 +101,7 @@ export const bufferReadLayerBroker = async ({
     where === null || (where.path === null && where.method === null)
       ? levelFiltered
       : levelFiltered.filter((entry) => {
-          const source = resultRowContract.parse(JSON.parse(entry.text));
+          const source: Record<string, unknown> = resultRowContract.parse(JSON.parse(entry.text));
           const url = typeof source.url === 'string' ? source.url : null;
           const method = typeof source.method === 'string' ? source.method : null;
 

@@ -1,15 +1,13 @@
 /**
- * PURPOSE: Defines the shape of a parsed JSON tool input object as a record of unknown values keyed by branded tool-input keys
+ * PURPOSE: Defines the shape of a parsed JSON tool input object as a record of unknown values keyed by plain strings
  *
  * USAGE:
  * parsedToolInputContract.parse(JSON.parse(rawJson));
- * // Returns ParsedToolInput — a Record<ToolInputKey, unknown>
+ * // Returns ParsedToolInput — a Record<string, unknown>
  */
 
 import { z } from '#gateway/npm/zod';
 
-import { toolInputKeyContract } from '../tool-input-key/tool-input-key-contract';
-
-export const parsedToolInputContract = z.record(toolInputKeyContract, z.json());
+export const parsedToolInputContract = z.record(z.string(), z.json());
 
 export type ParsedToolInput = z.infer<typeof parsedToolInputContract>;

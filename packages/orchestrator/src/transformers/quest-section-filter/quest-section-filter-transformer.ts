@@ -11,7 +11,7 @@
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-import { questSectionContract } from '@dungeonmaster/shared/contracts';
+import { questContract, questSectionContract } from '@dungeonmaster/shared/contracts';
 import type { QuestSection } from '@dungeonmaster/shared/contracts';
 
 export const questSectionFilterTransformer = ({
@@ -34,11 +34,7 @@ export const questSectionFilterTransformer = ({
       continue;
     }
     if (section === 'planningNotes') {
-      filtered.planningNotes = {
-        blightLedger: [],
-        questNotes: [],
-        operationPlans: [],
-      };
+      filtered.planningNotes = questContract.shape.planningNotes.parse({});
       continue;
     }
     filtered[section] = [] as never;

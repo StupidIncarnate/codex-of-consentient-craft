@@ -29,7 +29,6 @@ import { transitionSpecContract } from '../transition-spec/transition-spec-contr
 import type { TransitionSpecWithReachFor } from '../transition-spec/transition-spec-contract';
 import { hydrationRoutesContract } from '../hydration-routes/hydration-routes-contract';
 import type { RoutesFor } from '../hydration-routes/hydration-routes-contract';
-import { extraVerbNameContract } from '../extra-verb-name/extra-verb-name-contract';
 import type { reservedVerbStatics } from '../../statics/reserved-verb/reserved-verb-statics';
 
 // `fields`, `record` and each `extras` entry are zod schemas, not data — `z.custom` with no type
@@ -79,7 +78,7 @@ export const ingredientConfigContract = z
     transitions: transitionSpecContract.optional(),
     defaults: ingredientDefaultsFnContract.optional(),
     copies: z.string().min(1).superRefine((value, ctx) => { if (value.includes('/')) { ctx.addIssue({ code: 'custom', message: "copies: may not contain '/'. Use a bare identifier naming in-repo production code " + "(e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo " + "(e.g. 'external:claude-cli').", }); return; } if (value.startsWith('external:') && value.slice('external:'.length).length === 0) { ctx.addIssue({ code: 'custom', message: "copies: 'external:' must name a producer after the prefix. Use a bare identifier " + "naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a " + "producer outside the repo (e.g. 'external:claude-cli').", }); } }).brand<'IngredientConfigDataCopies'>().optional(),
-    extras: z.record(extraVerbNameContract, extraContract).optional(),
+    extras: z.record(z.string(), extraContract).optional(),
   })
   .superRefine((config, ctx) => {
     if (config.routes.write !== undefined && config.copies === undefined) {

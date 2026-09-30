@@ -1,4 +1,5 @@
 import { recipeCatalogEntryContract } from './recipe-catalog-entry-contract';
+import { PlanRunsResultStub } from '@dungeonmaster/hydration/contracts/plan-runs-result/plan-runs-result.stub';
 import { RecipeCatalogEntryStub } from './recipe-catalog-entry.stub';
 import { DmTargetStub } from '../dm-target/dm-target.stub';
 
@@ -49,7 +50,7 @@ describe('recipeCatalogEntryContract', () => {
 
     it('VALID: {stub with overrides} => preserves custom probeListing and execute', () => {
       const customListing = () => ({
-        runs: { serverless: true as const },
+        runs: PlanRunsResultStub(),
         makes: [],
         inputKeys: [],
       });

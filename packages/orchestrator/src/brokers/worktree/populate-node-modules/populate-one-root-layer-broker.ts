@@ -46,7 +46,6 @@
 import { populateOneRootLayerResultContract } from '../../../contracts/populate-one-root-layer-result/populate-one-root-layer-result-contract';
 import type { PopulateOneRootLayerResult } from '../../../contracts/populate-one-root-layer-result/populate-one-root-layer-result-contract';
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { cpRun, CpNotInstalledError } from '#gateway/bin/cp';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { ensureDir, pathExists, readlinkIfLink, symlink } from '#gateway/node/fs__promises';
@@ -157,18 +156,17 @@ export const populateOneRootLayerBroker = async ({
         scopeChildren.map(async (child) => {
           const childSourcePath = join(entrySourcePath, child.name);
           const rawTarget = child.kind === 'symlink' ? await readlinkIfLink(childSourcePath) : null;
-          // A stored target `filePathContract` cannot brand (a bare relative path with no `./` or
-          // `../` lead) is not a workspace link; it is hardlinked like any vendored child.
-          const parsedTarget = filePathContract.safeParse(rawTarget);
-          const storedTarget = parsedTarget.success ? parsedTarget.data : null;
+          // Only a target leading with `./` or `../` is a workspace link; any other stored target
+          // (a bare relative path, an absolute one) is hardlinked like any vendored child.
+          const relativeTarget =
+            rawTarget !== null && (rawTarget.startsWith('./') || rawTarget.startsWith('../'))
+              ? rawTarget
+              : null;
 
           return {
             name: child.name,
             childSourcePath,
-            relativeTarget:
-              storedTarget !== null && !absoluteFilePathContract.safeParse(storedTarget).success
-                ? storedTarget
-                : null,
+            relativeTarget,
           };
         }),
       );

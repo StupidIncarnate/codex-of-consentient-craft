@@ -24,7 +24,10 @@ import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/war
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
 import { foldProjectResultIntoChecksTransformer } from '../../../transformers/fold-project-result-into-checks/fold-project-result-into-checks-transformer';
-import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
+import {
+  projectResultContract,
+  type ProjectResult,
+} from '../../../contracts/project-result/project-result-contract';
 import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
@@ -32,7 +35,6 @@ import { childCrashLayerBroker } from './child-crash-layer-broker';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
-import { fileTimingContract } from '../../../contracts/file-timing/file-timing-contract';
 
 export const multiPackageLayerBroker = async ({
   config,
@@ -205,7 +207,9 @@ export const multiPackageLayerBroker = async ({
     // whole check's. Stamping it onto every ProjectResult the child reported keeps that per-package
     // number instead of losing it to the checkType-level aggregate below.
     const projectResults = bucket.flatMap((c) =>
-      c.projectResults.map((projectResult) => ({ ...projectResult, durationMs: c.durationMs })),
+      c.projectResults.map((projectResult) =>
+        projectResultContract.parse({ ...projectResult, durationMs: Number(c.durationMs) }),
+      ),
     );
     // checkResultContract's durationMs stays the WALL CLOCK for the whole check: children in
     // `bucket` run concurrently (see promisePoolTransformer above), so the slowest one bounds how

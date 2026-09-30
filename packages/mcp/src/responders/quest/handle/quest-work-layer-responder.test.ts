@@ -1,5 +1,6 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { QuestWorkRecordResultStub } from '@dungeonmaster/orchestrator/contracts/quest-work-record-result/quest-work-record-result.stub';
 
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';
@@ -15,7 +16,7 @@ describe('QuestWorkLayerResponder', () => {
       proxy.setupReturns({
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        result: { kind: 'outcome', word: 'done' },
+        result: QuestWorkRecordResultStub({ kind: 'outcome', word: 'done' }),
       });
 
       const result = await QuestWorkLayerResponder({
@@ -41,7 +42,7 @@ describe('QuestWorkLayerResponder', () => {
       proxy.setupReturns({
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        result: { kind: 'request', step: 'recipe' },
+        result: QuestWorkRecordResultStub({ kind: 'request', step: 'recipe' }),
       });
 
       await QuestWorkLayerResponder({

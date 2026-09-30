@@ -8,17 +8,13 @@
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { taskToolInputContract } from '../../contracts/task-tool-input/task-tool-input-contract';
-import type { SubagentChainGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
-
-type ChainDescription = SubagentChainGroup['description'];
-
-const FALLBACK_DESCRIPTION = 'Sub-agent task' as ChainDescription;
+const FALLBACK_DESCRIPTION = 'Sub-agent task';
 
 export const extractTaskDescriptionTransformer = ({
   entry,
 }: {
   entry: ChatEntry;
-}): ChainDescription => {
+}): string => {
   if (entry.role !== 'assistant' || !('toolInput' in entry)) {
     return FALLBACK_DESCRIPTION;
   }

@@ -6,7 +6,6 @@
  * await sessions.createSessionFile({ sessionId: 'abc', userMessage: 'Hello' });
  * // afterEach: cleans session directory
  */
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { appendFile, ensureDir, readdir, rm, unlink } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';

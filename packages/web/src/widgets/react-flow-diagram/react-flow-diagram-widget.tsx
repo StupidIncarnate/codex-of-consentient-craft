@@ -256,6 +256,9 @@ export const ReactFlowDiagramWidget = ({
       packagesAffected.map((entry) => [entry.name, entry.packageType]),
     );
 
+    // Plain-string lookup: the record's keys are branded, so a raw node id cannot index it.
+    const positionByNodeId = new Map(Object.entries(positions));
+
     const flowNodes = laidOutFlow.nodes.map((n) => {
       const { labelEstimate } = elkLayoutStatics;
       const labelLines = Math.max(
@@ -282,7 +285,7 @@ export const ReactFlowDiagramWidget = ({
       return {
         id: String(n.id),
         type: n.type,
-        position: positions[String(n.id)] ?? { x: 0, y: 0 },
+        position: positionByNodeId.get(String(n.id)) ?? { x: 0, y: 0 },
         initialWidth: elkLayoutStatics.node.width,
         initialHeight: cardHeight,
         selected: selectedCardNodeId !== undefined && String(selectedCardNodeId) === String(n.id),
@@ -315,7 +318,7 @@ export const ReactFlowDiagramWidget = ({
     // a reviewer reads every assertion on the canvas. Positions are computed relative to the flow
     // node's ELK position; ELK reserves each node enough height to clear its whole column.
     const observableNodes = laidOutFlow.nodes.flatMap((n) => {
-      const base = positions[String(n.id)] ?? { x: 0, y: 0 };
+      const base = positionByNodeId.get(String(n.id)) ?? { x: 0, y: 0 };
       const { observable } = elkLayoutStatics;
       const columnX = base.x + elkLayoutStatics.node.width + observable.gap;
       let cursorY = 0;
@@ -375,7 +378,7 @@ export const ReactFlowDiagramWidget = ({
       return {
         id: String(portal.reference),
         type: 'portal',
-        position: positions[String(portal.reference)] ?? { x: 0, y: 0 },
+        position: positionByNodeId.get(String(portal.reference)) ?? { x: 0, y: 0 },
         initialWidth: elkLayoutStatics.node.width,
         initialHeight:
           labelEstimate.chromeHeight +
@@ -403,17 +406,20 @@ export const ReactFlowDiagramWidget = ({
       return [];
     }
 
+    const positionByNodeId = new Map(Object.entries(positions));
+    const routeByEdgeId = new Map(Object.entries(routes ?? {}));
+
     const flowEdges = laidOutFlow.edges.map((e) => {
       // type 'flow' selects the custom edge (FlowEdgeWidget). `data.route` is the ELK-computed
       // path the edge draws itself along (routed clear of the cards); `data.label` is the wrapping
       // label box. The top-level `label` is kept only so the jsdom test mock (which renders
       // FLOW_EDGE_LABEL from `edge.label`) still works.
       const id = String(e.id);
-      const route = routes?.[id];
+      const route = routeByEdgeId.get(id);
       const routeData = route === undefined ? {} : { route };
       // A back-edge (target laid out ABOVE the source) is a loop; attach it to the side loop
       // handles so it exits/re-enters from the RIGHT of the cards instead of the top/bottom.
-      const isLoop = (positions[String(e.to)]?.y ?? 0) < (positions[String(e.from)]?.y ?? 0);
+      const isLoop = (positionByNodeId.get(String(e.to))?.y ?? 0) < (positionByNodeId.get(String(e.from))?.y ?? 0);
       const loopHandles = isLoop
         ? {
             sourceHandle: flowHandleStatics.loopSourceId,

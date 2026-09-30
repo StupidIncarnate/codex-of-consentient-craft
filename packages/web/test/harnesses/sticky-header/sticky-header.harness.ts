@@ -13,8 +13,7 @@
  * await sticky.scrollTranscriptToFoot();
  * expect(await sticky.pinnedStackIs({ testIds: 'execution-row-header|SUBAGENT_CHAIN_HEADER' })).toBe(true);
  */
-import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { AssistantReadToolUseStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
@@ -232,7 +231,7 @@ export const stickyHeaderHarness = ({
       const sessionId = await seedNestedChainSession();
 
       const created = await quests.createQuest({
-        guildId: GuildIdStub({ value: guild.id }),
+        guildId: String(guild.id),
         title: 'E2E Sticky Header Quest',
         userRequest: 'Build the sticky header feature',
       });

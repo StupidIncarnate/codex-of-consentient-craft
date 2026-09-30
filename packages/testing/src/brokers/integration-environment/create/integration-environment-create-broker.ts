@@ -124,7 +124,7 @@ export const integrationEnvironmentCreateBroker = ({
       }
 
       const packageJson = packageJsonContract.parse(JSON.parse(readFileSync(packageJsonPath)));
-      return Boolean(packageJson.scripts[String(command)]);
+      return Object.entries(packageJson.scripts).some(([key, value]) => key === command && Boolean(value));
     },
 
     fileExists: ({ fileName }: { fileName: string }): boolean =>

@@ -28,6 +28,7 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { questCwdResolutionContract } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -76,7 +77,9 @@ export const agentPromptGetBrokerProxy = (): {
   const mockedCwdResolve = questCwdResolveBroker as jest.MockedFunction<
     typeof questCwdResolveBroker
   >;
-  mockedCwdResolve.mockResolvedValue({ kind: 'repo-root', cwd: REPO_ROOT_CWD });
+  mockedCwdResolve.mockResolvedValue(
+    questCwdResolutionContract.parse({ kind: 'repo-root', cwd: REPO_ROOT_CWD }),
+  );
 
   // Every `workItems` replacement the broker's update callback produced, in order. The mock stands
   // in for the real broker's contract and nothing more: call `update` with the loaded quest, treat
@@ -155,14 +158,18 @@ export const agentPromptGetBrokerProxy = (): {
 
     // The quest owns a real worktree whose HEAD reads back this sha — the shape that stamps.
     setupWorktreeHead: ({ sha }: { sha: string }): void => {
-      mockedCwdResolve.mockResolvedValue({ kind: 'worktree', cwd: WORKTREE_CWD });
+      mockedCwdResolve.mockResolvedValue(
+        questCwdResolutionContract.parse({ kind: 'worktree', cwd: WORKTREE_CWD }),
+      );
       gitHeadShaProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
 
     // A worktree resolves but `git rev-parse HEAD` fails — a checkout with no commits yet, or no
     // git at all. gitHeadShaAdapter answers null and the stamp records nothing.
     setupWorktreeHeadUnreadable: (): void => {
-      mockedCwdResolve.mockResolvedValue({ kind: 'worktree', cwd: WORKTREE_CWD });
+      mockedCwdResolve.mockResolvedValue(
+        questCwdResolutionContract.parse({ kind: 'worktree', cwd: WORKTREE_CWD }),
+      );
       gitHeadShaProxy.setupResult({ exitCode: 128, output: '' });
     },
 

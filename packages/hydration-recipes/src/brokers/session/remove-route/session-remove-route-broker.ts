@@ -7,6 +7,7 @@
  */
 import { rm } from '#gateway/node/fs__promises';
 
+import { sessionRecordContract } from '../../../contracts/session-record/session-record-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
 export const sessionRemoveRouteBroker = async ({
@@ -15,5 +16,5 @@ export const sessionRemoveRouteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<void> => {
-  await rm(record.filePath);
+  await rm(sessionRecordContract.parse(record).filePath);
 };

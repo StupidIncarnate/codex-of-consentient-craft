@@ -5,6 +5,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
+import { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
 import { questWorkPlanWriteBroker } from './quest-work-plan-write-broker';
 import { questWorkPlanWriteBrokerProxy } from './quest-work-plan-write-broker.proxy';
 
@@ -26,6 +27,30 @@ const WORK_ITEM = WorkItemStub({
   relatedDataItems: [`operations/${String(OPERATION_ITEM_ID)}`],
 });
 
+const zeroPieceEnvelope = (): Parameters<typeof questWorkPlanWriteBroker>[0]['plan'] => {
+  const { payload } = questWorkInputContract.parse({
+    questId: 'add-auth',
+    workItemId: WORK_ITEM_ID,
+    payload: {
+      kind: 'plan',
+      plan: {
+        operationItemId: OPERATION_ITEM_ID,
+        family: 'codeweaver',
+        flowId: null,
+        packageNames: [],
+        batches: [],
+        plannerMarks: [],
+      },
+    },
+  });
+
+  if (payload.kind !== 'plan') {
+    throw new Error('zeroPieceEnvelope: parsed payload is not a plan');
+  }
+
+  return payload.plan;
+};
+
 describe('questWorkPlanWriteBroker', () => {
   describe('a zero-piece plan (trivially passes all nineteen checks)', () => {
     it('VALID: {plan with no batches, flowId null} => writes the plan and returns its operationItemId', async () => {
@@ -43,14 +68,7 @@ describe('questWorkPlanWriteBroker', () => {
       const result = await questWorkPlanWriteBroker({
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        plan: {
-          operationItemId: OPERATION_ITEM_ID,
-          family: 'codeweaver',
-          flowId: null,
-          packageNames: [],
-          batches: [],
-          plannerMarks: [],
-        },
+        plan: zeroPieceEnvelope(),
       });
 
       expect(result).toStrictEqual({ operationItemId: OPERATION_ITEM_ID });
@@ -159,14 +177,7 @@ describe('questWorkPlanWriteBroker', () => {
         questWorkPlanWriteBroker({
           questId: QUEST_ID,
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' }),
-          plan: {
-            operationItemId: OPERATION_ITEM_ID,
-            family: 'codeweaver',
-            flowId: null,
-            packageNames: [],
-            batches: [],
-            plannerMarks: [],
-          },
+          plan: zeroPieceEnvelope(),
         }),
       ).rejects.toThrow(
         /^quest-work: work item bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb is not on quest add-auth — nothing was written$/u,

@@ -1,11 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { CssColorOverrideStub } from '../../contracts/css-color-override/css-color-override.stub';
-import { CssDimensionStub } from '../../contracts/css-dimension/css-dimension.stub';
-import { CssSpacingStub } from '../../contracts/css-spacing/css-spacing.stub';
-import { FormInputValueStub } from '../../contracts/form-input-value/form-input-value.stub';
-import { FormPlaceholderStub } from '../../contracts/form-placeholder/form-placeholder.stub';
 import { FormInputWidget } from './form-input-widget';
 import { FormInputWidgetProxy } from './form-input-widget.proxy';
 import { document } from '#gateway/browser/document';
@@ -14,7 +9,7 @@ describe('FormInputWidget', () => {
   describe('rendering', () => {
     it('VALID: {value: "hello"} => renders input with value', () => {
       const proxy = FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'hello' });
+      const value = 'hello';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
@@ -24,8 +19,8 @@ describe('FormInputWidget', () => {
 
     it('VALID: {placeholder: "Enter..."} => renders input with placeholder attribute', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: '' });
-      const placeholder = FormPlaceholderStub({ value: 'Enter...' });
+      const value = '';
+      const placeholder = 'Enter...';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -39,8 +34,8 @@ describe('FormInputWidget', () => {
 
     it('VALID: {color: "#ff0000"} => renders with custom color', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'test' });
-      const color = CssColorOverrideStub({ value: '#ff0000' });
+      const value = 'test';
+      const color = '#ff0000';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -54,7 +49,7 @@ describe('FormInputWidget', () => {
 
     it('VALID: {no color} => renders with default theme text color', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'test' });
+      const value = 'test';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
@@ -66,8 +61,8 @@ describe('FormInputWidget', () => {
 
     it('VALID: {width: 200} => renders with custom width', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'test' });
-      const width = CssDimensionStub({ value: 200 });
+      const value = 'test';
+      const width = '200px';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -81,8 +76,8 @@ describe('FormInputWidget', () => {
 
     it('VALID: {mt: 8} => renders with custom margin top', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'test' });
-      const mt = CssSpacingStub({ value: 8 });
+      const value = 'test';
+      const mt = 8;
       const onChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -98,12 +93,12 @@ describe('FormInputWidget', () => {
   describe('interaction', () => {
     it('VALID: {type "world"} => calls onChange for each character', async () => {
       const proxy = FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: '' });
+      const value = '';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
-      await proxy.changeValue({ value: FormInputValueStub({ value: 'world' }) });
+      await proxy.changeValue({ value: 'world' });
 
       expect(onChange).toHaveBeenCalledWith('w');
     });
@@ -112,7 +107,7 @@ describe('FormInputWidget', () => {
   describe('autoFocus', () => {
     it('VALID: {autoFocus: true} => input is the active focused element', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: '' });
+      const value = '';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -126,7 +121,7 @@ describe('FormInputWidget', () => {
 
     it('VALID: {no autoFocus} => body is the active focused element', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: '' });
+      const value = '';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -140,7 +135,7 @@ describe('FormInputWidget', () => {
   describe('default values', () => {
     it('VALID: {no width} => defaults to 100% width', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'test' });
+      const value = 'test';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
@@ -152,7 +147,7 @@ describe('FormInputWidget', () => {
 
     it('VALID: {no mt} => defaults to 0 margin top', () => {
       FormInputWidgetProxy();
-      const value = FormInputValueStub({ value: 'test' });
+      const value = 'test';
       const onChange = jest.fn();
 
       mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });

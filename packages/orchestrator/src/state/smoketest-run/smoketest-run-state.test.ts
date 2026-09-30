@@ -1,4 +1,4 @@
-import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts/smoketest-run-id/smoketest-run-id.stub';
+import { ActiveSmoketestRunStub } from '../../contracts/active-smoketest-run/active-smoketest-run.stub';
 
 import { smoketestRunState } from './smoketest-run-state';
 
@@ -14,7 +14,7 @@ describe('smoketestRunState', () => {
 
   it('VALID: {start then getActive} => returns ActiveSmoketestRun with the supplied runId and suite', () => {
     smoketestRunState.end();
-    const runId = SmoketestRunIdStub();
+    const runId = ActiveSmoketestRunStub().runId;
     const suite = 'mcp';
 
     smoketestRunState.start({ runId, suite });
@@ -34,7 +34,7 @@ describe('smoketestRunState', () => {
     smoketestRunState.end();
 
     smoketestRunState.start({
-      runId: SmoketestRunIdStub(),
+      runId: ActiveSmoketestRunStub().runId,
       suite: 'mcp',
     });
     const whileActive = smoketestRunState.isActive();
@@ -46,7 +46,7 @@ describe('smoketestRunState', () => {
 
   it('VALID: {appendEvent} => events show up in getRecentEvents', () => {
     smoketestRunState.end();
-    const runId = SmoketestRunIdStub();
+    const runId = ActiveSmoketestRunStub().runId;
     const suite = 'signals';
 
     smoketestRunState.start({ runId, suite });

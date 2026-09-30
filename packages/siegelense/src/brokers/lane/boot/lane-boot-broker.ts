@@ -56,7 +56,6 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
-import { laneSpecContract } from '../../../contracts/lane-spec/lane-spec-contract';
 
 export const laneBootBroker = async ({
   spec,
@@ -77,10 +76,10 @@ export const laneBootBroker = async ({
   // typed overload instead of its untyped `any`-returning one; `contentTextContract.parse` accepts
   // `unknown` so a value already known non-undefined at runtime passes through with no type
   // predicate, and a genuinely undefined one is filtered out first.
-  const inheritedEnv: Record<PropertyKey, string> = Object.fromEntries(
-    Object.entries(envSnapshot())
-      .filter(([, value]) => value !== undefined)
-      .map(([key, value]): [PropertyKey, string] => [key, value]),
+  const inheritedEnv: Record<string, string> = Object.fromEntries(
+    Object.entries(envSnapshot()).flatMap(([key, value]): [string, string][] =>
+      value === undefined ? [] : [[key, value]],
+    ),
   );
 
   const cwdSeed = cwd();
