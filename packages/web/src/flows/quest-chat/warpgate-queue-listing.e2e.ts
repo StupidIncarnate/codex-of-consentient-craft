@@ -1,8 +1,6 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
-import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -20,12 +18,8 @@ const sessions = wireHarnessLifecycle({
   testObj: test,
 });
 
-// This spec only wants its quests ENQUEUED so the bar can list them — quest B is rewritten to
-// `blocked` on the line after its start. Start plays the dispatcher (QuestStartResponder, mirroring
-// resume) as part of the same request, and `POST /api/orchestration/dispatch/play` never refuses, so
-// nothing can hold the queue shut for the rest of the test. Instead, quest B's own start is followed
-// immediately by a real pause, before the rewrite to `blocked` — otherwise the dispatcher would
-// spawn a codeweaver against the empty mock queue underneath that rewrite.
+// Every quest is seeded to its status directly and none is started, so the dispatcher the e2e
+// fixture pauses stays paused and nothing writes quest.json underneath the spec's own file writes.
 test.describe('A merging quest is listed in the cross-guild execution queue', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
@@ -85,8 +79,10 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
       ],
     });
 
-    // Quest B: enqueued via Start, then driven to `blocked` (which the queue's own sync
-    // listener removes it for), then merged for real via the Merge route — the same
+    // Quest B: seeded straight to `blocked` and never started. A Start here plays the dispatcher,
+    // whose carve persists quest.json through the quest lock while this spec's raw file writes do
+    // not take it — a write that lands mid-carve is overwritten with the carve's status, and the
+    // merge below answers 400 "must be blocked or complete". Then merged for real via the Merge route — the same
     // OrchestrationMergeResponder the UI's Teleport with Booty button calls.
     const sessionIdB = `e2e-queue-b-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build the feature' });
@@ -103,7 +99,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
       questFolder: questFolderB,
       questFilePath: questFilePathB,
       title: 'Queue Listing Quest B',
-      status: 'approved',
+      status: 'blocked',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000b01',
@@ -120,34 +116,14 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
         },
       ],
     });
-    await dispatchHarness({ request, guildPath: GUILD_PATH }).startQuestViaStartRoute({
-      questId: QuestIdStub({ value: questIdB }),
-    });
-    // Stop the dispatcher this Start just played, before the rewrite to `blocked` below. The pause
-    // may land before or after the dispatcher claims a step; this spec wants nothing dispatched, and
-    // nothing below depends on which.
-    await dispatchPauseHarness({ request }).pause();
-
-    await quests.writeQuestFile({
-      questId: QuestIdStub({ value: questIdB }),
-      questFolder: questFolderB,
-      questFilePath: questFilePathB,
-      title: 'Queue Listing Quest B',
-      status: 'blocked',
-      workItems: [
-        {
-          id: 'e2e00000-0000-4000-8000-000000000b01',
-          role: 'chaoswhisperer',
-          sessionId: sessionIdB,
-        },
-      ],
-    });
 
     const { status: mergeStatus, body: mergeBody } = await quests.mergeQuestViaMergeRoute({
       questId: QuestIdStub({ value: questIdB }),
     });
-    expect(mergeStatus).toBe(HTTP_OK);
-    expect(mergeBody).toStrictEqual({ merging: true });
+    expect({ status: mergeStatus, body: mergeBody }).toStrictEqual({
+      status: HTTP_OK,
+      body: { merging: true },
+    });
 
     const afterMergeResponse = await request.get(`/api/quests/${questIdB}`);
     const afterMergeBody = await afterMergeResponse.json();
