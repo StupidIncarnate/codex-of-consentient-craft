@@ -240,7 +240,7 @@ export const modifyQuestInputContract = z
         'Orchestrator-only: snapshots the pre-pause status so resume can restore it. Stripped by the MCP layer so LLM callers cannot set it; set internally by the pause responder. Null is the clear marker written by the resume responder to remove the field from the persisted quest JSON.',
       )
       .optional(),
-    title: z.string().min(1).describe('New title for the quest').optional(),
+    title: z.string().min(1).brand<'ModifyQuestInputTitle'>().describe('New title for the quest').optional(),
     workItems: z
       .array(workItemForUpsertContract)
       .describe('Work items to upsert (existing ID updates, new ID adds)')
