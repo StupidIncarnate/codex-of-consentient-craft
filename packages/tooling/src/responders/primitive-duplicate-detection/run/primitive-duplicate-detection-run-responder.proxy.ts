@@ -1,9 +1,7 @@
 import { duplicateDetectionDetectBrokerProxy } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker.proxy';
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
@@ -14,8 +12,8 @@ const DEFAULT_CWD = AbsoluteFilePathStub({ value: '/tooling/default-cwd' });
 
 export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   callResponder: typeof PrimitiveDuplicateDetectionRunResponder;
-  setupNoDuplicates: (params?: { pattern?: GlobPattern }) => void;
-  setupWithSourceCode: (params: { sourceCode: SourceCode; pattern?: GlobPattern }) => void;
+  setupNoDuplicates: (params?: { pattern?: string }) => void;
+  setupWithSourceCode: (params: { sourceCode: SourceCode; pattern?: string }) => void;
   getStdoutOutput: () => readonly unknown[];
   getDefaultCwd: () => AbsoluteFilePath;
 } => {
@@ -27,17 +25,17 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   return {
     callResponder: PrimitiveDuplicateDetectionRunResponder,
 
-    setupNoDuplicates: ({ pattern = GlobPatternStub() }: { pattern?: GlobPattern } = {}): void => {
+    setupNoDuplicates: ({ pattern = '**/*.ts' }: { pattern?: string } = {}): void => {
       cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
       brokerProxy.setupFiles({ pattern, files: [] });
     },
 
     setupWithSourceCode: ({
       sourceCode,
-      pattern = GlobPatternStub(),
+      pattern = '**/*.ts',
     }: {
       sourceCode: SourceCode;
-      pattern?: GlobPattern;
+      pattern?: string;
     }): void => {
       cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
       brokerProxy.setupFiles({
