@@ -21,8 +21,6 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { servedImageContentContract } from '../../contracts/served-image-content/served-image-content-contract';
-import type { ServedImageContent } from '../../contracts/served-image-content/served-image-content-contract';
 
 // A URI scheme opening the target — `http:`, `https:`, `data:`, `blob:`. Anchored, so a path that
 // merely CONTAINS a colon is not mistaken for one.
@@ -32,9 +30,8 @@ export const imageTokenServeUrlTransformer = ({
   content,
 }: {
   content: string;
-}): ServedImageContent =>
-  servedImageContentContract.parse(
-    content.replace(
+}): string =>
+  content.replace(
       new RegExp(pastedImageStatics.imageTokenPattern, 'gu'),
       (match: string, ordinal: string, target: string) => {
         if (
@@ -46,5 +43,4 @@ export const imageTokenServeUrlTransformer = ({
 
         return `![Pasted Image ${ordinal}](${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(target)})`;
       },
-    ),
-  );
+    );
