@@ -8,7 +8,6 @@
 
 export * from './build-sequence/build-sequence-contract';
 
-export * from './call-index/call-index-contract';
 
 export * from './copies-target/copies-target-contract';
 

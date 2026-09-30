@@ -22,7 +22,6 @@
 import { rowRefContract } from '../../contracts/row-ref/row-ref-contract';
 import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
-import type { CallIndex } from '../../contracts/call-index/call-index-contract';
 import type { RowIndex } from '../../contracts/row-index/row-index-contract';
 import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
 
@@ -34,7 +33,7 @@ export const rowRefTransformer = ({
 }: {
   ancestors: readonly RowRef[];
   ingredient: IngredientName;
-  callIndex: CallIndex;
+  callIndex: number;
   index: RowIndex;
 }): RowRef => {
   const immediateParent = ancestors.at(-1);
