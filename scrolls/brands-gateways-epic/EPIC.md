@@ -129,11 +129,14 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:24, machine clock)
+### Now (updated at every event; last 2026-09-30 12:28, machine clock)
 
 | Running | Where |
 |---|---|
-| Z10 USAGE comment sweep (sonnet): sweep applied (460 files changed, uncommitted), hand queue and gates in progress | gateway-pivot checkout |
+| operator: final gate: `build:clean`, full `npm run ward`, `check:consumer`, `check:published` | gateway-pivot checkout |
+
+**Every P0 and P1 is done.** Z10 landed (ccca61231): 489 files of comments now name live contracts or plain values
+(census 767 lines to 114; the rest name live private contracts).
 
 **MASTER IS MERGED INTO gateway-pivot.** Whole-tree ward on the merged tree, run 1790795085930-be73 (1,096 s): lint
 11,511, typecheck 11,477, unit 4,176, integration 230, e2e 131, all green (exit 1 only on slow-lint flags, rule 21).
@@ -1049,7 +1052,7 @@ briefs, never forks. It still never builds or commits, and the operator's agent 
 | Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo (P3, after the merge) | operator splits per subpath |
 | Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo (P3, after the merge) | |
 | Z09 | Codeweaver prompts learn scripted work (user, 2026-09-30). **Planner:** when a quest holds operational flows (mainly local operations: setup, migrations, bulk file changes; also cloud configuration), the planner scopes which parts can be scripted, and for each flow names the terminal command that proves the work is done. **Worker:** a worker that builds a script always dry-runs it first, checks the result, and probes the edge cases it can before the real run, so it knows what result to expect. A script meant to run after the feature is complete gets the worker's best effort, plus written instructions on what to look for and what result to expect. | every A, B, G, T item | Z01–Z06 | todo (P2, after the merge) | Find the codeweaver planner and worker prompt sources (the `get-agent-prompt` MCP tool serves them) and name each file in the item's plan. |
-| Z10 | [USAGE comments naming deleted contracts](items/z10-usage-comment-sweep.md) | the master merge | — | todo (P1: runs in the merge worktree once it is green, before master) | Script `z10-scripts/usage-sweep.py` (dry run 573 lines in 450 files, 71 files to a hand queue); `usage-verify.py` fails on any changed non-comment line. |
+| Z10 | [USAGE comments naming deleted contracts](items/z10-usage-comment-sweep.md) | the master merge | — | done ccca61231 (P1) | Script `z10-scripts/usage-sweep.py` (dry run 573 lines in 450 files, 71 files to a hand queue); `usage-verify.py` fails on any changed non-comment line. |
 | Z08 | Slow tests: investigate every slow-file flag and load timeout recorded in F106 (and any found since), on a quiet machine | Z01–Z06 | before Z07 | todo | Tabled here by the user (2026-09-29): the refactor runs memory-heavy work in parallel, so slow tests are not chased before this. |
 | Z07 | [The finish line](items/z07-finish-line.md) | Z01–Z06, G27 | — | todo | runs alone |
 
