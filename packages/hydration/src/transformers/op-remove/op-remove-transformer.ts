@@ -10,7 +10,6 @@
  */
 import { opRemoveContract } from '../../contracts/op-remove/op-remove-contract';
 import type { OpRemove } from '../../contracts/op-remove/op-remove-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 
-export const opRemoveTransformer = ({ ref }: { ref: RowRef }): OpRemove =>
+export const opRemoveTransformer = ({ ref }: { ref: string }): OpRemove =>
   opRemoveContract.parse({ op: 'remove', ref });

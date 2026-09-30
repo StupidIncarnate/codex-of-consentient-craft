@@ -27,7 +27,6 @@ import type { RoutePlan } from '../../../contracts/route-plan/route-plan-contrac
 import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
-import type { RowRef } from '../../../contracts/row-ref/row-ref-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { SavedRecordName } from '../../../contracts/saved-record-name/saved-record-name-contract';
@@ -228,7 +227,7 @@ export const planPreflightBroker = ({
   // 6. REMOVED REFS — once a row is removed, no further verbs may target it (`remove`, `set`,
   // `saveRecordAs`, or extra verbs). Walking in declaration order catches verbs attempted on an
   // already-removed row handle before anything runs.
-  const removedRefs = new Set<RowRef>();
+  const removedRefs = new Set<string>();
   const removedRefCheckStack: HydrationOp[] = [...plan.ops].reverse();
   const verbByOp: Record<string, string> = {
     remove: 'remove',

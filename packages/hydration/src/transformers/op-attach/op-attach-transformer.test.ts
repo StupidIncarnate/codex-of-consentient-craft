@@ -1,7 +1,6 @@
 import { opAttachTransformer } from './op-attach-transformer';
 import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
 import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
 
 describe('opAttachTransformer', () => {
@@ -26,7 +25,7 @@ describe('opAttachTransformer', () => {
     const result = opAttachTransformer({
       ingredient: IngredientNameStub({ value: 'quest' }),
       callIndex: CallIndexStub({ value: 0 }),
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       where: FieldValuesStub({ id: 'q1' }),
     });
 

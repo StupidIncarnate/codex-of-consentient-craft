@@ -28,7 +28,6 @@ import { opCreateContract } from '../../contracts/op-create/op-create-contract';
 import { opSetContract } from '../../contracts/op-set/op-set-contract';
 import type { OpSet } from '../../contracts/op-set/op-set-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { isSavedRefGuard } from '../../guards/is-saved-ref/is-saved-ref-guard';
@@ -42,7 +41,7 @@ export const planFoldWritesTransformer = ({ plan }: { plan: HydrationPlan }): Hy
   // membership test a fold needs, with no numeric position to compare.
   const walkStack: HydrationOp[] = [...plan.ops].reverse();
   const savedSoFar = new Set<SavedRecordName>();
-  const savedBeforeRef = new Map<RowRef, ReadonlySet<SavedRecordName>>();
+  const savedBeforeRef = new Map<string, ReadonlySet<SavedRecordName>>();
 
   while (walkStack.length > 0) {
     const op = walkStack.pop();
@@ -61,10 +60,10 @@ export const planFoldWritesTransformer = ({ plan }: { plan: HydrationPlan }): Hy
 
   // Only a top-level `set` is ever a fold candidate — see this file's own PURPOSE for why a
   // filter's nested `set` never matches a `create.ref` here.
-  const foldedFieldsByRef = new Map<RowRef, FieldValues>();
+  const foldedFieldsByRef = new Map<string, FieldValues>();
   const droppedSets = new Set<HydrationOp>();
   const transitionOnlySets = new Map<HydrationOp, OpSet>();
-  const removedRefs = new Set<RowRef>();
+  const removedRefs = new Set<string>();
 
   for (const op of plan.ops) {
     if (op.op === 'remove') {

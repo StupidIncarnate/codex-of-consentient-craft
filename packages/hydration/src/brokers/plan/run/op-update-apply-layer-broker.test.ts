@@ -5,7 +5,6 @@ import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingre
 import { TransitionSpecStub } from '../../../contracts/transition-spec/transition-spec.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { HydrationRecordShapeError } from '../../../errors/hydration-record-shape/hydration-record-shape-error';
 import { HydrationRouteFailedError } from '../../../errors/hydration-route-failed/hydration-route-failed-error';
 
@@ -31,7 +30,7 @@ describe('opUpdateApplyLayerBroker', () => {
         },
       });
       const state = HydrationRunStateStub({});
-      const ref = RowRefStub({ value: 'guild[0:0]/quest[0:0]' });
+      const ref = 'guild[0:0]/quest[0:0]';
       state.records.set(ref, { id: 'q1', title: 'Old title' });
       const op = OpSetStub({ ref: 'guild[0:0]/quest[0:0]', written: { title: 'New title' } });
 
@@ -57,7 +56,7 @@ describe('opUpdateApplyLayerBroker', () => {
         }),
       });
       const state = HydrationRunStateStub({});
-      const ref = RowRefStub({ value: 'quest[0:0]' });
+      const ref = 'quest[0:0]';
       state.records.set(ref, { id: 'q1', title: 'Quest 1', status: 'created' });
       const op = OpSetStub({
         ref: 'quest[0:0]',
@@ -90,7 +89,7 @@ describe('opUpdateApplyLayerBroker', () => {
         },
       });
       const state = HydrationRunStateStub({});
-      const ref = RowRefStub({ value: 'quest[0:0]' });
+      const ref = 'quest[0:0]';
       state.records.set(ref, { id: 'q1', title: 'Quest 1' });
       const op = OpSetStub({ ref: 'quest[0:0]', written: {} });
 
@@ -127,7 +126,7 @@ describe('opUpdateApplyLayerBroker', () => {
         }),
       });
       const state = HydrationRunStateStub({});
-      const ref = RowRefStub({ value: 'quest[0:0]' });
+      const ref = 'quest[0:0]';
       state.records.set(ref, { id: 'q1', title: 'Old title' });
       const op = OpSetStub({
         ref: 'quest[0:0]',

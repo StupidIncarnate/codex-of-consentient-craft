@@ -5,7 +5,6 @@ import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingre
 import { LinkSpecStub } from '../../../contracts/link-spec/link-spec.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { SavedRefStub } from '../../../contracts/saved-ref/saved-ref.stub';
 import { HydrationRecordShapeError } from '../../../errors/hydration-record-shape/hydration-record-shape-error';
 import { HydrationRouteFailedError } from '../../../errors/hydration-route-failed/hydration-route-failed-error';
@@ -29,8 +28,8 @@ describe('opCreateApplyLayerBroker', () => {
         },
       });
       const state = HydrationRunStateStub({});
-      state.records.set(RowRefStub({ value: 'guild[0:0]' }), { id: 'g1' });
-      state.records.set(RowRefStub({ value: 'quest[0:0]' }), { id: 'q1' });
+      state.records.set('guild[0:0]', { id: 'g1' });
+      state.records.set('quest[0:0]', { id: 'q1' });
       const op = OpCreateStub({
         ingredient: 'operation',
         ref: 'guild[0:0]/quest[0:0]/operation[0:0]',
@@ -107,7 +106,7 @@ describe('opCreateApplyLayerBroker', () => {
         state,
       });
 
-      expect(state.records.get(RowRefStub({ value: 'guild[0:0]' }))).toStrictEqual({
+      expect(state.records.get('guild[0:0]')).toStrictEqual({
         id: 'g1',
         title: 'Siege',
       });

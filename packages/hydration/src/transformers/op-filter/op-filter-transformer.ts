@@ -20,7 +20,6 @@
 import { opFilterContract } from '../../contracts/op-filter/op-filter-contract';
 import type { OpFilter } from '../../contracts/op-filter/op-filter-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { matchedRefTransformer } from '../matched-ref/matched-ref-transformer';
@@ -33,7 +32,7 @@ export const opFilterTransformer = ({
   ops,
 }: {
   ingredient: IngredientName;
-  scope?: RowRef;
+  scope?: string;
   where: FieldValues;
   expect?: FilterExpect;
   ops: OpFilter['ops'];

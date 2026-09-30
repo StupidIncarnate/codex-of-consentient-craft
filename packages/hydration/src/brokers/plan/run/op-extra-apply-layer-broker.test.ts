@@ -4,7 +4,6 @@ import { OpExtraStub } from '../../../contracts/op-extra/op-extra.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { nestedChainArgsContract } from '../../../../test/type-fixtures/dm-target';
 
 describe('opExtraApplyLayerBroker', () => {
@@ -24,7 +23,7 @@ describe('opExtraApplyLayerBroker', () => {
       },
     });
     const state = HydrationRunStateStub({});
-    const ref = RowRefStub({ value: 'guild[0:0]/session[0:0]' });
+    const ref = 'guild[0:0]/session[0:0]';
     state.records.set(ref, { sessionId: 's1', url: 'x' });
     const op = OpExtraStub({
       ref: 'guild[0:0]/session[0:0]',

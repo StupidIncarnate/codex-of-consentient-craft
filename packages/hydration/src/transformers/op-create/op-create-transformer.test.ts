@@ -2,7 +2,6 @@ import { opCreateTransformer } from './op-create-transformer';
 import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
 import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
 import { RowIndexStub } from '../../contracts/row-index/row-index.stub';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
 
 describe('opCreateTransformer', () => {
@@ -11,7 +10,7 @@ describe('opCreateTransformer', () => {
       ingredient: IngredientNameStub({ value: 'quest' }),
       callIndex: CallIndexStub({ value: 0 }),
       index: RowIndexStub({ value: 1 }),
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       fields: FieldValuesStub({ title: 'The running one' }),
     });
 
@@ -49,7 +48,7 @@ describe('opCreateTransformer', () => {
       ingredient: IngredientNameStub({ value: 'quest' }),
       callIndex: CallIndexStub({ value: 1 }),
       index: RowIndexStub({ value: 0 }),
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       fields: FieldValuesStub({ title: 'Quest 1' }),
     });
 

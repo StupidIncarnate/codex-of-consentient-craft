@@ -4,7 +4,6 @@ import { OpRemoveStub } from '../../../contracts/op-remove/op-remove.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 
 describe('opRemoveApplyLayerBroker', () => {
   it('VALID: {a remove targeting a created row} => the route received that row’s record', async () => {
@@ -21,7 +20,7 @@ describe('opRemoveApplyLayerBroker', () => {
       },
     });
     const state = HydrationRunStateStub({});
-    const ref = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[0:0]' });
+    const ref = 'guild[0:0]/quest[0:0]/operation[0:0]';
     state.records.set(ref, { id: 'op1', role: 'riftcarver' });
     const op = OpRemoveStub({ ref: 'guild[0:0]/quest[0:0]/operation[0:0]' });
 
@@ -40,7 +39,7 @@ describe('opRemoveApplyLayerBroker', () => {
       routes: { write: (): unknown => undefined, remove: (): unknown => undefined },
     });
     const state = HydrationRunStateStub({});
-    const ref = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[0:0]' });
+    const ref = 'guild[0:0]/quest[0:0]/operation[0:0]';
     state.records.set(ref, { id: 'op1', role: 'riftcarver' });
     const op = OpRemoveStub({ ref: 'guild[0:0]/quest[0:0]/operation[0:0]' });
 
@@ -64,10 +63,10 @@ describe('opRemoveApplyLayerBroker', () => {
       routes: { write: (): unknown => undefined, remove: (): unknown => undefined },
     });
     const state = HydrationRunStateStub({});
-    const parentRef = RowRefStub({ value: 'guild[0:0]' });
-    const childRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]' });
-    const grandchildRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[0:0]' });
-    const siblingRef = RowRefStub({ value: 'guild[0:1]' });
+    const parentRef = 'guild[0:0]';
+    const childRef = 'guild[0:0]/quest[0:0]';
+    const grandchildRef = 'guild[0:0]/quest[0:0]/operation[0:0]';
+    const siblingRef = 'guild[0:1]';
 
     state.records.set(parentRef, { id: 'g1' });
     state.records.set(childRef, { id: 'q1' });
@@ -121,9 +120,9 @@ describe('opRemoveApplyLayerBroker', () => {
       },
     });
     const state = HydrationRunStateStub({});
-    const parentRef = RowRefStub({ value: 'guild[0:0]' });
-    const childRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]' });
-    const grandchildRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[0:0]' });
+    const parentRef = 'guild[0:0]';
+    const childRef = 'guild[0:0]/quest[0:0]';
+    const grandchildRef = 'guild[0:0]/quest[0:0]/operation[0:0]';
 
     state.records.set(parentRef, { id: 'g1' });
     state.records.set(childRef, { id: 'q1' });

@@ -15,7 +15,6 @@
  */
 import { opSetContract } from '../../contracts/op-set/op-set-contract';
 import type { OpSet } from '../../contracts/op-set/op-set-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import type { TransitionSpec } from '../../contracts/transition-spec/transition-spec-contract';
 
@@ -24,7 +23,7 @@ export const opSetTransformer = ({
   values,
   transitions,
 }: {
-  ref: RowRef;
+  ref: string;
   values: FieldValues;
   transitions?: TransitionSpec;
 }): OpSet => {

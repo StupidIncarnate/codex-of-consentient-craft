@@ -19,8 +19,6 @@
  * rowRefTransformer({ ancestors: ['guild[0:0]'], ingredient: 'quest', callIndex: 0, index: 2 });
  * // Returns the branded RowRef 'guild[0:0]/quest[0:2]'
  */
-import { rowRefContract } from '../../contracts/row-ref/row-ref-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import type { RowIndex } from '../../contracts/row-index/row-index-contract';
 import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
@@ -31,13 +29,13 @@ export const rowRefTransformer = ({
   callIndex,
   index,
 }: {
-  ancestors: readonly RowRef[];
+  ancestors: readonly string[];
   ingredient: IngredientName;
   callIndex: number;
   index: RowIndex;
-}): RowRef => {
+}): string => {
   const immediateParent = ancestors.at(-1);
   const ownSegment = `${ingredient}[${callIndex}${rowRefStatics.slot.separator}${index}]`;
   const combined = immediateParent === undefined ? ownSegment : `${immediateParent}/${ownSegment}`;
-  return rowRefContract.parse(combined);
+  return combined;
 };

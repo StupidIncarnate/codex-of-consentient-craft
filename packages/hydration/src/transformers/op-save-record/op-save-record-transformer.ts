@@ -10,13 +10,12 @@
  */
 import { opSaveRecordContract } from '../../contracts/op-save-record/op-save-record-contract';
 import type { OpSaveRecord } from '../../contracts/op-save-record/op-save-record-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 
 export const opSaveRecordTransformer = ({
   ref,
   name,
 }: {
-  ref: RowRef;
+  ref: string;
   name: SavedRecordName;
 }): OpSaveRecord => opSaveRecordContract.parse({ op: 'saveRecord', ref, name });

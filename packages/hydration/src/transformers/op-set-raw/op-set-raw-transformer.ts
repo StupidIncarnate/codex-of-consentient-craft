@@ -11,8 +11,7 @@
  */
 import { opSetContract } from '../../contracts/op-set/op-set-contract';
 import type { OpSet } from '../../contracts/op-set/op-set-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 
-export const opSetRawTransformer = ({ ref, values }: { ref: RowRef; values: FieldValues }): OpSet =>
+export const opSetRawTransformer = ({ ref, values }: { ref: string; values: FieldValues }): OpSet =>
   opSetContract.parse({ op: 'set', ref, written: values });

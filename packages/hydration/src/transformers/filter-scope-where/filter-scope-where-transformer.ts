@@ -16,7 +16,6 @@
  */
 import { rowRefIngredientTransformer } from '../row-ref-ingredient/row-ref-ingredient-transformer';
 import type { LinkSpec } from '../../contracts/link-spec/link-spec-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 
 export const filterScopeWhereTransformer = ({
@@ -26,9 +25,9 @@ export const filterScopeWhereTransformer = ({
   records,
 }: {
   where: FieldValues;
-  scope?: RowRef;
+  scope?: string;
   links: readonly LinkSpec[];
-  records: Map<RowRef, unknown>;
+  records: Map<string, unknown>;
 }): FieldValues => {
   if (scope === undefined) {
     return where;

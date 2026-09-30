@@ -9,9 +9,8 @@
  */
 import { ingredientNameContract } from '../../contracts/ingredient-name/ingredient-name-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 
-export const rowRefIngredientTransformer = ({ rowRef }: { rowRef: RowRef }): IngredientName => {
+export const rowRefIngredientTransformer = ({ rowRef }: { rowRef: string }): IngredientName => {
   const lastSegment = rowRef.split('/').at(-1) ?? '';
   const ingredientName = lastSegment.split('[').at(0) ?? '';
   return ingredientNameContract.parse(ingredientName);

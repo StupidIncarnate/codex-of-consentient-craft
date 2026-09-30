@@ -3,7 +3,6 @@ import { rowRefTransformer } from '../row-ref/row-ref-transformer';
 import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
 import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
 import { RowIndexStub } from '../../contracts/row-index/row-index.stub';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 
 describe('matchedRefTransformer', () => {
   it('VALID: {ancestors: [], ingredient: operation} => returns "operation[match]"', () => {
@@ -17,7 +16,7 @@ describe('matchedRefTransformer', () => {
 
   it('VALID: {ancestors: [guild[0:0]/quest[0:0]], ingredient: operation} => returns "guild[0:0]/quest[0:0]/operation[match]"', () => {
     const result = matchedRefTransformer({
-      ancestors: [RowRefStub({ value: 'guild[0:0]/quest[0:0]' })],
+      ancestors: ['guild[0:0]/quest[0:0]'],
       ingredient: IngredientNameStub({ value: 'operation' }),
     });
 
@@ -27,8 +26,8 @@ describe('matchedRefTransformer', () => {
   it('VALID: {ancestors: [guild[0:0], guild[0:0]/quest[0:0]], ingredient: operation} => returns "guild[0:0]/quest[0:0]/operation[match]", not a doubled path', () => {
     const result = matchedRefTransformer({
       ancestors: [
-        RowRefStub({ value: 'guild[0:0]' }),
-        RowRefStub({ value: 'guild[0:0]/quest[0:0]' }),
+        'guild[0:0]',
+        'guild[0:0]/quest[0:0]',
       ],
       ingredient: IngredientNameStub({ value: 'operation' }),
     });
@@ -38,11 +37,11 @@ describe('matchedRefTransformer', () => {
 
   it('VALID: {two calls sharing an ancestor and an ingredient} => returns the identical placeholder both times', () => {
     const first = matchedRefTransformer({
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       ingredient: IngredientNameStub({ value: 'quest' }),
     });
     const second = matchedRefTransformer({
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       ingredient: IngredientNameStub({ value: 'quest' }),
     });
 
@@ -51,11 +50,11 @@ describe('matchedRefTransformer', () => {
 
   it('VALID: {a filter placeholder and a real add-created row at the same ancestors, ingredient and index} => the two refs differ', () => {
     const placeholder = matchedRefTransformer({
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       ingredient: IngredientNameStub({ value: 'quest' }),
     });
     const realRow = rowRefTransformer({
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ancestors: ['guild[0:0]'],
       ingredient: IngredientNameStub({ value: 'quest' }),
       callIndex: CallIndexStub({ value: 0 }),
       index: RowIndexStub({ value: 0 }),

@@ -1,12 +1,11 @@
 import { matchedRowRebindTransformer } from './matched-row-rebind-transformer';
 import { HydrationRunStateStub } from '../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 
 describe('matchedRowRebindTransformer', () => {
   describe('rebinding the placeholder onto a real row', () => {
     it('VALID: {a matched record} => the returned state resolves matchedRef to that record', () => {
       const state = HydrationRunStateStub({});
-      const matchedRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[match]' });
+      const matchedRef = 'guild[0:0]/quest[0:0]/operation[match]';
 
       const rebound = matchedRowRebindTransformer({
         state,
@@ -19,7 +18,7 @@ describe('matchedRowRebindTransformer', () => {
 
     it('VALID: {a second matched record} => rebinding again replaces what the placeholder resolves to', () => {
       const state = HydrationRunStateStub({});
-      const matchedRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[match]' });
+      const matchedRef = 'guild[0:0]/quest[0:0]/operation[match]';
       const first = matchedRowRebindTransformer({
         state,
         matchedRef,
@@ -39,7 +38,7 @@ describe('matchedRowRebindTransformer', () => {
   describe('purity — the input state is left untouched', () => {
     it('VALID: {rebind onto a fresh state} => the original state’s records map does not gain the entry', () => {
       const state = HydrationRunStateStub({});
-      const matchedRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[match]' });
+      const matchedRef = 'guild[0:0]/quest[0:0]/operation[match]';
 
       matchedRowRebindTransformer({ state, matchedRef, record: { id: 'op1' } });
 
@@ -47,10 +46,10 @@ describe('matchedRowRebindTransformer', () => {
     });
 
     it('VALID: {a state already holding other rows} => those rows survive alongside the rebind', () => {
-      const otherRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]' });
+      const otherRef = 'guild[0:0]/quest[0:0]';
       const state = HydrationRunStateStub({});
       state.records.set(otherRef, { id: 'q1' });
-      const matchedRef = RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[match]' });
+      const matchedRef = 'guild[0:0]/quest[0:0]/operation[match]';
 
       const rebound = matchedRowRebindTransformer({ state, matchedRef, record: { id: 'op1' } });
 

@@ -11,7 +11,6 @@ import { TransitionSpecStub } from '../../../contracts/transition-spec/transitio
 import { LinkSpecStub } from '../../../contracts/link-spec/link-spec.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { HydrationQueryFailedError } from '../../../errors/hydration-query-failed/hydration-query-failed-error';
 import { HydrationFilterExpectationError } from '../../../errors/hydration-filter-expectation/hydration-filter-expectation-error';
 import { HydrationNestedIngredientUnregisteredError } from '../../../errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
@@ -120,7 +119,7 @@ describe('opFilterApplyLayerBroker', () => {
       });
       const target = HydrationTargetStub({});
       const state = HydrationRunStateStub({});
-      state.records.set(RowRefStub({ value: 'quest[0:0]' }), { id: 'q1', status: 'created' });
+      state.records.set('quest[0:0]', { id: 'q1', status: 'created' });
 
       await opSetApplyLayerBroker({
         op: OpSetStub({
@@ -172,9 +171,9 @@ describe('opFilterApplyLayerBroker', () => {
       });
       const target = HydrationTargetStub({});
       const state = HydrationRunStateStub({});
-      const scope = RowRefStub({ value: 'guild[0:0]/quest[0:0]' });
+      const scope = 'guild[0:0]/quest[0:0]';
       state.records.set(scope, { id: 'q0' });
-      state.records.set(RowRefStub({ value: 'guild[0:0]/quest[0:1]' }), { id: 'q1' });
+      state.records.set('guild[0:0]/quest[0:1]', { id: 'q1' });
 
       const filterOp = OpFilterStub({
         ingredient: 'operation',

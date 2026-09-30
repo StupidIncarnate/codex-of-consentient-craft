@@ -10,7 +10,6 @@ import {
 } from '../../../test/type-fixtures/dm-target';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 
 type IngredientConfigData = ReturnType<typeof IngredientConfigStub>;
 type HydrationOp = ReturnType<typeof HydrationOpStub>;
@@ -25,7 +24,7 @@ describe('rowHandleChainTransformer', () => {
         sessions: sessionIngredient,
       },
       ingredientConfig: guildIngredient as unknown as IngredientConfigData,
-      ref: RowRefStub({ value: 'guild[0:0]' }),
+      ref: 'guild[0:0]',
       ancestors: [],
       ancestorNames: [],
     });
@@ -54,7 +53,7 @@ describe('rowHandleChainTransformer', () => {
         sessions: sessionIngredient,
       },
       ingredientConfig: guildIngredient as unknown as IngredientConfigData,
-      ref: RowRefStub({ value: 'guild[0:0]' }),
+      ref: 'guild[0:0]',
       ancestors: [],
       ancestorNames: [],
     });
@@ -82,8 +81,8 @@ describe('rowHandleChainTransformer', () => {
         sessions: sessionIngredient,
       },
       ingredientConfig: questIngredient as unknown as IngredientConfigData,
-      ref: RowRefStub({ value: 'guild[0:0]/quest[0:0]' }),
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ref: 'guild[0:0]/quest[0:0]',
+      ancestors: ['guild[0:0]'],
       ancestorNames: ['guild'] as never,
     });
 
@@ -116,7 +115,7 @@ describe('rowHandleChainTransformer', () => {
         sessions: sessionIngredient,
       },
       ingredientConfig: questIngredient as unknown as IngredientConfigData,
-      ref: RowRefStub({ value: 'quest[0:0]' }),
+      ref: 'quest[0:0]',
       ancestors: [],
       ancestorNames: ['guild'] as never,
       under: { guildId: 'guild-1' },
@@ -154,7 +153,7 @@ describe('rowHandleChainTransformer', () => {
         sessions: sessionIngredient,
       },
       ingredientConfig: questIngredient as unknown as IngredientConfigData,
-      ref: RowRefStub({ value: 'quest[0:0]' }),
+      ref: 'quest[0:0]',
       ancestors: [],
       ancestorNames: ['guild'] as never,
       under: { guildId: 'cascaded-guild' },
@@ -185,8 +184,8 @@ describe('rowHandleChainTransformer', () => {
         sessions: sessionIngredient,
       },
       ingredientConfig: sessionIngredient as unknown as IngredientConfigData,
-      ref: RowRefStub({ value: 'guild[0:0]/session[0:0]' }),
-      ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+      ref: 'guild[0:0]/session[0:0]',
+      ancestors: ['guild[0:0]'],
       ancestorNames: ['guild'] as never,
     });
 

@@ -35,7 +35,6 @@ import type {
   AnyIngredient,
   IngredientConfigData,
 } from '../../contracts/ingredient-config/ingredient-config-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
@@ -61,8 +60,8 @@ export const rowHandleChainTransformer = <
 }: {
   registry: R;
   ingredientConfig: IngredientConfigData;
-  ref: RowRef;
-  ancestors: readonly RowRef[];
+  ref: string;
+  ancestors: readonly string[];
   ancestorNames: readonly IngredientName[];
   under?: Record<string, unknown>;
 }): Handle<R, I, Anc> => {

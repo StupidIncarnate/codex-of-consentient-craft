@@ -23,7 +23,6 @@
  */
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { matchedSetContract } from '../../contracts/matched-set/matched-set-contract';
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
@@ -48,7 +47,7 @@ export const matchedSetChainTransformer = <I>({
 }: {
   ingredientConfig: IngredientConfigData;
   ingredient: IngredientName;
-  scope?: RowRef;
+  scope?: string;
   where: Record<string, unknown>;
   expect?: FilterExpect;
 }): Matched<I> => {

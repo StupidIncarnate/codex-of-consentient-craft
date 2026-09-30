@@ -1,12 +1,11 @@
 import { opSetTransformer } from './op-set-transformer';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
 import { TransitionSpecStub } from '../../contracts/transition-spec/transition-spec.stub';
 
 describe('opSetTransformer', () => {
   it('VALID: {status: in_progress, title: The running one} with transitions on status => splits written from transition', () => {
     const result = opSetTransformer({
-      ref: RowRefStub({ value: 'guild[0:0]/quest[0:2]' }),
+      ref: 'guild[0:0]/quest[0:2]',
       values: FieldValuesStub({ status: 'in_progress', title: 'The running one' }),
       transitions: TransitionSpecStub({ field: 'status', to: ['created', 'in_progress'] }),
     });
@@ -21,7 +20,7 @@ describe('opSetTransformer', () => {
 
   it('VALID: {transitions omitted} => writes every field and carries no transition key', () => {
     const result = opSetTransformer({
-      ref: RowRefStub({ value: 'guild[0:0]/quest[0:2]' }),
+      ref: 'guild[0:0]/quest[0:2]',
       values: FieldValuesStub({ title: 'plain field, written' }),
     });
 
@@ -34,7 +33,7 @@ describe('opSetTransformer', () => {
 
   it('VALID: {transitions declared but the walked field is absent from values} => writes every field and carries no transition key', () => {
     const result = opSetTransformer({
-      ref: RowRefStub({ value: 'guild[0:0]/quest[0:2]' }),
+      ref: 'guild[0:0]/quest[0:2]',
       values: FieldValuesStub({ title: 'only the plain field' }),
       transitions: TransitionSpecStub({ field: 'status', to: ['created', 'in_progress'] }),
     });

@@ -14,7 +14,6 @@
 import { opAttachContract } from '../../contracts/op-attach/op-attach-contract';
 import type { OpAttach } from '../../contracts/op-attach/op-attach-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { CallIndex } from '../../contracts/call-index/call-index-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { rowIndexContract } from '../../contracts/row-index/row-index-contract';
@@ -30,7 +29,7 @@ export const opAttachTransformer = ({
 }: {
   ingredient: IngredientName;
   callIndex: CallIndex;
-  ancestors: readonly RowRef[];
+  ancestors: readonly string[];
   where: FieldValues;
 }): OpAttach => {
   const ref = rowRefTransformer({ ancestors, ingredient, callIndex, index: ATTACH_ROW_INDEX });

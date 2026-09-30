@@ -4,7 +4,6 @@ import { OpAttachStub } from '../../../contracts/op-attach/op-attach.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hydration-run-state.stub';
-import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { HydrationQueryFailedError } from '../../../errors/hydration-query-failed/hydration-query-failed-error';
 import type { HydrationFilterExpectationError } from '../../../errors/hydration-filter-expectation/hydration-filter-expectation-error';
 import { HydrationRecordShapeError } from '../../../errors/hydration-record-shape/hydration-record-shape-error';
@@ -30,7 +29,7 @@ describe('opAttachApplyLayerBroker', () => {
         state,
       });
 
-      expect(result.records.get(RowRefStub({ value: 'quest[0:0]' }))).toStrictEqual({
+      expect(result.records.get('quest[0:0]')).toStrictEqual({
         id: 'q1',
         title: 'Existing quest',
       });

@@ -20,7 +20,6 @@
 import { linkValuesResultContract } from '../../contracts/link-values-result/link-values-result-contract';
 import type { LinkValuesResult } from '../../contracts/link-values-result/link-values-result-contract';
 import type { LinkSpec } from '../../contracts/link-spec/link-spec-contract';
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { rowRefIngredientTransformer } from '../row-ref-ingredient/row-ref-ingredient-transformer';
 
@@ -31,9 +30,9 @@ export const linkValuesTransformer = ({
   records,
 }: {
   links: readonly LinkSpec[];
-  ancestors: readonly RowRef[];
+  ancestors: readonly string[];
   ownFields: FieldValues;
-  records: Map<RowRef, unknown>;
+  records: Map<string, unknown>;
 }): LinkValuesResult => {
   const values: Record<string, unknown> = {};
 

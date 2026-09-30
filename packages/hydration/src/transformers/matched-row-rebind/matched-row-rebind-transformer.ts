@@ -13,7 +13,6 @@
  * });
  * // Returns a HydrationRunState whose records map also holds that record under matchedRef
  */
-import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { HydrationRunState } from '../../contracts/hydration-run-state/hydration-run-state-contract';
 
 export const matchedRowRebindTransformer = ({
@@ -22,7 +21,7 @@ export const matchedRowRebindTransformer = ({
   record,
 }: {
   state: HydrationRunState;
-  matchedRef: RowRef;
+  matchedRef: string;
   record: unknown;
 }): HydrationRunState => ({
   ...state,

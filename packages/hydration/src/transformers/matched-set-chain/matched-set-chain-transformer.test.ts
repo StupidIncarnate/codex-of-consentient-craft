@@ -8,7 +8,6 @@ import {
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
 import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
-import { RowRefStub } from '../../contracts/row-ref/row-ref.stub';
 
 type IngredientConfigData = ReturnType<typeof IngredientConfigStub>;
 type HydrationOp = ReturnType<typeof HydrationOpStub>;
@@ -18,7 +17,7 @@ describe('matchedSetChainTransformer', () => {
     const matched = matchedSetChainTransformer<typeof operationIngredient>({
       ingredientConfig: operationIngredient as unknown as IngredientConfigData,
       ingredient: IngredientNameStub({ value: 'operation' }),
-      scope: RowRefStub({ value: 'guild[0:0]/quest[0:0]' }),
+      scope: 'guild[0:0]/quest[0:0]',
       where: { role: 'riftcarver' },
       expect: 'one',
     });
