@@ -129,14 +129,21 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 13:05)
+### Now (updated at every event; last 2026-09-30 13:35)
 
-| Running (in merge worktree W) | Owns |
+| Running (3, in merge worktree W, sonnet) | Owns |
 |---|---|
-| merge round 2: server and orchestrator (opus) | `StartOrchestratorProxy` addGuild/updateGuild read-backs, DEF-136/137 never-called assertions back, request-log flow on `#gateway/npm/hono` |
-| operator | whole-tree `lint,typecheck,unit,integration` ward in W |
+| merge r3: hydration-recipes | master's nested-subagent recipes mint plain `toolUseId` (use `toolUseContract.shape.id`); `operation-remove-route` test lint and one unit red |
+| merge r3: server and siegelense | master's `quest-start-body` contract on `#gateway/npm/zod` and branded, its zod 4 message; request-log harness off the `process` global; siegelense phantom `stderrProxy` |
+| merge r3: web | master's DEF-148 not-found flow and page on gateway imports |
 
-**Just landed:** **W typechecks at 0 errors in all 21 packages** (`diag.cjs --full`, `<W>/tmp/merge-master/diag-r3.json`;
+**Whole-tree ward in W (run 1790794045495-a0d6, lint/typecheck/unit/integration, 770 s):** 11,503 of 11,511 lint files,
+typecheck red only in hydration-recipes' `toolUseId` (seen through server and web too), unit 4,174 of 4,176,
+integration 229 of 230. The integration red was hooks' `start-pre-edit-hook.integration.test.ts` timing out under load;
+it passes alone (1790794838115-80fc), so it goes into F106 (rule 21). Every red is in master's newer code; the three
+agents above own them all.
+
+**Earlier:** merge round 2 done (DEF-136/137 never-called assertions back via `StartOrchestratorProxy` read-backs, gate 1790793946535-3506, integration 1790794020410-55e7). **W typechecks at 0 errors in all 21 packages** (`diag.cjs --full`, `<W>/tmp/merge-master/diag-r3.json`;
 700 this morning). All eight merge fixers are done; the last, siegelense brokers A (gate 1790793873663-43da,
 integration 1790793856816-e8b0), kept DEF-110, DEF-144/145/157/158 and the instance-reset restart on gateway calls and
 restored the two dropped parse wraps. Every fixer's LOST-OURS and DEF CHECK is in its report; each DEF test named passed.
