@@ -11,8 +11,6 @@
 
 import type { Flow, FlowId } from '@dungeonmaster/shared/contracts';
 
-import type { OperationFlowLabel } from '../../contracts/operation-flow-label/operation-flow-label-contract';
-import { operationFlowLabelContract } from '../../contracts/operation-flow-label/operation-flow-label-contract';
 
 export const operationFlowLabelsTransformer = ({
   flowIds,
@@ -20,10 +18,10 @@ export const operationFlowLabelsTransformer = ({
 }: {
   flowIds: readonly FlowId[];
   flows: readonly Flow[];
-}): OperationFlowLabel[] => {
+}): string[] => {
   const namesById = new Map(flows.map((flow) => [String(flow.id), String(flow.name)]));
 
   return flowIds.map((flowId) =>
-    operationFlowLabelContract.parse(namesById.get(String(flowId)) ?? String(flowId)),
+    (namesById.get(String(flowId)) ?? String(flowId)),
   );
 };
