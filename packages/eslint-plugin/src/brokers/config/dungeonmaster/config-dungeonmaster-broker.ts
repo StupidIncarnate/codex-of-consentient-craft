@@ -186,20 +186,20 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/require-contract-parse': 'off',
     // R9: an object contract name declared by two workspace packages. Ward-only (reads every package).
     // Off until W10: scalar duplicates are not scanned, and the object duplicates go in wave W2.
-    '@dungeonmaster/enforce-unique-contract-names': 'off',
+    '@dungeonmaster/enforce-unique-contract-names': 'error',
     // R8: a key or parameter named for another owner's field reuses that field (`Quest['id']`,
     // `questContract.shape.id`), with an autofix. Ward-only (reads every package). Off until W3 has
     // moved the owned-id parameters: it flags every plain-string `questId` today.
-    '@dungeonmaster/enforce-owner-field-reuse': 'off',
+    '@dungeonmaster/enforce-owner-field-reuse': 'error',
     // R2: the syntax half of the brand rules (B1, B2, B3), with an autofix that writes the derived
     // text. Off until the brand migration has branded every contract: it flags every object contract
     // that has no brand yet. Reads only the linted file, so it is tagged 'pre-edit'.
-    '@dungeonmaster/require-object-contract-brands': 'off',
+    '@dungeonmaster/require-object-contract-brands': 'error',
     // R7: the indexed half of the brand rules: a leaf with no brand (skipping keys
     // enforce-owner-field-reuse claims) and a layer contract's text and importers, with an autofix.
     // Ward-only (reads every package's owner index), so it carries no dungeonmasterRuleEnforceOnStatics
     // entry. Off until its scan reads 0.
-    '@dungeonmaster/require-object-contract-brands-indexed': 'off',
+    '@dungeonmaster/require-object-contract-brands-indexed': 'error',
     // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): a proxy
     // constructor stages no catch-all default, and a test or proxy never authors an outside failure
     // inline. The one file-scoped `off` is in eslint.config.js (EPIC.md concession 13).
@@ -216,7 +216,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-test-support-in-production': 'error',
     // R4 (items/b13-owner-field-reuse.md): an object contract holding a child whole beside the child's
     // id. Off until B15 removes the join ids it flags.
-    '@dungeonmaster/ban-join-id-beside-child': 'off',
+    '@dungeonmaster/ban-join-id-beside-child': 'error',
     // Same T05 item. Needs the type checker (fn's real signature), the same ward-only gate as
     // raw-import-ban and platform-globals-ban above — so it carries no entry in
     // dungeonmasterRuleEnforceOnStatics and is listed in WARD_ONLY_TYPE_CHECKED_RULES instead.

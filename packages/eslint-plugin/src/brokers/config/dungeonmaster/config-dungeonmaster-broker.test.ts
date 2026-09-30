@@ -134,21 +134,21 @@ describe('configDungeonmasterBroker', () => {
       expect(ruleEnforceOn['@dungeonmaster/require-object-contract-brands']).toBe('pre-edit');
     });
 
-    it('VALID: {} => typescript config lands require-object-contract-brands off', () => {
+    it('VALID: {} => typescript config lands require-object-contract-brands at error', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typescript.rules?.['@dungeonmaster/require-object-contract-brands']).toBe('off');
+      expect(typescript.rules?.['@dungeonmaster/require-object-contract-brands']).toBe('error');
     });
 
-    it('VALID: {} => typescript config lands require-object-contract-brands-indexed off with no ruleEnforceOn entry', () => {
+    it('VALID: {} => typescript config lands require-object-contract-brands-indexed at error with no ruleEnforceOn entry', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript, ruleEnforceOn } = configDungeonmasterBroker();
 
       expect(typescript.rules?.['@dungeonmaster/require-object-contract-brands-indexed']).toBe(
-        'off',
+        'error',
       );
       expect(
         Reflect.has(ruleEnforceOn, '@dungeonmaster/require-object-contract-brands-indexed'),
@@ -256,12 +256,12 @@ describe('configDungeonmasterBroker', () => {
       expect(ruleEnforceOn['@dungeonmaster/ban-join-id-beside-child']).toBe('pre-edit');
     });
 
-    it('VALID: {} => typescript config registers ban-join-id-beside-child off', () => {
+    it('VALID: {} => typescript config registers ban-join-id-beside-child at error', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typescript.rules?.['@dungeonmaster/ban-join-id-beside-child']).toBe('off');
+      expect(typescript.rules?.['@dungeonmaster/ban-join-id-beside-child']).toBe('error');
     });
 
     it('VALID: {} => ruleEnforceOn contains enforce-proxy-patterns as post-edit', () => {
