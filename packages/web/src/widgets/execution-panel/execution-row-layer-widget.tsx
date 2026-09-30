@@ -29,7 +29,6 @@ import type {
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
-import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -60,7 +59,7 @@ export interface ExecutionRowLayerWidgetProps {
   name: DisplayLabel;
   role: ExecutionRole;
   status: ExecutionStepStatus;
-  files: DisplayFilePath[];
+  files: string[];
   dependsOn: string[];
   isAdhoc: boolean;
   // Set on a step row nested under an operation header (decision 2's NESTED ruling): shifts the

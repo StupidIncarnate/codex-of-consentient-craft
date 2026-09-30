@@ -41,7 +41,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
-import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -189,7 +188,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
       name={name}
       role={workItem.role as unknown as ExecutionRole}
       status={status}
-      files={[] as DisplayFilePath[]}
+      files={[] as string[]}
       dependsOn={depLabels}
       isAdhoc={workItem.insertedBy !== undefined}
       entries={entries}
