@@ -25,7 +25,6 @@ import type { DomReading } from '../dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../dom-text-mode/dom-text-mode-contract';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import type { KeyReading } from '../key-reading/key-reading-contract';
-import type { MatchCount } from '../match-count/match-count-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { SettleReading } from '../settle-reading/settle-reading-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
@@ -43,7 +42,7 @@ export interface BrowserSession {
   // Reports a STATE rather than throwing — `stepTargetResolveBroker` is what raises
   // `RefStaleError` / `RefUnknownError` from this.
   refState: ({ ref }: { ref: number }) => Promise<RefResolution>;
-  countMatches: ({ target, within }: { target: string; within?: string }) => Promise<MatchCount>;
+  countMatches: ({ target, within }: { target: string; within?: string }) => Promise<number>;
   describeMatches: ({
     target,
     within,

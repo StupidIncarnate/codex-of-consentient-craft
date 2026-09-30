@@ -5,8 +5,6 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { BrowserSession } from './browser-session-contract';
 import { BufferLengthsStub } from '../buffer-lengths/buffer-lengths.stub';
 import type { BufferLengths } from '../buffer-lengths/buffer-lengths-contract';
-import { MatchCountStub } from '../match-count/match-count.stub';
-import type { MatchCount } from '../match-count/match-count-contract';
 import { BoxReadingStub } from '../box-reading/box-reading.stub';
 import type { BoxReading } from '../box-reading/box-reading-contract';
 import { DomReadingStub } from '../dom-reading/dom-reading.stub';
@@ -72,7 +70,7 @@ export const BrowserSessionStub = ({
     refState:
       refState ?? (async (): Promise<RefResolution> => Promise.resolve(RefResolutionStub())),
     countMatches:
-      countMatches ?? (async (): Promise<MatchCount> => Promise.resolve(MatchCountStub())),
+      countMatches ?? (async (): Promise<number> => Promise.resolve(0)),
     describeMatches:
       describeMatches ?? (async (): Promise<readonly StepCandidate[]> => Promise.resolve([])),
     nearestNames:
