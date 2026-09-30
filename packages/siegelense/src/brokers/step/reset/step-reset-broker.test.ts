@@ -3,7 +3,6 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { stepResetBroker } from './step-reset-broker';
 import { stepResetBrokerProxy } from './step-reset-broker.proxy';
@@ -61,7 +60,7 @@ describe('stepResetBroker', () => {
       const lane = LaneSessionStub({
         browser: BrowserSessionStub({ clearStorage: mockClearStorage }),
       });
-      const snapshotName = SnapshotNameStub({ value: 'clean' });
+      const snapshotName = 'clean';
       const payloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
 
       proxy.setupSnapshots({
@@ -125,7 +124,7 @@ describe('stepResetBroker', () => {
     it('VALID: on headless lane => restores files browserless without throwing', async () => {
       const proxy = stepResetBrokerProxy();
       const lane = LaneSessionStub({ browser: null });
-      const snapshotName = SnapshotNameStub({ value: 'init' });
+      const snapshotName = 'init';
       const payloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
 
       proxy.setupSnapshots({
@@ -163,7 +162,7 @@ describe('stepResetBroker', () => {
     it('ERROR: missing snapshot => throws SnapshotMissingError', async () => {
       const proxy = stepResetBrokerProxy();
       const lane = LaneSessionStub();
-      const snapshotName = SnapshotNameStub({ value: 'nonexistent' });
+      const snapshotName = 'nonexistent';
 
       proxy.setupNoSnapshots({ homePath: lane.homePath });
 
@@ -199,7 +198,7 @@ describe('stepResetBroker', () => {
       const lane = LaneSessionStub({
         browser: BrowserSessionStub({ clearStorage: mockClearStorage }),
       });
-      const snapshotName = SnapshotNameStub({ value: 'clean' });
+      const snapshotName = 'clean';
       const payloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
 
       proxy.setupSnapshots({
@@ -265,11 +264,11 @@ describe('stepResetBroker', () => {
         homePath: lane.homePath,
         records: [
           SnapshotRecordStub({
-            name: SnapshotNameStub({ value: 'run_1:start' }),
+            name: 'run_1:start',
             path: bootPayloadPath,
           }),
           SnapshotRecordStub({
-            name: SnapshotNameStub({ value: 'run_1:end' }),
+            name: 'run_1:end',
             path: laterPayloadPath,
           }),
         ],

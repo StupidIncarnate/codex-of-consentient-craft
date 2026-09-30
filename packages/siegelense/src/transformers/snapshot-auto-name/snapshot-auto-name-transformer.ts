@@ -15,8 +15,6 @@
  */
 
 import type { SnapshotBoundary } from '../../contracts/snapshot-boundary/snapshot-boundary-contract';
-import { snapshotNameContract } from '../../contracts/snapshot-name/snapshot-name-contract';
-import type { SnapshotName } from '../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
@@ -26,11 +24,11 @@ export const snapshotAutoNameTransformer = ({
 }: {
   runId: SiegeRun['id'];
   boundary: SnapshotBoundary;
-}): SnapshotName => {
+}): string => {
   const suffix =
     boundary === 'start'
       ? snapshotStatics.automatic.startSuffix
       : snapshotStatics.automatic.endSuffix;
 
-  return snapshotNameContract.parse(`${String(runId)}${suffix}`);
+  return `${String(runId)}${suffix}`;
 };

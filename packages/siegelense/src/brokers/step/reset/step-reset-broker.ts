@@ -43,7 +43,6 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import type { ResetLevel } from '../../../contracts/reset-level/reset-level-contract';
 import { resetReadingContract } from '../../../contracts/reset-reading/reset-reading-contract';
 import type { ResetUndid } from '../../../contracts/reset-undid/reset-undid-contract';
-import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { resetStatics } from '../../../statics/reset/reset-statics';
 import { resetReadingRenderTransformer } from '../../../transformers/reset-reading-render/reset-reading-render-transformer';
@@ -62,7 +61,7 @@ export const stepResetBroker = async ({
 }: {
   lane: LaneSession;
   level: ResetLevel;
-  to: SnapshotName | null;
+  to: string | null;
   reseed: string | null;
 }): Promise<string> => {
   const zeroUndid: ResetUndid = resetUndidContract.parse({

@@ -1,6 +1,5 @@
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { stepSnapshotBroker } from './step-snapshot-broker';
 import { stepSnapshotBrokerProxy } from './step-snapshot-broker.proxy';
 
@@ -13,7 +12,7 @@ describe('stepSnapshotBroker', () => {
       proxy.setupEmptyStore({ homePath: HOME });
 
       const lane = LaneSessionStub({ homePath: HOME });
-      const as = SnapshotNameStub({ value: 'clean' });
+      const as = 'clean';
 
       const reading = await stepSnapshotBroker({ lane, as });
 
@@ -33,7 +32,7 @@ describe('stepSnapshotBroker', () => {
       proxy.setupEmptyStore({ homePath: HOME });
 
       const lane = LaneSessionStub({ homePath: HOME, browser: null });
-      const as = SnapshotNameStub({ value: 'after-cycle-1' });
+      const as = 'after-cycle-1';
 
       const reading = await stepSnapshotBroker({ lane, as });
 
@@ -55,7 +54,7 @@ describe('stepSnapshotBroker', () => {
       proxy.setupEmptyStore({ homePath: HOME });
 
       const lane = LaneSessionStub({ homePath: HOME });
-      const as = SnapshotNameStub({ value: 'foo:start' });
+      const as = 'foo:start';
 
       await expect(stepSnapshotBroker({ lane, as })).rejects.toThrow(
         /ends in a suffix reserved for the automatic pair/u,
@@ -67,7 +66,7 @@ describe('stepSnapshotBroker', () => {
       proxy.setupEmptyStore({ homePath: HOME });
 
       const lane = LaneSessionStub({ homePath: HOME });
-      const as = SnapshotNameStub({ value: 'bar:end' });
+      const as = 'bar:end';
 
       await expect(stepSnapshotBroker({ lane, as })).rejects.toThrow(
         /ends in a suffix reserved for the automatic pair/u,

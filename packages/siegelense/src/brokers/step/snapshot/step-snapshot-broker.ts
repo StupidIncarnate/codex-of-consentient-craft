@@ -13,7 +13,6 @@
 
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotReadingRenderTransformer } from '../../../transformers/snapshot-reading-render/snapshot-reading-render-transformer';
 import { snapshotCaptureBroker } from '../../snapshot/capture/snapshot-capture-broker';
 
@@ -22,7 +21,7 @@ export const stepSnapshotBroker = async ({
   as,
 }: {
   lane: LaneSession;
-  as: SnapshotName;
+  as: string;
 }): Promise<string> => {
   await snapshotCaptureBroker({
     homePath: lane.homePath,

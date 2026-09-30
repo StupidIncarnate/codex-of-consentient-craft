@@ -19,12 +19,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 
-import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
 
 export const snapshotRecordContract = z
   .object({
-    name: snapshotNameContract,
+    name: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'SnapshotRecordName'>(),
     atMs: z.number().int().nonnegative().brand<'SnapshotRecordAtMs'>(),
     manual: z.boolean(),
     path: absoluteFilePathContract,

@@ -9,8 +9,7 @@
  */
 
 
-import type { SnapshotName } from '../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 
-export const snapshotReadingRenderTransformer = ({ name }: { name: SnapshotName }): string =>
+export const snapshotReadingRenderTransformer = ({ name }: { name: string }): string =>
   snapshotStatics.template.replace('{name}', String(name));

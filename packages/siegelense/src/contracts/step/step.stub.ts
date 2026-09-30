@@ -5,7 +5,6 @@ import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { RecipeNameStub } from '../recipe-name/recipe-name.stub';
 import { RefStub } from '../ref/ref.stub';
 import { ResetLevelStub } from '../reset-level/reset-level.stub';
-import { SnapshotNameStub } from '../snapshot-name/snapshot-name.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
 import { UrlPathStub } from '../url-path/url-path.stub';
@@ -168,14 +167,14 @@ const STEP_DEFAULTS = {
   },
   snapshot: {
     step: 'snapshot',
-    as: SnapshotNameStub(),
+    as: 'clean',
     node: null,
     expect: StepExpectationStub(),
   },
   reset: {
     step: 'reset',
     level: ResetLevelStub({ value: 'state' }),
-    to: SnapshotNameStub({ value: 'clean' }),
+    to: 'clean',
     reseed: null,
     node: null,
     expect: StepExpectationStub(),

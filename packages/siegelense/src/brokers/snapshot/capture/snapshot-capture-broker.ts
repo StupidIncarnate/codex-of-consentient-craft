@@ -26,7 +26,6 @@
 
 import { appendFile, copyDirContents, ensureDir } from '#gateway/node/fs__promises';
 
-import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
@@ -40,7 +39,7 @@ export const snapshotCaptureBroker = async ({
   manual,
 }: {
   homePath: string;
-  name: SnapshotName;
+  name: string;
   manual: boolean;
 }): Promise<SnapshotRecord> => {
   const reservedSuffixes = [

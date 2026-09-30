@@ -1,7 +1,6 @@
 
 import { snapshotResolveBroker } from './snapshot-resolve-broker';
 import { snapshotResolveBrokerProxy } from './snapshot-resolve-broker.proxy';
-import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 
 const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
@@ -30,7 +29,7 @@ describe('snapshotResolveBroker', () => {
 
       const result = await snapshotResolveBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
       });
 
       expect(result).toStrictEqual({
@@ -63,7 +62,7 @@ describe('snapshotResolveBroker', () => {
 
       const result = await snapshotResolveBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
       });
 
       expect(result).toStrictEqual({
@@ -90,7 +89,7 @@ describe('snapshotResolveBroker', () => {
 
       const result = await snapshotResolveBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'run_2:end' }),
+        name: 'run_2:end',
       });
 
       expect(result).toStrictEqual({
@@ -120,7 +119,7 @@ describe('snapshotResolveBroker', () => {
       await expect(
         snapshotResolveBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'clean2' }),
+          name: 'clean2',
         }),
       ).rejects.toThrow(
         /No snapshot named "clean2" on this instance — it is never resolved to the nearest one\. Snapshots that exist: clean\./u,
@@ -145,7 +144,7 @@ describe('snapshotResolveBroker', () => {
       // candidate is ever treated as an obvious answer.
       const outcome: unknown = await snapshotResolveBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean2' }),
+        name: 'clean2',
       }).catch((error: unknown) => String(error));
 
       expect(outcome).toBe(
@@ -188,7 +187,7 @@ describe('snapshotResolveBroker', () => {
       await expect(
         snapshotResolveBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'run_1:strt' }),
+          name: 'run_1:strt',
         }),
       ).rejects.toThrow(/Snapshots that exist: run_1:start, run_1:end, run_2:start, run_2:end\./u);
     });
@@ -202,7 +201,7 @@ describe('snapshotResolveBroker', () => {
       await expect(
         snapshotResolveBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'clean' }),
+          name: 'clean',
         }),
       ).rejects.toThrow(/This instance holds no snapshots at all\./u);
     });

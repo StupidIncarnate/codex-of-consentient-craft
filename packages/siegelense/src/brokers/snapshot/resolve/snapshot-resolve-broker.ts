@@ -20,7 +20,6 @@
  */
 
 
-import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import { SnapshotMissingError } from '../../../errors/snapshot-missing/snapshot-missing-error';
 import { snapshotIndexCollapseTransformer } from '../../../transformers/snapshot-index-collapse/snapshot-index-collapse-transformer';
@@ -31,7 +30,7 @@ export const snapshotResolveBroker = async ({
   name,
 }: {
   homePath: string;
-  name: SnapshotName;
+  name: string;
 }): Promise<SnapshotRecord> => {
   const records = await snapshotIndexReadBroker({ homePath });
 

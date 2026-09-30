@@ -14,7 +14,6 @@
 
 import { snapshotRecordContract } from '../../contracts/snapshot-record/snapshot-record-contract';
 import type { SnapshotRecord } from '../../contracts/snapshot-record/snapshot-record-contract';
-import type { SnapshotName } from '../../contracts/snapshot-name/snapshot-name-contract';
 
 export const snapshotIndexCollapseTransformer = ({
   records,
@@ -23,7 +22,7 @@ export const snapshotIndexCollapseTransformer = ({
 }): readonly SnapshotRecord[] => {
   // A Map keyed on the name, written in index order, so the LAST write for a name is what survives —
   // the index is append-only, so later in the file is later in time.
-  const latestByName = new Map<SnapshotName, SnapshotRecord>();
+  const latestByName = new Map<string, SnapshotRecord>();
   records.forEach((record) => {
     latestByName.set(record.name, record);
   });

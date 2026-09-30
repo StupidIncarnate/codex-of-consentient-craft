@@ -141,7 +141,6 @@ export * from './video-action/video-action-contract';
 
 export * from './video-result/video-result-contract';
 
-export * from './snapshot-name/snapshot-name-contract';
 
 export * from './snapshot-record/snapshot-record-contract';
 

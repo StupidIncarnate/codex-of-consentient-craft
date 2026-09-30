@@ -54,10 +54,10 @@ import { storageStatics } from '../../statics/storage/storage-statics';
 import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
 import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
 import { untilResponseContract } from '../until-response/until-response-contract';
-import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
 import { resetLevelContract } from '../reset-level/reset-level-contract';
 import { urlPathContract } from '../url-path/url-path-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
+import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 
 const HANDLE_MESSAGE =
   'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
@@ -351,7 +351,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('snapshot'),
-        as: snapshotNameContract,
+        as: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'StepAs'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
@@ -362,7 +362,7 @@ export const stepContract = z
       .object({
         step: z.literal('reset'),
         level: resetLevelContract.default(resetLevelContract.parse('state')),
-        to: snapshotNameContract.nullable().default(null),
+        to: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'StepTo'>().nullable().default(null),
         reseed: z.string().brand<'StepReseed'>().nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(

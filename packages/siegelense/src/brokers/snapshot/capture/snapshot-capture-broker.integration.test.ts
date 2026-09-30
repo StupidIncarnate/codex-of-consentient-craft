@@ -3,7 +3,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
 import { snapshotIndexReadBroker } from '../index-read/snapshot-index-read-broker';
 import { snapshotResolveBroker } from '../resolve/snapshot-resolve-broker';
-import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { snapshotIndexCollapseTransformer } from '../../../transformers/snapshot-index-collapse/snapshot-index-collapse-transformer';
 
 describe('snapshotCaptureBroker against a real filesystem', () => {
@@ -20,22 +19,22 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
         manual: false,
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:end' }),
+        name: 'run_1:end',
         manual: false,
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_2:start' }),
+        name: 'run_2:start',
         manual: false,
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_2:end' }),
+        name: 'run_2:end',
         manual: false,
       });
 
@@ -88,7 +87,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
         manual: true,
       });
 
@@ -113,12 +112,12 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'first' }),
+        name: 'first',
         manual: true,
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'second' }),
+        name: 'second',
         manual: true,
       });
 
@@ -145,7 +144,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
         manual: false,
       });
       testbed.writeFile({
@@ -154,7 +153,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:end' }),
+        name: 'run_1:end',
         manual: false,
       });
 
@@ -184,18 +183,18 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
         manual: false,
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:end' }),
+        name: 'run_1:end',
         manual: false,
       });
 
       const resolved = await snapshotResolveBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
       });
 
       testbed.cleanup();
@@ -219,18 +218,18 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
         manual: false,
       });
       await snapshotCaptureBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:end' }),
+        name: 'run_1:end',
         manual: false,
       });
 
       const outcome: unknown = await snapshotResolveBroker({
         homePath,
-        name: SnapshotNameStub({ value: 'run_1:strt' }),
+        name: 'run_1:strt',
       }).catch((error: unknown) => String(error));
 
       testbed.cleanup();

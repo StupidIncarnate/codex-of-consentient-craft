@@ -2,7 +2,6 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
 import { snapshotCaptureBrokerProxy } from './snapshot-capture-broker.proxy';
-import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 
 const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
@@ -16,7 +15,7 @@ describe('snapshotCaptureBroker', () => {
 
       const result = await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
         manual: true,
       });
 
@@ -34,7 +33,7 @@ describe('snapshotCaptureBroker', () => {
 
       await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
         manual: false,
       });
 
@@ -54,7 +53,7 @@ describe('snapshotCaptureBroker', () => {
 
       await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
         manual: true,
       });
 
@@ -88,7 +87,7 @@ describe('snapshotCaptureBroker', () => {
 
       const result = await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'run_1:end' }),
+        name: 'run_1:end',
         manual: false,
       });
 
@@ -117,7 +116,7 @@ describe('snapshotCaptureBroker', () => {
 
       const result = await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
         manual: true,
       });
 
@@ -138,7 +137,7 @@ describe('snapshotCaptureBroker', () => {
       await expect(
         snapshotCaptureBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'mine:start' }),
+          name: 'mine:start',
           manual: true,
         }),
       ).rejects.toThrow(
@@ -153,7 +152,7 @@ describe('snapshotCaptureBroker', () => {
       await expect(
         snapshotCaptureBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'mine:end' }),
+          name: 'mine:end',
           manual: true,
         }),
       ).rejects.toThrow(/reserved for the automatic pair/u);
@@ -165,7 +164,7 @@ describe('snapshotCaptureBroker', () => {
 
       const result = await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'run_1:start' }),
+        name: 'run_1:start',
         manual: false,
       });
 
@@ -183,7 +182,7 @@ describe('snapshotCaptureBroker', () => {
 
       const result = await snapshotCaptureBroker({
         homePath: HOME_PATH,
-        name: SnapshotNameStub({ value: 'clean' }),
+        name: 'clean',
         manual: true,
       });
 
@@ -205,7 +204,7 @@ describe('snapshotCaptureBroker', () => {
       await expect(
         snapshotCaptureBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'clean' }),
+          name: 'clean',
           manual: true,
         }),
       ).rejects.toBe(error);
@@ -219,7 +218,7 @@ describe('snapshotCaptureBroker', () => {
       await expect(
         snapshotCaptureBroker({
           homePath: HOME_PATH,
-          name: SnapshotNameStub({ value: 'clean' }),
+          name: 'clean',
           manual: true,
         }),
       ).rejects.toBe(error);
