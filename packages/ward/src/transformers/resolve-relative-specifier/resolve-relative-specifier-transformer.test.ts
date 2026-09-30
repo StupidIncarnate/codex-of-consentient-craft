@@ -1,12 +1,11 @@
 import { resolveRelativeSpecifierTransformer } from './resolve-relative-specifier-transformer';
-import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-specifier.stub';
 
 describe('resolveRelativeSpecifierTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {fromDir, specifier: "./chat-widget"} => joins onto the same directory', () => {
       const result = resolveRelativeSpecifierTransformer({
         fromDir: '/repo/packages/web/src/widgets',
-        specifier: ModuleSpecifierStub({ value: './chat-widget' }),
+        specifier: './chat-widget',
       });
 
       expect(result).toBe('/repo/packages/web/src/widgets/chat-widget');
@@ -15,7 +14,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
     it('VALID: {fromDir, specifier: "../shared/foo"} => walks up one directory', () => {
       const result = resolveRelativeSpecifierTransformer({
         fromDir: '/repo/packages/web/src/widgets',
-        specifier: ModuleSpecifierStub({ value: '../shared/foo' }),
+        specifier: '../shared/foo',
       });
 
       expect(result).toBe('/repo/packages/web/src/shared/foo');
@@ -24,7 +23,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
     it('VALID: {fromDir, specifier: "../../other"} => walks up two directories', () => {
       const result = resolveRelativeSpecifierTransformer({
         fromDir: '/repo/packages/web/src/widgets',
-        specifier: ModuleSpecifierStub({ value: '../../other' }),
+        specifier: '../../other',
       });
 
       expect(result).toBe('/repo/packages/web/other');
@@ -35,7 +34,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
     it('EDGE: {specifier: "."} => returns fromDir unchanged', () => {
       const result = resolveRelativeSpecifierTransformer({
         fromDir: '/repo/packages/web/src',
-        specifier: ModuleSpecifierStub({ value: '.' }),
+        specifier: '.',
       });
 
       expect(result).toBe('/repo/packages/web/src');

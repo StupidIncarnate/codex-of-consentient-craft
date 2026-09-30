@@ -1,6 +1,5 @@
 import { resolveSpecifierCachedLayerBroker } from './resolve-specifier-cached-layer-broker';
 import { resolveSpecifierCachedLayerBrokerProxy } from './resolve-specifier-cached-layer-broker.proxy';
-import { ModuleSpecifierStub } from '../../../contracts/module-specifier/module-specifier.stub';
 import type { ResolveSpecifierCache } from './resolve-specifier-cached-layer-broker';
 
 describe('resolveSpecifierCachedLayerBroker', () => {
@@ -8,7 +7,7 @@ describe('resolveSpecifierCachedLayerBroker', () => {
     it('VALID: {called twice with the same key} => resolves once and caches one entry', async () => {
       const proxy = resolveSpecifierCachedLayerBrokerProxy();
       const containingFilePath = '/repo/entry.ts';
-      const specifier = ModuleSpecifierStub({ value: './helper' });
+      const specifier = './helper';
       proxy.setupFile({
         filePath: '/repo/helper.ts',
         content: 'export const helper = () => 1;',
@@ -48,13 +47,13 @@ describe('resolveSpecifierCachedLayerBroker', () => {
       const resolveCache: ResolveSpecifierCache = new Map();
 
       await resolveSpecifierCachedLayerBroker({
-        specifier: ModuleSpecifierStub({ value: './a' }),
+        specifier: './a',
         containingFilePath,
         knownPackages: [],
         resolveCache,
       });
       await resolveSpecifierCachedLayerBroker({
-        specifier: ModuleSpecifierStub({ value: './b' }),
+        specifier: './b',
         containingFilePath,
         knownPackages: [],
         resolveCache,

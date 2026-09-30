@@ -10,14 +10,13 @@
  * // Returns: '/repo/packages/web/src/shared/foo' as FilePath
  */
 
-import type { ModuleSpecifier } from '../../contracts/module-specifier/module-specifier-contract';
 
 export const resolveRelativeSpecifierTransformer = ({
   fromDir,
   specifier,
 }: {
   fromDir: string;
-  specifier: ModuleSpecifier;
+  specifier: string;
 }): string => {
   const combinedSegments = [...fromDir.split('/'), ...specifier.split('/')];
 

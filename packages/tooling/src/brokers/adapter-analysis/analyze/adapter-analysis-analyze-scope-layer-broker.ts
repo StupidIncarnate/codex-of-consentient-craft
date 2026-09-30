@@ -10,9 +10,9 @@
  */
 import * as ts from '#gateway/npm/typescript';
 import { exportNameContract } from '../../../contracts/export-name/export-name-contract';
-import { moduleSpecifierContract } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { ExportName } from '../../../contracts/export-name/export-name-contract';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
+import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
 
 export const adapterAnalysisAnalyzeScopeLayerBroker = ({
   sourceFile,
@@ -32,26 +32,26 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
     if (clause === undefined || clause.isTypeOnly) {
       continue;
     }
-    const module = moduleSpecifierContract.parse(statement.moduleSpecifier.text);
+    const module = statement.moduleSpecifier.text;
     if (clause.name !== undefined) {
-      bindings.set(exportNameContract.parse(clause.name.text), {
+      bindings.set(exportNameContract.parse(clause.name.text), outsideCallContract.parse({
         module,
         name: exportNameContract.parse('default'),
-      });
+      }));
     }
     const named = clause.namedBindings;
     if (named !== undefined && ts.isNamespaceImport(named)) {
-      bindings.set(exportNameContract.parse(named.name.text), {
+      bindings.set(exportNameContract.parse(named.name.text), outsideCallContract.parse({
         module,
         name: exportNameContract.parse('*'),
-      });
+      }));
     }
     if (named !== undefined && ts.isNamedImports(named)) {
       for (const element of named.elements.filter((candidate) => !candidate.isTypeOnly)) {
-        bindings.set(exportNameContract.parse(element.name.text), {
+        bindings.set(exportNameContract.parse(element.name.text), outsideCallContract.parse({
           module,
           name: exportNameContract.parse((element.propertyName ?? element.name).text),
-        });
+        }));
       }
     }
   }

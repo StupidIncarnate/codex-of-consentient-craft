@@ -9,7 +9,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 import { exportNameContract } from '../../../contracts/export-name/export-name-contract';
-import { moduleSpecifierContract } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
 
 export const sourceFactsExtractStatementsLayerBroker = ({
@@ -33,7 +32,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
                 .map((element) => (element.propertyName ?? element.name).text)
             : [];
         imports.push({
-          specifier: moduleSpecifierContract.parse(statement.moduleSpecifier.text),
+          specifier: statement.moduleSpecifier.text,
           names: [
             ...(clause?.name === undefined ? [] : ['default']),
             ...(bindings !== undefined && ts.isNamespaceImport(bindings) ? ['*'] : []),
@@ -54,7 +53,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
         ts.isStringLiteral(statement.moduleSpecifier)
       ) {
         reExports.push({
-          specifier: moduleSpecifierContract.parse(statement.moduleSpecifier.text),
+          specifier: statement.moduleSpecifier.text,
           names:
             clause !== undefined && ts.isNamespaceExport(clause)
               ? [exportNameContract.parse(clause.name.text)]

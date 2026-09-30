@@ -8,11 +8,10 @@
  * // Returns: OutsideCall
  */
 import { z } from '#gateway/npm/zod';
-import { moduleSpecifierContract } from '../module-specifier/module-specifier-contract';
 import { exportNameContract } from '../export-name/export-name-contract';
 
 export const outsideCallContract = z.object({
-  module: moduleSpecifierContract,
+  module: z.string().min(1).brand<'OutsideCallModule'>(),
   name: exportNameContract,
 });
 

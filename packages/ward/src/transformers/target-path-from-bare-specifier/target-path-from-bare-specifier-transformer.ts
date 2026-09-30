@@ -23,7 +23,6 @@
  */
 
 
-import type { ModuleSpecifier } from '../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import { specifierMatchesPackageGuard } from '../../guards/specifier-matches-package/specifier-matches-package-guard';
 import { isGatewayPackageProjectFolderGuard } from '../../guards/is-gateway-package-project-folder/is-gateway-package-project-folder-guard';
@@ -33,7 +32,7 @@ export const targetPathFromBareSpecifierTransformer = ({
   specifier,
   knownPackages,
 }: {
-  specifier: ModuleSpecifier;
+  specifier: string;
   knownPackages: readonly ProjectFolder[];
 }): string | undefined => {
   const canonicalSpecifier = gatewaySpecifierCanonicalizeTransformer({ specifier, knownPackages });

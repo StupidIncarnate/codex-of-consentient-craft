@@ -12,13 +12,13 @@
 import * as ts from '#gateway/npm/typescript';
 import { adapterLogicReasonContract } from '../../../contracts/adapter-logic-reason/adapter-logic-reason-contract';
 import { exportNameContract } from '../../../contracts/export-name/export-name-contract';
-import { moduleSpecifierContract } from '../../../contracts/module-specifier/module-specifier-contract';
 import { censusLanguageGlobalsStatics } from '../../../statics/census-language-globals/census-language-globals-statics';
 import { importOriginClassifyTransformer } from '../../../transformers/import-origin-classify/import-origin-classify-transformer';
 import type { AdapterLogicReason } from '../../../contracts/adapter-logic-reason/adapter-logic-reason-contract';
 import type { AdapterAnalysis } from '../../../contracts/adapter-analysis/adapter-analysis-contract';
 import type { ExportName } from '../../../contracts/export-name/export-name-contract';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
+import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
 
 export const adapterAnalysisAnalyzeCallsLayerBroker = ({
   nodes,
@@ -113,10 +113,10 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
         reasons.add(adapterLogicReasonContract.parse('promise-construction'));
       }
     } else {
-      outsideCalls.push({
-        module: moduleSpecifierContract.parse(rootName),
+      outsideCalls.push(outsideCallContract.parse({
+        module: rootName,
         name: firstProp ?? rootName,
-      });
+      }));
     }
   }
 

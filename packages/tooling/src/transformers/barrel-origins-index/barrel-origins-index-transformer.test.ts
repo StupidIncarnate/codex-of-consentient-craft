@@ -2,7 +2,6 @@ import { barrelOriginsIndexTransformer } from './barrel-origins-index-transforme
 import { CensusPackageStub } from '../../contracts/census-package/census-package.stub';
 import { SourceFactsStub } from '../../contracts/source-facts/source-facts.stub';
 import { ExportNameStub } from '../../contracts/export-name/export-name.stub';
-import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-specifier.stub';
 
 describe('barrelOriginsIndexTransformer', () => {
   const packages = [CensusPackageStub({ name: '@acme/api', dir: 'packages/api' })];
@@ -17,12 +16,12 @@ describe('barrelOriginsIndexTransformer', () => {
         SourceFactsStub({
           reExports: [
             {
-              specifier: ModuleSpecifierStub({ value: './src/adapters/a/a-adapter' }),
+              specifier: './src/adapters/a/a-adapter',
               names: [],
               isStar: true,
             },
             {
-              specifier: ModuleSpecifierStub({ value: './src/adapters/b/b-adapter' }),
+              specifier: './src/adapters/b/b-adapter',
               names: [],
               isStar: true,
             },
@@ -53,7 +52,7 @@ describe('barrelOriginsIndexTransformer', () => {
         SourceFactsStub({
           reExports: [
             {
-              specifier: ModuleSpecifierStub({ value: './src/adapters/a/a-adapter' }),
+              specifier: './src/adapters/a/a-adapter',
               names: [ExportNameStub({ value: 'aAdapter' })],
               isStar: false,
             },
@@ -88,7 +87,7 @@ describe('barrelOriginsIndexTransformer', () => {
         SourceFactsStub({
           reExports: [
             {
-              specifier: ModuleSpecifierStub({ value: './src/adapters/index' }),
+              specifier: './src/adapters/index',
               names: [],
               isStar: true,
             },
@@ -100,7 +99,7 @@ describe('barrelOriginsIndexTransformer', () => {
         SourceFactsStub({
           reExports: [
             {
-              specifier: ModuleSpecifierStub({ value: './a/a-adapter' }),
+              specifier: './a/a-adapter',
               names: [],
               isStar: true,
             },
@@ -140,7 +139,7 @@ describe('barrelOriginsIndexTransformer', () => {
         SourceFactsStub({
           reExports: [
             {
-              specifier: ModuleSpecifierStub({ value: 'zod' }),
+              specifier: 'zod',
               names: [ExportNameStub({ value: 'z' })],
               isStar: false,
             },

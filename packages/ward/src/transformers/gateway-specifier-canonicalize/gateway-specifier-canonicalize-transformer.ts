@@ -17,19 +17,15 @@
 
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
-import {
-  moduleSpecifierContract,
-  type ModuleSpecifier,
-} from '../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 
 export const gatewaySpecifierCanonicalizeTransformer = ({
   specifier,
   knownPackages,
 }: {
-  specifier: ModuleSpecifier;
+  specifier: string;
   knownPackages: readonly ProjectFolder[];
-}): ModuleSpecifier => {
+}): string => {
   const prefix = `${gatewayLocationsStatics.importPrefix}/`;
   if (!specifier.startsWith(prefix)) {
     return specifier;
@@ -47,5 +43,5 @@ export const gatewaySpecifierCanonicalizeTransformer = ({
     return specifier;
   }
 
-  return moduleSpecifierContract.parse(`${matchedPackage.name}${subpath}`);
+  return `${matchedPackage.name}${subpath}`;
 };

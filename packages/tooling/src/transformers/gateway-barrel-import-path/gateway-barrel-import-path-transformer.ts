@@ -8,8 +8,6 @@
  * gatewayBarrelImportPathTransformer({ file: censusPath });
  * // Returns '#gateway/node/fs__promises' for packages/@gateway/node/src/fs__promises/fs__promises.ts
  */
-import { moduleSpecifierContract } from '../../contracts/module-specifier/module-specifier-contract';
-import type { ModuleSpecifier } from '../../contracts/module-specifier/module-specifier-contract';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
 
 const BARREL_PATTERN = /^([^/]+)\/src\/([^/]+)\/\2\.ts$/u;
@@ -18,7 +16,7 @@ export const gatewayBarrelImportPathTransformer = ({
   file,
 }: {
   file: string;
-}): ModuleSpecifier | null => {
+}): string | null => {
   const prefix = `${censusLayoutStatics.gatewayRoot}/`;
   if (!file.startsWith(prefix)) {
     return null;
@@ -27,7 +25,5 @@ export const gatewayBarrelImportPathTransformer = ({
   if (match === null) {
     return null;
   }
-  return moduleSpecifierContract.parse(
-    `${censusLayoutStatics.gatewayImportPrefix}/${match[1]}/${match[2]}`,
-  );
+  return `${censusLayoutStatics.gatewayImportPrefix}/${match[1]}/${match[2]}`;
 };

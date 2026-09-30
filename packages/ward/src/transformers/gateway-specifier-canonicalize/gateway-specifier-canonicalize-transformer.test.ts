@@ -1,12 +1,11 @@
 import { gatewaySpecifierCanonicalizeTransformer } from './gateway-specifier-canonicalize-transformer';
-import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-specifier.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 
 describe('gatewaySpecifierCanonicalizeTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {"#gateway/node/fs", a known @gateway/node package} => returns "@dungeonmaster/node/fs"', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '#gateway/node/fs' }),
+        specifier: '#gateway/node/fs',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
         ],
@@ -17,7 +16,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
 
     it('VALID: {"#gateway/browser/localStorage", a known @gateway/browser package} => returns "@dungeonmaster/browser/localStorage"', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '#gateway/browser/localStorage' }),
+        specifier: '#gateway/browser/localStorage',
         knownPackages: [
           ProjectFolderStub({
             name: '@dungeonmaster/browser',
@@ -31,7 +30,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
 
     it('VALID: {"#gateway/node", no subpath, a known @gateway/node package} => returns "@dungeonmaster/node"', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '#gateway/node' }),
+        specifier: '#gateway/node',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
         ],
@@ -44,7 +43,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
   describe('passthrough for non-gateway specifiers', () => {
     it('VALID: {"@dungeonmaster/shared2/brokers", an ordinary bare specifier} => returns it unchanged', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '@dungeonmaster/shared2/brokers' }),
+        specifier: '@dungeonmaster/shared2/brokers',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/shared2', path: '/repo/packages/shared2' }),
         ],
@@ -55,7 +54,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
 
     it('VALID: {"./sibling", a relative specifier} => returns it unchanged', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: './sibling' }),
+        specifier: './sibling',
         knownPackages: [],
       });
 
@@ -66,7 +65,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
   describe('unmapped # specifiers', () => {
     it('INVALID: {"#gateway/unknown-folder/x", no known package for that folder} => returns it unchanged', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '#gateway/unknown-folder/x' }),
+        specifier: '#gateway/unknown-folder/x',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
         ],
@@ -77,7 +76,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
 
     it('INVALID: {"#gateway/node/fs", no known packages at all} => returns it unchanged', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '#gateway/node/fs' }),
+        specifier: '#gateway/node/fs',
         knownPackages: [],
       });
 
@@ -86,7 +85,7 @@ describe('gatewaySpecifierCanonicalizeTransformer', () => {
 
     it('INVALID: {"#internal/other-feature", a # specifier outside the gateway prefix} => returns it unchanged', () => {
       const result = gatewaySpecifierCanonicalizeTransformer({
-        specifier: ModuleSpecifierStub({ value: '#internal/other-feature' }),
+        specifier: '#internal/other-feature',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
         ],

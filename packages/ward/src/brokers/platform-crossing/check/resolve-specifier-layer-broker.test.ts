@@ -1,6 +1,5 @@
 import { resolveSpecifierLayerBroker } from './resolve-specifier-layer-broker';
 import { resolveSpecifierLayerBrokerProxy } from './resolve-specifier-layer-broker.proxy';
-import { ModuleSpecifierStub } from '../../../contracts/module-specifier/module-specifier.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 
 describe('resolveSpecifierLayerBroker', () => {
@@ -13,7 +12,7 @@ describe('resolveSpecifierLayerBroker', () => {
       });
 
       const result = await resolveSpecifierLayerBroker({
-        specifier: ModuleSpecifierStub({ value: './sibling' }),
+        specifier: './sibling',
         containingFilePath: '/repo/packages/web/src/widgets/chat-widget.tsx',
         knownPackages: [],
       });
@@ -38,7 +37,7 @@ describe('resolveSpecifierLayerBroker', () => {
       });
 
       const result = await resolveSpecifierLayerBroker({
-        specifier: ModuleSpecifierStub({ value: './sibling' }),
+        specifier: './sibling',
         containingFilePath: '/repo/packages/web/src/entry.ts',
         knownPackages: [],
       });
@@ -57,7 +56,7 @@ describe('resolveSpecifierLayerBroker', () => {
       });
 
       const result = await resolveSpecifierLayerBroker({
-        specifier: ModuleSpecifierStub({ value: '../shared/foo' }),
+        specifier: '../shared/foo',
         containingFilePath: '/repo/packages/web/src/widgets/chat-widget.tsx',
         knownPackages: [],
       });
@@ -78,7 +77,7 @@ describe('resolveSpecifierLayerBroker', () => {
       });
 
       const result = await resolveSpecifierLayerBroker({
-        specifier: ModuleSpecifierStub({ value: '@dungeonmaster/node/fs' }),
+        specifier: '@dungeonmaster/node/fs',
         containingFilePath: '/repo/packages/web/src/widgets/chat-widget.tsx',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/node' }),
@@ -97,7 +96,7 @@ describe('resolveSpecifierLayerBroker', () => {
       resolveSpecifierLayerBrokerProxy();
 
       const result = await resolveSpecifierLayerBroker({
-        specifier: ModuleSpecifierStub({ value: 'react' }),
+        specifier: 'react',
         containingFilePath: '/repo/packages/web/src/widgets/chat-widget.tsx',
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/node' }),
@@ -123,7 +122,7 @@ describe('resolveSpecifierLayerBroker', () => {
       });
 
       const result = await resolveSpecifierLayerBroker({
-        specifier: ModuleSpecifierStub({ value: './missing' }),
+        specifier: './missing',
         containingFilePath: '/repo/packages/web/src/entry.ts',
         knownPackages: [],
       });

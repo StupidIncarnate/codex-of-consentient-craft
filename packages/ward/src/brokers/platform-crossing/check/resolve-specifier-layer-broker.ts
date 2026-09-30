@@ -16,7 +16,6 @@
  */
 
 
-import type { ModuleSpecifier } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { resolveRelativeSpecifierTransformer } from '../../../transformers/resolve-relative-specifier/resolve-relative-specifier-transformer';
 import { targetPathFromBareSpecifierTransformer } from '../../../transformers/target-path-from-bare-specifier/target-path-from-bare-specifier-transformer';
@@ -28,7 +27,7 @@ export const resolveSpecifierLayerBroker = async ({
   containingFilePath,
   knownPackages,
 }: {
-  specifier: ModuleSpecifier;
+  specifier: string;
   containingFilePath: string;
   knownPackages: readonly ProjectFolder[];
 }): Promise<{ filePath: string; content: string } | undefined> => {

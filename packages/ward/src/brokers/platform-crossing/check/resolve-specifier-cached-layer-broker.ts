@@ -17,7 +17,6 @@
  */
 
 
-import type { ModuleSpecifier } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { resolveSpecifierLayerBroker } from './resolve-specifier-layer-broker';
 
@@ -32,7 +31,7 @@ export const resolveSpecifierCachedLayerBroker = async ({
   knownPackages,
   resolveCache,
 }: {
-  specifier: ModuleSpecifier;
+  specifier: string;
   containingFilePath: string;
   knownPackages: readonly ProjectFolder[];
   resolveCache: ResolveSpecifierCache;
