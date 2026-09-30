@@ -1,12 +1,11 @@
 import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
-import { PathSegmentStub } from '../../contracts/path-segment/path-segment.stub';
 import { workspaceScopeFromRootNameTransformer } from './workspace-scope-from-root-name-transformer';
 
 describe('workspaceScopeFromRootNameTransformer', () => {
   it('VALID: {rootPackageJsonName: "@acme/app", fallbackName: "app"} => returns "@acme"', () => {
     const result = workspaceScopeFromRootNameTransformer({
       rootPackageJsonName: PackageNameStub({ value: '@acme/app' }),
-      fallbackName: PathSegmentStub({ value: 'app' }),
+      fallbackName: 'app',
     });
 
     expect(result).toBe('@acme');
@@ -15,7 +14,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
   it('VALID: {rootPackageJsonName: "acme-app", fallbackName: "acme-app"} => returns "@acme-app"', () => {
     const result = workspaceScopeFromRootNameTransformer({
       rootPackageJsonName: PackageNameStub({ value: 'acme-app' }),
-      fallbackName: PathSegmentStub({ value: 'acme-app' }),
+      fallbackName: 'acme-app',
     });
 
     expect(result).toBe('@acme-app');
@@ -24,7 +23,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
   it('VALID: {rootPackageJsonName: "dungeonmaster", fallbackName: "dungeonmaster"} => returns "@dungeonmaster"', () => {
     const result = workspaceScopeFromRootNameTransformer({
       rootPackageJsonName: PackageNameStub({ value: 'dungeonmaster' }),
-      fallbackName: PathSegmentStub({ value: 'dungeonmaster' }),
+      fallbackName: 'dungeonmaster',
     });
 
     expect(result).toBe('@dungeonmaster');
@@ -65,7 +64,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
   it('EMPTY: {rootPackageJsonName: undefined, fallbackName: "my-repo"} => builds the scope from fallbackName', () => {
     const result = workspaceScopeFromRootNameTransformer({
       rootPackageJsonName: undefined,
-      fallbackName: PathSegmentStub({ value: 'my-repo' }),
+      fallbackName: 'my-repo',
     });
 
     expect(result).toBe('@my-repo');
@@ -74,7 +73,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
   it('EMPTY: {rootPackageJsonName: "", fallbackName: "my-repo"} => builds the scope from fallbackName', () => {
     const result = workspaceScopeFromRootNameTransformer({
       rootPackageJsonName: '',
-      fallbackName: PathSegmentStub({ value: 'my-repo' }),
+      fallbackName: 'my-repo',
     });
 
     expect(result).toBe('@my-repo');

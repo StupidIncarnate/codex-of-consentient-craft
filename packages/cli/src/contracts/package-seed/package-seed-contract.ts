@@ -18,15 +18,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 import { dependencyMapContract } from '../dependency-map/dependency-map-contract';
 
 export const packageSeedContract = z.object({
   barrel: z
     .object({
-      fileName: pathSegmentContract,
-      exportPaths: z.array(pathSegmentContract),
+      fileName: z.string().brand<'PackageSeedBarrelFileName'>(),
+      exportPaths: z.array(z.string().brand<'PackageSeedBarrelExportPaths'>()),
     })
     .nullable(),
   dependencies: dependencyMapContract,
@@ -37,8 +36,8 @@ export const packageSeedContract = z.object({
   devDependencies: dependencyMapContract,
   bin: dependencyMapContract,
   compilerOptions: z.record(z.string().brand<'CompilerOptionKey'>(), z.unknown()),
-  extraInclude: z.array(pathSegmentContract),
-  buildRootDir: pathSegmentContract.nullable(),
+  extraInclude: z.array(z.string().brand<'PackageSeedExtraInclude'>()),
+  buildRootDir: z.string().brand<'PackageSeedBuildRootDir'>().nullable(),
   jestKind: z.enum(['node', 'tsx-node', 'tsx-jsdom']),
   e2eEligible: z.boolean(),
   exportsDot: z.boolean(),
@@ -50,7 +49,7 @@ export const packageSeedContract = z.object({
   needsMswTransform: z.boolean(),
   files: z.array(
     z.object({
-      path: pathSegmentContract,
+      path: z.string().brand<'PackageSeedFilesPath'>(),
       contents: z.string().brand<'PackageSeedFilesContents'>(),
     }),
   ),

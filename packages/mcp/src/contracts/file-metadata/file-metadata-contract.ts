@@ -6,7 +6,6 @@
  * // Returns validated file metadata with name, path, type, optional purpose, signature, and usage
  */
 import { z } from '#gateway/npm/zod';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
 const signatureParameterContract = z.object({
@@ -25,13 +24,13 @@ const functionSignatureContract = z.object({
 
 export const fileMetadataContract = z.object({
   name: z.string().brand<'FunctionName'>(),
-  path: pathSegmentContract,
+  path: z.string().brand<'FileMetadataPath'>(),
   fileType: z.string().brand<'FileType'>(),
   purpose: z.string().brand<'Purpose'>().optional(),
   signature: functionSignatureContract.optional(),
   usage: z.string().brand<'UsageExample'>().optional(),
   metadata: z.record(z.string().brand<'FileMetadataKey'>(), z.unknown()).optional(),
-  relatedFiles: z.array(pathSegmentContract),
+  relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
 });
 

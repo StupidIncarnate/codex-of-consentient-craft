@@ -10,7 +10,6 @@
  * NOTE: Reads `locationsStatics` from @dungeonmaster/shared/statics at module-load time. A stale `dist/` for shared causes stale banned literals; rebuild shared first (`npm run build --workspace=@dungeonmaster/shared`) before lint.
  */
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { locationLiteralStatics } from '../../../statics/location-literal/location-literal-statics';
 import { locationLiteralKeyPathsTransformer } from '../../../transformers/location-literal-key-paths/location-literal-key-paths-transformer';
@@ -51,7 +50,7 @@ export const ruleNoBareLocationLiteralsBroker = (): TSESLint.RuleModule<'bareLoc
         if (typeof value !== 'string') {
           return;
         }
-        const keyPath = bannedLiteralKeyPaths.get(pathSegmentContract.parse(value));
+        const keyPath = bannedLiteralKeyPaths.get(value);
         if (keyPath === undefined) {
           return;
         }

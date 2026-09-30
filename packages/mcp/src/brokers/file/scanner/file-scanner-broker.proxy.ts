@@ -20,30 +20,29 @@ import { resolvePackageRoot } from '#gateway/node/module';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import { globPatternContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import type { FsError } from '#gateway/node/fs';
 
 const BROAD_GLOB_PREFIX = '**';
 
 export const fileScannerBrokerProxy = (): {
   setupFiles: (params: {
-    files: readonly { filepath: PathSegment; contents: string }[];
+    files: readonly { filepath: string; contents: string }[];
     pattern: GlobPattern;
     ignorePatterns?: readonly GlobPattern[];
   }) => void;
   setupFilesWithFailingReads: (params: {
     files: readonly {
-      filepath: PathSegment;
+      filepath: string;
       contents?: string;
       error?: FsError;
     }[];
     pattern: GlobPattern;
   }) => void;
   setupFilesAtRoot: (params: {
-    rootPath: PathSegment;
-    files: readonly { filepath: PathSegment; contents: string }[];
+    rootPath: string;
+    files: readonly { filepath: string; contents: string }[];
     pattern: GlobPattern;
   }) => void;
   setupGlobFailure: (params: { pattern: GlobPattern; error: Error }) => void;
@@ -53,7 +52,7 @@ export const fileScannerBrokerProxy = (): {
     cwdStage.setupCwd({ value: '/default/cwd' });
   };
   // The scan root the broker will resolve, read from the same gateway the broker calls.
-  const scanRoot = PathSegmentStub({ value: '/default/cwd' });
+  const scanRoot = '/default/cwd';
   const readFileGateway = readFileProxy();
   resolvePackageRootProxy();
   // A real call — the gateway ships no mocking hook for this (a real `require.resolve` walk plus
@@ -61,7 +60,7 @@ export const fileScannerBrokerProxy = (): {
   // for a broad glob's second scan.
   const resolvedSharedRoot = resolvePackageRoot({ specifier: '@dungeonmaster/shared/contracts' });
   const sharedRoot =
-    resolvedSharedRoot === null ? null : pathSegmentContract.parse(resolvedSharedRoot);
+    resolvedSharedRoot === null ? null : resolvedSharedRoot;
   const globGateway = globProxy();
 
   // Reproduces the broker's own ignore computation (fileScannerBroker, "1. Resolve glob pattern"
@@ -88,10 +87,10 @@ export const fileScannerBrokerProxy = (): {
     ignore,
     matches,
   }: {
-    root: PathSegment;
+    root: string;
     pattern: string;
     ignore: readonly string[];
-    matches: readonly PathSegment[];
+    matches: readonly string[];
   }): void => {
     globGateway.returns({
       pattern: `${root}/${pattern}`,
@@ -109,10 +108,10 @@ export const fileScannerBrokerProxy = (): {
     ignore,
     matches,
   }: {
-    root: PathSegment;
+    root: string;
     pattern: string;
     ignore: readonly string[];
-    matches: readonly PathSegment[];
+    matches: readonly string[];
   }): void => {
     stageScan({ root, pattern, ignore, matches });
     if (String(pattern).startsWith(BROAD_GLOB_PREFIX) && sharedRoot !== null) {
@@ -126,7 +125,7 @@ export const fileScannerBrokerProxy = (): {
       pattern,
       ignorePatterns,
     }: {
-      files: readonly { filepath: PathSegment; contents: string }[];
+      files: readonly { filepath: string; contents: string }[];
       pattern: GlobPattern;
       ignorePatterns?: readonly GlobPattern[];
     }): void => {
@@ -146,7 +145,7 @@ export const fileScannerBrokerProxy = (): {
       pattern,
     }: {
       files: readonly {
-        filepath: PathSegment;
+        filepath: string;
         contents?: string;
         error?: FsError;
       }[];
@@ -176,8 +175,8 @@ export const fileScannerBrokerProxy = (): {
       files,
       pattern,
     }: {
-      rootPath: PathSegment;
-      files: readonly { filepath: PathSegment; contents: string }[];
+      rootPath: string;
+      files: readonly { filepath: string; contents: string }[];
       pattern: GlobPattern;
     }): void => {
       stageDefaultCwd();

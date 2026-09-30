@@ -12,8 +12,6 @@
  * workspacePackageRootImportNameTransformer({ importPath: '@acme/orders', workspaceScope: '@acme' });
  * // Returns 'orders' as a branded PathSegment
  */
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 export const workspacePackageRootImportNameTransformer = ({
   importPath,
@@ -21,11 +19,11 @@ export const workspacePackageRootImportNameTransformer = ({
 }: {
   importPath: string | undefined;
   workspaceScope: string | undefined;
-}): PathSegment | undefined => {
+}): string | undefined => {
   if (workspaceScope === undefined || importPath === undefined) {
     return undefined;
   }
   const escapedScope = workspaceScope.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
   const match = new RegExp(`^${escapedScope}\\/([\\w-]+)$`, 'u').exec(importPath);
-  return match?.[1] === undefined ? undefined : pathSegmentContract.parse(match[1]);
+  return match?.[1] === undefined ? undefined : match[1];
 };

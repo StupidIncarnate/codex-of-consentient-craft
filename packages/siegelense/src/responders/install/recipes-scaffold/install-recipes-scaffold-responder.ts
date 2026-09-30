@@ -33,7 +33,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { basename, dirname, resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, installMessageContract, packageJsonContract, packageNameContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageJsonContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { readFile } from '#gateway/node/fs__promises';
@@ -82,7 +82,7 @@ export const InstallRecipesScaffoldResponder = async ({
         rootPackageJsonName: packageJsonContract.parse(
           JSON.parse(await readFile(rootPackageJsonPath)),
         ).name,
-        fallbackName: pathSegmentContract.parse(basename(context.targetProjectRoot)),
+        fallbackName: basename(context.targetProjectRoot),
       })
     : undefined;
 

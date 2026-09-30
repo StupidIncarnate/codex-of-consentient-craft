@@ -1,5 +1,4 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -20,7 +19,7 @@ type ContentText = string;
 // independent of transcriptLoadBroker's own internal call, to locate the sub-agent roster
 // directory, so this proxy has to predict the exact absolute session file path the real brokers
 // hand back in order to address the roster mock at the right path.
-const PROJECT_DIR = PathSegmentStub({ value: 'test-project' });
+const PROJECT_DIR = 'test-project';
 const HOME_DIR = '/home/user';
 const PROJECTS_ROOT = `${HOME_DIR}/.claude/projects`;
 

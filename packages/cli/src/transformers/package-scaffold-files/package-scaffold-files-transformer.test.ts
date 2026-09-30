@@ -1,7 +1,6 @@
 import { packageScaffoldFilesTransformer } from './package-scaffold-files-transformer';
 import { CreatePackageRequestStub } from '../../contracts/create-package-request/create-package-request.stub';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 // No explicit tuple-array annotation: writing the word "string" here trips
 // `@dungeonmaster/ban-primitives` (it only exempts a function's own parameter/return position).
@@ -602,7 +601,7 @@ describe('packageScaffoldFilesTransformer', () => {
           packageName: '@other-scope/widgets',
           directoryName: 'widgets',
         }),
-        workspaceScope: PathSegmentStub({ value: '@acme' }),
+        workspaceScope: '@acme',
       });
       const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
 

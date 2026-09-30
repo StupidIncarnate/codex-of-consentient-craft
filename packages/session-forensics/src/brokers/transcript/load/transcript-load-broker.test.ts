@@ -1,5 +1,4 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 import { transcriptLoadBroker } from './transcript-load-broker';
 import { transcriptLoadBrokerProxy } from './transcript-load-broker.proxy';
@@ -27,7 +26,7 @@ describe('transcriptLoadBroker', () => {
       ];
       proxy.setupTranscript({
         target,
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         contents: lines.join('\n'),
       });
 
@@ -57,7 +56,7 @@ describe('transcriptLoadBroker', () => {
       });
       proxy.setupTranscript({
         target,
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         contents: line,
       });
 
@@ -84,7 +83,7 @@ describe('transcriptLoadBroker', () => {
       const target = SessionIdStub({ value: 'empty-session' });
       proxy.setupTranscript({
         target,
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         contents: '',
       });
 
@@ -108,7 +107,7 @@ describe('transcriptLoadBroker', () => {
       });
       proxy.setupTranscript({
         target,
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         contents: [validLine, '{"type":"assis'].join('\n'),
       });
 
@@ -138,7 +137,7 @@ describe('transcriptLoadBroker', () => {
       });
       proxy.setupSubagentTranscript({
         target,
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         parentSessionId,
         contents: line,
       });

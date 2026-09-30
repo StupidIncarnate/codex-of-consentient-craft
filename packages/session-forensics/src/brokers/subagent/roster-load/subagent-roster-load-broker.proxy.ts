@@ -4,14 +4,13 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
-import type { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { SubagentMetaStub } from '../../../contracts/subagent-meta/subagent-meta.stub';
 
 type AbsoluteFilePath = string;
 type FilePath = string;
 type ContentText = string;
 type AgentId = ReturnType<typeof AgentIdStub>;
-type PathSegment = ReturnType<typeof PathSegmentStub>;
+type PathSegment = string;
 type SubagentMeta = ReturnType<typeof SubagentMetaStub>;
 
 // One entry to place under a session's subagents dir. `kind: 'valid'` covers a well-formed

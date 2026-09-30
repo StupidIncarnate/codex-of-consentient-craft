@@ -15,7 +15,6 @@ export * from './relative-file-path/relative-file-path-contract';
 
 export * from './repo-relative-path/repo-relative-path-contract';
 
-export * from './path-segment/path-segment-contract';
 
 // File Contents Contracts
 

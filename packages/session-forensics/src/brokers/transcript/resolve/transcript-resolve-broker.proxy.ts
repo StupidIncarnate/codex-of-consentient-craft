@@ -3,10 +3,9 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-type PathSegment = ReturnType<typeof PathSegmentStub>;
+type PathSegment = string;
 type SessionId = ReturnType<typeof SessionIdStub>;
 
 const HOME_DIR = '/home/user';
@@ -129,7 +128,7 @@ export const transcriptResolveBrokerProxy = (): {
       registerProjectDir({ projectDirName: projectDir });
 
       const fileNames = fileEntryNamesByProjectDir.get(projectDir) ?? [];
-      fileNames.push(PathSegmentStub({ value: `${sessionId}.jsonl` }));
+      fileNames.push(`${sessionId}.jsonl`);
       fileEntryNamesByProjectDir.set(projectDir, fileNames);
       refreshProjectDirListing({ projectDirName: projectDir });
 

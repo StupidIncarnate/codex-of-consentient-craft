@@ -1,4 +1,3 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { transcriptResolveBroker } from './transcript-resolve-broker';
@@ -9,7 +8,7 @@ describe('transcriptResolveBroker', () => {
     it('VALID: {sessionId present in the only project dir} => returns its path', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'abc-123' }),
       });
 
@@ -23,15 +22,15 @@ describe('transcriptResolveBroker', () => {
     it('VALID: {sessionId present in the second of three project dirs} => returns its path', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'other-session-a' }),
       });
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-b' }),
+        projectDir: 'proj-b',
         sessionId: SessionIdStub({ value: 'target-session' }),
       });
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-c' }),
+        projectDir: 'proj-c',
         sessionId: SessionIdStub({ value: 'other-session-c' }),
       });
 
@@ -47,11 +46,11 @@ describe('transcriptResolveBroker', () => {
     it('EDGE: {project dir with no matching file, another with the match} => skips and continues', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-empty' }),
+        projectDir: 'proj-empty',
         sessionId: SessionIdStub({ value: 'unrelated-session' }),
       });
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-match' }),
+        projectDir: 'proj-match',
         sessionId: SessionIdStub({ value: 'target-session' }),
       });
 
@@ -67,7 +66,7 @@ describe('transcriptResolveBroker', () => {
     it('EDGE: {target starting with agent-, a same-named top-level file exists} => never matches it', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSessionAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'agent-abc123' }),
       });
 
@@ -83,7 +82,7 @@ describe('transcriptResolveBroker', () => {
     it('VALID: {sub-agent id with parentSessionId} => resolves under that session only', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSubagentAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'session-1' }),
         agentId: SessionIdStub({ value: 'agent-target' }),
       });
@@ -101,7 +100,7 @@ describe('transcriptResolveBroker', () => {
     it('VALID: {sub-agent id, no parentSessionId} => found by searching session dirs', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSubagentAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'session-1' }),
         agentId: SessionIdStub({ value: 'agent-target' }),
       });
@@ -116,12 +115,12 @@ describe('transcriptResolveBroker', () => {
     it('EDGE: {sub-agent whose parent is the second session dir searched} => found', () => {
       const proxy = transcriptResolveBrokerProxy();
       proxy.setupSubagentAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'session-1' }),
         agentId: SessionIdStub({ value: 'agent-other' }),
       });
       proxy.setupSubagentAt({
-        projectDir: PathSegmentStub({ value: 'proj-a' }),
+        projectDir: 'proj-a',
         sessionId: SessionIdStub({ value: 'session-2' }),
         agentId: SessionIdStub({ value: 'agent-target' }),
       });

@@ -18,8 +18,6 @@
  * workspaceScopeFromRootNameTransformer({ rootPackageJsonName: undefined });
  * // Returns undefined — nothing to derive a scope from
  */
-import { pathSegmentContract } from '../../contracts/path-segment/path-segment-contract';
-import type { PathSegment } from '../../contracts/path-segment/path-segment-contract';
 import { packageScopeFromNameTransformer } from '../package-scope-from-name/package-scope-from-name-transformer';
 
 export const workspaceScopeFromRootNameTransformer = ({
@@ -27,8 +25,8 @@ export const workspaceScopeFromRootNameTransformer = ({
   fallbackName,
 }: {
   rootPackageJsonName: string | undefined;
-  fallbackName?: PathSegment;
-}): PathSegment | undefined => {
+  fallbackName?: string;
+}): string | undefined => {
   const candidate =
     rootPackageJsonName !== undefined && rootPackageJsonName.length > 0
       ? rootPackageJsonName
@@ -38,5 +36,5 @@ export const workspaceScopeFromRootNameTransformer = ({
     return undefined;
   }
 
-  return pathSegmentContract.parse(packageScopeFromNameTransformer({ rootPackageName: candidate }));
+  return packageScopeFromNameTransformer({ rootPackageName: candidate });
 };

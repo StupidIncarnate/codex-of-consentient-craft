@@ -1,5 +1,4 @@
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { InstallRecipesScaffoldResponderProxy } from './install-recipes-scaffold-responder.proxy';
@@ -50,7 +49,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const packageJsonContents = proxy.getWrittenContents({
-        relativePath: PathSegmentStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
@@ -108,7 +107,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const packageJsonContents = proxy.getWrittenContents({
-        relativePath: PathSegmentStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
@@ -163,7 +162,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const packageJsonContents = proxy.getWrittenContents({
-        relativePath: PathSegmentStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
@@ -216,7 +215,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const tsconfigContents = proxy.getWrittenContents({
-        relativePath: PathSegmentStub({ value: locationsStatics.repoRoot.tsconfig }),
+        relativePath: locationsStatics.repoRoot.tsconfig,
       });
 
       expect(JSON.parse(String(tsconfigContents))).toStrictEqual({
@@ -235,7 +234,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const tsconfigBuildContents = proxy.getWrittenContents({
-        relativePath: PathSegmentStub({ value: 'tsconfig.build.json' }),
+        relativePath: 'tsconfig.build.json',
       });
 
       expect(JSON.parse(String(tsconfigBuildContents))).toStrictEqual({
@@ -268,7 +267,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const indexTsContents = String(
-        proxy.getWrittenContents({ relativePath: PathSegmentStub({ value: 'src/index.ts' }) }),
+        proxy.getWrittenContents({ relativePath: 'src/index.ts' }),
       );
 
       expect(indexTsContents).toMatch(
@@ -297,31 +296,27 @@ describe('InstallRecipesScaffoldResponder', () => {
       expect({
         startup: String(
           proxy.getWrittenContents({
-            relativePath: PathSegmentStub({ value: 'src/startup/start-hydration-recipes.ts' }),
+            relativePath: 'src/startup/start-hydration-recipes.ts',
           }),
         ).includes('export const StartHydrationRecipes'),
         flow: String(
           proxy.getWrittenContents({
-            relativePath: PathSegmentStub({ value: 'src/flows/recipes/recipes-flow.ts' }),
+            relativePath: 'src/flows/recipes/recipes-flow.ts',
           }),
         ).includes('export const RecipesFlow'),
         respondersBarrel: String(
           proxy.getWrittenContents({
-            relativePath: PathSegmentStub({ value: 'src/responders/responders.ts' }),
+            relativePath: 'src/responders/responders.ts',
           }),
         ).includes('export * from'),
         listingResponder: String(
           proxy.getWrittenContents({
-            relativePath: PathSegmentStub({
-              value: 'src/responders/recipes/listing/recipes-listing-responder.ts',
-            }),
+            relativePath: 'src/responders/recipes/listing/recipes-listing-responder.ts',
           }),
         ).includes(`export const ${recipesConventionStatics.exports.listing}`),
         seedResponder: String(
           proxy.getWrittenContents({
-            relativePath: PathSegmentStub({
-              value: 'src/responders/recipes/seed/recipes-seed-responder.ts',
-            }),
+            relativePath: 'src/responders/recipes/seed/recipes-seed-responder.ts',
           }),
         ).includes(`export const ${recipesConventionStatics.exports.seed}`),
       }).toStrictEqual({
@@ -342,7 +337,7 @@ describe('InstallRecipesScaffoldResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       const packageJsonContents = proxy.getWrittenContents({
-        relativePath: PathSegmentStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       expect(JSON.parse(String(packageJsonContents))).toStrictEqual({

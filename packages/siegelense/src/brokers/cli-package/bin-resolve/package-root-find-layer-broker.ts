@@ -15,18 +15,16 @@
 
 import { dirname, join } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const packageRootFindLayerBroker = ({
   startDir,
 }: {
   startDir: string;
-}): PathSegment | null => {
+}): string | null => {
   const packageJsonPath = join(startDir, 'package.json');
 
   if (existsSync(packageJsonPath)) {
-    return pathSegmentContract.parse(startDir);
+    return startDir;
   }
 
   const parentDir = dirname(startDir);

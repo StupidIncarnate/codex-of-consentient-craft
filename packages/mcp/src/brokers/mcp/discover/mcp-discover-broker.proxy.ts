@@ -19,8 +19,7 @@
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 
 // Placeholder content for a file glob genuinely matched but grep then filters out — any real
 // content works here, as long as it never contains a grep pattern a setupGrepFilteredEmpty
@@ -29,25 +28,25 @@ const NON_GREP_MATCHING_CONTENTS = 'export const placeholder = true;';
 
 export const mcpDiscoverBrokerProxy = (): {
   setupFileDiscovery: (params: {
-    filepath: PathSegment;
+    filepath: string;
     contents: string;
     pattern: GlobPattern;
   }) => void;
   setupMultipleFileDiscovery: (params: {
-    files: readonly { filepath: PathSegment; contents: string }[];
+    files: readonly { filepath: string; contents: string }[];
     pattern: GlobPattern;
   }) => void;
   setupEmptyWithDirectoryHits: (params: {
-    directoryPaths: readonly PathSegment[];
+    directoryPaths: readonly string[];
     pattern: GlobPattern;
   }) => void;
   setupGrepFilteredEmpty: (params: {
-    filePaths: readonly PathSegment[];
+    filePaths: readonly string[];
     pattern: GlobPattern;
   }) => void;
   setupFileDiscoveryAtRoot: (params: {
-    rootPath: PathSegment;
-    filepath: PathSegment;
+    rootPath: string;
+    filepath: string;
     contents: string;
     pattern: GlobPattern;
   }) => void;
@@ -58,7 +57,7 @@ export const mcpDiscoverBrokerProxy = (): {
   };
   // The scan root the broker resolves for both fileScannerBroker's own scan and this broker's
   // own directory-hint probe.
-  const scanRoot = PathSegmentStub({ value: '/default/cwd' });
+  const scanRoot = '/default/cwd';
   const fileScannerProxy = fileScannerBrokerProxy();
   const globGateway = globProxy();
 
@@ -68,7 +67,7 @@ export const mcpDiscoverBrokerProxy = (): {
       contents,
       pattern,
     }: {
-      filepath: PathSegment;
+      filepath: string;
       contents: string;
       pattern: GlobPattern;
     }): void => {
@@ -80,7 +79,7 @@ export const mcpDiscoverBrokerProxy = (): {
       files,
       pattern,
     }: {
-      files: readonly { filepath: PathSegment; contents: string }[];
+      files: readonly { filepath: string; contents: string }[];
       pattern: GlobPattern;
     }): void => {
       stageDefaultCwd();
@@ -91,7 +90,7 @@ export const mcpDiscoverBrokerProxy = (): {
       directoryPaths,
       pattern,
     }: {
-      directoryPaths: readonly PathSegment[];
+      directoryPaths: readonly string[];
       pattern: GlobPattern;
     }): void => {
       stageDefaultCwd();
@@ -112,7 +111,7 @@ export const mcpDiscoverBrokerProxy = (): {
       filePaths,
       pattern,
     }: {
-      filePaths: readonly PathSegment[];
+      filePaths: readonly string[];
       pattern: GlobPattern;
     }): void => {
       stageDefaultCwd();
@@ -135,8 +134,8 @@ export const mcpDiscoverBrokerProxy = (): {
       contents,
       pattern,
     }: {
-      rootPath: PathSegment;
-      filepath: PathSegment;
+      rootPath: string;
+      filepath: string;
       contents: string;
       pattern: GlobPattern;
     }): void => {

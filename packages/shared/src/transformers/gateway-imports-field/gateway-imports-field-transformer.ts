@@ -13,7 +13,6 @@
  * // Returns {'#gateway/npm/*': '@acme/npm/*', '#gateway/node/*': '@acme/node/*', ...}
  */
 
-import type { PathSegment } from '../../contracts/path-segment/path-segment-contract';
 import {
   gatewayImportsMapContract,
   type GatewayImportsMap,
@@ -23,7 +22,7 @@ import { gatewayLocationsStatics } from '../../statics/gateway-locations/gateway
 export const gatewayImportsFieldTransformer = ({
   scope,
 }: {
-  scope: PathSegment;
+  scope: string;
 }): GatewayImportsMap =>
   gatewayImportsMapContract.parse(
     Object.fromEntries(

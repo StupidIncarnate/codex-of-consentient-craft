@@ -30,7 +30,6 @@
  */
 
 import type { InstallContext } from '@dungeonmaster/shared/contracts';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -62,7 +61,7 @@ export const CliCreatePackageResponder = async ({
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
-  const fallbackName = pathSegmentContract.parse(basename(context.targetProjectRoot));
+  const fallbackName = basename(context.targetProjectRoot);
   const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
   if (scope === undefined) {
     throw new Error(

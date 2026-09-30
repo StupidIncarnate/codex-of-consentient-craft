@@ -16,7 +16,6 @@ import { resolve } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import type { FolderTypeWithConstraints } from '../../../statics/folder-constraints/folder-constraints-statics';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 type ContentText = string;
 
@@ -36,12 +35,10 @@ export const folderConstraintsInitBrokerProxy = (): Record<PropertyKey, never> =
   const fileGateway = readFileProxy();
   stderrProxy();
 
-  const constraintsDir = pathSegmentContract.parse(
-    resolve(__dirname, '../../../statics/folder-constraints'),
-  );
+  const constraintsDir = resolve(__dirname, '../../../statics/folder-constraints');
 
   for (const [folderType, filename] of Object.entries(folderConstraintsStatics)) {
-    const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
+    const filepath = resolve(constraintsDir, filename);
     const sectionHeading = SECTION_HEADING_BY_FOLDER_TYPE[folderType as FolderTypeWithConstraints];
     const contents = sectionHeading
       ? `${FOLDER_STRUCTURE_HEADING}\n${sectionHeading}`

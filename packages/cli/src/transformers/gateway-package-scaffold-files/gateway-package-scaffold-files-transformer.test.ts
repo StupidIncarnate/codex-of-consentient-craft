@@ -1,4 +1,3 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { gatewayPackageScaffoldFilesTransformer } from './gateway-package-scaffold-files-transformer';
 
 const fileNamed = ({
@@ -12,7 +11,7 @@ const fileNamed = ({
 describe('gatewayPackageScaffoldFilesTransformer', () => {
   it('VALID: {folder: "npm"} => builds the configs plus the placeholder that keeps an empty package compiling', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'npm',
     });
 
@@ -27,7 +26,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
   it('VALID: {folder: "node"} => builds only the configs, since its source is copied in', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'node',
     });
 
@@ -41,7 +40,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
   it('VALID: {folder: "npm"} => package.json carries the per-subpath exports, sideEffects false and no typesVersions', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'npm',
     });
     const packageJson = JSON.parse(
@@ -106,7 +105,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
   it('VALID: {folder: "browser"} => package.json adds the jsdom test dependencies', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'browser',
     });
     const packageJson = JSON.parse(
@@ -174,7 +173,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
   it('VALID: {folder: "npm"} => tsconfig.json extends the repo root three levels up and excludes dist', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'npm',
     });
     const tsconfig = JSON.parse(
@@ -193,7 +192,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
   it('VALID: {folder: "npm"} => tsconfig.build.json reads other gateways through gateway-dist and ships proxies and stubs', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'npm',
     });
     const tsconfigBuild = JSON.parse(
@@ -218,7 +217,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
   it('VALID: {folder: "node"} => jest.config.js spreads the published @dungeonmaster/testing base', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'node',
     });
 
@@ -234,7 +233,7 @@ module.exports = {
 
   it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the testing package\'s polyfill', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'browser',
     });
 
@@ -255,7 +254,7 @@ module.exports = {
 
   it('VALID: {folder: "bin"} => the placeholder is an empty module declaration', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
       folder: 'bin',
     });
 

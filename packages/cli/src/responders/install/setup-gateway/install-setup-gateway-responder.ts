@@ -12,7 +12,7 @@
  * // Scaffolds the gateway, wires every existing package into it, or reports what was already done
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -57,7 +57,7 @@ export const InstallSetupGatewayResponder = async ({
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
-  const fallbackName = pathSegmentContract.parse(basename(context.targetProjectRoot));
+  const fallbackName = basename(context.targetProjectRoot);
   const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
   if (scope === undefined) {
     throw new Error(

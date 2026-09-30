@@ -1,4 +1,3 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { workspacePackageRootImportNameTransformer } from './workspace-package-root-import-name-transformer';
 
 describe('workspacePackageRootImportNameTransformer', () => {
@@ -8,7 +7,7 @@ describe('workspacePackageRootImportNameTransformer', () => {
       workspaceScope: '@dungeonmaster',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: 'orchestrator' }));
+    expect(result).toStrictEqual('orchestrator');
   });
 
   it("VALID: {importPath: a consumer's own scope, workspaceScope: same} => returns the package name", () => {
@@ -17,7 +16,7 @@ describe('workspacePackageRootImportNameTransformer', () => {
       workspaceScope: '@acme',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: 'orders' }));
+    expect(result).toStrictEqual('orders');
   });
 
   it('EMPTY: {importPath: a different scope than workspaceScope} => returns undefined', () => {

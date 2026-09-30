@@ -1,11 +1,8 @@
 import { pathToBasenameTransformer } from './path-to-basename-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToBasenameTransformer', () => {
   it('VALID: extracts filename from absolute path', () => {
-    const filepath = PathSegmentStub({
-      value: '/home/user/project/src/file.ts',
-    });
+    const filepath = '/home/user/project/src/file.ts';
 
     const result = pathToBasenameTransformer({ filepath });
 
@@ -13,9 +10,7 @@ describe('pathToBasenameTransformer', () => {
   });
 
   it('VALID: extracts filename with multiple dots', () => {
-    const filepath = PathSegmentStub({
-      value: '/path/to/file.test.ts',
-    });
+    const filepath = '/path/to/file.test.ts';
 
     const result = pathToBasenameTransformer({ filepath });
 
@@ -23,7 +18,7 @@ describe('pathToBasenameTransformer', () => {
   });
 
   it('VALID: handles filename with no path', () => {
-    const filepath = PathSegmentStub({ value: 'standalone.ts' });
+    const filepath = 'standalone.ts';
 
     const result = pathToBasenameTransformer({ filepath });
 
@@ -31,9 +26,7 @@ describe('pathToBasenameTransformer', () => {
   });
 
   it('VALID: handles deeply nested path', () => {
-    const filepath = PathSegmentStub({
-      value: '/a/b/c/d/e/f/file.proxy.ts',
-    });
+    const filepath = '/a/b/c/d/e/f/file.proxy.ts';
 
     const result = pathToBasenameTransformer({ filepath });
 

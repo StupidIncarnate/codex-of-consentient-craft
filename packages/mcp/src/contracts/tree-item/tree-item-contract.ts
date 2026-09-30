@@ -6,12 +6,11 @@
  * // Returns validated tree item with path for formatting
  */
 import { z } from '#gateway/npm/zod';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 import { discoverListItemContract } from '../discover-list-item/discover-list-item-contract';
 
 export const treeItemContract = discoverListItemContract.extend({
-  path: pathSegmentContract,
+  path: z.string().brand<'TreeItemPath'>(),
   hits: z.array(grepHitContract).optional(),
 });
 

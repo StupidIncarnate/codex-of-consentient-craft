@@ -13,13 +13,11 @@ import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker.proxy';
 import { agentsPluginCreateBrokerProxy } from '../../../brokers/agents/plugin-create/agents-plugin-create-broker.proxy';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { InstallConfigCreateResponder } from './install-config-create-responder';
 
 type FilePath = string;
-type PathSegment = ReturnType<typeof PathSegmentStub>;
+type PathSegment = string;
 
 export const InstallConfigCreateResponderProxy = (): {
   callResponder: typeof InstallConfigCreateResponder;
@@ -49,19 +47,17 @@ export const InstallConfigCreateResponderProxy = (): {
   // Mirrors the responder's own configPath computation so the read/write addresses below match
   // what it really calls join with.
   const configPathFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): PathSegment =>
-    PathSegmentStub({ value: join(targetProjectRoot, locationsStatics.repoRoot.mcpJson) });
+    join(targetProjectRoot, locationsStatics.repoRoot.mcpJson);
   const claudeSettingsPathFor = ({
     targetProjectRoot,
   }: {
     targetProjectRoot: FilePath;
   }): PathSegment =>
-    PathSegmentStub({
-      value: join(
+    join(
         targetProjectRoot,
         locationsStatics.repoRoot.claude.dir,
         locationsStatics.repoRoot.claude.settings,
-      ),
-    });
+      );
 
   return {
     callResponder: InstallConfigCreateResponder,
@@ -76,11 +72,11 @@ export const InstallConfigCreateResponderProxy = (): {
       readProxy.returnsRaw({ path: configPathFor({ targetProjectRoot }), rawContents: content });
       writeProxy.succeeds({ path: configPathFor({ targetProjectRoot }) });
       settingsProxy.setupNoExistingSettings({
-        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+        targetProjectRoot: targetProjectRoot,
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
       agentsProxy.setupSuccess({
-        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+        targetProjectRoot: targetProjectRoot,
       });
     },
 
@@ -88,11 +84,11 @@ export const InstallConfigCreateResponderProxy = (): {
       readProxy.missing({ path: configPathFor({ targetProjectRoot }) });
       writeProxy.succeeds({ path: configPathFor({ targetProjectRoot }) });
       settingsProxy.setupNoExistingSettings({
-        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+        targetProjectRoot: targetProjectRoot,
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
       agentsProxy.setupSuccess({
-        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+        targetProjectRoot: targetProjectRoot,
       });
     },
 

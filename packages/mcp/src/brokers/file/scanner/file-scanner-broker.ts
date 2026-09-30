@@ -21,8 +21,8 @@ import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern as IgnorePattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import { globPatternContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern as IgnorePattern } from '@dungeonmaster/shared/contracts';
 import { cwd } from '#gateway/node/process';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -50,10 +50,10 @@ export const fileScannerBroker = async ({
   // callerRepoRootResolveBroker and always passes it — the `cwd()` default below
   // exists only for standalone/test callers, and relying on it at a real call site silently
   // reproduces the worktree-blindness bug this parameter exists to fix.
-  rootPath?: PathSegment;
+  rootPath?: string;
 }): Promise<readonly FileMetadata[]> => {
   // 1. Resolve glob pattern and scan from the resolved root + shared package
-  const cwdPath = rootPath ?? pathSegmentContract.parse(cwd());
+  const cwdPath = rootPath ?? cwd();
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
   const pattern = `${cwdPath}/${globSuffix}`;
 
@@ -68,7 +68,7 @@ export const fileScannerBroker = async ({
   });
 
   const projectFiles = (await globFind(pattern, { cwd: cwdPath, ignore })).map((foundPath) =>
-    pathSegmentContract.parse(foundPath),
+    foundPath,
   );
 
   // Also scan @dungeonmaster/shared for broad (unscoped) globs starting with **
@@ -76,26 +76,26 @@ export const fileScannerBroker = async ({
   const sharedPath = isBroadGlob
     ? resolvePackageRoot({ specifier: '@dungeonmaster/shared/contracts' })
     : null;
-  const sharedFilePaths: PathSegment[] = [];
-  const sharedBasePathStr = sharedPath ? pathSegmentContract.parse(sharedPath) : null;
+  const sharedFilePaths: string[] = [];
+  const sharedBasePathStr = sharedPath ? sharedPath : null;
   if (sharedBasePathStr !== null) {
     const sharedPattern = `${sharedBasePathStr}/${globSuffix}`;
     const foundSharedFiles = (
       await globFind(sharedPattern, { cwd: sharedBasePathStr, ignore })
-    ).map((foundPath) => pathSegmentContract.parse(foundPath));
+    ).map((foundPath) => foundPath);
     sharedFilePaths.push(...foundSharedFiles);
   }
 
   // Build a set of shared file paths for later path conversion
   const sharedFileSet = new Set<FileMetadata['path']>(
-    sharedFilePaths.map((fp) => pathSegmentContract.parse(fp)),
+    sharedFilePaths.map((fp) => fp),
   );
 
   // Combine project files and shared files, deduped by absolute path.
   // A broad glob run from the monorepo root can hit the same shared source both
   // via the cwd scan and the secondary shared-path scan — dedup prevents doubled results.
-  const seenPaths = new Set<PathSegment>();
-  const allFilePaths: PathSegment[] = [];
+  const seenPaths = new Set<string>();
+  const allFilePaths: string[] = [];
   for (const fp of [...projectFiles, ...sharedFilePaths]) {
     if (seenPaths.has(fp)) continue;
     seenPaths.add(fp);
@@ -219,7 +219,7 @@ export const fileScannerBroker = async ({
     const isShared = sharedFileSet.has(file.path);
     const displayPath =
       isShared && sharedBasePathStr
-        ? pathSegmentContract.parse(file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'))
+        ? file.path.replace(sharedBasePathStr, '@dungeonmaster/shared')
         : pathToRelativeTransformer({ filepath: file.path, cwd: cwdPath });
 
     const relatedFilenames = related
@@ -238,7 +238,7 @@ export const fileScannerBroker = async ({
     const isShared = sharedFileSet.has(file.path);
     const displayPath =
       isShared && sharedBasePathStr
-        ? pathSegmentContract.parse(file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'))
+        ? file.path.replace(sharedBasePathStr, '@dungeonmaster/shared')
         : pathToRelativeTransformer({ filepath: file.path, cwd: cwdPath });
 
     return fileMetadataContract.parse({

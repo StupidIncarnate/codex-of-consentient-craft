@@ -1,10 +1,9 @@
-import { PathSegmentStub } from '../../contracts/path-segment/path-segment.stub';
 import { gatewayImportsFieldTransformer } from './gateway-imports-field-transformer';
 
 describe('gatewayImportsFieldTransformer', () => {
   it('VALID: {scope: "@acme"} => returns the four #gateway entries scoped to @acme', () => {
     const result = gatewayImportsFieldTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
     });
 
     expect(result).toStrictEqual({
@@ -17,7 +16,7 @@ describe('gatewayImportsFieldTransformer', () => {
 
   it('VALID: {scope: "@dungeonmaster"} => returns the four #gateway entries scoped to @dungeonmaster', () => {
     const result = gatewayImportsFieldTransformer({
-      scope: PathSegmentStub({ value: '@dungeonmaster' }),
+      scope: '@dungeonmaster',
     });
 
     expect(result).toStrictEqual({

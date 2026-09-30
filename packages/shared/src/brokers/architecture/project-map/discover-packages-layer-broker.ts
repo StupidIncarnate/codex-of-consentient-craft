@@ -14,8 +14,6 @@
  */
 
 import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
-import { pathSegmentContract } from '../../../contracts/path-segment/path-segment-contract';
-import type { PathSegment } from '../../../contracts/path-segment/path-segment-contract';
 
 const GROUP_FOLDER_PREFIX = '@';
 
@@ -23,7 +21,7 @@ export const discoverPackagesLayerBroker = ({
   dirPath,
 }: {
   dirPath: string;
-}): { name: string; relativeDir: PathSegment }[] => {
+}): { name: string; relativeDir: string }[] => {
   let topLevelEntries: DirEntrySync[] = [];
   try {
     topLevelEntries = readdirEntriesSync(String(dirPath));
@@ -37,7 +35,7 @@ export const discoverPackagesLayerBroker = ({
     .filter((entry) => !entry.name.startsWith(GROUP_FOLDER_PREFIX))
     .map((entry) => ({
       name: entry.name,
-      relativeDir: pathSegmentContract.parse(entry.name),
+      relativeDir: entry.name,
     }));
 
   const groupPackages = directoryEntries
@@ -55,7 +53,7 @@ export const discoverPackagesLayerBroker = ({
         .filter((child) => child.kind === 'directory')
         .map((child) => ({
           name: child.name,
-          relativeDir: pathSegmentContract.parse(`${group.name}/${child.name}`),
+          relativeDir: `${group.name}/${child.name}`,
         }));
     });
 

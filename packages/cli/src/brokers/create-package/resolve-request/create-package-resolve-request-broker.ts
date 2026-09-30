@@ -17,8 +17,8 @@
  * // Returns a CreatePackageRequest with packageName '@acme/widgets' and directoryName 'widgets'
  */
 
-import { packageNameContract, packageTypeContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName, PackageType, PathSegment } from '@dungeonmaster/shared/contracts';
+import { packageNameContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
+import type { PackageName, PackageType } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import { getStdin, stdout } from '#gateway/node/process';
 import { question } from '#gateway/node/readline';
@@ -36,7 +36,7 @@ export const createPackageResolveRequestBroker = async ({
   interactive,
 }: {
   args: CreatePackageArgs;
-  scope: PathSegment;
+  scope: string;
   interactive: boolean;
 }): Promise<CreatePackageRequest> => {
   const nameAnswer =
@@ -72,9 +72,7 @@ export const createPackageResolveRequestBroker = async ({
   }
 
   const isFullyScoped = name.startsWith('@') && name.includes('/');
-  const directoryName: PathSegment = pathSegmentContract.parse(
-    isFullyScoped ? name.slice(name.indexOf('/') + 1) : name,
-  );
+  const directoryName: string = (isFullyScoped ? name.slice(name.indexOf('/') + 1) : name);
   const packageName: PackageName = isFullyScoped
     ? name
     : String(scope) === ''
@@ -121,8 +119,8 @@ export const createPackageResolveRequestBroker = async ({
         : descriptionDefault
       : args.description;
 
-  const packagesDir: PathSegment =
-    args.packagesDir ?? pathSegmentContract.parse(packageScaffoldConfigStatics.defaultPackagesDir);
+  const packagesDir: string =
+    args.packagesDir ?? packageScaffoldConfigStatics.defaultPackagesDir;
 
   return createPackageRequestContract.parse({
     packageName,

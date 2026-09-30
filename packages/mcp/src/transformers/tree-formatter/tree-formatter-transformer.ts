@@ -17,7 +17,6 @@ import { treeItemContract } from '../../contracts/tree-item/tree-item-contract';
 import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
 import { treeNodeContract } from '../../contracts/tree-node/tree-node-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { folderNameContract } from '../../contracts/folder-name/folder-name-contract';
 import { treeOutputContract } from '../../contracts/tree-output/tree-output-contract';
 import type { TreeOutput } from '../../contracts/tree-output/tree-output-contract';
@@ -47,7 +46,7 @@ export const treeFormatterTransformer = ({
 
   for (const item of items) {
     const relevantPath = pathToTreeRelativeTransformer({
-      filepath: pathSegmentContract.parse(String(item.path)),
+      filepath: String(item.path),
     });
 
     // Split into segments

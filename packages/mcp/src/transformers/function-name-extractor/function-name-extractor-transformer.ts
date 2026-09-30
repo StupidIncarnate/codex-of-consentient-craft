@@ -7,12 +7,11 @@
  * });
  * // Returns: FunctionName('user-fetch-broker')
  */
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const functionNameExtractorTransformer = ({
   filepath,
 }: {
-  filepath: PathSegment;
+  filepath: string;
 }): string => {
   const filename = filepath.split('/').pop() ?? '';
   const nameWithoutExtension = filename.replace(/\.(ts|tsx|js|jsx)$/u, '');

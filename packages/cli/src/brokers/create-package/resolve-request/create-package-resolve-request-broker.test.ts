@@ -1,5 +1,4 @@
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 import { createPackageResolveRequestBroker } from './create-package-resolve-request-broker';
 import { createPackageResolveRequestBrokerProxy } from './create-package-resolve-request-broker.proxy';
@@ -15,7 +14,7 @@ describe('createPackageResolveRequestBroker', () => {
         description: 'A widget package',
         packagesDir: 'custom-packages',
       });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       const result = await createPackageResolveRequestBroker({ args, scope, interactive: false });
 
@@ -31,7 +30,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('VALID: {name: "widgets", scope: "@acme"} => prefixes the scope and defaults the description', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ name: 'widgets' });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       const result = await createPackageResolveRequestBroker({ args, scope, interactive: false });
 
@@ -47,7 +46,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('VALID: {name: "@othername/widgets", scope: "@acme"} => does not double-prefix and takes directoryName after the slash', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ name: '@othername/widgets' });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       const result = await createPackageResolveRequestBroker({ args, scope, interactive: false });
 
@@ -63,7 +62,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('VALID: {name: "widgets", scope: ""} => leaves the bare name unprefixed', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ name: 'widgets' });
-      const scope = PathSegmentStub({ value: '' });
+      const scope = '';
 
       const result = await createPackageResolveRequestBroker({ args, scope, interactive: false });
 
@@ -79,7 +78,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('INVALID: {name: "@gateway/foo"} => refuses the @gateway scope and points at the session snippet', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ name: '@gateway/foo' });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       await expect(
         createPackageResolveRequestBroker({ args, scope, interactive: false }),
@@ -91,7 +90,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('INVALID: {name: absent, interactive: false} => throws naming --name', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ name: undefined });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       await expect(
         createPackageResolveRequestBroker({ args, scope, interactive: false }),
@@ -103,7 +102,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('INVALID: {packageType: absent, interactive: false} => throws naming --type', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ packageType: undefined });
-      const scope = PathSegmentStub({ value: '' });
+      const scope = '';
 
       await expect(
         createPackageResolveRequestBroker({ args, scope, interactive: false }),
@@ -126,7 +125,7 @@ describe('createPackageResolveRequestBroker', () => {
         packageType: undefined,
         description: undefined,
       });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       const result = await createPackageResolveRequestBroker({ args, scope, interactive: true });
 
@@ -152,7 +151,7 @@ describe('createPackageResolveRequestBroker', () => {
         packageType: undefined,
         description: 'A widget package',
       });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       const result = await createPackageResolveRequestBroker({ args, scope, interactive: true });
 
@@ -170,7 +169,7 @@ describe('createPackageResolveRequestBroker', () => {
       const proxy = createPackageResolveRequestBrokerProxy();
       proxy.setupAnswers({ name: '@gateway/foo' });
       const args = CreatePackageArgsStub({ name: undefined, packageType: 'library' });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       await expect(
         createPackageResolveRequestBroker({ args, scope, interactive: true }),
@@ -184,7 +183,7 @@ describe('createPackageResolveRequestBroker', () => {
       const proxy = createPackageResolveRequestBrokerProxy();
       proxy.setupAnswers({ name: '' });
       const args = CreatePackageArgsStub({ name: undefined, packageType: 'library' });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
 
       await expect(
         createPackageResolveRequestBroker({ args, scope, interactive: true }),
@@ -200,7 +199,7 @@ describe('createPackageResolveRequestBroker', () => {
         packageType: undefined,
         description: 'A widget package',
       });
-      const scope = PathSegmentStub({ value: '@acme' });
+      const scope = '@acme';
       const validTypes = packageBuildOrderStatics.tiers.flat().join(', ');
 
       await expect(

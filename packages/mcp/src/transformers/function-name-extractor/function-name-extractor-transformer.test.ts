@@ -1,11 +1,10 @@
 import { functionNameExtractorTransformer } from './function-name-extractor-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('functionNameExtractorTransformer', () => {
   describe('valid paths with .ts extension', () => {
     it('VALID: {filepath: "/path/to/user-fetch-broker.ts"} => returns "user-fetch-broker"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/to/user-fetch-broker.ts' }),
+        filepath: '/path/to/user-fetch-broker.ts',
       });
 
       expect(result).toStrictEqual('user-fetch-broker');
@@ -13,7 +12,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "/user-profile-broker.ts"} => returns "user-profile-broker"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/user-profile-broker.ts' }),
+        filepath: '/user-profile-broker.ts',
       });
 
       expect(result).toStrictEqual('user-profile-broker');
@@ -21,7 +20,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "simple-file.ts"} => returns "simple-file"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: 'simple-file.ts' }),
+        filepath: 'simple-file.ts',
       });
 
       expect(result).toStrictEqual('simple-file');
@@ -31,7 +30,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('valid paths with .tsx extension', () => {
     it('VALID: {filepath: "/components/user-widget.tsx"} => returns "user-widget"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/components/user-widget.tsx' }),
+        filepath: '/components/user-widget.tsx',
       });
 
       expect(result).toStrictEqual('user-widget');
@@ -39,9 +38,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "/path/to/deeply/nested/component.tsx"} => returns "component"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({
-          value: '/path/to/deeply/nested/component.tsx',
-        }),
+        filepath: '/path/to/deeply/nested/component.tsx',
       });
 
       expect(result).toStrictEqual('component');
@@ -49,7 +46,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "standalone.tsx"} => returns "standalone"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: 'standalone.tsx' }),
+        filepath: 'standalone.tsx',
       });
 
       expect(result).toStrictEqual('standalone');
@@ -59,7 +56,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('edge cases with dots in filename', () => {
     it('EDGE: {filepath: "/path/file.test.ts"} => returns "file.test"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.test.ts' }),
+        filepath: '/path/file.test.ts',
       });
 
       expect(result).toStrictEqual('file.test');
@@ -67,7 +64,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/file.spec.tsx"} => returns "file.spec"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.spec.tsx' }),
+        filepath: '/path/file.spec.tsx',
       });
 
       expect(result).toStrictEqual('file.spec');
@@ -75,7 +72,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/file.proxy.ts"} => returns "file.proxy"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.proxy.ts' }),
+        filepath: '/path/file.proxy.ts',
       });
 
       expect(result).toStrictEqual('file.proxy');
@@ -85,7 +82,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('edge cases without typescript extension', () => {
     it('EDGE: {filepath: "/path/to/readme.md"} => returns "readme.md"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/to/readme.md' }),
+        filepath: '/path/to/readme.md',
       });
 
       expect(result).toStrictEqual('readme.md');
@@ -93,7 +90,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/config.json"} => returns "config.json"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/config.json' }),
+        filepath: '/path/config.json',
       });
 
       expect(result).toStrictEqual('config.json');
@@ -101,7 +98,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/noextension"} => returns "noextension"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/noextension' }),
+        filepath: '/path/noextension',
       });
 
       expect(result).toStrictEqual('noextension');
@@ -111,7 +108,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('edge cases with unusual path separators', () => {
     it('EDGE: {filepath: "/path//double//slash//file.ts"} => returns "file"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path//double//slash//file.ts' }),
+        filepath: '/path//double//slash//file.ts',
       });
 
       expect(result).toStrictEqual('file');
@@ -119,7 +116,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "///leading-slashes.ts"} => returns "leading-slashes"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '///leading-slashes.ts' }),
+        filepath: '///leading-slashes.ts',
       });
 
       expect(result).toStrictEqual('leading-slashes');
@@ -127,7 +124,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/trailing/slash/.ts"} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/trailing/slash/.ts' }),
+        filepath: '/trailing/slash/.ts',
       });
 
       expect(result).toStrictEqual('');
@@ -137,7 +134,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('edge cases with empty results', () => {
     it('EDGE: {filepath: "/"} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/' }),
+        filepath: '/',
       });
 
       expect(result).toStrictEqual('');
@@ -145,7 +142,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: ""} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '' }),
+        filepath: '',
       });
 
       expect(result).toStrictEqual('');
@@ -153,7 +150,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: ".ts"} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '.ts' }),
+        filepath: '.ts',
       });
 
       expect(result).toStrictEqual('');
@@ -161,7 +158,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: ".tsx"} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '.tsx' }),
+        filepath: '.tsx',
       });
 
       expect(result).toStrictEqual('');
@@ -171,7 +168,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('edge cases with special characters', () => {
     it('EDGE: {filepath: "/path/file-with-dashes.ts"} => returns "file-with-dashes"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file-with-dashes.ts' }),
+        filepath: '/path/file-with-dashes.ts',
       });
 
       expect(result).toStrictEqual('file-with-dashes');
@@ -179,7 +176,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/file_with_underscores.tsx"} => returns "file_with_underscores"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file_with_underscores.tsx' }),
+        filepath: '/path/file_with_underscores.tsx',
       });
 
       expect(result).toStrictEqual('file_with_underscores');
@@ -187,7 +184,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/123-numeric-prefix.ts"} => returns "123-numeric-prefix"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/123-numeric-prefix.ts' }),
+        filepath: '/path/123-numeric-prefix.ts',
       });
 
       expect(result).toStrictEqual('123-numeric-prefix');
@@ -197,7 +194,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('edge cases with misleading extensions', () => {
     it('EDGE: {filepath: "/path/file.typescript"} => returns "file.typescript"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.typescript' }),
+        filepath: '/path/file.typescript',
       });
 
       expect(result).toStrictEqual('file.typescript');
@@ -205,7 +202,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/file.tsx.backup"} => returns "file.tsx.backup"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.tsx.backup' }),
+        filepath: '/path/file.tsx.backup',
       });
 
       expect(result).toStrictEqual('file.tsx.backup');
@@ -213,7 +210,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/.tst"} => returns ".tst"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/.tst' }),
+        filepath: '/path/.tst',
       });
 
       expect(result).toStrictEqual('.tst');
@@ -223,7 +220,7 @@ describe('functionNameExtractorTransformer', () => {
   describe('javascript extensions', () => {
     it('VALID: {filepath: "/path/to/user-fetch-broker.js"} => returns "user-fetch-broker"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/to/user-fetch-broker.js' }),
+        filepath: '/path/to/user-fetch-broker.js',
       });
 
       expect(result).toStrictEqual('user-fetch-broker');
@@ -231,7 +228,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "/components/user-widget.jsx"} => returns "user-widget"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/components/user-widget.jsx' }),
+        filepath: '/components/user-widget.jsx',
       });
 
       expect(result).toStrictEqual('user-widget');
@@ -239,7 +236,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "simple-file.js"} => returns "simple-file"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: 'simple-file.js' }),
+        filepath: 'simple-file.js',
       });
 
       expect(result).toStrictEqual('simple-file');
@@ -247,7 +244,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('VALID: {filepath: "component.jsx"} => returns "component"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: 'component.jsx' }),
+        filepath: 'component.jsx',
       });
 
       expect(result).toStrictEqual('component');
@@ -255,7 +252,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/file.test.js"} => returns "file.test"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.test.js' }),
+        filepath: '/path/file.test.js',
       });
 
       expect(result).toStrictEqual('file.test');
@@ -263,7 +260,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: "/path/file.proxy.jsx"} => returns "file.proxy"', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '/path/file.proxy.jsx' }),
+        filepath: '/path/file.proxy.jsx',
       });
 
       expect(result).toStrictEqual('file.proxy');
@@ -271,7 +268,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: ".js"} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '.js' }),
+        filepath: '.js',
       });
 
       expect(result).toStrictEqual('');
@@ -279,7 +276,7 @@ describe('functionNameExtractorTransformer', () => {
 
     it('EDGE: {filepath: ".jsx"} => returns ""', () => {
       const result = functionNameExtractorTransformer({
-        filepath: PathSegmentStub({ value: '.jsx' }),
+        filepath: '.jsx',
       });
 
       expect(result).toStrictEqual('');

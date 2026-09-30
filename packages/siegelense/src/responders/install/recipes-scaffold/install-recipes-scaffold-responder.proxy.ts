@@ -2,8 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { basename, dirname, resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import type { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -52,11 +50,11 @@ const SCAFFOLD_DIR_PATHS = [
 ] as const;
 
 const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
-  PathSegment,
+  string,
   string
 > = new Map(
   SCAFFOLD_RELATIVE_PATHS.map((relativePath) => [
-    PathSegmentStub({ value: relativePath }),
+    relativePath,
     `${RECIPES_PACKAGE_ROOT}/${relativePath}`,
   ]),
 );
@@ -69,7 +67,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   }) => void;
   setupPackagePresent: () => void;
   getCreatedDirs: () => readonly unknown[];
-  getWrittenContents: (params: { relativePath: PathSegment }) => unknown;
+  getWrittenContents: (params: { relativePath: string }) => unknown;
   getMarkedScaffoldedRecipesPackageName: () => ReturnType<typeof PackageNameStub> | undefined;
 } => {
   const realPath = requireActual<{
@@ -152,7 +150,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
         mkdirProxy.getCallsFor({ path: dirPath }).map(() => dirPath),
       ),
 
-    getWrittenContents: ({ relativePath }: { relativePath: PathSegment }): unknown => {
+    getWrittenContents: ({ relativePath }: { relativePath: string }): unknown => {
       const filePath = SCAFFOLD_FILE_ABSOLUTE_PATHS.get(relativePath);
       return filePath === undefined ? undefined : writeProxy.writtenContentsFor({ path: filePath });
     },

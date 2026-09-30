@@ -1,11 +1,10 @@
 import { pathToSubPathTransformer } from './path-to-sub-path-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToSubPathTransformer', () => {
   describe('src anchor', () => {
     it('VALID: {filepath: "packages/orchestrator/src/contracts"} => returns "src/contracts"', () => {
       const result = pathToSubPathTransformer({
-        filepath: PathSegmentStub({ value: 'packages/orchestrator/src/contracts' }),
+        filepath: 'packages/orchestrator/src/contracts',
       });
 
       expect(result).toBe('src/contracts');
@@ -13,7 +12,7 @@ describe('pathToSubPathTransformer', () => {
 
     it('VALID: {filepath: "packages/mcp/src/brokers/file/scanner"} => returns "src/brokers/file/scanner"', () => {
       const result = pathToSubPathTransformer({
-        filepath: PathSegmentStub({ value: 'packages/mcp/src/brokers/file/scanner' }),
+        filepath: 'packages/mcp/src/brokers/file/scanner',
       });
 
       expect(result).toBe('src/brokers/file/scanner');
@@ -21,7 +20,7 @@ describe('pathToSubPathTransformer', () => {
 
     it('VALID: {filepath: "src/guards"} => returns "src/guards"', () => {
       const result = pathToSubPathTransformer({
-        filepath: PathSegmentStub({ value: 'src/guards' }),
+        filepath: 'src/guards',
       });
 
       expect(result).toBe('src/guards');
@@ -31,7 +30,7 @@ describe('pathToSubPathTransformer', () => {
   describe('test anchor', () => {
     it('VALID: {filepath: "packages/orchestrator/test/harnesses"} => returns "test/harnesses"', () => {
       const result = pathToSubPathTransformer({
-        filepath: PathSegmentStub({ value: 'packages/orchestrator/test/harnesses' }),
+        filepath: 'packages/orchestrator/test/harnesses',
       });
 
       expect(result).toBe('test/harnesses');
@@ -39,7 +38,7 @@ describe('pathToSubPathTransformer', () => {
 
     it('VALID: {filepath: "test/harnesses/lifecycle-verify"} => returns "test/harnesses/lifecycle-verify"', () => {
       const result = pathToSubPathTransformer({
-        filepath: PathSegmentStub({ value: 'test/harnesses/lifecycle-verify' }),
+        filepath: 'test/harnesses/lifecycle-verify',
       });
 
       expect(result).toBe('test/harnesses/lifecycle-verify');
@@ -49,7 +48,7 @@ describe('pathToSubPathTransformer', () => {
   describe('no anchor found', () => {
     it('EMPTY: {filepath: "packages/orchestrator/lib/utils"} => returns null', () => {
       const result = pathToSubPathTransformer({
-        filepath: PathSegmentStub({ value: 'packages/orchestrator/lib/utils' }),
+        filepath: 'packages/orchestrator/lib/utils',
       });
 
       expect(result).toBe(null);

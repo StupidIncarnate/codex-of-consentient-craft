@@ -1,5 +1,4 @@
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 import { subagentRosterLoadBroker } from './subagent-roster-load-broker';
 import { subagentRosterLoadBrokerProxy } from './subagent-roster-load-broker.proxy';
@@ -217,7 +216,7 @@ describe('subagentRosterLoadBroker', () => {
       proxy.setupRoster({
         sessionFilePath: SESSION_FILE_PATH,
         agents: [
-          { kind: 'strayFile', fileName: PathSegmentStub({ value: 'notes.txt' }) },
+          { kind: 'strayFile', fileName: 'notes.txt' },
           { kind: 'valid', agentId: AGENT_A_ID, meta, transcriptJsonl: transcript },
         ],
       });

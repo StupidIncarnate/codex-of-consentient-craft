@@ -1,4 +1,3 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationLiteralKeyPathsTransformer } from './location-literal-key-paths-transformer';
 
 describe('locationLiteralKeyPathsTransformer', () => {
@@ -11,8 +10,8 @@ describe('locationLiteralKeyPathsTransformer', () => {
       });
 
       expect(Array.from(result.entries())).toStrictEqual([
-        [PathSegmentStub({ value: '.dungeonmaster.json' }), 'locationsStatics.repoRoot.config'],
-        [PathSegmentStub({ value: '.mcp.json' }), 'locationsStatics.repoRoot.mcpJson'],
+        ['.dungeonmaster.json', 'locationsStatics.repoRoot.config'],
+        ['.mcp.json', 'locationsStatics.repoRoot.mcpJson'],
       ]);
     });
   });
@@ -27,7 +26,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get(PathSegmentStub({ value: 'settings.json' }))).toBe(
+      expect(result.get('settings.json')).toBe(
         'locationsStatics.repoRoot.claude.settings',
       );
     });
@@ -43,10 +42,10 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get(PathSegmentStub({ value: 'eslint.config.ts' }))).toBe(
+      expect(result.get('eslint.config.ts')).toBe(
         'locationsStatics.repoRoot.eslintConfig[0]',
       );
-      expect(result.get(PathSegmentStub({ value: 'eslint.config.js' }))).toBe(
+      expect(result.get('eslint.config.js')).toBe(
         'locationsStatics.repoRoot.eslintConfig[1]',
       );
     });
@@ -60,7 +59,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.has(PathSegmentStub({ value: 'design' }))).toBe(false);
+      expect(result.has('design')).toBe(false);
     });
 
     it('EDGE: "guilds" (length 6) is dropped', () => {
@@ -70,7 +69,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.has(PathSegmentStub({ value: 'guilds' }))).toBe(false);
+      expect(result.has('guilds')).toBe(false);
     });
 
     it('EDGE: "subagents" (length 9) is retained', () => {
@@ -80,7 +79,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get(PathSegmentStub({ value: 'subagents' }))).toBe(
+      expect(result.get('subagents')).toBe(
         'locationsStatics.userHome.claude.subagentsDir',
       );
     });
@@ -95,7 +94,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         excludedLiterals: ['node_modules'],
       });
 
-      expect(result.has(PathSegmentStub({ value: 'node_modules' }))).toBe(false);
+      expect(result.has('node_modules')).toBe(false);
     });
 
     it('EDGE: "node_modules/.bin" is retained while "node_modules" is excluded', () => {
@@ -108,7 +107,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
 
       expect(Array.from(result.entries())).toStrictEqual([
         [
-          PathSegmentStub({ value: 'node_modules/.bin' }),
+          'node_modules/.bin',
           'locationsStatics.repoRoot.nodeModulesBin',
         ],
       ]);
@@ -121,7 +120,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get(PathSegmentStub({ value: 'node_modules' }))).toBe(
+      expect(result.get('node_modules')).toBe(
         'locationsStatics.repoRoot.nodeModules',
       );
     });
@@ -135,7 +134,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 100,
       });
 
-      expect(result.get(PathSegmentStub({ value: 'guild.json' }))).toBe(
+      expect(result.get('guild.json')).toBe(
         'locationsStatics.dungeonmasterHome.guildConfigFile',
       );
     });
@@ -147,7 +146,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 100,
       });
 
-      expect(result.get(PathSegmentStub({ value: 'node_modules/.bin' }))).toBe(
+      expect(result.get('node_modules/.bin')).toBe(
         'locationsStatics.repoRoot.nodeModulesBin',
       );
     });
@@ -164,7 +163,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get(PathSegmentStub({ value: '.claude' }))).toBe('locationsStatics.a.dir');
+      expect(result.get('.claude')).toBe('locationsStatics.a.dir');
     });
   });
 });

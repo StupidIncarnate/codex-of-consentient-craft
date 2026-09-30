@@ -1,8 +1,7 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 // The broker reads '.gitignore' relative to process.cwd(), so this is the whole address.
-const GITIGNORE_PATH = PathSegmentStub({ value: '.gitignore' });
+const GITIGNORE_PATH = '.gitignore';
 
 export const discoverIgnoreInitBrokerProxy = (): {
   setupGitignore: (params: { contents: string }) => void;

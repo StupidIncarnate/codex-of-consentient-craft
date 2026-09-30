@@ -9,11 +9,7 @@
  * // Returns { '#alias/*': './src/*', '#gateway/npm/*': '@acme/npm/*', ... }
  */
 
-import {
-  type PathSegment,
-  gatewayImportsMapContract,
-  type GatewayImportsMap,
-} from '@dungeonmaster/shared/contracts';
+import { gatewayImportsMapContract, type GatewayImportsMap } from '@dungeonmaster/shared/contracts';
 import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 
 export const gatewayImportsMergeTransformer = ({
@@ -21,7 +17,7 @@ export const gatewayImportsMergeTransformer = ({
   scope,
 }: {
   existingImports: unknown;
-  scope: PathSegment;
+  scope: string;
 }): GatewayImportsMap => {
   const parsedExisting = gatewayImportsMapContract.safeParse(existingImports);
   const currentImports = parsedExisting.success

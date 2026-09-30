@@ -30,8 +30,7 @@
  * // a proxy and a unit test)
  */
 
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -52,7 +51,7 @@ export const recipesScaffoldFilesTransformer = ({
   scope,
 }: {
   packageName: PackageName;
-  scope?: PathSegment;
+  scope?: string;
 }): readonly RecipesScaffoldFile[] => {
   const packageJson = {
     name: packageName,
@@ -381,7 +380,7 @@ describe('hydration-recipes starter index', () => {
 
   return plannedFiles.map((file) =>
     recipesScaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse(file.relativePath),
+      relativePath: file.relativePath,
       contents: file.contents,
     }),
   );

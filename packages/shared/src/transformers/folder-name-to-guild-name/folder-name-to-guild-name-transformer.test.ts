@@ -1,10 +1,9 @@
 import { folderNameToGuildNameTransformer } from './folder-name-to-guild-name-transformer';
-import { PathSegmentStub } from '../../contracts/path-segment/path-segment.stub';
 
 describe('folderNameToGuildNameTransformer', () => {
   describe('hyphenated names', () => {
     it("VALID: {folderName: 'codex-of-consentient-craft'} => returns 'Codex of Consentient Craft'", () => {
-      const folderName = PathSegmentStub({ value: 'codex-of-consentient-craft' });
+      const folderName = 'codex-of-consentient-craft';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -12,7 +11,7 @@ describe('folderNameToGuildNameTransformer', () => {
     });
 
     it("EDGE: {folderName: 'the-best-app'} => returns 'The Best App'", () => {
-      const folderName = PathSegmentStub({ value: 'the-best-app' });
+      const folderName = 'the-best-app';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -20,7 +19,7 @@ describe('folderNameToGuildNameTransformer', () => {
     });
 
     it("VALID: {folderName: 'app-and-the-best-thing'} => returns 'App and the Best Thing'", () => {
-      const folderName = PathSegmentStub({ value: 'app-and-the-best-thing' });
+      const folderName = 'app-and-the-best-thing';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -30,7 +29,7 @@ describe('folderNameToGuildNameTransformer', () => {
 
   describe('underscore names', () => {
     it("VALID: {folderName: 'my_cool_project'} => returns 'My Cool Project'", () => {
-      const folderName = PathSegmentStub({ value: 'my_cool_project' });
+      const folderName = 'my_cool_project';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -40,7 +39,7 @@ describe('folderNameToGuildNameTransformer', () => {
 
   describe('camelCase names', () => {
     it("VALID: {folderName: 'myAwesomeApp'} => returns 'My Awesome App'", () => {
-      const folderName = PathSegmentStub({ value: 'myAwesomeApp' });
+      const folderName = 'myAwesomeApp';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -50,7 +49,7 @@ describe('folderNameToGuildNameTransformer', () => {
 
   describe('dotted names', () => {
     it("VALID: {folderName: 'foo.bar.baz'} => returns 'Foo Bar Baz'", () => {
-      const folderName = PathSegmentStub({ value: 'foo.bar.baz' });
+      const folderName = 'foo.bar.baz';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -60,7 +59,7 @@ describe('folderNameToGuildNameTransformer', () => {
 
   describe('single word names', () => {
     it("EDGE: {folderName: 'singlefolder'} => returns 'Singlefolder'", () => {
-      const folderName = PathSegmentStub({ value: 'singlefolder' });
+      const folderName = 'singlefolder';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 
@@ -70,7 +69,7 @@ describe('folderNameToGuildNameTransformer', () => {
 
   describe('boundary separators', () => {
     it("EDGE: {folderName: '-my-app-'} => returns 'My App' (leading/trailing separators produce empty segments that are dropped)", () => {
-      const folderName = PathSegmentStub({ value: '-my-app-' });
+      const folderName = '-my-app-';
 
       const result = folderNameToGuildNameTransformer({ folderName });
 

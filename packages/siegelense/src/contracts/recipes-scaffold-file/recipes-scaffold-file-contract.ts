@@ -13,10 +13,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 export const recipesScaffoldFileContract = z.object({
-  relativePath: pathSegmentContract,
+  relativePath: z.string().brand<'RecipesScaffoldFileRelativePath'>(),
   contents: z.string().brand<'RecipesScaffoldFileContents'>(),
 });
 

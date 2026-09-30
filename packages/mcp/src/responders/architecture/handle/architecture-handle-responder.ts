@@ -30,7 +30,7 @@ import {
   architectureProjectMapBroker,
   architectureGatewayInventoryBroker,
 } from '@dungeonmaster/shared/brokers';
-import { pathSegmentContract, contentTextContract as sharedContentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract as sharedContentTextContract } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
@@ -71,7 +71,7 @@ export const ArchitectureHandleResponder = async ({
     const result = await mcpDiscoverBroker({
       input: args as never,
       ignorePatterns: discoverIgnoreState.get(),
-      rootPath: pathSegmentContract.parse(String(repoRoot)),
+      rootPath: String(repoRoot),
     });
     // discover's response is JSON a caller parses, so the resolved root travels as fields
     // alongside `results`/`count` rather than as prose — see the file header for why.

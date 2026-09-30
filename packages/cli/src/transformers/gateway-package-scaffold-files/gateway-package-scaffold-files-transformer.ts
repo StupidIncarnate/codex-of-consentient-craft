@@ -22,8 +22,6 @@
  * // Returns the ScaffoldFile entries for packages/@gateway/npm, relative to that package's own root
  */
 
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 import { scaffoldFileContract } from '../../contracts/scaffold-file/scaffold-file-contract';
@@ -41,7 +39,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
   scope,
   folder,
 }: {
-  scope: PathSegment;
+  scope: string;
   folder: GatewayFolder;
 }): readonly ScaffoldFile[] => {
   const packageName = `${String(scope)}/${folder}`;
@@ -127,19 +125,19 @@ export const gatewayPackageScaffoldFilesTransformer = ({
 
   return [
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('package.json'),
+      relativePath: 'package.json',
       contents: `${JSON.stringify(packageJsonObject, null, JSON_INDENT)}\n`,
     }),
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse(locationsStatics.repoRoot.tsconfig),
+      relativePath: locationsStatics.repoRoot.tsconfig,
       contents: `${JSON.stringify(tsconfigObject, null, JSON_INDENT)}\n`,
     }),
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('tsconfig.build.json'),
+      relativePath: 'tsconfig.build.json',
       contents: `${JSON.stringify(tsconfigBuildObject, null, JSON_INDENT)}\n`,
     }),
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('jest.config.js'),
+      relativePath: 'jest.config.js',
       contents: (folder === 'browser'
           ? gatewayPackageTemplateStatics.browserJestConfigContent
           : gatewayPackageTemplateStatics.jestConfigContent),
@@ -148,7 +146,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       ? []
       : [
           scaffoldFileContract.parse({
-            relativePath: pathSegmentContract.parse(gatewayPackageTemplateStatics.placeholderPath),
+            relativePath: gatewayPackageTemplateStatics.placeholderPath,
             contents: gatewayPackageTemplateStatics.placeholderContent,
           }),
         ]),

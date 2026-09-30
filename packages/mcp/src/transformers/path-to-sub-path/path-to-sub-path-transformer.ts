@@ -9,14 +9,12 @@
  * WHEN-NOT-TO-USE: When the full path is needed without extraction
  */
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const pathToSubPathTransformer = ({
   filepath,
 }: {
-  filepath?: PathSegment;
-}): PathSegment | null => {
+  filepath?: string;
+}): string | null => {
   if (!filepath) {
     return null;
   }
@@ -26,7 +24,7 @@ export const pathToSubPathTransformer = ({
   for (const anchor of fileDiscoveryStatics.pathAnchors) {
     const anchorIndex = parts.indexOf(anchor);
     if (anchorIndex !== -1) {
-      return pathSegmentContract.parse(parts.slice(anchorIndex).join('/'));
+      return parts.slice(anchorIndex).join('/');
     }
   }
 

@@ -12,7 +12,7 @@
  * // Returns CreatePackageArgs { name: '@acme/widgets', packageType: 'library', dryRun: false }
  */
 
-import { packageNameContract, packageTypeContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { packageNameContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 
 import {
@@ -98,7 +98,7 @@ export const createPackageArgsParseTransformer = ({
             `argument cannot itself start with "--".\n\n${USAGE}`,
         );
       }
-      parsed.packagesDir = pathSegmentContract.parse(value);
+      parsed.packagesDir = createPackageArgsContract.shape.packagesDir.parse(value);
       i++;
       continue;
     }

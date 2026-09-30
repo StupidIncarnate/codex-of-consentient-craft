@@ -5,8 +5,8 @@
  * const filename = pathToBasenameTransformer({ filepath: PathSegmentStub({ value: '/path/to/file.test.ts' }) });
  * // Returns: 'file.test.ts'
  */
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { FileMetadata } from '../../contracts/file-metadata/file-metadata-contract';
+import { fileMetadataContract } from '../../contracts/file-metadata/file-metadata-contract';
 
 export const pathToBasenameTransformer = ({
   filepath,
@@ -16,5 +16,5 @@ export const pathToBasenameTransformer = ({
   const parts = filepath.split('/');
   const basename = parts[parts.length - 1] ?? filepath;
 
-  return pathSegmentContract.parse(basename);
+  fileMetadataContract.shape.path.parse(return) basename;
 };

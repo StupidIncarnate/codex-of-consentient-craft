@@ -28,8 +28,6 @@ import { packageSeedServiceStatics } from '../../statics/package-seed-service/pa
 import { packageSeedFrontendStatics } from '../../statics/package-seed-frontend/package-seed-frontend-statics';
 import { packageScaffoldConfigStatics } from '../../statics/package-scaffold-config/package-scaffold-config-statics';
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   gatewayImportsFieldTransformer,
@@ -53,7 +51,7 @@ export const packageScaffoldFilesTransformer = ({
 }: {
   request: CreatePackageRequest;
   usesPublishedJestBase?: boolean;
-  workspaceScope?: PathSegment;
+  workspaceScope?: string;
 }): readonly ScaffoldFile[] => {
   // `PackageType` carries zod's phantom brand, which TypeScript refuses as an index into a
   // literal-keyed object — matched over entries instead, same workaround as
@@ -154,7 +152,7 @@ export const packageScaffoldFilesTransformer = ({
     ]),
   );
   const gatewayImports = gatewayImportsFieldTransformer({
-    scope: pathSegmentContract.parse(scope),
+    scope: scope,
   });
 
   const scriptsField = {
@@ -248,27 +246,25 @@ ${seed.barrel.exportPaths
 
   return [
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('package.json'),
+      relativePath: 'package.json',
       contents: `${JSON.stringify(packageJsonObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
     }),
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse(locationsStatics.repoRoot.tsconfig),
+      relativePath: locationsStatics.repoRoot.tsconfig,
       contents: `${JSON.stringify(tsconfigObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
     }),
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse(packageScaffoldConfigStatics.buildTsconfigFileName),
+      relativePath: packageScaffoldConfigStatics.buildTsconfigFileName,
       contents: `${JSON.stringify(tsconfigBuildObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
     }),
     scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse(packageScaffoldConfigStatics.jestConfigFileName),
+      relativePath: packageScaffoldConfigStatics.jestConfigFileName,
       contents: jestConfigContents,
     }),
     ...(seed.e2eEligible
       ? [
           scaffoldFileContract.parse({
-            relativePath: pathSegmentContract.parse(
-              packageScaffoldConfigStatics.playwrightConfigFileName,
-            ),
+            relativePath: packageScaffoldConfigStatics.playwrightConfigFileName,
             contents: playwrightConfigTemplateStatics.content,
           }),
           // The scaffolded playwright.config.ts imports this companion statics file for its
@@ -276,15 +272,11 @@ ${seed.barrel.exportPaths
           // literals outside a statics/ file, and the config itself cannot BE one (it lives at the
           // package root, not under src/statics/).
           scaffoldFileContract.parse({
-            relativePath: pathSegmentContract.parse(
-              'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
-            ),
+            relativePath: 'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
             contents: playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
           }),
           scaffoldFileContract.parse({
-            relativePath: pathSegmentContract.parse(
-              'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
-            ),
+            relativePath: 'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
             contents: playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
           }),
         ]
@@ -292,19 +284,17 @@ ${seed.barrel.exportPaths
     ...(barrelSourcePath !== null && barrelContents !== null
       ? [
           scaffoldFileContract.parse({
-            relativePath: pathSegmentContract.parse(barrelSourcePath),
+            relativePath: barrelSourcePath,
             contents: barrelContents,
           }),
         ]
       : []),
     ...seed.files.map(({ path, contents }) =>
       scaffoldFileContract.parse({
-        relativePath: pathSegmentContract.parse(
-          PLACEHOLDER_PAIRS.reduce(
+        relativePath: PLACEHOLDER_PAIRS.reduce(
             (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
             String(path),
           ),
-        ),
         contents: PLACEHOLDER_PAIRS.reduce(
             (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
             String(contents),

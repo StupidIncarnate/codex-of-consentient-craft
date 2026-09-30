@@ -11,7 +11,6 @@
 import { guildNameContract } from '../../contracts/guild-name/guild-name-contract';
 import { guildNameSmallWordsStatics } from '../../statics/guild-name-small-words/guild-name-small-words-statics';
 import type { GuildName } from '../../contracts/guild-name/guild-name-contract';
-import type { PathSegment } from '../../contracts/path-segment/path-segment-contract';
 
 const CAMEL_CASE_BOUNDARY_PATTERN = /([a-z0-9])([A-Z])/gu;
 const WORD_SEPARATOR_PATTERN = /[-_. ]+/u;
@@ -19,7 +18,7 @@ const WORD_SEPARATOR_PATTERN = /[-_. ]+/u;
 export const folderNameToGuildNameTransformer = ({
   folderName,
 }: {
-  folderName: PathSegment;
+  folderName: string;
 }): GuildName => {
   const words = folderName
     .replace(CAMEL_CASE_BOUNDARY_PATTERN, '$1 $2')

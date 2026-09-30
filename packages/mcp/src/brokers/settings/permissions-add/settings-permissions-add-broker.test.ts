@@ -1,14 +1,13 @@
 import { settingsPermissionsAddBroker } from './settings-permissions-add-broker';
 import { settingsPermissionsAddBrokerProxy } from './settings-permissions-add-broker.proxy';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 describe('settingsPermissionsAddBroker', () => {
   describe('no existing settings file', () => {
     it('VALID: {targetProjectRoot: /project, settings: none} => creates settings with MCP + git permissions', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
 
       proxy.setupNoExistingSettings({ targetProjectRoot, settingsPath });
 
@@ -75,8 +74,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('existing settings file with no permissions', () => {
     it('VALID: {targetProjectRoot: /project, settings: hooks only} => adds permissions to existing settings', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const existingContents = JSON.stringify({ hooks: { PreToolUse: [] } });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
@@ -145,8 +144,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('existing settings file with existing permissions', () => {
     it('VALID: {targetProjectRoot: /project, settings: has permissions} => merges and deduplicates permissions', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const existingContents = JSON.stringify({
           permissions: {
             allow: ['Bash(npm:*)', 'mcp__dungeonmaster__discover'],
@@ -219,8 +218,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('git permissions for dispatched relay agents', () => {
     it('VALID: {settings: already has the git grants} => a re-run keeps them in place exactly once', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const existingContents = JSON.stringify({
           permissions: {
             allow: ['Bash(git add:*)', 'Bash(git commit:*)'],
@@ -292,8 +291,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('existing settings file with stale dungeonmaster permissions', () => {
     it('VALID: {settings: has stale + valid dungeonmaster + user permission} => drops stale, keeps valid and user permissions, adds current set', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const existingContents = JSON.stringify({
           permissions: {
             allow: [
@@ -368,8 +367,8 @@ describe('settingsPermissionsAddBroker', () => {
 
     it('VALID: {settings: only non-dungeonmaster permissions} => all stay, current dungeonmaster set added on top', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const existingContents = JSON.stringify({
           permissions: {
             allow: ['Bash(npm:*)', 'Bash(git:*)', 'mcp__otherserver__sometool'],
@@ -442,8 +441,8 @@ describe('settingsPermissionsAddBroker', () => {
 
     it('VALID: {settings: stale + current dungeonmaster entries} => deduplicates, removes stale', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const existingContents = JSON.stringify({
           permissions: {
             allow: [
@@ -520,8 +519,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('unreadable existing settings file', () => {
     it('ERROR: {settings: invalid JSON} => rejects naming the file and never writes', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
 
       proxy.setupInvalidJsonSettings({ targetProjectRoot, settingsPath });
 
@@ -533,8 +532,8 @@ describe('settingsPermissionsAddBroker', () => {
 
     it('ERROR: {settings: EACCES} => rejects naming the file and never writes', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = PathSegmentStub({ value: '/project' });
-      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = '/project';
+      const settingsPath = '/project/.claude/settings.json';
       const eaccesError = FsErrorStub({ code: 'EACCES', path: settingsPath, syscall: 'open' });
 
       proxy.setupUnreadableSettings({ targetProjectRoot, settingsPath });

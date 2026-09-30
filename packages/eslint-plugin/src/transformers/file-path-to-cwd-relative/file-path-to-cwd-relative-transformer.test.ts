@@ -1,5 +1,4 @@
 import { filePathToCwdRelativeTransformer } from './file-path-to-cwd-relative-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('filePathToCwdRelativeTransformer', () => {
   it('VALID: {filename inside cwd} => returns relative path', () => {
@@ -8,7 +7,7 @@ describe('filePathToCwdRelativeTransformer', () => {
       cwd: '/repo',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: 'src/foo.ts' }));
+    expect(result).toStrictEqual('src/foo.ts');
   });
 
   it('VALID: {filename matches cwd exactly} => returns empty string', () => {
@@ -17,7 +16,7 @@ describe('filePathToCwdRelativeTransformer', () => {
       cwd: '/repo',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: '' }));
+    expect(result).toStrictEqual('');
   });
 
   it('VALID: {filename outside cwd} => returns original filename', () => {
@@ -26,7 +25,7 @@ describe('filePathToCwdRelativeTransformer', () => {
       cwd: '/repo',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: '/other/path/foo.ts' }));
+    expect(result).toStrictEqual('/other/path/foo.ts');
   });
 
   it('VALID: {cwd is empty} => returns original filename', () => {
@@ -35,7 +34,7 @@ describe('filePathToCwdRelativeTransformer', () => {
       cwd: '',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: '/repo/src/foo.ts' }));
+    expect(result).toStrictEqual('/repo/src/foo.ts');
   });
 
   it('VALID: {filename equals cwd with trailing slash} => strips leading slash', () => {
@@ -44,6 +43,6 @@ describe('filePathToCwdRelativeTransformer', () => {
       cwd: '/repo',
     });
 
-    expect(result).toStrictEqual(PathSegmentStub({ value: 'foo.ts' }));
+    expect(result).toStrictEqual('foo.ts');
   });
 });

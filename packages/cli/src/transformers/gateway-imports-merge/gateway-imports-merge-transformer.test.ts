@@ -1,4 +1,3 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { GatewayImportsMapStub } from '@dungeonmaster/shared/contracts/gateway-imports-map/gateway-imports-map.stub';
 import { gatewayImportsMergeTransformer } from './gateway-imports-merge-transformer';
 
@@ -6,7 +5,7 @@ describe('gatewayImportsMergeTransformer', () => {
   it('EMPTY: {existingImports: undefined} => adds all four #gateway entries', () => {
     const result = gatewayImportsMergeTransformer({
       existingImports: undefined,
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
     });
 
     expect(result).toStrictEqual({
@@ -20,7 +19,7 @@ describe('gatewayImportsMergeTransformer', () => {
   it('VALID: {existingImports: one unrelated entry} => keeps it and adds the four #gateway entries', () => {
     const result = gatewayImportsMergeTransformer({
       existingImports: { '#alias/*': './src/*' },
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
     });
 
     expect(result).toStrictEqual({
@@ -40,7 +39,7 @@ describe('gatewayImportsMergeTransformer', () => {
         '#gateway/browser/*': '@acme/browser/*',
         '#gateway/bin/*': '@acme/bin/*',
       }),
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
     });
 
     expect(result).toStrictEqual({
@@ -61,7 +60,7 @@ describe('gatewayImportsMergeTransformer', () => {
 
     const result = gatewayImportsMergeTransformer({
       existingImports,
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
     });
 
     expect(result).toBe(existingImports);
@@ -70,7 +69,7 @@ describe('gatewayImportsMergeTransformer', () => {
   it('INVALID: {existingImports: a non-object value} => treats it as absent and adds all four #gateway entries', () => {
     const result = gatewayImportsMergeTransformer({
       existingImports: 'not-an-object',
-      scope: PathSegmentStub({ value: '@acme' }),
+      scope: '@acme',
     });
 
     expect(result).toStrictEqual({

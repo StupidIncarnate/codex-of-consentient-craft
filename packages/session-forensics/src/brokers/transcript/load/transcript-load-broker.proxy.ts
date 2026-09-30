@@ -1,10 +1,9 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import type { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { transcriptResolveBrokerProxy } from '../resolve/transcript-resolve-broker.proxy';
 
 type SessionId = ReturnType<typeof SessionIdStub>;
-type PathSegment = ReturnType<typeof PathSegmentStub>;
+type PathSegment = string;
 type ContentText = string;
 
 // Mirrors the private constants transcript-resolve-broker.proxy.ts stages the search around — this

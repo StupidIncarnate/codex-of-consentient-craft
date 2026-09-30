@@ -5,9 +5,8 @@
  * const relativePath = pathToRelativeTransformer({ filepath: PathSegmentStub({ value: '/home/user/project/src/file.ts' }), cwd: PathSegmentStub({ value: '/home/user/project' }) });
  * // Returns: 'src/file.ts'
  */
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import type { FileMetadata } from '../../contracts/file-metadata/file-metadata-contract';
+import { fileMetadataContract } from '../../contracts/file-metadata/file-metadata-contract';
 
 const LEADING_SLASH_PATTERN = /^\//u;
 
@@ -16,12 +15,12 @@ export const pathToRelativeTransformer = ({
   cwd,
 }: {
   filepath: FileMetadata['path'];
-  cwd: PathSegment;
+  cwd: string;
 }): FileMetadata['path'] => {
   // Remove leading cwd and slash
   const relative = filepath.startsWith(cwd)
     ? filepath.slice(cwd.length).replace(LEADING_SLASH_PATTERN, '')
     : filepath;
 
-  return pathSegmentContract.parse(relative);
+  fileMetadataContract.shape.path.parse(return) relative;
 };

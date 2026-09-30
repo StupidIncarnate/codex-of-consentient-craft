@@ -7,7 +7,6 @@
  * // Creates .agents/plugins/dungeonmaster/plugin.json and mcp_config.json
  */
 
-import { pathSegmentContract, type PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -17,25 +16,19 @@ import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dun
 export const agentsPluginCreateBroker = async ({
   targetProjectRoot,
 }: {
-  targetProjectRoot: PathSegment;
+  targetProjectRoot: string;
 }): Promise<void> => {
-  const pluginDir = pathSegmentContract.parse(
-    join(
+  const pluginDir = join(
       targetProjectRoot,
       locationsStatics.repoRoot.agents.dir,
       locationsStatics.repoRoot.agents.pluginsDir,
       mcpToolsStatics.server.name,
-    ),
-  );
+    );
 
   await ensureDir(pluginDir);
 
-  const pluginJsonPath = pathSegmentContract.parse(
-    join(pluginDir, locationsStatics.repoRoot.agents.pluginJson),
-  );
-  const mcpConfigJsonPath = pathSegmentContract.parse(
-    join(pluginDir, locationsStatics.repoRoot.agents.mcpConfigJson),
-  );
+  const pluginJsonPath = join(pluginDir, locationsStatics.repoRoot.agents.pluginJson);
+  const mcpConfigJsonPath = join(pluginDir, locationsStatics.repoRoot.agents.mcpConfigJson);
 
   const pluginJsonContent = jsonFileContentsTransformer({
     value: {

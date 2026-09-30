@@ -7,7 +7,6 @@
  *
  * WHEN-TO-USE: When matching ESLint context filenames against cwd-relative glob patterns
  */
-import { pathSegmentContract, type PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const filePathToCwdRelativeTransformer = ({
   filename,
@@ -15,10 +14,10 @@ export const filePathToCwdRelativeTransformer = ({
 }: {
   filename: string;
   cwd: string;
-}): PathSegment => {
+}): string => {
   if (cwd.length === 0 || !filename.startsWith(cwd)) {
-    return pathSegmentContract.parse(filename);
+    return filename;
   }
   const sliced = filename.slice(cwd.length);
-  return pathSegmentContract.parse(sliced.startsWith('/') ? sliced.slice(1) : sliced);
+  return (sliced.startsWith('/') ? sliced.slice(1) : sliced);
 };

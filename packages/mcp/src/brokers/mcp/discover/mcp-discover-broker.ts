@@ -17,14 +17,15 @@ import { treeFormatterTransformer } from '../../../transformers/tree-formatter/t
 import { treeOutputContract } from '../../../contracts/tree-output/tree-output-contract';
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
 import { glob as globFind } from '#gateway/npm/glob';
-import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import { globPatternContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
 import { cwd } from '#gateway/node/process';
+import { treeItemContract } from '../../../contracts/tree-item/tree-item-contract';
 
 export const mcpDiscoverBroker = async ({
   input,
@@ -36,7 +37,7 @@ export const mcpDiscoverBroker = async ({
   // The resolved project root to scan from — see fileScannerBroker's own rootPath for why the
   // cwd() fallback below exists only for standalone/test callers, never for the
   // real MCP call site (architectureHandleResponder always passes this explicitly).
-  rootPath?: PathSegment;
+  rootPath?: string;
 }): Promise<{
   results: DiscoverResultItem[] | TreeOutput;
   count: ResultCount;
@@ -85,11 +86,11 @@ export const mcpDiscoverBroker = async ({
     ...(file.hits && { hits: file.hits }),
   }));
 
-  const treeOutput = treeFormatterTransformer({ items: treeItems });
+  const treeOutput = treeFormatterTransformer({ items: treeItemContract.shape.path.parse(treeItemContract.shape.path.parse(treeItemContract.shape.path.parse(treeItems))) });
 
   // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {
-    const cwdPath = rootPath ?? pathSegmentContract.parse(cwd());
+    const cwdPath = rootPath ?? cwd();
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = `${cwdPath}/${globSuffix}`;
 
@@ -106,7 +107,7 @@ export const mcpDiscoverBroker = async ({
     // This prevents the misleading "append /**" directory hint when the real problem is grep.
     if (validated.grep) {
       const fileHits = (await globFind(pattern, { cwd: cwdPath, ignore })).map((foundPath) =>
-        pathSegmentContract.parse(foundPath),
+        foundPath,
       );
       if (fileHits.length > 0) {
         const hintLines = [
@@ -123,7 +124,7 @@ export const mcpDiscoverBroker = async ({
 
     // Fall-through: glob matched no files. Probe for directories and suggest `/**`.
     const directoryHits = (await globFind(pattern, { cwd: cwdPath, nodir: false, ignore })).map(
-      (foundPath) => pathSegmentContract.parse(foundPath),
+      (foundPath) => foundPath,
     );
 
     // Keep only directory entries — glob still returns both when includeDirectories is true.

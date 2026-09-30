@@ -1,12 +1,9 @@
 import { pathToRelativeTransformer } from './path-to-relative-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToRelativeTransformer', () => {
   it('VALID: removes cwd from absolute path', () => {
-    const cwd = PathSegmentStub({ value: '/home/user/project' });
-    const filepath = PathSegmentStub({
-      value: '/home/user/project/packages/mcp/src/file.ts',
-    });
+    const cwd = '/home/user/project';
+    const filepath = '/home/user/project/packages/mcp/src/file.ts';
 
     const result = pathToRelativeTransformer({ filepath, cwd });
 
@@ -14,8 +11,8 @@ describe('pathToRelativeTransformer', () => {
   });
 
   it('VALID: handles path that does not start with cwd', () => {
-    const cwd = PathSegmentStub({ value: '/home/user/project' });
-    const filepath = PathSegmentStub({ value: '/other/path/file.ts' });
+    const cwd = '/home/user/project';
+    const filepath = '/other/path/file.ts';
 
     const result = pathToRelativeTransformer({ filepath, cwd });
 
@@ -23,10 +20,8 @@ describe('pathToRelativeTransformer', () => {
   });
 
   it('VALID: handles nested structure within current directory', () => {
-    const cwd = PathSegmentStub({ value: '/home/user/project' });
-    const filepath = PathSegmentStub({
-      value: '/home/user/project/src/guards/is-valid.ts',
-    });
+    const cwd = '/home/user/project';
+    const filepath = '/home/user/project/src/guards/is-valid.ts';
 
     const result = pathToRelativeTransformer({ filepath, cwd });
 

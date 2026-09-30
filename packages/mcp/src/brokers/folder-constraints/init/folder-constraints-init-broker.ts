@@ -9,23 +9,20 @@ import { folderConstraintsStatics } from '../../../statics/folder-constraints/fo
 import { resolve } from '#gateway/node/path';
 import { readFile } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
   folderConstraints: Map<FolderType, string>;
 }> => {
   const constraintsMap = new Map<FolderType, string>();
-  const constraintsDir = pathSegmentContract.parse(
-    resolve(__dirname, '../../../statics/folder-constraints'),
-  );
+  const constraintsDir = resolve(__dirname, '../../../statics/folder-constraints');
 
   // Load each folder-specific constraint file using Promise.all
   const entries = Object.entries(folderConstraintsStatics);
   const results = await Promise.all(
     entries.map(async ([folderType, filename]) => {
       try {
-        const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
+        const filepath = resolve(constraintsDir, filename);
         const content = await readFile(filepath);
         const validated = `\n${content}`;
         return { folderType, content: validated, error: null };
