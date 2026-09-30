@@ -14,12 +14,10 @@ import type { Page, TestInfo } from '#gateway/npm/playwright__test';
 import { pageEventsLayerBroker } from './page-events-layer-broker';
 import { networkLogEntryContract } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import { wsLogEntryContract } from '../../../contracts/ws-log-entry/ws-log-entry-contract';
-import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 import { networkLogStatics } from '../../../statics/network-log/network-log-statics';
 import { networkLogFormatTransformer } from '../../../transformers/network-log-format/network-log-format-transformer';
 import type { NetworkLogEntry } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import type { WsLogEntry } from '../../../contracts/ws-log-entry/ws-log-entry-contract';
-import type { EpochTimestamp } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 
 type PageParam = Page;
 type TestInfoParam = TestInfo;
@@ -38,8 +36,8 @@ export const networkRecordPlaywrightBroker = ({
 } => {
   const entries: NetworkLogEntry[] = [];
   const wsEntries: WsLogEntry[] = [];
-  const requestTimestamps = new Map<RequestIdentity, EpochTimestamp>();
-  const testStartMs = epochTimestampContract.parse(Date.now());
+  const requestTimestamps = new Map<RequestIdentity, number>();
+  const testStartMs = Date.now();
   // A body read is a protocol round trip to the browser, and Playwright's emitter cannot await a
   // listener — so the response handler can only start one, never wait for it. Holding each read
   // here gives `dump` something to wait on: without it the reads a spec's last responses started
@@ -54,7 +52,7 @@ export const networkRecordPlaywrightBroker = ({
         return;
       }
 
-      requestTimestamps.set(requestIdentity, epochTimestampContract.parse(Date.now()));
+      requestTimestamps.set(requestIdentity, Date.now());
 
       const truncatedBody = postData
         ? postData.slice(0, networkLogStatics.limits.maxBodyLength)
