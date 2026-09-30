@@ -1,23 +1,19 @@
 import { doMockProxy } from '#gateway/npm/jest__globals/do-mock/do-mock.proxy';
 import { isolateModulesAsyncProxy } from '#gateway/npm/jest__globals/isolate-modules-async/isolate-modules-async.proxy';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
-import { dynamicImport } from '#gateway/node/module';
-import { actualModuleRequireMiddleware } from '../actual-module-require/actual-module-require-middleware';
-import { mockRegisterMiddleware } from '../mock-register/mock-register-middleware';
 
-export const modulesIsolateMiddlewareProxy = (): Record<PropertyKey, never> => {
+export const modulesIsolateMiddlewareProxy = (): {
+  setupRealEntrypointLoad: (params: { entrypoint: string }) => void;
+} => {
   isolateModulesAsyncProxy();
   doMockProxy();
-  dynamicImportProxy();
+  const dynamicImportChild = dynamicImportProxy();
 
-  // The whole point of this middleware is a REAL load of the entrypoint inside the isolated
-  // registry, so the mocked wrapper passes every call through to the actual `import()`. The
-  // wrapper file itself is required, not the `#gateway/node/module` barrel: the barrel re-exports
-  // the mocked binding.
-  const realWrapper = actualModuleRequireMiddleware<{ dynamicImport: typeof dynamicImport }>({
-    module: '../../../../@gateway/node/src/module/dynamic-import/dynamic-import',
-  });
-  mockRegisterMiddleware({ fn: dynamicImport }).calledWith([]).implement(realWrapper.dynamicImport);
-
-  return {};
+  return {
+    // The middleware exists to load its entrypoint for real inside the isolated registry, so the
+    // test stages a real load of exactly that entrypoint.
+    setupRealEntrypointLoad: ({ entrypoint }: { entrypoint: string }): void => {
+      dynamicImportChild.loadsReal({ path: entrypoint });
+    },
+  };
 };

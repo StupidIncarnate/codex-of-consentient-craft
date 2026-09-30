@@ -7,11 +7,17 @@ import { dynamicImport } from './dynamic-import';
 export const dynamicImportProxy = (): {
   returns: (params: { path: string; module: unknown }) => void;
   rejects: (params: { path: string; error: Error }) => void;
+  // A REAL load of exactly this path, for a caller whose job is the load itself (testing's
+  // modules-isolate middleware loads its entrypoint inside jest's isolated registry).
+  loadsReal: (params: { path: string }) => void;
   getCallsFor: (params: { path: string }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: dynamicImport });
 
   return {
+    loadsReal: ({ path }: { path: string }): void => {
+      handle.calledWith([{ path }]).implement(async (): Promise<unknown> => import(path));
+    },
     returns: ({ path, module }: { path: string; module: unknown }): void => {
       handle.calledWith([{ path }]).resolves(module);
     },

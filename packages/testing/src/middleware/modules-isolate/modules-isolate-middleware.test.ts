@@ -4,7 +4,8 @@ import { IsolateModulesMockStub } from '../../contracts/isolate-modules-mock/iso
 
 describe('modulesIsolateMiddleware', () => {
   it('VALID: {mocks: [{module: "path", factory}], entrypoint: "path"} => doMock registers the factory so importing the entrypoint runs it', async () => {
-    modulesIsolateMiddlewareProxy();
+    const proxy = modulesIsolateMiddlewareProxy();
+    proxy.setupRealEntrypointLoad({ entrypoint: 'path' });
 
     let sawMockedFactory = false;
 
