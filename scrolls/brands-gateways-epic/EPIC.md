@@ -154,6 +154,30 @@ W3 18, W4 8, W2 2) ran 18:48 to 20:07, 135 commits ending ef67a7930, no failures
 errors in 200 files (web 101, orchestrator 63, mcp 52, ward 29, server 23, testing 19, siegelense 17, shared 16,
 the rest under 10), `tmp/bigbang/logs/diag-after-A.json`. Segment B (W5 trials) next.
 
+**Scripts finished (2026-09-30 01:08).** Segment B (W5 trials) 20:08 to 20:46; segment C (W5 rest, W6 fallout, R2 and
+R7 autofix per package, W7, W8) 20:47 to 01:08, last commit abcb5b124. Two stops, both fixed in the driver or the
+code and resumed from markers: the R2 autofix over every package ran ESLint out of memory (now one package per
+process, 16G heap); the R7 rule crashed on a tuple leaf (39101c111, its parent walk now stops on null).
+
+**Repairs after the scripts, before any fixer:**
+- d2d9af3a0: W5's build-through-root-parse rewriter wrapped at wrong offsets (triple-nested wraps, a contract
+  referenced inside its own definition, a field schema parsing a whole value, `.parse(return)`). All 103 wraps it
+  added are stripped (`bigbang/strip-w5-wraps.py`); `N.valueOf()` stub leftovers unwrapped. W6's owner parses were
+  sampled and kept (right in form; objects holding functions show as type errors).
+- 8a5ac0a37: SD12's 153 harness parameter retypes reversed; a harness takes raw input.
+- Full typecheck (`diag.cjs --full`; plain mode stops at syntax errors and under-reports): 1,796 errors after the
+  scripts, 1,312 in 570 files after the repairs (`tmp/bigbang/logs/diag-r2.json`).
+- In flight: a script agent finishing moved-brand imports (TS2307/TS2305, about 380 errors); three read-only study
+  agents writing fix recipes to `tmp/bigbang/recipes/`. Then fixer rounds.
+
+**After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** The user will run the same
+migration on `/home/brutus-home/projects/assayer` (npm workspaces, packages `app`, `cli`, `core`, `desktop`,
+`shared`; depends on this checkout's `@dungeonmaster/*` via `file:`). Before the fixer stage ends: repo root from
+cwd or a flag (not this worktree's path, in the drivers and in `lib/repo.cjs`'s fence), package scope and gateway
+packages as settings, the 4.0 decision tables as a documented input with the census script that drafts them, the
+scripts runnable in place from `scrolls/`, and one porting guide (run order, red-tree verdicts, what each script
+can get wrong, this run's traps). Longer-term home: the Phase 6 `migrate` bin in `@dungeonmaster/tooling`.
+
 **Driver is resumable.** Segments B and C run through `bigbang/run-all.sh <A|B|C>` (run copy
 `tmp/bigbang/run-all.sh`). It back-fills a marker per step from commit subjects after c2cbc43d4 and skips done
 steps; it refuses to start while `packages/` is dirty. Launch detached: `setsid nohup bash tmp/bigbang/run-all.sh B
