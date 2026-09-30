@@ -9,9 +9,9 @@ import { z } from '#gateway/npm/zod';
 
 const rateLimitWindowShape = z
   .object({
-    used_percentage: z.number().brand<'ClaudeUsedPercentage'>().optional(),
-    resets_at: z.string().brand<'ClaudeResetsAt'>().optional(),
-  })
+    used_percentage: z.number().brand<'RateLimitWindowShapeUsedPercentage'>().optional(),
+    resets_at: z.string().brand<'RateLimitWindowShapeResetsAt'>().optional(),
+  }).brand<'RateLimitWindowShape'>()
   .optional();
 
 export const statuslineInputContract = z
@@ -20,7 +20,7 @@ export const statuslineInputContract = z
       .object({
         five_hour: rateLimitWindowShape,
         seven_day: rateLimitWindowShape,
-      })
+      }).brand<'StatuslineInputRateLimits'>()
       .optional(),
   })
   .loose().brand<'StatuslineInput'>();

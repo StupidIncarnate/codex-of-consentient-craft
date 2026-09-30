@@ -26,7 +26,7 @@ export const packageSeedContract = z.object({
     .object({
       fileName: z.string().brand<'PackageSeedBarrelFileName'>(),
       exportPaths: z.array(z.string().brand<'PackageSeedBarrelExportPaths'>()),
-    })
+    }).brand<'PackageSeedBarrel'>()
     .nullable(),
   dependencies: dependencyMapContract,
   // Extra devDependencies this seed's own files need beyond packageScaffoldConfigStatics'
@@ -35,7 +35,7 @@ export const packageSeedContract = z.object({
   // workspace package) — see package-scaffold-files-transformer.ts's merge.
   devDependencies: dependencyMapContract,
   bin: dependencyMapContract,
-  compilerOptions: z.record(z.string().brand<'CompilerOptionKey'>(), z.unknown()),
+  compilerOptions: z.record(z.string().brand<'PackageSeedCompilerOptionsKey'>(), z.unknown()),
   extraInclude: z.array(z.string().brand<'PackageSeedExtraInclude'>()),
   buildRootDir: z.string().brand<'PackageSeedBuildRootDir'>().nullable(),
   jestKind: z.enum(['node', 'tsx-node', 'tsx-jsdom']),
@@ -51,7 +51,7 @@ export const packageSeedContract = z.object({
     z.object({
       path: z.string().brand<'PackageSeedFilesPath'>(),
       contents: z.string().brand<'PackageSeedFilesContents'>(),
-    }),
+    }).brand<'PackageSeedFiles'>(),
   ),
 }).brand<'PackageSeed'>();
 
