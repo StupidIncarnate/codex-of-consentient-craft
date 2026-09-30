@@ -8,11 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 
 export const toolingRequirementContract = z.object({
-  id: toolingRequirementIdContract,
+  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'ToolingRequirementId'>(),
   name: z.string().min(1).brand<'ToolingName'>(),
   packageName: z.string().min(1).brand<'NpmPackageName'>(),
   reason: z.string().brand<'ToolingReason'>(),

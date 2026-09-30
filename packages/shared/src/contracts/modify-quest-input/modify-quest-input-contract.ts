@@ -52,7 +52,6 @@ import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
-import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
 import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for-upsert-contract';
 import { questContract } from '../quest/quest-contract';
@@ -192,7 +191,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullToolingRequirement,
           fullToolingRequirement.partial().required({ id: true }),
-          z.object({ id: toolingRequirementIdContract, _delete: deleteMarker }),
+          z.object({ id: toolingRequirementContract.shape.id, _delete: deleteMarker }),
         ]),
       )
       .describe(

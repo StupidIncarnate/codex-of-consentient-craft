@@ -1,6 +1,6 @@
-import { toolingRequirementIdContract } from './tooling-requirement-id-contract';
-import type { ToolingRequirementId } from './tooling-requirement-id-contract';
+import type { ToolingRequirement } from '../tooling-requirement/tooling-requirement-contract';
+import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 
 export const ToolingRequirementIdStub = (
   { value }: { value: string } = { value: 'pg-driver' },
-): ToolingRequirementId => toolingRequirementIdContract.parse(value);
+): ToolingRequirement['id'] => toolingRequirementContract.shape.id.parse(value);
