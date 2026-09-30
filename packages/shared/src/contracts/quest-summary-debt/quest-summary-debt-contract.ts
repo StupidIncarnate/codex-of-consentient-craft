@@ -108,6 +108,6 @@ export const questSummaryDebtContract = z
           'this layer gave up on it — a toSettle here reads as a handover nobody made.',
       });
     }
-  });
+  }).brand<'QuestSummaryDebt'>();
 
 export type QuestSummaryDebt = z.infer<typeof questSummaryDebtContract>;

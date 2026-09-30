@@ -19,6 +19,6 @@ import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-pa
 export const busSubscriberFileContract = z.object({
   subscriberFile: absoluteFilePathContract,
   busExportName: z.string().brand<'BusSubscriberFileBusExportName'>(),
-});
+}).brand<'BusSubscriberFile'>();
 
 export type BusSubscriberFile = z.infer<typeof busSubscriberFileContract>;

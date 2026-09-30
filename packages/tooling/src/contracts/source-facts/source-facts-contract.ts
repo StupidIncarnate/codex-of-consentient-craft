@@ -23,6 +23,6 @@ export const sourceFactsContract = z.object({
   ),
   exportNames: z.array(z.string().min(1).brand<'SourceFactsExportNames'>()),
   catchAllSites: z.array(catchAllSiteContract),
-});
+}).brand<'SourceFacts'>();
 
 export type SourceFacts = z.infer<typeof sourceFactsContract>;

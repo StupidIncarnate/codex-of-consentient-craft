@@ -13,6 +13,7 @@ import type {
   EndpointResponseContract,
   HttpMethod,
 } from '../../../contracts/endpoint-control/endpoint-control-contract';
+import { endpointControlContract } from '../../../contracts/endpoint-control/endpoint-control-contract';
 
 const INTERNAL_SERVER_ERROR = 500;
 
@@ -53,7 +54,7 @@ export const EndpointMockListenResponder = ({
     }),
   );
 
-  return {
+  return endpointControlContract.parse({
     resolves: ({ data }: { data: unknown }): void => {
       // Parsed BEFORE `server.use` registers the handler, so a response the contract rejects
       // throws here, at staging time, rather than surfacing as a 500 the first time a test fetches.
@@ -164,5 +165,5 @@ export const EndpointMockListenResponder = ({
     getRequestCount: (): number => requestLog.length,
 
     getRequestBodies: async (): Promise<unknown[]> => Promise.all(requestLog),
-  };
+  });
 };

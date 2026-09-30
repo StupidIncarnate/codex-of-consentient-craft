@@ -12,7 +12,7 @@ import { z } from '#gateway/npm/zod';
 // bare empty `z.object({})` as `Record<string, never>`, which an array-shaped value (see
 // `RecordedCalls` below) can never satisfy, so the exported type is hand-written instead of
 // intersected with `z.infer<typeof recordedCallsContract>`.
-export const recordedCallsContract = z.object({});
+export const recordedCallsContract = z.object({}).brand<'RecordedCalls'>();
 
 export type RecordedCalls = Readonly<Pick<unknown[][], 'length'>> & {
   map: <U>(fn: (call: unknown[], index: number) => U) => U[];

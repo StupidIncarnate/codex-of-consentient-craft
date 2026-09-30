@@ -26,6 +26,6 @@ export const pruneRemovalContract = z.object({
   freedBytes: z.number().int().nonnegative().brand<'PruneRemovalFreedBytes'>(),
   freedMB: z.number().int().nonnegative().brand<'PruneRemovalFreedMB'>(),
   tombstoned: z.boolean(),
-});
+}).brand<'PruneRemoval'>();
 
 export type PruneRemoval = z.infer<typeof pruneRemovalContract>;

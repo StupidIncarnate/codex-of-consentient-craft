@@ -176,6 +176,6 @@ export const questContract = z.object({
     .describe(
       'Per-case smoketest assertion results written by smoketestAssertFinalStateBroker after the quest reaches a terminal status.',
     ),
-});
+}).brand<'Quest'>();
 
 export type Quest = z.infer<typeof questContract>;

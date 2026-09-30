@@ -21,6 +21,7 @@ import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 
 import { profileSampleRecordBroker } from './profile-sample-record-broker';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 const HEADLESS_SPEC = 'api';
 const SUBJECT_ID = InstanceIdStub({ value: 'inst_aaaa1111' });
@@ -64,7 +65,7 @@ describe('the profile sample-write path, against a real tree', () => {
 
     // One booted instance: every beat below is taken at pool size 1.
     await registryUpdateBroker({
-      mutate: () => ({
+      mutate: () => RegistryStub({
         instances: [
           RegistryEntryStub({
             id: SUBJECT_ID,
@@ -106,7 +107,7 @@ describe('the profile sample-write path, against a real tree', () => {
 
     // Two more instances boot: the pool this instance is running in is now three.
     await registryUpdateBroker({
-      mutate: (current) => ({
+      mutate: (current) => RegistryStub({
         instances: [
           ...current.instances,
           RegistryEntryStub({

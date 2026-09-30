@@ -43,6 +43,7 @@ import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-w
 import { FlowRecipeCalloutLayerWidget } from './flow-recipe-callout-layer-widget';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
 import { FlowPortalNodeLayerWidget } from './flow-portal-node-layer-widget';
+import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
 
 export interface ReactFlowDiagramWidgetProps {
   flow: Flow;
@@ -551,7 +552,7 @@ export const ReactFlowDiagramWidget = ({
               // is the only place both ids survive independently of that string's shape.
               const clicked = laidOutFlow.nodes.find((fn) => String(fn.id) === node.id);
               if (clicked !== undefined) {
-                setSelectedAnchor({ flowId: laidOutFlow.id, nodeId: clicked.id });
+                setSelectedAnchor(commentAnchorContract.parse({ flowId: laidOutFlow.id, nodeId: clicked.id }));
                 return;
               }
               const observableData = flowObservableNodeDataContract.safeParse(node.data);
@@ -560,11 +561,11 @@ export const ReactFlowDiagramWidget = ({
               if (!observableData.success) {
                 return;
               }
-              setSelectedAnchor({
+              setSelectedAnchor(commentAnchorContract.parse({
                 flowId: laidOutFlow.id,
                 nodeId: observableData.data.nodeId,
                 observableId: observableData.data.observableId,
-              });
+              }));
             },
             onPaneClick: () => {
               setSelectedAnchor(null);

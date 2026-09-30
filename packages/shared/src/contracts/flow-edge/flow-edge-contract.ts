@@ -14,6 +14,6 @@ export const flowEdgeContract = z.object({
   from: z.string().min(1).brand<'FlowEdgeFrom'>(),
   to: z.string().min(1).brand<'FlowEdgeTo'>(),
   label: z.string().brand<'FlowEdgeLabel'>().optional(),
-});
+}).brand<'FlowEdge'>();
 
 export type FlowEdge = z.infer<typeof flowEdgeContract>;

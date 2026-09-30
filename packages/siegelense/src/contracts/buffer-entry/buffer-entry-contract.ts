@@ -23,6 +23,6 @@ export const bufferEntryContract = z.object({
   step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'BufferEntryStep'>().nullable(),
   atMs: z.number().int().nonnegative().brand<'BufferEntryAtMs'>(),
   text: z.string().brand<'BufferEntryText'>(),
-});
+}).brand<'BufferEntry'>();
 
 export type BufferEntry = z.infer<typeof bufferEntryContract>;

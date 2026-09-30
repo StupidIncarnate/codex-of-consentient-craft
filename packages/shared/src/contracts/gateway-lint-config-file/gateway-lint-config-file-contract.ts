@@ -16,6 +16,6 @@ export const gatewayLintConfigFileContract = z
   .object({
     gateway: gatewayLintConfigContract.optional(),
   })
-  .loose();
+  .loose().brand<'GatewayLintConfigFile'>();
 
 export type GatewayLintConfigFile = z.infer<typeof gatewayLintConfigFileContract>;

@@ -38,7 +38,7 @@ export type Url = z.infer<typeof urlContract>;
 
 export const hydrationTargetContract = z.object({
   baseUrl: urlContract.optional(),
-});
+}).brand<'HydrationTarget'>();
 
 export type HydrationTarget = z.infer<typeof hydrationTargetContract>;
 

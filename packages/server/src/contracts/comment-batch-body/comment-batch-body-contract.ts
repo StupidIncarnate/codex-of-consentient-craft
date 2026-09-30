@@ -36,6 +36,6 @@ const nonWhitespaceCommentBatchEntryContract = commentBatchEntryContract
 export const commentBatchBodyContract = z.object({
   // min(1) is load-bearing: an empty array is a 400, not a no-op
   comments: z.array(nonWhitespaceCommentBatchEntryContract).min(1),
-});
+}).brand<'CommentBatchBody'>();
 
 export type CommentBatchBody = z.infer<typeof commentBatchBodyContract>;

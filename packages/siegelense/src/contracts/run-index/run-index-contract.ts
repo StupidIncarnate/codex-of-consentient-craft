@@ -32,6 +32,6 @@ export const runIndexContract = z.object({
     exchanges: z.number().int().nonnegative().brand<'RunIndexNetworkExchanges'>(),
     non2xx: z.number().int().nonnegative().brand<'RunIndexNetworkNon2xx'>(),
   }),
-});
+}).brand<'RunIndex'>();
 
 export type RunIndex = z.infer<typeof runIndexContract>;

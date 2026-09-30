@@ -50,6 +50,6 @@ export const qaChecklistContract = z.object({
     .describe(
       "The units still outstanding for the track that asked. A unit leaves this list on a `met` or a `cant-meet` recorded in `workItem.observations` by a work item whose ROLE is that track — the tracks are independent, so a unit another track settled is still outstanding for yours, and an `unmet` settles it for nobody, since `unmet` is what mints the successor that carries it again. Asked with no track, every unit is listed: that is the read-only whole-quest shape, not a claim about any track's coverage.",
     ),
-});
+}).brand<'QaChecklist'>();
 
 export type QaChecklist = z.infer<typeof qaChecklistContract>;

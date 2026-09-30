@@ -15,6 +15,6 @@ import { z } from '#gateway/npm/zod';
 
 export const laneCapacityContract = z.object({
   suggested: z.number().int().nonnegative().brand<'LaneSuggestedCount'>(),
-});
+}).brand<'LaneCapacity'>();
 
 export type LaneCapacity = z.infer<typeof laneCapacityContract>;

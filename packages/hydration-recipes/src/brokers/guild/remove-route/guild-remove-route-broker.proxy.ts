@@ -3,6 +3,7 @@ import { guildRemoveBrokerProxy } from '@dungeonmaster/orchestrator/brokers/guil
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
 export const guildRemoveRouteBrokerProxy = (): {
   succeeds: ({ guildId }: { guildId: Guild['id'] }) => void;
@@ -16,7 +17,7 @@ export const guildRemoveRouteBrokerProxy = (): {
 
   return {
     succeeds: ({ guildId }: { guildId: Guild['id'] }): void => {
-      removeProxy.setupConfig({ config: { guilds: [GuildStub({ id: guildId })] } });
+      removeProxy.setupConfig({ config: GuildConfigStub({ guilds: [GuildStub({ id: guildId })] }) });
     },
   };
 };

@@ -53,6 +53,6 @@ export const workPlanCodeweaverUnitContract = z.object({
     .min(1)
     .brand<'PieceUnitFailsIf'>()
     .describe('The wrong value that turns that assertion red.'),
-});
+}).brand<'WorkPlanCodeweaverUnit'>();
 
 export type WorkPlanCodeweaverUnit = z.infer<typeof workPlanCodeweaverUnitContract>;

@@ -12,6 +12,6 @@ import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract'
 export const proxyCatchAllContract = z.object({
   file: z.string().min(1).brand<'ProxyCatchAllFile'>(),
   sites: z.array(catchAllSiteContract),
-});
+}).brand<'ProxyCatchAll'>();
 
 export type ProxyCatchAll = z.infer<typeof proxyCatchAllContract>;

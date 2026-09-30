@@ -23,6 +23,6 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 export const repoLocalPathContract = z.object({
   path: absoluteFilePathContract,
   linkPresent: z.boolean(),
-});
+}).brand<'RepoLocalPath'>();
 
 export type RepoLocalPath = z.infer<typeof repoLocalPathContract>;

@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 export const fileWriteCallContract = z.object({
   adapter: z.string().brand<'FileWriteCallAdapter'>(),
   filePathArg: z.string().brand<'FileWriteCallFilePathArg'>(),
-});
+}).brand<'FileWriteCall'>();
 
 export type FileWriteCall = z.infer<typeof fileWriteCallContract>;

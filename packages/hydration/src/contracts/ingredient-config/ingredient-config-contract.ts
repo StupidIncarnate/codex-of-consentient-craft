@@ -90,7 +90,7 @@ export const ingredientConfigContract = z
         path: ['copies'],
       });
     }
-  });
+  }).brand<'IngredientConfig'>();
 
 export type IngredientConfigData = z.infer<typeof ingredientConfigContract>;
 

@@ -20,6 +20,6 @@ export const claudeSettingsContract = z
       .loose()
       .optional(),
   })
-  .loose();
+  .loose().brand<'ClaudeSettings'>();
 
 export type ClaudeSettings = z.infer<typeof claudeSettingsContract>;

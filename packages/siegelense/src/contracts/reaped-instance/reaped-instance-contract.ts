@@ -23,6 +23,6 @@ export const reapedInstanceContract = z.object({
   staleFor: z.string().min(1).brand<'ReapedInstanceStaleFor'>(),
   killed: z.array(z.number().int().positive().brand<'ReapedInstanceKilled'>()).readonly(),
   homeRemoved: z.boolean(),
-});
+}).brand<'ReapedInstance'>();
 
 export type ReapedInstance = z.infer<typeof reapedInstanceContract>;

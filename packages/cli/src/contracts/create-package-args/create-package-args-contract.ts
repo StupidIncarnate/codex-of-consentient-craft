@@ -18,6 +18,6 @@ export const createPackageArgsContract = z.object({
   description: z.string().brand<'CreatePackageArgsDescription'>().optional(),
   packagesDir: z.string().brand<'CreatePackageArgsPackagesDir'>().optional(),
   dryRun: z.boolean().default(false),
-});
+}).brand<'CreatePackageArgs'>();
 
 export type CreatePackageArgs = z.infer<typeof createPackageArgsContract>;

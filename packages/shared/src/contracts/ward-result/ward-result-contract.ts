@@ -31,6 +31,6 @@ export const wardResultContract = z.object({
       z.enum(['committed', 'full']),
     )
     .optional(),
-});
+}).brand<'WardResult'>();
 
 export type WardResult = z.infer<typeof wardResultContract>;

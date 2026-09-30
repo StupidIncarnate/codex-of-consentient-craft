@@ -84,6 +84,6 @@ export const questBlightLedgerEntryContract = z.object({
         'future that never happened. Required here because a persisted disposition always carries ' +
         'one; the modify-quest input shape drops the requirement, since the write path supplies it.',
     ),
-});
+}).brand<'QuestBlightLedgerEntry'>();
 
 export type QuestBlightLedgerEntry = z.infer<typeof questBlightLedgerEntryContract>;

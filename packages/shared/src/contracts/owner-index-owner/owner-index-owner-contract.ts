@@ -22,6 +22,6 @@ export const ownerIndexOwnerContract = z.object({
   typeName: z.string().brand<'OwnerIndexOwnerTypeName'>().optional(),
   schemaText: z.string().brand<'OwnerIndexOwnerSchemaText'>(),
   fields: z.array(ownerIndexFieldContract),
-});
+}).brand<'OwnerIndexOwner'>();
 
 export type OwnerIndexOwner = z.infer<typeof ownerIndexOwnerContract>;

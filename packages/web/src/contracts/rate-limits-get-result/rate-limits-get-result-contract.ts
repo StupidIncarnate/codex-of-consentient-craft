@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 export const rateLimitsGetResultContract = z.object({
   snapshot: rateLimitsSnapshotContract.nullable(),
-});
+}).brand<'RateLimitsGetResult'>();
 
 export type RateLimitsGetResult = z.infer<typeof rateLimitsGetResultContract>;

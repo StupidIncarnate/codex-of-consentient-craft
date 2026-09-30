@@ -37,6 +37,6 @@ export const docsAnswerContract = z
     about: z.array(z.string().brand<'DocsAnswerAbout'>()),
     scopes: z.array(docsScopeDocumentContract),
   })
-  .strict();
+  .strict().brand<'DocsAnswer'>();
 
 export type DocsAnswer = z.infer<typeof docsAnswerContract>;

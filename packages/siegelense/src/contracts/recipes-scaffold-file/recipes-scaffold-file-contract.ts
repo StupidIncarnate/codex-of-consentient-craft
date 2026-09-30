@@ -17,6 +17,6 @@ import { z } from '#gateway/npm/zod';
 export const recipesScaffoldFileContract = z.object({
   relativePath: z.string().brand<'RecipesScaffoldFileRelativePath'>(),
   contents: z.string().brand<'RecipesScaffoldFileContents'>(),
-});
+}).brand<'RecipesScaffoldFile'>();
 
 export type RecipesScaffoldFile = z.infer<typeof recipesScaffoldFileContract>;

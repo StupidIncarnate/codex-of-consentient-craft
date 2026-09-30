@@ -18,6 +18,6 @@ export const commentQueueEntryContract = commentAnchorContract.extend({
   // comment resets this to the edit time, which drives both the 7-day expiry sweep and
   // newest-first ordering after send.
   createdAt: z.iso.datetime().brand<'CommentQueueEntryCreatedAt'>(),
-});
+}).brand<'CommentQueueEntry'>();
 
 export type CommentQueueEntry = z.infer<typeof commentQueueEntryContract>;

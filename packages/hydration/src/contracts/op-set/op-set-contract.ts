@@ -30,6 +30,6 @@ export const opSetContract = z.object({
       to: z.unknown(),
     })
     .optional(),
-});
+}).brand<'OpSet'>();
 
 export type OpSet = z.infer<typeof opSetContract>;

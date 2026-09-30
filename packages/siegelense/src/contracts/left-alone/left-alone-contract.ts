@@ -20,6 +20,6 @@ import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 export const leftAloneContract = z.object({
   id: siegeInstanceContract.shape.id,
   why: z.string().brand<'LeftAloneWhy'>(),
-});
+}).brand<'LeftAlone'>();
 
 export type LeftAlone = z.infer<typeof leftAloneContract>;

@@ -22,6 +22,6 @@ export const capacityArgsContract = z
     poolSize: z.number().int().positive().brand<'CapacityArgsPoolSize'>().nullable(),
     isJson: z.boolean().default(false),
   })
-  .strict();
+  .strict().brand<'CapacityArgs'>();
 
 export type CapacityArgs = z.infer<typeof capacityArgsContract>;

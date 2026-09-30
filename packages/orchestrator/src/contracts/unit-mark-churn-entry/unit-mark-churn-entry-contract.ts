@@ -36,6 +36,6 @@ export const unitMarkChurnEntryContract = z.object({
   // end with no owner, and this walk is the surface a human reads it off.
   toSettle: z.string().min(1).brand<'ToSettleInstruction'>().nullish(),
   at: z.iso.datetime().brand<'UnitMarkChurnEntryAt'>(),
-});
+}).brand<'UnitMarkChurnEntry'>();
 
 export type UnitMarkChurnEntry = z.infer<typeof unitMarkChurnEntryContract>;

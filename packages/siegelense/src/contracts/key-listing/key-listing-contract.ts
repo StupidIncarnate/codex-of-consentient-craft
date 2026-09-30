@@ -38,6 +38,6 @@ export const keyListingContract = z
     truncated: z.array(z.string().brand<'KeyListingTruncated'>()).readonly(),
     rendered: z.string().brand<'KeyListingRendered'>(),
   })
-  .strict();
+  .strict().brand<'KeyListing'>();
 
 export type KeyListing = z.infer<typeof keyListingContract>;

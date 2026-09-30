@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 export const outsideCallContract = z.object({
   module: z.string().min(1).brand<'OutsideCallModule'>(),
   name: z.string().min(1).brand<'OutsideCallName'>(),
-});
+}).brand<'OutsideCall'>();
 
 export type OutsideCall = z.infer<typeof outsideCallContract>;

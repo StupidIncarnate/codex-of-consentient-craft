@@ -54,6 +54,7 @@ import type { RegistryEntry } from '../../../contracts/registry-entry/registry-e
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 import { DriverServeLayerResponderProxy } from './driver-serve-layer-responder.proxy';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 type ReadingCount = number;
 
@@ -155,7 +156,7 @@ export const SiegelenseDriverResponderProxy = (): {
         .calledWith([{ mutate: (value: unknown): boolean => typeof value === 'function' }])
         .implement(
           async ({ mutate }: { mutate: (current: Registry) => Registry }): Promise<Registry> =>
-            Promise.resolve(mutate({ instances: [] })),
+            Promise.resolve(mutate(RegistryStub({ instances: [] }))),
         );
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       serveHandle.calledWith([{ instanceId }]).resolves({ success: true });

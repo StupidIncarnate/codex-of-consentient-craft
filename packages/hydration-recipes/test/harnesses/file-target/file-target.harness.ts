@@ -69,6 +69,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
 import type { DmTarget } from '../../../src/contracts/dm-target/dm-target-contract';
+import { DmTargetStub } from '../../../src/contracts/dm-target/dm-target.stub';
 
 type GuildId = ReturnType<typeof GuildStub>['id'];
 type Quest = ReturnType<typeof QuestStub>;
@@ -122,7 +123,7 @@ export const fileTargetHarness = (): {
         throw new Error('fileTargetHarness: target() called outside beforeEach/afterEach');
       }
       const home = testbed.guildPath;
-      return { home, claudeHome: home };
+      return DmTargetStub({ home, claudeHome: home });
     },
     readQuestFileOperations: ({
       guildId,

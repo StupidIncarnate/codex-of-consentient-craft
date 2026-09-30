@@ -38,6 +38,6 @@ export const runStepContract = z.object({
   // The step node's OWN array schema, unwrapped from its optional — one declaration of what a
   // handler argument is, so the dispatch instruction cannot brand it differently from the graph.
   args: agentStepNodeContract.shape.args.unwrap(),
-});
+}).brand<'RunStep'>();
 
 export type RunStep = z.infer<typeof runStepContract>;

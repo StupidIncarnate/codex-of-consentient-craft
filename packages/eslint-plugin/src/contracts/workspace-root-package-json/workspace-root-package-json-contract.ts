@@ -18,6 +18,6 @@ export const workspaceRootPackageJsonContract = z
       z.record(z.string().brand<'WorkspaceGlob'>(), z.unknown()),
     ]),
   })
-  .loose();
+  .loose().brand<'WorkspaceRootPackageJson'>();
 
 export type WorkspaceRootPackageJson = z.infer<typeof workspaceRootPackageJsonContract>;

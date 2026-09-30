@@ -13,6 +13,6 @@ export const execResultContract = z.object({
   stdout: z.string().brand<'Stdout'>(),
   stderr: z.string().brand<'Stderr'>(),
   exitCode: z.number().int().brand<'ExecResultExitCode'>(),
-});
+}).brand<'ExecResult'>();
 
 export type ExecResult = z.infer<typeof execResultContract>;

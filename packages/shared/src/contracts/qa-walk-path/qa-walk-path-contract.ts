@@ -42,6 +42,6 @@ export const qaWalkPathContract = z.object({
     .describe(
       'True when the path ends by crossing into another flow (a `flowId:nodeId` edge target) rather than at a terminal node of this flow.',
     ),
-});
+}).brand<'QaWalkPath'>();
 
 export type QaWalkPath = z.infer<typeof qaWalkPathContract>;

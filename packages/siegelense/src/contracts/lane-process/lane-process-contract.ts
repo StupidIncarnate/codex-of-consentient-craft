@@ -34,6 +34,6 @@ export const laneProcessContract = z.object({
   readyPath: z.string().startsWith('/').brand<'LaneProcessReadyPath'>().nullable(),
   logFileName: fileNameContract,
   env: z.record(z.string().brand<'EnvVarName'>(), z.string().brand<'LaneProcessEnv'>()),
-});
+}).brand<'LaneProcess'>();
 
 export type LaneProcess = z.infer<typeof laneProcessContract>;

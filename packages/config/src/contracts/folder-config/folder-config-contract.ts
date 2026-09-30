@@ -25,6 +25,6 @@ export const allowedExternalImportsContract = z.object({
   errors: packageNameArrayContract,
   middleware: packageNameArrayContract,
   startup: packageNameArrayContract,
-});
+}).brand<'AllowedExternalImports'>();
 
 export type AllowedExternalImports = z.infer<typeof allowedExternalImportsContract>;

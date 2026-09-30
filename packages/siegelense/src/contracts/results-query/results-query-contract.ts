@@ -35,6 +35,6 @@ export const resultsQueryContract = z
     fields: z.array(z.string().min(1).brand<'ResultsQueryFields'>()).readonly().nullable(),
     since: sinceMarkerContract.nullable(),
   })
-  .strict();
+  .strict().brand<'ResultsQuery'>();
 
 export type ResultsQuery = z.infer<typeof resultsQueryContract>;

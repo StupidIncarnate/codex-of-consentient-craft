@@ -36,6 +36,6 @@ export const questSummaryNoteGroupContract = z.object({
     .describe(
       'Every note of this kind, in the order the quest file carries them. Empty means the quest recorded none of this kind.',
     ),
-});
+}).brand<'QuestSummaryNoteGroup'>();
 
 export type QuestSummaryNoteGroup = z.infer<typeof questSummaryNoteGroupContract>;

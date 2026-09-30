@@ -78,6 +78,7 @@ import type { ServerLogWindow } from '../../../src/contracts/server-log-window/s
 import type { StatusAnswer } from '../../../src/contracts/status-answer/status-answer-contract';
 import type { StepReading } from '../../../src/contracts/step-reading/step-reading-contract';
 import { ServerLogWindowStub } from '../../../src/contracts/server-log-window/server-log-window.stub';
+import { RegistryStub } from '../../../src/contracts/registry/registry.stub';
 
 const KILLED_INSTANCE_ID = InstanceIdStub({ value: 'inst_1111dead' });
 const LIVE_INSTANCE_ID = InstanceIdStub({ value: 'inst_2222c0de' });
@@ -464,7 +465,7 @@ export const evidenceTreeHarness = (): {
     });
 
   const buildTree = async (): Promise<void> => {
-    await registryWriteBroker({ registry: { instances: [killedEntry(), liveEntry()] } });
+    await registryWriteBroker({ registry: RegistryStub({ instances: [killedEntry(), liveEntry()] }) });
 
     const evidenceDir = killedInstanceEvidenceDir();
     const runOnePaths = run1Paths();
@@ -611,7 +612,7 @@ export const evidenceTreeHarness = (): {
     });
 
     await registryUpdateBroker({
-      mutate: (current) => ({ instances: [...current.instances, staleEntry] }),
+      mutate: (current) => RegistryStub({ instances: [...current.instances, staleEntry] }),
     });
 
     return STALE_INSTANCE_ID;

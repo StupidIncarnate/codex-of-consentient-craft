@@ -72,6 +72,6 @@ export const qaChecklistItemContract = z.object({
   edgeLabel: flowEdgeContract.shape.label,
   edgeTo: flowEdgeContract.shape.to.optional(),
   offMapFamily: qaOffMapFamilyContract.optional(),
-});
+}).brand<'QaChecklistItem'>();
 
 export type QaChecklistItem = z.infer<typeof qaChecklistItemContract>;

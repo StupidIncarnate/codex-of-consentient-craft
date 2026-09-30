@@ -22,6 +22,6 @@ export const commentBatchResponseContract = z.object({
   deliveredMessage: z.string().min(1).brand<'DeliveredCommentMessage'>().optional(),
   staleAnchors: z.array(commentAnchorContract).optional(),
   error: z.string().min(1).brand<'CommentBatchErrorMessage'>().optional(),
-});
+}).brand<'CommentBatchResponse'>();
 
 export type CommentBatchResponse = z.infer<typeof commentBatchResponseContract>;

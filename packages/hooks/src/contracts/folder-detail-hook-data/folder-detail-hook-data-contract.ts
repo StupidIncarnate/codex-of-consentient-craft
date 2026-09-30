@@ -18,6 +18,6 @@ export const folderDetailHookDataContract = z
     transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
     agent_id: agentContract.shape.id.optional(),
   })
-  .loose();
+  .loose().brand<'FolderDetailHookData'>();
 
 export type FolderDetailHookData = z.infer<typeof folderDetailHookDataContract>;

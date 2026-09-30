@@ -17,6 +17,6 @@ export const ownerIndexUsageContract = z.object({
   contractName: z.string().brand<'OwnerIndexUsageContractName'>(),
   key: z.string().brand<'OwnerIndexUsageKey'>(),
   kind: z.enum(['owner-reuse', 'brand-ref', 'inline-copy']),
-});
+}).brand<'OwnerIndexUsage'>();
 
 export type OwnerIndexUsage = z.infer<typeof ownerIndexUsageContract>;

@@ -14,6 +14,6 @@ export const userPromptSubmitHookDataContract = z.object({
   cwd: z.string().min(1).brand<'Cwd'>(),
   hook_event_name: z.literal('UserPromptSubmit'),
   user_prompt: z.string().brand<'UserPrompt'>(),
-});
+}).brand<'UserPromptSubmitHookData'>();
 
 export type UserPromptSubmitHookData = z.infer<typeof userPromptSubmitHookDataContract>;

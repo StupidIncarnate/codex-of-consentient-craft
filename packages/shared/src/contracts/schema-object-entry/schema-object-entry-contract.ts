@@ -15,6 +15,6 @@ import { z } from '#gateway/npm/zod';
 export const schemaObjectEntryContract = z.object({
   key: z.string().brand<'SchemaObjectEntryKey'>(),
   valueText: z.string().brand<'SchemaObjectEntryValueText'>(),
-});
+}).brand<'SchemaObjectEntry'>();
 
 export type SchemaObjectEntry = z.infer<typeof schemaObjectEntryContract>;

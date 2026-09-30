@@ -47,6 +47,6 @@ export const documentBlockParamContract = z.object({
   ]),
   title: z.string().brand<'DocumentTitle'>().nullable().optional(),
   context: z.string().brand<'DocumentContext'>().nullable().optional(),
-});
+}).brand<'DocumentBlockParam'>();
 
 export type DocumentBlockParam = z.infer<typeof documentBlockParamContract>;

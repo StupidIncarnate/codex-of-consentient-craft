@@ -28,6 +28,6 @@ export const recipeContextContract = z
     apiBaseUrl: z.string().brand<'RecipeContextApiBaseUrl'>(),
     homePath: absoluteFilePathContract,
   })
-  .strict();
+  .strict().brand<'RecipeContext'>();
 
 export type RecipeContext = z.infer<typeof recipeContextContract>;

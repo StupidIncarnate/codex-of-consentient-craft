@@ -21,6 +21,6 @@ export const questListItemContract = z.object({
   stepProgress: z.string().brand<'StepProgress'>().optional(),
   activeSessionId: sessionContract.shape.id.optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
-});
+}).brand<'QuestListItem'>();
 
 export type QuestListItem = z.infer<typeof questListItemContract>;

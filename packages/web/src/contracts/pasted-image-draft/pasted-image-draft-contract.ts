@@ -31,6 +31,6 @@ export const pastedImageDraftContract = z.object({
   dataBase64: pastedImageUploadContract.shape.dataBase64,
   // Which composer this record belongs to — see the PURPOSE note above.
   scopeKey: z.string().min(1).brand<'PastedImageDraftScopeKey'>(),
-});
+}).brand<'PastedImageDraft'>();
 
 export type PastedImageDraft = z.infer<typeof pastedImageDraftContract>;

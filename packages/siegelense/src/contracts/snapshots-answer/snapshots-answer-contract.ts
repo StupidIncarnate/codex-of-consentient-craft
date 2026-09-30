@@ -27,6 +27,6 @@ export const snapshotsAnswerContract = z
     instanceState: instanceStateContract,
     snapshots: z.array(snapshotRecordContract).readonly(),
   })
-  .strict();
+  .strict().brand<'SnapshotsAnswer'>();
 
 export type SnapshotsAnswer = z.infer<typeof snapshotsAnswerContract>;

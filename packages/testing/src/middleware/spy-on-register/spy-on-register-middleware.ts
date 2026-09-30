@@ -22,6 +22,8 @@ import { mockStagingCreateMiddleware } from '../mock-staging-create/mock-staging
 import { mockArgsMatchTransformer } from '../../transformers/mock-args-match/mock-args-match-transformer';
 import { mockStagedBestMatchTransformer } from '../../transformers/mock-staged-best-match/mock-staged-best-match-transformer';
 import { mockUnmatchedCallMessageTransformer } from '../../transformers/mock-unmatched-call-message/mock-unmatched-call-message-transformer';
+import { mockHandleContract } from '../../contracts/mock-handle/mock-handle-contract';
+import { stagedCallContract } from '../../contracts/staged-call/staged-call-contract';
 
 export type SpyOnHandle = MockHandle;
 
@@ -95,10 +97,10 @@ export const spyOnRegisterMiddleware = <T extends object>({
     }
   }
 
-  const handle: MockHandle = {
+  const handle: MockHandle = mockHandleContract.parse({
     calledWith: (args: readonly unknown[]): MockStaging => {
       const staged = stagedBySpy.get(spy) ?? [];
-      const record: StagedCall = { args, impl: () => undefined, once: false, consumed: false };
+      const record: StagedCall = stagedCallContract.parse({ args, impl: () => undefined, once: false, consumed: false });
 
       staged.push(record);
       stagedBySpy.set(spy, staged);
@@ -119,7 +121,7 @@ export const spyOnRegisterMiddleware = <T extends object>({
       (callsBySpy.get(spy) ?? []).filter(
         (call) => mockArgsMatchTransformer({ staged: args, actual: call }) !== null,
       ),
-  };
+  });
 
   return handle;
 };

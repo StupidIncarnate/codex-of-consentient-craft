@@ -45,6 +45,6 @@ export const workPlanFileEntryContract = z.object({
     .array(qaChecklistItemContract.shape.id)
     .optional()
     .describe('Present on a TEST file only — the units this file is written to settle.'),
-});
+}).brand<'WorkPlanFileEntry'>();
 
 export type WorkPlanFileEntry = z.infer<typeof workPlanFileEntryContract>;

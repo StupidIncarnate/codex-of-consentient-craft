@@ -13,6 +13,6 @@ export const toolUseBlockParamContract = z.object({
   id: z.string().min(1).brand<'ToolUseId'>(),
   name: z.string().brand<'ToolUseBlockParamName'>(),
   input: z.unknown(),
-});
+}).brand<'ToolUseBlockParam'>();
 
 export type ToolUseBlockParam = z.infer<typeof toolUseBlockParamContract>;

@@ -11,6 +11,6 @@ export const discoverListItemContract = z.object({
   name: z.string().brand<'FunctionName'>(),
   type: z.string().brand<'FileType'>(),
   purpose: z.string().brand<'Purpose'>().optional(),
-});
+}).brand<'DiscoverListItem'>();
 
 export type DiscoverListItem = z.infer<typeof discoverListItemContract>;

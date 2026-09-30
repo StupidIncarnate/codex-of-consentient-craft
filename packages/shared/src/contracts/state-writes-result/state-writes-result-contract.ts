@@ -16,6 +16,6 @@ export const stateWritesResultContract = z.object({
   inMemoryStores: z.array(z.string().brand<'StateWritesResultInMemoryStores'>()),
   fileWrites: z.array(z.string().brand<'StateWritesResultFileWrites'>()),
   browserStorageWrites: z.array(z.string().brand<'StateWritesResultBrowserStorageWrites'>()),
-});
+}).brand<'StateWritesResult'>();
 
 export type StateWritesResult = z.infer<typeof stateWritesResultContract>;

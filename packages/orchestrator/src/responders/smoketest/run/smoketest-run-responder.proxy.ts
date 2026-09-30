@@ -10,6 +10,7 @@ import { smoketestEnsureGuildBrokerProxy } from '../../../brokers/smoketest/ensu
 import { smoketestRunStateProxy } from '../../../state/smoketest-run/smoketest-run-state.proxy';
 import { EnqueueBundledSuiteLayerResponderProxy } from './enqueue-bundled-suite-layer-responder.proxy';
 import { EnqueueOrchestrationScenarioLayerResponderProxy } from './enqueue-orchestration-scenario-layer-responder.proxy';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
@@ -57,7 +58,7 @@ export const SmoketestRunResponderProxy = (): {
       // guildGetBroker is consulted twice (once via responder, once via ensure path indirectly
       // for slug). Use setupConfig to seed a guild config so guildGetBroker resolves cleanly.
       const guild = GuildStub({ id: guildId, urlSlug: guildSlug });
-      guildGetProxy.setupConfig({ config: { guilds: [guild] } });
+      guildGetProxy.setupConfig({ config: GuildConfigStub({ guilds: [guild] }) });
 
       // Default: every clear call resolves with deletedCount=0. The responder calls this once
       // per suite tag it dispatches (mcp / signals / orchestration, depending on `suite`), so

@@ -21,6 +21,6 @@ export const createQuestInputContract = z
         "Which pipeline this quest follows. Omit for the default feature pipeline; set to 'bug-hunt' (the /dumpster-hunt intake) to seed the bug-hunt regression pipeline.",
       ),
   })
-  .strict();
+  .strict().brand<'CreateQuestInput'>();
 
 export type CreateQuestInput = z.infer<typeof createQuestInputContract>;

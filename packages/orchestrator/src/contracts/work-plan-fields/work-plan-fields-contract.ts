@@ -72,6 +72,6 @@ export const workPlanFieldsContract = z.object({
     .describe(
       "The planner's ONE mark authority — `cant-meet` only, and only for a unit it is simultaneously putting on no piece.",
     ),
-});
+}).brand<'WorkPlanFields'>();
 
 export type WorkPlanFields = z.infer<typeof workPlanFieldsContract>;

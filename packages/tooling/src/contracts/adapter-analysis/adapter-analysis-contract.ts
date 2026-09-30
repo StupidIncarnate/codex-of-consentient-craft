@@ -15,6 +15,6 @@ import { adapterLogicReasonContract } from '../adapter-logic-reason/adapter-logi
 export const adapterAnalysisContract = z.object({
   outsideCalls: z.array(outsideCallContract),
   reasons: z.array(adapterLogicReasonContract),
-});
+}).brand<'AdapterAnalysis'>();
 
 export type AdapterAnalysis = z.infer<typeof adapterAnalysisContract>;

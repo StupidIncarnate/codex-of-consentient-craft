@@ -27,6 +27,6 @@ export const opAttachContract = z.object({
   ref: rowRefContract,
   ancestors: z.array(rowRefContract),
   where: fieldValuesContract,
-});
+}).brand<'OpAttach'>();
 
 export type OpAttach = z.infer<typeof opAttachContract>;

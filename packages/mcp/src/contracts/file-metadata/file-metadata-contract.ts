@@ -32,7 +32,7 @@ export const fileMetadataContract = z.object({
   metadata: z.record(z.string().brand<'FileMetadataKey'>(), z.unknown()).optional(),
   relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
-});
+}).brand<'FileMetadata'>();
 
 export type FileMetadata = z.infer<typeof fileMetadataContract>;
 export type FunctionSignature = z.infer<typeof functionSignatureContract>;

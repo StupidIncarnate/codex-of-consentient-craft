@@ -45,6 +45,6 @@ export const jestJsonReportContract = z
     testResults: z.array(jestSuiteResultContract).optional(),
     openHandles: z.array(jestOpenHandleContract).optional(),
   })
-  .loose();
+  .loose().brand<'JestJsonReport'>();
 
 export type JestJsonReport = z.infer<typeof jestJsonReportContract>;

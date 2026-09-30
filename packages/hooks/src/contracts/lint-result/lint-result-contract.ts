@@ -13,6 +13,6 @@ export const lintResultContract = z.object({
   messages: z.array(lintMessageContract),
   errorCount: z.number().int().nonnegative().brand<'ErrorCount'>(),
   warningCount: z.number().int().nonnegative().brand<'WarningCount'>(),
-});
+}).brand<'LintResult'>();
 
 export type LintResult = z.infer<typeof lintResultContract>;

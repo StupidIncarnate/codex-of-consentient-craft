@@ -12,6 +12,6 @@ export const thinkingBlockParamContract = z.object({
   type: z.literal('thinking'),
   thinking: z.string().brand<'ThinkingContent'>(),
   signature: z.string().brand<'ThinkingSignature'>().optional(),
-});
+}).brand<'ThinkingBlockParam'>();
 
 export type ThinkingBlockParam = z.infer<typeof thinkingBlockParamContract>;

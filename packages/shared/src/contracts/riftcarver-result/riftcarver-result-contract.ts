@@ -23,6 +23,6 @@ export const riftcarverResultContract = z.object({
   exitCode: z.number().int().brand<'RiftcarverResultExitCode'>(),
   failedStep: z.string().min(1).brand<'WorktreePrepareStep'>().optional(),
   outcome: z.enum(['green', 'repairable', 'blocked']),
-});
+}).brand<'RiftcarverResult'>();
 
 export type RiftcarverResult = z.infer<typeof riftcarverResultContract>;

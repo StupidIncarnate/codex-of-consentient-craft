@@ -15,7 +15,7 @@ import { z } from '#gateway/npm/zod';
 export const dmHttpResponseContract = z.object({
   status: z.number().int().brand<'HttpStatusCode'>(),
   body: z.unknown(),
-});
+}).brand<'DmHttpResponse'>();
 
 export interface DmHttpResponse<T = unknown> {
   status: z.infer<typeof dmHttpResponseContract>['status'];

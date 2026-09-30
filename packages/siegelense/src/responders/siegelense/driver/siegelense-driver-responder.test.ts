@@ -8,6 +8,7 @@ import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
 import { SiegelenseDriverResponderProxy } from './siegelense-driver-responder.proxy';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 const SPEC_NAME = 'api';
 
@@ -37,7 +38,7 @@ describe('SiegelenseDriverResponder', () => {
       proxy.stagePid({ pid: 48213 });
 
       await SiegelenseDriverResponder({ instanceId });
-      const mutated = proxy.applyRegistryMutate({ current: { instances: [entry] } });
+      const mutated = proxy.applyRegistryMutate({ current: RegistryStub({ instances: [entry] }) });
       const stampedRow = mutated.instances.find((row) => row.id === instanceId);
 
       expect({

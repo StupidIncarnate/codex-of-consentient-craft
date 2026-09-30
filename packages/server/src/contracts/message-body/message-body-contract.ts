@@ -21,6 +21,6 @@ export const messageBodyContract = z.object({
         'is the one the Nth [Pasted Image N] placeholder in message refers to. Absent on a ' +
         'text-only send.',
     ),
-});
+}).brand<'MessageBody'>();
 
 export type MessageBody = z.infer<typeof messageBodyContract>;

@@ -42,7 +42,7 @@ const sessionWithNestedSubagentMeta = recipeCatalogEntryContract.parse({
 });
 
 export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
-  {
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildEmptyBroker.recipeName),
     description: recipesGuildEmptyBroker.description,
     probeListing: () => {
@@ -63,8 +63,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesGuildEmptyBroker(), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildWithThreeQuestsBroker.recipeName),
     description: recipesGuildWithThreeQuestsBroker.description,
     probeListing: () => {
@@ -85,8 +85,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesGuildWithThreeQuestsBroker(), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildMidExecutionBroker.recipeName),
     description: recipesGuildMidExecutionBroker.description,
     probeListing: () => {
@@ -107,8 +107,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesGuildMidExecutionBroker(), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesQuestAdvancesOneStepBroker.recipeName),
     description: recipesQuestAdvancesOneStepBroker.description,
     inputs: recipesQuestAdvancesOneStepBroker.inputs,
@@ -142,8 +142,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesQuestAdvancesOneStepBroker(parsedParams.data), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesQuestCompletedBroker.recipeName),
     description: recipesQuestCompletedBroker.description,
     probeListing: () => {
@@ -164,8 +164,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesQuestCompletedBroker(), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesSessionSingleTurnBroker.recipeName),
     description: recipesSessionSingleTurnBroker.description,
     inputs: recipesSessionSingleTurnBroker.inputs,
@@ -199,8 +199,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesSessionSingleTurnBroker(parsedParams.data), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesSessionWithNestedChainBroker.recipeName),
     description: recipesSessionWithNestedChainBroker.description,
     inputs: recipesSessionWithNestedChainBroker.inputs,
@@ -234,8 +234,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesSessionWithNestedChainBroker(parsedParams.data), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildActiveSuiteBroker.recipeName),
     description: recipesGuildActiveSuiteBroker.description,
     probeListing: () => {
@@ -256,8 +256,8 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       return dmRegistryBroker.run(recipesGuildActiveSuiteBroker(), target);
     },
-  },
-  {
+  }),
+  recipeCatalogEntryContract.parse({
     recipeName: sessionWithNestedSubagentMeta.recipeName,
     description: sessionWithNestedSubagentMeta.description,
     probeListing: () => ({
@@ -289,5 +289,5 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       });
       return hydrationRunResultContract.parse(result);
     },
-  },
+  }),
 ];

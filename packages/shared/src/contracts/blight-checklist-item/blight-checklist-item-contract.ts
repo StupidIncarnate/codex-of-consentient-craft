@@ -49,6 +49,6 @@ export const blightChecklistItemContract = z.object({
     .describe(
       'The human-readable statement of what this unit asserts, e.g. "craft — comment-queue-state.ts\'s logic matches its signature".',
     ),
-});
+}).brand<'BlightChecklistItem'>();
 
 export type BlightChecklistItem = z.infer<typeof blightChecklistItemContract>;

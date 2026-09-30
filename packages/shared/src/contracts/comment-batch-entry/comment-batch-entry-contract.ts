@@ -24,6 +24,6 @@ export const commentBatchEntryContract = z.object({
   // Optional: the browser carries the queue entry's own createdAt so newest-first ordering matches
   // authoring order rather than persist order, and the persist mints one when it is absent.
   createdAt: z.iso.datetime().brand<'CommentBatchEntryCreatedAt'>().optional(),
-});
+}).brand<'CommentBatchEntry'>();
 
 export type CommentBatchEntry = z.infer<typeof commentBatchEntryContract>;

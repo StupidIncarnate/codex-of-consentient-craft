@@ -39,6 +39,6 @@ export const questContractEntryContract = z.object({
     .describe(
       'The properties/fields that make up this contract. Supports nesting via recursive properties field',
     ),
-});
+}).brand<'QuestContractEntry'>();
 
 export type QuestContractEntry = z.infer<typeof questContractEntryContract>;

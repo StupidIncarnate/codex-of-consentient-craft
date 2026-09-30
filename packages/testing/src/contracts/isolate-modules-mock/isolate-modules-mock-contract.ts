@@ -12,7 +12,7 @@ import { z } from '#gateway/npm/zod';
 
 // `factory` is a function — zod validates only `module`; `.loose()` carries `factory` through
 // `.parse()` unvalidated, since a Zod object schema cannot check callability.
-export const isolateModulesMockContract = z.object({ module: z.string().brand<'IsolateModulesMockModule'>() }).loose();
+export const isolateModulesMockContract = z.object({ module: z.string().brand<'IsolateModulesMockModule'>() }).loose().brand<'IsolateModulesMock'>();
 
 export type IsolateModulesMock = z.infer<typeof isolateModulesMockContract> & {
   factory: () => Record<PropertyKey, unknown>;

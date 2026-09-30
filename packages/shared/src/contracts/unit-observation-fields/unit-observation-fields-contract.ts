@@ -51,6 +51,6 @@ export const unitObservationFieldsContract = z.object({
   // `isoTimestampContract` for their own package's consumers — none of those is importable from
   // `shared` (shared is the base package; nothing above it may be depended on from here).
   at: z.iso.datetime().brand<'UnitObservationFieldsAt'>(),
-});
+}).brand<'UnitObservationFields'>();
 
 export type UnitObservationFields = z.infer<typeof unitObservationFieldsContract>;

@@ -18,6 +18,6 @@ export const activeQuestEntryContract = z.object({
   quest: questContract,
   guildId: guildContract.shape.id,
   guildSlug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).brand<'ActiveQuestEntryGuildSlug'>(),
-});
+}).brand<'ActiveQuestEntry'>();
 
 export type ActiveQuestEntry = z.infer<typeof activeQuestEntryContract>;

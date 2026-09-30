@@ -81,7 +81,7 @@ export const installTestbedCreateBroker = ({
     startPath: __dirname,
   });
 
-  const testbed: InstallTestbed = {
+  const testbed: InstallTestbed = installTestbedContract.parse({
     guildPath: installTestbedContract.shape.guildPath.parse(projectPath),
     dungeonmasterPath: installTestbedContract.shape.dungeonmasterPath.parse(dungeonmasterPath),
 
@@ -202,7 +202,7 @@ export const installTestbedCreateBroker = ({
         };
       }
     },
-  };
+  });
 
   return testbed;
 };

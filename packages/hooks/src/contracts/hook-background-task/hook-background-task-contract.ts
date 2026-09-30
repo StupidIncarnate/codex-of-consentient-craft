@@ -30,6 +30,6 @@ export const hookBackgroundTaskContract = z.object({
   status: z.string().min(1).brand<'HookBackgroundTaskStatus'>(),
   description: z.string().brand<'HookBackgroundTaskDescription'>().optional(),
   command: z.string().brand<'HookBackgroundTaskCommand'>().optional(),
-});
+}).brand<'HookBackgroundTask'>();
 
 export type HookBackgroundTask = z.infer<typeof hookBackgroundTaskContract>;

@@ -18,6 +18,6 @@ export const ownerIndexFieldContract = z.object({
   brandText: z.string().brand<'OwnerIndexFieldBrandText'>().optional(),
   refContractName: z.string().brand<'OwnerIndexFieldRefContractName'>().optional(),
   refKey: z.string().brand<'OwnerIndexFieldRefKey'>().optional(),
-});
+}).brand<'OwnerIndexField'>();
 
 export type OwnerIndexField = z.infer<typeof ownerIndexFieldContract>;

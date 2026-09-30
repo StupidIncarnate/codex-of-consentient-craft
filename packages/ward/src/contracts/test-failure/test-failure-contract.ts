@@ -13,6 +13,6 @@ export const testFailureContract = z.object({
   testName: z.string().brand<'TestName'>(),
   message: z.string().brand<'FailureMessage'>(),
   stackTrace: z.string().brand<'StackTrace'>().optional(),
-});
+}).brand<'TestFailure'>();
 
 export type TestFailure = z.infer<typeof testFailureContract>;

@@ -137,6 +137,6 @@ export const dungeonmasterConfigContract = z
         'dungeonmaster.port and devServer.port must differ — siege will kill the parent server otherwise',
       path: ['dungeonmaster', 'port'],
     },
-  );
+  ).brand<'DungeonmasterConfig'>();
 
 export type DungeonmasterConfig = z.infer<typeof dungeonmasterConfigContract>;

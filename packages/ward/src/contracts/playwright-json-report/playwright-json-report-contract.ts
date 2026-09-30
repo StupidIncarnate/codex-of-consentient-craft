@@ -56,6 +56,6 @@ export const playwrightJsonReportContract = z
   .object({
     suites: z.array(playwrightSuiteContract).optional(),
   })
-  .loose();
+  .loose().brand<'PlaywrightJsonReport'>();
 
 export type PlaywrightJsonReport = z.infer<typeof playwrightJsonReportContract>;

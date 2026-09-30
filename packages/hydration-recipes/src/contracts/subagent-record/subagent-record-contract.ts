@@ -26,6 +26,6 @@ export const subagentRecordContract = z.object({
   toolUseId: toolUseIdContract,
   filePath: absoluteFilePathContract,
   lineCount: z.number().int().positive().brand<'SubagentRecordLineCount'>(),
-});
+}).brand<'SubagentRecord'>();
 
 export type SubagentRecord = z.infer<typeof subagentRecordContract>;

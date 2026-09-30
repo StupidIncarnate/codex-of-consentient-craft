@@ -11,6 +11,6 @@ import { z } from '#gateway/npm/zod';
 export const healthResponseContract = z.object({
   status: z.string().min(1).brand<'HealthStatus'>(),
   timestamp: z.string().min(1).brand<'HealthTimestamp'>(),
-});
+}).brand<'HealthResponse'>();
 
 export type HealthResponse = z.infer<typeof healthResponseContract>;

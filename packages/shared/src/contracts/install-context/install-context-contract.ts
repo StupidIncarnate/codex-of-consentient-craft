@@ -20,6 +20,6 @@ import { relativeFilePathContract } from '../relative-file-path/relative-file-pa
 export const installContextContract = z.object({
   targetProjectRoot: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'InstallContextTargetProjectRoot'>(),
   dungeonmasterRoot: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'InstallContextDungeonmasterRoot'>(),
-});
+}).brand<'InstallContext'>();
 
 export type InstallContext = z.infer<typeof installContextContract>;

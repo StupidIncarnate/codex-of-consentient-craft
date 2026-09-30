@@ -64,6 +64,6 @@ export const registryEntryContract = z.object({
   prunedAtMs: z.number().int().nonnegative().brand<'RegistryEntryPrunedAtMs'>().nullable(),
   prunedByRule: z.string().brand<'RegistryEntryPrunedByRule'>().nullable(),
   branch: z.string().brand<'RegistryEntryBranch'>().nullish(),
-});
+}).brand<'RegistryEntry'>();
 
 export type RegistryEntry = z.infer<typeof registryEntryContract>;

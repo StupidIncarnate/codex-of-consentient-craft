@@ -5,6 +5,7 @@ import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-ite
 
 import { questWorkItemInsertBroker } from './quest-work-item-insert-broker';
 import { questWorkItemInsertBrokerProxy } from './quest-work-item-insert-broker.proxy';
+import { ReplacementEntryStub } from '../../../contracts/replacement-entry/replacement-entry.stub';
 
 describe('questWorkItemInsertBroker', () => {
   describe('insert new items', () => {
@@ -110,7 +111,7 @@ describe('questWorkItemInsertBroker', () => {
           questId: QuestIdStub({ value: 'test-quest' }),
           quest,
           newWorkItems: [newItem],
-          replacementMapping: [{ oldId: oldItemId, newId: newSiegeId }],
+          replacementMapping: [ReplacementEntryStub({ oldId: oldItemId, newId: newSiegeId })],
         }),
       ).resolves.toStrictEqual({ success: true });
     });

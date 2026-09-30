@@ -20,6 +20,6 @@ export const ownerIndexContract = z.object({
   standaloneBrands: z.array(ownerIndexStandaloneBrandContract),
   enums: z.array(ownerIndexEnumContract),
   packages: z.array(ownerIndexPackageContract),
-});
+}).brand<'OwnerIndex'>();
 
 export type OwnerIndex = z.infer<typeof ownerIndexContract>;

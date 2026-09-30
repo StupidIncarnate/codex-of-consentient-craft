@@ -33,7 +33,7 @@ import type { Collection } from '../hydration-collection/hydration-collection-co
 export const ingredientHandleContract = z.object({
   ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'IngredientHandleIngredient'>(),
   ref: rowRefContract,
-});
+}).brand<'IngredientHandle'>();
 
 export type IngredientHandleData = z.infer<typeof ingredientHandleContract>;
 

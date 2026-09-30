@@ -13,6 +13,6 @@ export const itemWithIdContract = z
     id: z.unknown(),
     _delete: z.boolean().optional(),
   })
-  .loose();
+  .loose().brand<'ItemWithId'>();
 
 export type ItemWithId = z.infer<typeof itemWithIdContract>;

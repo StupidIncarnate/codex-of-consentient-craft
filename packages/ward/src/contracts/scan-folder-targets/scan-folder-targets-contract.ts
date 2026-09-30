@@ -13,6 +13,6 @@ import { z } from '#gateway/npm/zod';
 export const scanFolderTargetsContract = z.object({
   inScope: z.boolean(),
   targets: z.array(z.string().min(1).brand<'ScanTarget'>()),
-});
+}).brand<'ScanFolderTargets'>();
 
 export type ScanFolderTargets = z.infer<typeof scanFolderTargetsContract>;

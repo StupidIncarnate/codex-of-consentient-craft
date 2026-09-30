@@ -36,6 +36,6 @@ export const tsconfigOptionsContract = z.object({
   noUncheckedIndexedAccess: z.boolean().optional(),
   declaration: z.boolean().optional(),
   declarationMap: z.boolean().optional(),
-});
+}).brand<'TsconfigOptions'>();
 
 export type TsconfigOptions = z.infer<typeof tsconfigOptionsContract>;

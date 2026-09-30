@@ -29,6 +29,6 @@ export const workItemAttachArgsContract = z.object({
   spawnerType: spawnerTypeContract,
   createdAt: z.iso.datetime().brand<'WorkItemAttachArgsCreatedAt'>(),
   operationId: z.union([operationItemContract.shape.id, savedRefContract]),
-});
+}).brand<'WorkItemAttachArgs'>();
 
 export type WorkItemAttachArgs = z.infer<typeof workItemAttachArgsContract>;

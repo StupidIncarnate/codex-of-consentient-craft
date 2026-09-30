@@ -34,6 +34,6 @@ export const widgetNodeContract = z.object({
   get children(): z.ZodArray<z.core.$ZodType<WidgetNodeSelf>> {
     return z.array(widgetNodeContract);
   },
-});
+}).brand<'WidgetNode'>();
 
 export type WidgetNode = z.infer<typeof widgetNodeContract>;

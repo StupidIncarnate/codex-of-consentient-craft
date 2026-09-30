@@ -12,6 +12,6 @@ export const mockSpawnResultContract = z.object({
   code: z.number().int().brand<'MockSpawnResultCode'>(),
   stdout: z.string().brand<'StdoutOutput'>(),
   stderr: z.string().brand<'StderrOutput'>(),
-});
+}).brand<'MockSpawnResult'>();
 
 export type MockSpawnResult = z.infer<typeof mockSpawnResultContract>;

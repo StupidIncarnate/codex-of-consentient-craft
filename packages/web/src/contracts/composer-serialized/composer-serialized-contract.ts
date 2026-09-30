@@ -22,6 +22,6 @@ export const composerSerializedContract = z.object({
   // In the same left-to-right order as the placeholders, so index i of this array is the
   // attachment the placeholder N = i + 1 stands for.
   attachmentIds: z.array(composerAttachmentContract.shape.attachmentId),
-});
+}).brand<'ComposerSerialized'>();
 
 export type ComposerSerialized = z.infer<typeof composerSerializedContract>;

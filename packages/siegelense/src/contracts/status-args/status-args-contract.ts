@@ -23,6 +23,6 @@ export const statusArgsContract = z
     since: z.enum(['1h', '6h', '1d', 'beginning']).nullable().optional(),
     isJson: z.boolean(),
   })
-  .strict();
+  .strict().brand<'StatusArgs'>();
 
 export type StatusArgs = z.infer<typeof statusArgsContract>;

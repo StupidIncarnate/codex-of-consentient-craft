@@ -13,6 +13,6 @@ export const rateLimitsSnapshotContract = z.object({
   fiveHour: rateLimitWindowContract.nullable(),
   sevenDay: rateLimitWindowContract.nullable(),
   updatedAt: z.iso.datetime().brand<'RateLimitsSnapshotUpdatedAt'>(),
-});
+}).brand<'RateLimitsSnapshot'>();
 
 export type RateLimitsSnapshot = z.infer<typeof rateLimitsSnapshotContract>;

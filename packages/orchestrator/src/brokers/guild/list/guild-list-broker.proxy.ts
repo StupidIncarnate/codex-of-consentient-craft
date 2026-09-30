@@ -15,6 +15,7 @@ import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config
 import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
 import { pathIsAccessibleBrokerProxy } from '../../path/is-accessible/path-is-accessible-broker.proxy';
 import { guildListBroker } from './guild-list-broker';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
 registerModuleMock({ module: './guild-list-broker' });
 
@@ -102,7 +103,7 @@ export const guildListBrokerProxy = (): {
     },
 
     setupEmptyConfig: ({ homeDir, homePath }: { homeDir: string; homePath: string }): void => {
-      configReadProxy.setupConfig({ config: { guilds: [] }, homeDir, homePath });
+      configReadProxy.setupConfig({ config: GuildConfigStub({ guilds: [] }), homeDir, homePath });
       homeFindProxy.setupHomePath({ homeDir, homePath });
     },
 

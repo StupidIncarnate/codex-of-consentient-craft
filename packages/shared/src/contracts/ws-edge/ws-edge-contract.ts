@@ -29,6 +29,6 @@ export const wsEdgeContract = z.object({
   consumerFiles: z.array(absoluteFilePathContract),
   wsGatewayFile: absoluteFilePathContract.nullable(),
   paired: z.boolean(),
-});
+}).brand<'WsEdge'>();
 
 export type WsEdge = z.infer<typeof wsEdgeContract>;

@@ -48,6 +48,6 @@ export const specProfileContract = z.object({
       }),
     )
     .readonly(),
-});
+}).brand<'SpecProfile'>();
 
 export type SpecProfile = z.infer<typeof specProfileContract>;

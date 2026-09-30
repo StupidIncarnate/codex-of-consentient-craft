@@ -16,6 +16,6 @@ export const cleanupArgsContract = z
   .object({
     isJson: z.boolean(),
   })
-  .strict();
+  .strict().brand<'CleanupArgs'>();
 
 export type CleanupArgs = z.infer<typeof cleanupArgsContract>;

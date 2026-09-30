@@ -68,6 +68,6 @@ export const workPlanPayloadFlowriderContract = z.object({
     .array(z.string().min(1).brand<'PieceDoNotTouch'>())
     .default([])
     .describe('What belongs to another piece or another mechanism entirely.'),
-});
+}).brand<'WorkPlanPayloadFlowrider'>();
 
 export type WorkPlanPayloadFlowrider = z.infer<typeof workPlanPayloadFlowriderContract>;

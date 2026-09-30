@@ -40,6 +40,6 @@ export const blightChecklistContract = z.object({
     .describe(
       'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer still has to disposition on this pass.',
     ),
-});
+}).brand<'BlightChecklist'>();
 
 export type BlightChecklist = z.infer<typeof blightChecklistContract>;

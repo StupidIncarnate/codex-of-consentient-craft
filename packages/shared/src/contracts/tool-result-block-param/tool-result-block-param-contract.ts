@@ -32,6 +32,6 @@ export const toolResultBlockParamContract = z.object({
     ])
     .optional(),
   is_error: z.boolean().optional(),
-});
+}).brand<'ToolResultBlockParam'>();
 
 export type ToolResultBlockParam = z.infer<typeof toolResultBlockParamContract>;

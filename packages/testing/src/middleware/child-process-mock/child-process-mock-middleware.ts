@@ -24,6 +24,7 @@ import {
 } from '#gateway/npm/jest__globals';
 import type { MockProcessBehavior } from '../../contracts/mock-process-behavior/mock-process-behavior-contract';
 import type { MockSpawnResult } from '../../contracts/mock-spawn-result/mock-spawn-result-contract';
+import { mockProcessBehaviorContract } from '../../contracts/mock-process-behavior/mock-process-behavior-contract';
 
 type MockChildProcessInstance = EventEmitter & {
   stdout: EventEmitter;
@@ -128,7 +129,7 @@ export const childProcessMockMiddleware = (): {
     }: {
       stdout?: MockSpawnResult['stdout'];
       code?: MockSpawnResult['code'];
-    } = {}): MockProcessBehavior => ({
+    } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
       result: {
         code: code ?? (0 as MockSpawnResult['code']),
         stdout: stdout ?? ('' as MockSpawnResult['stdout']),
@@ -142,7 +143,7 @@ export const childProcessMockMiddleware = (): {
     }: {
       stderr?: MockSpawnResult['stderr'];
       code?: MockSpawnResult['code'];
-    } = {}): MockProcessBehavior => ({
+    } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
       result: {
         code: code ?? (1 as MockSpawnResult['code']),
         stdout: '' as MockSpawnResult['stdout'],
@@ -150,12 +151,12 @@ export const childProcessMockMiddleware = (): {
       },
     }),
 
-    crash: ({ error }: { error?: Error } = {}): MockProcessBehavior => ({
+    crash: ({ error }: { error?: Error } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
       shouldThrow: true,
       throwError: error ?? new Error('spawn ENOENT'),
     }),
 
-    eslintCrash: (): MockProcessBehavior => ({
+    eslintCrash: (): MockProcessBehavior => mockProcessBehaviorContract.parse({
       result: {
         code: (0 as MockSpawnResult['code']) || (0 as MockSpawnResult['code']),
         stdout: '' as MockSpawnResult['stdout'],
@@ -163,7 +164,7 @@ export const childProcessMockMiddleware = (): {
       },
     }),
 
-    timeout: ({ delay }: { delay?: MockProcessBehavior['delay'] } = {}): MockProcessBehavior => ({
+    timeout: ({ delay }: { delay?: MockProcessBehavior['delay'] } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
       delay: delay ?? ((0 as MockProcessBehavior['delay']) || (0 as MockProcessBehavior['delay'])),
       result: {
         code: 1 as MockSpawnResult['code'],

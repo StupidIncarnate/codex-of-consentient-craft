@@ -104,7 +104,7 @@ export const integrationEnvironmentCreateBroker = ({
     );
   }
 
-  const testProject: TestGuild = {
+  const testProject: TestGuild = testGuildContract.parse({
     guildPath: testGuildContract.shape.guildPath.parse(projectPath),
     guildName: testGuildContract.shape.guildName.parse(projectName),
     rootDir: testGuildContract.shape.rootDir.parse(projectPath),
@@ -209,7 +209,7 @@ export const integrationEnvironmentCreateBroker = ({
         rmSync(projectPath, { recursive: true, force: true });
       }
     },
-  };
+  });
 
   // Track for automatic cleanup
   integrationEnvironmentTrackingBroker.add({ guild: testProject });

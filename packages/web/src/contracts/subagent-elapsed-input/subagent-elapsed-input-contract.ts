@@ -30,6 +30,6 @@ export const subagentElapsedInputContract = z.object({
   // value that slid between them would change which figure wins with nothing to catch it.
   completionDurationMs: completionDurationMsContract.optional(),
   clockReading: z.iso.datetime().brand<'SubagentElapsedInputClockReading'>().optional(),
-});
+}).brand<'SubagentElapsedInput'>();
 
 export type SubagentElapsedInput = z.infer<typeof subagentElapsedInputContract>;

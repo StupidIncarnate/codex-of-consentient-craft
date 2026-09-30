@@ -16,6 +16,6 @@ export const contractUsesBindingContract = z.object({
   localName: z.string().brand<'ContractUsesBindingLocalName'>(),
   targetFile: absoluteFilePathContract,
   isTypeOnly: z.boolean(),
-});
+}).brand<'ContractUsesBinding'>();
 
 export type ContractUsesBinding = z.infer<typeof contractUsesBindingContract>;

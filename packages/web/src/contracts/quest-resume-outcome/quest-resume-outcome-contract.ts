@@ -23,6 +23,6 @@ export const questResumeOutcomeContract = z.object({
     started: z.boolean(),
     reason: z.string().brand<'QuestResumeOutcomeDispatchReason'>().optional(),
   }),
-});
+}).brand<'QuestResumeOutcome'>();
 
 export type QuestResumeOutcome = z.infer<typeof questResumeOutcomeContract>;

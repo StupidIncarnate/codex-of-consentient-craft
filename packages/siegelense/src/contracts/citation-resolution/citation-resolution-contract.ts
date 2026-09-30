@@ -25,6 +25,6 @@ export const citationResolutionContract = z
     gaps: z.array(citationGapContract).readonly(),
     blocked: z.string().brand<'CitationResolutionBlocked'>().nullable(),
   })
-  .strict();
+  .strict().brand<'CitationResolution'>();
 
 export type CitationResolution = z.infer<typeof citationResolutionContract>;

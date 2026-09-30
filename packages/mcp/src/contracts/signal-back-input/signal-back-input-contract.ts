@@ -29,6 +29,6 @@ export const signalBackInputContract = z
       )
       .optional(),
   })
-  .strict();
+  .strict().brand<'SignalBackInput'>();
 
 export type SignalBackInput = z.infer<typeof signalBackInputContract>;

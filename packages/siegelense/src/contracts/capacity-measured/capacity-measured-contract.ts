@@ -29,6 +29,6 @@ export const capacityMeasuredContract = z
     siegeInstances: z.number().int().nonnegative().brand<'CapacityMeasuredSiegeInstances'>(),
     diskFreeMB: z.number().int().nonnegative().brand<'CapacityMeasuredDiskFreeMB'>().nullable(),
   })
-  .strict();
+  .strict().brand<'CapacityMeasured'>();
 
 export type CapacityMeasured = z.infer<typeof capacityMeasuredContract>;

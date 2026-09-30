@@ -14,6 +14,6 @@ import { skippedQuestFileContract } from '../skipped-quest-file/skipped-quest-fi
 export const questListResultContract = z.object({
   quests: questListItemContract.array(),
   skipped: skippedQuestFileContract.array().default([]),
-});
+}).brand<'QuestListResult'>();
 
 export type QuestListResult = z.infer<typeof questListResultContract>;

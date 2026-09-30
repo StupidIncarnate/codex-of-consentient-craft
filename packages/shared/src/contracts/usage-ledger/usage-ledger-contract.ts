@@ -39,6 +39,6 @@ export const usageLedgerContract = z.object({
     sevenDay: z.number().min(0).brand<'UsageLedgerCeilingsSevenDay'>().nullable(),
   }),
   updatedAt: z.iso.datetime().brand<'UsageLedgerUpdatedAt'>(),
-});
+}).brand<'UsageLedger'>();
 
 export type UsageLedger = z.infer<typeof usageLedgerContract>;

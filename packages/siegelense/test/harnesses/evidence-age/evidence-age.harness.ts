@@ -29,6 +29,7 @@ import { registryUpdateBroker } from '../../../src/brokers/registry/update/regis
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
+import { RegistryStub } from '../../../src/contracts/registry/registry.stub';
 
 const DAY_SECONDS = 86_400;
 const RUN_ID = 'run_1';
@@ -98,7 +99,7 @@ export const evidenceAgeHarness = (): {
     const portBase = PORT_BASE + mintedCount * PORT_STRIDE;
 
     await registryUpdateBroker({
-      mutate: (current) => ({
+      mutate: (current) => RegistryStub({
         instances: [
           ...current.instances,
           RegistryEntryStub({

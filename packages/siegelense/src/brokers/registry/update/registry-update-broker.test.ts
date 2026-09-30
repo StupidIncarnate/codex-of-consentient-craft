@@ -15,7 +15,7 @@ describe('registryUpdateBroker', () => {
       proxy.setupCurrentRegistry({ json: JSON.stringify(current) });
 
       const result = await registryUpdateBroker({
-        mutate: (registry) => ({ instances: [...registry.instances, second] }),
+        mutate: (registry) => RegistryStub({ instances: [...registry.instances, second] }),
       });
 
       const expected = RegistryStub({ instances: [first, second] });

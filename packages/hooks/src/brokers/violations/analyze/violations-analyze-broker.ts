@@ -52,8 +52,8 @@ export const violationsAnalyzeBroker = ({
     });
   }
 
-  return {
+  return violationComparisonContract.parse({
     hasNewViolations: false,
     newViolations: newlyIntroduced,
-  };
+  });
 };

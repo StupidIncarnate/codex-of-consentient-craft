@@ -28,6 +28,6 @@ export const chatStreamEndedPayloadContract = z.object({
   sessionId: sessionContract.shape.id.optional(),
   questId: questContract.shape.id.optional(),
   retained: z.boolean().optional(),
-});
+}).brand<'ChatStreamEndedPayload'>();
 
 export type ChatStreamEndedPayload = z.infer<typeof chatStreamEndedPayloadContract>;

@@ -15,6 +15,7 @@ import { signalBackInputContract } from '../../contracts/signal-back-input/signa
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { InteractionHandleResponder } from '../../responders/interaction/handle/interaction-handle-responder';
+import { toolRegistrationContract } from '../../contracts/tool-registration/tool-registration-contract';
 
 // `reused: 'inline'` is zod v4's native replacement for the deprecated `zod-to-json-schema`
 // package's `$refStrategy: 'none'` (see quest-flow.ts's own comment on this same constant for why
@@ -25,7 +26,7 @@ const askUserQuestionSchema = toJSONSchema(askUserQuestionContract, jsonSchemaOp
 const getAgentPromptSchema = toJSONSchema(getAgentPromptInputContract, jsonSchemaOptions);
 
 export const InteractionFlow = (): ToolRegistration[] => [
-  {
+  toolRegistrationContract.parse({
     name: 'signal-back' as never,
     description:
       'Signals the CLI with step completion status, progress, or blocking conditions' as never,
@@ -36,8 +37,8 @@ export const InteractionFlow = (): ToolRegistration[] => [
         args,
         ...(meta !== undefined && { meta }),
       }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'ask-user-question' as never,
     description:
       "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The questions are surfaced to the user's browser and their answers arrive as the next user message in the session. Use when running headless (no interactive terminal)." as never,
@@ -48,8 +49,8 @@ export const InteractionFlow = (): ToolRegistration[] => [
         args,
         ...(meta !== undefined && { meta }),
       }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'get-agent-prompt' as never,
     description:
       'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.' as never,
@@ -60,5 +61,5 @@ export const InteractionFlow = (): ToolRegistration[] => [
         args,
         ...(meta !== undefined && { meta }),
       }),
-  },
+  }),
 ];

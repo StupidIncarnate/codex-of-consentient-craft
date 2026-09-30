@@ -46,6 +46,7 @@ import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 
 export const instanceRunBroker = async ({
   instanceId,
@@ -92,7 +93,7 @@ export const instanceRunBroker = async ({
 
   if (result.stoppedAt !== null && result.stoppedAt.verb === 'seed') {
     await registryUpdateBroker({
-      mutate: (current) => ({
+      mutate: (current) => registryContract.parse({
         instances: current.instances.map((candidate) =>
           candidate.id === instanceId
             ? registryEntryContract.parse({ ...candidate, state: 'unusable' })

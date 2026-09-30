@@ -25,6 +25,6 @@ export const frameworkPresetsContract = z.object({
   errors: packageNameArrayContract,
   middleware: packageNameArrayContract,
   startup: packageNameArrayContract,
-});
+}).brand<'FrameworkPresets'>();
 
 export type FrameworkPreset = z.infer<typeof frameworkPresetsContract>;

@@ -38,6 +38,6 @@ export const questSummaryFlowContract = z.object({
     .describe(
       'One row per verification track whose denominator includes this flow. A track absent from the list does not measure this flow at all, which is a different statement from measuring it and finding nothing.',
     ),
-});
+}).brand<'QuestSummaryFlow'>();
 
 export type QuestSummaryFlow = z.infer<typeof questSummaryFlowContract>;

@@ -1,5 +1,6 @@
 import { recipeCatalogEntryContract } from './recipe-catalog-entry-contract';
 import { RecipeCatalogEntryStub } from './recipe-catalog-entry.stub';
+import { DmTargetStub } from '../dm-target/dm-target.stub';
 
 type RecipeCatalogEntry = ReturnType<typeof RecipeCatalogEntryStub>;
 
@@ -37,10 +38,10 @@ describe('recipeCatalogEntryContract', () => {
       });
 
       const result = await stub.execute({
-        target: {
+        target: DmTargetStub({
           home: '/tmp/dm-target' as never,
           claudeHome: '/tmp/dm-target' as never,
-        },
+        }),
       });
 
       expect(result).toStrictEqual({});

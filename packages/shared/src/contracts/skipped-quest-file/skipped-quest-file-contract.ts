@@ -19,6 +19,6 @@ export const skippedQuestFileContract = z.object({
   questFolder: z.string().min(1).brand<'QuestFolder'>(),
   questFilePath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'SkippedQuestFileQuestFilePath'>(),
   reason: z.string().min(1).brand<'SkipReason'>(),
-});
+}).brand<'SkippedQuestFile'>();
 
 export type SkippedQuestFile = z.infer<typeof skippedQuestFileContract>;

@@ -37,6 +37,6 @@ export const boxReadingContract = z
     visible: z.boolean(),
     inViewport: z.boolean(),
   })
-  .strict();
+  .strict().brand<'BoxReading'>();
 
 export type BoxReading = z.infer<typeof boxReadingContract>;

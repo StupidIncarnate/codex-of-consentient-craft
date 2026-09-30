@@ -25,6 +25,6 @@ export const resultWhereContract = z
     level: logLevelContract.nullable(),
     steps: z.string().regex(/^\d+-\d+$/u).brand<'ResultWhereSteps'>().nullable(),
   })
-  .strict();
+  .strict().brand<'ResultWhere'>();
 
 export type ResultWhere = z.infer<typeof resultWhereContract>;

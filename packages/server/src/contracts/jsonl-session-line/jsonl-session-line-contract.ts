@@ -21,6 +21,6 @@ export const jsonlSessionLineContract = z
       .loose()
       .optional(),
   })
-  .loose();
+  .loose().brand<'JsonlSessionLine'>();
 
 export type JsonlSessionLine = z.infer<typeof jsonlSessionLineContract>;

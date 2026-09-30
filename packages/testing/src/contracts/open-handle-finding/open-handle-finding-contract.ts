@@ -19,6 +19,6 @@ export const openHandleFindingContract = z.object({
   kind: z.enum(openHandleStatics.timers.arm).brand<'OpenHandleKind'>(),
   testPath: z.string().min(1).brand<'OpenHandleTestPath'>(),
   stack: z.string().brand<'OpenHandleStack'>(),
-});
+}).brand<'OpenHandleFinding'>();
 
 export type OpenHandleFinding = z.infer<typeof openHandleFindingContract>;

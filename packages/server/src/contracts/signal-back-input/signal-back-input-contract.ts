@@ -26,6 +26,6 @@ export const signalBackInputContract = z
       .describe('Why this role cannot proceed without the user')
       .optional(),
   })
-  .strict();
+  .strict().brand<'SignalBackInput'>();
 
 export type SignalBackInput = z.infer<typeof signalBackInputContract>;

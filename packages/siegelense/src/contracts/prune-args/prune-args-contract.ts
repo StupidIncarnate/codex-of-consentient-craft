@@ -22,6 +22,6 @@ export const pruneArgsContract = z
     query: pruneQueryContract,
     isJson: z.boolean(),
   })
-  .strict();
+  .strict().brand<'PruneArgs'>();
 
 export type PruneArgs = z.infer<typeof pruneArgsContract>;

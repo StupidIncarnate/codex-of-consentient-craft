@@ -15,6 +15,6 @@ export const videoResultContract = z
     status: z.string().brand<'VideoStatus'>(),
     path: z.string().brand<'VideoPath'>().nullable(),
   })
-  .strict();
+  .strict().brand<'VideoResult'>();
 
 export type VideoResult = z.infer<typeof videoResultContract>;

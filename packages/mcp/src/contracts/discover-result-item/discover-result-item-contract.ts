@@ -18,6 +18,6 @@ export const discoverResultItemContract = z.object({
   signature: z.string().brand<'FunctionSignature'>().optional(),
   relatedFiles: z.array(z.string().brand<'DiscoverResultItemRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
-});
+}).brand<'DiscoverResultItem'>();
 
 export type DiscoverResultItem = z.infer<typeof discoverResultItemContract>;

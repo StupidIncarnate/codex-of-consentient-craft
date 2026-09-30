@@ -175,7 +175,7 @@ export const questWorkViewContract = z.object({
   instance: questWorkInstanceContract.nullable(),
   baseline: questWorkBaseline.nullable(),
   truncated: z.array(questWorkTruncation).default([]),
-});
+}).brand<'QuestWorkView'>();
 
 export type QuestWorkView = z.infer<typeof questWorkViewContract>;
 export type QuestWorkScope = z.infer<typeof questWorkScope>;

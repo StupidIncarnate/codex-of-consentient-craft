@@ -33,6 +33,6 @@ export const workPlanPayloadSiegemasterContract = z.object({
   offMapFamily: qaOffMapFamilyContract
     .nullable()
     .describe('The one probe family this round attacks, or null when the round attacks none.'),
-});
+}).brand<'WorkPlanPayloadSiegemaster'>();
 
 export type WorkPlanPayloadSiegemaster = z.infer<typeof workPlanPayloadSiegemasterContract>;

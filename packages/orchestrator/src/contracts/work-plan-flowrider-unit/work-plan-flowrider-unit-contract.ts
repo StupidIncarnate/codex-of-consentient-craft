@@ -54,6 +54,6 @@ export const workPlanFlowriderUnitContract = z.object({
     .min(1)
     .brand<'PieceUnitFailsIf'>()
     .describe('The wrong value that turns that assertion red.'),
-});
+}).brand<'WorkPlanFlowriderUnit'>();
 
 export type WorkPlanFlowriderUnit = z.infer<typeof workPlanFlowriderUnitContract>;

@@ -67,6 +67,6 @@ export const operationItemContract = z.object({
         'unit whose node tags any of them, glue included. An item declaring none is scoped to ' +
         'the whole quest and is never narrowed by this field.',
     ),
-});
+}).brand<'OperationItem'>();
 
 export type OperationItem = z.infer<typeof operationItemContract>;

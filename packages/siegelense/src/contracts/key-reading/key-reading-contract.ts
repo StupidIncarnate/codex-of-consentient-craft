@@ -18,6 +18,6 @@ export const keyReadingContract = z
     press: z.string().brand<'KeyReadingPress'>(),
     focused: focusedElementContract.nullable(),
   })
-  .strict();
+  .strict().brand<'KeyReading'>();
 
 export type KeyReading = z.infer<typeof keyReadingContract>;

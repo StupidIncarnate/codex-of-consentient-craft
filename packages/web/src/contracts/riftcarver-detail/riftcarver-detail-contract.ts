@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 
 export const riftcarverDetailContract = z.object({
   log: z.string().brand<'RiftcarverLog'>(),
-});
+}).brand<'RiftcarverDetail'>();
 
 export type RiftcarverDetail = z.infer<typeof riftcarverDetailContract>;

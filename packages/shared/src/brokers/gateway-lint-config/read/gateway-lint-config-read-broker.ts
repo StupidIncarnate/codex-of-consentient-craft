@@ -19,8 +19,9 @@ import { existsSync, readFileSync } from '#gateway/node/fs';
 import { gatewayLintConfigFileContract } from '../../../contracts/gateway-lint-config-file/gateway-lint-config-file-contract';
 import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
+import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 
-const EMPTY_GATEWAY_LINT_CONFIG: GatewayLintConfig = {};
+const EMPTY_GATEWAY_LINT_CONFIG: GatewayLintConfig = gatewayLintConfigContract.parse({});
 
 export const gatewayLintConfigReadBroker = ({
   repoRoot,

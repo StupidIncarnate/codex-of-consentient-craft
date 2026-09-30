@@ -26,6 +26,6 @@ export type AskUserQuestionItem = z.infer<typeof askUserQuestionItemContract>;
 
 export const askUserQuestionContract = z.object({
   questions: z.array(askUserQuestionItemContract).min(1),
-});
+}).brand<'AskUserQuestion'>();
 
 export type AskUserQuestion = z.infer<typeof askUserQuestionContract>;

@@ -17,6 +17,6 @@ import { z } from '#gateway/npm/zod';
 
 export const sessionWithNestedChainInputsContract = z.object({
   guildPath: z.string().min(1).brand<'SessionWithNestedChainInputsGuildPath'>(),
-});
+}).brand<'SessionWithNestedChainInputs'>();
 
 export type SessionWithNestedChainInputs = z.infer<typeof sessionWithNestedChainInputsContract>;

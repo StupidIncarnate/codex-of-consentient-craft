@@ -36,6 +36,6 @@ export const flowContract = z.object({
   // change creates an entry here; story 08 validates it, story 18 serves it, story 27 renders
   // it.
   recipes: z.array(flowRecipeContract).default([]),
-});
+}).brand<'Flow'>();
 
 export type Flow = z.infer<typeof flowContract>;

@@ -22,6 +22,6 @@ export const agentQuestPayloadContract = z.object({
   success: z.boolean(),
   quest: questContract.omit({ comments: true }).optional(),
   error: z.string().brand<'AgentQuestPayloadError'>().optional(),
-});
+}).brand<'AgentQuestPayload'>();
 
 export type AgentQuestPayload = z.infer<typeof agentQuestPayloadContract>;

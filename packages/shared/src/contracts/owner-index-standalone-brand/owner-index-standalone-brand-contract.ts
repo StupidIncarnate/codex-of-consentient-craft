@@ -17,6 +17,6 @@ export const ownerIndexStandaloneBrandContract = z.object({
   brandText: z.string().brand<'OwnerIndexStandaloneBrandBrandText'>(),
   filePath: absoluteFilePathContract,
   packageName: z.string().min(1).brand<'OwnerIndexStandaloneBrandPackageName'>(),
-});
+}).brand<'OwnerIndexStandaloneBrand'>();
 
 export type OwnerIndexStandaloneBrand = z.infer<typeof ownerIndexStandaloneBrandContract>;

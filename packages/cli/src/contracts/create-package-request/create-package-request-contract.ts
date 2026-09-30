@@ -24,6 +24,6 @@ export const createPackageRequestContract = z.object({
   packageType: packageTypeContract,
   description: z.string().brand<'CreatePackageRequestDescription'>(),
   packagesDir: z.string().brand<'CreatePackageRequestPackagesDir'>(),
-});
+}).brand<'CreatePackageRequest'>();
 
 export type CreatePackageRequest = z.infer<typeof createPackageRequestContract>;

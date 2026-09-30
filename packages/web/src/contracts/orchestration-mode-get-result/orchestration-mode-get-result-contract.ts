@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 export const orchestrationModeGetResultContract = z.object({
   mode: orchestrationModeContract,
-});
+}).brand<'OrchestrationModeGetResult'>();
 
 export type OrchestrationModeGetResult = z.infer<typeof orchestrationModeGetResultContract>;

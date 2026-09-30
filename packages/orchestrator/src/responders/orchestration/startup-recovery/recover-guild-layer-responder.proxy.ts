@@ -36,6 +36,7 @@ import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 
 // questModifyBroker's own real body (left running for real below, so the reset transform +
 // persist are actually proven) calls questFindQuestPathBroker, questLoadBroker, and
@@ -272,11 +273,11 @@ export const RecoverGuildLayerResponderProxy = (): {
 
       // Pre-register a process for the specified quest
       orchestrationProcessesState.register({
-        orchestrationProcess: {
+        orchestrationProcess: OrchestrationProcessStub({
           processId: 'proc-existing-process' as never,
           questId: existingProcessQuestId,
           kill: jest.fn(),
-        },
+        }),
       });
     },
 

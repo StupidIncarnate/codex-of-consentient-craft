@@ -12,6 +12,6 @@ export const catchAllSiteContract = z.object({
   line: z.number().int().positive().brand<'SourceLine'>(),
   kind: z.enum(['empty-address', 'accept-all-predicate', 'read-all']),
   snippet: z.string().brand<'CodeSnippet'>(),
-});
+}).brand<'CatchAllSite'>();
 
 export type CatchAllSite = z.infer<typeof catchAllSiteContract>;

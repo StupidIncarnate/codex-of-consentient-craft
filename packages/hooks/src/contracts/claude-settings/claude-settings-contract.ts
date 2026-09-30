@@ -108,7 +108,7 @@ export const claudeSettingsContract = z
     subagentPromptCacheTtl: promptCacheTtlContract.optional(),
     promptSuggestionEnabled: z.boolean().optional(),
   })
-  .loose();
+  .loose().brand<'ClaudeSettings'>();
 
 export type ClaudeSettings = z.infer<typeof claudeSettingsContract>;
 export type HooksConfig = z.infer<typeof hooksConfigContract>;

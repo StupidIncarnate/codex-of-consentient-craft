@@ -10,6 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 export const errorBodyContract = z.object({
   error: z.string().min(1).brand<'ErrorBodyError'>(),
-});
+}).brand<'ErrorBody'>();
 
 export type ErrorBody = z.infer<typeof errorBodyContract>;

@@ -42,6 +42,6 @@ export const resultsAnswerContract = z.object({
   truncated: z.boolean(),
   rows: z.array(z.string().brand<'ResultsAnswerRows'>()).readonly(),
   storedReturn: runResultContract.nullable(),
-});
+}).brand<'ResultsAnswer'>();
 
 export type ResultsAnswer = z.infer<typeof resultsAnswerContract>;

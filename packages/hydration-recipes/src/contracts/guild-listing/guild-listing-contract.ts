@@ -21,6 +21,6 @@ export const guildListingContract = z
   .object({
     guilds: z.array(guildContract),
   })
-  .strict();
+  .strict().brand<'GuildListing'>();
 
 export type GuildListing = z.infer<typeof guildListingContract>;

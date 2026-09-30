@@ -13,6 +13,6 @@ import { rateLimitsWatchTickOutcomeContract } from '../rate-limits-watch-tick-ou
 export const rateLimitsWatchTickResultContract = z.object({
   outcome: rateLimitsWatchTickOutcomeContract,
   lastJson: z.string().brand<'RateLimitsWatchTickResultLastJson'>().nullable(),
-});
+}).brand<'RateLimitsWatchTickResult'>();
 
 export type RateLimitsWatchTickResult = z.infer<typeof rateLimitsWatchTickResultContract>;

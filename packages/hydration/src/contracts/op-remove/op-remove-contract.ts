@@ -14,6 +14,6 @@ import { rowRefContract } from '../row-ref/row-ref-contract';
 export const opRemoveContract = z.object({
   op: z.literal('remove'),
   ref: rowRefContract,
-});
+}).brand<'OpRemove'>();
 
 export type OpRemove = z.infer<typeof opRemoveContract>;

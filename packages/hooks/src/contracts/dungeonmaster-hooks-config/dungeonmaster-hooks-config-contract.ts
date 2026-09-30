@@ -10,6 +10,6 @@ import { preEditLintConfigContract } from '../pre-edit-lint-config/pre-edit-lint
 
 export const dungeonmasterHooksConfigContract = z.object({
   preEditLint: preEditLintConfigContract.optional(),
-});
+}).brand<'DungeonmasterHooksConfig'>();
 
 export type DungeonmasterHooksConfig = z.infer<typeof dungeonmasterHooksConfigContract>;

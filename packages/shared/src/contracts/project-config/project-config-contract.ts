@@ -16,6 +16,6 @@ export const projectConfigContract = z.object({
       port: networkPortContract.optional(),
     })
     .optional(),
-});
+}).brand<'ProjectConfig'>();
 
 export type ProjectConfig = z.infer<typeof projectConfigContract>;

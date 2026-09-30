@@ -28,6 +28,6 @@ export const machineReadingContract = z.object({
   loadAvg: loadAverageContract,
   oomKillsSinceBoot: z.number().int().nonnegative().brand<'MachineReadingOomKillsSinceBoot'>().nullable(),
   lastOomAt: z.string().brand<'MachineReadingLastOomAt'>().nullable(),
-});
+}).brand<'MachineReading'>();
 
 export type MachineReading = z.infer<typeof machineReadingContract>;

@@ -27,6 +27,6 @@ export const assistantStreamLineContract = z.object({
     stop_reason: z.string().brand<'StopReason'>().nullish(),
     model: z.string().brand<'ModelName'>().nullish(),
   }),
-});
+}).brand<'AssistantStreamLine'>();
 
 export type AssistantStreamLine = z.infer<typeof assistantStreamLineContract>;

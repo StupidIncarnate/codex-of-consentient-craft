@@ -16,6 +16,6 @@ import { z } from '#gateway/npm/zod';
 export const questFollowupResponseContract = z.object({
   chatProcessId: z.string().min(1).brand<'QuestFollowupResponseChatProcessId'>().optional(),
   error: z.string().min(1).brand<'QuestFollowupErrorMessage'>().optional(),
-});
+}).brand<'QuestFollowupResponse'>();
 
 export type QuestFollowupResponse = z.infer<typeof questFollowupResponseContract>;

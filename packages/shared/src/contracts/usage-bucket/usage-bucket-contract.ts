@@ -18,6 +18,6 @@ export const usageBucketContract = z.object({
   cacheCreation: tokenCountContract,
   cacheRead: tokenCountContract,
   output: tokenCountContract,
-});
+}).brand<'UsageBucket'>();
 
 export type UsageBucket = z.infer<typeof usageBucketContract>;

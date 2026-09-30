@@ -11,6 +11,6 @@ import { smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
 
 export const toolingSmoketestRunBodyContract = z.object({
   suite: smoketestSuiteContract,
-});
+}).brand<'ToolingSmoketestRunBody'>();
 
 export type ToolingSmoketestRunBody = z.infer<typeof toolingSmoketestRunBodyContract>;

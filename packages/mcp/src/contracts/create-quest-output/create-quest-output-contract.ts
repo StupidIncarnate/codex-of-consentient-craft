@@ -14,6 +14,6 @@ export const createQuestOutputContract = z
     questId: questContract.shape.id.describe('The id of the newly-created quest'),
     guildSlug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).brand<'CreateQuestOutputGuildSlug'>().describe('URL-safe slug of the guild the quest was created in'),
   })
-  .strict();
+  .strict().brand<'CreateQuestOutput'>();
 
 export type CreateQuestOutput = z.infer<typeof createQuestOutputContract>;

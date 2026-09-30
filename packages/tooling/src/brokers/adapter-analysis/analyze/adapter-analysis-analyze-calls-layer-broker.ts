@@ -17,6 +17,7 @@ import type { AdapterLogicReason } from '../../../contracts/adapter-logic-reason
 import type { AdapterAnalysis } from '../../../contracts/adapter-analysis/adapter-analysis-contract';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
 import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
+import { adapterAnalysisContract } from '../../../contracts/adapter-analysis/adapter-analysis-contract';
 
 export const adapterAnalysisAnalyzeCallsLayerBroker = ({
   nodes,
@@ -118,5 +119,5 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
     }
   }
 
-  return { outsideCalls, reasons: [...reasons] };
+  return adapterAnalysisContract.parse({ outsideCalls, reasons: [...reasons] });
 };

@@ -14,6 +14,6 @@ export const mockProcessBehaviorContract = z.object({
   throwError: z.instanceof(Error).optional(),
   result: mockSpawnResultContract.optional(),
   delay: z.number().int().nonnegative().brand<'DelayMilliseconds'>().optional(),
-});
+}).brand<'MockProcessBehavior'>();
 
 export type MockProcessBehavior = z.infer<typeof mockProcessBehaviorContract>;

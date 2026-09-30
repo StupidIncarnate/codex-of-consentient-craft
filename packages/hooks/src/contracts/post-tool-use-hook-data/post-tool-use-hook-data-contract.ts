@@ -19,6 +19,6 @@ export const postToolUseHookDataContract = z.object({
   tool_name: z.string().min(1).brand<'PostToolUseHookDataToolName'>(),
   tool_input: z.unknown(),
   tool_response: hookToolResponseContract.optional(),
-});
+}).brand<'PostToolUseHookData'>();
 
 export type PostToolUseHookData = z.infer<typeof postToolUseHookDataContract>;

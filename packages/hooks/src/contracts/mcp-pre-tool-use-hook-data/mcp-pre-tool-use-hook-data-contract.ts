@@ -21,6 +21,6 @@ export const mcpPreToolUseHookDataContract = z.object({
   tool_name: z.string().min(1).brand<'McpPreToolUseHookDataToolName'>(),
   tool_input: mcpToolInputContract,
   agent_id: agentContract.shape.id.optional(),
-});
+}).brand<'McpPreToolUseHookData'>();
 
 export type McpPreToolUseHookData = z.infer<typeof mcpPreToolUseHookDataContract>;

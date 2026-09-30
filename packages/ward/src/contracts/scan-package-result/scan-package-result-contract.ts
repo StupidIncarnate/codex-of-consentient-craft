@@ -16,6 +16,6 @@ export const scanPackageResultContract = z.object({
   name: z.string().min(1).brand<'ScanPackageName'>(),
   violations: z.number().int().min(0).brand<'ScanViolationCount'>(),
   batches: z.array(z.array(scanViolationContract).min(1)),
-});
+}).brand<'ScanPackageResult'>();
 
 export type ScanPackageResult = z.infer<typeof scanPackageResultContract>;

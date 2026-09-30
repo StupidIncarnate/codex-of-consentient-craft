@@ -13,6 +13,6 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 export const questModifiedPayloadContract = z.object({
   questId: questContract.shape.id,
   quest: z.unknown(),
-});
+}).brand<'QuestModifiedPayload'>();
 
 export type QuestModifiedPayload = z.infer<typeof questModifiedPayloadContract>;

@@ -18,6 +18,6 @@ import { widgetNodeContract } from '../widget-node/widget-node-contract';
 export const widgetTreeResultContract = z.object({
   roots: z.array(widgetNodeContract),
   hubs: z.array(z.string().brand<'WidgetTreeResultHubs'>()),
-});
+}).brand<'WidgetTreeResult'>();
 
 export type WidgetTreeResult = z.infer<typeof widgetTreeResultContract>;

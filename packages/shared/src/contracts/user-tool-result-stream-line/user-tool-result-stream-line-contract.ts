@@ -35,6 +35,6 @@ export const userToolResultStreamLineContract = z.object({
       z.string().brand<'ToolUseResultErrorMessage'>(),
     ])
     .optional(),
-});
+}).brand<'UserToolResultStreamLine'>();
 
 export type UserToolResultStreamLine = z.infer<typeof userToolResultStreamLineContract>;

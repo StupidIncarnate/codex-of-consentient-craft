@@ -13,6 +13,6 @@ export const taskAgentToolInputContract = z
   .object({
     prompt: z.string().min(1).brand<'TaskAgentToolInputPrompt'>(),
   })
-  .loose();
+  .loose().brand<'TaskAgentToolInput'>();
 
 export type TaskAgentToolInput = z.infer<typeof taskAgentToolInputContract>;

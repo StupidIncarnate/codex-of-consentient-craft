@@ -16,6 +16,6 @@ import { moduleDependencyContract } from '../module-dependency/module-dependency
 export const typescriptModuleShapeContract = z.object({
   dependencies: z.array(moduleDependencyContract),
   localExportNames: z.array(z.string().min(1).brand<'TypescriptModuleShapeLocalExportNames'>()),
-});
+}).brand<'TypescriptModuleShape'>();
 
 export type TypescriptModuleShape = z.infer<typeof typescriptModuleShapeContract>;

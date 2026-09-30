@@ -20,6 +20,6 @@ export const clarificationQuestionContract = z.object({
   header: z.string().brand<'ClarificationQuestionHeader'>(),
   options: z.array(clarificationQuestionOptionContract),
   multiSelect: z.boolean(),
-});
+}).brand<'ClarificationQuestion'>();
 
 export type ClarificationQuestion = z.infer<typeof clarificationQuestionContract>;

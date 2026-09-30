@@ -28,6 +28,6 @@ export const orchestrationStatusContract = z.object({
   total: z.number().int().nonnegative().brand<'TotalCount'>(),
   currentStep: z.string().brand<'OrchestrationStatusCurrentStep'>().optional(),
   slots: z.array(orchestrationSlotContract),
-});
+}).brand<'OrchestrationStatus'>();
 
 export type OrchestrationStatus = z.infer<typeof orchestrationStatusContract>;

@@ -30,6 +30,7 @@ import { locationsInstanceEvidencePathFindBroker } from '../../locations/instanc
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryWriteBroker } from '../../registry/write/registry-write-broker';
 import { pruneRunBroker } from './prune-run-broker';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 const DAY_MS = 86_400_000;
 const CITED_ID = InstanceIdStub({ value: 'inst_1111c17e' });
@@ -80,7 +81,7 @@ describe('prune, against a real evidence tree', () => {
     await ensureDir(`${testbed.guildPath}/siegelense`);
 
     await registryWriteBroker({
-      registry: {
+      registry: RegistryStub({
         instances: [
           RegistryEntryStub({
             id: CITED_ID,
@@ -173,7 +174,7 @@ describe('prune, against a real evidence tree', () => {
             prunedByRule: null,
           }),
         ],
-      },
+      }),
     });
 
     citedEvidence = locationsInstanceEvidencePathFindBroker({

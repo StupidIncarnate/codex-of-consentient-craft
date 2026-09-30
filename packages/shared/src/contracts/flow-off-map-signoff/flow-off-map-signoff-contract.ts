@@ -21,6 +21,6 @@ import { qaOffMapFamilyContract } from '../qa-off-map-family/qa-off-map-family-c
 
 export const flowOffMapSignoffContract = z.object({
   id: qaOffMapFamilyContract,
-});
+}).brand<'FlowOffMapSignoff'>();
 
 export type FlowOffMapSignoff = z.infer<typeof flowOffMapSignoffContract>;

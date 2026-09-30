@@ -25,6 +25,7 @@ import { join } from '#gateway/node/path';
 import type { FileContentStub } from '@dungeonmaster/testing';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
+import { HydrationTargetStub } from '../../../src/contracts/hydration-target/hydration-target.stub';
 
 type FileContent = ReturnType<typeof FileContentStub>;
 
@@ -77,7 +78,7 @@ export const fileTargetHarness = (): FileTargetHarness => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.target: called before beforeEach ran');
       }
-      return { home: testbed.guildPath };
+      return HydrationTargetStub({ home: testbed.guildPath });
     },
 
     absolutePath: ({ relativePath }: { relativePath: string }): string => {

@@ -137,6 +137,6 @@ export const questNoteContract = z.object({
       "A person's outcome on the `verifyByHuman` criterion named by `unitId`. Present on a " +
         '`human-verdict` note; absent on every other kind, which settle nothing.',
     ),
-});
+}).brand<'QuestNote'>();
 
 export type QuestNote = z.infer<typeof questNoteContract>;

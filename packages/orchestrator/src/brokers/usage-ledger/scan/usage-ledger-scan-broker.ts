@@ -28,6 +28,7 @@ import { transcriptReadContract } from '../../../contracts/transcript-read/trans
 import { usageLedgerReadBroker } from '../read/usage-ledger-read-broker';
 import { usageLedgerWriteBroker } from '../write/usage-ledger-write-broker';
 import { foldBatchLayerBroker } from './fold-batch-layer-broker';
+import { usageLedgerContract } from '@dungeonmaster/shared/contracts';
 
 const TRANSCRIPT_SUFFIX = '.jsonl';
 
@@ -102,7 +103,7 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
   });
 
   return usageLedgerWriteBroker({
-    ledger: {
+    ledger: usageLedgerContract.parse({
       buckets: folded,
       // Every file the walk saw, read this pass or not — a cursor is what says "these bytes are
       // already counted", so one missing for an unchanged file would re-read it next tick.
@@ -111,7 +112,7 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
       ),
       ceilings: ledger.ceilings,
       updatedAt: ledger.updatedAt,
-    },
+    }),
     // Stamped with the clock at the END of the scan, not `nowMs` from its start: `updatedAt` is
     // what the throttle above measures from, and a scan that outlived `minIntervalMs` stamped with
     // its start time would let the very next tick begin another full walk straight after it.

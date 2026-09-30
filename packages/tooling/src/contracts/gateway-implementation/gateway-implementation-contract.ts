@@ -15,6 +15,6 @@ export const gatewayImplementationContract = z.object({
   name: z.string().min(1).brand<'GatewayImplementationName'>(),
   moduleDir: z.string().min(1).brand<'GatewayImplementationModuleDir'>(),
   outsideCalls: z.array(outsideCallContract),
-});
+}).brand<'GatewayImplementation'>();
 
 export type GatewayImplementation = z.infer<typeof gatewayImplementationContract>;

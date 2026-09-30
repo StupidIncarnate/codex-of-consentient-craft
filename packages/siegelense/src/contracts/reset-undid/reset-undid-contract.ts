@@ -14,6 +14,6 @@ export const resetUndidContract = z.object({
   added: z.number().int().nonnegative().brand<'ResetUndidAdded'>(),
   modified: z.number().int().nonnegative().brand<'ResetUndidModified'>(),
   removed: z.number().int().nonnegative().brand<'ResetUndidRemoved'>(),
-});
+}).brand<'ResetUndid'>();
 
 export type ResetUndid = z.infer<typeof resetUndidContract>;

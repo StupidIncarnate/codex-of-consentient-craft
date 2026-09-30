@@ -107,7 +107,7 @@ export const normalizedStreamLineContract = z
     timestamp: z.string().brand<'NormalizedStreamLineTimestamp'>().optional(),
     uuid: z.string().brand<'NormalizedStreamLineUuid'>().optional(),
   })
-  .loose();
+  .loose().brand<'NormalizedStreamLine'>();
 
 export type NormalizedStreamLine = z.infer<typeof normalizedStreamLineContract>;
 export type NormalizedStreamLineContentItem = z.infer<typeof _contentItem>;

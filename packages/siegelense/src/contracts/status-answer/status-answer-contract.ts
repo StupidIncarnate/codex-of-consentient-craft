@@ -35,6 +35,6 @@ export const statusAnswerContract = z.object({
   machine: machineReadingContract,
   instances: z.array(instanceStatusContract).readonly(),
   queriedInstanceState: instanceStateContract.nullable(),
-});
+}).brand<'StatusAnswer'>();
 
 export type StatusAnswer = z.infer<typeof statusAnswerContract>;

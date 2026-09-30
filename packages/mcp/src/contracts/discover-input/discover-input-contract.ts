@@ -37,6 +37,6 @@ export const discoverInputContract = z
       )
       .optional(),
   })
-  .strict();
+  .strict().brand<'DiscoverInput'>();
 
 export type DiscoverInput = z.infer<typeof discoverInputContract>;

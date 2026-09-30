@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 export const questDeleteResultContract = z.object({
   deleted: z.boolean(),
-});
+}).brand<'QuestDeleteResult'>();
 
 export type QuestDeleteResult = z.infer<typeof questDeleteResultContract>;

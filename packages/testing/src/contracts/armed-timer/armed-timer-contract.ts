@@ -19,7 +19,7 @@ import { openHandleStatics } from '../../statics/open-handle/open-handle-statics
 export const armedTimerContract = z.object({
   kind: z.enum(openHandleStatics.timers.arm).brand<'OpenHandleKind'>(),
   stack: z.string().brand<'OpenHandleStack'>(),
-});
+}).brand<'ArmedTimer'>();
 
 export type ArmedTimer = z.infer<typeof armedTimerContract> & {
   isPending: () => boolean;

@@ -12,6 +12,6 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const questSummaryParamsContract = z.object({
   questId: questContract.shape.id,
-});
+}).brand<'QuestSummaryParams'>();
 
 export type QuestSummaryParams = z.infer<typeof questSummaryParamsContract>;

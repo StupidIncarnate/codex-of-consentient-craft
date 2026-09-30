@@ -23,6 +23,6 @@ export const domReadingContract = z
     note: z.string().brand<'DomReadingNote'>().nullable().optional(),
     nodes: z.array(domNodeContract).readonly().optional(),
   })
-  .strict();
+  .strict().brand<'DomReading'>();
 
 export type DomReading = z.infer<typeof domReadingContract>;

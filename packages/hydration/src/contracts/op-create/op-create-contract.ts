@@ -26,6 +26,6 @@ export const opCreateContract = z.object({
   index: z.number().int().nonnegative().brand<'OpCreateIndex'>(),
   ancestors: z.array(rowRefContract),
   fields: fieldValuesContract,
-});
+}).brand<'OpCreate'>();
 
 export type OpCreate = z.infer<typeof opCreateContract>;

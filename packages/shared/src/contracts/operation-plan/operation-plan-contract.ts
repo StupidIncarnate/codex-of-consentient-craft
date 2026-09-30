@@ -83,6 +83,6 @@ export const operationPlanContract = z.object({
         'Never trust or read this field as agent-authored; it exists only so a reader can order ' +
         'plans without asking the filesystem.',
     ),
-});
+}).brand<'OperationPlan'>();
 
 export type OperationPlan = z.infer<typeof operationPlanContract>;

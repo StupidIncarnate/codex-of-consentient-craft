@@ -25,6 +25,6 @@ export const stepHandlerResultContract = z
     detail: z.string().brand<'StepHandlerResultDetail'>(),
     resultRef: z.string().regex( /^(operations|wardResults|riftcarverResults|flows)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}', ).brand<'StepHandlerResultResultRef'>().optional(),
   })
-  .strict();
+  .strict().brand<'StepHandlerResult'>();
 
 export type StepHandlerResult = z.infer<typeof stepHandlerResultContract>;

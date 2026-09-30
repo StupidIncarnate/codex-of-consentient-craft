@@ -35,6 +35,6 @@ export const reactFlowNodeDataContract = z.object({
   // has a resumable chat session); their absence is what makes the card render no comment button.
   questId: questContract.shape.id.optional(),
   flowId: flowContract.shape.id.optional(),
-});
+}).brand<'ReactFlowNodeData'>();
 
 export type ReactFlowNodeData = z.infer<typeof reactFlowNodeDataContract>;

@@ -17,6 +17,6 @@ import { z } from '#gateway/npm/zod';
 export const serverLogWindowContract = z.object({
   fromByte: z.number().int().nonnegative().brand<'ServerLogWindowFromByte'>(),
   toByte: z.number().int().nonnegative().brand<'ServerLogWindowToByte'>(),
-});
+}).brand<'ServerLogWindow'>();
 
 export type ServerLogWindow = z.infer<typeof serverLogWindowContract>;

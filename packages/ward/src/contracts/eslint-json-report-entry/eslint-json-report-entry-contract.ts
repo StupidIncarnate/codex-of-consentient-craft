@@ -56,6 +56,6 @@ export const eslintJsonReportEntryContract = z
     messages: z.array(eslintMessageContract).optional(),
     stats: eslintStatsContract.optional(),
   })
-  .loose();
+  .loose().brand<'EslintJsonReportEntry'>();
 
 export type EslintJsonReportEntry = z.infer<typeof eslintJsonReportEntryContract>;

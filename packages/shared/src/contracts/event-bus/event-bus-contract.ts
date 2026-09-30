@@ -20,6 +20,6 @@ import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-pa
 export const eventBusContract = z.object({
   stateFile: absoluteFilePathContract,
   exportName: z.string().brand<'EventBusExportName'>(),
-});
+}).brand<'EventBus'>();
 
 export type EventBus = z.infer<typeof eventBusContract>;

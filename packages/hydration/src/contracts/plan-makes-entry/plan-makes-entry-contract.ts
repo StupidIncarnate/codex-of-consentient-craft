@@ -16,6 +16,6 @@ const planMakesCountContract = z.number().int().positive().brand<'PlanMakesCount
 export const planMakesEntryContract = z.object({
   ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'PlanMakesEntryIngredient'>(),
   count: z.union([planMakesCountContract, z.literal('varies')]),
-});
+}).brand<'PlanMakesEntry'>();
 
 export type PlanMakesEntry = z.infer<typeof planMakesEntryContract>;

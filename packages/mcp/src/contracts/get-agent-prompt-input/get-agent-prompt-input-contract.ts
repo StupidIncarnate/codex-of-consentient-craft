@@ -34,6 +34,6 @@ export const getAgentPromptInputContract = z.object({
       "Work item the calling sub-agent was dispatched against. Supplied by a relay role; OMITTED by a summoned minion, which has no work item of its own and is refused if it passes its parent's.",
     ),
   questId: questContract.shape.id.describe('Quest the calling sub-agent is working on'),
-});
+}).brand<'GetAgentPromptInput'>();
 
 export type GetAgentPromptInput = z.infer<typeof getAgentPromptInputContract>;

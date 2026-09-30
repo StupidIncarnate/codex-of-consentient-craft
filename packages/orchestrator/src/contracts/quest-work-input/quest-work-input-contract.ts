@@ -151,6 +151,6 @@ export const questWorkInputContract = z
         }
       });
     }
-  });
+  }).brand<'QuestWorkInput'>();
 
 export type QuestWorkInput = z.infer<typeof questWorkInputContract>;

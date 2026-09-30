@@ -39,6 +39,6 @@ export const runResultContract = z.object({
   index: runIndexContract,
   shots: z.array(shotListingContract).readonly(),
   durationMs: z.number().int().nonnegative().brand<'RunResultDurationMs'>().optional(),
-});
+}).brand<'RunResult'>();
 
 export type RunResult = z.infer<typeof runResultContract>;

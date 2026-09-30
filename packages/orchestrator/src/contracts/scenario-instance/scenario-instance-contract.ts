@@ -27,6 +27,6 @@ const smoketestPromptNameContract = z.enum(smoketestPromptNames);
 export const scenarioInstanceContract = z.object({
   scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
   callOrdinals: z.partialRecord(workItemRoleContract, z.number().int().nonnegative().brand<'ScenarioInstanceCallOrdinals'>()),
-});
+}).brand<'ScenarioInstance'>();
 
 export type ScenarioInstance = z.infer<typeof scenarioInstanceContract>;

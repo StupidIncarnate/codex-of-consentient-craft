@@ -14,6 +14,6 @@ export const worktreeCreateHookDataContract = z.object({
   cwd: z.string().min(1).brand<'Cwd'>(),
   hook_event_name: z.literal('WorktreeCreate'),
   name: z.string().min(1).brand<'WorktreeName'>(),
-});
+}).brand<'WorktreeCreateHookData'>();
 
 export type WorktreeCreateHookData = z.infer<typeof worktreeCreateHookDataContract>;

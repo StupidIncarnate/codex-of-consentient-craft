@@ -14,6 +14,6 @@ export const gatewayExportContract = z.object({
   importPath: z.string().min(1).brand<'GatewayExportImportPath'>(),
   name: z.string().min(1).brand<'GatewayExportName'>(),
   match: z.enum(['exact', 'related']),
-});
+}).brand<'GatewayExport'>();
 
 export type GatewayExport = z.infer<typeof gatewayExportContract>;

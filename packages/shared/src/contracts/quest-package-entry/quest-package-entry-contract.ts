@@ -50,6 +50,6 @@ export const questPackageEntryContract = z.object({
     .describe(
       "Packages that will depend on this one. Required and non-empty when changeType is 'new': a package with no package.json on disk yet has no other source of reverse edges for the post-quest dependency graph.",
     ),
-});
+}).brand<'QuestPackageEntry'>();
 
 export type QuestPackageEntry = z.infer<typeof questPackageEntryContract>;

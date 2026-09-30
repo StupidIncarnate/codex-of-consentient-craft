@@ -12,6 +12,6 @@ export const wsLogEntryContract = z.object({
   direction: z.enum(['sent', 'received']),
   data: z.string().brand<'WsData'>(),
   elapsedMs: z.number().nonnegative().brand<'ElapsedMs'>(),
-});
+}).brand<'WsLogEntry'>();
 
 export type WsLogEntry = z.infer<typeof wsLogEntryContract>;

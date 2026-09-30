@@ -11,6 +11,6 @@ import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionIdParamsContract = z.object({
   sessionId: sessionContract.shape.id,
-});
+}).brand<'SessionIdParams'>();
 
 export type SessionIdParams = z.infer<typeof sessionIdParamsContract>;

@@ -36,6 +36,6 @@ export const capacityAnswerContract = z
     measured: capacityMeasuredContract,
     profile: capacityProfileContract.nullable(),
   })
-  .strict();
+  .strict().brand<'CapacityAnswer'>();
 
 export type CapacityAnswer = z.infer<typeof capacityAnswerContract>;

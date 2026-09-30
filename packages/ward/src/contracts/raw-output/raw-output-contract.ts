@@ -24,6 +24,6 @@ export const rawOutputContract = z.object({
     .custom<NodeJS.Signals>((value) => typeof value === 'string' && value.length > 0)
     .nullable()
     .default(null),
-});
+}).brand<'RawOutput'>();
 
 export type RawOutput = z.infer<typeof rawOutputContract>;

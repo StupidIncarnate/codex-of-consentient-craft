@@ -23,6 +23,6 @@ export const bootLockContract = z.object({
   heldBy: siegeInstanceContract.shape.id,
   heldByPid: z.string().min(1).brand<'BootLockHeldByPid'>(),
   acquiredAtMs: z.number().int().nonnegative().brand<'BootLockAcquiredAtMs'>(),
-});
+}).brand<'BootLock'>();
 
 export type BootLock = z.infer<typeof bootLockContract>;

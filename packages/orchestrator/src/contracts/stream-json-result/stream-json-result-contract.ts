@@ -13,6 +13,6 @@ import { chatEntryContract, sessionContract } from '@dungeonmaster/shared/contra
 export const streamJsonResultContract = z.object({
   entries: z.array(chatEntryContract),
   sessionId: sessionContract.shape.id.nullable(),
-});
+}).brand<'StreamJsonResult'>();
 
 export type StreamJsonResult = z.infer<typeof streamJsonResultContract>;

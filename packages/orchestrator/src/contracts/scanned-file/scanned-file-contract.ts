@@ -18,6 +18,6 @@ export const scannedFileContract = z.object({
   path: absoluteFilePathContract,
   mtimeMs: z.number().min(0).brand<'ScannedFileMtimeMs'>(),
   size: z.number().int().min(0).brand<'ByteSize'>(),
-});
+}).brand<'ScannedFile'>();
 
 export type ScannedFile = z.infer<typeof scannedFileContract>;

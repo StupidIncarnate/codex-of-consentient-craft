@@ -16,6 +16,6 @@ export const multiEditToolInputContract = z.object({
       replace_all: z.boolean().optional(),
     }),
   ),
-});
+}).brand<'MultiEditToolInput'>();
 
 export type MultiEditToolInput = z.infer<typeof multiEditToolInputContract>;

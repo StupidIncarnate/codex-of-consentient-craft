@@ -30,6 +30,6 @@ export const snapshotRecordContract = z
     path: absoluteFilePathContract,
     age: z.string().brand<'SnapshotRecordAge'>().optional(),
   })
-  .strict();
+  .strict().brand<'SnapshotRecord'>();
 
 export type SnapshotRecord = z.infer<typeof snapshotRecordContract>;

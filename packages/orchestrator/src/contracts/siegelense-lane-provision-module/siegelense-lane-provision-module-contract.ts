@@ -40,6 +40,6 @@ export const siegelenseLaneProvisionModuleContract = z
     capacityReadBroker: capacityReadBrokerFnContract,
     instanceStartBroker: instanceStartBrokerFnContract,
   })
-  .loose();
+  .loose().brand<'SiegelenseLaneProvisionModule'>();
 
 export type SiegelenseLaneProvisionModule = z.infer<typeof siegelenseLaneProvisionModuleContract>;

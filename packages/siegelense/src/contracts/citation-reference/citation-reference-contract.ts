@@ -30,6 +30,6 @@ export const citationReferenceContract = z.object({
   runId: siegeRunContract.shape.id.nullable(),
   citingFile: absoluteFilePathContract,
   why: z.string().brand<'CitationReferenceWhy'>(),
-});
+}).brand<'CitationReference'>();
 
 export type CitationReference = z.infer<typeof citationReferenceContract>;

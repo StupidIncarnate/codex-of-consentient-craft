@@ -13,6 +13,6 @@ export const passingTestContract = z.object({
   suitePath: z.string().brand<'SuitePath'>(),
   testName: z.string().brand<'TestName'>(),
   durationMs: z.number().nonnegative().brand<'PassingTestDurationMs'>().default(passingTestContract.shape.durationMs.parse(0)),
-});
+}).brand<'PassingTest'>();
 
 export type PassingTest = z.infer<typeof passingTestContract>;

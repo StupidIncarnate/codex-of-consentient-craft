@@ -6,10 +6,7 @@
  * const response = jsonl.agentSuccessResponse({ sessionId: SessionIdStub({ value: 'sess-001' }) });
  * queue.enqueue({ queueDir, response });
  */
-import {
-  resultStreamLineContract,
-  systemInitStreamLineContract,
-} from '@dungeonmaster/shared/contracts';
+import { resultStreamLineContract, systemInitStreamLineContract, claudeQueueResponseContract, wardQueueResponseContract } from '@dungeonmaster/shared/contracts';
 import type { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import type { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
@@ -73,7 +70,7 @@ export const orchestrationJsonlHarness = (): {
 
   const agentSuccessResponse = ({
     sessionId = SessionIdStub({ value: 'sess-integ-001' }),
-  }: { sessionId?: ClaudeQueueResponse['sessionId'] } = {}): ClaudeQueueResponse => ({
+  }: { sessionId?: ClaudeQueueResponse['sessionId'] } = {}): ClaudeQueueResponse => claudeQueueResponseContract.parse({
     sessionId,
     lines: [
       rawCliLine({ line: SystemInitStreamLineStub({ session_id: sessionId }) }),
@@ -90,7 +87,7 @@ export const orchestrationJsonlHarness = (): {
     sessionId?: ClaudeQueueResponse['sessionId'];
     summary?: Parameters<typeof signalBackLine>[0]['summary'];
     exitCode?: number;
-  } = {}): ClaudeQueueResponse => ({
+  } = {}): ClaudeQueueResponse => claudeQueueResponseContract.parse({
     sessionId,
     exitCode,
     lines: [
@@ -100,7 +97,7 @@ export const orchestrationJsonlHarness = (): {
     ],
   });
 
-  const wardPassResponse = (): WardQueueResponse => ({
+  const wardPassResponse = (): WardQueueResponse => wardQueueResponseContract.parse({
     exitCode: 0,
     runId: WardRunIdStub({ value: `ward-${String(Date.now())}` }),
     wardResultJson: { checks: [] },
@@ -108,7 +105,7 @@ export const orchestrationJsonlHarness = (): {
 
   const wardFailResponse = ({
     filePaths = [],
-  }: { filePaths?: string[] } = {}): WardQueueResponse => ({
+  }: { filePaths?: string[] } = {}): WardQueueResponse => wardQueueResponseContract.parse({
     exitCode: 1,
     runId: WardRunIdStub({ value: `ward-fail-${String(Date.now())}` }),
     wardResultJson: {

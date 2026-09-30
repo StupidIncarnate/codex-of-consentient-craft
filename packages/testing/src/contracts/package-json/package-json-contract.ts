@@ -20,6 +20,6 @@ export const packageJsonContract = z
     eslintConfig: z.unknown().optional(),
     jest: z.unknown().optional(),
   })
-  .loose();
+  .loose().brand<'PackageJson'>();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

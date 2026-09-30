@@ -25,6 +25,6 @@ export const chatOutputPayloadContract = z.object({
   workItemId: workItemContract.shape.id.optional(),
   replay: z.boolean().optional(),
   slotIndex: z.unknown().optional(),
-});
+}).brand<'ChatOutputPayload'>();
 
 export type ChatOutputPayload = z.infer<typeof chatOutputPayloadContract>;

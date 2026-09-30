@@ -17,6 +17,6 @@ export const networkLogEntryContract = z.object({
   responseBody: z.string().brand<'ResponseBody'>().optional(),
   error: z.string().brand<'NetworkError'>().optional(),
   source: z.enum(['mock', 'bypass', 'browser']),
-});
+}).brand<'NetworkLogEntry'>();
 
 export type NetworkLogEntry = z.infer<typeof networkLogEntryContract>;

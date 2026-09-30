@@ -20,6 +20,6 @@ export const mcpCallerContextContract = z.object({
   cwd: absoluteFilePathContract,
   sessionId: sessionContract.shape.id,
   agentId: agentContract.shape.id.optional(),
-});
+}).brand<'McpCallerContext'>();
 
 export type McpCallerContext = z.infer<typeof mcpCallerContextContract>;

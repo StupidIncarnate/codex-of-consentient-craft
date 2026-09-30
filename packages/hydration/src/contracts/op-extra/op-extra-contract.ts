@@ -19,6 +19,6 @@ export const opExtraContract = z.object({
   ref: rowRefContract,
   verb: extraVerbNameContract,
   args: fieldValuesContract,
-});
+}).brand<'OpExtra'>();
 
 export type OpExtra = z.infer<typeof opExtraContract>;

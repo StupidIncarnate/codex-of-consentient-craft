@@ -14,6 +14,7 @@ import { getProjectInventoryInputContract } from '../../contracts/get-project-in
 import { getProjectMapInputContract } from '../../contracts/get-project-map-input/get-project-map-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { ArchitectureHandleResponder } from '../../responders/architecture/handle/architecture-handle-responder';
+import { toolRegistrationContract } from '../../contracts/tool-registration/tool-registration-contract';
 
 // `reused: 'inline'` is zod v4's native replacement for the deprecated `zod-to-json-schema`
 // package's `$refStrategy: 'none'` — both mean "never emit a $ref/$defs pair for a schema reused
@@ -29,49 +30,49 @@ const getProjectInventorySchema = toJSONSchema(getProjectInventoryInputContract,
 const getProjectMapSchema = toJSONSchema(getProjectMapInputContract, jsonSchemaOptions);
 
 export const ArchitectureFlow = (): ToolRegistration[] => [
-  {
+  toolRegistrationContract.parse({
     name: 'discover' as never,
     description:
       'Discover utilities, brokers, and files across the codebase. Identifier-shaped grep patterns (2+ word tokens, no regex metacharacters) match across naming conventions by default — pass strict:true for literal-regex matching.' as never,
     inputSchema: discoverSchema as never,
     handler: async ({ args, meta }) =>
       ArchitectureHandleResponder({ tool: 'discover' as never, args, meta }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'get-architecture' as never,
     description: 'Returns complete architecture overview' as never,
     inputSchema: emptySchema as never,
     handler: async ({ args, meta }) =>
       ArchitectureHandleResponder({ tool: 'get-architecture' as never, args, meta }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'get-folder-detail' as never,
     description: 'Returns detailed information about a specific folder type' as never,
     inputSchema: folderDetailSchema as never,
     handler: async ({ args, meta }) =>
       ArchitectureHandleResponder({ tool: 'get-folder-detail' as never, args, meta }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'get-testing-patterns' as never,
     description: 'Returns testing patterns and philosophy for writing tests and proxies' as never,
     inputSchema: emptySchema as never,
     handler: async ({ args, meta }) =>
       ArchitectureHandleResponder({ tool: 'get-testing-patterns' as never, args, meta }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'get-project-map' as never,
     description:
       'Returns a project-map slice for the requested packages: connection graphs, folder types, file counts. Pass one or more package names; required.' as never,
     inputSchema: getProjectMapSchema as never,
     handler: async ({ args, meta }) =>
       ArchitectureHandleResponder({ tool: 'get-project-map' as never, args, meta }),
-  },
-  {
+  }),
+  toolRegistrationContract.parse({
     name: 'get-project-inventory' as never,
     description:
       'Returns the per-package folder/file inventory section for a single package' as never,
     inputSchema: getProjectInventorySchema as never,
     handler: async ({ args, meta }) =>
       ArchitectureHandleResponder({ tool: 'get-project-inventory' as never, args, meta }),
-  },
+  }),
 ];

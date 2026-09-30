@@ -37,6 +37,6 @@ export const gatewayConsumerPackageJsonContract = z
     dependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDependencies'>(), z.string().brand<'DepVersion'>()).optional(),
     devDependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDevDependencies'>(), z.string().brand<'DepVersion'>()).optional(),
   })
-  .loose();
+  .loose().brand<'GatewayConsumerPackageJson'>();
 
 export type GatewayConsumerPackageJson = z.infer<typeof gatewayConsumerPackageJsonContract>;

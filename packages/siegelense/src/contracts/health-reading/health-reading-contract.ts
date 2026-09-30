@@ -37,6 +37,6 @@ export const healthReadingContract = z
     firstServerError: z.string().brand<'HealthReadingFirstServerError'>().nullable(),
     rendered: z.string().brand<'HealthReadingRendered'>(),
   })
-  .strict();
+  .strict().brand<'HealthReading'>();
 
 export type HealthReading = z.infer<typeof healthReadingContract>;

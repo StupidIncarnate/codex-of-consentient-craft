@@ -23,11 +23,11 @@ export const normalizeAskUserQuestionInputTransformer = ({
   const inputParse = askUserQuestionToolInputContract.safeParse(input ?? {});
 
   if (name !== ASK_USER_QUESTION_TOOL) {
-    return inputParse.success ? inputParse.data : {};
+    return inputParse.success ? inputParse.data : askUserQuestionToolInputContract.parse({});
   }
 
   if (!inputParse.success) {
-    return {};
+    return askUserQuestionToolInputContract.parse({});
   }
 
   const { questions } = inputParse.data;

@@ -48,6 +48,6 @@ export const instanceStatusContract = z.object({
   likelyCause: z.string().brand<'InstanceStatusLikelyCause'>().nullable(),
   branch: z.string().brand<'InstanceStatusBranch'>().nullable(),
   evidenceComplete: z.boolean(),
-});
+}).brand<'InstanceStatus'>();
 
 export type InstanceStatus = z.infer<typeof instanceStatusContract>;

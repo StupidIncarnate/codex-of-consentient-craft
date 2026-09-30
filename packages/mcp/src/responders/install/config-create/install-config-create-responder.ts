@@ -74,9 +74,9 @@ export const InstallConfigCreateResponder = async ({
   }
 
   // Create new config
-  const newConfig: McpConfig = {
+  const newConfig: McpConfig = mcpConfigContract.parse({
     mcpServers: dungeonmasterConfigCreatorTransformer(),
-  };
+  });
 
   const contents = jsonFileContentsTransformer({ value: newConfig });
 

@@ -123,6 +123,6 @@ export const mcpQuestWorkInputContract = z
       requestPayloadContract,
     ]),
   })
-  .strict();
+  .strict().brand<'McpQuestWorkInput'>();
 
 export type McpQuestWorkInput = z.infer<typeof mcpQuestWorkInputContract>;

@@ -17,6 +17,6 @@ export const testingOpenHandleFindingContract = z.object({
   kind: z.string().min(1).brand<'TestingOpenHandleKind'>(),
   testPath: z.string().min(1).brand<'TestingOpenHandleTestPath'>(),
   stack: z.string().brand<'TestingOpenHandleStack'>(),
-});
+}).brand<'TestingOpenHandleFinding'>();
 
 export type TestingOpenHandleFinding = z.infer<typeof testingOpenHandleFindingContract>;

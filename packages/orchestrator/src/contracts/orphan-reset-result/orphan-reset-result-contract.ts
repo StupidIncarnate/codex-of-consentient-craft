@@ -10,6 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 export const orphanResetResultContract = z.object({
   orphansReset: z.number().int().nonnegative().brand<'OrphansResetCount'>(),
-});
+}).brand<'OrphanResetResult'>();
 
 export type OrphanResetResult = z.infer<typeof orphanResetResultContract>;

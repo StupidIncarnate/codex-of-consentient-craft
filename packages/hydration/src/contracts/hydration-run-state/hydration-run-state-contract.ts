@@ -22,6 +22,6 @@ export const hydrationRunStateContract = z.object({
   recipeName: z.string().min(1).brand<'HydrationRunStateRecipeName'>(),
   records: z.map(rowRefContract, resolvedRecordContract),
   saved: z.map(z.string().min(1).brand<'HydrationRunStateSaved'>(), resolvedRecordContract),
-});
+}).brand<'HydrationRunState'>();
 
 export type HydrationRunState = z.infer<typeof hydrationRunStateContract>;

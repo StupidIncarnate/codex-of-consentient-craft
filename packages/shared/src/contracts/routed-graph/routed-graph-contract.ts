@@ -32,7 +32,7 @@ export const routedGraphContract = z.object({
   graphName: z.string().min(1).brand<'RoutedGraphName'>(),
   entry: z.string().min(1).brand<'RoutedGraphEntry'>(),
   nodes: z.record(z.string().min(1).brand<'RoutedGraphNodes'>(), routedGraphNodeContract),
-});
+}).brand<'RoutedGraph'>();
 
 export type RoutedGraph = z.infer<typeof routedGraphContract>;
 export type RoutedGraphNode = z.infer<typeof routedGraphNodeContract>;

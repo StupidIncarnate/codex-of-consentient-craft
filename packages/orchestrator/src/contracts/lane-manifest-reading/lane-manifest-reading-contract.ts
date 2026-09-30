@@ -37,6 +37,6 @@ export const laneManifestReadingContract = z.object({
   apiUrl: z.string().min(1).brand<'InstanceApiUrl'>().optional(),
   home: absoluteFilePathContract,
   logs: z.object({ api: laneManifestLogEntry, web: laneManifestLogEntry }),
-});
+}).brand<'LaneManifestReading'>();
 
 export type LaneManifestReading = z.infer<typeof laneManifestReadingContract>;

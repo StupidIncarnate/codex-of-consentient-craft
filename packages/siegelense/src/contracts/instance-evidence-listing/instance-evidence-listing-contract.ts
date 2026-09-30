@@ -27,6 +27,6 @@ export const instanceEvidenceListingContract = z.object({
   transcript: fileNameContract.nullable(),
   logs: z.array(fileNameContract).readonly(),
   lastShot: fileNameContract.nullable(),
-});
+}).brand<'InstanceEvidenceListing'>();
 
 export type InstanceEvidenceListing = z.infer<typeof instanceEvidenceListingContract>;

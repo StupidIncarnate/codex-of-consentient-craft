@@ -275,14 +275,14 @@ describe('questItemDeepMergeTransformer', () => {
       const { observables } = nodes[0]!;
 
       expect(observables).toStrictEqual([
-        {
+        FlowObservableStub({
           id: 'obs-1',
           type: 'ui-state',
           package: 'auth-service',
           description: 'new description',
           designRef: 'design/dashboard.png',
           addedBy: 'spec',
-        },
+        }),
         siblingObservable,
       ]);
     });

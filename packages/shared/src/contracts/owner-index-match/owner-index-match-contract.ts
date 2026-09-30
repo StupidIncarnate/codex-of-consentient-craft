@@ -16,6 +16,6 @@ import { ownerIndexOwnerContract } from '../owner-index-owner/owner-index-owner-
 export const ownerIndexMatchContract = z.object({
   owner: ownerIndexOwnerContract,
   field: ownerIndexFieldContract,
-});
+}).brand<'OwnerIndexMatch'>();
 
 export type OwnerIndexMatch = z.infer<typeof ownerIndexMatchContract>;

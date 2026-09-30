@@ -33,6 +33,6 @@ export const pruneAnswerContract = z
     refused: z.array(pruneRefusalContract).readonly(),
     unresolved: z.array(citationGapContract).readonly(),
   })
-  .strict();
+  .strict().brand<'PruneAnswer'>();
 
 export type PruneAnswer = z.infer<typeof pruneAnswerContract>;

@@ -21,6 +21,6 @@ export const docsArgsContract = z
     scope: docsScopeContract.nullable(),
     isJson: z.boolean(),
   })
-  .strict();
+  .strict().brand<'DocsArgs'>();
 
 export type DocsArgs = z.infer<typeof docsArgsContract>;

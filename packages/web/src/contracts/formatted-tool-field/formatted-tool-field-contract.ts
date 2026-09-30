@@ -15,6 +15,6 @@ export const formattedToolFieldContract = z.object({
   key: z.string().min(1).brand<'ToolFieldKey'>(),
   value: z.string().brand<'ToolFieldValue'>(),
   isLong: z.boolean(),
-});
+}).brand<'FormattedToolField'>();
 
 export type FormattedToolField = z.infer<typeof formattedToolFieldContract>;

@@ -30,6 +30,6 @@ export const adapterRecordContract = z.object({
       composedBy: z.array(z.string().min(1).brand<'AdapterRecordAdapterProxyComposedBy'>()),
     })
     .nullable(),
-});
+}).brand<'AdapterRecord'>();
 
 export type AdapterRecord = z.infer<typeof adapterRecordContract>;

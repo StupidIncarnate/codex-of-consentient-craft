@@ -33,6 +33,6 @@ export const questSessionContract = z.object({
   role: workItemRoleContract,
   workItemId: workItemContract.shape.id.optional(),
   startedAt: z.iso.datetime().brand<'QuestSessionStartedAt'>(),
-});
+}).brand<'QuestSession'>();
 
 export type QuestSession = z.infer<typeof questSessionContract>;

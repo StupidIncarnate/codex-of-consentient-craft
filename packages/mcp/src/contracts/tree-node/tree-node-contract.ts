@@ -27,6 +27,6 @@ export const treeNodeContract = z.object({
   get children(): z.ZodMap<typeof folderNameContract, z.core.$ZodType<TreeNodeSelf>> {
     return z.map(folderNameContract, treeNodeContract);
   },
-});
+}).brand<'TreeNode'>();
 
 export type TreeNode = z.infer<typeof treeNodeContract>;

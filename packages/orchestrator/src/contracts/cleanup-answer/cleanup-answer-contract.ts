@@ -28,6 +28,6 @@ export const cleanupCliAnswerContract = z.object({
   assetsAged: z.object({
     instances: z.number().int().nonnegative().brand<'CleanupAgedInstanceCount'>(),
   }),
-});
+}).brand<'CleanupCliAnswer'>();
 
 export type CleanupCliAnswer = z.infer<typeof cleanupCliAnswerContract>;

@@ -10,6 +10,6 @@ import { z } from '#gateway/npm/zod';
 export const summaryStreamLineContract = z.object({
   type: z.literal('summary'),
   summary: z.string().brand<'SummaryText'>(),
-});
+}).brand<'SummaryStreamLine'>();
 
 export type SummaryStreamLine = z.infer<typeof summaryStreamLineContract>;

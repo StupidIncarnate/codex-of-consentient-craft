@@ -25,6 +25,6 @@ export const drivingOddityContract = z
     line: z.string().min(1).brand<'DrivingOddityLine'>(),
     kind: z.enum(['quirk', 'defect']).brand<'DrivingOddityKind'>(),
   })
-  .strict();
+  .strict().brand<'DrivingOddity'>();
 
 export type DrivingOddity = z.infer<typeof drivingOddityContract>;

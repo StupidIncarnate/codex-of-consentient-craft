@@ -26,6 +26,6 @@ export const httpEdgeContract = z.object({
   serverResponderFile: absoluteFilePathContract.nullable(),
   webBrokerFile: absoluteFilePathContract.nullable(),
   paired: z.boolean(),
-});
+}).brand<'HttpEdge'>();
 
 export type HttpEdge = z.infer<typeof httpEdgeContract>;

@@ -11,6 +11,6 @@ export const extractedMetadataContract = z.object({
   purpose: z.string().brand<'Purpose'>(),
   usage: z.string().brand<'UsageExample'>(),
   metadata: z.record(z.string().brand<'MetadataKey'>(), z.unknown()),
-});
+}).brand<'ExtractedMetadata'>();
 
 export type ExtractedMetadata = z.infer<typeof extractedMetadataContract>;

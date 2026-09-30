@@ -21,6 +21,6 @@ export const subagentStopHookDataContract = z.object({
   // surface that reports in-flight work: the transcript shows a task was started and never that it
   // ended.
   background_tasks: z.array(hookBackgroundTaskContract).optional(),
-});
+}).brand<'SubagentStopHookData'>();
 
 export type SubagentStopHookData = z.infer<typeof subagentStopHookDataContract>;

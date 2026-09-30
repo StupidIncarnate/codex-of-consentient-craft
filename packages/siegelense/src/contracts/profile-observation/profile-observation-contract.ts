@@ -44,6 +44,6 @@ export const profileObservationContract = z.object({
       }),
     )
     .readonly(),
-});
+}).brand<'ProfileObservation'>();
 
 export type ProfileObservation = z.infer<typeof profileObservationContract>;

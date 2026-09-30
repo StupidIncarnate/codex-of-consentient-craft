@@ -11,6 +11,6 @@ import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const guildIdQueryContract = z.object({
   guildId: guildContract.shape.id,
-});
+}).brand<'GuildIdQuery'>();
 
 export type GuildIdQuery = z.infer<typeof guildIdQueryContract>;

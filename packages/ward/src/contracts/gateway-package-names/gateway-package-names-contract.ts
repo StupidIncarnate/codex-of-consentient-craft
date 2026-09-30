@@ -16,6 +16,6 @@ export const gatewayPackageNamesContract = z.object({
   node: z.string().min(1).brand<'GatewayPackageNamesNode'>().optional(),
   bin: z.string().min(1).brand<'GatewayPackageNamesBin'>().optional(),
   browser: z.string().min(1).brand<'GatewayPackageNamesBrowser'>().optional(),
-});
+}).brand<'GatewayPackageNames'>();
 
 export type GatewayPackageNames = z.infer<typeof gatewayPackageNamesContract>;

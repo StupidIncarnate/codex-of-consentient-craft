@@ -12,6 +12,6 @@ import { guildContract } from '../guild/guild-contract';
 
 export const guildConfigContract = z.object({
   guilds: z.array(guildContract).default([]),
-});
+}).brand<'GuildConfig'>();
 
 export type GuildConfig = z.infer<typeof guildConfigContract>;

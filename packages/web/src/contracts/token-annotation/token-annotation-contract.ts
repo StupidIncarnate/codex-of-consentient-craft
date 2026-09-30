@@ -15,6 +15,6 @@ export const tokenAnnotationContract = z.object({
   cumulativeContext: z.number().int().nonnegative().brand<'TokenAnnotationCumulativeContext'>().nullable(),
   contextDelta: z.number().int().brand<'TokenAnnotationContextDelta'>().nullable(),
   source: z.enum(['session', 'subagent']),
-});
+}).brand<'TokenAnnotation'>();
 
 export type TokenAnnotation = z.infer<typeof tokenAnnotationContract>;

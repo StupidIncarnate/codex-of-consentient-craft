@@ -24,6 +24,6 @@ export const installResultContract = z.object({
   action: installActionContract,
   message: z.string().min(1).brand<'InstallResultMessage'>().optional(),
   error: z.string().brand<'InstallResultError'>().optional(),
-});
+}).brand<'InstallResult'>();
 
 export type InstallResult = z.infer<typeof installResultContract>;

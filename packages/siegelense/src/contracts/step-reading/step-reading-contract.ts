@@ -62,6 +62,6 @@ export const stepReadingContract = z.object({
   serverWindow: serverLogWindowContract,
   startedAtMs: z.number().int().nonnegative().brand<'StepReadingStartedAtMs'>(),
   endedAtMs: z.number().int().nonnegative().brand<'StepReadingEndedAtMs'>(),
-});
+}).brand<'StepReading'>();
 
 export type StepReading = z.infer<typeof stepReadingContract>;

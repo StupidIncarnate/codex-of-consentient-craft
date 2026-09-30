@@ -16,6 +16,6 @@ export const toolingRequirementContract = z.object({
   packageName: z.string().min(1).brand<'NpmPackageName'>(),
   reason: z.string().brand<'ToolingReason'>(),
   requiredByObservables: z.array(flowObservableContract.shape.id),
-});
+}).brand<'ToolingRequirement'>();
 
 export type ToolingRequirement = z.infer<typeof toolingRequirementContract>;

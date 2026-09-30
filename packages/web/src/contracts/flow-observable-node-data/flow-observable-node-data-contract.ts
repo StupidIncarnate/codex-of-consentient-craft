@@ -42,6 +42,6 @@ export const flowObservableNodeDataContract = z.object({
   // render no comment button.
   questId: questContract.shape.id.optional(),
   flowId: flowContract.shape.id.optional(),
-});
+}).brand<'FlowObservableNodeData'>();
 
 export type FlowObservableNodeData = z.infer<typeof flowObservableNodeDataContract>;

@@ -12,6 +12,6 @@ export const wardDetailResponseContract = z.object({
   type: z.literal('ward-detail-response'),
   wardResultId: z.uuid().brand<'WardResultId'>(),
   detail: z.unknown(),
-});
+}).brand<'WardDetailResponse'>();
 
 export type WardDetailResponse = z.infer<typeof wardDetailResponseContract>;

@@ -25,6 +25,6 @@ export const spawnInstructionContract = z.object({
   // taskPrompt — which is why taskPrompt always stays the fresh variant.
   resumeSessionId: sessionContract.shape.id.optional(),
   resumePrompt: z.string().min(1).brand<'SpawnInstructionResumePrompt'>().optional(),
-});
+}).brand<'SpawnInstruction'>();
 
 export type SpawnInstruction = z.infer<typeof spawnInstructionContract>;

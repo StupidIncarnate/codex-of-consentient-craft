@@ -32,6 +32,6 @@ export const questWorkInstanceContract = z.object({
   apiUrl: z.string().min(1).brand<'InstanceApiUrl'>().nullable(),
   home: absoluteFilePathContract,
   logs: z.object({ api: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkInstanceLogsApi'>(), web: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkInstanceLogsWeb'>() }),
-});
+}).brand<'QuestWorkInstance'>();
 
 export type QuestWorkInstance = z.infer<typeof questWorkInstanceContract>;

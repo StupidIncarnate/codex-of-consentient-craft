@@ -16,6 +16,6 @@ export const chatOutputRoutingContract = z
     workItemId: workItemContract.shape.id.optional(),
     chatProcessId: z.string().min(1).brand<'ChatOutputRoutingChatProcessId'>().optional(),
   })
-  .loose();
+  .loose().brand<'ChatOutputRouting'>();
 
 export type ChatOutputRouting = z.infer<typeof chatOutputRoutingContract>;

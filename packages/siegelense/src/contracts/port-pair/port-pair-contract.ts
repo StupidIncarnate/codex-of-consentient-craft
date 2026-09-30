@@ -24,6 +24,6 @@ export const portPairContract = z
   .refine((pair) => pair.api !== pair.web, {
     message: 'api and web ports must differ — Playwright waits on one while Vite binds the other',
     path: ['web'],
-  });
+  }).brand<'PortPair'>();
 
 export type PortPair = z.infer<typeof portPairContract>;

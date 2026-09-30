@@ -29,6 +29,6 @@ export const devLogEventPayloadContract = z
     questions: z.array(z.unknown()).nullish(),
     entries: z.array(z.unknown()).nullish(),
   })
-  .loose();
+  .loose().brand<'DevLogEventPayload'>();
 
 export type DevLogEventPayload = z.infer<typeof devLogEventPayloadContract>;

@@ -21,6 +21,6 @@ export const adapterCensusContract = z.object({
     composingProxies: z.number().int().min(0).brand<'AdapterCensusTotalsComposingProxies'>(),
     catchAllProxies: z.number().int().min(0).brand<'AdapterCensusTotalsCatchAllProxies'>(),
   }),
-});
+}).brand<'AdapterCensus'>();
 
 export type AdapterCensus = z.infer<typeof adapterCensusContract>;

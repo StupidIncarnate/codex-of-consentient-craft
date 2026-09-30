@@ -32,6 +32,6 @@ export const questQueueEntryContract = z.object({
       at: z.iso.datetime().brand<'QuestQueueEntryErrorAt'>(),
     })
     .optional(),
-});
+}).brand<'QuestQueueEntry'>();
 
 export type QuestQueueEntry = z.infer<typeof questQueueEntryContract>;

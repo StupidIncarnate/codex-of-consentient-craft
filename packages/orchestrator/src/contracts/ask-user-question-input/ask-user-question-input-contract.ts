@@ -12,6 +12,6 @@ import { clarificationQuestionContract } from '../clarification-question/clarifi
 
 export const askUserQuestionInputContract = z.object({
   questions: z.array(clarificationQuestionContract),
-});
+}).brand<'AskUserQuestionInput'>();
 
 export type AskUserQuestionInput = z.infer<typeof askUserQuestionInputContract>;

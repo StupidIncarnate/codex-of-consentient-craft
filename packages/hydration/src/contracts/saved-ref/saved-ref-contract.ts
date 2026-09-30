@@ -15,6 +15,6 @@ export const savedRefContract = z.object({
   __savedRef: z.literal(true),
   name: z.string().min(1).brand<'SavedRefName'>(),
   field: z.string().min(1).brand<'SavedRefField'>().optional(),
-});
+}).brand<'SavedRef'>();
 
 export type SavedRef = z.infer<typeof savedRefContract>;

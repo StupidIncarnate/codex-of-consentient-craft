@@ -25,6 +25,6 @@ export const rawEslintConfigContract = z.object({
   language: z.unknown().optional(),
   plugins: z.unknown().optional(),
   languageOptions: rawEslintLanguageOptionsContract.optional(),
-});
+}).brand<'RawEslintConfig'>();
 
 export type RawEslintConfig = z.infer<typeof rawEslintConfigContract>;

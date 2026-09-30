@@ -25,6 +25,6 @@ export const refResolutionContract = z.object({
   state: z.enum(['live', 'stale', 'unknown']).brand<'RefResolutionState'>(),
   boundary: z.string().brand<'RefResolutionBoundary'>().nullable(),
   highestMinted: z.number().int().nonnegative().brand<'RefResolutionHighestMinted'>(),
-});
+}).brand<'RefResolution'>();
 
 export type RefResolution = z.infer<typeof refResolutionContract>;

@@ -26,6 +26,6 @@ export const humanVerdictInputContract = z
       .brand<'HumanVerdictReason'>()
       .describe('Why — becomes the note detail'),
   })
-  .strict();
+  .strict().brand<'HumanVerdictInput'>();
 
 export type HumanVerdictInput = z.infer<typeof humanVerdictInputContract>;

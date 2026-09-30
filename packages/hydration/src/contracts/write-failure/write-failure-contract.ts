@@ -14,6 +14,6 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 export const writeFailureContract = z.object({
   path: absoluteFilePathContract.nullable(),
-});
+}).brand<'WriteFailure'>();
 
 export type WriteFailure = z.infer<typeof writeFailureContract>;

@@ -35,6 +35,6 @@ export const resultsArgsContract = z
     since: sinceMarkerContract.nullable(),
     isJson: z.boolean(),
   })
-  .strict();
+  .strict().brand<'ResultsArgs'>();
 
 export type ResultsArgs = z.infer<typeof resultsArgsContract>;

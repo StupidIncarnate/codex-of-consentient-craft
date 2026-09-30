@@ -17,6 +17,6 @@ import { z } from '#gateway/npm/zod';
 export const routeMetadataContract = z.object({
   path: z.string().brand<'RouteMetadataPath'>().nullable(),
   responderSymbol: z.string().brand<'RouteMetadataResponderSymbol'>(),
-});
+}).brand<'RouteMetadata'>();
 
 export type RouteMetadata = z.infer<typeof routeMetadataContract>;

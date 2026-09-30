@@ -18,6 +18,7 @@ import { networkLogStatics } from '../../../statics/network-log/network-log-stat
 import { mswResponseToNetworkEntryTransformer } from '../../../transformers/msw-response-to-network-entry/msw-response-to-network-entry-transformer';
 import type { NetworkLogEntry } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import type { PendingRequest } from '../../../contracts/pending-request/pending-request-contract';
+import { pendingRequestContract } from '../../../contracts/pending-request/pending-request-contract';
 
 export const networkRecordCaptureBroker = ({
   server,
@@ -40,11 +41,11 @@ export const networkRecordCaptureBroker = ({
         const clonedRequest = request.clone();
         const parsedRequestId = requestId;
 
-        pendingRequests.set(parsedRequestId, {
+        pendingRequests.set(parsedRequestId, pendingRequestContract.parse({
           method: networkLogEntryContract.shape.method.parse(request.method),
           url: networkLogEntryContract.shape.url.parse(request.url),
           timestampMs: epochTimestampContract.parse(Date.now()),
-        });
+        }));
 
         pendingBodies.push(
           clonedRequest
@@ -76,14 +77,14 @@ export const networkRecordCaptureBroker = ({
 
         pendingBodies.push(
           mswResponseToNetworkEntryTransformer({
-            entry: {
+            entry: networkLogEntryContract.parse({
               method: pending.method,
               url: pending.url,
               status: networkLogEntryContract.shape.status.unwrap().parse(response.status),
               durationMs,
               requestBody: pending.requestBody,
               source: 'mock',
-            },
+            }),
             response,
           }).then((entry) => {
             entries.push(entry);
@@ -105,14 +106,14 @@ export const networkRecordCaptureBroker = ({
 
         pendingBodies.push(
           mswResponseToNetworkEntryTransformer({
-            entry: {
+            entry: networkLogEntryContract.parse({
               method: pending.method,
               url: pending.url,
               status: networkLogEntryContract.shape.status.unwrap().parse(response.status),
               durationMs,
               requestBody: pending.requestBody,
               source: 'bypass',
-            },
+            }),
             response,
           }).then((entry) => {
             entries.push(entry);

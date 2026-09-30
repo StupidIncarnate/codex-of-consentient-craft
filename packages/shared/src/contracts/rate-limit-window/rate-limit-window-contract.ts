@@ -16,6 +16,6 @@ export const rateLimitWindowContract = z.object({
     .max(rateLimitStatics.percent.max)
     .brand<'RateLimitUsedPercentage'>(),
   resetsAt: z.iso.datetime().brand<'RateLimitWindowResetsAt'>(),
-});
+}).brand<'RateLimitWindow'>();
 
 export type RateLimitWindow = z.infer<typeof rateLimitWindowContract>;

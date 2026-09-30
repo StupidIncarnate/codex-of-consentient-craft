@@ -34,7 +34,7 @@ export const recipeCatalogEntryContract = z.object({
   recipeName: z.string().min(1).brand<'RecipeCatalogEntryRecipeName'>(),
   description: recipeDescriptionContract,
   inputs: zodSchemaContract.optional(),
-});
+}).brand<'RecipeCatalogEntry'>();
 
 export type RecipeCatalogEntryData = z.infer<typeof recipeCatalogEntryContract>;
 

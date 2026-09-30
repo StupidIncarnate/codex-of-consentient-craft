@@ -13,6 +13,6 @@ export const pendingRequestContract = z.object({
   url: z.string().brand<'RequestUrl'>(),
   timestampMs: z.number().nonnegative().brand<'EpochTimestamp'>(),
   requestBody: z.string().brand<'RequestBody'>().optional(),
-});
+}).brand<'PendingRequest'>();
 
 export type PendingRequest = z.infer<typeof pendingRequestContract>;

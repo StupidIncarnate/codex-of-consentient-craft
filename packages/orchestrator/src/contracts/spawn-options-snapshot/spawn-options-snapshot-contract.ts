@@ -18,6 +18,6 @@ export const spawnOptionsSnapshotContract = z
       .optional(),
     stdio: z.array(z.string().brand<'SpawnOptionsStdioMode'>()).optional(),
   })
-  .loose();
+  .loose().brand<'SpawnOptionsSnapshot'>();
 
 export type SpawnOptionsSnapshot = z.infer<typeof spawnOptionsSnapshotContract>;

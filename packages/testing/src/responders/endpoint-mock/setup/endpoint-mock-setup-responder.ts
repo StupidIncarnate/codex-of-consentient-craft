@@ -18,6 +18,7 @@ import type { EndpointMockLifecycle } from '../../../contracts/endpoint-mock-lif
 import { ws } from '#gateway/npm/msw';
 import { mswServerState } from '../../../state/msw-server/msw-server-state';
 import { isRealIoTestFileGuard } from '../../../guards/is-real-io-test-file/is-real-io-test-file-guard';
+import { endpointMockLifecycleContract } from '../../../contracts/endpoint-mock-lifecycle/endpoint-mock-lifecycle-contract';
 
 // RFC 6455 reserves 1000-1015 for the protocol itself; 1011 ("internal error") is what
 // `@mswjs/interceptors` itself closes with on an uncaught connection-handling exception — reused
@@ -25,12 +26,12 @@ import { isRealIoTestFileGuard } from '../../../guards/is-real-io-test-file/is-r
 const UNHANDLED_WS_CLOSE_CODE = 1011;
 const UNHANDLED_WS_REASON = 'MSW: no test handler staged this WebSocket connection';
 
-const NOOP_LIFECYCLE: EndpointMockLifecycle = {
+const NOOP_LIFECYCLE: EndpointMockLifecycle = endpointMockLifecycleContract.parse({
   listen: (): void => undefined,
   resetHandlers: (): void => undefined,
   close: (): void => undefined,
   assertNoUnhandledRequests: (): void => undefined,
-};
+});
 
 export const EndpointMockSetupResponder = ({
   testPath,
@@ -57,7 +58,7 @@ export const EndpointMockSetupResponder = ({
     client.close(UNHANDLED_WS_CLOSE_CODE, UNHANDLED_WS_REASON);
   });
 
-  return {
+  return endpointMockLifecycleContract.parse({
     listen: (): void => {
       server.resetHandlers(catchAllWsHandler);
       server.listen({
@@ -84,5 +85,5 @@ export const EndpointMockSetupResponder = ({
         );
       }
     },
-  };
+  });
 };

@@ -16,6 +16,6 @@ export const ownerIndexPackageContract = z.object({
   name: z.string().min(1).brand<'OwnerIndexPackageName'>(),
   dir: absoluteFilePathContract,
   dependencies: z.array(z.string().min(1).brand<'OwnerIndexPackageDependencies'>()),
-});
+}).brand<'OwnerIndexPackage'>();
 
 export type OwnerIndexPackage = z.infer<typeof ownerIndexPackageContract>;

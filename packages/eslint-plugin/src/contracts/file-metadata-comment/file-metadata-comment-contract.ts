@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 export const fileMetadataCommentContract = z.object({
   purpose: z.string().min(1).brand<'MetadataPurpose'>(),
   usage: z.string().min(1).brand<'MetadataUsage'>(),
-});
+}).brand<'FileMetadataComment'>();
 
 export type FileMetadataComment = z.infer<typeof fileMetadataCommentContract>;

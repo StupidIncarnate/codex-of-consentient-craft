@@ -18,6 +18,6 @@ export const sessionListItemContract = z.object({
   questId: questContract.shape.id.optional(),
   questTitle: z.string().brand<'SessionListItemQuestTitle'>().optional(),
   questStatus: z.string().brand<'QuestStatus'>().optional(),
-});
+}).brand<'SessionListItem'>();
 
 export type SessionListItem = z.infer<typeof sessionListItemContract>;

@@ -79,6 +79,6 @@ export const wardDetailContract = z
   .object({
     checks: z.array(checkResult).optional(),
   })
-  .loose();
+  .loose().brand<'WardDetail'>();
 
 export type WardDetail = z.infer<typeof wardDetailContract>;

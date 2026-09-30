@@ -17,6 +17,6 @@ export const serverRouteCallSiteContract = z.object({
   method: z.string().brand<'ServerRouteCallSiteMethod'>(),
   rawArg: z.string().brand<'ServerRouteCallSiteRawArg'>(),
   responderName: z.string().brand<'ServerRouteCallSiteResponderName'>().nullable(),
-});
+}).brand<'ServerRouteCallSite'>();
 
 export type ServerRouteCallSite = z.infer<typeof serverRouteCallSiteContract>;

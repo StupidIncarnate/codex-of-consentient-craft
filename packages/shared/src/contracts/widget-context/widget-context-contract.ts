@@ -26,6 +26,6 @@ export const widgetContextContract = z.object({
   wsEdges: z.array(wsEdgeContract),
   packageRoot: absoluteFilePathContract,
   projectRoot: absoluteFilePathContract,
-});
+}).brand<'WidgetContext'>();
 
 export type WidgetContext = z.infer<typeof widgetContextContract>;

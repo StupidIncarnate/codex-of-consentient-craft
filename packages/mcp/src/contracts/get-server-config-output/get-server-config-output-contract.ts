@@ -19,6 +19,6 @@ export const getServerConfigOutputContract = z
       ),
     port: networkPortContract.describe('Numeric port the server is bound to'),
   })
-  .strict();
+  .strict().brand<'GetServerConfigOutput'>();
 
 export type GetServerConfigOutput = z.infer<typeof getServerConfigOutputContract>;

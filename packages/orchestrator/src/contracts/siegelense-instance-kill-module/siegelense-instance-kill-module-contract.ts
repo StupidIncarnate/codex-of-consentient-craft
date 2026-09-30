@@ -23,6 +23,6 @@ export const siegelenseInstanceKillModuleContract = z
   .object({
     instanceKillBroker: instanceKillBrokerFnContract,
   })
-  .loose();
+  .loose().brand<'SiegelenseInstanceKillModule'>();
 
 export type SiegelenseInstanceKillModule = z.infer<typeof siegelenseInstanceKillModuleContract>;

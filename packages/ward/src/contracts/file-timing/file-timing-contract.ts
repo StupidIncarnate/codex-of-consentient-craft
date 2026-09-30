@@ -40,6 +40,6 @@ export const fileTimingContract = z.object({
   // every neighbouring batch. Separate from `testMs` because lint runs no tests: printing rule work
   // as "in tests" would be a lie, and a jest suite's two numbers must stay comparable to each other.
   rulesMs: z.number().nonnegative().brand<'FileTimingRulesMs'>().default(fileTimingContract.shape.rulesMs.parse(0)),
-});
+}).brand<'FileTiming'>();
 
 export type FileTiming = z.infer<typeof fileTimingContract>;

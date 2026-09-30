@@ -31,7 +31,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { guildContract } from '@dungeonmaster/shared/contracts';
+import { guildContract, guildConfigContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import { ensureDir } from '#gateway/node/fs__promises';
@@ -87,7 +87,7 @@ export const guildAddBroker = async ({
   });
 
   await guildConfigWriteBroker({
-    config: { guilds: [...config.guilds, guild] },
+    config: guildConfigContract.parse({ guilds: [...config.guilds, guild] }),
     ...homeOverride,
   });
 

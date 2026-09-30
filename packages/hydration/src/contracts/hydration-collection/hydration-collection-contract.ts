@@ -28,7 +28,7 @@ import type { Matched } from '../matched-set/matched-set-contract';
 
 export const hydrationCollectionContract = z.object({
   ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'HydrationCollectionIngredient'>(),
-});
+}).brand<'HydrationCollection'>();
 
 export type HydrationCollectionData = z.infer<typeof hydrationCollectionContract>;
 

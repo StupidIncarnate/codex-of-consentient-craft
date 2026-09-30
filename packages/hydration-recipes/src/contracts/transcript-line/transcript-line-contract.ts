@@ -41,6 +41,6 @@ export const recipeTranscriptLineContract = z
       .loose()
       .optional(),
   })
-  .loose();
+  .loose().brand<'RecipeTranscriptLine'>();
 
 export type RecipeTranscriptLine = z.infer<typeof recipeTranscriptLineContract>;

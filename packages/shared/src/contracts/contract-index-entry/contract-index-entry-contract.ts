@@ -28,6 +28,6 @@ export const contractIndexEntryContract = z.object({
   parseSites: z.array(contractParseSiteContract),
   nestedInFiles: z.array(absoluteFilePathContract),
   isParsed: z.boolean(),
-});
+}).brand<'ContractIndexEntry'>();
 
 export type ContractIndexEntry = z.infer<typeof contractIndexEntryContract>;

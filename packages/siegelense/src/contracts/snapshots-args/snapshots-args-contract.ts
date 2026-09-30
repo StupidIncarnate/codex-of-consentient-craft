@@ -19,6 +19,6 @@ export const snapshotsArgsContract = z
     instanceId: siegeInstanceContract.shape.id,
     isJson: z.boolean().default(false),
   })
-  .strict();
+  .strict().brand<'SnapshotsArgs'>();
 
 export type SnapshotsArgs = z.infer<typeof snapshotsArgsContract>;

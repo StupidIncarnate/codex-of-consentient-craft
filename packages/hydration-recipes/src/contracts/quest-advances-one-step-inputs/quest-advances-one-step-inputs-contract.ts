@@ -14,6 +14,6 @@ import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const questAdvancesOneStepInputsContract = z.object({
   guildId: guildContract.shape.id,
-});
+}).brand<'QuestAdvancesOneStepInputs'>();
 
 export type QuestAdvancesOneStepInputs = z.infer<typeof questAdvancesOneStepInputsContract>;

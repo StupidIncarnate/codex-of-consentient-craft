@@ -65,6 +65,6 @@ export const compareAnswerContract = z
     networkNon2xxDelta: z.number().int().brand<'NetworkNon2xxDelta'>().optional(),
     pixelDiffCount: z.number().int().nonnegative().brand<'CompareAnswerPixelDiffCount'>().optional(),
   })
-  .strict();
+  .strict().brand<'CompareAnswer'>();
 
 export type CompareAnswer = z.infer<typeof compareAnswerContract>;

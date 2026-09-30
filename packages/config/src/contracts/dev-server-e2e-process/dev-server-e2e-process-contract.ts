@@ -31,6 +31,6 @@ export const devServerE2eProcessContract = z.object({
   env: z
     .record(z.string().brand<'E2eEnvVarName'>(), z.string().brand<'E2eEnvVarValue'>())
     .optional(),
-});
+}).brand<'DevServerE2eProcess'>();
 
 export type DevServerE2eProcess = z.infer<typeof devServerE2eProcessContract>;

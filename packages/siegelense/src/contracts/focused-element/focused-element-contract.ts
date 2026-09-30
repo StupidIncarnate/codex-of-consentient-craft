@@ -27,6 +27,6 @@ export const focusedElementContract = z
     text: z.string().brand<'FocusedElementText'>().nullable(),
     ref: z.number().int().positive().brand<'FocusedElementRef'>().nullable(),
   })
-  .strict();
+  .strict().brand<'FocusedElement'>();
 
 export type FocusedElement = z.infer<typeof focusedElementContract>;

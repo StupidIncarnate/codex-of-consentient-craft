@@ -16,6 +16,6 @@ export const moduleDependencyContract = z.object({
   specifier: z.string().min(1).brand<'ModuleDependencySpecifier'>(),
   kind: z.enum(['named', 'star', 'opaque']),
   importedNames: z.array(z.string().min(1).brand<'ModuleDependencyImportedNames'>()),
-});
+}).brand<'ModuleDependency'>();
 
 export type ModuleDependency = z.infer<typeof moduleDependencyContract>;

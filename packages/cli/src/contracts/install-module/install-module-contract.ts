@@ -30,6 +30,6 @@ export const installModuleContract = z
     StartInstall: startInstallFnContract.optional(),
     StartInstallFinalize: startInstallFinalizeFnContract.optional(),
   })
-  .loose();
+  .loose().brand<'InstallModule'>();
 
 export type InstallModule = z.infer<typeof installModuleContract>;

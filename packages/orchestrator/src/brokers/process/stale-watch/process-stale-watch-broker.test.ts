@@ -1,6 +1,7 @@
 
 import { processStaleWatchBroker } from './process-stale-watch-broker';
 import { processStaleWatchBrokerProxy } from './process-stale-watch-broker.proxy';
+import { ProcessActivityStub } from '../../../contracts/process-activity/process-activity.stub';
 
 describe('processStaleWatchBroker', () => {
   describe('silence threshold', () => {
@@ -12,7 +13,7 @@ describe('processStaleWatchBroker', () => {
       const onStale = jest.fn();
       processStaleWatchBroker({
         getProcessIds: () => [processId],
-        getActivity: () => ({ lastActivityAt: ninetySecondsAgo }),
+        getActivity: () => ProcessActivityStub({ lastActivityAt: ninetySecondsAgo }),
         onStale,
         intervalMs: 1000,
         thresholdMs: 60_000,
@@ -35,7 +36,7 @@ describe('processStaleWatchBroker', () => {
       const onStale = jest.fn();
       processStaleWatchBroker({
         getProcessIds: () => ['proc-active'],
-        getActivity: () => ({ lastActivityAt: fiveSecondsAgo }),
+        getActivity: () => ProcessActivityStub({ lastActivityAt: fiveSecondsAgo }),
         onStale,
         intervalMs: 1000,
         thresholdMs: 60_000,
@@ -57,7 +58,7 @@ describe('processStaleWatchBroker', () => {
       const onStale = jest.fn();
       processStaleWatchBroker({
         getProcessIds: () => ['proc-1'],
-        getActivity: () => ({ lastActivityAt: longAgo, osPid: pid }),
+        getActivity: () => ProcessActivityStub({ lastActivityAt: longAgo, osPid: pid }),
         onStale,
         intervalMs: 1000,
         thresholdMs: 60_000,
@@ -82,7 +83,7 @@ describe('processStaleWatchBroker', () => {
       const onStale = jest.fn();
       processStaleWatchBroker({
         getProcessIds: () => ['proc-dead'],
-        getActivity: () => ({ lastActivityAt: longAgo, osPid: pid }),
+        getActivity: () => ProcessActivityStub({ lastActivityAt: longAgo, osPid: pid }),
         onStale,
         intervalMs: 1000,
         thresholdMs: 60_000,

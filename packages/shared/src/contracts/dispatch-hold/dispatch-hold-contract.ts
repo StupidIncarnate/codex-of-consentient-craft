@@ -28,6 +28,6 @@ export const dispatchHoldContract = z.object({
   detail: z.string().min(1).brand<'DispatchHoldDetail'>(),
   heldAt: z.iso.datetime().brand<'DispatchHoldHeldAt'>(),
   resumeAt: z.iso.datetime().brand<'DispatchHoldResumeAt'>(),
-});
+}).brand<'DispatchHold'>();
 
 export type DispatchHold = z.infer<typeof dispatchHoldContract>;

@@ -23,6 +23,6 @@ export const mockCallContract = z.object({
   // replacing X's single accessed method with a flat `X: jest.fn()`, which would destroy X's other
   // methods entirely.
   objectIdentifierNames: z.array(z.string().min(1).brand<'MockCallObjectIdentifierNames'>()).default([]),
-});
+}).brand<'MockCall'>();
 
 export type MockCall = z.infer<typeof mockCallContract>;

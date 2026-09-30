@@ -27,6 +27,6 @@ export const transcriptLineContract = z
       })
       .loose(),
   })
-  .loose();
+  .loose().brand<'TranscriptLine'>();
 
 export type TranscriptLine = z.infer<typeof transcriptLineContract>;

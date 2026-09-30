@@ -67,6 +67,6 @@ export const instanceManifestContract = z.object({
   queuedMs: z.number().int().nonnegative().brand<'InstanceManifestQueuedMs'>(),
   aheadOfMe: z.number().int().nonnegative().brand<'InstanceManifestAheadOfMe'>(),
   bootMs: z.number().int().nonnegative().brand<'InstanceManifestBootMs'>(),
-});
+}).brand<'InstanceManifest'>();
 
 export type InstanceManifest = z.infer<typeof instanceManifestContract>;

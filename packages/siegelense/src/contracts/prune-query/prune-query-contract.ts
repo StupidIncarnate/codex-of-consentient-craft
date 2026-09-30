@@ -24,6 +24,6 @@ export const pruneQueryContract = z
     kind: pruneAssetKindContract.nullable(),
     olderThan: z.string().min(1).brand<'PruneQueryOlderThan'>(),
   })
-  .strict();
+  .strict().brand<'PruneQuery'>();
 
 export type PruneQuery = z.infer<typeof pruneQueryContract>;

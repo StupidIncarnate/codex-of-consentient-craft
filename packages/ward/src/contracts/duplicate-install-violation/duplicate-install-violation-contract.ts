@@ -26,6 +26,6 @@ export const duplicateInstallViolationContract = z.object({
   locations: z
     .array(duplicateInstallLocationContract)
     .min(duplicateInstallThresholdsStatics.counts.minimumLocationsForViolation),
-});
+}).brand<'DuplicateInstallViolation'>();
 
 export type DuplicateInstallViolation = z.infer<typeof duplicateInstallViolationContract>;

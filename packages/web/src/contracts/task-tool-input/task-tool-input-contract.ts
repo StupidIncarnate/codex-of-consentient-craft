@@ -12,6 +12,6 @@ export const taskToolInputContract = z
   .object({
     description: z.string().brand<'ChainDescription'>(),
   })
-  .loose();
+  .loose().brand<'TaskToolInput'>();
 
 export type TaskToolInput = z.infer<typeof taskToolInputContract>;

@@ -28,6 +28,6 @@ export const domNodeContract = z
     attrs: z.array(attrPairContract).readonly().optional(),
     value: z.string().brand<'DomNodeValue'>().nullable().optional(),
   })
-  .strict();
+  .strict().brand<'DomNode'>();
 
 export type DomNode = z.infer<typeof domNodeContract>;

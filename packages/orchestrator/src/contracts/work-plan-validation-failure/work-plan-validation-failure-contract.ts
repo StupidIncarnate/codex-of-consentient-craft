@@ -26,6 +26,6 @@ export const workPlanValidationFailureContract = z.object({
   pieceId: pieceIdContract,
   check: z.number().int().min(1).max(workPlanValidationCheckStatics.limits.max).brand<'WorkPlanValidationFailureCheck'>(),
   message: z.string().min(1).brand<'WorkPlanValidationMessage'>(),
-});
+}).brand<'WorkPlanValidationFailure'>();
 
 export type WorkPlanValidationFailure = z.infer<typeof workPlanValidationFailureContract>;

@@ -50,6 +50,6 @@ export const laneSpecContract = z
       message: 'two processes cannot claim the same portRole',
       path: ['processes'],
     },
-  );
+  ).brand<'LaneSpec'>();
 
 export type LaneSpec = z.infer<typeof laneSpecContract>;

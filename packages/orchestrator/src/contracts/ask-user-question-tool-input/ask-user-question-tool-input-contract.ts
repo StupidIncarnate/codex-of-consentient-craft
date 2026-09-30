@@ -17,6 +17,6 @@ export const askUserQuestionToolInputContract = z
       .union([z.string().brand<'AskUserQuestionRawJsonQuestions'>(), z.array(z.unknown())])
       .optional(),
   })
-  .loose();
+  .loose().brand<'AskUserQuestionToolInput'>();
 
 export type AskUserQuestionToolInput = z.infer<typeof askUserQuestionToolInputContract>;

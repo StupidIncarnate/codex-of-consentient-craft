@@ -15,6 +15,6 @@ export const portKillListenerResultContract = z.object({
   pid: z.number().int().positive().brand<'PortListenerPid'>(),
   exitCode: exitCodeContract,
   output: z.string().brand<'PortKillListenerResultOutput'>(),
-});
+}).brand<'PortKillListenerResult'>();
 
 export type PortKillListenerResult = z.infer<typeof portKillListenerResultContract>;

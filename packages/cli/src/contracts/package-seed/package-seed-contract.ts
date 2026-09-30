@@ -53,6 +53,6 @@ export const packageSeedContract = z.object({
       contents: z.string().brand<'PackageSeedFilesContents'>(),
     }),
   ),
-});
+}).brand<'PackageSeed'>();
 
 export type PackageSeed = z.infer<typeof packageSeedContract>;

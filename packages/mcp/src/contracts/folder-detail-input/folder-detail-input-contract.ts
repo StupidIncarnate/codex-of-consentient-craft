@@ -12,6 +12,6 @@ export const folderDetailInputContract = z
   .object({
     folderType: folderTypeContract.describe('Type of folder to get details for'),
   })
-  .strict();
+  .strict().brand<'FolderDetailInput'>();
 
 export type FolderDetailInput = z.infer<typeof folderDetailInputContract>;

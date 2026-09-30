@@ -21,6 +21,6 @@ export const smoketestCaseResultContract = z.object({
   prompt: z.string().brand<'AgentPromptText'>().optional(),
   model: z.string().brand<'AgentModelLabel'>().optional(),
   entries: z.array(chatEntryContract).optional(),
-});
+}).brand<'SmoketestCaseResult'>();
 
 export type SmoketestCaseResult = z.infer<typeof smoketestCaseResultContract>;

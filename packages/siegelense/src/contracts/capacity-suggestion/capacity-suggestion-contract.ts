@@ -32,6 +32,6 @@ export const capacitySuggestionContract = z
     ceilingLeft: z.number().int().nonnegative().brand<'CapacitySuggestionCeilingLeft'>(),
     availableMB: z.number().int().nonnegative().brand<'CapacitySuggestionAvailableMB'>(),
   })
-  .strict();
+  .strict().brand<'CapacitySuggestion'>();
 
 export type CapacitySuggestion = z.infer<typeof capacitySuggestionContract>;

@@ -18,6 +18,6 @@ export const holdReadingContract = z
     verdict: z.string().brand<'HoldVerdict'>(),
     shots: z.array(z.string().brand<'HoldShotPath'>()),
   })
-  .strict();
+  .strict().brand<'HoldReading'>();
 
 export type HoldReading = z.infer<typeof holdReadingContract>;

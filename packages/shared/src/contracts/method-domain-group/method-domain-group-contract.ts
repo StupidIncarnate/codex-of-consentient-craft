@@ -17,6 +17,6 @@ import { z } from '#gateway/npm/zod';
 export const methodDomainGroupContract = z.object({
   domain: z.string().brand<'MethodDomainGroupDomain'>(),
   methods: z.array(z.string().brand<'MethodDomainGroupMethods'>()),
-});
+}).brand<'MethodDomainGroup'>();
 
 export type MethodDomainGroup = z.infer<typeof methodDomainGroupContract>;

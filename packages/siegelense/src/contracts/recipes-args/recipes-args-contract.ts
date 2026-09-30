@@ -18,6 +18,6 @@ export const recipesArgsContract = z
   .object({
     isJson: z.boolean(),
   })
-  .strict();
+  .strict().brand<'RecipesArgs'>();
 
 export type RecipesArgs = z.infer<typeof recipesArgsContract>;

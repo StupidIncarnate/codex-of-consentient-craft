@@ -7,7 +7,7 @@
  * // Throws if guild not found or path already in use by another guild
  */
 
-import { guildContract } from '@dungeonmaster/shared/contracts';
+import { guildContract, guildConfigContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
@@ -47,7 +47,7 @@ export const guildUpdateBroker = async ({
 
   const updatedGuilds = config.guilds.map((g) => (g.id === guildId ? updated : g));
 
-  await guildConfigWriteBroker({ config: { guilds: updatedGuilds } });
+  await guildConfigWriteBroker({ config: guildConfigContract.parse({ guilds: updatedGuilds }) });
 
   return updated;
 };

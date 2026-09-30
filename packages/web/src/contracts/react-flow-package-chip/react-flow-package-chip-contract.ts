@@ -21,6 +21,6 @@ export const reactFlowPackageChipContract = z.object({
   // is the coverage rule's own failure case, so the card paints it as unresolved rather than
   // guessing a kind — a wrong colour would report a defect as a legitimate boundary.
   packageType: packageTypeContract.optional(),
-});
+}).brand<'ReactFlowPackageChip'>();
 
 export type ReactFlowPackageChip = z.infer<typeof reactFlowPackageChipContract>;

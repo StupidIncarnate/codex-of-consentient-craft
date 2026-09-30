@@ -11,6 +11,6 @@ import { signalBackInputContract } from '../signal-back-input/signal-back-input-
 export const signalBackResultContract = z.object({
   success: z.boolean().brand<'SuccessFlag'>(),
   signal: signalBackInputContract,
-});
+}).brand<'SignalBackResult'>();
 
 export type SignalBackResult = z.infer<typeof signalBackResultContract>;

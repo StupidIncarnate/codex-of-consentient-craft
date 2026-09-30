@@ -15,6 +15,6 @@ export const userTextStreamLineContract = z.object({
     role: z.literal('user'),
     content: z.union([z.string().brand<'UserTextContent'>(), z.array(textBlockParamContract)]),
   }),
-});
+}).brand<'UserTextStreamLine'>();
 
 export type UserTextStreamLine = z.infer<typeof userTextStreamLineContract>;

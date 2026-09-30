@@ -14,7 +14,7 @@ import type { McpConfig } from '../mcp-config/mcp-config-contract';
 export const installTestbedContract = z.object({
   guildPath: z.string().brand<'InstallTestbedGuildPath'>(),
   dungeonmasterPath: z.string().brand<'DungeonmasterPath'>(),
-});
+}).brand<'InstallTestbed'>();
 
 export type InstallTestbedData = z.infer<typeof installTestbedContract>;
 

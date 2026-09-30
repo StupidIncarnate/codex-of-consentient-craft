@@ -15,6 +15,6 @@ export const preSearchHookDataContract = z.object({
   hook_event_name: z.literal('PreToolUse'),
   tool_name: z.string().min(1).brand<'PreSearchHookDataToolName'>(),
   tool_input: z.unknown(),
-});
+}).brand<'PreSearchHookData'>();
 
 export type PreSearchHookData = z.infer<typeof preSearchHookDataContract>;

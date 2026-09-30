@@ -48,6 +48,6 @@ export const mintedWorkItemContract = z.object({
     .describe(
       'Copied off the step config: this item needs a siegelense lane before it dispatches.',
     ),
-});
+}).brand<'MintedWorkItem'>();
 
 export type MintedWorkItem = z.infer<typeof mintedWorkItemContract>;

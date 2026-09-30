@@ -15,6 +15,6 @@ export const designDecisionContract = z.object({
   title: z.string().min(1).brand<'DecisionTitle'>(),
   rationale: z.string().brand<'DecisionRationale'>(),
   relatedNodeIds: z.array(flowNodeContract.shape.id),
-});
+}).brand<'DesignDecision'>();
 
 export type DesignDecision = z.infer<typeof designDecisionContract>;

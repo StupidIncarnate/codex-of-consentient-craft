@@ -12,6 +12,6 @@ export const editToolInputContract = z.object({
   old_string: z.string().brand<'OldString'>(),
   new_string: z.string().brand<'NewString'>(),
   replace_all: z.boolean().optional(),
-});
+}).brand<'EditToolInput'>();
 
 export type EditToolInput = z.infer<typeof editToolInputContract>;

@@ -131,6 +131,6 @@ export const questProjectionContract = z
         'actual rows that totalPlannedSteps already includes.',
     ),
   })
-  .strict();
+  .strict().brand<'QuestProjection'>();
 
 export type QuestProjection = z.infer<typeof questProjectionContract>;

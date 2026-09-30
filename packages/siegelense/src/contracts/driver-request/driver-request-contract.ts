@@ -25,6 +25,6 @@ import { driverRequestKindContract } from '../driver-request-kind/driver-request
 export const driverRequestContract = z.object({
   kind: driverRequestKindContract,
   payload: z.string().brand<'DriverRequestPayload'>(),
-});
+}).brand<'DriverRequest'>();
 
 export type DriverRequest = z.infer<typeof driverRequestContract>;

@@ -12,6 +12,6 @@ export const systemInitStreamLineContract = z.object({
   type: z.literal('system'),
   subtype: z.literal('init'),
   session_id: sessionContract.shape.id,
-});
+}).brand<'SystemInitStreamLine'>();
 
 export type SystemInitStreamLine = z.infer<typeof systemInitStreamLineContract>;

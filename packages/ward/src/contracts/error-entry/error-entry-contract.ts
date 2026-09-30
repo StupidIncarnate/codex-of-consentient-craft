@@ -15,6 +15,6 @@ export const errorEntryContract = z.object({
   message: z.string().brand<'ErrorEntryMessage'>(),
   rule: z.string().brand<'ErrorRule'>().optional(),
   severity: z.enum(['error', 'warning']),
-});
+}).brand<'ErrorEntry'>();
 
 export type ErrorEntry = z.infer<typeof errorEntryContract>;

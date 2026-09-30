@@ -14,6 +14,6 @@ import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-pa
 export const widgetEdgesContract = z.object({
   childWidgetPaths: z.array(absoluteFilePathContract),
   bindingNames: z.array(z.string().brand<'WidgetEdgesBindingNames'>()),
-});
+}).brand<'WidgetEdges'>();
 
 export type WidgetEdges = z.infer<typeof widgetEdgesContract>;

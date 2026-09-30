@@ -22,6 +22,6 @@ export const streamSignalContract = z.object({
   operationItemId: operationItemContract.shape.id.optional(),
   operationStatus: z.enum(['done', 'partial', 'blocked']).optional(),
   blockedReason: z.string().min(1).brand<'StreamSignalBlockedReason'>().optional(),
-});
+}).brand<'StreamSignal'>();
 
 export type StreamSignal = z.infer<typeof streamSignalContract>;

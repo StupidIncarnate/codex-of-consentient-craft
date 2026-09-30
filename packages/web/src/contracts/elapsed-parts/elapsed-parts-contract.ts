@@ -28,6 +28,6 @@ export const elapsedPartsContract = z.object({
     .min(0)
     .max(elapsedDisplayConfigStatics.thresholds.minuteThresholdSeconds - 1)
     .brand<'ElapsedSeconds'>(),
-});
+}).brand<'ElapsedParts'>();
 
 export type ElapsedParts = z.infer<typeof elapsedPartsContract>;

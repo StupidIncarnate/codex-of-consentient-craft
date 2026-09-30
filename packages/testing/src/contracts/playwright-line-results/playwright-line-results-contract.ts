@@ -12,6 +12,6 @@ export const playwrightLineResultsContract = z.object({
   passed: z.array(z.string().min(1).brand<'PlaywrightTestTitle'>()),
   failed: z.array(z.string().min(1).brand<'PlaywrightTestTitle'>()),
   total: z.number().int().min(0).brand<'PlaywrightTestCount'>(),
-});
+}).brand<'PlaywrightLineResults'>();
 
 export type PlaywrightLineResults = z.infer<typeof playwrightLineResultsContract>;

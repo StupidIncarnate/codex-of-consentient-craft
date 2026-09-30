@@ -28,6 +28,6 @@ export const astNodeContract = z.object({
     })
     .optional(),
   parent: z.unknown().optional(),
-});
+}).brand<'AstNode'>();
 
 export type AstNode = z.infer<typeof astNodeContract>;

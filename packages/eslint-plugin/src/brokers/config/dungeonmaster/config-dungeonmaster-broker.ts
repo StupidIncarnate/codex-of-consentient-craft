@@ -34,12 +34,13 @@ import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';
 import * as eslintPluginEslintComments from '#gateway/npm/eslint-plugin-eslint-comments';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
 import type { GatewayLintConfig } from '@dungeonmaster/shared/contracts';
+import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 
 type DeepWritable<T> = T extends object ? { -readonly [K in keyof T]: DeepWritable<T[K]> } : T;
 
 export const configDungeonmasterBroker = ({
   forTesting = false,
-  gatewayLintConfig = {},
+  gatewayLintConfig = gatewayLintConfigContract.parse({}),
   workspacePackageNames = [],
 }: {
   forTesting?: boolean;

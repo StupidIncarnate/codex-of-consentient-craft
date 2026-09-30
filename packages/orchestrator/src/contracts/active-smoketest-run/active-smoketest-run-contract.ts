@@ -15,6 +15,6 @@ export const activeSmoketestRunContract = z.object({
   runId: z.uuid().brand<'ActiveSmoketestRunRunId'>(),
   suite: smoketestSuiteContract,
   startedAt: z.iso.datetime().brand<'ActiveSmoketestRunStartedAt'>(),
-});
+}).brand<'ActiveSmoketestRun'>();
 
 export type ActiveSmoketestRun = z.infer<typeof activeSmoketestRunContract>;

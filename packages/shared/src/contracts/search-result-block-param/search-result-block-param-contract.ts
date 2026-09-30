@@ -15,6 +15,6 @@ export const searchResultBlockParamContract = z.object({
   source: z.string().brand<'SearchResultSource'>(),
   title: z.string().brand<'SearchResultTitle'>(),
   content: z.array(textBlockParamContract),
-});
+}).brand<'SearchResultBlockParam'>();
 
 export type SearchResultBlockParam = z.infer<typeof searchResultBlockParamContract>;

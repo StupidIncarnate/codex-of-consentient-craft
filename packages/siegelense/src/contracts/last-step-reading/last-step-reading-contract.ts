@@ -20,6 +20,6 @@ export const lastStepReadingContract = z.object({
   run: siegeRunContract.shape.id,
   step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'LastStepReadingStep'>(),
   verb: stepVerbContract,
-});
+}).brand<'LastStepReading'>();
 
 export type LastStepReading = z.infer<typeof lastStepReadingContract>;

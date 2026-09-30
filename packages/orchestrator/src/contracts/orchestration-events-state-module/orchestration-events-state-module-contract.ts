@@ -22,6 +22,6 @@ export const orchestrationEventsStateModuleContract = z
   .object({
     orchestrationEventsState: orchestrationEventsStateFacadeContract,
   })
-  .loose();
+  .loose().brand<'OrchestrationEventsStateModule'>();
 
 export type OrchestrationEventsStateModule = z.infer<typeof orchestrationEventsStateModuleContract>;

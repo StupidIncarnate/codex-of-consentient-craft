@@ -24,6 +24,6 @@ export const composerSendPayloadContract = z.object({
   // In paste order — the server pairs the Nth `[Pasted Image N]` token in `message` with the Nth
   // entry here by position, not by attachmentId.
   attachments: z.array(composerAttachmentContract),
-});
+}).brand<'ComposerSendPayload'>();
 
 export type ComposerSendPayload = z.infer<typeof composerSendPayloadContract>;

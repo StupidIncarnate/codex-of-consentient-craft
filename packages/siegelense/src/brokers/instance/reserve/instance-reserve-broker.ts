@@ -44,6 +44,7 @@ import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/po
 import { isGitNotARepositoryErrorGuard } from '../../../guards/is-git-not-a-repository-error/is-git-not-a-repository-error-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 
 export const instanceReserveBroker = async ({
   specName,
@@ -122,7 +123,7 @@ export const instanceReserveBroker = async ({
         prunedByRule: null,
       });
 
-      return { instances: [...registry.instances, entry] };
+      return registryContract.parse({ instances: [...registry.instances, entry] });
     },
   });
 

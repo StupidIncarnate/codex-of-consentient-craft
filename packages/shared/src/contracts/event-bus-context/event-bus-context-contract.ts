@@ -19,6 +19,6 @@ export const eventBusContextContract = z.object({
   buses: z.array(eventBusContract),
   emitterSites: z.array(busEmitterSiteContract),
   subscriberFiles: z.array(busSubscriberFileContract),
-});
+}).brand<'EventBusContext'>();
 
 export type EventBusContext = z.infer<typeof eventBusContextContract>;

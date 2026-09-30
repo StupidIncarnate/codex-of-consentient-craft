@@ -19,6 +19,6 @@ export const commentAnchorContract = z.object({
   nodeId: flowNodeContract.shape.id,
   // Set only when the comment was left on a FLOW_OBSERVABLE_NODE card; absent for a node-card comment.
   observableId: flowObservableContract.shape.id.optional(),
-});
+}).brand<'CommentAnchor'>();
 
 export type CommentAnchor = z.infer<typeof commentAnchorContract>;

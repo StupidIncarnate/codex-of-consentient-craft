@@ -46,6 +46,6 @@ export const gatewayLintConfigContract = z.object({
       }),
     )
     .optional(),
-});
+}).brand<'GatewayLintConfig'>();
 
 export type GatewayLintConfig = z.infer<typeof gatewayLintConfigContract>;

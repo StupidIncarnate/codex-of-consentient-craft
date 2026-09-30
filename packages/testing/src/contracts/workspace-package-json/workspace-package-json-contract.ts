@@ -77,6 +77,6 @@ export const workspacePackageJsonContract = z
       )
       .optional(),
   })
-  .loose();
+  .loose().brand<'WorkspacePackageJson'>();
 
 export type WorkspacePackageJson = z.infer<typeof workspacePackageJsonContract>;

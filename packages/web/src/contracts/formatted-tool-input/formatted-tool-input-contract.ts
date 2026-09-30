@@ -12,6 +12,6 @@ import { formattedToolFieldContract } from '../formatted-tool-field/formatted-to
 
 export const formattedToolInputContract = z.object({
   fields: z.array(formattedToolFieldContract),
-});
+}).brand<'FormattedToolInput'>();
 
 export type FormattedToolInput = z.infer<typeof formattedToolInputContract>;

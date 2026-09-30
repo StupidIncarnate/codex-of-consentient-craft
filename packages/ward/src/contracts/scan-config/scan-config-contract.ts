@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 export const scanConfigContract = z.object({
   rule: z.string().min(1).regex(/^\S+$/u).brand<'ScanConfigRule'>(),
   paths: z.array(z.string().brand<'ScanConfigPaths'>()),
-});
+}).brand<'ScanConfig'>();
 
 export type ScanConfig = z.infer<typeof scanConfigContract>;

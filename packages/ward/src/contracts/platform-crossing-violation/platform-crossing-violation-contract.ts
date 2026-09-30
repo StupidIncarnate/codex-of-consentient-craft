@@ -22,6 +22,6 @@ export const platformCrossingViolationContract = z.object({
   platform: platformContract,
   chain: z.array(z.string().min(1).brand<'PlatformCrossingViolationChain'>()).min(1),
   crossedGatewayPackage: z.string().min(1).brand<'PlatformCrossingViolationCrossedGatewayPackage'>(),
-});
+}).brand<'PlatformCrossingViolation'>();
 
 export type PlatformCrossingViolation = z.infer<typeof platformCrossingViolationContract>;

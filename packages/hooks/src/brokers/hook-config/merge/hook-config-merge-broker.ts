@@ -7,6 +7,7 @@
  */
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { hookConfigDefaultBroker } from '../default/hook-config-default-broker';
+import { preEditLintConfigContract } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 
 export const hookConfigMergeBroker = ({
   config,
@@ -15,7 +16,7 @@ export const hookConfigMergeBroker = ({
 }): PreEditLintConfig => {
   const defaults = hookConfigDefaultBroker();
 
-  return {
+  return preEditLintConfigContract.parse({
     rules: config.rules.length > 0 ? config.rules : defaults.rules,
-  };
+  });
 };

@@ -26,6 +26,6 @@ export const storageReadingContract = z
       z.string().brand<'StorageValue'>().nullable(),
     ),
   })
-  .strict();
+  .strict().brand<'StorageReading'>();
 
 export type StorageReading = z.infer<typeof storageReadingContract>;

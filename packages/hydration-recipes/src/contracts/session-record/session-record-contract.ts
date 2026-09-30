@@ -26,6 +26,6 @@ export const sessionRecordContract = z.object({
   cwd: absoluteFilePathContract,
   filePath: absoluteFilePathContract,
   lineCount: z.number().int().positive().brand<'SessionRecordLineCount'>(),
-});
+}).brand<'SessionRecord'>();
 
 export type SessionRecord = z.infer<typeof sessionRecordContract>;

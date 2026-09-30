@@ -23,6 +23,6 @@ export const statuslineInputContract = z
       })
       .optional(),
   })
-  .loose();
+  .loose().brand<'StatuslineInput'>();
 
 export type StatuslineInput = z.infer<typeof statuslineInputContract>;

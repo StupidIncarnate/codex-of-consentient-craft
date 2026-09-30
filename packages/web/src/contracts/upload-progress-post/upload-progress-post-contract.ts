@@ -24,6 +24,6 @@ export const uploadProgressPostContract = z.object({
   url: z.string().min(1).brand<'RequestUrl'>(),
   body: z.unknown(),
   onProgress: z.custom<UploadProgressHandler>((value) => typeof value === 'function'),
-});
+}).brand<'UploadProgressPost'>();
 
 export type UploadProgressPost = z.infer<typeof uploadProgressPostContract>;

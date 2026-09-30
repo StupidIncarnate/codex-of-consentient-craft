@@ -27,6 +27,6 @@ export const localImagePathMatchContract = z.object({
   path: absoluteFilePathContract,
   matchedText: z.string().min(1).brand<'LocalImagePathMatchedText'>(),
   ordinal: z.number().int().positive().brand<'LocalImagePathMatchOrdinal'>(),
-});
+}).brand<'LocalImagePathMatch'>();
 
 export type LocalImagePathMatch = z.infer<typeof localImagePathMatchContract>;

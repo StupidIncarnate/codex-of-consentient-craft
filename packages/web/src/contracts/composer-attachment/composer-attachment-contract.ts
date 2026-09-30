@@ -35,6 +35,6 @@ export const composerAttachmentContract = z.object({
   // The pixel size after downscaling.
   widthPx: z.number().int().positive().brand<'ComposerAttachmentWidthPx'>(),
   heightPx: z.number().int().positive().brand<'ComposerAttachmentHeightPx'>(),
-});
+}).brand<'ComposerAttachment'>();
 
 export type ComposerAttachment = z.infer<typeof composerAttachmentContract>;

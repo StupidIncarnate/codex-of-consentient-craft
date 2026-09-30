@@ -22,7 +22,7 @@ const questionTextKeyContract = z.string().min(1).brand<'QuestionText'>();
 
 export const askUserQuestionResponseContract = askUserQuestionContract.extend({
   answers: z.record(questionTextKeyContract, answerValueContract),
-});
+}).brand<'AskUserQuestionResponse'>();
 
 export type AskUserQuestionResponse = z.infer<typeof askUserQuestionResponseContract>;
 export type AnswerValue = z.infer<typeof answerValueContract>;

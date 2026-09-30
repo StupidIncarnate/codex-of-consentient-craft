@@ -21,6 +21,6 @@ export const ownerIndexEnumContract = z.object({
   packageName: z.string().min(1).brand<'OwnerIndexEnumPackageName'>(),
   key: z.string().brand<'OwnerIndexEnumKey'>().optional(),
   values: z.array(z.string().brand<'OwnerIndexEnumValues'>()),
-});
+}).brand<'OwnerIndexEnum'>();
 
 export type OwnerIndexEnum = z.infer<typeof ownerIndexEnumContract>;

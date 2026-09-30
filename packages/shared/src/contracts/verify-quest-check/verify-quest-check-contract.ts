@@ -11,6 +11,6 @@ export const verifyQuestCheckContract = z.object({
   name: z.string().min(1).brand<'CheckName'>(),
   passed: z.boolean(),
   details: z.string().brand<'CheckDetails'>(),
-});
+}).brand<'VerifyQuestCheck'>();
 
 export type VerifyQuestCheck = z.infer<typeof verifyQuestCheckContract>;

@@ -25,6 +25,6 @@ export const runRequestContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
   steps: z.array(stepContract).readonly(),
   stopOn: stopOnContract,
-});
+}).brand<'RunRequest'>();
 
 export type RunRequest = z.infer<typeof runRequestContract>;

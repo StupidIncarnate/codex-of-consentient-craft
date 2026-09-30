@@ -86,7 +86,7 @@ export const questHumanVerdictRecordBroker = async ({
       }
 
       const at = new Date().toISOString();
-      const note: QuestNote = {
+      const note: QuestNote = questNoteContract.parse({
         id: questNoteContract.shape.id.parse(`human-verdict-${unitId}`),
         kind: questNoteContract.shape.kind.parse('human-verdict'),
         role: questNoteContract.shape.role.parse('operator'),
@@ -98,7 +98,7 @@ export const questHumanVerdictRecordBroker = async ({
         ),
         detail: questNoteContract.shape.detail.parse(reason),
         at: questNoteContract.shape.at.parse(at),
-      };
+      });
 
       const nextQuestNotes = [
         ...quest.planningNotes.questNotes.filter((existing) => existing.id !== note.id),

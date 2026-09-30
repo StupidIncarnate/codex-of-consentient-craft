@@ -33,6 +33,6 @@ export const rawDomReadingContract = z.object({
       }),
     )
     .readonly(),
-});
+}).brand<'RawDomReading'>();
 
 export type RawDomReading = z.infer<typeof rawDomReadingContract>;

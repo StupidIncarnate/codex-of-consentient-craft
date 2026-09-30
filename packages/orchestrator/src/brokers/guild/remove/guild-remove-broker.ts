@@ -12,6 +12,7 @@ import type { Guild } from '@dungeonmaster/shared/contracts';
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
+import { guildConfigContract } from '@dungeonmaster/shared/contracts';
 
 export const guildRemoveBroker = async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
   const config = await guildConfigReadBroker();
@@ -24,5 +25,5 @@ export const guildRemoveBroker = async ({ guildId }: { guildId: Guild['id'] }): 
 
   const updatedGuilds = config.guilds.filter((g) => g.id !== guildId);
 
-  await guildConfigWriteBroker({ config: { guilds: updatedGuilds } });
+  await guildConfigWriteBroker({ config: guildConfigContract.parse({ guilds: updatedGuilds }) });
 };

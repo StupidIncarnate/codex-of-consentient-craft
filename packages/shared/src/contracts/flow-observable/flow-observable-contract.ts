@@ -77,6 +77,6 @@ export const flowObservableContract = z.object({
       'Set true when no automated check — no test, no reading — can settle the criterion at all: only a person can judge it, and only after the quest is done. Setting it drops the criterion from the observable list every other role works from, so from that point on nothing else in the quest is asked to satisfy it. Any role may set this, including one with no way to verify the criterion itself. Absent means an automated check settles it.',
     ),
   addedBy: observableOriginContract.default('spec'),
-});
+}).brand<'FlowObservable'>();
 
 export type FlowObservable = z.infer<typeof flowObservableContract>;

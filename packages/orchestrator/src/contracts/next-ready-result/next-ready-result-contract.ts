@@ -14,6 +14,6 @@ export const nextReadyResultContract = z.object({
   ready: z.array(workItemContract),
   questTerminal: z.boolean(),
   questBlocked: z.boolean(),
-});
+}).brand<'NextReadyResult'>();
 
 export type NextReadyResult = z.infer<typeof nextReadyResultContract>;

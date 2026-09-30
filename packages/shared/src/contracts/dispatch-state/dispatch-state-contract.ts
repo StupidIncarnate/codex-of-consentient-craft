@@ -25,6 +25,6 @@ export const dispatchStateContract = z.object({
   // same persist path that wrote it, and `.optional()` alone rejects that.
   hold: dispatchHoldContract.nullish(),
   updatedAt: z.iso.datetime().brand<'DispatchStateUpdatedAt'>(),
-});
+}).brand<'DispatchState'>();
 
 export type DispatchState = z.infer<typeof dispatchStateContract>;

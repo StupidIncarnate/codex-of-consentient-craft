@@ -30,6 +30,6 @@ export const stoppedAtContract = z.object({
   verb: stepVerbContract,
   error: z.string().brand<'StoppedAtError'>(),
   candidates: z.array(stepCandidateContract).readonly(),
-});
+}).brand<'StoppedAt'>();
 
 export type StoppedAt = z.infer<typeof stoppedAtContract>;

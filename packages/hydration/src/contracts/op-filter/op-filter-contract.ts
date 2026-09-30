@@ -84,6 +84,6 @@ export const opFilterContract = z.object({
       )
       .readonly();
   },
-});
+}).brand<'OpFilter'>();
 
 export type OpFilter = z.infer<typeof opFilterContract>;

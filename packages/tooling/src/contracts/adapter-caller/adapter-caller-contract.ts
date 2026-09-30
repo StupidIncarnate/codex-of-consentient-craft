@@ -15,6 +15,6 @@ export const adapterCallerContract = z.object({
   proxyFile: z.string().min(1).brand<'AdapterCallerProxyFile'>().nullable(),
   composedBy: z.array(z.string().min(1).brand<'AdapterCallerComposedBy'>()),
   catchAll: z.array(proxyCatchAllContract),
-});
+}).brand<'AdapterCaller'>();
 
 export type AdapterCaller = z.infer<typeof adapterCallerContract>;

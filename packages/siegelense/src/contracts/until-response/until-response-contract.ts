@@ -20,6 +20,6 @@ export const untilResponseContract = z
     method: httpMethodContract,
     path: z.string().brand<'UntilResponsePath'>(),
   })
-  .strict();
+  .strict().brand<'UntilResponse'>();
 
 export type UntilResponse = z.infer<typeof untilResponseContract>;

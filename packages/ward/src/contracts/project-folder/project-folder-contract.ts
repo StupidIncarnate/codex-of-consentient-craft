@@ -11,6 +11,6 @@ import { z } from '#gateway/npm/zod';
 export const projectFolderContract = z.object({
   name: z.string().brand<'ProjectName'>(),
   path: z.string().brand<'ProjectPath'>(),
-});
+}).brand<'ProjectFolder'>();
 
 export type ProjectFolder = z.infer<typeof projectFolderContract>;

@@ -36,6 +36,6 @@ export const shotListingContract = z.object({
   pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'ShotListingPixelChange'>().nullable(),
   blank: z.boolean().nullable(),
   blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'ShotListingBlankColour'>().nullable(),
-});
+}).brand<'ShotListing'>();
 
 export type ShotListing = z.infer<typeof shotListingContract>;

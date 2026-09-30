@@ -13,6 +13,6 @@ import { z } from '#gateway/npm/zod';
 export const proxyMockQueueEntryContract = z.object({
   filePath: z.string().brand<'ProxyMockQueueEntryFilePath'>(),
   requestedNames: z.array(z.string().min(1).brand<'ProxyMockQueueEntryRequestedNames'>()).nullable(),
-});
+}).brand<'ProxyMockQueueEntry'>();
 
 export type ProxyMockQueueEntry = z.infer<typeof proxyMockQueueEntryContract>;

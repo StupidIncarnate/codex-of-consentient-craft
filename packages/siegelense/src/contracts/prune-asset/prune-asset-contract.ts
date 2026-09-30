@@ -29,6 +29,6 @@ export const pruneAssetContract = z.object({
   kind: pruneAssetKindContract,
   sizeBytes: z.number().int().nonnegative().brand<'PruneAssetSizeBytes'>(),
   modifiedAtMs: z.number().int().nonnegative().brand<'PruneAssetModifiedAtMs'>(),
-});
+}).brand<'PruneAsset'>();
 
 export type PruneAsset = z.infer<typeof pruneAssetContract>;

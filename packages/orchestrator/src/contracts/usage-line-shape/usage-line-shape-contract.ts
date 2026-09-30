@@ -27,6 +27,6 @@ export const usageLineShapeContract = z.object({
       output_tokens: rawTokenCountContract.nullish(),
     }),
   }),
-});
+}).brand<'UsageLineShape'>();
 
 export type UsageLineShape = z.infer<typeof usageLineShapeContract>;

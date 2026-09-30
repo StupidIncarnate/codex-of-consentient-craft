@@ -9,6 +9,7 @@
 
 import type { MockStaging } from '../../contracts/mock-staging/mock-staging-contract';
 import type { StagedCall } from '../../contracts/staged-call/staged-call-contract';
+import { mockStagingContract } from '../../contracts/mock-staging/mock-staging-contract';
 
 type ImplField = StagedCall['impl'];
 
@@ -21,7 +22,7 @@ export const mockStagingCreateTransformer = ({
   // this file is a transformer and may not import util/types itself. mockStagingCreateMiddleware
   // is the caller that wires in isNativeError.
   isNativeError: (value: unknown) => value is Error;
-}): MockStaging => ({
+}): MockStaging => mockStagingContract.parse({
   returns: (val: unknown): void => {
     record.impl = (): unknown => val;
   },

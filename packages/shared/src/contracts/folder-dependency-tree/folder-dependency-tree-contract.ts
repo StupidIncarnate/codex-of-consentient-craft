@@ -19,6 +19,6 @@ export const folderDependencyTreeContract = z.object({
   // enum member required), and a dependency graph legitimately omits a folder type with no edges.
   graph: z.partialRecord(folderTypeContract, z.array(z.string().brand<'FolderDependencyTreeGraph'>()).readonly()),
   matrix: z.string().brand<'FolderDependencyTreeMatrix'>(),
-});
+}).brand<'FolderDependencyTree'>();
 
 export type FolderDependencyTree = z.infer<typeof folderDependencyTreeContract>;

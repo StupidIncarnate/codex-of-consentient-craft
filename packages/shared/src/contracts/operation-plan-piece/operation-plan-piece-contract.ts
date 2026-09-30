@@ -105,6 +105,6 @@ export const operationPlanPieceContract = z.object({
         'rejected: the orchestrator or a review pass decided this piece is no longer needed or was ' +
         'wrong as scoped — read notes for why before reusing the id.',
     ),
-});
+}).brand<'OperationPlanPiece'>();
 
 export type OperationPlanPiece = z.infer<typeof operationPlanPieceContract>;

@@ -30,6 +30,6 @@ export const claudeQueueResponseContract = z.object({
   // init line) then blocks forever without exiting or signalling — the dispatch loop stays parked on
   // that child until the process is killed (server restart / pause).
   hang: z.boolean().optional(),
-});
+}).brand<'ClaudeQueueResponse'>();
 
 export type ClaudeQueueResponse = z.infer<typeof claudeQueueResponseContract>;

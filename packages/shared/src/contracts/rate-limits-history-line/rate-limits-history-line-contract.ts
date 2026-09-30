@@ -13,6 +13,6 @@ export const rateLimitsHistoryLineContract = z.object({
   at: z.iso.datetime().brand<'RateLimitsHistoryLineAt'>(),
   fiveHour: rateLimitWindowContract.nullable(),
   sevenDay: rateLimitWindowContract.nullable(),
-});
+}).brand<'RateLimitsHistoryLine'>();
 
 export type RateLimitsHistoryLine = z.infer<typeof rateLimitsHistoryLineContract>;

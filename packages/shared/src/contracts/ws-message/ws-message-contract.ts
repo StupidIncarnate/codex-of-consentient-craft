@@ -14,6 +14,6 @@ export const wsMessageContract = z.object({
   type: orchestrationEventTypeContract,
   payload: z.record(z.string().brand<'PayloadKey'>(), z.unknown()),
   timestamp: z.iso.datetime().brand<'WsMessageTimestamp'>(),
-});
+}).brand<'WsMessage'>();
 
 export type WsMessage = z.infer<typeof wsMessageContract>;

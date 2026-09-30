@@ -43,6 +43,6 @@ export const startArgsContract = z
     idleTimeoutMs: z.number().int().min(0).brand<'StartArgsIdleTimeoutMs'>().optional(),
     isJson: z.boolean().default(false),
   })
-  .strict();
+  .strict().brand<'StartArgs'>();
 
 export type StartArgs = z.infer<typeof startArgsContract>;

@@ -26,6 +26,6 @@ export const driverResponseContract = z.object({
   ok: z.boolean(),
   payload: z.string().brand<'DriverResponsePayload'>(),
   error: z.string().brand<'DriverResponseError'>().nullable(),
-});
+}).brand<'DriverResponse'>();
 
 export type DriverResponse = z.infer<typeof driverResponseContract>;

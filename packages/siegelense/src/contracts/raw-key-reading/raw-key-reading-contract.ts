@@ -52,6 +52,6 @@ export const rawKeyReadingContract = z.object({
   skipped: z
     .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: z.number().int().nonnegative().brand<'RawKeyReadingSkippedCount'>() }))
     .readonly(),
-});
+}).brand<'RawKeyReading'>();
 
 export type RawKeyReading = z.infer<typeof rawKeyReadingContract>;

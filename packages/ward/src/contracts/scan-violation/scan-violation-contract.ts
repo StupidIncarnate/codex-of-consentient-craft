@@ -14,6 +14,6 @@ export const scanViolationContract = z.object({
   file: z.string().min(1).brand<'ScanFilePath'>(),
   line: z.number().int().min(0).brand<'ScanLine'>(),
   message: z.string().brand<'ScanMessage'>(),
-});
+}).brand<'ScanViolation'>();
 
 export type ScanViolation = z.infer<typeof scanViolationContract>;

@@ -12,6 +12,6 @@ import { discoverListItemContract } from '../discover-list-item/discover-list-it
 export const treeItemContract = discoverListItemContract.extend({
   path: z.string().brand<'TreeItemPath'>(),
   hits: z.array(grepHitContract).optional(),
-});
+}).brand<'TreeItem'>();
 
 export type TreeItem = z.infer<typeof treeItemContract>;

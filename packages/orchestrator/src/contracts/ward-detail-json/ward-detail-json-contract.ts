@@ -71,6 +71,6 @@ export const wardDetailJsonContract = z
   .object({
     checks: z.array(checkResult).optional(),
   })
-  .loose();
+  .loose().brand<'WardDetailJson'>();
 
 export type WardDetailJson = z.infer<typeof wardDetailJsonContract>;

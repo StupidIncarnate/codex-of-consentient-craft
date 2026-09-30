@@ -127,6 +127,6 @@ export const workItemContract = z.object({
   // not materialise `needsLane: false` onto every row on every re-parse. Read as
   // `workItem.needsLane === true`, never as a falsy check.
   needsLane: z.boolean().optional(),
-});
+}).brand<'WorkItem'>();
 
 export type WorkItem = z.infer<typeof workItemContract>;

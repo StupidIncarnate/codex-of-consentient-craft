@@ -13,6 +13,6 @@ import { guildContract } from '../guild/guild-contract';
 export const guildListItemContract = guildContract.extend({
   valid: z.boolean(),
   questCount: z.number().int().min(0).brand<'QuestCount'>(),
-});
+}).brand<'GuildListItem'>();
 
 export type GuildListItem = z.infer<typeof guildListItemContract>;

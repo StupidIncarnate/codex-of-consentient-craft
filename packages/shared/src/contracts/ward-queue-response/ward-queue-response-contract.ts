@@ -16,6 +16,6 @@ export const wardQueueResponseContract = z.object({
   wardResultJson: z.unknown().optional(),
   outputLines: z.array(z.string().brand<'WardOutputLine'>()).optional(),
   delayMs: z.number().int().min(0).brand<'WardQueueResponseDelayMs'>().optional(),
-});
+}).brand<'WardQueueResponse'>();
 
 export type WardQueueResponse = z.infer<typeof wardQueueResponseContract>;

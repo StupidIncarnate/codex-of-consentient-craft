@@ -32,6 +32,6 @@ export const questNewBodyContract = z.object({
     .describe(
       'Images pasted into the create surface, where no questId exists yet — the first message of a quest is the one most likely to carry screenshots, which is why the create route needs the field at all.',
     ),
-});
+}).brand<'QuestNewBody'>();
 
 export type QuestNewBody = z.infer<typeof questNewBodyContract>;

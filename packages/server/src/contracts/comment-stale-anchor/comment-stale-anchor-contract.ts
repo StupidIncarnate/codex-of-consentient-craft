@@ -15,6 +15,6 @@ export const commentStaleAnchorContract = z.object({
   flowId: flowContract.shape.id,
   nodeId: flowNodeContract.shape.id,
   observableId: flowObservableContract.shape.id.optional(),
-});
+}).brand<'CommentStaleAnchor'>();
 
 export type CommentStaleAnchor = z.infer<typeof commentStaleAnchorContract>;

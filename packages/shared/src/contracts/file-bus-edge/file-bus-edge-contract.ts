@@ -23,6 +23,6 @@ export const fileBusEdgeContract = z.object({
   writerFile: absoluteFilePathContract.nullable(),
   watcherFile: absoluteFilePathContract.nullable(),
   paired: z.boolean(),
-});
+}).brand<'FileBusEdge'>();
 
 export type FileBusEdge = z.infer<typeof fileBusEdgeContract>;

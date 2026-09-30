@@ -12,6 +12,6 @@ export const agentPromptResultContract = z.object({
   name: z.string().min(1).brand<'AgentPromptResultName'>(),
   model: z.string().min(1).brand<'AgentPromptResultModel'>(),
   prompt: z.string().min(1).brand<'AgentPromptResultPrompt'>(),
-});
+}).brand<'AgentPromptResult'>();
 
 export type AgentPromptResult = z.infer<typeof agentPromptResultContract>;

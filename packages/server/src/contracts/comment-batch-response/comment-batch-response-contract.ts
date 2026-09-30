@@ -15,6 +15,6 @@ import { z } from '#gateway/npm/zod';
 export const commentBatchDeliveredContract = z.object({
   chatProcessId: z.string().min(1).brand<'CommentBatchDeliveredChatProcessId'>(),
   deliveredMessage: z.string().min(1).brand<'DeliveredCommentMessage'>(),
-});
+}).brand<'CommentBatchDelivered'>();
 
 export type CommentBatchDelivered = z.infer<typeof commentBatchDeliveredContract>;

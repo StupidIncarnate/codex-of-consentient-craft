@@ -20,6 +20,6 @@ export const wardConfigContract = z.object({
   committed: z.boolean().optional(),
   uncommitted: z.boolean().optional(),
   passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
-});
+}).brand<'WardConfig'>();
 
 export type WardConfig = z.infer<typeof wardConfigContract>;

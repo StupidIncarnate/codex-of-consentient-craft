@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 export const clarificationRequestPayloadContract = z.object({
   chatProcessId: z.string().min(1).brand<'ClarificationRequestPayloadChatProcessId'>(),
   questions: z.unknown(),
-});
+}).brand<'ClarificationRequestPayload'>();
 
 export type ClarificationRequestPayload = z.infer<typeof clarificationRequestPayloadContract>;

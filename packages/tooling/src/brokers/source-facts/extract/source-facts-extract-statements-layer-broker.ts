@@ -84,5 +84,5 @@ export const sourceFactsExtractStatementsLayerBroker = ({
     }
   }
 
-  return { imports, reExports, exportNames: [...new Set(exportNames)] };
+  return sourceFactsContract.parse({ imports, reExports, exportNames: [...new Set(exportNames)] });
 };

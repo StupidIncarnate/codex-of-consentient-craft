@@ -17,6 +17,6 @@ export const openHandleContract = z.object({
   // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
   // own output type, and a bare string can never satisfy a branded type.
   stack: z.string().default('').brand<'OpenHandleStack'>(),
-});
+}).brand<'OpenHandle'>();
 
 export type OpenHandle = z.infer<typeof openHandleContract>;

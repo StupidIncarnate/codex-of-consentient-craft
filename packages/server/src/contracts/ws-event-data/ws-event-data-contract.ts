@@ -10,6 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 export const wsEventDataContract = z.object({
   data: z.unknown(),
-});
+}).brand<'WsEventData'>();
 
 export type WsEventData = z.infer<typeof wsEventDataContract>;

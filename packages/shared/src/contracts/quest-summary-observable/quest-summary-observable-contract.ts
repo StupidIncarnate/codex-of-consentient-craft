@@ -53,6 +53,6 @@ export const questSummaryObservableContract = z.object({
   description: flowObservableContract.shape.description.describe(
     'The observable text exactly as its author wrote it. Carried verbatim, and allowed to be blank, because a blank description is a spec hole the reader must see rather than a reason to drop the row.',
   ),
-});
+}).brand<'QuestSummaryObservable'>();
 
 export type QuestSummaryObservable = z.infer<typeof questSummaryObservableContract>;

@@ -41,6 +41,6 @@ export const cleanupAnswerContract = z
       .strict(),
     leftAlone: z.array(leftAloneContract).readonly(),
   })
-  .strict();
+  .strict().brand<'CleanupAnswer'>();
 
 export type CleanupAnswer = z.infer<typeof cleanupAnswerContract>;

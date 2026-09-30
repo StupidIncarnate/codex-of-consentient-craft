@@ -15,7 +15,7 @@ export const testGuildContract = z.object({
   guildPath: z.string().brand<'TestGuildGuildPath'>(),
   guildName: z.string().brand<'TestGuildGuildName'>(),
   rootDir: z.string().brand<'RootDir'>(),
-});
+}).brand<'TestGuild'>();
 
 export type TestGuildData = z.infer<typeof testGuildContract>;
 

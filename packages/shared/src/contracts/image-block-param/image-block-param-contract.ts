@@ -22,6 +22,6 @@ const urlImageSourceContract = z.object({
 export const imageBlockParamContract = z.object({
   type: z.literal('image'),
   source: z.discriminatedUnion('type', [base64ImageSourceContract, urlImageSourceContract]),
-});
+}).brand<'ImageBlockParam'>();
 
 export type ImageBlockParam = z.infer<typeof imageBlockParamContract>;

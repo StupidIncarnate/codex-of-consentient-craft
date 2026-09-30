@@ -14,6 +14,6 @@ export const resultStreamLineContract = z.object({
   cost_usd: z.number().brand<'CostUsd'>().optional(),
   duration_ms: z.number().brand<'ResultStreamLineDurationMs'>().optional(),
   num_turns: z.number().brand<'NumTurns'>().optional(),
-});
+}).brand<'ResultStreamLine'>();
 
 export type ResultStreamLine = z.infer<typeof resultStreamLineContract>;

@@ -62,6 +62,6 @@ export const questContractPropertyContract = z.object({
   get properties(): z.ZodOptional<z.ZodArray<z.core.$ZodType<QuestContractPropertySelf>>> {
     return z.array(questContractPropertyContract).optional();
   },
-});
+}).brand<'QuestContractProperty'>();
 
 export type QuestContractProperty = z.infer<typeof questContractPropertyContract>;

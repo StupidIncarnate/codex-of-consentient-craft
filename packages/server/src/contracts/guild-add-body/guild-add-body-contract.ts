@@ -12,6 +12,6 @@ import { guildNameContract } from '@dungeonmaster/shared/contracts';
 export const guildAddBodyContract = z.object({
   name: guildNameContract,
   path: z.string().min(1).brand<'GuildAddBodyPath'>(),
-});
+}).brand<'GuildAddBody'>();
 
 export type GuildAddBody = z.infer<typeof guildAddBodyContract>;

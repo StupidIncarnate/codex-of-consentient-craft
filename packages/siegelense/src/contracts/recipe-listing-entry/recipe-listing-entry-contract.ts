@@ -46,6 +46,6 @@ export const recipeListingEntryContract = z
     runs: recipeRunsContract,
     makes: z.array(recipeMakesEntryContract),
   })
-  .strict();
+  .strict().brand<'RecipeListingEntry'>();
 
 export type RecipeListingEntry = z.infer<typeof recipeListingEntryContract>;

@@ -1,15 +1,16 @@
 import { questContractPropertiesToTextTransformer } from './quest-contract-properties-to-text-transformer';
+import { QuestContractPropertyStub } from '../../contracts/quest-contract-property/quest-contract-property.stub';
 
 describe('questContractPropertiesToTextTransformer', () => {
   describe('basic properties', () => {
     it('VALID: {properties: single with type, depth: 1} => returns indented line with type and description', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'email' as never,
             type: 'EmailAddress' as never,
             description: 'User email' as never,
-          },
+          }),
         ],
         depth: 1,
       });
@@ -20,12 +21,12 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: with value, depth: 1} => includes type, value, and description', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'method' as never,
             type: 'HttpMethod' as never,
             value: 'POST' as never,
             description: 'HTTP method' as never,
-          },
+          }),
         ],
         depth: 1,
       });
@@ -36,12 +37,12 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: with optional flag, depth: 1} => appends (optional) then description', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'bio' as never,
             type: 'BioText' as never,
             description: 'User bio' as never,
             optional: true,
-          },
+          }),
         ],
         depth: 1,
       });
@@ -52,7 +53,7 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: with description, depth: 1} => appends em-dash description', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          { name: 'age' as never, type: 'Age' as never, description: 'User age' as never },
+          QuestContractPropertyStub({ name: 'age' as never, type: 'Age' as never, description: 'User age' as never }),
         ],
         depth: 1,
       });
@@ -65,12 +66,12 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {property with source} => the path renders in brackets before the description', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'questImagesDirName' as never,
             type: 'DirectoryName' as never,
             description: 'The directory a quest writes pasted images into' as never,
             source: 'packages/shared/src/statics/locations/locations-statics.ts' as never,
-          },
+          }),
         ],
         depth: 1,
       });
@@ -83,11 +84,11 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('EMPTY: {property with no source} => no brackets, so the line is unchanged', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'questImagesDirName' as never,
             type: 'DirectoryName' as never,
             description: 'The directory a quest writes pasted images into' as never,
-          },
+          }),
         ],
         depth: 1,
       });
@@ -102,7 +103,7 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {depth: 0} => no indentation', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          { name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never },
+          QuestContractPropertyStub({ name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never }),
         ],
         depth: 0,
       });
@@ -113,7 +114,7 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {depth: 2} => double indentation', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          { name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never },
+          QuestContractPropertyStub({ name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never }),
         ],
         depth: 2,
       });
@@ -126,7 +127,7 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: with nested children} => renders children at depth+1', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'body' as never,
             type: 'RequestBody' as never,
             description: 'Request body' as never,
@@ -142,7 +143,7 @@ describe('questContractPropertiesToTextTransformer', () => {
                 description: 'User password' as never,
               },
             ],
-          },
+          }),
         ],
         depth: 1,
       });
@@ -170,12 +171,12 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: multiple} => returns one line per property', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          {
+          QuestContractPropertyStub({
             name: 'email' as never,
             type: 'EmailAddress' as never,
             description: 'User email' as never,
-          },
-          { name: 'name' as never, type: 'UserName' as never, description: 'User name' as never },
+          }),
+          QuestContractPropertyStub({ name: 'name' as never, type: 'UserName' as never, description: 'User name' as never }),
         ],
         depth: 1,
       });

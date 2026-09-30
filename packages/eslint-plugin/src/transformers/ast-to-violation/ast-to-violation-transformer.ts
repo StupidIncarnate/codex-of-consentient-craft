@@ -13,6 +13,7 @@
  */
 import type { AstNode } from '../../contracts/ast-node/ast-node-contract';
 import type { RuleViolation } from '../../contracts/rule-violation/rule-violation-contract';
+import { ruleViolationContract } from '../../contracts/rule-violation/rule-violation-contract';
 
 export const astToViolationTransformer = ({
   node,
@@ -20,7 +21,7 @@ export const astToViolationTransformer = ({
 }: {
   node: AstNode;
   violation: RuleViolation;
-}): RuleViolation => ({
+}): RuleViolation => ruleViolationContract.parse({
   node,
   message: violation.message,
   messageId: violation.messageId,

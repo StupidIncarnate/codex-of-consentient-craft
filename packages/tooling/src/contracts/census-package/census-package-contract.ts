@@ -11,6 +11,6 @@ import { z } from '#gateway/npm/zod';
 export const censusPackageContract = z.object({
   name: z.string().min(1).brand<'CensusPackageName'>(),
   dir: z.string().min(1).brand<'CensusPackageDir'>(),
-});
+}).brand<'CensusPackage'>();
 
 export type CensusPackage = z.infer<typeof censusPackageContract>;

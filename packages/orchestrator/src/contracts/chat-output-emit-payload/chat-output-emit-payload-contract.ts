@@ -19,6 +19,6 @@ export const chatOutputEmitPayloadContract = z.object({
   workItemId: workItemContract.shape.id,
   sessionId: sessionContract.shape.id.optional(),
   chatProcessId: z.string().min(1).brand<'ChatOutputEmitPayloadChatProcessId'>().optional(),
-});
+}).brand<'ChatOutputEmitPayload'>();
 
 export type ChatOutputEmitPayload = z.infer<typeof chatOutputEmitPayloadContract>;

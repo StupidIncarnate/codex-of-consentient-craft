@@ -23,6 +23,6 @@ import { operationItemContract, questContract, guildContract } from '@dungeonmas
 
 export const operationFieldsContract = operationItemContract
   .omit({ id: true })
-  .extend({ questId: questContract.shape.id, guildId: guildContract.shape.id });
+  .extend({ questId: questContract.shape.id, guildId: guildContract.shape.id }).brand<'OperationFields'>();
 
 export type OperationFields = z.infer<typeof operationFieldsContract>;

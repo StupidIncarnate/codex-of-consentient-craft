@@ -47,6 +47,6 @@ export const packageGraphEntryContract = z.object({
     'The kind of package this node is, resolved once so downstream readers never re-run the on-disk detector',
   ),
   changeType: questPackageEntryContract.shape.changeType,
-});
+}).brand<'PackageGraphEntry'>();
 
 export type PackageGraphEntry = z.infer<typeof packageGraphEntryContract>;

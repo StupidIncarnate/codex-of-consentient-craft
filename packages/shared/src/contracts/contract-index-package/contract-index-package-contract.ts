@@ -15,6 +15,6 @@ import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-pa
 export const contractIndexPackageContract = z.object({
   name: z.string().min(1).brand<'ContractIndexPackageName'>(),
   dir: absoluteFilePathContract,
-});
+}).brand<'ContractIndexPackage'>();
 
 export type ContractIndexPackage = z.infer<typeof contractIndexPackageContract>;

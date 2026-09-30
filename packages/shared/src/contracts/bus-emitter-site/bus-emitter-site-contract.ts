@@ -20,6 +20,6 @@ export const busEmitterSiteContract = z.object({
   emitterFile: absoluteFilePathContract,
   eventType: z.string().brand<'BusEmitterSiteEventType'>(),
   busExportName: z.string().brand<'BusEmitterSiteBusExportName'>(),
-});
+}).brand<'BusEmitterSite'>();
 
 export type BusEmitterSite = z.infer<typeof busEmitterSiteContract>;

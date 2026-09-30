@@ -48,6 +48,6 @@ export const dmTargetContract = z
   })
   .refine((target) => target.request === undefined || target.baseUrl !== undefined, {
     message: 'a request function needs a baseUrl',
-  });
+  }).brand<'DmTarget'>();
 
 export type DmTarget = z.infer<typeof dmTargetContract>;

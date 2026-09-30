@@ -19,6 +19,7 @@ import { registryEntryContract } from '../../../contracts/registry-entry/registr
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 
 export const instanceReleaseBroker = async ({
   instanceId,
@@ -26,7 +27,7 @@ export const instanceReleaseBroker = async ({
   instanceId: SiegeInstance['id'];
 }): Promise<RegistryEntry> => {
   const updated = await registryUpdateBroker({
-    mutate: (registry) => ({
+    mutate: (registry) => registryContract.parse({
       instances: registry.instances.map((entry) =>
         entry.id === instanceId
           ? registryEntryContract.parse({

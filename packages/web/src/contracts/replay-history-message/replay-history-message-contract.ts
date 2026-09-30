@@ -15,6 +15,6 @@ export const replayHistoryMessageContract = z.object({
   sessionId: sessionContract.shape.id,
   guildId: guildContract.shape.id,
   chatProcessId: z.string().min(1).brand<'ReplayHistoryMessageChatProcessId'>(),
-});
+}).brand<'ReplayHistoryMessage'>();
 
 export type ReplayHistoryMessage = z.infer<typeof replayHistoryMessageContract>;

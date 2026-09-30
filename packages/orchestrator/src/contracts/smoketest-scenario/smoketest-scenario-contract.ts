@@ -39,6 +39,6 @@ export const smoketestScenarioContract = z.object({
   scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
   assertions: z.array(smoketestAssertionContract),
   postTeardownChecks: z.array(smoketestTeardownCheckContract).optional(),
-});
+}).brand<'SmoketestScenario'>();
 
 export type SmoketestScenario = z.infer<typeof smoketestScenarioContract>;

@@ -17,6 +17,6 @@ export const orchestrationEventEnvelopeContract = z
     processId: z.string().brand<'OrchestrationEventEnvelopeProcessId'>().optional(),
     payload: z.record(z.string().brand<'OrchestrationEventEnvelopePayload'>(), z.unknown()).optional(),
   })
-  .loose();
+  .loose().brand<'OrchestrationEventEnvelope'>();
 
 export type OrchestrationEventEnvelope = z.infer<typeof orchestrationEventEnvelopeContract>;

@@ -13,7 +13,7 @@ import { hydrationOpContract } from '../hydration-op/hydration-op-contract';
 export const hydrationPlanContract = z.object({
   recipeName: z.string().min(1).brand<'HydrationPlanRecipeName'>(),
   ops: z.array(hydrationOpContract),
-});
+}).brand<'HydrationPlan'>();
 
 export type HydrationPlan = z.infer<typeof hydrationPlanContract>;
 

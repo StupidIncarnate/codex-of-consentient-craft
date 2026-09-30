@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 export const cappedGrepHitsContract = z.object({
   labelSuffix: z.string().brand<'HitLabelSuffix'>(),
   lines: z.array(z.string().brand<'CappedGrepHitsLines'>()),
-});
+}).brand<'CappedGrepHits'>();
 
 export type CappedGrepHits = z.infer<typeof cappedGrepHitsContract>;

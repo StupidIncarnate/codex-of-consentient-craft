@@ -9,7 +9,7 @@
  * node cli-entry.js                                       // Launches HTTP server and opens browser
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, installContextContract } from '@dungeonmaster/shared/contracts';
 import { resolve } from '#gateway/node/path';
 import { argv, cwd, exit, stderr } from '#gateway/node/process';
 
@@ -35,7 +35,7 @@ if (require.main === module) {
   const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, DIRNAME_TO_ROOT_DEPTH));
   const targetProjectRoot = filePathContract.parse(cwd());
 
-  StartCli({ command, args, context: { dungeonmasterRoot, targetProjectRoot } }).catch(
+  StartCli({ command, args, context: installContextContract.parse({ dungeonmasterRoot, targetProjectRoot }) }).catch(
     (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       stderr.write(`Error: ${errorMessage}\n`);

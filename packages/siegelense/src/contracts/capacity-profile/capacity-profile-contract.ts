@@ -26,6 +26,6 @@ export const capacityProfileContract = z
     peakMB: z.number().int().nonnegative().brand<'CapacityProfilePeakMB'>(),
     fromRuns: z.number().int().nonnegative().brand<'CapacityProfileFromRuns'>(),
   })
-  .strict();
+  .strict().brand<'CapacityProfile'>();
 
 export type CapacityProfile = z.infer<typeof capacityProfileContract>;

@@ -29,6 +29,6 @@ export const folderConfigContract = z.object({
     purpose: z.string().brand<'FolderPurpose'>(),
     whenToUse: z.string().brand<'FolderWhenToUse'>(),
   }),
-});
+}).brand<'FolderConfig'>();
 
 export type FolderConfig = z.infer<typeof folderConfigContract>;

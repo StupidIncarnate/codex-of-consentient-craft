@@ -20,6 +20,6 @@ import { z } from '#gateway/npm/zod';
 export const attrPairContract = z.object({
   name: z.string().brand<'AttrPairName'>(),
   value: z.string().brand<'AttrPairValue'>(),
-});
+}).brand<'AttrPair'>();
 
 export type AttrPair = z.infer<typeof attrPairContract>;

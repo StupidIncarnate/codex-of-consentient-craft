@@ -41,6 +41,6 @@ export const elementDeltaContract = z
       )
       .readonly(),
   })
-  .strict();
+  .strict().brand<'ElementDelta'>();
 
 export type ElementDelta = z.infer<typeof elementDeltaContract>;

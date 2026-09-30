@@ -14,6 +14,6 @@ export const processActivityContract = z.object({
   lastActivityAt: z.date(),
   osPid: z.number().int().positive().brand<'ProcessActivityOsPid'>().optional(),
   sessionJsonlPath: absoluteFilePathContract.optional(),
-});
+}).brand<'ProcessActivity'>();
 
 export type ProcessActivity = z.infer<typeof processActivityContract>;

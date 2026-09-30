@@ -21,6 +21,6 @@ export const compareArgsContract = z
     runB: siegeRunContract.shape.id,
     isJson: z.boolean().default(false),
   })
-  .strict();
+  .strict().brand<'CompareArgs'>();
 
 export type CompareArgs = z.infer<typeof compareArgsContract>;

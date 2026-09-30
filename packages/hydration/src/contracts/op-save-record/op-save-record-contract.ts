@@ -14,6 +14,6 @@ export const opSaveRecordContract = z.object({
   op: z.literal('saveRecord'),
   ref: rowRefContract,
   name: z.string().min(1).brand<'OpSaveRecordName'>(),
-});
+}).brand<'OpSaveRecord'>();
 
 export type OpSaveRecord = z.infer<typeof opSaveRecordContract>;

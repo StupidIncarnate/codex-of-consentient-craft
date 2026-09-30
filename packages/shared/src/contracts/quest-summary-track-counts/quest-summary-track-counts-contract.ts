@@ -73,6 +73,6 @@ export const questSummaryTrackCountsContract = z
       "Units in THIS track's denominator carrying NO mark from this track at all — nobody has looked yet. This is the track's work list, and nothing refuses a `done` over it. Excludes every unit outside this track's step scope, which is not in the denominator to begin with.",
     ),
   })
-  .strict();
+  .strict().brand<'QuestSummaryTrackCounts'>();
 
 export type QuestSummaryTrackCounts = z.infer<typeof questSummaryTrackCountsContract>;

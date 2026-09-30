@@ -17,7 +17,7 @@ export const inflatedTaskNotificationContentContract = z
   .object({
     taskNotification: z.unknown().optional(),
   })
-  .loose();
+  .loose().brand<'InflatedTaskNotificationContent'>();
 
 export type InflatedTaskNotificationContent = z.infer<
   typeof inflatedTaskNotificationContentContract

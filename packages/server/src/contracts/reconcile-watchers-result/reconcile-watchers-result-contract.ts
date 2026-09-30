@@ -11,6 +11,6 @@ import { z } from '#gateway/npm/zod';
 export const reconcileWatchersResultContract = z.object({
   started: z.number().int().nonnegative().brand<'StartedWatcherCount'>(),
   stopped: z.number().int().nonnegative().brand<'StoppedWatcherCount'>(),
-});
+}).brand<'ReconcileWatchersResult'>();
 
 export type ReconcileWatchersResult = z.infer<typeof reconcileWatchersResultContract>;

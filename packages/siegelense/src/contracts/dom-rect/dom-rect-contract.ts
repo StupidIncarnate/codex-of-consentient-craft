@@ -17,6 +17,6 @@ export const domRectContract = z
     width: z.number().int().nonnegative().brand<'DomRectWidth'>(),
     height: z.number().int().nonnegative().brand<'DomRectHeight'>(),
   })
-  .strict();
+  .strict().brand<'DomRect'>();
 
 export type DomRect = z.infer<typeof domRectContract>;

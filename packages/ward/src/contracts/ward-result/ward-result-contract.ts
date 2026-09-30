@@ -17,6 +17,6 @@ export const wardRunResultContract = z.object({
   filters: runFiltersContract,
   checks: z.array(checkResultContract),
   durationMs: z.number().nonnegative().brand<'WardRunResultDurationMs'>().default(wardRunResultContract.shape.durationMs.parse(0)),
-});
+}).brand<'WardRunResult'>();
 
 export type WardRunResult = z.infer<typeof wardRunResultContract>;

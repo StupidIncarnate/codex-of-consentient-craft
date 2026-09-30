@@ -41,6 +41,6 @@ export const questBlueprintContract = questContract
     rolePromptOverrides: z
       .partialRecord(workItemRoleContract, z.string().min(1).brand<'QuestBlueprintRolePromptOverrides'>())
       .default({}),
-  });
+  }).brand<'QuestBlueprint'>();
 
 export type QuestBlueprint = z.infer<typeof questBlueprintContract>;

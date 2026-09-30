@@ -13,6 +13,6 @@ export const censusArgsContract = z.object({
   cwd: z.string().brand<'CensusArgsCwd'>().optional(),
   format: censusFormatContract,
   packageFilter: z.string().min(1).brand<'CensusPackageFilter'>().optional(),
-});
+}).brand<'CensusArgs'>();
 
 export type CensusArgs = z.infer<typeof censusArgsContract>;

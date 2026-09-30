@@ -36,6 +36,6 @@ export const stepCandidateContract = z.object({
   within: z.string().min(1).brand<'StepCandidateWithin'>().nullable(),
   text: z.string().brand<'StepCandidateText'>(),
   rect: z.string().brand<'StepCandidateRect'>(),
-});
+}).brand<'StepCandidate'>();
 
 export type StepCandidate = z.infer<typeof stepCandidateContract>;

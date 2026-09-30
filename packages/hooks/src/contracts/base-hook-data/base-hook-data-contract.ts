@@ -13,6 +13,6 @@ export const baseHookDataContract = z.object({
   transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
   cwd: z.string().min(1).brand<'Cwd'>(),
   hook_event_name: z.string().min(1).brand<'HookEventName'>(),
-});
+}).brand<'BaseHookData'>();
 
 export type BaseHookData = z.infer<typeof baseHookDataContract>;

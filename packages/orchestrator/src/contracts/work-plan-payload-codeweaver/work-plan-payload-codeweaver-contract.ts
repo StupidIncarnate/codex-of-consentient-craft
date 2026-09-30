@@ -44,6 +44,6 @@ export const workPlanPayloadCodeweaverContract = z.object({
     .default([])
     .describe('What belongs to another piece or another mechanism entirely.'),
   units: z.array(workPlanCodeweaverUnitContract).default([]),
-});
+}).brand<'WorkPlanPayloadCodeweaver'>();
 
 export type WorkPlanPayloadCodeweaver = z.infer<typeof workPlanPayloadCodeweaverContract>;
