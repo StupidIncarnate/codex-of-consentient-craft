@@ -1,3 +1,4 @@
+import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
@@ -6,8 +7,13 @@ import { jestConfigTemplateStatics } from '../../statics/jest-config-template/je
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallFlow', () => {
+  // A `dependencies` entry makes init's npm-gateway sync record it in the gateway package and run
+  // `npm install --ignore-scripts`; the fake keeps that off the network.
+  const npmFake = npmCommandFakeHarness();
+
   describe('add-dev-deps + create-playwright', () => {
     it('VALID: {context: no devDependencies, no playwright config, e2e-eligible target} => adds devDependencies and creates playwright.config.ts', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'flow-add-devdeps',
       });
@@ -53,7 +59,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (copied: react); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
@@ -63,6 +69,7 @@ describe('InstallFlow', () => {
     });
 
     it('VALID: {context: all devDependencies present, e2e-eligible target, playwright config exists} => skips those four steps without overwriting, though the gateway step still scaffolds on a bare testbed', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'flow-skip-devdeps',
       });
@@ -119,7 +126,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (copied: react); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe('// existing user config\n');
     });
@@ -151,7 +158,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe(null);
     });
@@ -189,7 +196,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(jestConfigContent).toBe(null);
     });
@@ -269,6 +276,10 @@ describe('InstallFlow', () => {
         version: '1.0.0',
         workspaces: ['packages/*', 'packages/@gateway/*'],
         devDependencies: devDependenciesStatics.packages,
+        scripts: {
+          postinstall:
+            'if command -v dungeonmaster >/dev/null 2>&1; then dungeonmaster gateway-sync; fi',
+        },
       });
 
       const npmPackageJson = JSON.parse(
@@ -330,6 +341,7 @@ describe('InstallFlow', () => {
         devDependencies: {
           '@types/node': '^24.0.15',
           typescript: '^5.8.3',
+          'jest-environment-jsdom': '^30.0.0',
         },
         publishConfig: { access: 'public' },
       });
@@ -592,8 +604,172 @@ export {};
         devDependencies: {
           '@types/node': '^24.0.15',
           typescript: '^5.8.3',
+          'jest-environment-jsdom': '^30.0.0',
         },
         publishConfig: { access: 'public' },
+      });
+    });
+
+    it('VALID: {root dependencies: left-pad, devDependencies: left-pad-dev, husky postinstall} => appends the sync to postinstall, generates a left-pad passthrough recorded in the npm gateway, and a second run keeps a hand-edited folder', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({
+        baseName: 'flow-gateway-npm-sync',
+      });
+
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: `{
+  "name": "@acme/app",
+  "version": "1.0.0",
+  "workspaces": ["packages/*"],
+  "scripts": { "postinstall": "husky" },
+  "dependencies": { "left-pad": "^1.3.0" },
+  "devDependencies": { "left-pad-dev": "^1.0.0" }
+}
+`,
+      });
+
+      const firstRun = await InstallFlow({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      const rootPackageJson = JSON.parse(
+        String(testbed.readFile({ relativePath: 'package.json' })),
+      );
+      const npmGatewayPackageJson = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+      });
+      const npmGatewaySrc = testbed.listDir({ relativePath: 'packages/@gateway/npm/src' });
+      const leftPadBarrel = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.ts',
+      });
+      const leftPadTest = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.test.ts',
+      });
+
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.ts',
+        content: "export { default } from 'left-pad';\n",
+      });
+
+      const secondRun = await InstallFlow({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      const leftPadBarrelAfterSecondRun = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.ts',
+      });
+
+      testbed.cleanup();
+
+      expect({ firstRun, secondRun }).toStrictEqual({
+        firstRun: {
+          packageName: '@dungeonmaster/cli',
+          success: true,
+          action: 'created',
+          message:
+            'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: left-pad / untyped: left-pad); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+        },
+        secondRun: {
+          packageName: '@dungeonmaster/cli',
+          success: true,
+          action: 'skipped',
+          message:
+            'All devDependencies already present; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); tsconfig.json already exists; target project has npm workspaces (each package owns its own jest.config.js); workspaces already includes packages/@gateway/*; root postinstall script already runs gateway-sync; gateway packages already scaffolded; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+        },
+      });
+      expect(rootPackageJson).toStrictEqual({
+        name: '@acme/app',
+        version: '1.0.0',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+        scripts: {
+          postinstall:
+            'husky && if command -v dungeonmaster >/dev/null 2>&1; then dungeonmaster gateway-sync; fi',
+        },
+        dependencies: { 'left-pad': '^1.3.0' },
+        devDependencies: { 'left-pad-dev': '^1.0.0', ...devDependenciesStatics.packages },
+      });
+      expect(npmGatewayPackageJson).toMatch(
+        /^ {2}"dependencies": \{\n {4}"left-pad": "\^1\.3\.0"\n {2}\},?$/mu,
+      );
+      expect(npmGatewaySrc).toStrictEqual(['left-pad']);
+      expect(leftPadBarrel).toBe(`/**
+ * PURPOSE: Pass-through for the npm package 'left-pad'. Code outside the gateway imports left-pad
+ * through here instead of the raw package, so a future guard or override on left-pad lands in
+ * this one file and reaches every caller.
+ *
+ * 'left-pad' resolved no type declarations when this file was generated, so every import
+ * through here is untyped until the package or an @types package supplies them.
+ *
+ * USAGE:
+ * import { someExport } from '#gateway/npm/left-pad';
+ */
+
+export * from 'left-pad';
+`);
+      expect(leftPadTest).toBe(`import * as ourModule from './left-pad';
+// A raw \`require\`, not \`import * as\`: TS's importStar helper synthesizes a .default onto any
+// CJS module that lacks __esModule, which is every third-party package here — comparing
+// against that synthetic shape would fail every pass-through. \`import x = require(...)\` compiles
+// straight to \`require(...)\`, so pkgModule is the package's own real runtime shape.
+import pkgModule = require('left-pad');
+
+describe('#gateway/npm/left-pad', () => {
+  it('VALID: {module} => re-exports the same runtime bindings as left-pad', () => {
+    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
+  });
+});
+`);
+      expect(leftPadBarrelAfterSecondRun).toBe("export { default } from 'left-pad';\n");
+    });
+
+    it('EDGE: {packages/@gateway/npm exists with no package.json, root depends on left-pad} => leaves that folder alone and says there is no npm gateway package to sync into', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'flow-gateway-npm-no-package-json',
+      });
+
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: `{
+  "name": "@acme/app",
+  "version": "1.0.0",
+  "workspaces": ["packages/*"],
+  "dependencies": { "left-pad": "^1.3.0" }
+}
+`,
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/notes.md',
+        content: 'hand-made\n',
+      });
+
+      const result = await InstallFlow({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      const npmGatewayEntries = testbed.listDir({ relativePath: 'packages/@gateway/npm' });
+
+      testbed.cleanup();
+
+      expect({ message: result.message, npmGatewayEntries }).toStrictEqual({
+        message:
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: node, browser, bin; no packages/@gateway/npm/package.json to sync dependencies into; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+        npmGatewayEntries: ['notes.md'],
       });
     });
   });

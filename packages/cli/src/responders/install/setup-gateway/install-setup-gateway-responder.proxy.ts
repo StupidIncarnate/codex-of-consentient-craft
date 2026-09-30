@@ -8,6 +8,7 @@ import { packageScaffoldWriteBrokerProxy } from '../../../brokers/package/scaffo
 import { gatewayExistingPackagesListBrokerProxy } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker.proxy';
 import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker.proxy';
 import { gatewaySourceCopyBrokerProxy } from '../../../brokers/gateway/source-copy/gateway-source-copy-broker.proxy';
+import { gatewayNpmSyncBrokerProxy } from '../../../brokers/gateway/npm-sync/gateway-npm-sync-broker.proxy';
 
 export const InstallSetupGatewayResponderProxy = (): {
   setupNoRootPackageJson: (params: { rootPackageJsonPath: string }) => void;
@@ -25,6 +26,15 @@ export const InstallSetupGatewayResponderProxy = (): {
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
   setupGatewayCopy: (params: { folder: 'node' | 'browser'; packageRoot: string }) => void;
   getCopiedSources: () => readonly unknown[];
+  setupNpmGatewayPackageMissing: (params: { repoRoot: string }) => void;
+  setupNpmGatewaySync: (params: {
+    repoRoot: string;
+    rootPackageJson: Record<string, unknown>;
+    consumerFolders: readonly string[];
+    passthroughFolders: readonly string[];
+  }) => void;
+  getNpmGatewayWrittenFiles: (params: { repoRoot: string; folder: string }) => readonly unknown[];
+  getNpmGatewayInstallCalls: () => readonly string[][];
 } => {
   const existsProxy = existsSyncProxy();
   const realPath = requireActual<{
@@ -43,6 +53,7 @@ export const InstallSetupGatewayResponderProxy = (): {
   const existingPackagesProxy = gatewayExistingPackagesListBrokerProxy();
   const tsconfigWriteProxy = gatewayTsconfigCompilerOptionsWriteBrokerProxy();
   const sourceCopyProxy = gatewaySourceCopyBrokerProxy();
+  const npmSyncProxy = gatewayNpmSyncBrokerProxy();
   // Every candidate write path, in the order the responder itself would reach it: a direct
   // package.json write (rootPackageJsonPath/packageJsonPath, answered by writeProxy) or a
   // tsconfig write routed through the composed broker (rootTsconfigPath/tsconfigPath, answered by
@@ -111,5 +122,35 @@ export const InstallSetupGatewayResponderProxy = (): {
     },
 
     getCopiedSources: (): readonly unknown[] => sourceCopyProxy.copiedSources(),
+
+    setupNpmGatewayPackageMissing: ({ repoRoot }): void => {
+      existsProxy.returns({
+        path: `${repoRoot}/packages/@gateway/npm/package.json`,
+        exists: false,
+      });
+    },
+
+    setupNpmGatewaySync: ({
+      repoRoot,
+      rootPackageJson,
+      consumerFolders,
+      passthroughFolders,
+    }): void => {
+      existsProxy.returns({ path: `${repoRoot}/packages/@gateway/npm/package.json`, exists: true });
+      npmSyncProxy.setupSync({
+        repoRoot,
+        npmCommand: 'install',
+        rootPackageJson,
+        consumerFolders,
+        ownFolders: {},
+        gatewayPackageJson: { name: '@acme/npm' },
+        passthroughFolders,
+      });
+    },
+
+    getNpmGatewayWrittenFiles: ({ repoRoot, folder }): readonly unknown[] =>
+      npmSyncProxy.writtenFiles({ repoRoot, folder }),
+
+    getNpmGatewayInstallCalls: (): readonly string[][] => npmSyncProxy.installCalls(),
   };
 };

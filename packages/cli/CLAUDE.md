@@ -8,6 +8,9 @@ The CLI package provides the `dungeonmaster` binary:
   then runs every package's optional `StartInstallFinalize` (`start-install-finalize.js`) once every package's
   `StartInstall` has finished
 - `dungeonmaster create-package` - Scaffolds a new workspace package (see below)
+- `dungeonmaster gateway-sync` - Gives every `dependencies` entry a folder under `packages/@gateway/npm/src/` (a copy
+  of dungeonmaster's own wrapper, or a generated passthrough) and prints what it did; `init`, the root `postinstall`
+  script `init` writes, and the hooks package's post-bash hook after `npm install <pkg>` all run it
 - `dungeonmaster statusline-tap` - Reads Claude Code's statusline payload on stdin, records rate limits, echoes it back
 - `dungeonmaster siegelense driver --instance <id>` - Launches the siegelense driver process for one instance;
   `dungeonmaster siegelense` bare prints the same view as `dungeonmaster siegelense status`
@@ -55,8 +58,10 @@ source templates. Templates carry `__NAME__` / `__CAMEL__` / `__PASCAL__` / `__T
 **Each seed exists to satisfy that type's rule in `architecturePackageTypeDetectBroker`**, so a scaffolded package is
 detected as the type it was asked for — a `src/flows/` folder plus a `hono` dependency for `http-backend`, `src/widgets/`
 plus a react dependency for `frontend-react` (an ink dependency for `frontend-ink`), a bin entry plus `process.argv` for
-`cli-tool`, and so on. A seed imports no npm package: a consumer's `@gateway/npm` starts empty, so the seed declares the
-dependency and the consumer writes the `#gateway/npm/<subpath>` wrapper when it first needs the value. A consumer has no
+`cli-tool`, and so on. A seed imports no npm package: the npm-gateway sync fills `@gateway/npm` for every
+`dependencies` entry, so a seed declares the dependency and gets its `#gateway/npm/<subpath>` wrapper from the next
+sync — the `npm install` that `create-package` prints as a next step runs one through the root `postinstall`, and
+`init` runs one too. A consumer has no
 `shared` package either, so a seed never depends on `__SCOPE__/shared`; a seed that reads argv or writes to a stream
 imports it from `#gateway/node/process` and declares `__SCOPE__/node`, and one that needs no platform value touches no
 global at all. A seed holds no

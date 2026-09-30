@@ -1,7 +1,10 @@
 /**
  * PURPOSE: `dungeonmaster init`'s gateway step — scaffolds the four `packages/@gateway/{npm,node,
  * browser,bin}` workspace packages a fresh consumer repo is missing (node and browser filled with
- * dungeonmaster's own source, npm and bin empty), links them into root `workspaces`, adds the
+ * dungeonmaster's own source, npm and bin empty), links them into root `workspaces`, makes the root
+ * `postinstall` script run `dungeonmaster gateway-sync`, then runs that sync once so
+ * `packages/@gateway/npm/src/` holds a folder for every `dependencies` entry (when an existing
+ * `packages/@gateway/npm/` has no package.json there is nothing to fill, and the message says so). It adds the
  * four-entry `#gateway/*` `imports` map to every EXISTING workspace package, sets the root
  * tsconfig.json to node16 resolution with the `source` condition, and gives every existing
  * package's tsconfig.build.json the `gateway-dist` condition. Every step is independently
@@ -9,7 +12,7 @@
  *
  * USAGE:
  * const result = await InstallSetupGatewayResponder({ context });
- * // Scaffolds the gateway, wires every existing package into it, or reports what was already done
+ * // Scaffolds the gateway, fills its npm package, wires every existing package into it, or reports what was already done
  */
 
 import {
@@ -32,11 +35,15 @@ import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-wr
 import { gatewayExistingPackagesListBroker } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker';
 import { gatewayTsconfigCompilerOptionsWriteBroker } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker';
 import { gatewaySourceCopyBroker } from '../../../brokers/gateway/source-copy/gateway-source-copy-broker';
+import { gatewayNpmSyncBroker } from '../../../brokers/gateway/npm-sync/gateway-npm-sync-broker';
+import { gatewayNpmSyncReportLinesTransformer } from '../../../transformers/gateway-npm-sync-report-lines/gateway-npm-sync-report-lines-transformer';
+import { rootPostinstallMergeTransformer } from '../../../transformers/root-postinstall-merge/root-postinstall-merge-transformer';
 import { gatewayWorkspacesMergeTransformer } from '../../../transformers/gateway-workspaces-merge/gateway-workspaces-merge-transformer';
 import { gatewayImportsMergeTransformer } from '../../../transformers/gateway-imports-merge/gateway-imports-merge-transformer';
 import { gatewayPackageScaffoldFilesTransformer } from '../../../transformers/gateway-package-scaffold-files/gateway-package-scaffold-files-transformer';
 import { gatewayFoldersStatics } from '../../../statics/gateway-folders/gateway-folders-statics';
 import { gatewayPackageTemplateStatics } from '../../../statics/gateway-package-template/gateway-package-template-statics';
+import { gatewayNpmSyncStatics } from '../../../statics/gateway-npm-sync/gateway-npm-sync-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 const TSCONFIG_BUILD_FILENAME = 'tsconfig.build.json';
@@ -72,9 +79,13 @@ export const InstallSetupGatewayResponder = async ({
     );
   }
 
-  const updatedRootPackageJson = gatewayWorkspacesMergeTransformer({ rootPackageJson });
-  const workspacesChanged = updatedRootPackageJson !== rootPackageJson;
-  if (workspacesChanged) {
+  const withWorkspaces = gatewayWorkspacesMergeTransformer({ rootPackageJson });
+  const updatedRootPackageJson = rootPostinstallMergeTransformer({
+    rootPackageJson: withWorkspaces,
+  });
+  const workspacesChanged = withWorkspaces !== rootPackageJson;
+  const postinstallChanged = updatedRootPackageJson !== withWorkspaces;
+  if (workspacesChanged || postinstallChanged) {
     await writeFile(
       rootPackageJsonPath,
       jsonFileContentsTransformer({ value: updatedRootPackageJson }),
@@ -99,6 +110,16 @@ export const InstallSetupGatewayResponder = async ({
     }),
   );
   const createdFolders = scaffoldOutcomes.filter((folder) => folder !== null);
+
+  const { consumerGateway, packageJson } = gatewayNpmSyncStatics;
+  const npmGatewayPresent = existsSync(
+    join(context.targetProjectRoot, consumerGateway.packageDirectory, packageJson.fileName),
+  );
+  const syncLines = npmGatewayPresent
+    ? gatewayNpmSyncReportLinesTransformer({
+        report: await gatewayNpmSyncBroker({ repoRoot: context.targetProjectRoot }),
+      })
+    : [];
 
   const rootTsconfigPath = join(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig);
   const rootTsconfigExists = existsSync(rootTsconfigPath);
@@ -148,7 +169,9 @@ export const InstallSetupGatewayResponder = async ({
 
   const anyChange =
     workspacesChanged ||
+    postinstallChanged ||
     createdFolders.length > 0 ||
+    syncLines.length > 0 ||
     rootTsconfigChanged ||
     updatedImportsCount > 0 ||
     updatedBuildTsconfigCount > 0;
@@ -157,9 +180,17 @@ export const InstallSetupGatewayResponder = async ({
     workspacesChanged
       ? 'added packages/@gateway/* to workspaces'
       : 'workspaces already includes packages/@gateway/*',
+    postinstallChanged
+      ? 'set the root postinstall script to run dungeonmaster gateway-sync'
+      : 'root postinstall script already runs gateway-sync',
     createdFolders.length > 0
       ? `scaffolded gateway packages: ${createdFolders.join(', ')}`
       : 'gateway packages already scaffolded',
+    npmGatewayPresent
+      ? syncLines.length > 0
+        ? `synced packages/@gateway/npm/src (${syncLines.join(' / ')})`
+        : 'packages/@gateway/npm/src already has a folder for every dependency'
+      : 'no packages/@gateway/npm/package.json to sync dependencies into',
     rootTsconfigExists
       ? rootTsconfigChanged
         ? 'set node16 resolution in tsconfig.json'

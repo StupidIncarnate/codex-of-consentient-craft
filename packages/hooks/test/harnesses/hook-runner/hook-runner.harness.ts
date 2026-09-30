@@ -25,6 +25,7 @@ const PACKAGE_DIR = resolve(__dirname, '../../..');
 
 type HookName =
   | 'start-pre-bash-hook'
+  | 'start-post-bash-hook'
   | 'start-post-edit-hook'
   | 'start-post-ask-question-hook'
   | 'start-pre-edit-hook'
@@ -39,6 +40,7 @@ export const hookRunnerHarness = (): {
     hookName: HookName;
     hookData: unknown;
     args?: readonly string[];
+    env?: Record<string, string>;
   }) => ReturnType<typeof ExecResultStub>;
   runHookRaw: (params: {
     hookName: HookName;
@@ -57,10 +59,12 @@ export const hookRunnerHarness = (): {
     hookName,
     input,
     args,
+    env,
   }: {
     hookName: HookName;
     input: string;
     args: readonly string[];
+    env?: Record<string, string>;
   }): ReturnType<typeof runSyncWithInput> =>
     runSyncWithInput({
       command: execPath,
@@ -75,19 +79,26 @@ export const hookRunnerHarness = (): {
       input,
       // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
       // ESLint-ignored paths so violation detection is still exercised.
-      env: { ...envSnapshot(), DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
+      env: { ...envSnapshot(), DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true', ...env },
     });
 
   const runHook = ({
     hookName,
     hookData,
     args,
+    env,
   }: {
     hookName: HookName;
     hookData: unknown;
     args?: readonly string[];
+    env?: Record<string, string>;
   }): ReturnType<typeof ExecResultStub> => {
-    const result = spawnHook({ hookName, input: JSON.stringify(hookData), args: args ?? [] });
+    const result = spawnHook({
+      hookName,
+      input: JSON.stringify(hookData),
+      args: args ?? [],
+      ...(env === undefined ? {} : { env }),
+    });
 
     return ExecResultStub({
       exitCode: result.status === null ? 1 : result.status,

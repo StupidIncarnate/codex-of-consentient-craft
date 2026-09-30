@@ -67,6 +67,10 @@ describe('InstallCreateSettingsResponder', () => {
               matcher: 'AskUserQuestion',
               hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
             },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-bash', timeout: 300 }],
+            },
           ],
           SessionStart: [
             {
@@ -364,6 +368,10 @@ describe('InstallCreateSettingsResponder', () => {
               matcher: 'AskUserQuestion',
               hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
             },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-bash', timeout: 300 }],
+            },
           ],
           SessionStart: [
             {
@@ -625,6 +633,10 @@ describe('InstallCreateSettingsResponder', () => {
               matcher: 'AskUserQuestion',
               hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
             },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-bash', timeout: 300 }],
+            },
           ],
           SessionStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -860,6 +872,10 @@ describe('InstallCreateSettingsResponder', () => {
             {
               matcher: 'AskUserQuestion',
               hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-bash', timeout: 300 }],
             },
           ],
           SessionStart: [
@@ -1122,6 +1138,10 @@ describe('InstallCreateSettingsResponder', () => {
             {
               matcher: 'AskUserQuestion',
               hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-bash', timeout: 300 }],
             },
           ],
           SessionStart: [

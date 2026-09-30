@@ -86,8 +86,10 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     // requires the importing package.json to list the real target package name in `dependencies`,
     // exactly as this repo's OWN packages/@gateway/browser/package.json already does.
     ...(folder === 'browser' ? { dependencies: { [`${scope}/node`]: '*' } } : {}),
+    // npm's copied wrappers include tests that switch to jsdom by docblock, so it needs the same
+    // jsdom environment package browser does.
     devDependencies:
-      folder === 'browser'
+      folder === 'browser' || folder === 'npm'
         ? {
             ...gatewayPackageTemplateStatics.devDependencies,
             ...gatewaySourceCopyStatics.browserDevDependencies,
@@ -141,7 +143,9 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       contents:
         folder === 'browser'
           ? gatewayPackageTemplateStatics.browserJestConfigContent
-          : gatewayPackageTemplateStatics.jestConfigContent,
+          : folder === 'npm'
+            ? gatewayPackageTemplateStatics.npmJestConfigContent
+            : gatewayPackageTemplateStatics.jestConfigContent,
     }),
     ...(receivesCopiedSource
       ? []
