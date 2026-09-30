@@ -13,7 +13,6 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 
 import type { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
-import type { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { apiOverloadRetryStatics } from '../../../statics/api-overload-retry/api-overload-retry-statics';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { dispatchHoldRejectBroker } from '../../dispatch-hold/reject/dispatch-hold-reject-broker';
@@ -47,7 +46,7 @@ const PINNED_NOW_MS = Date.parse('2026-09-13T04:49:29.242Z');
 type QuestWorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
 type SpawnInstruction = ReturnType<typeof SpawnInstructionStub>;
 type WorkItemStatus = ReturnType<typeof WorkItemStatusStub>;
-type TimeoutMs = ReturnType<typeof TimeoutMsStub>;
+type TimeoutMs = number;
 
 export const spawnOneAgentLayerBrokerProxy = (): {
   setupSpawnEmitsSessionThenExits: (params: { sessionId: string; exitCode: number }) => void;

@@ -10,14 +10,13 @@ import { z } from '#gateway/npm/zod';
 
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
-import { timeoutMsContract } from '../timeout-ms/timeout-ms-contract';
 import { sessionContract } from '../session/session-contract';
 
 export const claudeQueueResponseContract = z.object({
   sessionId: sessionContract.shape.id,
   lines: z.array(streamJsonLineContract),
   exitCode: exitCodeContract.optional(),
-  delayMs: timeoutMsContract.optional(),
+  delayMs: z.number().int().min(0).brand<'ClaudeQueueResponseDelayMs'>().optional(),
   // E2E dispatch-loop driver: when true, the fake Claude CLI parses questId/workItemId from the
   // `-p` task prompt and POSTs the env-gated /api/quests/:questId/signal-back endpoint (awaited)
   // BEFORE it writes its JSONL + exits, so the operations relay advances before the child exit the

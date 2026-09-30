@@ -24,7 +24,7 @@ import { kill, setEnv, stderr } from '#gateway/node/process';
 import { join, resolve as resolvePath } from '#gateway/node/path';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import type { ProcessId, TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -97,7 +97,7 @@ const REPO_ROOT = resolvePath(__dirname, '..', '..', '..', '..', '..');
 export const driverFleetHarness = (): {
   ensureHomeReady: (params: { home: string }) => void;
   configureApiLane: (params: { configDir: string }) => void;
-  boot: (params: { specName: string; idleTimeoutMs?: TimeoutMs }) => Promise<InstanceManifest>;
+  boot: (params: { specName: string; idleTimeoutMs?: number }) => Promise<InstanceManifest>;
   killViaBroker: (params: { instanceId: SiegeInstance['id'] }) => Promise<KillResult>;
   sigkillDriverPid: (params: { pid: ProcessId }) => void;
   registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
@@ -174,7 +174,7 @@ export const driverFleetHarness = (): {
     idleTimeoutMs,
   }: {
     specName: string;
-    idleTimeoutMs?: TimeoutMs;
+    idleTimeoutMs?: number;
   }): Promise<InstanceManifest> => {
     // See the module-level comment on FAKE_CLAUDE_CLI_PATH/FAKE_WARD_CLI_PATH above. Set here
     // rather than in the constructor (enforce-harness-patterns bans a constructor side effect) —

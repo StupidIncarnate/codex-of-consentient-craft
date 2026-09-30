@@ -36,7 +36,7 @@
  */
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
-import type { TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { getPid, stderr } from '#gateway/node/process';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
@@ -59,7 +59,7 @@ export const SiegelenseDriverResponder = async ({
   idleTimeoutMs,
 }: {
   instanceId: SiegeInstance['id'];
-  idleTimeoutMs?: TimeoutMs;
+  idleTimeoutMs?: number;
 }): Promise<void> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((row) => row.id === instanceId);

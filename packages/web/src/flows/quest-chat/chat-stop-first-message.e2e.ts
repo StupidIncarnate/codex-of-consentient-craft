@@ -4,10 +4,10 @@ import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mo
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
+import { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-stop-first-message';
 const HTTP_OK = 200;
@@ -42,11 +42,11 @@ test.describe('Chat STOP on the first message', () => {
     await chatControl.recordTransitions();
 
     claudeMock.queueResponse({
-      response: {
+      response: ClaudeQueueResponseStub({
         sessionId: SessionIdStub({
           value: 'e2e-session-550b6bac-7332-8622-adc4-6cd9fa67f8f4',
         }),
-        delayMs: TimeoutMsStub({ value: HELD_BACK_DELAY_MS }),
+        delayMs: HELD_BACK_DELAY_MS,
         lines: [
           streamLineToJsonLineTransformer({ streamLine: SystemInitStreamLineStub() }),
           streamLineToJsonLineTransformer({
@@ -58,7 +58,7 @@ test.describe('Chat STOP on the first message', () => {
             }),
           }),
         ],
-      },
+      }),
     });
 
     // The new-chat surface: no questId in the URL. The first message creates the quest and

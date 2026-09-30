@@ -52,7 +52,7 @@
  * // Routes to SiegelenseStatusLayerFlow with no flags — the same table `status` prints
  */
 
-import { timeoutMsContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
@@ -161,7 +161,7 @@ export const SiegelenseFlow = async ({ args }: { args: readonly string[] }): Pro
     }
     const idleTimeoutMs = flagContractParseTransformer({
       flag: IDLE_TIMEOUT_MS_FLAG,
-      parse: () => timeoutMsContract.parse(Number(rawIdleTimeoutMs)),
+      parse: () => Number(rawIdleTimeoutMs),
     });
     return SiegelenseDriverResponder({ instanceId, idleTimeoutMs });
   }

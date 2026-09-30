@@ -15,15 +15,12 @@ import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 import type { WardResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { filter, take, timeout } from '#gateway/npm/rxjs__operators';
-import { timeoutMsContract } from '../../contracts/timeout-ms/timeout-ms-contract';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 
 type WardResultId = WardResult['id'];
 
-const WARD_DETAIL_TIMEOUT_MS = timeoutMsContract.parse(
-  webConfigStatics.websocket.wardDetailTimeoutMs,
-);
+const WARD_DETAIL_TIMEOUT_MS = webConfigStatics.websocket.wardDetailTimeoutMs;
 const ONE_EMISSION = 1;
 
 export const useWardDetailBinding = ({

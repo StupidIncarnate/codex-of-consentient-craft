@@ -1,7 +1,6 @@
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -10,6 +9,7 @@ import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mo
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
+import { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-followup-reply-streams';
 const PANEL_TIMEOUT = 10_000;
@@ -103,9 +103,9 @@ test.describe('FOLLOW-UP reply streams into the tab', () => {
       // the followup route spawns with `--resume <sessionId>` and the child appends to the same
       // JSONL instead of overwriting the seeded turn.
       claudeMock.queueResponse({
-        response: {
+        response: ClaudeQueueResponseStub({
           sessionId: SessionIdStub({ value: sessionId }),
-          delayMs: TimeoutMsStub({ value: HELD_TURN_DELAY_MS }),
+          delayMs: HELD_TURN_DELAY_MS,
           lines: [
             streamLineToJsonLineTransformer({ streamLine: SystemInitStreamLineStub() }),
             streamLineToJsonLineTransformer({
@@ -117,7 +117,7 @@ test.describe('FOLLOW-UP reply streams into the tab', () => {
               }),
             }),
           ],
-        },
+        }),
       });
 
       await followup.seedAndOpen({

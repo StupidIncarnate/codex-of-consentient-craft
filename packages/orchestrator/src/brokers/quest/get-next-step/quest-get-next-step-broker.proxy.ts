@@ -1,12 +1,11 @@
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import type { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
 import { timerSleepBrokerProxy } from '../../timer/sleep/timer-sleep-broker.proxy';
 import { scanOnceLayerBrokerProxy } from './scan-once-layer-broker.proxy';
 
-type TimeoutMs = ReturnType<typeof TimeoutMsStub>;
+type TimeoutMs = number;
 
 type Quest = ReturnType<typeof QuestStub>;
 

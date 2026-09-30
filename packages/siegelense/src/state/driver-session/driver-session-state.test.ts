@@ -1,5 +1,4 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { LaneSessionStub } from '../../contracts/lane-session/lane-session.stub';
 import { driverStatics } from '../../statics/driver/driver-statics';
@@ -42,7 +41,7 @@ describe('driverSessionState', () => {
 
       driverSessionState.set({
         lane: LaneSessionStub(),
-        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        idleTimeoutMs: 1_800_000,
       });
 
       expect(driverSessionState.idleTimeoutMs()).toBe(1_800_000);
@@ -53,7 +52,7 @@ describe('driverSessionState', () => {
       proxy.setupEmpty();
       driverSessionState.set({
         lane: LaneSessionStub(),
-        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        idleTimeoutMs: 1_800_000,
       });
 
       driverSessionState.clear();

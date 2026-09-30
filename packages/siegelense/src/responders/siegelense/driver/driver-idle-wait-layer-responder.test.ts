@@ -1,4 +1,3 @@
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
@@ -38,13 +37,13 @@ describe('DriverIdleWaitLayerResponder', () => {
       const proxy = DriverIdleWaitLayerResponderProxy();
       proxy.setupLaneReadyWithIdleTimeout({
         nowMs: 1_000,
-        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        idleTimeoutMs: 1_800_000,
       });
       // 901_000 is past the DEFAULT deadline (1_000 + 900_000) but well before the raised one
       // (1_000 + 1_800_000 = 1_801_000) — resolving false here would mean the override never
       // reached the deadline computation.
       proxy.stageNow({ ms: 901_000 });
-      proxy.stageSleepNeverFires({ ms: TimeoutMsStub({ value: 1_801_000 - 901_000 }) });
+      proxy.stageSleepNeverFires({ ms: (1_801_000 - 901_000) });
       const killSignal = new Promise<true>(() => {
         // Never resolves — only the scheduled sleep is observed.
       });
@@ -54,7 +53,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       });
       await Promise.resolve();
 
-      expect(proxy.getSleepCallCount({ ms: TimeoutMsStub({ value: 1_801_000 - 901_000 }) })).toBe(
+      expect(proxy.getSleepCallCount({ ms: (1_801_000 - 901_000) })).toBe(
         1,
       );
     });
@@ -84,7 +83,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       // extended one (500_000 + 900_000 = 1_400_000) — resolving false here would be the exact bug
       // this test exists to catch.
       proxy.stageNow({ ms: 901_500 });
-      proxy.stageSleepNeverFires({ ms: TimeoutMsStub({ value: 1_400_000 - 901_500 }) });
+      proxy.stageSleepNeverFires({ ms: (1_400_000 - 901_500) });
       const killSignal = new Promise<true>(() => {
         // Never resolves in this test — only the scheduled sleep is observed.
       });
@@ -94,7 +93,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       });
       await Promise.resolve();
 
-      expect(proxy.getSleepCallCount({ ms: TimeoutMsStub({ value: 1_400_000 - 901_500 }) })).toBe(
+      expect(proxy.getSleepCallCount({ ms: (1_400_000 - 901_500) })).toBe(
         1,
       );
     });

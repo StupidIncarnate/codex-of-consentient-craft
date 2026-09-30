@@ -56,7 +56,7 @@ import { clearInterval } from '#gateway/node/clearInterval';
 import { unixSocketServe } from '#gateway/node/net';
 import { on, stderr } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
-import type { TimeoutMs, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
 import { driverHeartbeatTickBroker } from '../../../brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker';
@@ -87,7 +87,7 @@ export const DriverServeLayerResponder = async ({
   instanceId: SiegeInstance['id'];
   guildId: Guild['id'] | null;
   lane: LaneSession;
-  idleTimeoutMs?: TimeoutMs;
+  idleTimeoutMs?: number;
 }): Promise<void> => {
   driverSessionState.set(idleTimeoutMs === undefined ? { lane } : { lane, idleTimeoutMs });
 

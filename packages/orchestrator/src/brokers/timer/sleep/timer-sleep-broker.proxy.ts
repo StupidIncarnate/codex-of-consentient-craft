@@ -1,8 +1,7 @@
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
-type TimeoutMs = ReturnType<typeof TimeoutMsStub>;
+type TimeoutMs = number;
 
 export const timerSleepBrokerProxy = (): {
   setupResolvesImmediately: (params: { ms: number }) => void;
@@ -13,7 +12,7 @@ export const timerSleepBrokerProxy = (): {
 
   return {
     setupResolvesImmediately: ({ ms }: { ms: number }): void => {
-      stagedDelays.push(TimeoutMsStub({ value: ms }));
+      stagedDelays.push(ms);
       timeoutChild.setupFiresImmediately({ ms });
     },
     // Grouped by staged delay, in the order the delays were staged: a caller's retry schedule

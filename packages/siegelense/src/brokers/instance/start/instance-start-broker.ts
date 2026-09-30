@@ -78,7 +78,6 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
 import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
-import { type TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
@@ -126,7 +125,7 @@ export const instanceStartBroker = async ({
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
   seed: string | null;
-  idleTimeoutMs?: TimeoutMs;
+  idleTimeoutMs?: number;
 }): Promise<InstanceManifest> => {
   const spec = await laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });

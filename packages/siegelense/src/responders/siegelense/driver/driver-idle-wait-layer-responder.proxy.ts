@@ -10,7 +10,6 @@
  * proxy.stageNow({ ms: EpochMsStub({ value: 2_000 }) });
  */
 
-import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { clearTimeoutProxy } from '#gateway/node/clearTimeout/clear-timeout/clear-timeout.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
@@ -21,12 +20,12 @@ import { driverSessionStateProxy } from '../../../state/driver-session/driver-se
 
 export const DriverIdleWaitLayerResponderProxy = (): {
   setupLaneReady: (params: { nowMs: number }) => void;
-  setupLaneReadyWithIdleTimeout: (params: { nowMs: number; idleTimeoutMs: TimeoutMs }) => void;
+  setupLaneReadyWithIdleTimeout: (params: { nowMs: number; idleTimeoutMs: number }) => void;
   setupKilledAlready: () => void;
   touch: (params: { nowMs: number }) => void;
   stageNow: (params: { ms: number }) => void;
-  stageSleepNeverFires: (params: { ms: TimeoutMs }) => void;
-  getSleepCallCount: (params: { ms: TimeoutMs }) => number;
+  stageSleepNeverFires: (params: { ms: number }) => void;
+  getSleepCallCount: (params: { ms: number }) => number;
 } => {
   const sessionProxy = driverSessionStateProxy();
   sessionProxy.setupEmpty();
@@ -46,7 +45,7 @@ export const DriverIdleWaitLayerResponderProxy = (): {
       idleTimeoutMs,
     }: {
       nowMs: number;
-      idleTimeoutMs: TimeoutMs;
+      idleTimeoutMs: number;
     }): void => {
       nowHandle.onceFor([]).returns(nowMs);
       driverSessionState.set({ lane: LaneSessionStub(), idleTimeoutMs });
@@ -65,11 +64,11 @@ export const DriverIdleWaitLayerResponderProxy = (): {
       nowHandle.onceFor([]).returns(ms);
     },
 
-    stageSleepNeverFires: ({ ms }: { ms: TimeoutMs }): void => {
+    stageSleepNeverFires: ({ ms }: { ms: number }): void => {
       timeoutProxy.setupNeverFires({ ms });
     },
 
-    getSleepCallCount: ({ ms }: { ms: TimeoutMs }): number =>
+    getSleepCallCount: ({ ms }: { ms: number }): number =>
       timeoutProxy.getCallsFor({ ms }).length,
   };
 };

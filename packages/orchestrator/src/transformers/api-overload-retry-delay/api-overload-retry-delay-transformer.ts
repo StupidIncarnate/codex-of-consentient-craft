@@ -13,8 +13,6 @@
  * // Returns null — schedule exhausted
  */
 
-import { timeoutMsContract } from '@dungeonmaster/shared/contracts';
-import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { apiOverloadRetryStatics } from '../../statics/api-overload-retry/api-overload-retry-statics';
 
@@ -22,15 +20,15 @@ export const apiOverloadRetryDelayTransformer = ({
   attempt,
 }: {
   attempt: number;
-}): TimeoutMs | null => {
+}): number | null => {
   if (attempt < 1) {
     return null;
   }
   if (attempt <= apiOverloadRetryStatics.fastAttempts) {
-    return timeoutMsContract.parse(apiOverloadRetryStatics.fastDelayMs);
+    return apiOverloadRetryStatics.fastDelayMs;
   }
   if (attempt <= apiOverloadRetryStatics.fastAttempts + apiOverloadRetryStatics.slowAttempts) {
-    return timeoutMsContract.parse(apiOverloadRetryStatics.slowDelayMs);
+    return apiOverloadRetryStatics.slowDelayMs;
   }
   return null;
 };

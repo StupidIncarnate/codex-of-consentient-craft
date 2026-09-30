@@ -27,7 +27,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 
 export const startArgsContract = z
@@ -40,7 +40,7 @@ export const startArgsContract = z
     // are: the parser always decides a value, so no reader ever has "was this left unset" as a
     // live question.
     seed: z.string().min(1).regex( /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"', ).brand<'StartArgsSeed'>().nullable(),
-    idleTimeoutMs: timeoutMsContract.optional(),
+    idleTimeoutMs: z.number().int().min(0).brand<'StartArgsIdleTimeoutMs'>().optional(),
     isJson: z.boolean().default(false),
   })
   .strict();

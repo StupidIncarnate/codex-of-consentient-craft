@@ -59,7 +59,7 @@ export const dungeonmasterConfigContract = z
           .int()
           .min(configDefaultsStatics.orchestration.timeoutMs.min)
           .default(configDefaultsStatics.orchestration.timeoutMs.default)
-          .brand<'TimeoutMs'>(),
+          .brand<'DungeonmasterConfigOrchestrationTimeoutMs'>(),
       })
       .optional(),
     ward: z

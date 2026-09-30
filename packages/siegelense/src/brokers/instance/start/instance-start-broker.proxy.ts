@@ -11,7 +11,6 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -111,7 +110,7 @@ export const instanceStartBrokerProxy = (): {
     instanceId: InstanceId;
     evidencePath: string;
     registry: Registry;
-    idleTimeoutMs?: TimeoutMs;
+    idleTimeoutMs?: number;
   }) => void;
   setupHappyBootWithQueuedMs: (params: {
     instanceId: InstanceId;
@@ -286,7 +285,7 @@ export const instanceStartBrokerProxy = (): {
     instanceId: InstanceId;
     evidencePath: string;
     registry: Registry;
-    idleTimeoutMs?: TimeoutMs;
+    idleTimeoutMs?: number;
   }): void => {
     stageRegistryAndLocks({ registry });
     bootLockAcquireProxy.setupWriteSucceeds();

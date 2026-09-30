@@ -1,5 +1,4 @@
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
@@ -391,7 +390,7 @@ describe('driver teardown', () => {
 
         const manifest = await fleet.boot({
           specName: HEADLESS_SPEC,
-          idleTimeoutMs: TimeoutMsStub({ value: IDLE_TIMEOUT_MS }),
+          idleTimeoutMs: IDLE_TIMEOUT_MS,
         });
         const heartbeatPgids = await fleet.waitForHeartbeatPgids({
           instanceId: manifest.instanceId,
@@ -483,7 +482,7 @@ describe('driver teardown', () => {
 
         const manifest = await fleet.boot({
           specName: BROWSERED_SPEC,
-          idleTimeoutMs: TimeoutMsStub({ value: IDLE_TIMEOUT_MS }),
+          idleTimeoutMs: IDLE_TIMEOUT_MS,
         });
         const heartbeatPgids = await fleet.waitForHeartbeatPgids({
           instanceId: manifest.instanceId,

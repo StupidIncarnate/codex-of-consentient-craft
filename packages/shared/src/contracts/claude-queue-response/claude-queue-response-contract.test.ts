@@ -18,7 +18,6 @@ import { SessionIdStub } from '../session-id/session-id.stub';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
 import { StreamJsonLineStub } from '../stream-json-line/stream-json-line.stub';
 import { SystemInitStreamLineStub } from '../system-init-stream-line/system-init-stream-line.stub';
-import { TimeoutMsStub } from '../timeout-ms/timeout-ms.stub';
 
 type ClaudeQueueResponse = ReturnType<typeof ClaudeQueueResponseStub>;
 
@@ -133,14 +132,14 @@ describe('claudeQueueResponseContract', () => {
         sessionId: SessionIdStub(),
         lines: [],
         exitCode: 0,
-        delayMs: TimeoutMsStub(),
+        delayMs: 60000,
       });
 
       expect(result).toStrictEqual({
         sessionId: SessionIdStub(),
         lines: [],
         exitCode: 0,
-        delayMs: TimeoutMsStub(),
+        delayMs: 60000,
       });
     });
 

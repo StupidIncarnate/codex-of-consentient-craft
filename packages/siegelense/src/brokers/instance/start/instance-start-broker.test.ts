@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { instanceStartBroker } from './instance-start-broker';
@@ -82,7 +81,7 @@ describe('instanceStartBroker', () => {
         registry: RegistryStub({
           instances: [RegistryEntryStub({ id: instanceId })],
         }),
-        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        idleTimeoutMs: 1_800_000,
       });
 
       const result = await instanceStartBroker({
@@ -90,7 +89,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
-        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        idleTimeoutMs: 1_800_000,
       });
 
       expect(result.instanceId).toBe(instanceId);

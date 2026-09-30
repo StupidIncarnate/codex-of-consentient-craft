@@ -30,7 +30,6 @@ import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { orchestrationDispatchState } from '../../../src/state/orchestration-dispatch/orchestration-dispatch-state';
 import { rateLimitsBootstrapState } from '../../../src/state/rate-limits-bootstrap/rate-limits-bootstrap-state';
 import { rateLimitsState } from '../../../src/state/rate-limits/rate-limits-state';
@@ -53,12 +52,12 @@ const GUILD_CONFIG_FILENAME = 'config.json';
 // The watcher's production cadence is 5s, and every wait here is denominated in POLL CYCLES rather
 // than seconds. Bootstrapping at 25ms lets a test observe MORE cycles in milliseconds than a
 // seconds-long wait against the default ever did: QUIET_WINDOW_MS spans twenty of them.
-const POLL_INTERVAL_MS = TimeoutMsStub({ value: 25 });
-const POLL_STEP_MS = TimeoutMsStub({ value: 50 });
+const POLL_INTERVAL_MS = 25;
+const POLL_STEP_MS = 50;
 // A deadline, not a sleep — pollUntil resolves the instant its condition holds, so this costs wall
 // clock only when the condition genuinely never arrives.
-const POLL_TIMEOUT_MS = TimeoutMsStub({ value: 8000 });
-const QUIET_WINDOW_MS = TimeoutMsStub({ value: 500 });
+const POLL_TIMEOUT_MS = 8000;
+const QUIET_WINDOW_MS = 500;
 
 export const rateLimitsWatcherHarness = (): {
   begin: ({ name }: { name: BaseName }) => { tempDir: string; end: () => Promise<void> };

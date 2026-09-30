@@ -1,4 +1,3 @@
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -176,7 +175,7 @@ describe('DriverServeLayerResponder', () => {
         instanceId,
         guildId: null,
         lane: LaneSessionStub(),
-        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        idleTimeoutMs: 1_800_000,
       });
 
       expect(proxy.getShutdownReasonWriteCallArgs()).toStrictEqual({

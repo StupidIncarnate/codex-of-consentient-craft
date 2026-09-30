@@ -9,14 +9,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { exitCodeContract } from '../exit-code/exit-code-contract';
-import { timeoutMsContract } from '../timeout-ms/timeout-ms-contract';
 
 export const wardQueueResponseContract = z.object({
   exitCode: exitCodeContract.optional(),
   runId: wardQueueResponseRunId.optional(),
   wardResultJson: z.unknown().optional(),
   outputLines: z.array(z.string().brand<'WardOutputLine'>()).optional(),
-  delayMs: timeoutMsContract.optional(),
+  delayMs: z.number().int().min(0).brand<'WardQueueResponseDelayMs'>().optional(),
 });
 
 export type WardQueueResponse = z.infer<typeof wardQueueResponseContract>;

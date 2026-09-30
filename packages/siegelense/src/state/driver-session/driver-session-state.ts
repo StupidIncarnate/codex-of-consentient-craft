@@ -33,8 +33,8 @@
  * // Returns the path set above, or null before the instance's first capture
  */
 
-import { timeoutMsContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
-import type { TimeoutMs, SiegeRun } from '@dungeonmaster/shared/contracts';
+import { siegeRunContract } from '@dungeonmaster/shared/contracts';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSession } from '../../contracts/lane-session/lane-session-contract';
 import { driverStatics } from '../../statics/driver/driver-statics';
@@ -43,22 +43,22 @@ import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/insta
 let currentLane: LaneSession | null = null;
 let runCounter = 0;
 let lastActivityAtMs: number = 0;
-let idleTimeoutMsValue: TimeoutMs = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
+let idleTimeoutMsValue: number = driverStatics.idle.timeoutMs;
 let flushCursorConsoleLines: number = 0;
 let flushCursorNetworkLines: number = 0;
 let flushCursorWebsocketLines: number = 0;
 let lastShotPathValue: string | null = null;
 
 export const driverSessionState = {
-  set: ({ lane, idleTimeoutMs }: { lane: LaneSession; idleTimeoutMs?: TimeoutMs }): void => {
+  set: ({ lane, idleTimeoutMs }: { lane: LaneSession; idleTimeoutMs?: number }): void => {
     currentLane = lane;
     lastActivityAtMs = Date.now();
-    idleTimeoutMsValue = idleTimeoutMs ?? timeoutMsContract.parse(driverStatics.idle.timeoutMs);
+    idleTimeoutMsValue = idleTimeoutMs ?? driverStatics.idle.timeoutMs;
   },
 
   lane: (): LaneSession | null => currentLane,
 
-  idleTimeoutMs: (): TimeoutMs => idleTimeoutMsValue,
+  idleTimeoutMs: (): number => idleTimeoutMsValue,
 
   nextRunId: (): SiegeRun['id'] => {
     runCounter += 1;
@@ -105,7 +105,7 @@ export const driverSessionState = {
     currentLane = null;
     runCounter = 0;
     lastActivityAtMs = 0;
-    idleTimeoutMsValue = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
+    idleTimeoutMsValue = driverStatics.idle.timeoutMs;
     flushCursorConsoleLines = 0;
     flushCursorNetworkLines = 0;
     flushCursorWebsocketLines = 0;

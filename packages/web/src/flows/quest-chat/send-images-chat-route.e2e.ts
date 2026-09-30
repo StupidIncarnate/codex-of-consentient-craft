@@ -1,7 +1,7 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
-import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
+import { SimpleTextResponseStub, ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
@@ -11,7 +11,6 @@ import { composerPasteHarness } from '../../../test/harnesses/composer-paste/com
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 import { chatControlHarness } from '../../../test/harnesses/chat-control/chat-control.harness';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
@@ -650,9 +649,9 @@ test.describe('Composer send — images ride the chat route', () => {
 
     const sessionIdStub = SessionIdStub({ value: sessionId });
     claudeMock.queueResponse({
-      response: {
+      response: ClaudeQueueResponseStub({
         sessionId: sessionIdStub,
-        delayMs: TimeoutMsStub({ value: HELD_BACK_TURN_DELAY_MS }),
+        delayMs: HELD_BACK_TURN_DELAY_MS,
         lines: [
           streamLineToJsonLineTransformer({
             streamLine: SystemInitStreamLineStub({ session_id: sessionIdStub }),
@@ -666,7 +665,7 @@ test.describe('Composer send — images ride the chat route', () => {
             }),
           }),
         ],
-      },
+      }),
     });
 
     await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });
@@ -978,9 +977,9 @@ test.describe('Composer send — images ride the chat route', () => {
 
     const sessionIdStub = SessionIdStub({ value: sessionId });
     claudeMock.queueResponse({
-      response: {
+      response: ClaudeQueueResponseStub({
         sessionId: sessionIdStub,
-        delayMs: TimeoutMsStub({ value: FORWARD_DELAY_MS }),
+        delayMs: FORWARD_DELAY_MS,
         lines: [
           streamLineToJsonLineTransformer({
             streamLine: SystemInitStreamLineStub({ session_id: sessionIdStub }),
@@ -994,7 +993,7 @@ test.describe('Composer send — images ride the chat route', () => {
             }),
           }),
         ],
-      },
+      }),
     });
 
     await nav.navigateToQuest({ urlSlug, questId: QuestIdStub({ value: questId }) });

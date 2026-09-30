@@ -6,11 +6,11 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
+import { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-stop-pauses-quest';
 const HTTP_OK = 200;
@@ -78,9 +78,9 @@ test.describe('Chat STOP pauses quest', () => {
     // Queue a slow Claude response so the chat stays in streaming state long enough
     // for us to click STOP.
     claudeMock.queueResponse({
-      response: {
+      response: ClaudeQueueResponseStub({
         sessionId: SessionIdStub({ value: sessionId }),
-        delayMs: TimeoutMsStub({ value: SLOW_DELAY_MS }),
+        delayMs: SLOW_DELAY_MS,
         lines: [
           streamLineToJsonLineTransformer({ streamLine: SystemInitStreamLineStub() }),
           streamLineToJsonLineTransformer({
@@ -101,7 +101,7 @@ test.describe('Chat STOP pauses quest', () => {
           }),
           streamLineToJsonLineTransformer({ streamLine: ResultStreamLineStub() }),
         ],
-      },
+      }),
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
