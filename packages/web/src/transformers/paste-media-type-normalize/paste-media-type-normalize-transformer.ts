@@ -10,12 +10,10 @@
  * // Returns 'image/png' as NormalizedPasteMediaType
  */
 
-import { normalizedPasteMediaTypeContract } from '../../contracts/normalized-paste-media-type/normalized-paste-media-type-contract';
-import type { NormalizedPasteMediaType } from '../../contracts/normalized-paste-media-type/normalized-paste-media-type-contract';
 
 export const pasteMediaTypeNormalizeTransformer = ({
   mediaType,
 }: {
   mediaType: string;
-}): NormalizedPasteMediaType =>
-  normalizedPasteMediaTypeContract.parse(mediaType.trim().toLowerCase());
+}): string =>
+  mediaType.trim().toLowerCase();
