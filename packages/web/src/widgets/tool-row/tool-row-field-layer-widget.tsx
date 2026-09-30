@@ -15,7 +15,6 @@ import { useState } from '#gateway/npm/react';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { FormattedToolField } from '../../contracts/formatted-tool-field/formatted-tool-field-contract';
-import type { ToolName } from '../../contracts/tool-name/tool-name-contract';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { elideMiddleTransformer } from '../../transformers/elide-middle/elide-middle-transformer';
@@ -26,7 +25,7 @@ const RESULT_FONT_SIZE = cssPixelsContract.parse(DETAIL_FONT_SIZE);
 
 export interface ToolRowFieldLayerWidgetProps {
   field: FormattedToolField;
-  toolName: ToolName;
+  toolName: string;
   // The row header's own anchor from `useDisclosureAnchorBinding`, called before every toggle here
   // changes height. A row can carry several of these fields, and the header is the one element in
   // the row there is exactly one of — so every field toggle anchors THAT, not itself.

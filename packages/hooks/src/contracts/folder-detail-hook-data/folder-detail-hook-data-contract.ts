@@ -13,7 +13,7 @@ import { agentContract } from '@dungeonmaster/shared/contracts';
 export const folderDetailHookDataContract = z
   .object({
     hook_event_name: z.literal('PreToolUse'),
-    tool_name: z.string().min(1).brand<'ToolName'>(),
+    tool_name: z.string().min(1).brand<'FolderDetailHookDataToolName'>(),
     tool_input: z.object({ file_path: z.string().min(1).brand<'FolderDetailHookDataToolInputFilePath'>() }).loose(),
     transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
     agent_id: agentContract.shape.id.optional(),

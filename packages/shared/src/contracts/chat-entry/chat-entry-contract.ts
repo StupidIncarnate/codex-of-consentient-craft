@@ -69,7 +69,7 @@ const assistantToolUseEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('tool_use'),
   toolUseId: z.string().min(1).brand<'ToolUseId'>().optional(),
-  toolName: z.string().min(1).brand<'ToolName'>(),
+  toolName: z.string().min(1).brand<'AssistantToolUseEntryToolName'>(),
   toolInput: z.string().brand<'ToolInput'>(),
   model: modelContract,
   usage: chatUsageContract.optional(),
@@ -95,7 +95,7 @@ const assistantThinkingEntryContract = z.object({
 const assistantToolResultEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('tool_result'),
-  toolName: z.string().min(1).brand<'ToolName'>(),
+  toolName: z.string().min(1).brand<'AssistantToolResultEntryToolName'>(),
   content: z.string().brand<'ToolResultContent'>(),
   isError: z.boolean().optional(),
   // Claude CLI reports a BLOCKING sub-agent call's own elapsed time here, from the completion

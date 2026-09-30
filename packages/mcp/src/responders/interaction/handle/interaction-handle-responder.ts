@@ -12,7 +12,6 @@ import { askUserQuestionBroker } from '../../../brokers/ask/user-question/ask-us
 import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broker';
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -20,7 +19,7 @@ export const InteractionHandleResponder = async ({
   tool,
   args,
 }: {
-  tool: ToolName;
+  tool: string;
   args: Record<string, unknown>;
 }): Promise<CallToolResult> => {
   if (tool === 'signal-back') {

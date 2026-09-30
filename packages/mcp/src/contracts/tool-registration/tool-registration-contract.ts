@@ -12,7 +12,6 @@ import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__typ
 import { z } from '#gateway/npm/zod';
 
 import { toolDescriptionContract } from '../tool-description/tool-description-contract';
-import { toolNameContract } from '../tool-name/tool-name-contract';
 
 export type ToolHandler = ({
   args,
@@ -23,7 +22,7 @@ export type ToolHandler = ({
 }) => Promise<CallToolResult>;
 
 export const toolRegistrationContract = z.object({
-  name: toolNameContract,
+  name: z.string().brand<'ToolRegistrationName'>(),
   description: toolDescriptionContract,
   inputSchema: z.record(z.string().brand<'InputSchemaKey'>(), z.unknown()),
 });

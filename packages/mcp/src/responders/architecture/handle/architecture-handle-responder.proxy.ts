@@ -13,7 +13,6 @@ import { architectureGatewayInventoryBrokerProxy } from '@dungeonmaster/shared/b
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import type { GlobPattern } from '@dungeonmaster/shared/contracts';
-import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discover-broker.proxy';
 import { architectureFolderDetailBrokerProxy } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
@@ -32,7 +31,7 @@ const DEFAULT_PROJECT_ROOT = '/default/cwd';
 
 export const ArchitectureHandleResponderProxy = (): {
   callResponder: (params: {
-    tool: ToolName;
+    tool: string;
     args: Record<string, unknown>;
     meta?: Record<string, unknown>;
   }) => ReturnType<typeof ArchitectureHandleResponder>;

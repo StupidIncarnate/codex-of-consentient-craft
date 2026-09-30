@@ -41,7 +41,6 @@ import { callerRepoRootBannerTransformer } from '../../../transformers/caller-re
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { folderDetailInputContract } from '../../../contracts/folder-detail-input/folder-detail-input-contract';
 import { getProjectInventoryInputContract } from '../../../contracts/get-project-inventory-input/get-project-inventory-input-contract';
 import { getProjectMapInputContract } from '../../../contracts/get-project-map-input/get-project-map-input-contract';
@@ -59,7 +58,7 @@ export const ArchitectureHandleResponder = async ({
   args,
   meta,
 }: {
-  tool: ToolName;
+  tool: string;
   args: Record<string, unknown>;
   // An explicit `| undefined` union rather than an optional key: under exactOptionalPropertyTypes
   // the caller can then forward its own possibly-absent `meta` as `{ meta }` directly, instead of

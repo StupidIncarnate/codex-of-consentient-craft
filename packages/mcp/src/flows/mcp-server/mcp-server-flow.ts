@@ -17,7 +17,6 @@ import {
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 import { toolRegistrationContract } from '../../contracts/tool-registration/tool-registration-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
-import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
 import { toolCallCallerLiftTransformer } from '../../transformers/tool-call-caller-lift/tool-call-caller-lift-transformer';
 
 export const McpServerFlow = async ({
@@ -47,7 +46,7 @@ export const McpServerFlow = async ({
   }));
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-    const handler = handlerMap.get(toolNameContract.parse(request.params.name));
+    const handler = handlerMap.get(toolRegistrationContract.shape.name.parse(request.params.name));
     if (!handler) {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }

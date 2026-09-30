@@ -9,8 +9,6 @@
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { MergedChatItem } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
-import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
-import type { ToolName } from '../../contracts/tool-name/tool-name-contract';
 
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 
@@ -20,8 +18,8 @@ export const mergeToolEntriesTransformer = ({
   entries: ChatEntry[];
 }): MergedChatItem[] => {
   const items: MergedChatItem[] = [];
-  const resultByToolUseId = new Map<ToolName, ToolResultEntry>();
-  const matchedToolNames = new Set<ToolName>();
+  const resultByToolUseId = new Map<string, ToolResultEntry>();
+  const matchedToolNames = new Set<string>();
 
   // Index all tool_result entries by their tool_use_id (stored in toolName field)
   for (const entry of entries) {
@@ -34,7 +32,7 @@ export const mergeToolEntriesTransformer = ({
   for (const entry of entries) {
     if ('type' in entry && entry.type === 'tool_use') {
       const { toolUseId } = entry;
-      const lookupKey = toolUseId === undefined ? null : toolNameContract.parse(toolUseId);
+      const lookupKey = toolUseId === undefined ? null : toolUseId;
       const matchedResult = lookupKey === null ? null : (resultByToolUseId.get(lookupKey) ?? null);
 
       if (lookupKey !== null && matchedResult !== null) {
@@ -47,7 +45,7 @@ export const mergeToolEntriesTransformer = ({
   for (const entry of entries) {
     if ('type' in entry && entry.type === 'tool_use') {
       const { toolUseId } = entry;
-      const lookupKey = toolUseId === undefined ? null : toolNameContract.parse(toolUseId);
+      const lookupKey = toolUseId === undefined ? null : toolUseId;
       const matchedResult = lookupKey === null ? null : (resultByToolUseId.get(lookupKey) ?? null);
 
       items.push(

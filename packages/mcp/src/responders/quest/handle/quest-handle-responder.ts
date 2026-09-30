@@ -17,8 +17,6 @@ import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
-import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
 import { createQuestInputContract } from '../../../contracts/create-quest-input/create-quest-input-contract';
 import { createQuestOutputContract } from '../../../contracts/create-quest-output/create-quest-output-contract';
 import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
@@ -34,15 +32,15 @@ const JSON_INDENT_SPACES = 2;
 // added as its own branch costs one, and the branches are identical apart from which layer they
 // call.
 const layerResponders = new Map<
-  ToolName,
+  string,
   (params: { args: Record<string, unknown> }) => Promise<CallToolResult>
 >([
-  [toolNameContract.parse('get-quest'), GetQuestLayerResponder],
-  [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
-  [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
-  [toolNameContract.parse('create-worktree'), CreateWorktreeLayerResponder],
-  [toolNameContract.parse('quest-work'), QuestWorkLayerResponder],
-  [toolNameContract.parse('get-quest-work'), GetQuestWorkLayerResponder],
+  ['get-quest', GetQuestLayerResponder],
+  ['get-blight-checklist', BlightChecklistLayerResponder],
+  ['get-quest-summary', QuestSummaryLayerResponder],
+  ['create-worktree', CreateWorktreeLayerResponder],
+  ['quest-work', QuestWorkLayerResponder],
+  ['get-quest-work', GetQuestWorkLayerResponder],
 ]);
 
 export const QuestHandleResponder = async ({
@@ -50,7 +48,7 @@ export const QuestHandleResponder = async ({
   args,
   meta,
 }: {
-  tool: ToolName;
+  tool: string;
   args: Record<string, unknown>;
   // The `dungeonmaster-pre-mcp-caller` hook stamps the caller context here on every MCP call.
   // `create-quest` reads it, via ResolveCallerSessionLayerResponder, to stamp its intake session

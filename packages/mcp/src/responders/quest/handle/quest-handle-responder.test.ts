@@ -1,5 +1,4 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -47,7 +46,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', format: 'json' },
       });
 
@@ -74,7 +73,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', flowId: 'login-flow', format: 'json' },
       });
 
@@ -92,7 +91,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', flowId: 'login-flow', packageName: 'web' },
       });
 
@@ -109,7 +108,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', stage: 'spec', format: 'json' },
       });
 
@@ -131,7 +130,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -160,7 +159,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', format: 'json' },
       });
 
@@ -194,7 +193,7 @@ describe('QuestHandleResponder', () => {
         proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
         const result = await proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-quest' }),
+          tool: 'get-quest',
           args: { questId: 'test-quest-id', format: 'json', stage },
         });
 
@@ -217,7 +216,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', format: 'text' },
       });
 
@@ -241,7 +240,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', format: 'text' },
       });
 
@@ -286,7 +285,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: questResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id', format: 'json' },
       });
 
@@ -308,7 +307,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestThrows({ questId: QuestIdStub({ value: 'test-quest-id' }), error: new Error('Quest not found') });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest' }),
+        tool: 'get-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -335,7 +334,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id', status: 'approved' },
       });
 
@@ -355,7 +354,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -376,7 +375,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           title: 'Keep This',
@@ -398,7 +397,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           wardResults: [{ id: 'sneaky-result' }],
@@ -418,7 +417,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           pausedAtStatus: 'in_progress',
@@ -438,7 +437,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           comments: [
@@ -477,7 +476,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           comments: [
@@ -510,7 +509,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           comments: [
@@ -543,7 +542,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: {
           questId: 'test-quest-id',
           planningNotes: {
@@ -597,7 +596,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -624,7 +623,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -665,7 +664,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -705,7 +704,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -743,7 +742,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestReturns({ questId: QuestIdStub({ value: 'test-quest-id' }), result: modifyResult });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -772,7 +771,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupModifyQuestThrows({ questId: QuestIdStub({ value: 'test-quest-id' }), error: new Error('Modify failed') });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
+        tool: 'modify-quest',
         args: { questId: 'test-quest-id' },
       });
 
@@ -800,7 +799,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupStartQuestReturns({ questId, processId });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'start-quest' }),
+        tool: 'start-quest',
         args: { questId: 'add-auth' },
       });
 
@@ -822,7 +821,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'start-quest' }),
+        tool: 'start-quest',
         args: { questId: 'add-auth' },
       });
 
@@ -846,7 +845,7 @@ describe('QuestHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'start-quest' }),
+          tool: 'start-quest',
           args: { questId: 'add-auth', guild: 'test' },
         }),
       ).rejects.toThrow(/Unrecognized key/u);
@@ -864,7 +863,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetQuestStatusReturns({ processId: 'proc-12345', status });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-status' }),
+        tool: 'get-quest-status',
         args: { processId: 'proc-12345' },
       });
 
@@ -886,7 +885,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-status' }),
+        tool: 'get-quest-status',
         args: { processId: 'proc-12345' },
       });
 
@@ -914,7 +913,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupListQuestsReturns({ guildId, quests });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'list-quests' }),
+        tool: 'list-quests',
         args: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
       });
 
@@ -936,7 +935,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'list-quests' }),
+        tool: 'list-quests',
         args: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
       });
 
@@ -961,7 +960,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'list-guilds' }),
+        tool: 'list-guilds',
         args: {},
       });
 
@@ -982,7 +981,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupListGuildsThrows({ error: new Error('Guilds failed') });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'list-guilds' }),
+        tool: 'list-guilds',
         args: {},
       });
 
@@ -1018,7 +1017,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
+        tool: 'get-quest-planning-notes',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1048,7 +1047,7 @@ describe('QuestHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
+          tool: 'get-quest-planning-notes',
           args: { questId: 'test-quest-id', section: 'blight' },
         }),
       ).rejects.toThrow(/Unrecognized key: \\"section\\"/u);
@@ -1062,7 +1061,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
+        tool: 'get-quest-planning-notes',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1089,7 +1088,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
+        tool: 'get-quest-planning-notes',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1119,7 +1118,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        tool: 'get-blight-checklist',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1144,7 +1143,7 @@ describe('QuestHandleResponder', () => {
       });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        tool: 'get-blight-checklist',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1161,7 +1160,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        tool: 'get-blight-checklist',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1190,7 +1189,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-worktree' }),
+        tool: 'create-worktree',
         args: { name: 'probe' },
       });
 
@@ -1212,7 +1211,7 @@ describe('QuestHandleResponder', () => {
       });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-worktree' }),
+        tool: 'create-worktree',
         args: { name: 'probe' },
       });
 
@@ -1227,7 +1226,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-worktree' }),
+        tool: 'create-worktree',
         args: { name: 'probe' },
       });
 
@@ -1277,7 +1276,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-summary' }),
+        tool: 'get-quest-summary',
         args: { questId: 'test-quest-id' },
       });
       const lines = TextContentSchema.parse(result.content[0]).text.split('\n');
@@ -1301,7 +1300,7 @@ describe('QuestHandleResponder', () => {
       });
 
       await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-summary' }),
+        tool: 'get-quest-summary',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1318,7 +1317,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-quest-summary' }),
+        tool: 'get-quest-summary',
         args: { questId: 'test-quest-id' },
       });
 
@@ -1346,7 +1345,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-quest' }),
+        tool: 'create-quest',
         args: { userRequest: 'Build the login flow' },
       });
 
@@ -1371,7 +1370,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-quest' }),
+        tool: 'create-quest',
         args: { userRequest: 'The tool result is not rendering', questType: 'bug-hunt' },
       });
 
@@ -1392,7 +1391,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-quest' }),
+        tool: 'create-quest',
         args: { userRequest: 'Build the login flow' },
         meta: {
           'dungeonmaster/caller': { cwd: '/default/cwd', sessionId: 'resolved-session-abc' },
@@ -1421,7 +1420,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'create-quest' }),
+        tool: 'create-quest',
         args: { userRequest: 'Build the login flow' },
       });
 
@@ -1448,7 +1447,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetServerConfigReturns({ result: config });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-server-config' }),
+        tool: 'get-server-config',
         args: {},
       });
 
@@ -1471,7 +1470,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetServerConfigThrows({ error: new Error('Config unavailable') });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-server-config' }),
+        tool: 'get-server-config',
         args: {},
       });
 
@@ -1497,7 +1496,7 @@ describe('QuestHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'unknown-tool' }),
+          tool: 'unknown-tool',
           args: {},
         }),
       ).rejects.toThrow(/Unknown quest tool/u);
@@ -1511,7 +1510,7 @@ describe('QuestHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'run-ward' }),
+          tool: 'run-ward',
           args: {},
         }),
       ).rejects.toThrow(/Unknown quest tool/u);
@@ -1522,7 +1521,7 @@ describe('QuestHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'run-riftcarver' }),
+          tool: 'run-riftcarver',
           args: {},
         }),
       ).rejects.toThrow(/Unknown quest tool/u);

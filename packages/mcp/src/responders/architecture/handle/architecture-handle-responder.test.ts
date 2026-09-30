@@ -1,5 +1,4 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { projectMapStatics } from '@dungeonmaster/shared/statics';
@@ -18,7 +17,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'discover' }),
+        tool: 'discover',
         args: { glob: 'packages/mcp/src/responders/**' },
       });
 
@@ -38,7 +37,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'discover' }),
+        tool: 'discover',
         args: {
           glob: 'packages/mcp/src/responders/**',
           grep: 'OrchestrationEventType',
@@ -63,7 +62,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'discover' }),
+        tool: 'discover',
         args: {
           glob: 'packages/mcp/src/responders/**',
           grep: 'OrchestrationEventType',
@@ -82,7 +81,7 @@ describe('ArchitectureHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'discover' }),
+          tool: 'discover',
           args: { grep: 'OrchestrationEventType', verbose: 'yes' },
         }),
       ).rejects.toThrow(/expected boolean/u);
@@ -94,7 +93,7 @@ describe('ArchitectureHandleResponder', () => {
       const proxy = ArchitectureHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-architecture' }),
+        tool: 'get-architecture',
         args: {},
       });
 
@@ -109,7 +108,7 @@ describe('ArchitectureHandleResponder', () => {
       const proxy = ArchitectureHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-testing-patterns' }),
+        tool: 'get-testing-patterns',
         args: {},
       });
 
@@ -124,7 +123,7 @@ describe('ArchitectureHandleResponder', () => {
       const proxy = ArchitectureHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-folder-detail' }),
+        tool: 'get-folder-detail',
         args: { folderType: 'brokers' },
       });
 
@@ -141,7 +140,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-folder-detail' }),
+        tool: 'get-folder-detail',
         args: { folderType: 'brokers' },
       });
 
@@ -155,7 +154,7 @@ describe('ArchitectureHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-folder-detail' }),
+          tool: 'get-folder-detail',
           args: { folderType: 'brokers', path: '/some/path' },
         }),
       ).rejects.toThrow(/Unrecognized key/u);
@@ -168,7 +167,7 @@ describe('ArchitectureHandleResponder', () => {
       proxy.setupLibraryPackage({ packageName: 'shared' });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-project-map' }),
+        tool: 'get-project-map',
         args: { packages: ['shared'] },
       });
 
@@ -183,7 +182,7 @@ describe('ArchitectureHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-project-map' }),
+          tool: 'get-project-map',
           args: {},
         }),
       ).rejects.toThrow(/received undefined/u);
@@ -195,7 +194,7 @@ describe('ArchitectureHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-project-map' }),
+          tool: 'get-project-map',
           args: { packages: [] },
         }),
       ).rejects.toThrow(/Too small: expected array to have >=1 items/u);
@@ -207,7 +206,7 @@ describe('ArchitectureHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-project-map' }),
+          tool: 'get-project-map',
           args: { packages: ['shared', 'typo'] },
         }),
       ).rejects.toThrow(/Unknown package\(s\): typo\. Valid: shared/u);
@@ -220,7 +219,7 @@ describe('ArchitectureHandleResponder', () => {
       proxy.setupDirectPackage({ packageName: 'shared' });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        tool: 'get-project-inventory',
         args: { packageName: 'shared' },
       });
 
@@ -236,7 +235,7 @@ describe('ArchitectureHandleResponder', () => {
       proxy.setupGatewayGroupPackage({ groupName: '@gateway', packageName: 'npm' });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        tool: 'get-project-inventory',
         args: { packageName: 'npm' },
       });
 
@@ -260,7 +259,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        tool: 'get-project-inventory',
         args: { packageName: '#gateway' },
       });
 
@@ -280,7 +279,7 @@ describe('ArchitectureHandleResponder', () => {
       proxy.setupDirectPackage({ packageName: 'shared' });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        tool: 'get-project-inventory',
         args: { packageName: 'shared' },
       });
 
@@ -298,7 +297,7 @@ describe('ArchitectureHandleResponder', () => {
       proxy.setupDirectPackage({ packageName: 'shared', repoRoot });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        tool: 'get-project-inventory',
         args: { packageName: 'shared' },
         meta: {
           'dungeonmaster/caller': {
@@ -322,7 +321,7 @@ describe('ArchitectureHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'unknown-tool' }),
+          tool: 'unknown-tool',
           args: {},
         }),
       ).rejects.toThrow(/Unknown architecture tool/u);

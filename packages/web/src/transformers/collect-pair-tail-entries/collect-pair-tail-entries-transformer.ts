@@ -7,8 +7,6 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
-import type { ToolName } from '../../contracts/tool-name/tool-name-contract';
 
 export const collectPairTailEntriesTransformer = ({
   entries,
@@ -16,7 +14,7 @@ export const collectPairTailEntriesTransformer = ({
   entries: ChatEntry[];
 }): Set<ChatEntry> => {
   const pairTails = new Set<ChatEntry>();
-  const resultByUseId = new Map<ToolName, ChatEntry>();
+  const resultByUseId = new Map<string, ChatEntry>();
 
   for (const entry of entries) {
     if ('type' in entry && entry.type === 'tool_result') {
@@ -26,7 +24,7 @@ export const collectPairTailEntriesTransformer = ({
 
   for (const entry of entries) {
     if ('type' in entry && entry.type === 'tool_use' && entry.toolUseId !== undefined) {
-      const lookupKey = toolNameContract.parse(entry.toolUseId);
+      const lookupKey = entry.toolUseId;
       const result = resultByUseId.get(lookupKey);
       if (result !== undefined) {
         pairTails.add(result);

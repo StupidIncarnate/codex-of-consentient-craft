@@ -4,7 +4,6 @@ import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-i
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
-import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { InteractionHandleResponderProxy } from './interaction-handle-responder.proxy';
 
 describe('InteractionHandleResponder', () => {
@@ -13,7 +12,7 @@ describe('InteractionHandleResponder', () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'signal-back' }),
+        tool: 'signal-back',
         args: {
           signal: 'complete',
           operationItemId: OperationItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' }),
@@ -31,7 +30,7 @@ describe('InteractionHandleResponder', () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'signal-back' }),
+        tool: 'signal-back',
         args: {
           signal: 'complete',
           blockedReason: 'the CI token this round needs is not on this machine',
@@ -51,7 +50,7 @@ describe('InteractionHandleResponder', () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'ask-user-question' }),
+        tool: 'ask-user-question',
         args: {
           questions: [
             {
@@ -93,7 +92,7 @@ describe('InteractionHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        tool: 'get-agent-prompt',
         args: {
           agent: 'codeweaver',
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
@@ -124,7 +123,7 @@ describe('InteractionHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        tool: 'get-agent-prompt',
         args: { agent: 'codeweaver-reviewer', questId },
       });
 
@@ -151,7 +150,7 @@ describe('InteractionHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        tool: 'get-agent-prompt',
         args: { agent: 'chaoswhisperer-gap-minion', questId },
       });
 
@@ -165,7 +164,7 @@ describe('InteractionHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-agent-prompt' }),
+          tool: 'get-agent-prompt',
           args: {
             agent: 'codeweaver',
             workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
@@ -179,7 +178,7 @@ describe('InteractionHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-agent-prompt' }),
+          tool: 'get-agent-prompt',
           args: { agent: 'chaoswhisperer-gap-minion' },
         }),
       ).rejects.toThrow(/get-agent-prompt requires \{agent, questId\}/u);
@@ -192,7 +191,7 @@ describe('InteractionHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'unknown-tool' }),
+          tool: 'unknown-tool',
           args: {},
         }),
       ).rejects.toThrow(/Unknown interaction tool/u);

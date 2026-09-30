@@ -18,7 +18,7 @@ export const mcpPreToolUseHookDataContract = z.object({
   session_id: sessionContract.shape.id,
   cwd: absoluteFilePathContract,
   hook_event_name: z.literal('PreToolUse'),
-  tool_name: z.string().min(1).brand<'ToolName'>(),
+  tool_name: z.string().min(1).brand<'McpPreToolUseHookDataToolName'>(),
   tool_input: mcpToolInputContract,
   agent_id: agentContract.shape.id.optional(),
 });

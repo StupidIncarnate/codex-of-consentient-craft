@@ -3,7 +3,6 @@ import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FormattedToolFieldStub } from '../../contracts/formatted-tool-field/formatted-tool-field.stub';
-import { ToolNameStub } from '../../contracts/tool-name/tool-name.stub';
 import { ToolRowFieldLayerWidget } from './tool-row-field-layer-widget';
 import { ToolRowFieldLayerWidgetProxy } from './tool-row-field-layer-widget.proxy';
 
@@ -22,7 +21,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Read' })}
+            toolName={'Read'}
             holdAnchor={holdAnchor}
           />
         ),
@@ -45,7 +44,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Write' })}
+            toolName={'Write'}
             holdAnchor={holdAnchor}
           />
         ),
@@ -67,7 +66,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Write' })}
+            toolName={'Write'}
             holdAnchor={holdAnchor}
           />
         ),
@@ -96,7 +95,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Write' })}
+            toolName={'Write'}
             holdAnchor={holdAnchor}
           />
         ),
@@ -123,7 +122,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Write' })}
+            toolName={'Write'}
             holdAnchor={holdAnchor}
           />
         ),
@@ -154,7 +153,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Bash' })}
+            toolName={'Bash'}
             holdAnchor={holdAnchor}
           />
         ),
@@ -177,7 +176,7 @@ describe('ToolRowFieldLayerWidget', () => {
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
-            toolName={ToolNameStub({ value: 'Read' })}
+            toolName={'Read'}
             holdAnchor={holdAnchor}
           />
         ),

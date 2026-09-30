@@ -13,7 +13,7 @@ export const preSearchHookDataContract = z.object({
   transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
   cwd: z.string().min(1).brand<'Cwd'>(),
   hook_event_name: z.literal('PreToolUse'),
-  tool_name: z.string().min(1).brand<'ToolName'>(),
+  tool_name: z.string().min(1).brand<'PreSearchHookDataToolName'>(),
   tool_input: z.unknown(),
 });
 
