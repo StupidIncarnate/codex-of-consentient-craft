@@ -7,14 +7,12 @@
  * });
  * // Returns: FunctionName('hasPermissionGuard')
  */
-import type { FunctionName } from '../../contracts/function-name/function-name-contract';
-import { functionNameContract } from '../../contracts/function-name/function-name-contract';
 
 export const kebabToCamelTransformer = ({
   kebabCase,
 }: {
-  kebabCase: FunctionName;
-}): FunctionName => {
+  kebabCase: string;
+}): string => {
   const camelCase = kebabCase.replace(/-([a-z])/gu, (_, letter: string) => letter.toUpperCase());
-  return functionNameContract.parse(camelCase);
+  return camelCase;
 };

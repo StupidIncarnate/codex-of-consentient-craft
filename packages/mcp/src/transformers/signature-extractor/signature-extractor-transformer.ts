@@ -14,7 +14,6 @@ import { typeNameContract } from '../../contracts/type-name/type-name-contract';
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 import type { FunctionSignature } from '../../contracts/file-metadata/file-metadata-contract';
 import type { TypeName } from '../../contracts/type-name/type-name-contract';
-import type { FunctionName } from '../../contracts/function-name/function-name-contract';
 import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transformer';
 
 // Allows one level of `{}` nesting inside a `{...}` block — e.g. `{ x: { y: string } }`.
@@ -27,7 +26,7 @@ export const signatureExtractorTransformer = ({
   functionName,
 }: {
   fileContents: FileContents;
-  functionName?: FunctionName;
+  functionName?: string;
 }): FunctionSignature | null => {
   // Pattern 1: destructured params `({ names }: { types })`.
   // Supports: optional `async`, optional generic `<T>`, one level of brace nesting in types.
