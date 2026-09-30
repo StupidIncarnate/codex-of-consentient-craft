@@ -15,8 +15,6 @@
  * // Returns '@dungeonmaster/npm/glob/glob/glob.proxy' as branded ImportPath, or null
  */
 
-import { importPathContract } from '../../contracts/import-path/import-path-contract';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 import type { WorkspacePackageJson } from '../../contracts/workspace-package-json/workspace-package-json-contract';
 
 export const workspacePackageImportsTargetTransformer = ({
@@ -24,13 +22,13 @@ export const workspacePackageImportsTargetTransformer = ({
   specifier,
 }: {
   importsMap: WorkspacePackageJson['imports'];
-  specifier: ImportPath;
-}): ImportPath | null => {
+  specifier: string;
+}): string | null => {
   if (!importsMap) {
     return null;
   }
 
-  let wildcardMatch: ImportPath | null = null;
+  let wildcardMatch: string | null = null;
 
   // Object.entries always yields plain string keys, even off a branded-key Record, so the literal
   // key comparison below stays a `===` rather than indexing importsMap by a constructed key.
@@ -59,7 +57,7 @@ export const workspacePackageImportsTargetTransformer = ({
     const longEnough = specifier.length >= prefix.length + suffix.length;
     if (longEnough && specifier.startsWith(prefix) && specifier.endsWith(suffix)) {
       const captured = specifier.slice(prefix.length, specifier.length - suffix.length);
-      wildcardMatch = importPathContract.parse(target.replaceAll('*', captured));
+      wildcardMatch = target.replaceAll('*', captured);
     }
   }
 

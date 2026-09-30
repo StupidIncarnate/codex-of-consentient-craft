@@ -22,7 +22,6 @@ import { existsSync } from '#gateway/node/fs';
 import { dirname, resolve } from '#gateway/node/path';
 import { packageImportsSpecifierResolveMiddleware } from '../package-imports-specifier-resolve/package-imports-specifier-resolve-middleware';
 import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 const IMPORTS_MAP_SPECIFIER_PREFIX = '#';
 
@@ -31,7 +30,7 @@ export const importPathResolverMiddleware = ({
   importPath,
 }: {
   sourceFilePath: string;
-  importPath: ImportPath;
+  importPath: string;
 }): string | null => {
   if (importPath.startsWith(IMPORTS_MAP_SPECIFIER_PREFIX)) {
     return packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });

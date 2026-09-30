@@ -1,6 +1,5 @@
 import { proxyImportEdgeContract } from './proxy-import-edge-contract';
 import { ProxyImportEdgeStub } from './proxy-import-edge.stub';
-import { ImportPathStub } from '../import-path/import-path.stub';
 import { IdentifierNameStub } from '../identifier-name/identifier-name.stub';
 
 describe('proxyImportEdgeContract', () => {
@@ -8,7 +7,7 @@ describe('proxyImportEdgeContract', () => {
     it('VALID: {kind: import, names: null} => parses wildcard import edge', () => {
       const edge = ProxyImportEdgeStub({
         kind: 'import',
-        importPath: ImportPathStub({ value: './child.proxy' }),
+        importPath: './child.proxy',
         names: null,
       });
 
@@ -24,7 +23,7 @@ describe('proxyImportEdgeContract', () => {
     it('VALID: {kind: reexport, names: [x]} => parses named reexport edge', () => {
       const edge = ProxyImportEdgeStub({
         kind: 'reexport',
-        importPath: ImportPathStub({ value: './barrel-target.proxy' }),
+        importPath: './barrel-target.proxy',
         names: [IdentifierNameStub({ value: 'pathJoinAdapterProxy' })],
       });
 

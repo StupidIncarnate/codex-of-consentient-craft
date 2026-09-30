@@ -1,10 +1,9 @@
 import { packageSpecifierSplitTransformer } from './package-specifier-split-transformer';
-import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('packageSpecifierSplitTransformer', () => {
   describe('scoped package specifiers', () => {
     it('VALID: {importPath: "@dungeonmaster/bin/testing"} => splits into package name and subpath', () => {
-      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+      const importPath = '@dungeonmaster/bin/testing';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 
@@ -12,7 +11,7 @@ describe('packageSpecifierSplitTransformer', () => {
     });
 
     it('VALID: {importPath: "@dungeonmaster/npm/@playwright/test"} => keeps slashes in the subpath', () => {
-      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/@playwright/test' });
+      const importPath = '@dungeonmaster/npm/@playwright/test';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 
@@ -25,7 +24,7 @@ describe('packageSpecifierSplitTransformer', () => {
 
   describe('unscoped package specifiers', () => {
     it('VALID: {importPath: "some-package/testing"} => splits into package name and subpath', () => {
-      const importPath = ImportPathStub({ value: 'some-package/testing' });
+      const importPath = 'some-package/testing';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 
@@ -35,7 +34,7 @@ describe('packageSpecifierSplitTransformer', () => {
 
   describe('no subpath', () => {
     it('INVALID: {importPath: "some-package"} => returns null', () => {
-      const importPath = ImportPathStub({ value: 'some-package' });
+      const importPath = 'some-package';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 
@@ -43,7 +42,7 @@ describe('packageSpecifierSplitTransformer', () => {
     });
 
     it('INVALID: {importPath: "axios"} => returns null', () => {
-      const importPath = ImportPathStub({ value: 'axios' });
+      const importPath = 'axios';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 
@@ -53,7 +52,7 @@ describe('packageSpecifierSplitTransformer', () => {
 
   describe('imports-map specifier', () => {
     it('INVALID: {importPath: "#gateway/npm/_test_"} => returns null', () => {
-      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const importPath = '#gateway/npm/_test_';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 

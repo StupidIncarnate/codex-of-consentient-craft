@@ -1,6 +1,5 @@
 import { gatewayImportsTargetTransformer } from './gateway-imports-target-transformer';
 import { GatewayConsumerPackageJsonStub } from '../../contracts/gateway-consumer-package-json/gateway-consumer-package-json.stub';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 
 describe('gatewayImportsTargetTransformer', () => {
   describe('exact key match', () => {
@@ -11,7 +10,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm' }),
+        specifier: '#gateway/npm',
       });
 
       expect(result).toBe('@dungeonmaster/npm');
@@ -26,7 +25,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe('@dungeonmaster/npm/zod');
@@ -39,7 +38,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/lodash/fp' }),
+        specifier: '#gateway/npm/lodash/fp',
       });
 
       expect(result).toBe('@dungeonmaster/npm/lodash/fp');
@@ -54,7 +53,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe('@dungeonmaster/npm/zod');
@@ -67,7 +66,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe('@dungeonmaster/npm/zod');
@@ -80,7 +79,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe('@dungeonmaster/npm/zod');
@@ -93,7 +92,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe('@dungeonmaster/npm/zod');
@@ -106,7 +105,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe(null);
@@ -119,7 +118,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(result).toBe(null);
@@ -132,7 +131,7 @@ describe('gatewayImportsTargetTransformer', () => {
 
       const result = gatewayImportsTargetTransformer({
         importsMap,
-        specifier: ImportPathStub({ value: '#gateway/npm/' }),
+        specifier: '#gateway/npm/',
       });
 
       expect(result).toBe(null);

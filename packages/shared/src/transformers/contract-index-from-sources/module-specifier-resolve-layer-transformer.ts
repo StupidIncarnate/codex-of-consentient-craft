@@ -10,7 +10,6 @@
  */
 import { dirname, resolve } from '#gateway/node/path';
 
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 import type { ContractIndexPackage } from '../../contracts/contract-index-package/contract-index-package-contract';
 import { contractIndexStatics } from '../../statics/contract-index/contract-index-statics';
 
@@ -22,7 +21,7 @@ export const moduleSpecifierResolveLayerTransformer = ({
   knownFiles,
   packages,
 }: {
-  specifier: ImportPath;
+  specifier: string;
   fromFile: string;
   knownFiles: ReadonlySet<string>;
   packages: ContractIndexPackage[];

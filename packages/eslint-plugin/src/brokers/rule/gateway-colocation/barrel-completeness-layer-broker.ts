@@ -23,7 +23,6 @@
  * // Reports 'barrelMissingReexport' for every wrapper export the list above leaves out, and
  * // 'barrelStaleReexport' for every listed entry whose target file no longer carries that name
  */
-import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { isGatewayWrapperImplementationFileGuard } from '../../../guards/is-gateway-wrapper-implementation-file/is-gateway-wrapper-implementation-file-guard';
@@ -40,7 +39,7 @@ export const barrelCompletenessLayerBroker = ({
   context: TSESLint.RuleContext<string, unknown[]>;
   fileName: string;
   subpathDirectory: string;
-  reexports: { name: string; source: ImportPath }[];
+  reexports: { name: string; source: string }[];
 }): boolean => {
   let complete = true;
   const reexportedNames = new Set(reexports.map((reexport) => reexport.name));

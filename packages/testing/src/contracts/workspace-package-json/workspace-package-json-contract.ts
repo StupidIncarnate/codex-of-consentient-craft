@@ -25,7 +25,6 @@
 
 import { z } from '#gateway/npm/zod';
 import { workspacePackageExportSourcePathContract } from '../workspace-package-export-source-path/workspace-package-export-source-path-contract';
-import { importPathContract } from '../import-path/import-path-contract';
 
 // Keys stay unbranded: they are structural export-map path segments ('./testing', './*'), matched
 // and indexed by plain-string subpaths rather than exchanged as a domain value.
@@ -52,10 +51,10 @@ const workspacePackageExportValueContract = z.union([
 // package directory as a relative file path.
 const workspacePackageImportConditionsContract = z
   .object({
-    source: importPathContract.optional(),
-    import: importPathContract.optional(),
-    require: importPathContract.optional(),
-    default: importPathContract.optional(),
+    source: z.string().brand<'WorkspacePackageImportConditionsSource'>().optional(),
+    import: z.string().brand<'WorkspacePackageImportConditionsImport'>().optional(),
+    require: z.string().brand<'WorkspacePackageImportConditionsRequire'>().optional(),
+    default: z.string().brand<'WorkspacePackageImportConditionsDefault'>().optional(),
   })
   .loose();
 
@@ -74,7 +73,7 @@ export const workspacePackageJsonContract = z
     imports: z
       .record(
         z.string().brand<'WorkspacePackageImportKey'>(),
-        z.union([importPathContract, workspacePackageImportConditionsContract]),
+        z.union([z.string().brand<'WorkspacePackageJsonImports'>(), workspacePackageImportConditionsContract]),
       )
       .optional(),
   })

@@ -1,11 +1,10 @@
 import { builtinModules } from '#gateway/node/module';
 import { gatewayPathFromImportSourceTransformer } from './gateway-path-from-import-source-transformer';
-import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('gatewayPathFromImportSourceTransformer', () => {
   it('VALID: {importSource: "fs"} => returns "#gateway/node/fs"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'fs' }),
+      importSource: 'fs',
       builtinModules,
     });
 
@@ -14,7 +13,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('VALID: {importSource: "node:fs/promises"} => returns "#gateway/node/fs__promises"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'node:fs/promises' }),
+      importSource: 'node:fs/promises',
       builtinModules,
     });
 
@@ -23,7 +22,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('VALID: {importSource: "zod"} => returns "#gateway/npm/zod"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'zod' }),
+      importSource: 'zod',
       builtinModules,
     });
 
@@ -32,7 +31,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('VALID: {importSource: "node:child_process"} => returns "#gateway/node/child_process"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'node:child_process' }),
+      importSource: 'node:child_process',
       builtinModules,
     });
 
@@ -41,7 +40,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('EDGE: {importSource: "@playwright/test"} => returns "#gateway/npm/playwright__test"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: '@playwright/test' }),
+      importSource: '@playwright/test',
       builtinModules,
     });
 
@@ -50,7 +49,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('EDGE: {importSource: "@anthropic-ai/claude-code"} => returns "#gateway/npm/anthropic-ai__claude-code"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: '@anthropic-ai/claude-code' }),
+      importSource: '@anthropic-ai/claude-code',
       builtinModules,
     });
 
@@ -59,7 +58,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('EDGE: {importSource: "@modelcontextprotocol/sdk/server/stdio.js"} => drops the .js and returns "#gateway/npm/modelcontextprotocol__sdk__server__stdio"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: '@modelcontextprotocol/sdk/server/stdio.js' }),
+      importSource: '@modelcontextprotocol/sdk/server/stdio.js',
       builtinModules,
     });
 
@@ -68,7 +67,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('VALID: {importSource: "async_hooks"} => returns "#gateway/node/async_hooks", a builtin the old hand list lacked', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'async_hooks' }),
+      importSource: 'async_hooks',
       builtinModules,
     });
 
@@ -77,7 +76,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('EDGE: {importSource: "node:test"} => keeps mapping to "#gateway/npm/test", since node:-only builtins are not in builtinModules', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'node:test' }),
+      importSource: 'node:test',
       builtinModules,
     });
 
@@ -86,7 +85,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('VALID: {importSource: "react-dom/client"} => returns "#gateway/npm/react-dom__client"', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'react-dom/client' }),
+      importSource: 'react-dom/client',
       builtinModules,
     });
 
@@ -95,7 +94,7 @@ describe('gatewayPathFromImportSourceTransformer', () => {
 
   it('VALID: {importSource: "zod", builtinModules: ["zod"]} => returns "#gateway/node/zod", the passed list decides', () => {
     const result = gatewayPathFromImportSourceTransformer({
-      importSource: ImportPathStub({ value: 'zod' }),
+      importSource: 'zod',
       builtinModules: ['zod'],
     });
 

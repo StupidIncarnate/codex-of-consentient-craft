@@ -16,7 +16,6 @@ import {
   folderDependencyTreeContract,
   type FolderDependencyTree,
 } from '../../contracts/folder-dependency-tree/folder-dependency-tree-contract';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const folderDependencyTreeTransformer = ({
   folderConfigs,
@@ -59,9 +58,9 @@ export const folderDependencyTreeTransformer = ({
   const hierarchy = hierarchyLines.map((line) => line).join('\n');
 
   // Build graph
-  const graph: Record<FolderType, readonly ImportPath[]> = {} as Record<
+  const graph: Record<FolderType, readonly string[]> = {} as Record<
     FolderType,
-    readonly ImportPath[]
+    readonly string[]
   >;
   for (const folder of Object.keys(folderConfigs)) {
     const config = folderConfigs[folder];
@@ -69,8 +68,8 @@ export const folderDependencyTreeTransformer = ({
       continue;
     }
 
-    const normalizedImports: readonly ImportPath[] = config.allowedImports.map(
-      (imp) => imp.replace(/\/$/u, '') as ImportPath,
+    const normalizedImports: readonly string[] = config.allowedImports.map(
+      (imp) => imp.replace(/\/$/u, '') as string,
     );
 
     const folderType = folderTypeContract.parse(folder);

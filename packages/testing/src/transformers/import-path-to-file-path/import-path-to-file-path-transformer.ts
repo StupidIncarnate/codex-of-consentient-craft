@@ -16,7 +16,6 @@
  */
 
 import { isProxyImportGuard } from '../../guards/is-proxy-import/is-proxy-import-guard';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const importPathToFilePathTransformer = ({
   importPath,
@@ -24,7 +23,7 @@ export const importPathToFilePathTransformer = ({
   fileExists,
 }: {
   sourceFilePath: string;
-  importPath: ImportPath;
+  importPath: string;
   resolvedPath: string;
   fileExists: boolean;
 }): string | null => {

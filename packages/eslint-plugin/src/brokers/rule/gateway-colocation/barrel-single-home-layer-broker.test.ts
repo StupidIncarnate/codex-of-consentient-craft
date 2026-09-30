@@ -1,6 +1,5 @@
 import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelSingleHomeLayerBroker } from './barrel-single-home-layer-broker';
 import { barrelSingleHomeLayerBrokerProxy } from './barrel-single-home-layer-broker.proxy';
 
@@ -18,7 +17,7 @@ describe('barrelSingleHomeLayerBroker', () => {
       reexports: [
         {
           name: 'readFileSync',
-          source: ImportPathStub({ value: './read-file-sync/read-file-sync' }),
+          source: './read-file-sync/read-file-sync',
         },
       ],
     });
@@ -38,7 +37,7 @@ describe('barrelSingleHomeLayerBroker', () => {
       context,
       fileName: 'zod.ts',
       reexports: [
-        { name: 'default', source: ImportPathStub({ value: 'zod' }) },
+        { name: 'default', source: 'zod' },
       ],
     });
 
@@ -52,7 +51,7 @@ describe('barrelSingleHomeLayerBroker', () => {
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
     const name = 'isFsError';
-    const source = ImportPathStub({ value: '../fs/is-fs-error/is-fs-error' });
+    const source = '../fs/is-fs-error/is-fs-error';
 
     const result = barrelSingleHomeLayerBroker({
       node,

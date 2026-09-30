@@ -14,7 +14,6 @@
 
 import { packageSpecifierPartsContract } from '../../contracts/package-specifier-parts/package-specifier-parts-contract';
 import type { PackageSpecifierParts } from '../../contracts/package-specifier-parts/package-specifier-parts-contract';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 // Scoped (`@scope/name`) or unscoped (`name`) package specifier, followed by its subpath.
 const PACKAGE_SPECIFIER_PATTERN = /^(@[^/]+\/[^/]+|[^@/]+)\/(.+)$/u;
@@ -23,7 +22,7 @@ const IMPORTS_MAP_SPECIFIER_PREFIX = '#';
 export const packageSpecifierSplitTransformer = ({
   importPath,
 }: {
-  importPath: ImportPath;
+  importPath: string;
 }): PackageSpecifierParts | null => {
   if (importPath.startsWith(IMPORTS_MAP_SPECIFIER_PREFIX)) {
     return null;

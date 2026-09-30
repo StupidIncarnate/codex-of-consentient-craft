@@ -22,7 +22,6 @@
  * // undeclared; returns true, reporting nothing, when the import already resolves to a declared
  * // dependency
  */
-import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -41,7 +40,7 @@ export const validateGatewaySpecifierLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
-  specifier: ImportPath;
+  specifier: string;
 }): boolean => {
   const nearestPackageJson = findNearestPackageJsonLayerBroker({
     startDir: dirname(filename),

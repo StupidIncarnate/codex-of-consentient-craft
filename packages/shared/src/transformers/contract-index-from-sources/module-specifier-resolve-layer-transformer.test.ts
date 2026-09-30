@@ -1,5 +1,4 @@
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
-import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 import { moduleSpecifierResolveLayerTransformer } from './module-specifier-resolve-layer-transformer';
 
 const sharedPackage = ContractIndexPackageStub({
@@ -19,7 +18,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: './b' }),
+        specifier: './b',
         fromFile: '/repo/packages/shared/src/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -34,7 +33,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: './b.js' }),
+        specifier: './b.js',
         fromFile: '/repo/packages/shared/src/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -49,7 +48,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: '../dir' }),
+        specifier: '../dir',
         fromFile: '/repo/packages/shared/src/sub/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -60,7 +59,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
 
     it('EMPTY: {./missing} => returns undefined', () => {
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: './missing' }),
+        specifier: './missing',
         fromFile: '/repo/packages/shared/src/a.ts',
         knownFiles: new Set(),
         packages: [sharedPackage, sharedExtraPackage],
@@ -77,7 +76,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
+        specifier: '@repo/shared/contracts',
         fromFile: '/repo/packages/other/src/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -92,7 +91,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared-extra/statics' }),
+        specifier: '@repo/shared-extra/statics',
         fromFile: '/repo/packages/other/src/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -107,7 +106,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/brokers' }),
+        specifier: '@repo/shared/brokers',
         fromFile: '/repo/packages/other/src/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -122,7 +121,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
       ]);
 
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared' }),
+        specifier: '@repo/shared',
         fromFile: '/repo/packages/other/src/a.ts',
         knownFiles,
         packages: [sharedPackage, sharedExtraPackage],
@@ -133,7 +132,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
 
     it('EMPTY: {external package} => returns undefined', () => {
       const result = moduleSpecifierResolveLayerTransformer({
-        specifier: ImportPathStub({ value: 'zod' }),
+        specifier: 'zod',
         fromFile: '/repo/packages/other/src/a.ts',
         knownFiles: new Set(),
         packages: [sharedPackage, sharedExtraPackage],

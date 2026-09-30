@@ -1,5 +1,4 @@
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
-import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 import { contractFileFindLayerTransformer } from './contract-file-find-layer-transformer';
 
 const sharedPackage = ContractIndexPackageStub({
@@ -15,7 +14,7 @@ describe('contractFileFindLayerTransformer', () => {
   describe('direct hits', () => {
     it('VALID: {specifier resolves to a contract file} => returns that file', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/src/thing/thing-contract' }),
+        specifier: '@repo/shared/src/thing/thing-contract',
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([contractFile]),
@@ -32,7 +31,7 @@ describe('contractFileFindLayerTransformer', () => {
 
     it('EMPTY: {specifier resolves to nothing} => returns undefined', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: 'zod' }),
+        specifier: 'zod',
         fromFile: importer,
         name: 'z',
         contractFiles: new Set([contractFile]),
@@ -51,7 +50,7 @@ describe('contractFileFindLayerTransformer', () => {
   describe('through barrels', () => {
     it('VALID: {named re-export with a rename} => follows the source name to the contract file', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
+        specifier: '@repo/shared/contracts',
         fromFile: importer,
         name: 'renamedContract',
         contractFiles: new Set([contractFile]),
@@ -66,7 +65,7 @@ describe('contractFileFindLayerTransformer', () => {
                 kind: 'named' as const,
                 exportedName: 'renamedContract',
                 sourceName: 'thingContract',
-                specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
+                specifier: './src/thing/thing-contract',
               },
             ],
           ],
@@ -80,7 +79,7 @@ describe('contractFileFindLayerTransformer', () => {
 
     it('VALID: {star re-export} => follows the same name to the contract file', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
+        specifier: '@repo/shared/contracts',
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([contractFile]),
@@ -95,7 +94,7 @@ describe('contractFileFindLayerTransformer', () => {
                 kind: 'star' as const,
                 exportedName: '*',
                 sourceName: '*',
-                specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
+                specifier: './src/thing/thing-contract',
               },
             ],
           ],
@@ -111,7 +110,7 @@ describe('contractFileFindLayerTransformer', () => {
       const firstContractFile = '/repo/packages/shared/src/first/first-contract.ts';
 
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
+        specifier: '@repo/shared/contracts',
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([firstContractFile, contractFile]),
@@ -127,13 +126,13 @@ describe('contractFileFindLayerTransformer', () => {
                 kind: 'star' as const,
                 exportedName: '*',
                 sourceName: '*',
-                specifier: ImportPathStub({ value: './src/first/first-contract' }),
+                specifier: './src/first/first-contract',
               },
               {
                 kind: 'star' as const,
                 exportedName: '*',
                 sourceName: '*',
-                specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
+                specifier: './src/thing/thing-contract',
               },
             ],
           ],
@@ -147,7 +146,7 @@ describe('contractFileFindLayerTransformer', () => {
 
     it('VALID: {contract file that does not export the name} => returns undefined', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/src/thing/thing-contract' }),
+        specifier: '@repo/shared/src/thing/thing-contract',
         fromFile: importer,
         name: 'otherContract',
         contractFiles: new Set([contractFile]),
@@ -164,7 +163,7 @@ describe('contractFileFindLayerTransformer', () => {
 
     it('VALID: {named re-export of a different name} => skips it and returns undefined', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
+        specifier: '@repo/shared/contracts',
         fromFile: importer,
         name: 'wantedContract',
         contractFiles: new Set([contractFile]),
@@ -179,7 +178,7 @@ describe('contractFileFindLayerTransformer', () => {
                 kind: 'named' as const,
                 exportedName: 'thingContract',
                 sourceName: 'thingContract',
-                specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
+                specifier: './src/thing/thing-contract',
               },
             ],
           ],
@@ -193,7 +192,7 @@ describe('contractFileFindLayerTransformer', () => {
 
     it('EDGE: {two barrels that star-export each other} => stops and returns undefined', () => {
       const result = contractFileFindLayerTransformer({
-        specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
+        specifier: '@repo/shared/contracts',
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([contractFile]),
@@ -208,7 +207,7 @@ describe('contractFileFindLayerTransformer', () => {
                 kind: 'star' as const,
                 exportedName: '*',
                 sourceName: '*',
-                specifier: ImportPathStub({ value: './more' }),
+                specifier: './more',
               },
             ],
           ],
@@ -219,7 +218,7 @@ describe('contractFileFindLayerTransformer', () => {
                 kind: 'star' as const,
                 exportedName: '*',
                 sourceName: '*',
-                specifier: ImportPathStub({ value: './contracts' }),
+                specifier: './contracts',
               },
             ],
           ],

@@ -15,7 +15,6 @@
  * });
  * // Reports 'barrelReexportsTestSupportFile' once, returns false
  */
-import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const barrelNoTestSupportReexportLayerBroker = ({
@@ -27,7 +26,7 @@ export const barrelNoTestSupportReexportLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   fileName: string;
-  reexports: { name: string; source: ImportPath }[];
+  reexports: { name: string; source: string }[];
 }): boolean => {
   let clean = true;
 

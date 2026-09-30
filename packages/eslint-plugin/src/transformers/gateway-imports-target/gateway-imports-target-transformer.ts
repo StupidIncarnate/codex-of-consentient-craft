@@ -12,8 +12,6 @@
  * });
  * // Returns '@dungeonmaster/npm/zod' as branded ImportPath
  */
-import { importPathContract } from '@dungeonmaster/shared/contracts';
-import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import type { GatewayConsumerPackageJson } from '../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
 export const gatewayImportsTargetTransformer = ({
@@ -21,13 +19,13 @@ export const gatewayImportsTargetTransformer = ({
   specifier,
 }: {
   importsMap: GatewayConsumerPackageJson['imports'];
-  specifier: ImportPath;
-}): ImportPath | null => {
+  specifier: string;
+}): string | null => {
   if (!importsMap) {
     return null;
   }
 
-  let wildcardMatch: ImportPath | null = null;
+  let wildcardMatch: string | null = null;
 
   // Object.entries always yields plain string keys, even off a branded-key Record, so the literal
   // key comparison below stays a `===` rather than indexing importsMap by a constructed key.
@@ -42,7 +40,7 @@ export const gatewayImportsTargetTransformer = ({
     }
 
     if (key === specifier) {
-      return importPathContract.parse(target);
+      return target;
     }
 
     if (wildcardMatch) {
@@ -60,7 +58,7 @@ export const gatewayImportsTargetTransformer = ({
 
     if (longEnough && specifier.startsWith(prefix) && specifier.endsWith(suffix)) {
       const captured = specifier.slice(prefix.length, specifier.length - suffix.length);
-      wildcardMatch = importPathContract.parse(target.replace('*', captured));
+      wildcardMatch = target.replace('*', captured);
     }
   }
 

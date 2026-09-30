@@ -2,7 +2,6 @@ import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-cont
 import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { validateGatewaySpecifierLayerBroker } from './validate-gateway-specifier-layer-broker';
 import { validateGatewaySpecifierLayerBrokerProxy } from './validate-gateway-specifier-layer-broker.proxy';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 
 describe('validateGatewaySpecifierLayerBroker', () => {
   describe('mapped and declared', () => {
@@ -24,7 +23,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -48,7 +47,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/conditions/src/brokers/x/x-broker.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -73,7 +72,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/@gateway/npm/src/glob-sync.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/glob' }),
+        specifier: '#gateway/npm/glob',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -99,7 +98,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/test-devdep/src/brokers/x/x-broker.test.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -121,7 +120,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/unmapped/src/brokers/x/x-broker.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
@@ -157,7 +156,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/runtime-devdep-only/src/brokers/x/x-broker.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
@@ -190,7 +189,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/repo/packages/test-missing/src/brokers/x/x-broker.test.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
@@ -221,7 +220,7 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         node,
         context,
         filename: '/orphan/src/x.ts',
-        specifier: ImportPathStub({ value: '#gateway/npm/zod' }),
+        specifier: '#gateway/npm/zod',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);

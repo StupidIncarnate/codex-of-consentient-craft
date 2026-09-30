@@ -1,6 +1,5 @@
 import { workspacePackageImportsTargetTransformer } from './workspace-package-imports-target-transformer';
 import { WorkspacePackageJsonStub } from '../../contracts/workspace-package-json/workspace-package-json.stub';
-import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('workspacePackageImportsTargetTransformer', () => {
   describe('literal imports key', () => {
@@ -8,7 +7,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
       const { imports: importsMap } = WorkspacePackageJsonStub({
         imports: { '#gateway/npm/_test_': '@dungeonmaster/npm/_test_' },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -21,7 +20,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
       const { imports: importsMap } = WorkspacePackageJsonStub({
         imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -32,7 +31,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
       const { imports: importsMap } = WorkspacePackageJsonStub({
         imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/glob' });
+      const specifier = '#gateway/npm/glob';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -46,7 +45,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
           '#gateway/npm/*': '@dungeonmaster/npm/*',
         },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -64,7 +63,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
           },
         },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -80,7 +79,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
           },
         },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -96,7 +95,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
           },
         },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -107,7 +106,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
       const { imports: importsMap } = WorkspacePackageJsonStub({
         imports: { '#gateway/npm/*': { default: '@dungeonmaster/npm-default/*' } },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -118,7 +117,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
       const { imports: importsMap } = WorkspacePackageJsonStub({
         imports: { '#gateway/npm/*': {} },
       });
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -131,7 +130,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
       const { imports: importsMap } = WorkspacePackageJsonStub({
         imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
       });
-      const specifier = ImportPathStub({ value: '#foo' });
+      const specifier = '#foo';
 
       const result = workspacePackageImportsTargetTransformer({ importsMap, specifier });
 
@@ -141,7 +140,7 @@ describe('workspacePackageImportsTargetTransformer', () => {
 
   describe('empty input', () => {
     it('EMPTY: {importsMap: undefined} => returns null', () => {
-      const specifier = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const specifier = '#gateway/npm/_test_';
 
       const result = workspacePackageImportsTargetTransformer({
         importsMap: undefined,

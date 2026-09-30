@@ -10,8 +10,6 @@
  * gatewayBarrelExportedNamesTransformer({ sourceText: "export { readFile } from './read-file/read-file';\nexport * from 'fs/promises';\n" });
  * // Returns { directNames: [Identifier('readFile')], reexportTargets: [ImportPath('fs/promises')] }
  */
-import { importPathContract } from '@dungeonmaster/shared/contracts';
-import type { ImportPath } from '@dungeonmaster/shared/contracts';
 
 const NAMED_EXPORT_LIST = /export\s*\{([^}]+)\}(?:\s*from\s*['"][^'"]+['"])?/gu;
 const NAMED_DECLARATION = /export\s+(?:const|function|class)\s+([A-Za-z0-9_$]+)/gu;
@@ -22,7 +20,7 @@ export const gatewayBarrelExportedNamesTransformer = ({
   sourceText,
 }: {
   sourceText: string;
-}): { directNames: string[]; reexportTargets: ImportPath[] } => {
+}): { directNames: string[]; reexportTargets: string[] } => {
   const directNames = new Set<string>();
 
   for (const match of sourceText.matchAll(NAMED_EXPORT_LIST)) {
@@ -57,7 +55,7 @@ export const gatewayBarrelExportedNamesTransformer = ({
   const reexportTargets = Array.from(sourceText.matchAll(PASSTHROUGH_REEXPORT))
     .map((match) => match[1])
     .filter((target) => target !== undefined)
-    .map((target) => importPathContract.parse(target));
+    .map((target) => target);
 
   return {
     directNames: Array.from(directNames),

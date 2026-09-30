@@ -1,6 +1,5 @@
 import { workspacePackageImportResolveMiddleware } from './workspace-package-import-resolve-middleware';
 import { workspacePackageImportResolveMiddlewareProxy } from './workspace-package-import-resolve-middleware.proxy';
-import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('workspacePackageImportResolveMiddleware', () => {
   describe('cross-package testing subpath, literal export key', () => {
@@ -17,7 +16,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/shared/testing.ts' });
       const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/shared/testing' });
+      const importPath = '@dungeonmaster/shared/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -39,7 +38,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/testing.ts' });
       const sourceFilePath = '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+      const importPath = '@dungeonmaster/bin/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -69,7 +68,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/node/src/testing/testing.ts' });
       const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/node/testing' });
+      const importPath = '@dungeonmaster/node/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -99,7 +98,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
         filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/glob/glob/glob.proxy' });
+      const importPath = '@dungeonmaster/npm/glob/glob/glob.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -135,7 +134,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
         filePath: '/repo/packages/@gateway/bin/src/git/git/git.proxy.ts',
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/git/git/git.proxy' });
+      const importPath = '@dungeonmaster/bin/git/git/git.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -157,7 +156,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
         },
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/glob/glob/glob.proxy' });
+      const importPath = '@dungeonmaster/npm/glob/glob/glob.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -190,9 +189,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = ImportPathStub({
-        value: '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
-      });
+      const importPath = '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -225,9 +222,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = ImportPathStub({
-        value: '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
-      });
+      const importPath = '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -241,7 +236,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
     it('INVALID: {importPath has no subpath} => returns null', () => {
       workspacePackageImportResolveMiddlewareProxy();
       const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: 'some-package' });
+      const importPath = 'some-package';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -251,7 +246,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
     it('INVALID: {no ancestor package.json declares workspaces} => returns null', () => {
       workspacePackageImportResolveMiddlewareProxy();
       const sourceFilePath = '/unreachable/deep/path/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+      const importPath = '@dungeonmaster/bin/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -270,7 +265,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
         },
       });
       const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/testing' });
+      const importPath = '@dungeonmaster/npm/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -289,7 +284,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
         },
       });
       const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+      const importPath = '@dungeonmaster/bin/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -308,7 +303,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
         },
       });
       const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
-      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+      const importPath = '@dungeonmaster/bin/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 

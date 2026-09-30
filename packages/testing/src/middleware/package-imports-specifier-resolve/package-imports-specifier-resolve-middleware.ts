@@ -18,14 +18,13 @@ import { dirname } from '#gateway/node/path';
 import { nearestPackageJsonFindMiddleware } from '../nearest-package-json-find/nearest-package-json-find-middleware';
 import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
 import { workspacePackageImportsTargetTransformer } from '../../transformers/workspace-package-imports-target/workspace-package-imports-target-transformer';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const packageImportsSpecifierResolveMiddleware = ({
   sourceFilePath,
   importPath,
 }: {
   sourceFilePath: string;
-  importPath: ImportPath;
+  importPath: string;
 }): string | null => {
   const packageJson = nearestPackageJsonFindMiddleware({
     dirPath: dirname(sourceFilePath),

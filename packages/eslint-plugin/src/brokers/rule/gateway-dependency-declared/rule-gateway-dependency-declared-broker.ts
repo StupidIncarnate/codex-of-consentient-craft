@@ -12,7 +12,6 @@
  * // Returns an RuleModule that flags `import {glob} from '#gateway/npm/glob'` in a file whose
  * // nearest package.json omits "@dungeonmaster/npm" from dependencies
  */
-import { importPathContract } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -65,7 +64,7 @@ export const ruleGatewayDependencyDeclaredBroker = (): TSESLint.RuleModule<
           node,
           context: ctx,
           filename,
-          specifier: importPathContract.parse(importSource),
+          specifier: importSource,
         });
       },
 
@@ -97,7 +96,7 @@ export const ruleGatewayDependencyDeclaredBroker = (): TSESLint.RuleModule<
           node,
           context: ctx,
           filename,
-          specifier: importPathContract.parse(importSource),
+          specifier: importSource,
         });
       },
     };

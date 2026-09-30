@@ -17,7 +17,7 @@ export const folderConfigContract = z.object({
   exportCase: z.union([z.enum(['camelCase', 'PascalCase']), z.literal('')]),
   folderDepth: z.number().int().min(0).brand<'FolderDepth'>(),
   folderPattern: z.string().brand<'FolderPattern'>(),
-  allowedImports: z.array(z.string().brand<'ImportPath'>()).readonly(),
+  allowedImports: z.array(z.string().brand<'FolderConfigAllowedImports'>()).readonly(),
   disallowAdhocTypes: z.boolean(),
   requireProxy: z.boolean(),
   allowsLayerFiles: z.boolean(),

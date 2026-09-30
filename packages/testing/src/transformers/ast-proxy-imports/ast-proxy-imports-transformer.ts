@@ -14,7 +14,6 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { isProxyImportGuard } from '../../guards/is-proxy-import/is-proxy-import-guard';
-import { importPathContract } from '../../contracts/import-path/import-path-contract';
 import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
 import { proxyImportEdgeContract } from '../../contracts/proxy-import-edge/proxy-import-edge-contract';
 import type { ProxyImportEdge } from '../../contracts/proxy-import-edge/proxy-import-edge-contract';
@@ -50,7 +49,7 @@ export const astProxyImportsTransformer = ({
         edges.push(
           proxyImportEdgeContract.parse({
             kind: 'import',
-            importPath: importPathContract.parse(importPath),
+            importPath: importPath,
             names,
           }),
         );
@@ -76,7 +75,7 @@ export const astProxyImportsTransformer = ({
         edges.push(
           proxyImportEdgeContract.parse({
             kind: 'reexport',
-            importPath: importPathContract.parse(importPath),
+            importPath: importPath,
             names,
           }),
         );

@@ -8,8 +8,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { importPathContract } from '../../contracts/import-path/import-path-contract';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const moduleLinksReadLayerTransformer = ({
   sourceFile,
@@ -19,14 +17,14 @@ export const moduleLinksReadLayerTransformer = ({
   imports: {
     localName: string;
     importedName: string;
-    specifier: ImportPath;
+    specifier: string;
     isTypeOnly: boolean;
   }[];
   reExports: {
     kind: 'star' | 'named';
     exportedName: string;
     sourceName: string;
-    specifier: ImportPath;
+    specifier: string;
   }[];
 } => {
   const imports: ReturnType<typeof moduleLinksReadLayerTransformer>['imports'] = [];
@@ -41,7 +39,7 @@ export const moduleLinksReadLayerTransformer = ({
           imports.push({
             localName: element.name.text,
             importedName: (element.propertyName ?? element.name).text,
-            specifier: importPathContract.parse(statement.moduleSpecifier.text),
+            specifier: statement.moduleSpecifier.text,
             isTypeOnly: clause.isTypeOnly || element.isTypeOnly,
           });
         }
@@ -51,7 +49,7 @@ export const moduleLinksReadLayerTransformer = ({
       statement.moduleSpecifier !== undefined &&
       ts.isStringLiteral(statement.moduleSpecifier)
     ) {
-      const specifier = importPathContract.parse(statement.moduleSpecifier.text);
+      const specifier = statement.moduleSpecifier.text;
       const clause = statement.exportClause;
       if (clause === undefined) {
         reExports.push({

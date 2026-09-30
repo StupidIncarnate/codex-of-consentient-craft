@@ -1,6 +1,5 @@
 import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelNoTestSupportReexportLayerBroker } from './barrel-no-test-support-reexport-layer-broker';
 import { barrelNoTestSupportReexportLayerBrokerProxy } from './barrel-no-test-support-reexport-layer-broker.proxy';
 
@@ -18,7 +17,7 @@ describe('barrelNoTestSupportReexportLayerBroker', () => {
       reexports: [
         {
           name: 'readFileSync',
-          source: ImportPathStub({ value: './read-file-sync/read-file-sync' }),
+          source: './read-file-sync/read-file-sync',
         },
       ],
     });
@@ -33,7 +32,7 @@ describe('barrelNoTestSupportReexportLayerBroker', () => {
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
     const name = 'readFileSyncProxy';
-    const source = ImportPathStub({ value: './read-file-sync/read-file-sync.proxy' });
+    const source = './read-file-sync/read-file-sync.proxy';
 
     const result = barrelNoTestSupportReexportLayerBroker({
       node,
@@ -57,7 +56,7 @@ describe('barrelNoTestSupportReexportLayerBroker', () => {
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
     const name = 'FsErrorStub';
-    const source = ImportPathStub({ value: './is-fs-error/fs-error.stub' });
+    const source = './is-fs-error/fs-error.stub';
 
     const result = barrelNoTestSupportReexportLayerBroker({
       node,

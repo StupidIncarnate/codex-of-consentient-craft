@@ -37,7 +37,6 @@ export * from './folder-config/folder-config-contract';
 // Content Text Contracts
 
 // Import Path Contracts
-export * from './import-path/import-path-contract';
 
 // Folder Dependency Tree Contracts
 export * from './folder-dependency-tree/folder-dependency-tree-contract';

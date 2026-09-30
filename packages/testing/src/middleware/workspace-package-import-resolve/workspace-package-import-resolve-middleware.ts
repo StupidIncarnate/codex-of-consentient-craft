@@ -22,14 +22,13 @@ import { workspaceGlobBaseDirsTransformer } from '../../transformers/workspace-g
 import { workspacePackageExportSourceTransformer } from '../../transformers/workspace-package-export-source/workspace-package-export-source-transformer';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
 import { workspaceRootFindMiddleware } from '../workspace-root-find/workspace-root-find-middleware';
-import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const workspacePackageImportResolveMiddleware = ({
   sourceFilePath,
   importPath,
 }: {
   sourceFilePath: string;
-  importPath: ImportPath;
+  importPath: string;
 }): string | null => {
   const specifierParts = packageSpecifierSplitTransformer({ importPath });
   if (!specifierParts) {
