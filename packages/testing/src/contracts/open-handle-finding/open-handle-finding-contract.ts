@@ -16,9 +16,9 @@ import { z } from '#gateway/npm/zod';
 import { openHandleStatics } from '../../statics/open-handle/open-handle-statics';
 
 export const openHandleFindingContract = z.object({
-  kind: z.enum(openHandleStatics.timers.arm).brand<'OpenHandleKind'>(),
-  testPath: z.string().min(1).brand<'OpenHandleTestPath'>(),
-  stack: z.string().brand<'OpenHandleStack'>(),
+  kind: z.enum(openHandleStatics.timers.arm),
+  testPath: z.string().min(1).brand<'OpenHandleFindingTestPath'>(),
+  stack: z.string().brand<'OpenHandleFindingStack'>(),
 }).brand<'OpenHandleFinding'>();
 
 export type OpenHandleFinding = z.infer<typeof openHandleFindingContract>;

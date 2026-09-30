@@ -10,8 +10,8 @@ import { z } from '#gateway/npm/zod';
 
 export const mockSpawnResultContract = z.object({
   code: z.number().int().brand<'MockSpawnResultCode'>(),
-  stdout: z.string().brand<'StdoutOutput'>(),
-  stderr: z.string().brand<'StderrOutput'>(),
+  stdout: z.string().brand<'MockSpawnResultStdout'>(),
+  stderr: z.string().brand<'MockSpawnResultStderr'>(),
 }).brand<'MockSpawnResult'>();
 
 export type MockSpawnResult = z.infer<typeof mockSpawnResultContract>;

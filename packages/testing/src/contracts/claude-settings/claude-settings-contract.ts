@@ -12,11 +12,11 @@ import { z } from '#gateway/npm/zod';
 
 export const claudeSettingsContract = z
   .object({
-    hooks: z.record(z.string().brand<'HookEventName'>(), z.unknown()).optional(),
+    hooks: z.record(z.string().brand<'ClaudeSettingsHooksKey'>(), z.unknown()).optional(),
     permissions: z
       .object({
-        allow: z.array(z.string().brand<'PermissionRule'>()).optional(),
-      })
+        allow: z.array(z.string().brand<'ClaudeSettingsPermissionsAllow'>()).optional(),
+      }).brand<'ClaudeSettingsPermissions'>()
       .loose()
       .optional(),
   })

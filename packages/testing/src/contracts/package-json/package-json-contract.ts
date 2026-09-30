@@ -12,10 +12,10 @@ import { z } from '#gateway/npm/zod';
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>(),
-    version: z.string().brand<'PackageVersion'>(),
-    scripts: z.record(z.string().brand<'PackageJsonScripts'>(), z.string().brand<'ScriptCommand'>()),
+    version: z.string().brand<'PackageJsonVersion'>(),
+    scripts: z.record(z.string().brand<'PackageJsonScriptsKey'>(), z.string().brand<'PackageJsonScripts'>()),
     devDependencies: z
-      .record(z.string().brand<'PackageJsonDevDependencies'>(), z.string().brand<'DependencyVersion'>())
+      .record(z.string().brand<'PackageJsonDevDependenciesKey'>(), z.string().brand<'PackageJsonDevDependencies'>())
       .optional(),
     eslintConfig: z.unknown().optional(),
     jest: z.unknown().optional(),

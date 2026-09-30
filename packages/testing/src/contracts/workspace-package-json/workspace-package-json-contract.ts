@@ -31,7 +31,7 @@ import { workspacePackageExportSourcePathContract } from '../workspace-package-e
 const workspacePackageExportEntryContract = z
   .object({
     source: z.string().brand<'WorkspacePackageExportEntrySource'>().optional(),
-  })
+  }).brand<'WorkspacePackageExportEntry'>()
   .loose();
 
 // Node's own `exports` map allows a bare string value too (`"./jest-config-base": "./jest-config-base.js"`,
@@ -55,24 +55,24 @@ const workspacePackageImportConditionsContract = z
     import: z.string().brand<'WorkspacePackageImportConditionsImport'>().optional(),
     require: z.string().brand<'WorkspacePackageImportConditionsRequire'>().optional(),
     default: z.string().brand<'WorkspacePackageImportConditionsDefault'>().optional(),
-  })
+  }).brand<'WorkspacePackageImportConditions'>()
   .loose();
 
 export const workspacePackageJsonContract = z
   .object({
-    name: z.string().brand<'WorkspacePackageName'>().optional(),
+    name: z.string().brand<'WorkspacePackageJsonName'>().optional(),
     workspaces: z
       .union([
-        z.array(z.string().brand<'WorkspaceGlob'>()),
-        z.record(z.string().brand<'WorkspaceGlob'>(), z.unknown()),
+        z.array(z.string().brand<'WorkspacePackageJsonWorkspaces'>()),
+        z.record(z.string().brand<'WorkspacePackageJsonWorkspacesKey'>(), z.unknown()),
       ])
       .optional(),
     exports: z
-      .record(z.string().brand<'WorkspacePackageExportKey'>(), workspacePackageExportValueContract)
+      .record(z.string().brand<'WorkspacePackageJsonExportsKey'>(), workspacePackageExportValueContract)
       .optional(),
     imports: z
       .record(
-        z.string().brand<'WorkspacePackageImportKey'>(),
+        z.string().brand<'WorkspacePackageJsonImportsKey'>(),
         z.union([z.string().brand<'WorkspacePackageJsonImports'>(), workspacePackageImportConditionsContract]),
       )
       .optional(),
