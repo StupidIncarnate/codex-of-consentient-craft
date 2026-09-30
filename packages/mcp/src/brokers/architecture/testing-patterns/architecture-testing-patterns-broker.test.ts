@@ -65,7 +65,7 @@ describe('architectureTestingPatternsBroker', () => {
         /^\*\*When NOT to parameterize \(DAMP wins\):\*\* setup differs between cases, assertion shape differs beyond a simple mapping, each case carries a distinct meaning deserving its own sentence-length name, or there are only 2 cases\.$/mu,
       );
       expect(result).toMatch(
-        /^describe\.each\(PAUSEABLE_STATUSES\)\('pause-capable status: %s', \(status\) => \{$/mu,
+        /^\*\*Grouping related variants:\*\* `describe\.each` when several `it` blocks share one parameterization \(several `it` blocks per pause-capable status\)\. The same derive-from-a-static rule applies\.$/mu,
       );
     });
 
@@ -302,7 +302,7 @@ describe('architectureTestingPatternsBroker', () => {
         /^\*\*Use `registerMock` for all mocking in proxy files\.\*\* It replaces `jest\.mock\(\)`\/`jest\.mocked\(\)`\/`jest\.spyOn\(\)`\.$/mu,
       );
       expect(result).toMatch(
-        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* What a mock gives back is decided by the ARGUMENTS it was called with, and that configuration is shared across every proxy mocking the same function — one function, one behaviour, the way prod behaves\. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
+        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* What a mock gives back is decided by the ARGUMENTS it was called with, and that configuration is shared across every proxy mocking the same function — one function, one behaviour, the way prod behaves\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
       );
       expect(result).toMatch(/^\*\*MockHandle API:\*\*$/mu);
     });
@@ -343,7 +343,7 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(
-        /^\*\*Staging is SHARED across every proxy mocking the same function\*\* — one function, one behaviour\. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere — the shape recurs whenever two callers share one Node API: `readline\.createInterface` \(stdout reader vs file tailer\), `fs\.readdirSync` \(filenames vs `\{withFileTypes: true\}`\), `path\.join` \(sticky default vs one-shot queue\)\. Fix with a DISCRIMINATING address — a predicate, or just more arguments \(an argument-count mismatch auto-fails to match\) — never by reordering construction, which restores the order-dependency this removes\. Two DIFFERENT results for the SAME address is what `onceFor` is for; staging both as `calledWith` means the later wins on the first call, silently disabling the sequence\.$/mu,
+        /^\*\*Staging is SHARED across every proxy mocking the same function\*\* — one function, one behaviour\. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere — two callers of `readline\.createInterface`, `fs\.readdirSync` or `path\.join` do this\. Fix with a DISCRIMINATING address — a predicate, or just more arguments — never by reordering construction\. Two DIFFERENT results for the SAME address is what `onceFor` is for; staging both as `calledWith` silently disables the sequence\.$/mu,
       );
     });
 
@@ -452,7 +452,7 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^- The refusal when a required flag is missing\.$/mu);
     });
 
-    it('VALID: {} => bans parser-only argument tests and boundary mocks, and restates the rule', () => {
+    it('VALID: {} => bans parser-only argument tests and boundary mocks', () => {
       architectureTestingPatternsBrokerProxy();
 
       const result: ContentText = architectureTestingPatternsBroker();
@@ -461,10 +461,7 @@ describe('architectureTestingPatternsBroker', () => {
         /^\*\*A test that exercises only the argument PARSER does not cover the argument\.\*\* Asserting that a flag parses into the right field proves the parser works, not that the flag does anything\. The test must reach the BEHAVIOUR the argument selects — the effect the documentation promises, not the value on the way in\.$/mu,
       );
       expect(result).toMatch(
-        /^\*\*A test that stages a boundary with a shape the real producer never emits passes while the feature is broken\.\*\* Where a flow's argument crosses a package boundary, the coverage that counts is an integration test running the real code on both sides\. A unit test whose mock is the only description of that boundary describes the mock, not the boundary, and the two can drift apart with nothing to catch it — a mock invented to match the caller's assumptions, not the producer's real output, is how a documented flag ships broken\.$/mu,
-      );
-      expect(result).toMatch(
-        /^\*\*Restated:\*\* a green suite that never drove a flag through its real path is not evidence the flag works\. Cover the default invocation AND the full argument surface — every documented flag, every enum value, every required-flag refusal, every mutually exclusive or co-required combination — crossing every package boundary for real\.$/mu,
+        /^\*\*A test that stages a boundary with a shape the real producer never emits passes while the feature is broken\.\*\* Where an argument crosses a package boundary, the coverage that counts is an integration test running the real code on both sides; a mock invented from the caller's assumptions describes the mock, not the boundary\.$/mu,
       );
     });
 
@@ -654,16 +651,6 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
-    it('VALID: {} => gives a constructor calledWith([]) only to a function that takes no arguments', () => {
-      architectureTestingPatternsBrokerProxy();
-
-      const result: ContentText = architectureTestingPatternsBroker();
-
-      expect(result).toMatch(
-        /^A constructor-level `calledWith\(\[\]\)` belongs only to a function that takes no arguments \(`randomUUID`, `Date\.now`, `process\.cwd`\), where `\[\]` is the only address there is\. A function that takes arguments never gets a constructor default: an unstaged call must throw, so the I\/O trap can name the call the proxy forgot\. `ban-proxy-empty-called-with` and `ban-proxy-catch-all-defaults` refuse both the empty address and a predicate that is always true\.$/mu,
-      );
-    });
-
     it('VALID: {} => shows a plain value staged by its address and a composed gateway proxy', () => {
       architectureTestingPatternsBrokerProxy();
 
@@ -721,14 +708,14 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
-    it('VALID: {} => bans catch-all answers and names the two opt-in shapes that stay', () => {
+    it('VALID: {} => bans catch-all answers and names the two opt-in shapes that stay and the no-argument exception', () => {
       architectureTestingPatternsBrokerProxy();
 
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^### No catch-all answers$/mu);
       expect(result).toMatch(
-        /^No `calledWith\(\[\]\)`, and no predicate that is always true, in a proxy constructor for a function that takes arguments\. Stage each call by its arguments, so a call the proxy forgot throws\. Two opt-in shapes stay inside that rule because nothing stages them by default: a scenario method that answers any path for a virtual file tree \(`setupImplementation`\), and a wrapper proxy's lower-ranked fallback addressed by the path alone \(`returnsOnceFallback` on `readFileProxy`\)\. Every exact stage outranks both\.$/mu,
+        /^No `calledWith\(\[\]\)`, and no predicate that is always true, in a proxy constructor for a function that takes arguments\. Stage each call by its arguments, so a call the proxy forgot throws\. Two opt-in shapes stay inside that rule because nothing stages them by default: a scenario method that answers any path for a virtual file tree \(`setupImplementation`\), and a wrapper proxy's lower-ranked fallback addressed by the path alone \(`returnsOnceFallback` on `readFileProxy`\)\. Every exact stage outranks both\. A function that takes NO arguments \(`randomUUID`, `Date\.now`, `process\.cwd`\) is the one place a constructor-level `calledWith\(\[\]\)` belongs: `\[\]` is the only address there is\. `ban-proxy-empty-called-with` and `ban-proxy-catch-all-defaults` refuse the empty address and an always-true predicate for any other function\.$/mu,
       );
     });
 
