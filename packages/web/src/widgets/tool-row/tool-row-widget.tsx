@@ -24,7 +24,6 @@ import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
-import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { offscreenPlaceholderStatics } from '../../statics/offscreen-placeholder/offscreen-placeholder-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
@@ -317,7 +316,7 @@ export const ToolRowWidget = ({
                 </Text>
               ) : (
                 <ToolResultContentWidget
-                  content={toolResultDisplayContentContract.parse(toolResult.content)}
+                  content={toolResult.content}
                   color={resultColor}
                   fontSize={RESULT_FONT_SIZE}
                 />

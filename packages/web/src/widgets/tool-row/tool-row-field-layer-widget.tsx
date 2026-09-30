@@ -16,7 +16,6 @@ import { useState } from '#gateway/npm/react';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { FormattedToolField } from '../../contracts/formatted-tool-field/formatted-tool-field-contract';
 import type { ToolName } from '../../contracts/tool-name/tool-name-contract';
-import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { elideMiddleTransformer } from '../../transformers/elide-middle/elide-middle-transformer';
@@ -87,9 +86,7 @@ export const ToolRowFieldLayerWidget = ({
           }}
         >
           <ToolResultContentWidget
-            content={toolResultDisplayContentContract.parse(
-              isFieldExpanded ? field.value : preview,
-            )}
+            content={(isFieldExpanded ? field.value : preview)}
             color={colors['text-dim']}
             fontSize={RESULT_FONT_SIZE}
           />
