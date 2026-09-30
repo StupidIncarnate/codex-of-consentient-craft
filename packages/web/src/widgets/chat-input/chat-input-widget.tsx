@@ -39,8 +39,6 @@ import { notifications } from '#gateway/npm/mantine__notifications';
 import { draftImagesLoadBroker } from '../../brokers/draft-images/load/draft-images-load-broker';
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/pasted-image-attach-broker';
-import { attachmentIdContract } from '../../contracts/attachment-id/attachment-id-contract';
-import type { AttachmentId } from '../../contracts/attachment-id/attachment-id-contract';
 import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 import { composerSendPayloadContract } from '../../contracts/composer-send-payload/composer-send-payload-contract';
@@ -60,6 +58,7 @@ import { pasteMediaTypeNormalizeTransformer } from '../../transformers/paste-med
 import { uploadPercentTransformer } from '../../transformers/upload-percent/upload-percent-transformer';
 import { ImageOverlayWidget } from '../image-overlay/image-overlay-widget';
 import { UploadProgressBarWidget } from '../upload-progress-bar/upload-progress-bar-widget';
+import { composerAttachmentContract } from '../../contracts/composer-attachment/composer-attachment-contract';
 
 const SEND_BUTTON_SIZE = 44;
 const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`;
@@ -103,7 +102,7 @@ export const ChatInputWidget = ({
   // stale-closure trap state would reintroduce here: a paste that called setState and then
   // immediately needed the "current" map for the content-changed step would still see the
   // pre-update value, since React state updates are not synchronous.
-  const attachmentsRef = useRef<Map<AttachmentId, ComposerAttachment>>(new Map());
+  const attachmentsRef = useRef<Map<ComposerAttachment['attachmentId'], ComposerAttachment>>(new Map());
   // The attachment id list as of the last IndexedDB write. `handleContentChanged` now runs on every
   // keystroke (wired to the editor's native `input` event, below) as well as on paste/delete, so the
   // IndexedDB write itself is gated on whether this list actually changed since the last write — a
@@ -111,7 +110,7 @@ export const ChatInputWidget = ({
   // keystroke does not touch that list and must not pay for one. Five images at the per-image byte
   // ceiling is roughly 25 MB of IndexedDB records, which is what an unconditional write on every
   // character typed would rewrite.
-  const lastSavedAttachmentIdsRef = useRef<readonly AttachmentId[]>([]);
+  const lastSavedAttachmentIdsRef = useRef<readonly ComposerAttachment['attachmentId'][]>([]);
   // Counts content-changed steps, so the retraction a failed IndexedDB write schedules can tell
   // whether the composer still holds the content that write was for. The text a retraction restores
   // is a SNAPSHOT taken before the round trip; a keystroke landing during that round trip persists
@@ -503,7 +502,7 @@ export const ChatInputWidget = ({
     const rawAttachmentId = target.getAttribute(chatComposerStatics.thumbnail.attributeName);
     if (rawAttachmentId === null) return;
 
-    const attachment = attachmentsRef.current.get(attachmentIdContract.parse(rawAttachmentId));
+    const attachment = attachmentsRef.current.get(composerAttachmentContract.shape.attachmentId.parse(rawAttachmentId));
     if (attachment === undefined) return;
 
     setOverlaySrc(attachment.dataUrl);

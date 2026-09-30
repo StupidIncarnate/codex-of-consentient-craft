@@ -12,7 +12,6 @@
 
 import { Text } from '#gateway/browser/Text';
 
-import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerSegment } from '../../../contracts/composer-segment/composer-segment-contract';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
@@ -25,7 +24,7 @@ export const composerWriteBroker = ({
 }: {
   editor: HTMLElement;
   segments: readonly ComposerSegment[];
-  attachments: ReadonlyMap<AttachmentId, ComposerAttachment>;
+  attachments: ReadonlyMap<ComposerAttachment['attachmentId'], ComposerAttachment>;
 }): void => {
   const nodes: Node[] = [];
 

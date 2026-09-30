@@ -16,9 +16,9 @@ import { crypto } from '#gateway/browser/crypto';
 import type { PastedImageMediaType } from '@dungeonmaster/shared/contracts';
 
 import { pastedImageDownscaleBroker } from '../downscale/pasted-image-downscale-broker';
-import { attachmentIdContract } from '../../../contracts/attachment-id/attachment-id-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
+import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 
 export const pastedImageAttachBroker = async ({
   dataUrl,
@@ -31,7 +31,7 @@ export const pastedImageAttachBroker = async ({
   // clipboard item must produce two attachments with different ids and identical bytes, because each
   // attachment gets its own file: naming by content hash sounds like a saving but is a bug, since a
   // later message could then replace or remove the file an older transcript's token points at.
-  const attachmentId = attachmentIdContract.parse(crypto.randomUUID());
+  const attachmentId = composerAttachmentContract.shape.attachmentId.parse(crypto.randomUUID());
 
   return pastedImageDownscaleBroker({ attachmentId, dataUrl, mediaType });
 };

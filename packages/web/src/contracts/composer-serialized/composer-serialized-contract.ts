@@ -13,7 +13,7 @@ import { z } from '#gateway/npm/zod';
 
 import { userInputContract } from '@dungeonmaster/shared/contracts';
 
-import { attachmentIdContract } from '../attachment-id/attachment-id-contract';
+import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
 export const composerSerializedContract = z.object({
   // Carries a `[Pasted Image N]` placeholder at each image's position, N being a one-based ordinal
@@ -22,7 +22,7 @@ export const composerSerializedContract = z.object({
   text: userInputContract,
   // In the same left-to-right order as the placeholders, so index i of this array is the
   // attachment the placeholder N = i + 1 stands for.
-  attachmentIds: z.array(attachmentIdContract),
+  attachmentIds: z.array(composerAttachmentContract.shape.attachmentId),
 });
 
 export type ComposerSerialized = z.infer<typeof composerSerializedContract>;

@@ -16,7 +16,6 @@ import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import type { PastedImageMediaType } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
@@ -50,7 +49,7 @@ export const pastedImageDownscaleBroker = async ({
   mediaType,
   retry,
 }: {
-  attachmentId: AttachmentId;
+  attachmentId: ComposerAttachment['attachmentId'];
   dataUrl: ImageDataUrl;
   mediaType: PastedImageMediaType;
   // Internal recursion state for the halving ladder (step 3+): the ORIGINAL measured size (so a

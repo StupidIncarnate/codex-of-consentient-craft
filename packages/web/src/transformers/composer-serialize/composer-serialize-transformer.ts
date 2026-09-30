@@ -17,7 +17,7 @@
 import type { ComposerSegment } from '../../contracts/composer-segment/composer-segment-contract';
 import { composerSerializedContract } from '../../contracts/composer-serialized/composer-serialized-contract';
 import type { ComposerSerialized } from '../../contracts/composer-serialized/composer-serialized-contract';
-import type { AttachmentId } from '../../contracts/attachment-id/attachment-id-contract';
+import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
 
 export const composerSerializeTransformer = ({
   segments,
@@ -33,7 +33,7 @@ export const composerSerializeTransformer = ({
             attachmentIds: [...accumulator.attachmentIds, segment.attachmentId],
             imageCount: accumulator.imageCount + 1,
           },
-    { text: '', attachmentIds: [] as AttachmentId[], imageCount: 0 },
+    { text: '', attachmentIds: [] as ComposerAttachment['attachmentId'][], imageCount: 0 },
   );
 
   return composerSerializedContract.parse({

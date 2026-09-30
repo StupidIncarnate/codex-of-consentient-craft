@@ -12,11 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { attachmentIdContract } from '../attachment-id/attachment-id-contract';
+import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
 export const composerSegmentContract = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('text'), text: z.string().brand<'ComposerSegmentText'>() }),
-  z.object({ kind: z.literal('image'), attachmentId: attachmentIdContract }),
+  z.object({ kind: z.literal('image'), attachmentId: composerAttachmentContract.shape.attachmentId }),
 ]);
 
 export type ComposerSegment = z.infer<typeof composerSegmentContract>;

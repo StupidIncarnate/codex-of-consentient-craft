@@ -20,13 +20,13 @@ import {
   pastedImageUploadContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { attachmentIdContract } from '../attachment-id/attachment-id-contract';
 import { composerScopeKeyContract } from '../composer-scope-key/composer-scope-key-contract';
+import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
 export const pastedImageDraftContract = z.object({
   // Matches the attachment named by a [Pasted Image N] placeholder in the localStorage text
   // draft, so a reload rebuilds each thumbnail in the position its placeholder marks.
-  attachmentId: attachmentIdContract,
+  attachmentId: composerAttachmentContract.shape.attachmentId,
   // What rebuilds the data URL on restore.
   mediaType: pastedImageMediaTypeContract,
   dataBase64: pastedImageUploadContract.shape.dataBase64,

@@ -20,7 +20,7 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { composerSegmentContract } from '../../contracts/composer-segment/composer-segment-contract';
 import type { ComposerSegment } from '../../contracts/composer-segment/composer-segment-contract';
-import type { AttachmentId } from '../../contracts/attachment-id/attachment-id-contract';
+import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
 
 export const composerParseDraftTransformer = ({
   text,
@@ -30,7 +30,7 @@ export const composerParseDraftTransformer = ({
   // A hole at ordinal N means the Nth record failed to load, not that fewer records ever existed —
   // see the PURPOSE above. Kept distinct from a short array, which still indexes past-the-end as
   // `undefined` on its own and is handled by the identical `attachmentId !== undefined` check below.
-  attachmentIds: readonly (AttachmentId | undefined)[];
+  attachmentIds: readonly (ComposerAttachment['attachmentId'] | undefined)[];
 }): readonly ComposerSegment[] => {
   // Built fresh per call: a module-scope `g`-flagged RegExp carries `lastIndex` across calls, and
   // reusing one would make the second call see fewer matches than the first.

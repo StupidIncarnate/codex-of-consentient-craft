@@ -20,13 +20,12 @@ import { z } from '#gateway/npm/zod';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { attachmentIdContract } from '../attachment-id/attachment-id-contract';
 import { byteLengthContract } from '../byte-length/byte-length-contract';
 import { imageDataUrlContract } from '../image-data-url/image-data-url-contract';
 import { pixelLengthContract } from '../pixel-length/pixel-length-contract';
 
 export const composerAttachmentContract = z.object({
-  attachmentId: attachmentIdContract,
+  attachmentId: z.uuid().brand<'ComposerAttachmentAttachmentId'>(),
   // The type AFTER the downscale ladder has run, which is not always the type that was pasted: a
   // PNG that failed the byte ceiling comes back re-encoded as image/jpeg.
   mediaType: pastedImageMediaTypeContract,

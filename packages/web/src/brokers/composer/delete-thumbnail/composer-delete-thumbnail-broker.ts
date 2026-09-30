@@ -17,9 +17,9 @@
 import { HTMLImageElement } from '#gateway/browser/HTMLImageElement';
 import { Text } from '#gateway/browser/Text';
 
-import { attachmentIdContract } from '../../../contracts/attachment-id/attachment-id-contract';
-import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
+import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
+import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 
 export const composerDeleteThumbnailBroker = ({
   editor,
@@ -27,7 +27,7 @@ export const composerDeleteThumbnailBroker = ({
 }: {
   editor: HTMLElement;
   direction: 'backward' | 'forward';
-}): AttachmentId | undefined => {
+}): ComposerAttachment['attachmentId'] | undefined => {
   const { ownerDocument } = editor;
   const selection = ownerDocument.getSelection();
 
@@ -75,7 +75,7 @@ export const composerDeleteThumbnailBroker = ({
     return undefined;
   }
 
-  const attachmentId = attachmentIdContract.parse(attributeValue);
+  const attachmentId = composerAttachmentContract.shape.attachmentId.parse(attributeValue);
 
   const beforeCandidate = candidateNode.previousSibling;
   const afterCandidate = candidateNode.nextSibling;
