@@ -28,7 +28,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type { ExitCode, ProcessId, QuestWorkItemId, RepoRootCwd, SessionId, Quest } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, ProcessId, RepoRootCwd, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   absoluteFilePathContract,
   getQuestInputContract,
@@ -67,7 +67,7 @@ export const spawnOneAgentLayerBroker = async ({
   registerProcess?: (params: {
     processId: ProcessId;
     questId: Quest['id'];
-    questWorkItemId: QuestWorkItemId;
+    questWorkItemId: WorkItem['id'];
     kill: () => void;
   }) => void;
   // Called once each attempt's child has exited. Without it every attempt leaves a registry entry

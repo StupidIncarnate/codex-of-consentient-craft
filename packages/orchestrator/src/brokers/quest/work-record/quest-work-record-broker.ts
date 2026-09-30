@@ -21,7 +21,7 @@ import {
   unitObservationContract,
   workItemPayloadKeyContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -49,7 +49,7 @@ export const questWorkRecordBroker = async ({
   payload,
 }: {
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   payload: RecordPayload;
 }): Promise<QuestWorkRecordResult> =>
   questWithModifyLockBroker({

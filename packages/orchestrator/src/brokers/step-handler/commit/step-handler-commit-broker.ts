@@ -37,7 +37,7 @@
  * // { outcome: 'done' | 'empty', detail }
  */
 
-import { absoluteFilePathContract, contentTextContract, errorMessageContract, getQuestInputContract, stepNameContract, type ErrorMessage, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, errorMessageContract, getQuestInputContract, stepNameContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { addAll, commit, push } from '#gateway/bin/git';
 
@@ -48,7 +48,7 @@ import { gitWorkingTreeFilesBroker } from '../../git/working-tree-files/git-work
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questWithModifyLockBroker } from '../../quest/with-modify-lock/quest-with-modify-lock-broker';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 const DEFAULT_STEP_NAME = stepNameContract.parse('commit');
 const OPERATIONS_REF_PREFIX = 'operations/';
@@ -61,7 +61,7 @@ export const stepHandlerCommitBroker = async ({
 }: {
   args: string[];
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {
   const resolution = await questCwdResolveBroker({ questId });

@@ -236,7 +236,6 @@ export * from './assistant-stream-line/assistant-stream-line-contract';
 export * from './user-tool-result-stream-line/user-tool-result-stream-line-contract';
 
 // Work Item Contracts
-export * from './quest-work-item-id/quest-work-item-id-contract';
 
 export * from './work-item-status/work-item-status-contract';
 

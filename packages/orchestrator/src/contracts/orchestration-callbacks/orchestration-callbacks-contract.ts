@@ -6,21 +6,14 @@
  * // Use as function parameter types in orchestration brokers
  */
 
-import type {
-  ChatEntry,
-  QuestWorkItemId,
-  SessionId,
-  SlotIndex,
-  StreamSignalKind,
-} from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, SessionId, SlotIndex, StreamSignalKind, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
-import type { WorkItemId } from '../work-item-id/work-item-id-contract';
 
 export type OnAgentEntryCallback = (params: {
   slotIndex: SlotIndex;
   entries: ChatEntry[];
-  questWorkItemId: QuestWorkItemId;
+  questWorkItemId: WorkItem['id'];
   sessionId?: SessionId;
 }) => void;
 
@@ -31,27 +24,27 @@ export type OnAgentEntryCallback = (params: {
 export type OnSlotAgentEntryCallback = (params: {
   slotIndex: SlotIndex;
   entries: ChatEntry[];
-  workItemId: WorkItemId;
+  workItemId: WorkItem['id'];
   sessionId?: SessionId;
 }) => void;
 
 export type OnWorkItemSessionIdCallback = (params: {
-  workItemId: WorkItemId;
+  workItemId: WorkItem['id'];
   sessionId: SessionId;
 }) => void;
 
 export type OnFollowupCreatedCallback = (params: {
-  followupWorkItemId: WorkItemId;
+  followupWorkItemId: WorkItem['id'];
   role: AgentRole;
-  failedWorkItemId: WorkItemId;
+  failedWorkItemId: WorkItem['id'];
 }) => void;
 
 export type OnWorkItemSummaryCallback = (params: {
-  workItemId: WorkItemId;
+  workItemId: WorkItem['id'];
   summary: string;
 }) => void;
 
 export type OnWorkItemSignalCallback = (params: {
-  workItemId: WorkItemId;
+  workItemId: WorkItem['id'];
   signal: StreamSignalKind;
 }) => void;

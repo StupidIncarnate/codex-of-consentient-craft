@@ -7,7 +7,7 @@
  * // Returns AgentPromptResult { name, model, prompt }
  */
 
-import type { AgentPromptResult, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { AgentPromptResult, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { agentPromptGetBroker } from '../../../brokers/agent-prompt/get/agent-prompt-get-broker';
 
@@ -18,7 +18,7 @@ export const AgentPromptGetResponder = async ({
 }: {
   agent: string;
   questId: Quest['id'];
-  workItemId?: QuestWorkItemId;
+  workItemId?: WorkItem['id'];
 }): Promise<AgentPromptResult> =>
   agentPromptGetBroker({
     agent,

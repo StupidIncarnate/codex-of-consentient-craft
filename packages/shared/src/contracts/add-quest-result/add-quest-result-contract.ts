@@ -7,8 +7,8 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { questContract } from '../quest/quest-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 export const addQuestResultContract = z
   .object({
@@ -16,7 +16,7 @@ export const addQuestResultContract = z
     questId: questContract.shape.id.optional(),
     questFolder: z.string().brand<'QuestFolder'>().optional(),
     filePath: z.string().brand<'FilePath'>().optional(),
-    intakeWorkItemId: questWorkItemIdContract.optional(),
+    intakeWorkItemId: workItemContract.shape.id.optional(),
     error: z.string().brand<'ErrorMessage'>().optional(),
   })
   .brand<'AddQuestResult'>();

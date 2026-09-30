@@ -14,12 +14,8 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, QuestWorkItemId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
-import {
-  askUserQuestionContract,
-  chatEntryContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, SessionId, UserInput, SlotIndex, WorkItem } from '@dungeonmaster/shared/contracts';
+import { askUserQuestionContract, chatEntryContract, questContract, slotIndexContract } from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,
@@ -39,8 +35,6 @@ import { commentBatchSendResultContract } from '../../contracts/comment-batch-se
 import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
-import { slotIndexContract } from '@dungeonmaster/shared/contracts';
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
@@ -63,7 +57,7 @@ export const useQuestChatBinding = ({
   questId: Quest['id'] | null;
 }): {
   entriesBySession: Map<SessionId, ChatEntry[]>;
-  entriesByWorkItem: Map<QuestWorkItemId, ChatEntry[]>;
+  entriesByWorkItem: Map<WorkItem['id'], ChatEntry[]>;
   slotEntries: Map<SlotIndex, ChatEntry[]>;
   followupEntries: ChatEntry[];
   quest: Quest | null;
@@ -102,7 +96,7 @@ export const useQuestChatBinding = ({
   // the execution panel reads this map (keyed by wi.id) to scope each row's transcript.
   // Only populated for emits that carry workItemId (replay + live sub-agent tails).
   const [entriesByWorkItemInternal, setEntriesByWorkItemInternal] = useState<
-    Map<QuestWorkItemId, Map<ChatEntryUuid, ChatEntry>>
+    Map<WorkItem['id'], Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
   const [slotEntriesInternal, setSlotEntriesInternal] = useState<
     Map<SlotIndex, Map<ChatEntryUuid, ChatEntry>>
@@ -200,7 +194,7 @@ export const useQuestChatBinding = ({
   // The tavernkeeper's work item id — the FOLLOW-UP tab's routing key for BOTH its transcript and
   // its running state. `null` until the follow-up POST has minted the work item and the resulting
   // quest-modified has landed, which is precisely the window `followupPendingTurn` covers.
-  const followupWorkItemId = useMemo<QuestWorkItemId | null>(
+  const followupWorkItemId = useMemo<WorkItem['id'] | null>(
     () =>
       quest?.workItems.find((workItem) => isPostQuestChatWorkItemRoleGuard({ role: workItem.role }))
         ?.id ?? null,
@@ -281,7 +275,7 @@ export const useQuestChatBinding = ({
   // in the same React batch — no render happens between them — so a render-synced ref is still null
   // when the output it is meant to route arrives, and the composer misses the opening of its own
   // turn. Writing it on the wire closes that window.
-  const followupWorkItemIdRef = useRef<QuestWorkItemId | null>(null);
+  const followupWorkItemIdRef = useRef<WorkItem['id'] | null>(null);
 
   // Every chatProcessId that has already reported `turn-ended`. A spawned agent's transcript keeps
   // ARRIVING after its turn is over — the CLI writes its session JSONL at exit and the post-exit

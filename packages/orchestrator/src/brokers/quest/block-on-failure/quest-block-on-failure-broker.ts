@@ -27,7 +27,7 @@
  *   stays `in_progress` and the loop continues instead of blocking.
  */
 
-import type { ErrorMessage, ModifyQuestInput, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, ModifyQuestInput, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isPendingWorkItemStatusGuard,
@@ -44,7 +44,7 @@ export const questBlockOnFailureBroker = async ({
   reason,
 }: {
   questId: Quest['id'];
-  failedWorkItemId: QuestWorkItemId;
+  failedWorkItemId: WorkItem['id'];
   reason?: ErrorMessage;
 }): Promise<{ blocked: boolean }> => {
   const getResult = await questGetBroker({
@@ -81,7 +81,7 @@ export const questBlockOnFailureBroker = async ({
       failedItem.errorMessage !== reason);
 
   const updatedWorkItems: {
-    id: QuestWorkItemId;
+    id: WorkItem['id'];
     status: 'failed' | 'skipped';
     errorMessage?: ErrorMessage;
   }[] = quest.workItems

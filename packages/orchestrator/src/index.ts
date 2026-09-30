@@ -84,8 +84,6 @@ export type { SlotCount } from '@dungeonmaster/shared/contracts';
 export { slotIndexContract } from '@dungeonmaster/shared/contracts';
 export type { SlotIndex } from '@dungeonmaster/shared/contracts';
 
-export { workItemIdContract } from './contracts/work-item-id/work-item-id-contract';
-export type { WorkItemId } from './contracts/work-item-id/work-item-id-contract';
 
 export { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 export type { StreamJsonLine } from '@dungeonmaster/shared/contracts';

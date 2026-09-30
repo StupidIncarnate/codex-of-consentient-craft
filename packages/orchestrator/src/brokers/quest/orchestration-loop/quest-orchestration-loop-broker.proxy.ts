@@ -1,12 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import {
-  questContract,
-  type FilePath,
-  type Quest,
-  type QuestWorkItemId,
-  type WorkItem,
-  type WorkItemStatus,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, type FilePath, type Quest, type WorkItem, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -49,7 +42,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   getAllPersistedQuests: () => readonly Quest[];
   getStderrWrites: () => readonly unknown[];
   findPersistedWorkItem: (params: {
-    workItemId: QuestWorkItemId;
+    workItemId: WorkItem['id'];
     status: WorkItemStatus;
   }) => WorkItem | undefined;
 } => {
@@ -152,7 +145,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
       workItemId,
       status,
     }: {
-      workItemId: QuestWorkItemId;
+      workItemId: WorkItem['id'];
       status: WorkItemStatus;
     }): WorkItem | undefined => {
       const quests = parsePersistedQuests({ modifyProxy });

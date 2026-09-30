@@ -9,8 +9,8 @@
  * taskPromptIdsExtractorTransformer({ parsed: normalizedLine });
  * // Returns { questId, workItemId } when both ids are found, null otherwise
  */
-import { questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
@@ -22,7 +22,7 @@ export const taskPromptIdsExtractorTransformer = ({
   parsed,
 }: {
   parsed: unknown;
-}): { questId: Quest['id']; workItemId: QuestWorkItemId } | null => {
+}): { questId: Quest['id']; workItemId: WorkItem['id'] } | null => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
     return null;
@@ -59,7 +59,7 @@ export const taskPromptIdsExtractorTransformer = ({
     if (workMatch === null || questMatch === null) {
       continue;
     }
-    const workParse = questWorkItemIdContract.safeParse(workMatch[1]);
+    const workParse = workItemContract.shape.id.safeParse(workMatch[1]);
     const questParse = questContract.shape.id.safeParse(questMatch[1]);
     if (workParse.success && questParse.success) {
       return { questId: questParse.data, workItemId: workParse.data };

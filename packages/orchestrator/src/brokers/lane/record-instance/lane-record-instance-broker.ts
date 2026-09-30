@@ -28,7 +28,7 @@ import {
   questContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -47,7 +47,7 @@ export const laneRecordInstanceBroker = async ({
 }: {
   questId: Quest['id'];
   questPath: AbsoluteFilePath;
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   instance: QuestWorkInstance;
 }): Promise<QuestWorkInstance> =>
   questWithModifyLockBroker({

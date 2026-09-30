@@ -42,9 +42,9 @@ import { z } from '#gateway/npm/zod';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { unitMarkContract } from '../unit-mark/unit-mark-contract';
 import { verificationTrackContract } from '../verification-track/verification-track-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 export const questSummaryDebtContract = z
   .object({
@@ -83,7 +83,7 @@ export const questSummaryDebtContract = z
       .describe(
         'The action that WOULD settle this unit — an instruction, never a question. Required on `cant-meet`; refused on `unmet`, which has a successor rather than a handover.',
       ),
-    workItemId: questWorkItemIdContract,
+    workItemId: workItemContract.shape.id,
     at: z.iso
       .datetime()
       .brand<'IsoTimestamp'>()

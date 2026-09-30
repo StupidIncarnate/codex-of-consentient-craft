@@ -18,18 +18,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 export const getQuestWorkInputContract = z
   .object({
     questId: questContract.shape.id,
-    workItemId: z
-      .string()
-      .min(1)
-      .describe(
-        'The work item you were dispatched against. Pass it and you get EVERYTHING this session needs to start: your family, your step and its role, your scope, the units you were assigned and the ones your step is answerable for, your piece, what the sessions before you left, your flow rendered, your uncommitted and committed paths, the failing ward result and its check types, the carve log, and your lane if your step declares one. There is no ambient caller identity over MCP stdio, so this id is how the server knows who is asking.',
-      )
-      .brand<'QuestWorkItemId'>()
+    workItemId: workItemContract.shape.id
       .optional(),
     operationItemId: z
       .string()

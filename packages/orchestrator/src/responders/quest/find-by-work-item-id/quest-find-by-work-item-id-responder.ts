@@ -9,12 +9,12 @@
  *   broadcaster can stamp questId on each outgoing WS payload.
  */
 
-import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { questFindByWorkItemIdBroker } from '../../../brokers/quest/find-by-work-item-id/quest-find-by-work-item-id-broker';
 
 export const QuestFindByWorkItemIdResponder = async ({
   workItemId,
 }: {
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
 }): Promise<Quest['id'] | null> => questFindByWorkItemIdBroker({ workItemId });

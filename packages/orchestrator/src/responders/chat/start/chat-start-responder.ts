@@ -8,7 +8,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { getQuestInputContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, ProcessId, QuestType, QuestWorkItemId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, GuildId, ProcessId, QuestType, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -59,7 +59,7 @@ export const ChatStartResponder = async ({
   }
 
   let chatQuestId: Quest['id'] | null = null;
-  let chatWorkItemId: QuestWorkItemId | null = null;
+  let chatWorkItemId: WorkItem['id'] | null = null;
   // The intake role is quest-type derived, never hardcoded: a bug-hunt quest's chat item is a
   // `bughunt` item. On the resume path the type comes from the quest already on disk (the caller's
   // `questType` describes a NEW quest and is meaningless there); on the create path, from the

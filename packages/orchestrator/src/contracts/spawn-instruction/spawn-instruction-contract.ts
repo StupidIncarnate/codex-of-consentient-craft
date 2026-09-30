@@ -8,7 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questWorkItemIdContract, sessionIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { sessionIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 import { agentRoleContract } from '../agent-role/agent-role-contract';
 import { claudeModelContract } from '../claude-model/claude-model-contract';
@@ -17,7 +17,7 @@ import { promptTextContract } from '../prompt-text/prompt-text-contract';
 export const spawnInstructionContract = z.object({
   questId: questContract.shape.id,
   role: agentRoleContract,
-  workItemId: questWorkItemIdContract,
+  workItemId: workItemContract.shape.id,
   taskPrompt: promptTextContract,
   model: claudeModelContract.optional(),
   // Set when orphan recovery marked the work item for resume: Node dispatch resumes this Claude

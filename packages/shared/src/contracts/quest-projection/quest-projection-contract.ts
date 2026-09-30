@@ -61,11 +61,11 @@ import { z } from '#gateway/npm/zod';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 import { questContract } from '../quest/quest-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 // `.default()` before `.brand()`, baked in here rather than at each use site below — zod v4
 // checks a `.default()` literal against the schema's own output type, and a bare number can never
@@ -88,12 +88,12 @@ const questProjectionStepContract = z
         "'actual' = a real work item exists at this step; 'planned' = projected forward along " +
           '`routes.done`, never yet dispatched.',
       ),
-    workItemId: questWorkItemIdContract.optional().describe('Present iff kind === "actual".'),
+    workItemId: workItemContract.shape.id.optional().describe('Present iff kind === "actual".'),
     pieceId: pieceIdContract
       .optional()
       .describe('Present iff kind === "actual" and the work item ran a piece.'),
     status: workItemStatusContract.optional().describe('Present iff kind === "actual".'),
-    mintedBy: questWorkItemIdContract
+    mintedBy: workItemContract.shape.id
       .optional()
       .describe(
         'Copied straight off `WorkItem.mintedBy` — the back-edge badge reads this without re-deriving it.',

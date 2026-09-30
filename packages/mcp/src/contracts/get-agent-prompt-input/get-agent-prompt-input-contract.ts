@@ -18,7 +18,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 export const getAgentPromptInputContract = z.object({
   agent: z
@@ -28,7 +28,7 @@ export const getAgentPromptInputContract = z.object({
     .describe(
       'Agent name. A relay role (codeweaver, flowrider, siegemaster, spiritmender, warpgate) or a minion named for the role that summons it (e.g. codeweaver-reviewer, siegemaster-walker).',
     ),
-  workItemId: questWorkItemIdContract
+  workItemId: workItemContract.shape.id
     .optional()
     .describe(
       "Work item the calling sub-agent was dispatched against. Supplied by a relay role; OMITTED by a summoned minion, which has no work item of its own and is refused if it passes its parent's.",

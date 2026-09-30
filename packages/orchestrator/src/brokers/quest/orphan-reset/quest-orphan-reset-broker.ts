@@ -40,12 +40,8 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import {
-  workItemContract,
-  type QuestWorkItemId,
-  type SessionId,
-} from '@dungeonmaster/shared/contracts';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import { workItemContract, type SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
@@ -65,7 +61,7 @@ export const questOrphanResetBroker = async ({
   excludeWorkItemId,
 }: {
   excludeSessionId?: SessionId;
-  excludeWorkItemId?: QuestWorkItemId;
+  excludeWorkItemId?: WorkItem['id'];
 } = {}): Promise<OrphanResetResult> => {
   const guilds = await guildListBroker();
 

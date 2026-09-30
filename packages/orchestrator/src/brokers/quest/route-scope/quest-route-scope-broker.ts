@@ -27,14 +27,8 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { join } from '#gateway/node/path';
-import {
-  errorMessageContract,
-  filePathContract,
-  operationItemContract,
-  questWorkItemIdContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage, OperationItem, Quest, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, filePathContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
   isTerminalWorkItemStatusGuard,
@@ -102,7 +96,7 @@ export const questRouteScopeBroker = async ({
 
   // An object holder, not a bare `let`: the values are assigned inside the update callback, which
   // TypeScript's flow analysis cannot see through.
-  const halt: { workItemId?: QuestWorkItemId; reason?: ErrorMessage } = {};
+  const halt: { workItemId?: WorkItem['id']; reason?: ErrorMessage } = {};
   const persisted = await questOperationsUpdateBroker({
     questId,
     update: ({ quest }) => {
@@ -223,7 +217,7 @@ export const questRouteScopeBroker = async ({
 
       const minted: WorkItem[] = action.batch.map((item) =>
         workItemContract.parse({
-          id: questWorkItemIdContract.parse(randomUUID()),
+          id: workItemContract.shape.id.parse(randomUUID()),
           role: item.role,
           status: 'pending',
           spawnerType: isCommandWorkItemRoleGuard({ role: item.role }) ? 'command' : 'agent',

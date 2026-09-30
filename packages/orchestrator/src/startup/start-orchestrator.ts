@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildId, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, QuestWorkItemId, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildId, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
@@ -352,7 +352,7 @@ export const StartOrchestrator = {
   }: {
     agent: string;
     questId: Quest['id'];
-    workItemId?: QuestWorkItemId;
+    workItemId?: WorkItem['id'];
     discipline?: 'implementation' | 'bug-repro' | 'below-browser' | 'browser-e2e' | 'manual-qa';
   }): Promise<AgentPromptResult> =>
     AgentPromptFlow.get({
@@ -424,7 +424,7 @@ export const StartOrchestrator = {
     ...operationOutcome
   }: {
     questId: Quest['id'];
-    workItemId: QuestWorkItemId;
+    workItemId: WorkItem['id'];
     signal: 'complete';
     operationItemId?: OperationItemId;
     blockedReason?: BlockedReason;
@@ -458,7 +458,7 @@ export const StartOrchestrator = {
   findQuestByWorkItemId: async ({
     workItemId,
   }: {
-    workItemId: QuestWorkItemId;
+    workItemId: WorkItem['id'];
   }): Promise<Quest['id'] | null> => QuestFlow.findByWorkItemId({ workItemId }),
 
   // Start a JSONL watcher against a Node-dispatch worker's own session, whose id is

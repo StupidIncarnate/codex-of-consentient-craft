@@ -32,7 +32,7 @@
  */
 
 import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestType, QuestWorkItemId, SessionId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestType, SessionId, WorkItemRole, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -59,7 +59,7 @@ export const resolveChatQuestLayerBroker = async ({
   existingQuestId?: Quest['id'];
   sessionId?: SessionId;
   message: string;
-}): Promise<{ questId: Quest['id']; workItemId: QuestWorkItemId; createdQuest: boolean }> => {
+}): Promise<{ questId: Quest['id']; workItemId: WorkItem['id']; createdQuest: boolean }> => {
   if (role === 'tavernkeeper') {
     if (!questId) {
       throw new Error('questId is required for tavernkeeper role');

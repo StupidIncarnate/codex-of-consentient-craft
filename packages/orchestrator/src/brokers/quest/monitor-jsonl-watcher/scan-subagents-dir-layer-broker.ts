@@ -18,7 +18,7 @@
 import { isFsError, readdirSync } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
-import { absoluteFilePathContract, fileNameContract, type ChatEntry, type FileName, type FilePath, type ProcessId, type QuestWorkItemId, type SessionId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileNameContract, type ChatEntry, type FileName, type FilePath, type ProcessId, type SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
@@ -29,7 +29,7 @@ import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 export const scanSubagentsDirLayerBroker = async ({
   subagentsDir,
@@ -50,13 +50,13 @@ export const scanSubagentsDirLayerBroker = async ({
   activeQuestIdGetter: () => Quest['id'] | null;
   // Forwarded to each sub-agent tail so its emits carry the owning `workItemId`. Optional:
   // omitted by layer tests.
-  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null;
+  workItemIdForAgent?: (params: { agentId: AgentId }) => WorkItem['id'] | null;
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
     sessionId: SessionId;
-    workItemId?: QuestWorkItemId;
+    workItemId?: WorkItem['id'];
   }) => void;
   subagentHandles: Map<AgentId, TailFileHandle>;
 }): Promise<void> => {

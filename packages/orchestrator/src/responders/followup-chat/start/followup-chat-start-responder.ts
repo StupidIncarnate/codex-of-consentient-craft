@@ -11,14 +11,8 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  errorMessageContract,
-  getQuestInputContract,
-  questWorkItemIdContract,
-  workItemContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
-import type { GuildId, ModifyQuestInput, ProcessId, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, getQuestInputContract, workItemContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ModifyQuestInput, ProcessId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -48,8 +42,8 @@ export const FollowupChatStartResponder = async ({
   // item, whatever state the item was left in.
   const existingItem = questResult.quest.workItems.find((wi) => wi.role === 'tavernkeeper');
 
-  const tavernkeeperWorkItemId: QuestWorkItemId =
-    existingItem?.id ?? questWorkItemIdContract.parse(randomUUID());
+  const tavernkeeperWorkItemId: WorkItem['id'] =
+    existingItem?.id ?? workItemContract.shape.id.parse(randomUUID());
   const resumeSessionId = existingItem?.sessionId;
 
   const nowIso = new Date().toISOString();

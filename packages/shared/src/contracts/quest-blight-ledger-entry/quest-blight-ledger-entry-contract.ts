@@ -33,8 +33,8 @@ import { z } from '#gateway/npm/zod';
 
 import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightDispositionContract } from '../blight-disposition/blight-disposition-contract';
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 export const questBlightLedgerEntryContract = z.object({
   itemId: blightChecklistItemIdContract,
@@ -73,7 +73,7 @@ export const questBlightLedgerEntryContract = z.object({
     .describe(
       'For `fixed`: every other place the same value renders or the same logic runs, that was checked for the identical defect. A fix without a ripple list is half a fix. Repo-relative so the persisted ledger stays portable across machines.',
     ),
-  workItemId: questWorkItemIdContract,
+  workItemId: workItemContract.shape.id,
   createdAt: z.iso
     .datetime()
     .brand<'IsoTimestamp'>()

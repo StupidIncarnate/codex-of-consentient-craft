@@ -28,7 +28,7 @@
  * />
  */
 
-import type { ChatEntry, OperationItem, QuestWorkItemId, RiftcarverResult, SessionId, UrlSlug, WardResult, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, OperationItem, RiftcarverResult, SessionId, UrlSlug, WardResult, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -60,18 +60,18 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   // abandon-early transcript is visible without a click.
   includeSkipped: boolean;
   guildSlug?: UrlSlug;
-  workItemEntries: Map<QuestWorkItemId, ChatEntry[]>;
+  workItemEntries: Map<WorkItem['id'], ChatEntry[]>;
   sessionEntries: Map<SessionId, ChatEntry[]>;
   // Built once for the whole quest, above the row list — rebuilding it per row would be
   // O(work items × dependencies) instead of O(work items). The dependency's OWN row label: its tier
   // label (T2-1) when it renders nested, else its scope label — the SAME map the back-edge badge
   // reads. Distinguishes duplicate roles inside one dependsOn list, which a role-only lookup could
   // not (T2-9a's regression: two codeweaver dependencies used to read "codeweaver, codeweaver").
-  workItemIdToLabel: Map<QuestWorkItemId, DisplayLabel>;
+  workItemIdToLabel: Map<WorkItem['id'], DisplayLabel>;
   // The dependency's SCOPE alone (operation text, or capitalized role) — never its tier label — so
   // this row can tell whether a dependency sits in ITS OWN scope (this row's own `scopeLabel` below)
   // or a different one, and prefix the cross-scope case with the dependency's scope name (T2-9a).
-  workItemIdToScopeLabel: Map<QuestWorkItemId, DisplayLabel>;
+  workItemIdToScopeLabel: Map<WorkItem['id'], DisplayLabel>;
   wardResultsById: Map<WardResult['id'], WardResult>;
   riftcarverResultsById: Map<RiftcarverResult['id'], RiftcarverResult>;
   operationsById: Map<OperationItem['id'], OperationItem>;

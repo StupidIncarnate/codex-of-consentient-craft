@@ -29,12 +29,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  operationItemContract,
-  questWorkItemIdContract,
-  stepNameContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { operationItemContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
@@ -84,7 +79,7 @@ export const questAdvanceBroker = async ({ questId }: { questId: Quest['id'] }):
         family === undefined ? undefined : GRAPH_BY_FAMILY.get(String(family))?.entry;
 
       const newWorkItem: WorkItem = workItemContract.parse({
-        id: questWorkItemIdContract.parse(randomUUID()),
+        id: workItemContract.shape.id.parse(randomUUID()),
         role: nextOperation.role,
         status: 'pending',
         // The step the scope ENTERS at. Without it the router has no current step to read and

@@ -31,7 +31,7 @@
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
-import type { Quest, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { signalGateResultContract } from '../../contracts/signal-gate-result/signal-gate-result-contract';
 import type { SignalGateResult } from '../../contracts/signal-gate-result/signal-gate-result-contract';
@@ -54,7 +54,7 @@ export const signalGateTransformer = ({
   workItemId,
 }: {
   quest: Quest;
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
 }): SignalGateResult => {
   // An absent work item is a caller bug, and `{ ok: true }` for it is indistinguishable from a step
   // with nothing assigned — the reading that turns the gate off silently.

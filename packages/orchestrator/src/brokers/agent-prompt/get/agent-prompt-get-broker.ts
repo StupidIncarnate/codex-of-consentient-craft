@@ -35,7 +35,7 @@
  * // Returns AgentPromptResult whose `prompt` has $ARGUMENTS substituted with operation context
  */
 
-import { agentPromptResultContract, filePathContract, workItemContract, type AgentPromptResult, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import { agentPromptResultContract, filePathContract, workItemContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
@@ -49,7 +49,7 @@ import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questOperationsUpdateBroker } from '../../quest/operations-update/quest-operations-update-broker';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 export const agentPromptGetBroker = async ({
   agent,
@@ -58,7 +58,7 @@ export const agentPromptGetBroker = async ({
 }: {
   agent: string;
   questId: Quest['id'];
-  workItemId?: QuestWorkItemId;
+  workItemId?: WorkItem['id'];
 }): Promise<AgentPromptResult> => {
   const parsedAgent = agentPromptNameContract.parse(agent);
   const isMinion = agentPromptClassificationStatics.minionNames.some(

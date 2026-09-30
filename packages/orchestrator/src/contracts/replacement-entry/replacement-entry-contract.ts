@@ -8,11 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
+import { workItemContract } from '@dungeonmaster/shared/contracts';
 
 export const replacementEntryContract = z.object({
-  oldId: questWorkItemIdContract,
-  newId: questWorkItemIdContract,
+  oldId: workItemContract.shape.id,
+  newId: workItemContract.shape.id,
 });
 
 export type ReplacementEntry = z.infer<typeof replacementEntryContract>;

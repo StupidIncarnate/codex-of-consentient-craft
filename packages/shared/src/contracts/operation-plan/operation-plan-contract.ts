@@ -20,7 +20,7 @@ import { z } from '#gateway/npm/zod';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { operationPlanIdContract } from '../operation-plan-id/operation-plan-id-contract';
 import { operationPlanPieceContract } from '../operation-plan-piece/operation-plan-piece-contract';
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 export const operationPlanContract = z.object({
   id: operationPlanIdContract.describe(
@@ -31,7 +31,7 @@ export const operationPlanContract = z.object({
     'The ledger item this plan was produced for — the operation-item whose dispatch prompted the ' +
       'planner sub-agent to spike this plan.',
   ),
-  workItemId: questWorkItemIdContract.describe(
+  workItemId: workItemContract.shape.id.describe(
     'The work item that ran the planner sub-agent and produced this plan — the session whose ' +
       'output this is.',
   ),

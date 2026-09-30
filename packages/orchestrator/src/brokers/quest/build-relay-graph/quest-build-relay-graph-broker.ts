@@ -27,18 +27,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  operationItemContract,
-  questWorkItemIdContract,
-  stepNameContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
-import type {
-  OperationItem,
-  Quest,
-  QuestWorkItemId,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import { operationItemContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
@@ -56,7 +46,7 @@ export const questBuildRelayGraphBroker = ({
   now,
 }: {
   quest: Quest;
-  priorWorkItemIds: QuestWorkItemId[];
+  priorWorkItemIds: WorkItem['id'][];
   now: IsoTimestamp;
 }): { operations: OperationItem[]; workItems: WorkItem[] } => {
   const entryFamily = questFlowStatics[quest.questType].entry;
@@ -104,7 +94,7 @@ export const questBuildRelayGraphBroker = ({
       : GRAPH_BY_FAMILY.get(firstActionableFamily)?.entry;
 
   const firstWorkItem = workItemContract.parse({
-    id: questWorkItemIdContract.parse(randomUUID()),
+    id: workItemContract.shape.id.parse(randomUUID()),
     role: firstActionable.role,
     status: 'pending',
     spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role }) ? 'command' : 'agent',

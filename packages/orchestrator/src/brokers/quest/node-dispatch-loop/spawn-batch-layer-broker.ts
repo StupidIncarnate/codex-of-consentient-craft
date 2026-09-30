@@ -14,7 +14,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, ModifyQuestInput, ProcessId, QuestWorkItemId, RepoRootCwd, Quest } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ModifyQuestInput, ProcessId, RepoRootCwd, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -31,7 +31,7 @@ export const spawnBatchLayerBroker = async ({
   registerProcess?: (params: {
     processId: ProcessId;
     questId: Quest['id'];
-    questWorkItemId: QuestWorkItemId;
+    questWorkItemId: WorkItem['id'];
     kill: () => void;
   }) => void;
   unregisterProcess?: (params: { processId: ProcessId }) => void;

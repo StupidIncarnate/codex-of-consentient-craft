@@ -47,13 +47,7 @@
  * needs `.omit()`/`.shape` on a mark, so the reason that split exists does not apply at this field.
  */
 
-import {
-  flowIdContract,
-  operationItemIdContract,
-  packageNameContract,
-  questWorkItemIdContract,
-  unitObservationContract,
-} from '@dungeonmaster/shared/contracts';
+import { flowIdContract, operationItemIdContract, packageNameContract, unitObservationContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
@@ -68,7 +62,7 @@ export const workPlanFieldsContract = z.object({
     .nullable()
     .describe('The one flow this plan covers, or null for a contracts-only cell.'),
   packageNames: z.array(packageNameContract).default([]),
-  writtenBy: questWorkItemIdContract.describe(
+  writtenBy: workItemContract.shape.id.describe(
     'Server-stamped — the work item whose session submitted this plan.',
   ),
   writtenAt: isoTimestampContract.describe('Server-stamped, from the server’s own clock.'),

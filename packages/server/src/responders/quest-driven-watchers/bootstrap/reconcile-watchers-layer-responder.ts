@@ -27,7 +27,7 @@ import {
   type ReconcileWatchersResult,
 } from '../../../contracts/reconcile-watchers-result/reconcile-watchers-result-contract';
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildPath, QuestWorkItemId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
+import type { GuildPath, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 import { StartOrchestrator, questListBroker } from '@dungeonmaster/orchestrator';
@@ -72,7 +72,7 @@ export const ReconcileWatchersLayerResponder = async ({
   // its agent (codeweaver/flowrider/…) writes the MAIN session JSONL, so the watcher must
   // route that content to the work item's row rather than treat it as chatter. Keyed
   // sessionId → owning workItemId.
-  const workerWorkItemIdBySessionId = new Map<SessionId, QuestWorkItemId>();
+  const workerWorkItemIdBySessionId = new Map<SessionId, WorkItem['id']>();
   // The quest each worker session's owning work item belongs to, captured in lockstep with the
   // map above. The tail emits its own terminal event when it stops, and `chat-complete` is a
   // per-quest event — a frame with no questId reaches no subscriber at all.

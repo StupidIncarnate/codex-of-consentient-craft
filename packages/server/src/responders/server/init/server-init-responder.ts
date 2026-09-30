@@ -39,7 +39,7 @@ import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/we
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
-import type { OrchestrationEventType, ProcessId, QuestWorkItemId, WsMessage, Quest } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, ProcessId, WsMessage, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -108,12 +108,12 @@ export const ServerInitResponder = ({
   // Frames without workItemId go under the null key.
   const bufferedDuringReplay = new Map<
     WSContext,
-    Map<Quest['id'], Map<QuestWorkItemId | null, WsMessage[]>>
+    Map<Quest['id'], Map<WorkItem['id'] | null, WsMessage[]>>
   >();
   // WorkItemIds for which replay's direct-send delivered at least one chat-output
   // frame, per (client, questId). Used by the subscribe-quest .finally to decide
   // which workItem buffers to drain.
-  const replayDeliveredWorkItems = new Map<WSContext, Map<Quest['id'], Set<QuestWorkItemId | null>>>();
+  const replayDeliveredWorkItems = new Map<WSContext, Map<Quest['id'], Set<WorkItem['id'] | null>>>();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -134,7 +134,7 @@ export const ServerInitResponder = ({
   // is what keeps resolution synchronous — an async lookup per frame would deliver the
   // opening frames of a transcript after later ones. Entries last the process lifetime; a
   // work item's owning quest never changes.
-  const workItemQuestIdCache = new Map<QuestWorkItemId, Quest['id']>();
+  const workItemQuestIdCache = new Map<WorkItem['id'], Quest['id']>();
   // The `chat-complete` frames this relay has already shipped, per quest, keyed by the chat process
   // each one names and stamped `retained: true` so the browser can tell a re-delivery from a live
   // frame. Re-sent to a client at the END of its `subscribe-quest`.
@@ -731,15 +731,15 @@ export const ServerInitResponder = ({
                 if (!isReplayFrame) {
                   let questBuffer = bufferedDuringReplay.get(client);
                   if (!questBuffer) {
-                    questBuffer = new Map<Quest['id'], Map<QuestWorkItemId | null, WsMessage[]>>();
+                    questBuffer = new Map<Quest['id'], Map<WorkItem['id'] | null, WsMessage[]>>();
                     bufferedDuringReplay.set(client, questBuffer);
                   }
                   let workItemBuffer = questBuffer.get(payloadQuestId);
                   if (!workItemBuffer) {
-                    workItemBuffer = new Map<QuestWorkItemId | null, WsMessage[]>();
+                    workItemBuffer = new Map<WorkItem['id'] | null, WsMessage[]>();
                     questBuffer.set(payloadQuestId, workItemBuffer);
                   }
-                  const key: QuestWorkItemId | null = payloadWorkItemId ?? null;
+                  const key: WorkItem['id'] | null = payloadWorkItemId ?? null;
                   const msgs = workItemBuffer.get(key) ?? [];
                   msgs.push(envelope);
                   workItemBuffer.set(key, msgs);
@@ -782,12 +782,12 @@ export const ServerInitResponder = ({
                 if (type === 'chat-output' && payloadQuestId) {
                   let questDelivered = replayDeliveredWorkItems.get(replayClient);
                   if (!questDelivered) {
-                    questDelivered = new Map<Quest['id'], Set<QuestWorkItemId | null>>();
+                    questDelivered = new Map<Quest['id'], Set<WorkItem['id'] | null>>();
                     replayDeliveredWorkItems.set(replayClient, questDelivered);
                   }
                   let workItemSet = questDelivered.get(payloadQuestId);
                   if (!workItemSet) {
-                    workItemSet = new Set<QuestWorkItemId | null>();
+                    workItemSet = new Set<WorkItem['id'] | null>();
                     questDelivered.set(payloadQuestId, workItemSet);
                   }
                   workItemSet.add(payloadWorkItemId ?? null);

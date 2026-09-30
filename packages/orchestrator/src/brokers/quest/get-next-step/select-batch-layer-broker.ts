@@ -20,14 +20,14 @@
  * // Returns: WorkItem[] — ready ∩ selected, in ready's dispatch order.
  */
 
-import type { QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 export const selectBatchLayerBroker = ({
   ready,
   selected,
 }: {
   ready: WorkItem[];
-  selected: QuestWorkItemId[];
+  selected: WorkItem['id'][];
 }): WorkItem[] => {
   const selectedIds = new Set(selected);
   const batch = ready.filter((item) => selectedIds.has(item.id));

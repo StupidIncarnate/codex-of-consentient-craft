@@ -17,15 +17,7 @@ import { useEffect, useMemo, useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type {
-  Quest,
-  QuestStatus,
-  QuestWorkItemId,
-  SessionId,
-  UrlSlug,
-  UserInput,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, SessionId, UrlSlug, UserInput, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
@@ -84,7 +76,7 @@ export interface ExecutionPanelWidgetProps {
   // row: sibling Task-dispatched sub-agents share one parent sessionId, so sessionEntries
   // alone hands every row the merged union. Falls back to the sessionId bucket for rows
   // whose entries arrived without a workItemId.
-  workItemEntries?: Map<QuestWorkItemId, ChatEntry[]>;
+  workItemEntries?: Map<WorkItem['id'], ChatEntry[]>;
   guildSlug?: UrlSlug;
   onStatusChange?: (params: { status: QuestStatus }) => void;
   onPause?: () => void;

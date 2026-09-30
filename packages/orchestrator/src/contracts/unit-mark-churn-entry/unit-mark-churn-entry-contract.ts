@@ -17,15 +17,11 @@
  * // Returns: UnitMarkChurnEntry
  */
 
-import {
-  questWorkItemIdContract,
-  stepNameContract,
-  unitMarkContract,
-} from '@dungeonmaster/shared/contracts';
+import { stepNameContract, unitMarkContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const unitMarkChurnEntryContract = z.object({
-  workItemId: questWorkItemIdContract,
+  workItemId: workItemContract.shape.id,
   // `.nullable()` throughout, not `.optional()` — a work item assigned this unit that never marked
   // it is exactly the row this walk exists to show, so the entry is emitted with an explicit null
   // rather than dropped.

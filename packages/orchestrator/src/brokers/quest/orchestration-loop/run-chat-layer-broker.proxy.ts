@@ -1,11 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import {
-  questContract,
-  type ErrorMessage,
-  type QuestWorkItemId,
-  type RepoRootCwd,
-  type WorkItemStatus,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, type ErrorMessage, type RepoRootCwd, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -16,6 +10,7 @@ import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-bro
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
 import { questSessionRecordBrokerProxy } from '../session-record/quest-session-record-broker.proxy';
+import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -35,10 +30,10 @@ export const runChatLayerBrokerProxy = (): {
   getSpawnedCwd: () => RepoRootCwd | undefined;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedWorkItemStatus: (params: {
-    workItemId: QuestWorkItemId;
+    workItemId: WorkItem['id'];
   }) => WorkItemStatus | undefined;
   getLastPersistedWorkItemErrorMessage: (params: {
-    workItemId: QuestWorkItemId;
+    workItemId: WorkItem['id'];
   }) => ErrorMessage | undefined;
 } => {
   stderrProxy();
@@ -117,7 +112,7 @@ export const runChatLayerBrokerProxy = (): {
     getLastPersistedWorkItemStatus: ({
       workItemId,
     }: {
-      workItemId: QuestWorkItemId;
+      workItemId: WorkItem['id'];
     }): WorkItemStatus | undefined => {
       const persisted = modifyProxy.getAllPersistedContents();
       if (persisted.length === 0) {
@@ -133,7 +128,7 @@ export const runChatLayerBrokerProxy = (): {
     getLastPersistedWorkItemErrorMessage: ({
       workItemId,
     }: {
-      workItemId: QuestWorkItemId;
+      workItemId: WorkItem['id'];
     }): ErrorMessage | undefined => {
       const persisted = modifyProxy.getAllPersistedContents();
       if (persisted.length === 0) {

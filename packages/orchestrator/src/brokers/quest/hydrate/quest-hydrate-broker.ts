@@ -17,7 +17,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { addQuestInputContract, fileContentsContract, operationItemContract, questContract, questWorkItemIdContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, fileContentsContract, operationItemContract, questContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestSource, QuestStatus, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -145,7 +145,7 @@ export const questHydrateBroker = async ({
       firstActionable === undefined
         ? undefined
         : workItemContract.parse({
-            id: blueprint.fixedWorkItemId ?? questWorkItemIdContract.parse(randomUUID()),
+            id: blueprint.fixedWorkItemId ?? workItemContract.shape.id.parse(randomUUID()),
             role: firstActionable.role,
             status: 'pending',
             spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role })

@@ -19,7 +19,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, sessionIdContract, type ChatEntry, type FilePath, type ProcessId, type QuestWorkItemId, type SessionId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionIdContract, type ChatEntry, type FilePath, type ProcessId, type SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -33,7 +33,7 @@ import { timerIntervalStartBroker } from '../../timer/interval-start/timer-inter
 import { questGetServerConfigBroker } from '../get-server-config/quest-get-server-config-broker';
 import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 // How often the broker re-scans `<sessionFilePath without .jsonl>/subagents/` for newly-
 // created `agent-*.jsonl` files. The `agent-detected` signal from the processor only fires
@@ -57,7 +57,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript
   // to its own execution row instead of the merged parent-session bucket. Optional:
   // omitted by tests.
-  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null | undefined;
+  workItemIdForAgent?: (params: { agentId: AgentId }) => WorkItem['id'] | null | undefined;
   chatProcessId: ProcessId;
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
   // buckets them under the same key that `wi.sessionId` resolves to via
@@ -68,14 +68,14 @@ export const questMonitorJsonlWatcherBroker = ({
     entries: ChatEntry[];
     questId: Quest['id'] | null;
     sessionId?: SessionId;
-    workItemId?: QuestWorkItemId;
+    workItemId?: WorkItem['id'];
   }) => void;
   // Set when the tailed session is a Node-dispatch worker's own session: its agent writes
   // its work to the MAIN session JSONL, so main-session tail emits carry `sessionId:
   // parentSessionId` + this `workItemId`, routing them to the worker's execution row exactly
   // as the replay path does. Every production caller (`questMonitorWatcherStartBroker`)
   // supplies one; optional here only for tests exercising the tail mechanics on their own.
-  mainSessionWorkItemId?: QuestWorkItemId;
+  mainSessionWorkItemId?: WorkItem['id'];
 }): { stop: () => void } => {
   // ONE processor instance is shared across the main JSONL tail AND every sub-agent JSONL
   // tail this broker spawns, mirroring the architecture invariant documented in
@@ -91,10 +91,10 @@ export const questMonitorJsonlWatcherBroker = ({
   // until workItemIdForAgent resolves a non-null id. Depth-1 sub-agents resolve on the first
   // hop; top-level (no ancestor work item) resolve to null and emit without a workItemId.
   const resolveAncestorWorkItemId:
-    ((params: { agentId: AgentId }) => QuestWorkItemId | null) | undefined =
+    ((params: { agentId: AgentId }) => WorkItem['id'] | null) | undefined =
     workItemIdForAgent === undefined
       ? undefined
-      : ({ agentId }: { agentId: AgentId }): QuestWorkItemId | null => {
+      : ({ agentId }: { agentId: AgentId }): WorkItem['id'] | null => {
           const direct = workItemIdForAgent({ agentId });
           if (direct !== null && direct !== undefined) return direct;
           const parentReal = processor.resolveParentRealAgentId({ agentId });

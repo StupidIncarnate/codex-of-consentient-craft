@@ -18,7 +18,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 const planPayloadContract = z
   .object({
@@ -110,10 +110,7 @@ export const questWorkInputContract = z
   .object({
     questId: questContract.shape.id
       .describe('The ID of the quest this call is against.'),
-    workItemId: z
-      .string()
-      .min(1)
-      .brand<'QuestWorkItemId'>()
+    workItemId: workItemContract.shape.id
       .describe(
         'The work item you were dispatched against. There is no ambient caller identity over MCP stdio.',
       ),

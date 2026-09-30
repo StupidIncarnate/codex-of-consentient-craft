@@ -21,13 +21,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type {
-  ContentText,
-  QuestWorkItemId,
-  StepName,
-  UnitObservation,
-  WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import type { ContentText, StepName, UnitObservation, WorkItemRole, WorkItem } from '@dungeonmaster/shared/contracts';
 
 // Every label padded to the width of the longest one (`cant-meet` + 1 space = 10), so the three
 // value columns line up.
@@ -43,7 +37,7 @@ export const commitMessageBuildTransformer = ({
   family: WorkItemRole;
   step: StepName;
   scope: ContentText;
-  workItems: readonly { id: QuestWorkItemId; observations: readonly UnitObservation[] }[];
+  workItems: readonly { id: WorkItem['id']; observations: readonly UnitObservation[] }[];
 }): ContentText => {
   const subject = `${family}/${step}: ${scope}`;
 

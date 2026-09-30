@@ -66,9 +66,9 @@ import { z } from '#gateway/npm/zod';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { questNoteIdContract } from '../quest-note-id/quest-note-id-contract';
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { siegeInstanceIdContract } from '../siege-instance-id/siege-instance-id-contract';
 import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 export const questNoteContract = z.object({
   id: questNoteIdContract,
@@ -78,7 +78,7 @@ export const questNoteContract = z.object({
     .min(1)
     .brand<'QuestNoteRole'>()
     .describe('The role that appended this note — who a reader follows up with.'),
-  workItemId: questWorkItemIdContract
+  workItemId: workItemContract.shape.id
     .nullish()
     .describe(
       'The work item that appended this note. Required on every kind but `human-verdict`, whose ' +

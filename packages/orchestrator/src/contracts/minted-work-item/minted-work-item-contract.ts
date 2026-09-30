@@ -23,14 +23,7 @@
  * nothing to copy from, and synthesising a payload for it would invent a brief nobody wrote.
  */
 
-import {
-  pieceIdContract,
-  questWorkItemIdContract,
-  stepNameContract,
-  unitIdContract,
-  workItemPayloadKeyContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
+import { pieceIdContract, stepNameContract, unitIdContract, workItemPayloadKeyContract, workItemRoleContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const mintedWorkItemContract = z.object({
@@ -44,7 +37,7 @@ export const mintedWorkItemContract = z.object({
     .record(workItemPayloadKeyContract, z.unknown())
     .optional()
     .describe("The piece's own brief, or the copy inherited from the piece that first claimed."),
-  mintedBy: questWorkItemIdContract
+  mintedBy: workItemContract.shape.id
     .optional()
     .describe(
       'THE RETURN EDGE — the work item whose `unmet` marks or `request` caused this one to exist.',

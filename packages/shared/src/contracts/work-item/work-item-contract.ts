@@ -11,7 +11,6 @@ import { z } from '#gateway/npm/zod';
 import { fileNameContract } from '../file-name/file-name-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
-import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
@@ -23,8 +22,10 @@ import { workItemPayloadKeyContract } from '../work-item-payload-key/work-item-p
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 
+const workItemId = z.uuid().brand<'WorkItemId'>();
+
 export const workItemContract = z.object({
-  id: questWorkItemIdContract,
+  id: workItemId,
   role: workItemRoleContract,
   status: workItemStatusContract,
   spawnerType: spawnerTypeContract,
@@ -37,7 +38,7 @@ export const workItemContract = z.object({
   // on that scope, and one per piece inside a parallel step — so the ref is many-to-one and
   // `step` is what separates them. Ward items may additionally carry a `wardResults/<id>` ref.
   relatedDataItems: z.array(relatedDataItemContract).default([]),
-  dependsOn: z.array(questWorkItemIdContract).default([]),
+  dependsOn: z.array(workItemId).default([]),
   // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
   // OWN output type, and a bare number can never satisfy a branded type; putting the brand last
   // keeps the literal checked against plain `number` while the branded type still flows through.
@@ -65,7 +66,7 @@ export const workItemContract = z.object({
   completedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullish(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
-  insertedBy: questWorkItemIdContract.optional(),
+  insertedBy: workItemId.optional(),
   resume: z
     .boolean()
     .optional()
@@ -99,7 +100,7 @@ export const workItemContract = z.object({
   // `pt N` continuation chain, and `work-items-to-quest-status-transformer` reads it to derive
   // quest completion; reusing it here would make an ordinary mark-minted rework loop read as a
   // resolved failure.
-  mintedBy: questWorkItemIdContract.optional(),
+  mintedBy: workItemId.optional(),
   // The typed, per-family half of a brief — deliberately `z.record(workItemPayloadKeyContract,
   // z.unknown())`: the per-family shapes live on the plan-file contract (story 07), and
   // duplicating them here would make `shared` depend on a shape only the orchestrator cares

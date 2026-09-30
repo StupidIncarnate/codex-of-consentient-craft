@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, GuildId, GuildName, GuildPath, ProcessId, QuestStatus, QuestWorkItemId, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, GuildId, GuildName, GuildPath, ProcessId, QuestStatus, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -283,10 +283,10 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls. A caller needing the exact forwarded shape (proving an optional field like
   // questType/sessionId reached the call) filters/reads this array itself.
   createQuestForMcpGetCalls: () => readonly unknown[];
-  handleSignalBackResolves: (params: { questId?: Quest['id']; workItemId?: QuestWorkItemId }) => void;
+  handleSignalBackResolves: (params: { questId?: Quest['id']; workItemId?: WorkItem['id'] }) => void;
   handleSignalBackThrows: (params: {
     questId?: Quest['id'];
-    workItemId?: QuestWorkItemId;
+    workItemId?: WorkItem['id'];
     error: Error;
   }) => void;
   getServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
@@ -305,10 +305,10 @@ export const StartOrchestratorProxy = (): {
   findQuestBySessionIdReturns: (params: { sessionId: SessionId; questId: Quest['id'] | null }) => void;
   findQuestBySessionIdThrows: (params: { sessionId: SessionId; error: Error }) => void;
   findQuestByWorkItemIdReturns: (params: {
-    workItemId: QuestWorkItemId;
+    workItemId: WorkItem['id'];
     questId: Quest['id'] | null;
   }) => void;
-  findQuestByWorkItemIdThrows: (params: { workItemId: QuestWorkItemId; error: Error }) => void;
+  findQuestByWorkItemIdThrows: (params: { workItemId: WorkItem['id']; error: Error }) => void;
   // Monitor watcher — QuestFlow.startMonitorWatcher.
   startMonitorWatcherResolves: (params: { parentSessionId: string }) => void;
   startMonitorWatcherThrows: (params: { parentSessionId: string; error: Error }) => void;
@@ -918,7 +918,7 @@ export const StartOrchestratorProxy = (): {
       workItemId,
     }: {
       questId?: Quest['id'];
-      workItemId?: QuestWorkItemId;
+      workItemId?: WorkItem['id'];
     }): void => {
       const address =
         questId === undefined || workItemId === undefined ? [] : [{ questId, workItemId }];
@@ -930,7 +930,7 @@ export const StartOrchestratorProxy = (): {
       error,
     }: {
       questId?: Quest['id'];
-      workItemId?: QuestWorkItemId;
+      workItemId?: WorkItem['id'];
       error: Error;
     }): void => {
       const address =
@@ -993,7 +993,7 @@ export const StartOrchestratorProxy = (): {
       workItemId,
       questId,
     }: {
-      workItemId: QuestWorkItemId;
+      workItemId: WorkItem['id'];
       questId: Quest['id'] | null;
     }): void => {
       findQuestByWorkItemIdHandle.calledWith([{ workItemId }]).resolves(questId);
@@ -1002,7 +1002,7 @@ export const StartOrchestratorProxy = (): {
       workItemId,
       error,
     }: {
-      workItemId: QuestWorkItemId;
+      workItemId: WorkItem['id'];
       error: Error;
     }): void => {
       findQuestByWorkItemIdHandle.calledWith([{ workItemId }]).rejects(error);

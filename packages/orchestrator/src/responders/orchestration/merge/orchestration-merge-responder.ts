@@ -15,13 +15,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  getQuestInputContract,
-  modifyQuestInputContract,
-  operationItemContract,
-  questWorkItemIdContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, modifyQuestInputContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isMergeableQuestStatusGuard,
@@ -86,7 +80,7 @@ export const OrchestrationMergeResponder = async ({
   }
 
   const operationItemId = randomUUID();
-  const warpgateWorkItemId = questWorkItemIdContract.parse(randomUUID());
+  const warpgateWorkItemId = workItemContract.shape.id.parse(randomUUID());
   const now = new Date().toISOString();
 
   await questOperationsUpdateBroker({

@@ -32,7 +32,7 @@
 
 import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import { absoluteFilePathContract, filePathContract, processIdContract, questWorkItemIdContract, sessionIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, type QuestWorkItemId, type SessionId, questContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract, processIdContract, sessionIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, type SessionId, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -65,7 +65,7 @@ export const questMonitorWatcherStartBroker = async ({
   const sessionId = sessionIdContract.parse(parentSessionId);
 
   // Resolved BEFORE the orphan reset below, which needs it as an exclusion key.
-  const mainSessionWorkItemId: QuestWorkItemId = questWorkItemIdContract.parse(workerWorkItemId);
+  const mainSessionWorkItemId: WorkItem['id'] = workItemContract.shape.id.parse(workerWorkItemId);
   const mainSessionQuestId: Quest['id'] = questContract.shape.id.parse(workerQuestId);
 
   // Orphan reset re-runs whenever a session is observed — if the prior dispatch died
@@ -110,7 +110,7 @@ export const questMonitorWatcherStartBroker = async ({
     // Falling back to that owner is what lets the relay name a quest for the emit; without
     // it the frame is attributable to nobody, and a frame with no owner cannot be delivered
     // to one quest's subscribers rather than all of them.
-    workItemIdForAgent: (): QuestWorkItemId => mainSessionWorkItemId,
+    workItemIdForAgent: (): WorkItem['id'] => mainSessionWorkItemId,
     emit: ({
       chatProcessId: emittedChatProcessId,
       entries,
@@ -122,7 +122,7 @@ export const questMonitorWatcherStartBroker = async ({
       entries: ChatEntry[];
       questId: Quest['id'] | null;
       sessionId?: SessionId;
-      workItemId?: QuestWorkItemId;
+      workItemId?: WorkItem['id'];
     }): void => {
       emit({
         type: 'chat-output',

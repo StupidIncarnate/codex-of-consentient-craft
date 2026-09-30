@@ -17,7 +17,7 @@
 
 import { join } from '#gateway/node/path';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { OperationItemId, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { OperationItemId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
@@ -37,7 +37,7 @@ export const questWorkPlanWriteBroker = async ({
   plan,
 }: {
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   plan: PlanEnvelope;
 }): Promise<{ operationItemId: OperationItemId }> =>
   questWithModifyLockBroker({

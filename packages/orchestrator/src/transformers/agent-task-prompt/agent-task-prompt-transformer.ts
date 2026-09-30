@@ -24,7 +24,7 @@
  * // Returns: PromptText — the finish-what-you-started variant
  */
 
-import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import {
@@ -41,7 +41,7 @@ export const agentTaskPromptTransformer = ({
 }: {
   agent?: string;
   role?: string;
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   questId: Quest['id'];
   resume?: boolean;
 }): PromptText => {

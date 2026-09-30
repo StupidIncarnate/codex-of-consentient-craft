@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowNodeIdContract, flowRecipeNameContract, operationItemContract, operationItemIdContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, questWorkItemIdContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowNodeIdContract, flowRecipeNameContract, operationItemContract, operationItemIdContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -74,7 +74,7 @@ const questWorkUnit = z.object({
   mark: unitMarkContract.nullable(),
   evidence: unitObservationFieldsContract.shape.evidence.nullable(),
   toSettle: unitObservationFieldsContract.shape.toSettle.unwrap().nullable(),
-  markedBy: questWorkItemIdContract.nullable(),
+  markedBy: workItemContract.shape.id.nullable(),
   markedAt: unitObservationFieldsContract.shape.at.nullable(),
 });
 
@@ -144,7 +144,7 @@ const questWorkWard = z.object({
 // `baselineFor`.
 const questWorkBaseline = z.object({
   pieceId: pieceIdContract,
-  workItemId: questWorkItemIdContract,
+  workItemId: workItemContract.shape.id,
   instanceId: siegeInstanceIdContract,
   runId: siegeRunIdContract,
 });
@@ -156,7 +156,7 @@ const questWorkTruncation = z.object({
 
 export const questWorkViewContract = z.object({
   questId: questContract.shape.id,
-  workItemId: questWorkItemIdContract,
+  workItemId: workItemContract.shape.id,
   family: agentFamilyNameContract,
   step: stepNameContract,
   role: z.enum(['planner', 'worker', 'reviewer']),

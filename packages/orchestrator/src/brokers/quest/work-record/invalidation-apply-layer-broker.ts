@@ -18,7 +18,7 @@ import {
   questContract,
   questNoteContract,
 } from '@dungeonmaster/shared/contracts';
-import type { FilePath, FlowId, Quest, QuestNote, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { FilePath, FlowId, Quest, QuestNote, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questWorkRecordResultContract } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
@@ -41,7 +41,7 @@ export const invalidationApplyLayerBroker = async ({
 }: {
   quest: Quest;
   workItem: WorkItem;
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   questId: Quest['id'];
   questFilePath: FilePath;
   flowId: FlowId;

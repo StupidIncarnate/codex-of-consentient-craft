@@ -18,7 +18,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import type { QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { WorkItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -43,7 +43,7 @@ export const OrchestrationMergeResponderProxy = (): {
   setupMerge: (params: { quest: Quest }) => void;
   setupWarpgateAlreadyAppended: (params: { quest: Quest }) => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
-  setupTavernkeeperProcessRunning: (params: { workItemId: QuestWorkItemId }) => void;
+  setupTavernkeeperProcessRunning: (params: { workItemId: WorkItem['id'] }) => void;
   wasFollowupProcessKilled: () => boolean;
   wasKilledBeforeAnyQuestWrite: () => boolean;
   getAllPersistedQuests: () => readonly Parsed[];
@@ -117,7 +117,7 @@ export const OrchestrationMergeResponderProxy = (): {
     // orchestrationProcessesState.findByQuestWorkItemId looks up. The kill callback snapshots
     // whether any quest.json write has landed by the moment it fires, proving the kill ran before
     // either the status-flip persist or the ledger-append persist — not just that it ran at all.
-    setupTavernkeeperProcessRunning: ({ workItemId }: { workItemId: QuestWorkItemId }): void => {
+    setupTavernkeeperProcessRunning: ({ workItemId }: { workItemId: WorkItem['id'] }): void => {
       orchestrationProcessesState.register({
         orchestrationProcess: {
           processId: ProcessIdStub({ value: 'proc-tavernkeeper-f47ac10b' }),

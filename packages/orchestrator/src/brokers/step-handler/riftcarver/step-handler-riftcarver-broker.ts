@@ -30,7 +30,7 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
-import { contentTextContract, errorMessageContract, exitCodeContract, fileContentsContract, filePathContract, getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type AbsoluteFilePath, type BaseBranchName, type ErrorMessage, type Quest, type QuestBranchName, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, errorMessageContract, exitCodeContract, fileContentsContract, filePathContract, getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type AbsoluteFilePath, type BaseBranchName, type ErrorMessage, type Quest, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 import { pathExists } from '#gateway/node/fs__promises';
@@ -53,6 +53,7 @@ import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questOperationsUpdateBroker } from '../../quest/operations-update/quest-operations-update-broker';
 import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
+import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 const STEPS = worktreePrepareStepStatics.steps;
 
@@ -79,7 +80,7 @@ export const stepHandlerRiftcarverBroker = async ({
 }: {
   args: string[];
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {
   const { questPath } = await questFindQuestPathBroker({ questId });

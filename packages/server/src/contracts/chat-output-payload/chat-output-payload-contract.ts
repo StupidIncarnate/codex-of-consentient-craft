@@ -7,13 +7,13 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { processIdContract, questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 export const chatOutputPayloadContract = z
   .object({
     slotIndex: z.number().int().nonnegative().brand<'SlotIndexField'>().optional(),
     questId: questContract.shape.id.optional(),
-    workItemId: questWorkItemIdContract.optional(),
+    workItemId: workItemContract.shape.id.optional(),
     chatProcessId: processIdContract.optional(),
   })
   .loose();

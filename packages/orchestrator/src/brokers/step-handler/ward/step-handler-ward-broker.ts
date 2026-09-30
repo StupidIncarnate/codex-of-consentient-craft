@@ -32,7 +32,7 @@
 
 import { getEnv } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { absoluteFilePathContract, contentTextContract, errorMessageContract, filePathContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, errorMessageContract, filePathContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -45,7 +45,7 @@ import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
 const RUN_SUBCOMMAND = 'run';
@@ -58,7 +58,7 @@ export const stepHandlerWardBroker = async ({
 }: {
   args: string[];
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {
   // Resolve the quest's cwd BEFORE any spawn. A missing worktree is a wall at THIS boundary — the

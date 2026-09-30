@@ -20,7 +20,7 @@ import {
   sessionIdContract,
   workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, ModifyQuestInput, ProcessId, QuestType, QuestWorkItemId, SessionId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, GuildId, ModifyQuestInput, ProcessId, QuestType, SessionId, WorkItemRole, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -88,7 +88,7 @@ export const chatSpawnBroker = async ({
   registerProcess: (params: {
     processId: ProcessId;
     questId: Quest['id'];
-    questWorkItemId: QuestWorkItemId;
+    questWorkItemId: WorkItem['id'];
     kill: () => void;
   }) => void;
   // Telemetry callbacks forwarded to `agentLaunchBroker` so the responder can bind them

@@ -23,7 +23,7 @@
  * // { outcome: 'done' | 'empty' | 'unmet' | 'wall', detail, resultRef? }
  */
 
-import { contentTextContract, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
@@ -32,12 +32,12 @@ import { stepHandlerCleanupBroker } from '../cleanup/step-handler-cleanup-broker
 import { stepHandlerCommitBroker } from '../commit/step-handler-commit-broker';
 import { stepHandlerRiftcarverBroker } from '../riftcarver/step-handler-riftcarver-broker';
 import { stepHandlerWardBroker } from '../ward/step-handler-ward-broker';
-import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 type StepHandler = (params: {
   args: string[];
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   onLine: (line: string) => void;
 }) => Promise<StepHandlerResult>;
 
@@ -58,7 +58,7 @@ export const stepHandlerRunBroker = async ({
   handler: StepHandlerName;
   args: string[];
   questId: Quest['id'];
-  workItemId: QuestWorkItemId;
+  workItemId: WorkItem['id'];
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {
   try {
