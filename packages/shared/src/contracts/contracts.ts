@@ -41,7 +41,6 @@ export * from './folder-config/folder-config-contract';
 export * from './folder-dependency-tree/folder-dependency-tree-contract';
 
 // User Input Contracts
-export * from './user-input/user-input-contract';
 
 // Exit Code Contracts
 

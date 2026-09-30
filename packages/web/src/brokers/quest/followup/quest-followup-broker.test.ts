@@ -1,6 +1,5 @@
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 
 import { questFollowupBroker } from './quest-followup-broker';
 import { questFollowupBrokerProxy } from './quest-followup-broker.proxy';
@@ -10,7 +9,7 @@ describe('questFollowupBroker', () => {
     it('VALID: #followup-post-fired {questId, message} => posts body with exactly the typed message', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'What is the status of this quest?' });
+      const message = 'What is the status of this quest?';
 
       proxy.setupFollowup({ chatProcessId: 'proc-followup-1' });
 
@@ -24,7 +23,7 @@ describe('questFollowupBroker', () => {
     it('VALID: #check-followup-post-carries-images {message with two pasted-image tokens, two images} => posts the message plus both images in order at the followup route', async () => {
       const proxy = questFollowupBrokerProxy({ url: '/api/quests/add-auth/followup' });
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'See [Pasted Image 1] and [Pasted Image 2]' });
+      const message = 'See [Pasted Image 1] and [Pasted Image 2]';
       const firstImage = PastedImageUploadStub({
         mediaType: 'image/png',
         dataBase64: 'aGVsbG8=',
@@ -50,7 +49,7 @@ describe('questFollowupBroker', () => {
     it('VALID: {text-only follow-up, no images passed} => posts body with no images key', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'Are we still on track?' });
+      const message = 'Are we still on track?';
 
       proxy.setupFollowup({ chatProcessId: 'proc-followup-text-only' });
 
@@ -66,7 +65,7 @@ describe('questFollowupBroker', () => {
     it('VALID: {200 with chatProcessId} => returns chatProcessId', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'Continue' });
+      const message = 'Continue';
 
       proxy.setupFollowup({ chatProcessId: 'proc-followup-1' });
 
@@ -78,7 +77,7 @@ describe('questFollowupBroker', () => {
     it('EDGE: {200 without chatProcessId} => throws naming the missing field', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'Continue' });
+      const message = 'Continue';
 
       proxy.setupFollowupWithoutChatProcessId();
 
@@ -92,7 +91,7 @@ describe('questFollowupBroker', () => {
     it('ERROR: #followup-rejection-shown-in-tab {400 with server error body} => throws the exact server error text', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'Are we done?' });
+      const message = 'Are we done?';
 
       proxy.setupRejected({
         error: 'Quest must be blocked, complete or merged for follow-up',
@@ -106,7 +105,7 @@ describe('questFollowupBroker', () => {
     it('EDGE: {400 with no body} => throws a generic status message', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'Are we done?' });
+      const message = 'Are we done?';
 
       proxy.setupRejectedNoBody();
 
@@ -120,7 +119,7 @@ describe('questFollowupBroker', () => {
     it('ERROR: {network failure before any response} => rejects', async () => {
       const proxy = questFollowupBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const message = UserInputStub({ value: 'Are we done?' });
+      const message = 'Are we done?';
 
       proxy.setupError();
 

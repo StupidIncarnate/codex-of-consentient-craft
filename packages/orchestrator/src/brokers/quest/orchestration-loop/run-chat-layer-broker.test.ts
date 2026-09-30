@@ -2,7 +2,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { runChatLayerBroker } from './run-chat-layer-broker';
@@ -25,7 +24,7 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          userMessage: UserInputStub({ value: 'Help me build auth' }),
+          userMessage: 'Help me build auth',
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toBe(undefined);
@@ -46,7 +45,7 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          userMessage: UserInputStub({ value: 'The save button does nothing' }),
+          userMessage: 'The save button does nothing',
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toBe(undefined);
@@ -68,7 +67,7 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          userMessage: UserInputStub({ value: 'Help me build auth' }),
+          userMessage: 'Help me build auth',
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/spawn claude ENOENT/u);
@@ -94,7 +93,7 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          userMessage: UserInputStub({ value: 'Help me build auth' }),
+          userMessage: 'Help me build auth',
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/Chat agent exited with code 1/u);
@@ -117,7 +116,7 @@ describe('runChatLayerBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
       proxy.setupQuestFound({ quest });
 
-      const userMessage = UserInputStub({ value: 'Continue building auth' });
+      const userMessage = 'Continue building auth';
 
       await runChatLayerBroker({
         questId,
@@ -164,7 +163,7 @@ describe('runChatLayerBroker', () => {
       await runChatLayerBroker({
         questId,
         workItem,
-        userMessage: UserInputStub({ value: 'Help me build auth' }),
+        userMessage: 'Help me build auth',
         onAgentEntry: jest.fn(),
       });
 
@@ -196,7 +195,7 @@ describe('runChatLayerBroker', () => {
       await runChatLayerBroker({
         questId,
         workItem,
-        userMessage: UserInputStub({ value: 'Help me build auth' }),
+        userMessage: 'Help me build auth',
         onAgentEntry,
       });
 
@@ -231,7 +230,7 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          userMessage: UserInputStub({ value: 'Help me build auth' }),
+          userMessage: 'Help me build auth',
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/\/repo\/worktrees\/add-auth/u);

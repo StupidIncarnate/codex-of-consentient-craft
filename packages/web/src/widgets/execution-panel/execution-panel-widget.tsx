@@ -17,7 +17,7 @@ import { useEffect, useMemo, useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { Quest, QuestStatus, UrlSlug, UserInput, WorkItem, ChatEntry, CompletedCount, PastedImageUpload, TotalCount, Session } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, UrlSlug, WorkItem, ChatEntry, CompletedCount, PastedImageUpload, TotalCount, Session } from '@dungeonmaster/shared/contracts';
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
@@ -78,7 +78,7 @@ export interface ExecutionPanelWidgetProps {
   followupEntries?: ChatEntry[];
   isFollowupStreaming?: boolean;
   onSendFollowupMessage?: (params: {
-    message: UserInput;
+    message: string;
     images?: readonly PastedImageUpload[];
     onProgress?: UploadProgressHandler;
   }) => Promise<void>;

@@ -2,7 +2,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 
 import { questNewBroker } from './quest-new-broker';
 import { questNewBrokerProxy } from './quest-new-broker.proxy';
@@ -12,7 +11,7 @@ describe('questNewBroker', () => {
     it('VALID: {guildId, message} => returns questId and chatProcessId', async () => {
       const proxy = questNewBrokerProxy();
       const guildId = GuildIdStub();
-      const message = UserInputStub({ value: 'Add auth' });
+      const message = 'Add auth';
       const questId = QuestIdStub({ value: 'quest-new-1' });
       const chatProcessId = ProcessIdStub({ value: 'proc-new-1' });
 
@@ -35,7 +34,7 @@ describe('questNewBroker', () => {
       await expect(
         questNewBroker({
           guildId: GuildIdStub(),
-          message: UserInputStub({ value: 'Hi' }),
+          message: 'Hi',
         }),
       ).rejects.toThrow(/returned 200 with no questId or chatProcessId/u);
     });
@@ -50,7 +49,7 @@ describe('questNewBroker', () => {
       await expect(
         questNewBroker({
           guildId: GuildIdStub(),
-          message: UserInputStub({ value: 'Hi' }),
+          message: 'Hi',
         }),
       ).rejects.toThrow(/returned 200 with no questId or chatProcessId/u);
     });
@@ -65,7 +64,7 @@ describe('questNewBroker', () => {
       await expect(
         questNewBroker({
           guildId: GuildIdStub(),
-          message: UserInputStub({ value: 'Hi' }),
+          message: 'Hi',
         }),
       ).rejects.toThrow(/^Guild not found$/u);
     });
@@ -77,7 +76,7 @@ describe('questNewBroker', () => {
       proxy.setupRejected({ status: 500, error: '' });
 
       await expect(
-        questNewBroker({ guildId, message: UserInputStub({ value: 'Hi' }) }),
+        questNewBroker({ guildId, message: 'Hi' }),
       ).rejects.toThrow(
         /^POST \/api\/guilds\/38c6cbd2-8bf1-6507-8d07-0980dd1fb595\/quests failed with status 500$/u,
       );
@@ -92,7 +91,7 @@ describe('questNewBroker', () => {
       proxy.setupError();
 
       await expect(
-        questNewBroker({ guildId, message: UserInputStub({ value: 'Hi' }) }),
+        questNewBroker({ guildId, message: 'Hi' }),
       ).rejects.toThrow(
         /^POST \/api\/guilds\/1c27ba90-c110-14f0-94be-250818fd3443\/quests failed: network error$/u,
       );
@@ -108,7 +107,7 @@ describe('questNewBroker', () => {
         chatProcessId: ProcessIdStub({ value: 'proc-count-1' }),
       });
 
-      await questNewBroker({ guildId: GuildIdStub(), message: UserInputStub({ value: 'Hi' }) });
+      await questNewBroker({ guildId: GuildIdStub(), message: 'Hi' });
 
       expect(proxy.getRequestCount()).toBe(1);
     });
@@ -118,7 +117,7 @@ describe('questNewBroker', () => {
     it('VALID: {questType: bug-hunt} => posts body carrying questType', async () => {
       const proxy = questNewBrokerProxy();
       const guildId = GuildIdStub({ value: '4c78841e-022a-87d0-8928-189580cb01c5' });
-      const message = UserInputStub({ value: 'Investigate crash' });
+      const message = 'Investigate crash';
 
       proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
 
@@ -133,7 +132,7 @@ describe('questNewBroker', () => {
     it('VALID: {text-only create, no questType or images} => posts body with no images key', async () => {
       const proxy = questNewBrokerProxy();
       const guildId = GuildIdStub({ value: '00118165-fbf1-11d4-8940-5ee9492debae' });
-      const message = UserInputStub({ value: 'Just text' });
+      const message = 'Just text';
 
       proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
 
@@ -147,7 +146,7 @@ describe('questNewBroker', () => {
     it('EDGE: {images: []} => posts body with no images key', async () => {
       const proxy = questNewBrokerProxy();
       const guildId = GuildIdStub({ value: '35fd5b8f-551b-8baf-b8fb-a5c4702e7b71' });
-      const message = UserInputStub({ value: 'No attachments' });
+      const message = 'No attachments';
 
       proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
 
@@ -163,7 +162,7 @@ describe('questNewBroker', () => {
         url: '/api/guilds/97241aaa-ae56-6f58-b9ec-a952ee85b407/quests',
       });
       const guildId = GuildIdStub({ value: '97241aaa-ae56-6f58-b9ec-a952ee85b407' });
-      const message = UserInputStub({ value: 'See [Pasted Image 1] and [Pasted Image 2]' });
+      const message = 'See [Pasted Image 1] and [Pasted Image 2]';
       const firstImage = PastedImageUploadStub({
         mediaType: 'image/png',
         dataBase64: 'aGVsbG8=',

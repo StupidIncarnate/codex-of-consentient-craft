@@ -26,13 +26,12 @@ import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
 import { ChatInputWidget } from '../chat-input/chat-input-widget';
 import type { ComposerSurface } from '../../transformers/composer-scope-key/composer-scope-key-transformer';
 
-import type { UserInput } from '@dungeonmaster/shared/contracts';
 
 export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;
   onSendMessage: (params: {
-    message: UserInput;
+    message: string;
     images?: readonly PastedImageUpload[];
     onProgress?: UploadProgressHandler;
   }) => Promise<void>;

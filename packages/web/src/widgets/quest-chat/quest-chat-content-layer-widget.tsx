@@ -15,7 +15,7 @@ import { useLocation, useNavigate } from '#gateway/npm/react-router-dom';
 
 import { Box, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { ChatEntry, PastedImageUpload, QuestStatus, QuestType, UrlSlug, UserInput, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, PastedImageUpload, QuestStatus, QuestType, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
@@ -58,7 +58,7 @@ const NO_QUEST_BANNER_MESSAGE = displayLabelContract.parse(
 const DUMPSTER_CREATE_COMMAND = displayLabelContract.parse('/dumpster-create');
 
 const FLOWS_APPROVED_FOLLOWUP_MESSAGE =
-  'Flows approved. Proceed to observables and contracts.' as UserInput;
+  'Flows approved. Proceed to observables and contracts.' as string;
 
 // Shown only when the failure carried no message at all (a connection-level throw). Every server
 // rejection reaches the toast as its own text — see questStartBroker.
@@ -165,7 +165,7 @@ export const QuestChatContentLayerWidget = ({
       images,
       onProgress,
     }: {
-      message: UserInput;
+      message: string;
       images?: readonly PastedImageUpload[];
       onProgress?: UploadProgressHandler;
     }): Promise<void> => {

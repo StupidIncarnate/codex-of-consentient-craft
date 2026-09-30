@@ -10,7 +10,7 @@
  */
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
-import type { PastedImageUpload, ProcessId, UserInput, Quest } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, ProcessId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -27,7 +27,7 @@ export const questFollowupBroker = async ({
   onProgress,
 }: {
   questId: Quest['id'];
-  message: UserInput;
+  message: string;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;
 }): Promise<{ chatProcessId: ProcessId }> => {

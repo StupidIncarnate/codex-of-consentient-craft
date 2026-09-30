@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, UserInput, SlotIndex, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, SlotIndex, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { askUserQuestionContract, chatEntryContract, questContract, slotIndexContract } from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
@@ -69,12 +69,12 @@ export const useQuestChatBinding = ({
   disarmStreaming: () => void;
   disarmFollowupStreaming: () => void;
   sendMessage: (params: {
-    message: UserInput;
+    message: string;
     images?: readonly PastedImageUpload[];
     onProgress?: UploadProgressHandler;
   }) => Promise<void>;
   sendFollowupMessage: (params: {
-    message: UserInput;
+    message: string;
     images?: readonly PastedImageUpload[];
     onProgress?: UploadProgressHandler;
   }) => Promise<void>;
@@ -617,7 +617,7 @@ export const useQuestChatBinding = ({
       images,
       onProgress,
     }: {
-      message: UserInput;
+      message: string;
       images?: readonly PastedImageUpload[];
       onProgress?: UploadProgressHandler;
     }): Promise<void> => {
@@ -716,7 +716,7 @@ export const useQuestChatBinding = ({
       images,
       onProgress,
     }: {
-      message: UserInput;
+      message: string;
       images?: readonly PastedImageUpload[];
       onProgress?: UploadProgressHandler;
     }): Promise<void> => {

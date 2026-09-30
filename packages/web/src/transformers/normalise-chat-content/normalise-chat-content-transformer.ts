@@ -11,11 +11,9 @@
  * // Returns branded UserInput 'A[Pasted Image]B'
  */
 
-import { userInputContract } from '@dungeonmaster/shared/contracts';
-import type { UserInput } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-export const normaliseChatContentTransformer = ({ content }: { content: string }): UserInput => {
+export const normaliseChatContentTransformer = ({ content }: { content: string }): string => {
   const sentinelIndex = content.indexOf(pastedImageStatics.promptSentinel);
   const withoutTrailer = sentinelIndex === -1 ? content : content.slice(0, sentinelIndex);
 
@@ -55,5 +53,5 @@ export const normaliseChatContentTransformer = ({ content }: { content: string }
     ordinalFreeMarker,
   );
 
-  return userInputContract.parse(withoutLocalPaths.trimEnd());
+  return withoutLocalPaths.trimEnd();
 };

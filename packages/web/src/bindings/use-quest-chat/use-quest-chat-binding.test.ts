@@ -6,7 +6,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
@@ -1101,7 +1100,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-send-1' });
-      const message = UserInputStub({ value: 'Hi' });
+      const message = 'Hi';
       const synthUuid = '00000000-0000-4000-8000-00000000000a';
       const synthTs = '2025-01-01T00:00:00.000Z';
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send' }) });
@@ -1146,7 +1145,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-send-image-1' });
-      const message = UserInputStub({ value: 'Look at this [Pasted Image 1]' });
+      const message = 'Look at this [Pasted Image 1]';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send-image' }) });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000d01'] });
@@ -1174,7 +1173,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-send-error-1' });
-      const message = UserInputStub({ value: 'This will fail' });
+      const message = 'This will fail';
       const userUuid = '00000000-0000-4000-8000-000000000d02';
       const errorUuid = '00000000-0000-4000-8000-000000000d03';
       const userTs = '2026-09-01T00:00:00.000Z';
@@ -1397,7 +1396,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-pause-resume-1' });
-      const message = UserInputStub({ value: 'Hello after pause' });
+      const message = 'Hello after pause';
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
       proxy.setupResume({ restoredStatus: 'in_progress' });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr' }) });
@@ -1428,7 +1427,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-pause-resume-2' });
-      const message = UserInputStub({ value: 'Hello after pause' });
+      const message = 'Hello after pause';
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr-2' }) });
       proxy.setupResumeServerError();
@@ -1637,7 +1636,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
+        await result.current.sendMessage({ message: 'Hi' });
       });
       const afterSend = result.current.isStreaming;
 
@@ -1711,7 +1710,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
+        await result.current.sendMessage({ message: 'Hi' });
       });
 
       act(() => {
@@ -1787,7 +1786,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
+        await result.current.sendMessage({ message: 'Hi' });
       });
 
       act(() => {
@@ -2163,7 +2162,7 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId1 = QuestIdStub({ value: 'quest-followup-carry-old' });
       const questId2 = QuestIdStub({ value: 'quest-followup-carry-new' });
-      const message = UserInputStub({ value: 'What did this quest change?' });
+      const message = 'What did this quest change?';
       proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-carry' }) });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000601'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
@@ -2204,7 +2203,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-followup-post-1' });
-      const message = UserInputStub({ value: 'Show me what changed' });
+      const message = 'Show me what changed';
       const synthUuid = '00000000-0000-4000-8000-000000000301';
       const synthTs = '2026-08-09T00:00:00.000Z';
       proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-post' }) });
@@ -2241,7 +2240,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId: null }));
 
       await act(async () => {
-        await result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
+        await result.current.sendFollowupMessage({ message: 'Hi' });
       });
 
       expect({
@@ -2269,7 +2268,7 @@ describe('useQuestChatBinding', () => {
       await act(async () => {
         await expect(
           result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Any updates?' }),
+            message: 'Any updates?',
           }),
         ).rejects.toThrow(/^Quest must be blocked, complete or merged for follow-up$/u);
       });
@@ -2313,7 +2312,7 @@ describe('useQuestChatBinding', () => {
       await act(async () => {
         await expect(
           result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Show me the feature' }),
+            message: 'Show me the feature',
           }),
         ).rejects.toThrow(/^Failed to start follow-up chat$/u);
       });
@@ -2346,13 +2345,13 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'First question' }),
+          message: 'First question',
         });
       });
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'Second question' }),
+          message: 'Second question',
         });
       });
 
@@ -2715,13 +2714,13 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendMessage({
-          message: UserInputStub({ value: 'Main composer message' }),
+          message: 'Main composer message',
         });
       });
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'Followup composer message' }),
+          message: 'Followup composer message',
         });
       });
 
@@ -2830,7 +2829,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'What broke?' }),
+          message: 'What broke?',
         });
       });
       const afterSend = result.current.isFollowupStreaming;
@@ -2927,7 +2926,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'What broke?' }),
+          message: 'What broke?',
         });
       });
       const afterSend = result.current.isFollowupStreaming;
@@ -2962,9 +2961,9 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await Promise.all([
-          result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) }),
+          result.current.sendMessage({ message: 'main turn' }),
           result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'followup turn' }),
+            message: 'followup turn',
           }),
         ]);
       });
@@ -3000,7 +2999,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
+        await result.current.sendMessage({ message: 'Hello there' });
       });
 
       act(() => {
@@ -3055,7 +3054,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendMessage({
-          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          message: 'A[Pasted Image 1]B',
           images: [image],
         });
       });
@@ -3114,7 +3113,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendMessage({
-          message: UserInputStub({ value: 'A /tmp/snips/snip-20260913-165729.png B' }),
+          message: 'A /tmp/snips/snip-20260913-165729.png B',
         });
       });
 
@@ -3169,7 +3168,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'Still waiting' }) });
+        await result.current.sendMessage({ message: 'Still waiting' });
       });
 
       // The wrong value this turns red against: a filter that drops the synthetic bucket WHOLESALE
@@ -3200,7 +3199,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
+        await result.current.sendMessage({ message: 'Hello there' });
       });
 
       act(() => {
@@ -3340,7 +3339,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-remember-images-1' });
-      const message = UserInputStub({ value: 'Look at these [Pasted Image 1][Pasted Image 2]' });
+      const message = 'Look at these [Pasted Image 1][Pasted Image 2]';
       const imageA = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=' });
       const imageB = PastedImageUploadStub({ mediaType: 'image/jpeg', dataBase64: 'aGVsbG8=' });
       const stagedUuid = '00000000-0000-4000-8000-000000000801';
@@ -3378,7 +3377,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        await result.current.sendMessage({ message: UserInputStub({ value: 'No images here' }) });
+        await result.current.sendMessage({ message: 'No images here' });
       });
 
       expect(
@@ -3392,7 +3391,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-remember-images-followup-1' });
-      const message = UserInputStub({ value: 'Look at this [Pasted Image 1]' });
+      const message = 'Look at this [Pasted Image 1]';
       const image = PastedImageUploadStub({ mediaType: 'image/webp', dataBase64: 'aGVsbG8=' });
       const stagedUuid = '00000000-0000-4000-8000-000000000803';
       proxy.setupFollowup({
@@ -3436,7 +3435,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendMessage({
-          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          message: 'A[Pasted Image 1]B',
           images: [image],
         });
       });
@@ -3500,7 +3499,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendMessage({
-          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          message: 'A[Pasted Image 1]B',
           images: [image],
         });
       });
@@ -3564,7 +3563,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          message: 'A[Pasted Image 1]B',
           images: [image],
         });
       });
@@ -3636,7 +3635,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          message: 'A[Pasted Image 1]B',
           images: [image],
         });
       });
@@ -3698,14 +3697,14 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await result.current.sendMessage({
-          message: UserInputStub({ value: 'Main A[Pasted Image 1]B' }),
+          message: 'Main A[Pasted Image 1]B',
           images: [mainImage],
         });
       });
 
       await act(async () => {
         await result.current.sendFollowupMessage({
-          message: UserInputStub({ value: 'Followup A[Pasted Image 1]B' }),
+          message: 'Followup A[Pasted Image 1]B',
           images: [followupImage],
         });
       });

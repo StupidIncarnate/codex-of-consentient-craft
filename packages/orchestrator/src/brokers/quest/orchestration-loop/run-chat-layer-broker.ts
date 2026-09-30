@@ -6,7 +6,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { workItemRoleContract, type UserInput, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -27,7 +27,7 @@ export const runChatLayerBroker = async ({
 }: {
   questId: Quest['id'];
   workItem: WorkItem;
-  userMessage?: UserInput;
+  userMessage?: string;
   onAgentEntry: OnAgentEntryCallback;
 }): Promise<void> => {
   const slotIndex = slotIndexContract.parse(0);

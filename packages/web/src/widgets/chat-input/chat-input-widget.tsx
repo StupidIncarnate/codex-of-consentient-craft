@@ -25,7 +25,7 @@ import { Box, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 import { useParams } from '#gateway/npm/react-router-dom';
 
-import type { PastedImageUpload, UserInput, Quest } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, Quest } from '@dungeonmaster/shared/contracts';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
@@ -66,7 +66,7 @@ const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`
 export interface ChatInputWidgetProps {
   isStreaming: boolean;
   onSendMessage: (params: {
-    message: UserInput;
+    message: string;
     images?: readonly PastedImageUpload[];
     onProgress?: UploadProgressHandler;
   }) => Promise<void>;

@@ -4,7 +4,6 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/proces
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
@@ -441,7 +440,7 @@ describe('questOrchestrationLoopBroker', () => {
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
-          userMessage: UserInputStub(),
+          userMessage: 'user text',
         }),
       ).rejects.toThrow(/spawn claude ENOENT/u);
 
