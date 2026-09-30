@@ -5,7 +5,6 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { laneSessionContract } from './lane-session-contract';
 import type { LaneSession } from './lane-session-contract';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
-import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
 import { PortPairStub } from '../port-pair/port-pair.stub';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
@@ -58,7 +57,7 @@ export const LaneSessionStub = ({
       logFds:
         dataProps.logFds === undefined
           ? []
-          : dataProps.logFds.map((value) => fileDescriptorContract.parse(value)),
+          : dataProps.logFds.map((value) => value),
     }),
     readServerLogSince: readServerLogSince ?? ((): readonly ContentText[] => []),
     serverLogLength:

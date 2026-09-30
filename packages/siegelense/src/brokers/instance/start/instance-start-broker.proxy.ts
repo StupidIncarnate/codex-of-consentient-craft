@@ -40,7 +40,6 @@ import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/s
 import { cliPackageBinResolveBrokerProxy } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker.proxy';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
-import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
@@ -345,7 +344,7 @@ export const instanceStartBrokerProxy = (): {
     const expectedDriverBinPath = join(dirname(cliEntryPath), CLI_BIN_RELATIVE_VALUE);
 
     const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
-    openFdProxy.returns({ path: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
+    openFdProxy.returns({ path: driverLogPath, fd: 17 });
 
     spawnProxy.setupSuccess({
       command: execPath,

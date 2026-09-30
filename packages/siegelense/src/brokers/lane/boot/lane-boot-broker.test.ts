@@ -2,7 +2,6 @@ import { laneBootBroker } from './lane-boot-broker';
 import { laneBootBrokerProxy } from './lane-boot-broker.proxy';
 import type { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';
 import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
@@ -29,8 +28,8 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
-      const webFd = FileDescriptorStub({ value: 11 });
+      const apiFd = 10;
+      const webFd = 11;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -106,7 +105,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiFd = 10;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -151,7 +150,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiFd = 10;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -196,8 +195,8 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
-      const webFd = FileDescriptorStub({ value: 11 });
+      const apiFd = 10;
+      const webFd = 11;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -294,14 +293,14 @@ describe('laneBootBroker', () => {
       });
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,
-        fd: FileDescriptorStub({ value: 10 }),
+        fd: 10,
         command: 'npm',
         args: ['run', 'dev:no-watch'],
         pid: 1_001,
       });
       proxy.setupProcessBoot({
         logPath: WEB_LOG_PATH,
-        fd: FileDescriptorStub({ value: 11 }),
+        fd: 11,
         command: 'npm',
         args: ['run', 'dev'],
         pid: 1_002,
@@ -330,7 +329,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiFd = 10;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -394,7 +393,7 @@ describe('laneBootBroker', () => {
       const spec = LaneSpecStub({ processes: [apiProcess], browser: false, env: {} });
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,
-        fd: FileDescriptorStub({ value: 10 }),
+        fd: 10,
         command: 'npm',
         args: ['run', 'dev:no-watch'],
         pid: 1_001,
@@ -428,7 +427,7 @@ describe('laneBootBroker', () => {
       const spec = LaneSpecStub({ processes: [apiProcess], browser: false, env: {} });
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,
-        fd: FileDescriptorStub({ value: 10 }),
+        fd: 10,
         command: 'npm',
         args: ['run', 'dev:no-watch'],
         pid: 1_001,
@@ -453,7 +452,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiFd = 10;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -499,8 +498,8 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
-      const webFd = FileDescriptorStub({ value: 11 });
+      const apiFd = 10;
+      const webFd = 11;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -595,7 +594,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiFd = 10;
       const apiPgid = ProcessGroupIdStub({ value: 1_001 });
       const apiProcess = LaneProcessStub({
         name: 'api',
@@ -645,7 +644,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiFd = 10;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -689,8 +688,8 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
-      const webFd = FileDescriptorStub({ value: 11 });
+      const apiFd = 10;
+      const webFd = 11;
       const apiPgid = ProcessGroupIdStub({ value: 1_001 });
       const webPgid = ProcessGroupIdStub({ value: 1_002 });
       const apiProcess = LaneProcessStub({
@@ -759,8 +758,8 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
-      const webFd = FileDescriptorStub({ value: 11 });
+      const apiFd = 10;
+      const webFd = 11;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -844,14 +843,14 @@ describe('laneBootBroker', () => {
       const spec = LaneSpecStub({ processes: [apiProcess, webProcess], browser: false, env: {} });
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,
-        fd: FileDescriptorStub({ value: 10 }),
+        fd: 10,
         command: 'npm',
         args: ['run', 'dev:no-watch'],
         pid: 1_001,
       });
       proxy.setupProcessBoot({
         logPath: WEB_LOG_PATH,
-        fd: FileDescriptorStub({ value: 11 }),
+        fd: 11,
         command: 'npm',
         args: ['run', 'dev'],
         pid: 1_002,
@@ -881,9 +880,9 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const apiFd = FileDescriptorStub({ value: 10 });
-      const webFd = FileDescriptorStub({ value: 11 });
-      const workerFd = FileDescriptorStub({ value: 12 });
+      const apiFd = 10;
+      const webFd = 11;
+      const workerFd = 12;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',

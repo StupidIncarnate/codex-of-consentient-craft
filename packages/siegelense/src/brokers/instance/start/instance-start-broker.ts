@@ -94,7 +94,6 @@ import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-cont
 
 import { tmpdir } from '#gateway/node/os';
 import { cliPackageBinResolveBroker } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker';
-import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
 import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
@@ -244,7 +243,7 @@ export const instanceStartBroker = async ({
     const driverLogPath = absoluteFilePathContract.parse(
       join(evidencePath, locationsStatics.siegelense.driverLog),
     );
-    const driverLogFd = fileDescriptorContract.parse(openForAppendSync(driverLogPath));
+    const driverLogFd = openForAppendSync(driverLogPath);
 
     const cwdSeed = filePathContract.parse(cwd());
     const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });

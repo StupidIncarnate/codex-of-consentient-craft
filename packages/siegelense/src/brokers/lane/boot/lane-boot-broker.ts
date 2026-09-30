@@ -47,7 +47,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
 import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
@@ -139,7 +138,7 @@ export const laneBootBroker = async ({
 
   const booted = spec.processes.map((laneProcess) => {
     const logPath = absoluteFilePathContract.parse(join(evidencePath, laneProcess.logFileName));
-    const fd = fileDescriptorContract.parse(openForAppendSync(logPath));
+    const fd = openForAppendSync(logPath);
 
     const substitutedArgs = laneProcess.args.map((arg) =>
       lanePlaceholderSubstituteTransformer({

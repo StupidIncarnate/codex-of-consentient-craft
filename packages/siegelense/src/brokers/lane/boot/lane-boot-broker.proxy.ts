@@ -24,7 +24,6 @@ import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.p
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
-import type { FileDescriptor } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
@@ -55,7 +54,7 @@ export const laneBootBrokerProxy = (): {
   resolveRepoRoot: () => AbsoluteFilePath;
   setupProcessBoot: (params: {
     logPath: AbsoluteFilePath;
-    fd: FileDescriptor;
+    fd: number;
     command: string;
     args: readonly string[];
     pid: number;
@@ -109,7 +108,7 @@ export const laneBootBrokerProxy = (): {
   const killProxy = processKillGroupBrokerProxy();
   // Read-back addresses only the paths and fds this test staged; an unstaged call already throws.
   const stagedHomePaths: AbsoluteFilePath[] = [];
-  const stagedFds: FileDescriptor[] = [];
+  const stagedFds: number[] = [];
   const browserProxy = browserSessionLaunchBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
   const workspaceProxy = laneWorkspaceResolveBrokerProxy();
@@ -133,7 +132,7 @@ export const laneBootBrokerProxy = (): {
       pid,
     }: {
       logPath: AbsoluteFilePath;
-      fd: FileDescriptor;
+      fd: number;
       command: string;
       args: readonly string[];
       pid: number;

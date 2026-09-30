@@ -1,14 +1,13 @@
 import { laneSessionContract } from './lane-session-contract';
 import { LaneSessionStub } from './lane-session.stub';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
-import { FileDescriptorStub } from '../file-descriptor/file-descriptor.stub';
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
 
 describe('laneSessionContract', () => {
   describe('data half', () => {
     it('VALID: {a browserless lane} => parses to exactly the data members with browser null', () => {
       const pgid = ProcessGroupIdStub({ value: 4242 });
-      const logFd = FileDescriptorStub({ value: 7 });
+      const logFd = 7;
 
       const result = laneSessionContract.parse({
         specName: 'dungeonmaster-api',
@@ -47,7 +46,7 @@ describe('laneSessionContract', () => {
         apiBaseUrl: 'http://127.0.0.1:4200',
         pgids: [ProcessGroupIdStub({ value: 4243 }), ProcessGroupIdStub({ value: 4244 })],
         browser: browserSession,
-        logFds: [FileDescriptorStub({ value: 8 }), FileDescriptorStub({ value: 9 })],
+        logFds: [8, 9],
       });
 
       expect(result.browser).toBe(browserSession);
@@ -64,7 +63,7 @@ describe('laneSessionContract', () => {
           apiBaseUrl: 'http://127.0.0.1:4100',
           pgids: [ProcessGroupIdStub({ value: 4242 })],
           browser: 'chromium',
-          logFds: [FileDescriptorStub({ value: 7 })],
+          logFds: [7],
         }),
       ).toThrow(/Invalid input/u);
     });
@@ -79,7 +78,7 @@ describe('laneSessionContract', () => {
           apiBaseUrl: 'http://127.0.0.1:4100',
           pgids: [ProcessGroupIdStub({ value: 4242 })],
           browser: null,
-          logFds: [FileDescriptorStub({ value: 7 })],
+          logFds: [7],
         }),
       ).toThrow(/specName/u);
     });
