@@ -28,10 +28,10 @@ export const cleanupAnswerContract = z
     lockReleased: z.boolean(),
     assetsAged: z
       .object({
-        instances: z.number().int().nonnegative().brand<'CleanupCliAnswerAssetsAgedInstances'>(),
+        instances: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedInstances'>(),
       })
-      .brand<'CleanupCliAnswerAssetsAged'>(),
+      .brand<'CleanupAnswerAssetsAged'>(),
   })
-  .brand<'CleanupCliAnswer'>();
+  .brand<'CleanupAnswer'>();
 
 export type CleanupCliAnswer = z.infer<typeof cleanupAnswerContract>;
