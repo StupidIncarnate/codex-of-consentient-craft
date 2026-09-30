@@ -57,12 +57,12 @@ export const instanceManifestContract = z.object({
     .object({
       home: absoluteFilePathContract,
       evidenceDir: z.string().brand<'InstanceManifestPathsEvidenceDir'>(),
-    })
+    }).brand<'InstanceManifestPaths'>()
     .optional(),
   logs: z.object({
     api: repoLocalPathContract,
     web: repoLocalPathContract,
-  }),
+  }).brand<'InstanceManifestLogs'>(),
   seeded: seedResultContract.nullable(),
   queuedMs: z.number().int().nonnegative().brand<'InstanceManifestQueuedMs'>(),
   aheadOfMe: z.number().int().nonnegative().brand<'InstanceManifestAheadOfMe'>(),

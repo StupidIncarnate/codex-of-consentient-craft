@@ -74,7 +74,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('waitFor'),
@@ -87,7 +87,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('click'),
@@ -100,7 +100,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('type'),
@@ -114,7 +114,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('screenshot'),
@@ -135,7 +135,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('eval'),
@@ -145,7 +145,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('look'),
@@ -161,7 +161,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('box'),
@@ -171,7 +171,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('dom'),
@@ -183,7 +183,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('seed'),
@@ -191,14 +191,14 @@ export const stepContract = z
         // Its own object, never flattened onto the step — a recipe input named `as`, `step` or
         // `recipe` would shadow the step's own keys, and the collision would be silent
         // (siegelense-tooling.md lines 882-883).
-        params: z.record(z.string().min(1).brand<'StepParams'>(), z.unknown()).nullable().default(null),
+        params: z.record(z.string().min(1).brand<'StepParamsKey'>(), z.unknown()).nullable().default(null),
         as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('until'),
@@ -216,7 +216,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('key'),
@@ -226,7 +226,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('health'),
@@ -235,33 +235,33 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('resize'),
-        width: z.number().int().positive().brand<'PositiveNumber'>(),
-        height: z.number().int().positive().brand<'PositiveNumber'>(),
+        width: z.number().int().positive().brand<'StepWidth'>(),
+        height: z.number().int().positive().brand<'StepHeight'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('request'),
         method: httpMethodContract.default(httpMethodContract.parse('GET')),
-        path: z.string().brand<'HttpRequestPath'>(),
+        path: z.string().brand<'StepPath'>(),
         body: z.unknown().optional(),
         headers: z
-          .record(z.string().brand<'HttpHeaderName'>(), z.string().brand<'HttpHeaderValue'>())
+          .record(z.string().brand<'StepHeadersKey'>(), z.string().brand<'StepHeaders'>())
           .optional(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('before'),
@@ -271,7 +271,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('file'),
@@ -281,26 +281,26 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('storage'),
         // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the
         // schema's own output type, and a bare string can never satisfy a branded type.
-        prefix: z.string().default(storageStatics.defaults.prefix).brand<'StoragePrefix'>(),
+        prefix: z.string().default(storageStatics.defaults.prefix).brand<'StepPrefix'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('paste'),
         target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
-        filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
+        filePath: z.string().brand<'StepFilePath'>().nullable().default(null),
         value: z.string().brand<'StepValue'>().nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
@@ -308,7 +308,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('hold'),
@@ -319,19 +319,19 @@ export const stepContract = z
           .int()
           .min(holdStatics.defaults.minFrames)
           .default(holdStatics.defaults.frames)
-          .brand<'HoldFrames'>(),
+          .brand<'StepFrames'>(),
         everyMs: z
           .number()
           .int()
           .positive()
           .default(holdStatics.defaults.everyMs)
-          .brand<'HoldEveryMs'>(),
+          .brand<'StepEveryMs'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('video'),
@@ -341,7 +341,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('snapshot'),
@@ -351,7 +351,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
     z
       .object({
         step: z.literal('reset'),
@@ -363,7 +363,7 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict(),
+      .strict().brand<'Step'>(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the

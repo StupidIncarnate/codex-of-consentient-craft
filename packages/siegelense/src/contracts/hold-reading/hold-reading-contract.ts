@@ -13,10 +13,10 @@ import { holdStatics } from '../../statics/hold/hold-statics';
 
 export const holdReadingContract = z
   .object({
-    frames: z.number().int().min(holdStatics.defaults.minFrames).brand<'HoldFrames'>(),
-    differing: z.number().int().nonnegative().brand<'HoldDiffering'>(),
-    verdict: z.string().brand<'HoldVerdict'>(),
-    shots: z.array(z.string().brand<'HoldShotPath'>()),
+    frames: z.number().int().min(holdStatics.defaults.minFrames).brand<'HoldReadingFrames'>(),
+    differing: z.number().int().nonnegative().brand<'HoldReadingDiffering'>(),
+    verdict: z.string().brand<'HoldReadingVerdict'>(),
+    shots: z.array(z.string().brand<'HoldReadingShots'>()),
   })
   .strict().brand<'HoldReading'>();
 

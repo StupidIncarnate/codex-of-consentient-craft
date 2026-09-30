@@ -41,7 +41,7 @@ export const profileObservationContract = z.object({
         peakMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsPeakMB'>(),
         steadySumMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsSteadySumMB'>(),
         steadyBeats: z.number().int().nonnegative().brand<'ProfileObservationPoolsSteadyBeats'>(),
-      }),
+      }).brand<'ProfileObservationPools'>(),
     )
     .readonly(),
 }).brand<'ProfileObservation'>();

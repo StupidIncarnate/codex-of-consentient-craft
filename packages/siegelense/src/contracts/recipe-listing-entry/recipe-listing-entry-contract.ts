@@ -29,14 +29,14 @@ const ingredientNameContract = z.string().min(1).brand<'IngredientName'>();
 const makesCountContract = z.number().int().positive().brand<'MakesCount'>();
 
 const recipeRunsContract = z.discriminatedUnion('serverless', [
-  z.object({ serverless: z.literal(true) }),
-  z.object({ serverless: z.literal(false), needsServerFor: ingredientNameContract }),
+  z.object({ serverless: z.literal(true) }).brand<'RecipeRuns'>(),
+  z.object({ serverless: z.literal(false), needsServerFor: ingredientNameContract }).brand<'RecipeRuns'>(),
 ]);
 
 const recipeMakesEntryContract = z.object({
   ingredient: ingredientNameContract,
   count: z.union([makesCountContract, z.literal('varies')]),
-});
+}).brand<'RecipeMakesEntry'>();
 
 export const recipeListingEntryContract = z
   .object({

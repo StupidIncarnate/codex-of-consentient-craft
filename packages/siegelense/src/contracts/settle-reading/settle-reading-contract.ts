@@ -30,9 +30,9 @@ export const settleReadingContract = z
     settled: z.boolean(),
     // 'quiet' — every signal held still for the whole quiet window. 'ceiling' — the wait gave up
     // and is SAYING so, which is what lets the step above report a real outcome instead of hanging.
-    reason: z.enum(['quiet', 'ceiling']).brand<'SettleReason'>(),
-    waitedMs: z.number().int().nonnegative().brand<'WaitedMs'>(),
-    unsettled: z.array(z.enum(['network', 'dom', 'animation']).brand<'SettleSignal'>()).readonly(),
+    reason: z.enum(['quiet', 'ceiling']),
+    waitedMs: z.number().int().nonnegative().brand<'SettleReadingWaitedMs'>(),
+    unsettled: z.array(z.enum(['network', 'dom', 'animation'])).readonly(),
     // In-flight requests that were NOT discounted as pollers, at the moment the wait ended.
     pendingRequests: z.number().int().nonnegative().brand<'SettleReadingPendingRequests'>(),
     pollersDiscounted: z.array(z.string().brand<'SettleReadingPollersDiscounted'>()).readonly(),

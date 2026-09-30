@@ -38,7 +38,7 @@ export const cleanupAnswerContract = z
         instances: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedInstances'>(),
         freedMB: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedFreedMB'>(),
       })
-      .strict(),
+      .strict().brand<'CleanupAnswerAssetsAged'>(),
     leftAlone: z.array(leftAloneContract).readonly(),
   })
   .strict().brand<'CleanupAnswer'>();

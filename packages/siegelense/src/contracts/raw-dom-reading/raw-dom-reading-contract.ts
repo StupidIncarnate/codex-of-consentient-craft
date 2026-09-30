@@ -30,7 +30,7 @@ export const rawDomReadingContract = z.object({
         text: z.string().brand<'RawDomReadingNodesText'>(),
         attrs: z.array(attrPairContract).readonly(),
         value: z.string().brand<'RawDomReadingNodesValue'>().nullable(),
-      }),
+      }).brand<'RawDomReadingNodes'>(),
     )
     .readonly(),
 }).brand<'RawDomReading'>();

@@ -12,8 +12,8 @@ import { z } from '#gateway/npm/zod';
 
 export const videoResultContract = z
   .object({
-    status: z.string().brand<'VideoStatus'>(),
-    path: z.string().brand<'VideoPath'>().nullable(),
+    status: z.string().brand<'VideoResultStatus'>(),
+    path: z.string().brand<'VideoResultPath'>().nullable(),
   })
   .strict().brand<'VideoResult'>();
 

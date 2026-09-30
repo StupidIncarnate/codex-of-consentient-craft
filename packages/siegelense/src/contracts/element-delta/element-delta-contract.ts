@@ -37,7 +37,7 @@ export const elementDeltaContract = z
             before: keyRowContract,
             after: keyRowContract,
           })
-          .strict(),
+          .strict().brand<'ElementDeltaChanged'>(),
       )
       .readonly(),
   })

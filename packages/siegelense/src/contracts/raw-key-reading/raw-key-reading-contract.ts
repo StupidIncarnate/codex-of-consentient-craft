@@ -44,13 +44,13 @@ export const rawKeyReadingContract = z.object({
         placeholder: z.string().brand<'RawKeyReadingRowsPlaceholder'>().nullable(),
         attributes: z.array(attrPairContract).readonly(),
         flags: z.array(elementFlagContract).readonly(),
-        flagDetail: z.record(z.string().brand<'ElementFlagName'>(), z.string().brand<'RawKeyReadingRowsFlagDetail'>()).readonly(),
-      }),
+        flagDetail: z.record(z.string().brand<'RawKeyReadingRowsFlagDetailKey'>(), z.string().brand<'RawKeyReadingRowsFlagDetail'>()).readonly(),
+      }).brand<'RawKeyReadingRows'>(),
     )
     .readonly(),
   highestRef: z.number().int().nonnegative().brand<'RawKeyReadingHighestRef'>(),
   skipped: z
-    .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: z.number().int().nonnegative().brand<'RawKeyReadingSkippedCount'>() }))
+    .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: z.number().int().nonnegative().brand<'RawKeyReadingSkippedCount'>() }).brand<'RawKeyReadingSkipped'>())
     .readonly(),
 }).brand<'RawKeyReading'>();
 

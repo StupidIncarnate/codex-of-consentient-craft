@@ -25,7 +25,7 @@ export const capacityMeasuredContract = z
   .object({
     freeMemMB: z.number().int().nonnegative().brand<'CapacityMeasuredFreeMemMB'>(),
     cores: z.number().int().nonnegative().brand<'CapacityMeasuredCores'>(),
-    loadAvg1: z.number().nonnegative().brand<'LoadAverageOne'>(),
+    loadAvg1: z.number().nonnegative().brand<'CapacityMeasuredLoadAvg1'>(),
     siegeInstances: z.number().int().nonnegative().brand<'CapacityMeasuredSiegeInstances'>(),
     diskFreeMB: z.number().int().nonnegative().brand<'CapacityMeasuredDiskFreeMB'>().nullable(),
   })

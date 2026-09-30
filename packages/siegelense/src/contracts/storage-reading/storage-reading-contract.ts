@@ -16,14 +16,14 @@ import { z } from '#gateway/npm/zod';
 
 export const storageReadingContract = z
   .object({
-    origin: z.string().brand<'StorageOrigin'>(),
+    origin: z.string().brand<'StorageReadingOrigin'>(),
     local: z.record(
-      z.string().brand<'StorageKey'>(),
-      z.string().brand<'StorageValue'>().nullable(),
+      z.string().brand<'StorageReadingLocalKey'>(),
+      z.string().brand<'StorageReadingLocal'>().nullable(),
     ),
     session: z.record(
-      z.string().brand<'StorageKey'>(),
-      z.string().brand<'StorageValue'>().nullable(),
+      z.string().brand<'StorageReadingSessionKey'>(),
+      z.string().brand<'StorageReadingSession'>().nullable(),
     ),
   })
   .strict().brand<'StorageReading'>();

@@ -33,7 +33,7 @@ export const boxReadingContract = z
         width: z.number().int().nonnegative().brand<'BoxReadingViewportWidth'>(),
         height: z.number().int().nonnegative().brand<'BoxReadingViewportHeight'>(),
       })
-      .strict(),
+      .strict().brand<'BoxReadingViewport'>(),
     visible: z.boolean(),
     inViewport: z.boolean(),
   })

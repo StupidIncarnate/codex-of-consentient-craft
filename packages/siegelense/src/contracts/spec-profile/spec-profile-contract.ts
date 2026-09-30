@@ -45,7 +45,7 @@ export const specProfileContract = z.object({
         steadyMB: z.number().int().nonnegative().brand<'SpecProfileSamplesSteadyMB'>(),
         peakMB: z.number().int().nonnegative().brand<'SpecProfileSamplesPeakMB'>(),
         runs: z.number().int().nonnegative().brand<'SpecProfileSamplesRuns'>(),
-      }),
+      }).brand<'SpecProfileSamples'>(),
     )
     .readonly(),
 }).brand<'SpecProfile'>();

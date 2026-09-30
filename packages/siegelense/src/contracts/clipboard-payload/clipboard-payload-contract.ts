@@ -14,13 +14,13 @@ import { z } from '#gateway/npm/zod';
 export const clipboardPayloadContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('text'),
-    text: z.string().brand<'ClipboardText'>(),
-  }),
+    text: z.string().brand<'ClipboardPayloadText'>(),
+  }).brand<'ClipboardPayload'>(),
   z.object({
     kind: z.literal('file'),
-    base64: z.string().brand<'ClipboardBase64'>(),
-    mimeType: z.string().min(1).brand<'MimeType'>(),
-  }),
+    base64: z.string().brand<'ClipboardPayloadBase64'>(),
+    mimeType: z.string().min(1).brand<'ClipboardPayloadMimeType'>(),
+  }).brand<'ClipboardPayload'>(),
 ]);
 
 export type ClipboardPayload = z.infer<typeof clipboardPayloadContract>;

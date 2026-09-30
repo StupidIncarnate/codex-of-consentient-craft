@@ -20,7 +20,7 @@ const docsSectionContract = z
     heading: z.string().brand<'DocsSectionHeading'>(),
     lines: z.array(z.string().brand<'DocsSectionLines'>()),
   })
-  .strict();
+  .strict().brand<'DocsSection'>();
 
 const docsScopeDocumentContract = z
   .object({
@@ -29,7 +29,7 @@ const docsScopeDocumentContract = z
     summary: z.string().brand<'DocsScopeDocumentSummary'>(),
     sections: z.array(docsSectionContract),
   })
-  .strict();
+  .strict().brand<'DocsScopeDocument'>();
 
 export const docsAnswerContract = z
   .object({

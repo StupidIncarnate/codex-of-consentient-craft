@@ -24,14 +24,14 @@ export const runIndexContract = z.object({
   console: z.object({
     errors: z.number().int().nonnegative().brand<'RunIndexConsoleErrors'>(),
     warnings: z.number().int().nonnegative().brand<'RunIndexConsoleWarnings'>(),
-  }),
+  }).brand<'RunIndexConsole'>(),
   server: z.object({
     errors: z.number().int().nonnegative().brand<'RunIndexServerErrors'>(),
-  }),
+  }).brand<'RunIndexServer'>(),
   network: z.object({
     exchanges: z.number().int().nonnegative().brand<'RunIndexNetworkExchanges'>(),
     non2xx: z.number().int().nonnegative().brand<'RunIndexNetworkNon2xx'>(),
-  }),
+  }).brand<'RunIndexNetwork'>(),
 }).brand<'RunIndex'>();
 
 export type RunIndex = z.infer<typeof runIndexContract>;

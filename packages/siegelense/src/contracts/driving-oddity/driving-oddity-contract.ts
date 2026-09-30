@@ -23,7 +23,7 @@ export const drivingOddityContract = z
   .object({
     key: z.string().min(1).brand<'DrivingOddityKey'>(),
     line: z.string().min(1).brand<'DrivingOddityLine'>(),
-    kind: z.enum(['quirk', 'defect']).brand<'DrivingOddityKind'>(),
+    kind: z.enum(['quirk', 'defect']),
   })
   .strict().brand<'DrivingOddity'>();
 
