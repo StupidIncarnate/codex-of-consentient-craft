@@ -12,7 +12,7 @@ import { questTypeContract } from '../quest-type/quest-type-contract';
 
 export const addQuestInputContract = z
   .object({
-    title: z.string().min(1).describe('The title of the quest').brand<'QuestTitle'>(),
+    title: z.string().min(1).describe('The title of the quest').brand<'AddQuestInputTitle'>(),
     userRequest: z
       .string()
       .min(1)

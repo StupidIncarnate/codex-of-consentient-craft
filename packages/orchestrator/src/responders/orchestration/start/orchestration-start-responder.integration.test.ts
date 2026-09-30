@@ -2,7 +2,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { QuestTitleStub } from '@dungeonmaster/shared/contracts/quest-title/quest-title.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { OrchestrationStartResponder } from './orchestration-start-responder';
@@ -28,7 +27,7 @@ const NON_STARTABLE_STATUSES = ALL_STATUSES.filter(
 // no break opportunity, so the slug is the title itself lowercased and hard-truncated at
 // slugMaxLength with no trailing-hyphen cleanup needed — the hostile/extreme member of this
 // bundle's input class (every other title in this file is a short, well-behaved phrase).
-const HOSTILE_TITLE = QuestTitleStub({ value: 'x'.repeat(questBranchStatics.slugMaxLength + 12) });
+const HOSTILE_TITLE = 'x'.repeat(questBranchStatics.slugMaxLength + 12);
 const HOSTILE_QUEST_ID = QuestIdStub({ value: '7bc217a1-41e8-40bd-9e25-803d2716b3e8' });
 const TAKEN_BRANCH_NAME_STRING = `quest/${'x'.repeat(questBranchStatics.slugMaxLength)}-7bc217a1`;
 

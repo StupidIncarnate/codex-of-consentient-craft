@@ -20,7 +20,7 @@ export const questQueueEntryContract = z.object({
   questId: questContract.shape.id,
   guildId: guildContract.shape.id,
   guildSlug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).brand<'QuestQueueEntryGuildSlug'>(),
-  questTitle: z.string().min(1).brand<'QuestTitle'>(),
+  questTitle: z.string().min(1).brand<'QuestQueueEntryQuestTitle'>(),
   status: questStatusContract,
   questSource: questSourceContract.optional(),
   activeSessionId: sessionContract.shape.id.optional(),

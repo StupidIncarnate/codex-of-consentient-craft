@@ -14,7 +14,7 @@
 
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { QuestTitle, FileName, Quest } from '@dungeonmaster/shared/contracts';
+import type { FileName, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questBranchStatics } from '../../statics/quest-branch/quest-branch-statics';
 
@@ -25,7 +25,7 @@ export const questToGitNamesTransformer = ({
   title,
   questId,
 }: {
-  title: QuestTitle;
+  title: string;
   questId: Quest['id'];
 }): { branchName: string; worktreeDirName: FileName } => {
   // nameToUrlSlugTransformer's output contract (urlSlugContract) requires at least one character,

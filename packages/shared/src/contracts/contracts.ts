@@ -52,7 +52,6 @@ export * from './port-kill-listener-result/port-kill-listener-result-contract';
 
 
 // Quest Contracts
-export * from './quest-title/quest-title-contract';
 
 export * from './quest-status/quest-status-contract';
 

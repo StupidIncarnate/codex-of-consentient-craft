@@ -15,7 +15,7 @@ import { sessionContract } from '../session/session-contract';
 export const questListItemContract = z.object({
   id: questContract.shape.id,
   folder: z.string().min(1).brand<'QuestFolder'>(),
-  title: z.string().min(1).brand<'QuestTitle'>(),
+  title: z.string().min(1).brand<'QuestListItemTitle'>(),
   status: questStatusContract,
   createdAt: z.iso.datetime().brand<'QuestListItemCreatedAt'>(),
   stepProgress: z.string().brand<'StepProgress'>().optional(),

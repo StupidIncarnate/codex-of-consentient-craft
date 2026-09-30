@@ -23,7 +23,6 @@ import { questPackageEntryContract } from '../quest-package-entry/quest-package-
 import { questSessionContract } from '../quest-session/quest-session-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { questTitleContract } from '../quest-title/quest-title-contract';
 import { questTypeContract } from '../quest-type/quest-type-contract';
 import { riftcarverResultContract } from '../riftcarver-result/riftcarver-result-contract';
 import { smoketestCaseResultContract } from '../smoketest-case-result/smoketest-case-result-contract';
@@ -34,7 +33,7 @@ import { workItemContract } from '../work-item/work-item-contract';
 export const questContract = z.object({
   id: z.string().min(1).brand<'QuestId'>(),
   folder: z.string().min(1).brand<'QuestFolder'>(),
-  title: questTitleContract,
+  title: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
   questType: questTypeContract
     .default('feature')
