@@ -11,7 +11,7 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
-import type { Guild, WardQueueResponse } from '@dungeonmaster/shared/contracts';
+import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
 import {
   ensureDirSync,
   existsSync,
@@ -48,7 +48,7 @@ const getRootQueueDir = () => {
 const encodeCwdScope = ({ cwd }: { cwd: string }) =>
   cwd.replace(ENCODE_NON_SAFE, SCOPE_REPLACEMENT);
 
-const getScopedQueueDir = ({ guildPath }: { guildPath: Guild['path'] }) =>
+const getScopedQueueDir = ({ guildPath }: { guildPath: string }) =>
   path.join(getRootQueueDir(), '__by_cwd__', encodeCwdScope({ cwd: guildPath }));
 
 const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
@@ -67,7 +67,7 @@ const setCounter = ({
   counter,
 }: {
   queueDir: string;
-  counter: ReturnType<typeof getCounter>;
+  counter: number;
 }): void => {
   writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
 };

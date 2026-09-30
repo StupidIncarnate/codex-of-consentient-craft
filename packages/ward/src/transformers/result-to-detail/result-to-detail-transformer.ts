@@ -7,14 +7,11 @@
  */
 
 
-import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
-import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
-import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
 
 const MS_PER_SECOND = 1000;
 
@@ -23,10 +20,10 @@ export const resultToDetailTransformer = ({
   filePath,
 }: {
   wardResult: WardRunResult;
-  filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
+  filePath?: string;
 }): string => {
   if (filePath) {
-    const entries: ErrorEntry['message'][] = [];
+    const entries: string[] = [];
 
     for (const check of wardResult.checks) {
       for (const project of check.projectResults) {
@@ -35,15 +32,15 @@ export const resultToDetailTransformer = ({
             const rulePart = error.rule ? ` ${error.rule}` : '';
             const locationPart =
               error.line === 0 ? '' : ` (line ${String(error.line)}, col ${String(error.column)})`;
-            entries.push(`  ${check.checkType}${rulePart}${locationPart}` as ErrorEntry['message']);
-            entries.push(`    ${error.message}` as ErrorEntry['message']);
+            entries.push(`  ${check.checkType}${rulePart}${locationPart}`);
+            entries.push(`    ${error.message}`);
           }
         }
 
         for (const failure of project.testFailures) {
           if (isPathSuffixMatchGuard({ storedPath: failure.suitePath, queryPath: filePath })) {
-            entries.push(`  FAIL  "${failure.testName}"` as ErrorEntry['message']);
-            entries.push(`    ${failure.message}` as ErrorEntry['message']);
+            entries.push(`  FAIL  "${failure.testName}"`);
+            entries.push(`    ${failure.message}`);
           }
         }
 
@@ -51,7 +48,7 @@ export const resultToDetailTransformer = ({
           if (isPathSuffixMatchGuard({ storedPath: passing.suitePath, queryPath: filePath })) {
             const durationPart =
               Number(passing.durationMs) > 0 ? ` (${String(passing.durationMs)}ms)` : '';
-            entries.push(`  PASS  "${passing.testName}"${durationPart}` as ErrorEntry['message']);
+            entries.push(`  PASS  "${passing.testName}"${durationPart}`);
           }
         }
 
@@ -71,7 +68,7 @@ export const resultToDetailTransformer = ({
     return output;
   }
 
-  const sections: ErrorEntry['message'][] = [];
+  const sections: string[] = [];
 
   for (const check of wardResult.checks) {
     for (const project of check.projectResults) {

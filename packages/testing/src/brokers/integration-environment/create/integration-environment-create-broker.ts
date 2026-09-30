@@ -100,10 +100,12 @@ export const integrationEnvironmentCreateBroker = ({
     );
   }
 
-  const testProject: TestGuild = testGuildContract.parse({
-    guildPath: testGuildContract.shape.guildPath.parse(projectPath),
-    guildName: testGuildContract.shape.guildName.parse(projectName),
-    rootDir: testGuildContract.shape.rootDir.parse(projectPath),
+  const testProject: TestGuild = {
+    ...testGuildContract.parse({
+      guildPath: testGuildContract.shape.guildPath.parse(projectPath),
+      guildName: testGuildContract.shape.guildName.parse(projectName),
+      rootDir: testGuildContract.shape.rootDir.parse(projectPath),
+    }),
 
     installDungeonmaster: async (): Promise<string> => {
       try {
@@ -205,7 +207,7 @@ export const integrationEnvironmentCreateBroker = ({
         rmSync(projectPath, { recursive: true, force: true });
       }
     },
-  });
+  };
 
   // Track for automatic cleanup
   integrationEnvironmentTrackingBroker.add({ guild: testProject });

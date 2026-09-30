@@ -22,7 +22,8 @@ export const mockStagingCreateTransformer = ({
   // this file is a transformer and may not import util/types itself. mockStagingCreateMiddleware
   // is the caller that wires in isNativeError.
   isNativeError: (value: unknown) => value is Error;
-}): MockStaging => mockStagingContract.parse({
+}): MockStaging => ({
+  ...mockStagingContract.parse({}),
   returns: (val: unknown): void => {
     record.impl = (): unknown => val;
   },

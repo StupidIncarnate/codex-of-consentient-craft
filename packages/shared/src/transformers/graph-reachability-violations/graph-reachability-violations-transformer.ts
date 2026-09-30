@@ -18,7 +18,6 @@
  */
 import type { RoutedGraph } from '../../contracts/routed-graph/routed-graph-contract';
 import { graphOutcomeWordStatics } from '../../statics/graph-outcome-word/graph-outcome-word-statics';
-import { routedGraphContract } from '../../contracts/routed-graph/routed-graph-contract';
 
 export const graphReachabilityViolationsTransformer = ({
   graph,
@@ -47,8 +46,8 @@ export const graphReachabilityViolationsTransformer = ({
   );
 
   // Rule 1: every step is reachable from `entry`, or declares the exempt flag for this level.
-  const reachableFromEntry = new Set([graph.entry]);
-  const reachabilityQueue = [graph.entry];
+  const reachableFromEntry = new Set<string>([graph.entry]);
+  const reachabilityQueue: string[] = [graph.entry];
   while (reachabilityQueue.length > 0) {
     const current = reachabilityQueue.shift();
     if (current === undefined) {

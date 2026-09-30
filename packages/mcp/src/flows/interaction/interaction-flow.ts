@@ -26,40 +26,46 @@ const askUserQuestionSchema = toJSONSchema(askUserQuestionContract, jsonSchemaOp
 const getAgentPromptSchema = toJSONSchema(getAgentPromptInputContract, jsonSchemaOptions);
 
 export const InteractionFlow = (): ToolRegistration[] => [
-  toolRegistrationContract.parse({
-    name: 'signal-back' as never,
-    description:
-      'Signals the CLI with step completion status, progress, or blocking conditions' as never,
-    inputSchema: signalBackSchema as never,
+  {
+    ...toolRegistrationContract.parse({
+      name: 'signal-back',
+      description:
+        'Signals the CLI with step completion status, progress, or blocking conditions',
+      inputSchema: signalBackSchema,
+    }),
     handler: async ({ args, meta }): Promise<CallToolResult> =>
       InteractionHandleResponder({
-        tool: 'signal-back' as never,
+        tool: 'signal-back',
         args,
         ...(meta !== undefined && { meta }),
       }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'ask-user-question' as never,
-    description:
-      "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The questions are surfaced to the user's browser and their answers arrive as the next user message in the session. Use when running headless (no interactive terminal)." as never,
-    inputSchema: askUserQuestionSchema as never,
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'ask-user-question',
+      description:
+        "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The questions are surfaced to the user's browser and their answers arrive as the next user message in the session. Use when running headless (no interactive terminal).",
+      inputSchema: askUserQuestionSchema,
+    }),
     handler: async ({ args, meta }): Promise<CallToolResult> =>
       InteractionHandleResponder({
-        tool: 'ask-user-question' as never,
+        tool: 'ask-user-question',
         args,
         ...(meta !== undefined && { meta }),
       }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'get-agent-prompt' as never,
-    description:
-      'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.' as never,
-    inputSchema: getAgentPromptSchema as never,
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'get-agent-prompt',
+      description:
+        'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.',
+      inputSchema: getAgentPromptSchema,
+    }),
     handler: async ({ args, meta }): Promise<CallToolResult> =>
       InteractionHandleResponder({
-        tool: 'get-agent-prompt' as never,
+        tool: 'get-agent-prompt',
         args,
         ...(meta !== undefined && { meta }),
       }),
-  }),
+  },
 ];

@@ -6,7 +6,6 @@
  * // Writes JSON to {questFolderPath}/ward-results/{wardResultId}.json
  */
 
-import type { WardResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -19,7 +18,7 @@ export const wardPersistResultBroker = async ({
   detailJson,
 }: {
   questFolderPath: string;
-  wardResultId: WardResult['id'];
+  wardResultId: string;
   detailJson: string;
 }): Promise<void> => {
   const wardResultsDir = join(questFolderPath, locationsStatics.quest.wardResultsDir);

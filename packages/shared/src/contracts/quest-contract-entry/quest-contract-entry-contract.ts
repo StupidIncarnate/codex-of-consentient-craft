@@ -14,8 +14,13 @@ import { questContractStatusContract } from '../quest-contract-status/quest-cont
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const questContractEntryContract = z.object({
-  id: questContractEntryId.describe('Unique identifier for this contract entry'),
-  name: z.string().min(1).brand<'QuestContractEntryName'>().describe( 'Name of a quest-level contract entry. Used to reference contracts from step inputContracts/outputContracts', ).brand<'QuestContractEntryName'>().describe(
+  id: z
+    .string()
+    .min(1)
+    .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+    .brand<'QuestContractEntryId'>()
+    .describe('Unique identifier for this contract entry'),
+  name: z.string().min(1).brand<'QuestContractEntryName'>().describe(
     'Contract name referenced by steps in inputContracts/outputContracts (e.g., "LoginCredentials", "AuthLoginEndpoint")',
   ),
   kind: questContractKindContract.describe(

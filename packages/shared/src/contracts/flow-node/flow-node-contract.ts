@@ -28,7 +28,11 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 
 export const flowNodeContract = z
   .object({
-    id: flowNodeId,
+    id: z
+      .string()
+      .min(1)
+      .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+      .brand<'FlowNodeId'>(),
     label: z.string().min(1).brand<'FlowNodeLabel'>(),
     type: flowNodeTypeContract,
     packages: z

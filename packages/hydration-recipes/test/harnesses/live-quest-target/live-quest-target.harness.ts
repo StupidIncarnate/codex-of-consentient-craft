@@ -136,8 +136,8 @@ export const liveQuestTargetHarness = ({
           if (method === 'POST' && requestPath === GUILDS_PATH) {
             const fields = body as Record<PropertyKey, unknown>;
             const guild = await guildAddBroker({
-              name: fields.name,
-              path: fields.path,
+              name: String(fields.name),
+              path: String(fields.path),
             });
             return { status: 201, body: guild };
           }

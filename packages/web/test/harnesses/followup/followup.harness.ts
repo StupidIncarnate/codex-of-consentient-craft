@@ -17,7 +17,6 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
-import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { appendFileSync, readFileSync } from '#gateway/node/fs';
 import { writeFile } from '#gateway/node/fs__promises';
 import { dirname } from '#gateway/node/path';
@@ -87,8 +86,8 @@ export const followupHarness = ({
     status: string;
     worktreePath?: string;
     workItems?: WorkItemInput[];
-  }) => Promise<{ questId: Quest['id']; questFilePath: string; urlSlug: string }>;
-  reopen: (params: { urlSlug: string; questId: Quest['id'] }) => Promise<void>;
+  }) => Promise<{ questId: string; questFilePath: string; urlSlug: string }>;
+  reopen: (params: { urlSlug: string; questId: string }) => Promise<void>;
   reloadQuestPage: () => Promise<void>;
   setQuestStatusOnDisk: (params: { questFilePath: string; status: string }) => Promise<void>;
   pressFollowup: () => Promise<void>;
@@ -133,7 +132,7 @@ export const followupHarness = ({
     status: string;
     worktreePath?: string;
     workItems?: WorkItemInput[];
-  }): Promise<{ questId: Quest['id']; questFilePath: string; urlSlug: string }> => {
+  }): Promise<{ questId: string; questFilePath: string; urlSlug: string }> => {
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });

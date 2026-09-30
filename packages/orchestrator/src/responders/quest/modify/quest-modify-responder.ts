@@ -43,13 +43,15 @@ export const QuestModifyResponder = async ({
         const abortController = new AbortController();
 
         orchestrationProcessesState.register({
-          orchestrationProcess: orchestrationProcessContract.parse({
-            processId,
-            questId: typedQuestId,
+          orchestrationProcess: {
+            ...orchestrationProcessContract.parse({
+              processId,
+              questId: typedQuestId,
+            }),
             kill: () => {
               abortController.abort();
             },
-          }),
+          },
         });
 
         // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.

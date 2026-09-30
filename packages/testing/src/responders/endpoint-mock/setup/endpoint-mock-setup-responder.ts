@@ -26,12 +26,13 @@ import { endpointMockLifecycleContract } from '../../../contracts/endpoint-mock-
 const UNHANDLED_WS_CLOSE_CODE = 1011;
 const UNHANDLED_WS_REASON = 'MSW: no test handler staged this WebSocket connection';
 
-const NOOP_LIFECYCLE: EndpointMockLifecycle = endpointMockLifecycleContract.parse({
+const NOOP_LIFECYCLE: EndpointMockLifecycle = {
+  ...endpointMockLifecycleContract.parse({}),
   listen: (): void => undefined,
   resetHandlers: (): void => undefined,
   close: (): void => undefined,
   assertNoUnhandledRequests: (): void => undefined,
-});
+};
 
 export const EndpointMockSetupResponder = ({
   testPath,
@@ -58,7 +59,8 @@ export const EndpointMockSetupResponder = ({
     client.close(UNHANDLED_WS_CLOSE_CODE, UNHANDLED_WS_REASON);
   });
 
-  return endpointMockLifecycleContract.parse({
+  return {
+    ...endpointMockLifecycleContract.parse({}),
     listen: (): void => {
       server.resetHandlers(catchAllWsHandler);
       server.listen({
@@ -85,5 +87,5 @@ export const EndpointMockSetupResponder = ({
         );
       }
     },
-  });
+  };
 };

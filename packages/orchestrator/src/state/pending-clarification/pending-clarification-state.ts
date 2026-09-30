@@ -23,7 +23,9 @@ export const pendingClarificationState = {
     questions,
   }: {
     processId: string;
-  } & PendingClarificationEntry): void => {
+    questId: PendingClarificationEntry['questId'];
+    questions: PendingClarificationEntry['questions'];
+  }): void => {
     processQuestions.set(
       processId,
       pendingClarificationEntryContract.parse({ questId, questions }),

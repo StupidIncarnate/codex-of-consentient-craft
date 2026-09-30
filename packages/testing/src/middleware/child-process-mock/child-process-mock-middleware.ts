@@ -23,7 +23,6 @@ import {
   resetModules as gatewayResetModules,
 } from '#gateway/npm/jest__globals';
 import type { MockProcessBehavior } from '../../contracts/mock-process-behavior/mock-process-behavior-contract';
-import type { MockSpawnResult } from '../../contracts/mock-spawn-result/mock-spawn-result-contract';
 import { mockProcessBehaviorContract } from '../../contracts/mock-process-behavior/mock-process-behavior-contract';
 
 type MockChildProcessInstance = EventEmitter & {
@@ -43,16 +42,16 @@ export const childProcessMockMiddleware = (): {
   };
   presets: {
     success: (params: {
-      stdout?: MockSpawnResult['stdout'];
-      code?: MockSpawnResult['code'];
+      stdout?: string;
+      code?: number;
     }) => MockProcessBehavior;
     failure: (params: {
-      stderr?: MockSpawnResult['stderr'];
-      code?: MockSpawnResult['code'];
+      stderr?: string;
+      code?: number;
     }) => MockProcessBehavior;
     crash: (params: { error?: Error }) => MockProcessBehavior;
     eslintCrash: () => MockProcessBehavior;
-    timeout: (params: { delay?: MockProcessBehavior['delay'] }) => MockProcessBehavior;
+    timeout: (params: { delay?: number | undefined }) => MockProcessBehavior;
   };
 } => ({
   mockSpawn: ({ behavior }: { behavior: MockProcessBehavior }) => {
@@ -127,13 +126,13 @@ export const childProcessMockMiddleware = (): {
       stdout,
       code,
     }: {
-      stdout?: MockSpawnResult['stdout'];
-      code?: MockSpawnResult['code'];
+      stdout?: string;
+      code?: number;
     } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
       result: {
-        code: code ?? (0 as MockSpawnResult['code']),
-        stdout: stdout ?? ('' as MockSpawnResult['stdout']),
-        stderr: '' as MockSpawnResult['stderr'],
+        code: code ?? 0,
+        stdout: stdout ?? '',
+        stderr: '',
       },
     }),
 
@@ -141,13 +140,13 @@ export const childProcessMockMiddleware = (): {
       stderr,
       code,
     }: {
-      stderr?: MockSpawnResult['stderr'];
-      code?: MockSpawnResult['code'];
+      stderr?: string;
+      code?: number;
     } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
       result: {
-        code: code ?? (1 as MockSpawnResult['code']),
-        stdout: '' as MockSpawnResult['stdout'],
-        stderr: stderr ?? ('Process failed' as MockSpawnResult['stderr']),
+        code: code ?? 1,
+        stdout: '',
+        stderr: stderr ?? 'Process failed',
       },
     }),
 
@@ -158,18 +157,18 @@ export const childProcessMockMiddleware = (): {
 
     eslintCrash: (): MockProcessBehavior => mockProcessBehaviorContract.parse({
       result: {
-        code: (0 as MockSpawnResult['code']) || (0 as MockSpawnResult['code']),
-        stdout: '' as MockSpawnResult['stdout'],
-        stderr: 'Oops! Something went wrong!' as MockSpawnResult['stderr'],
+        code: 0,
+        stdout: '',
+        stderr: 'Oops! Something went wrong!',
       },
     }),
 
-    timeout: ({ delay }: { delay?: MockProcessBehavior['delay'] } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
-      delay: delay ?? ((0 as MockProcessBehavior['delay']) || (0 as MockProcessBehavior['delay'])),
+    timeout: ({ delay }: { delay?: number | undefined } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
+      delay: delay ?? 0,
       result: {
-        code: 1 as MockSpawnResult['code'],
-        stdout: '' as MockSpawnResult['stdout'],
-        stderr: 'Timeout' as MockSpawnResult['stderr'],
+        code: 1,
+        stdout: '',
+        stderr: 'Timeout',
       },
     }),
   },

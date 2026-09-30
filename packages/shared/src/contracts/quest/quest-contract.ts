@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { baseBranchNameContract } from '../base-branch-name/base-branch-name-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
@@ -111,7 +110,13 @@ export const questContract = z.object({
     .describe(
       'The local branch the quest forked from and will merge back into, resolved by probing main then master at Start.',
     ),
-  worktreePath: absoluteFilePathContract
+  worktreePath: z
+    .string()
+    .min(1)
+    .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
+      message: 'Path must be absolute (start with / or C:\\ on Windows)',
+    })
+    .brand<'QuestWorktreePath'>()
     .optional()
     .describe(
       "Absolute path to the quest's worktree; the cwd for every agent, ward run and chat spawned for this quest.",
@@ -156,12 +161,13 @@ export const questContract = z.object({
         .describe(
           "Planner sub-agent outputs, one per plan/work/review pass, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected pass's plan stays for audit alongside the pass that superseded it.",
         ),
-    }).brand<'QuestPlanningNotes'>()
+    })
     .default({
       blightLedger: [],
       questNotes: [],
       operationPlans: [],
     })
+    .brand<'QuestPlanningNotes'>()
     .describe(
       'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by an observation on the work item assigned it (`workItem.observations[]`), recomputed by `get-qa-checklist` and the quest summary — neither of which is a gate.',
     ),

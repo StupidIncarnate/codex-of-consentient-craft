@@ -1,4 +1,4 @@
-import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
   registerMock,
@@ -18,7 +18,7 @@ import { spawnOneAgentLayerBrokerProxy } from './spawn-one-agent-layer-broker.pr
 registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 export const spawnBatchLayerBrokerProxy = (): {
-  setupQuestContext: (params: { questId: Quest['id']; guildPath: Guild['path'] }) => void;
+  setupQuestContext: (params: { questId: Quest['id']; guildPath: string }) => void;
   setupQuestWorktree: (params: { questId: Quest['id']; worktreePath: string }) => void;
   setupQuestWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   setupModifySucceeds: (params: { times: number }) => void;
@@ -56,7 +56,7 @@ export const spawnBatchLayerBrokerProxy = (): {
     // the batch share it), so questId is the real, meaningful address — keying on it is what lets
     // a multi-quest batch test stage a DIFFERENT resolution per quest correctly, rather than
     // trusting the resolution order to match staging order.
-    setupQuestContext: ({ questId, guildPath }: { questId: Quest['id']; guildPath: Guild['path'] }): void => {
+    setupQuestContext: ({ questId, guildPath }: { questId: Quest['id']; guildPath: string }): void => {
       cwdMock
         .calledWith([{ questId }])
         .resolves(

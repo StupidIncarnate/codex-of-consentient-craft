@@ -5,8 +5,6 @@
  * const harness = questApprovedModalHarness({ sessions, guildPath: GUILD_PATH });
  * const result = await harness.setupTest({ request, guildName, sessionId, status });
  */
-import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { guildHarness } from '../guild/guild.harness';
@@ -47,7 +45,7 @@ export const questApprovedModalHarness = ({
     }[];
   }) => Promise<{
     guild: Record<PropertyKey, unknown>;
-    questId: Quest['id'];
+    questId: string;
     urlSlug: string;
     quests: ReturnType<typeof questHarness>;
   }>;
@@ -72,7 +70,7 @@ export const questApprovedModalHarness = ({
     }[];
   }): Promise<{
     guild: Record<PropertyKey, unknown>;
-    questId: Quest['id'];
+    questId: string;
     urlSlug: string;
     quests: ReturnType<typeof questHarness>;
   }> => {
@@ -84,7 +82,7 @@ export const questApprovedModalHarness = ({
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: GuildIdStub({ value: guildId }),
+      guildId,
       title: 'E2E Approved Modal Quest',
       userRequest: 'Build the feature',
     });

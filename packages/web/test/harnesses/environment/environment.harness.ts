@@ -13,7 +13,6 @@
  * // Returns [] while the fixture repo holds no quest worktree
  * // Call env.cleanup() or rely on afterEach if wired
  */
-import type { Guild } from '@dungeonmaster/shared/contracts';
 import { gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';

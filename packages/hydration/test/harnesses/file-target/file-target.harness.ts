@@ -77,7 +77,7 @@ export const fileTargetHarness = (): FileTargetHarness => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.target: called before beforeEach ran');
       }
-      return HydrationTargetStub({ home: testbed.guildPath });
+      return { ...HydrationTargetStub(), home: testbed.guildPath };
     },
 
     absolutePath: ({ relativePath }: { relativePath: string }): string => {

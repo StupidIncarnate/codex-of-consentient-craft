@@ -60,7 +60,13 @@ export const smoketestScenarioState = {
       return null;
     }
     const promptName = script[ordinal] ?? null;
-    instance.callOrdinals[role] = (ordinal + 1);
+    state.instances.set(
+      questId,
+      scenarioInstanceContract.parse({
+        ...instance,
+        callOrdinals: { ...instance.callOrdinals, [role]: ordinal + 1 },
+      }),
+    );
     return promptName;
   },
 

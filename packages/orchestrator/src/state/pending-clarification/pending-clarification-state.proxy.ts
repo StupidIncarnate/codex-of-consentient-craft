@@ -10,8 +10,16 @@ type PendingClarificationEntry = ReturnType<typeof PendingClarificationEntryStub
 
 export const pendingClarificationStateProxy = (): {
   setupEmpty: () => void;
-  setupWithProcessEntry: (params: { processId: ProcessId } & PendingClarificationEntry) => void;
-  setupWithSessionEntry: (params: { sessionId: SessionId } & PendingClarificationEntry) => void;
+  setupWithProcessEntry: (params: {
+    processId: ProcessId;
+    questId: PendingClarificationEntry['questId'];
+    questions: PendingClarificationEntry['questions'];
+  }) => void;
+  setupWithSessionEntry: (params: {
+    sessionId: SessionId;
+    questId: PendingClarificationEntry['questId'];
+    questions: PendingClarificationEntry['questions'];
+  }) => void;
 } => ({
   setupEmpty: (): void => {
     pendingClarificationState.clear();
@@ -21,23 +29,33 @@ export const pendingClarificationStateProxy = (): {
     processId,
     questId,
     questions,
-  }: { processId: ProcessId } & PendingClarificationEntry): void => {
+  }: {
+    processId: ProcessId;
+    questId: PendingClarificationEntry['questId'];
+    questions: PendingClarificationEntry['questions'];
+  }): void => {
     pendingClarificationState.clear();
-    pendingClarificationState.setForProcess(pendingClarificationEntryContract.parse({ processId, questId, questions }));
+    pendingClarificationState.setForProcess({
+      processId,
+      ...pendingClarificationEntryContract.parse({ questId, questions }),
+    });
   },
 
   setupWithSessionEntry: ({
     sessionId,
     questId,
     questions,
-  }: { sessionId: SessionId } & PendingClarificationEntry): void => {
+  }: {
+    sessionId: SessionId;
+    questId: PendingClarificationEntry['questId'];
+    questions: PendingClarificationEntry['questions'];
+  }): void => {
     pendingClarificationState.clear();
     const tempProcessId = 'temp-promote';
-    pendingClarificationState.setForProcess(pendingClarificationEntryContract.parse({
+    pendingClarificationState.setForProcess({
       processId: tempProcessId,
-      questId,
-      questions,
-    }));
+      ...pendingClarificationEntryContract.parse({ questId, questions }),
+    });
     pendingClarificationState.promoteToSession({
       processId: tempProcessId,
       sessionId,

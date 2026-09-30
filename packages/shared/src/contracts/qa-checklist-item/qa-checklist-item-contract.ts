@@ -34,6 +34,8 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowContract } from '../flow/flow-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 
+const KEBAB_SEGMENT = '[a-z][a-z0-9]*(?:-[a-z0-9]+)*';
+
 export const qaChecklistItemContract = z.object({
   id: z.string().min(1).regex(new RegExp(`^${KEBAB_SEGMENT}:${KEBAB_SEGMENT}:${KEBAB_SEGMENT}$`, 'u')).brand<'QaChecklistItemId'>(),
   flowId: flowContract.shape.id,

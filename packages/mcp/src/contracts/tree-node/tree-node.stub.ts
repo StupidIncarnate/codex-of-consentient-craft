@@ -2,7 +2,7 @@
  * PURPOSE: Creates test data for tree nodes with folder names, children map, and items
  *
  * USAGE:
- * const node = TreeNodeStub({ name: FolderNameStub({ value: 'guards' }), items: [] });
+ * const node = TreeNodeStub({ name: 'guards', items: [] });
  * // Returns tree node for testing tree structure
  */
 import { treeNodeContract } from './tree-node-contract';

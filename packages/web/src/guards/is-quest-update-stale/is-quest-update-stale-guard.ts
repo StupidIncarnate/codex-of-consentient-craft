@@ -24,14 +24,12 @@
  * // true => drop the frame; false => apply it and remember its updatedAt as the new baseline
  */
 
-import type { Quest } from '@dungeonmaster/shared/contracts';
-
 export const isQuestUpdateStaleGuard = ({
   incomingUpdatedAt,
   lastAppliedUpdatedAt,
 }: {
-  incomingUpdatedAt?: Quest['updatedAt'];
-  lastAppliedUpdatedAt?: Quest['updatedAt'];
+  incomingUpdatedAt?: string;
+  lastAppliedUpdatedAt?: string;
 }): boolean => {
   if (incomingUpdatedAt === undefined || lastAppliedUpdatedAt === undefined) return false;
   return incomingUpdatedAt < lastAppliedUpdatedAt;

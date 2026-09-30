@@ -2,7 +2,7 @@
  * PURPOSE: Converts absolute file path to project-relative path by removing CWD
  *
  * USAGE:
- * const relativePath = pathToRelativeTransformer({ filepath: PathSegmentStub({ value: '/home/user/project/src/file.ts' }), cwd: PathSegmentStub({ value: '/home/user/project' }) });
+ * const relativePath = pathToRelativeTransformer({ filepath: '/home/user/project/src/file.ts', cwd: '/home/user/project' });
  * // Returns: 'src/file.ts'
  */
 import type { FileMetadata } from '../../contracts/file-metadata/file-metadata-contract';
@@ -14,7 +14,7 @@ export const pathToRelativeTransformer = ({
   filepath,
   cwd,
 }: {
-  filepath: FileMetadata['path'];
+  filepath: string;
   cwd: string;
 }): FileMetadata['path'] => {
   // Remove leading cwd and slash
@@ -22,5 +22,5 @@ export const pathToRelativeTransformer = ({
     ? filepath.slice(cwd.length).replace(LEADING_SLASH_PATTERN, '')
     : filepath;
 
-  return relative;
+  return fileMetadataContract.shape.path.parse(relative);
 };

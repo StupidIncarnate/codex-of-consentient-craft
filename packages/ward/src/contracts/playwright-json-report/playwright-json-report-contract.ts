@@ -36,7 +36,7 @@ const playwrightSuiteFields = z.object({
 
 type PlaywrightSuiteSelf = z.infer<typeof playwrightSuiteFields> & {
   suites?: PlaywrightSuiteSelf[] | undefined;
-} & z.$brand<'PlaywrightSuite'>;
+};
 
 // A getter, not `z.lazy` + `.and()` — the getter's return type wraps `z.core.$ZodType`, which is
 // the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type

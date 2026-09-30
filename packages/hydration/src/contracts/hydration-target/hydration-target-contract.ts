@@ -40,7 +40,10 @@ export const hydrationTargetContract = z.object({
   baseUrl: urlContract.optional(),
 }).brand<'HydrationTarget'>();
 
-export type HydrationTarget = z.infer<typeof hydrationTargetContract>;
+// A plain structural type, not `z.infer` of the branded contract: `HydrationTarget` is only a
+// generic constraint (`TTarget extends HydrationTarget`), and a brand would make it unsatisfiable
+// by any repo's own target.
+export type HydrationTarget = { baseUrl?: Url | undefined };
 
 /**
  * What `hydrationCreateBroker<TTarget>()` hands back — one binding of the declaration surface to

@@ -11,7 +11,7 @@
  * isFileScopeRequestedGuard({ config: WardConfigStub({ only: ['lint'] }) });
  * // Returns: false — `--only` picks check types, not files
  *
- * A CLASSIFICATION IS OWED FOR EVERY FIELD, and `satisfies Record<keyof WardConfig, WardScopeKind>`
+ * A CLASSIFICATION IS OWED FOR EVERY FIELD, and `satisfies Record<Exclude<keyof WardConfig, symbol>, WardScopeKind>`
  * is what collects it: a field added to `wardConfigContract` without a kind here fails `tsc` with
  * "Property '<name>' is missing", and a kind spelled outside the union fails on the value. A field
  * REMOVED from the contract fails too — the excess-property check `satisfies` runs on this object
@@ -30,9 +30,9 @@ const SCOPE_KIND_BY_FIELD = {
   committed: 'fileScope',
   uncommitted: 'fileScope',
   passthrough: 'fileScope',
-} as const satisfies Record<keyof WardConfig, WardScopeKind>;
+} as const satisfies Record<Exclude<keyof WardConfig, symbol>, WardScopeKind>;
 
-const FILE_SCOPE_FIELDS = (Object.keys(SCOPE_KIND_BY_FIELD) as (keyof WardConfig)[]).filter(
+const FILE_SCOPE_FIELDS = (Object.keys(SCOPE_KIND_BY_FIELD) as Exclude<keyof WardConfig, symbol>[]).filter(
   (field) => SCOPE_KIND_BY_FIELD[field] === 'fileScope',
 );
 

@@ -22,7 +22,7 @@ import { workItemContract } from '../work-item/work-item-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 
 export const operationPlanContract = z.object({
-  id: operationPlanId.describe(
+  id: z.uuid().brand<'OperationPlanId'>().describe(
     'Identity for this plan. The operator reads a plan back by this id after the planner ' +
       'sub-agent that wrote it has returned, without holding the plan body in its own context.',
   ),

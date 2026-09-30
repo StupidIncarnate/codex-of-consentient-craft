@@ -20,7 +20,7 @@
  *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
-import { questContract, modifyQuestInputContract, modifyQuestResultContract, verifyQuestCheckContract, questContractEntryContract } from '@dungeonmaster/shared/contracts';
+import { questContract, modifyQuestInputContract, modifyQuestResultContract, verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join, resolve } from '#gateway/node/path';
 
@@ -131,7 +131,7 @@ export const questModifyBroker = async ({
         if (validated.designDecisions) {
           quest.designDecisions = questArrayUpsertTransformer({
             existing: quest.designDecisions,
-            updates: validated.designDecisions as typeof quest.designDecisions,
+            updates: validated.designDecisions,
           });
         }
 
@@ -144,14 +144,14 @@ export const questModifyBroker = async ({
         if (validated.toolingRequirements) {
           quest.toolingRequirements = questArrayUpsertTransformer({
             existing: quest.toolingRequirements,
-            updates: validated.toolingRequirements as typeof quest.toolingRequirements,
+            updates: validated.toolingRequirements,
           });
         }
 
         if (validated.contracts) {
           quest.contracts = questArrayUpsertTransformer({
             existing: quest.contracts,
-            updates: validated.contracts as typeof quest.contracts,
+            updates: validated.contracts,
           });
         }
 
@@ -166,7 +166,7 @@ export const questModifyBroker = async ({
         if (validated.flows) {
           quest.flows = questArrayUpsertTransformer({
             existing: quest.flows,
-            updates: validated.flows as typeof quest.flows,
+            updates: validated.flows,
           });
 
           // `package` is optional on the modify-quest input and REQUIRED on the persisted
@@ -206,7 +206,7 @@ export const questModifyBroker = async ({
         if (validated.comments) {
           quest.comments = questArrayUpsertTransformer({
             existing: quest.comments,
-            updates: validated.comments as typeof quest.comments,
+            updates: validated.comments,
           });
         }
 
@@ -269,13 +269,13 @@ export const questModifyBroker = async ({
         }
 
         if (validated.title) {
-          quest.title = validated.title as typeof quest.title;
+          quest.title = questContract.shape.title.parse(validated.title);
         }
 
         if (validated.workItems) {
           quest.workItems = questArrayUpsertTransformer({
             existing: quest.workItems,
-            updates: validated.workItems as typeof quest.workItems,
+            updates: validated.workItems,
           });
         }
 

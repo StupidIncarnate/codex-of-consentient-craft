@@ -40,7 +40,7 @@ export const guildHarness = ({
   // sends `DELETE /api/guilds/:guildId` over HTTP whenever the target carries a `baseUrl` — see
   // that route's own header for the full resolution.
   deleteGuild: (params: { guildId: string }) => Promise<void>;
-  extractGuildId: (params: { guild: GuildRecord }) => Guild['id'];
+  extractGuildId: (params: { guild: GuildRecord }) => string;
   extractUrlSlug: (params: { guild: GuildRecord }) => string;
 } => {
   const resolvedBaseUrl =
@@ -96,7 +96,7 @@ export const guildHarness = ({
   // Filters on `id` alone: the intersection widens the ingredient's own `where` type (which has no
   // index signature) to admit `id`, a value `guildAddBroker` mints rather than a settable
   // GuildFields key — the same shape questHarness.patchQuestStatus uses for a quest's `id`.
-  const deleteGuild = async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
+  const deleteGuild = async ({ guildId }: { guildId: string }): Promise<void> => {
     type GuildFilterWhere = Parameters<typeof dmRegistryBroker.guilds.filter>[0]['where'] & {
       id?: Guild['id'];
     };
@@ -110,8 +110,7 @@ export const guildHarness = ({
     await dmRegistryBroker.run(plan, dmTarget.apiTarget());
   };
 
-  const extractGuildId = ({ guild }: { guild: GuildRecord }): Guild['id'] =>
-    String(guild.id) as Guild['id'];
+  const extractGuildId = ({ guild }: { guild: GuildRecord }): string => String(guild.id);
 
   const extractUrlSlug = ({ guild }: { guild: GuildRecord }): string =>
     String(guild.urlSlug) as string;

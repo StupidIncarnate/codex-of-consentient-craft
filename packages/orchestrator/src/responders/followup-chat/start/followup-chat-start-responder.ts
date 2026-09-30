@@ -144,7 +144,10 @@ export const FollowupChatStartResponder = async ({
       },
       registerProcess: ({ processId, questWorkItemId, kill }) => {
         orchestrationProcessesState.register({
-          orchestrationProcess: orchestrationProcessContract.parse({ processId, questId, questWorkItemId, kill }),
+          orchestrationProcess: {
+            ...orchestrationProcessContract.parse({ processId, questId, questWorkItemId }),
+            kill,
+          },
         });
       },
       recordActivity: ({ processId }) => {

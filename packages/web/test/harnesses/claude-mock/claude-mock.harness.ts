@@ -11,7 +11,6 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
-import type { Guild, ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 import {
   ensureDirSync,
   existsSync,
@@ -39,6 +38,10 @@ const claudeInvocationContract = z.object({
 });
 
 type ClaudeInvocation = z.infer<typeof claudeInvocationContract>;
+
+// The contract's INPUT side: a harness takes raw values and `claudeQueueResponseContract.parse`
+// brands them where they are written to disk.
+type ClaudeQueueResponseInput = z.input<typeof claudeQueueResponseContract>;
 
 const INVOCATIONS_FILE = 'invocations.jsonl';
 
@@ -70,7 +73,7 @@ const getRootQueueDir = () => {
 const encodeCwdScope = ({ cwd }: { cwd: string }) =>
   cwd.replace(ENCODE_NON_SAFE, SCOPE_REPLACEMENT);
 
-const getScopedQueueDir = ({ guildPath }: { guildPath: Guild['path'] }) =>
+const getScopedQueueDir = ({ guildPath }: { guildPath: string }) =>
   path.join(getRootQueueDir(), '__by_cwd__', encodeCwdScope({ cwd: guildPath }));
 
 const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
@@ -89,7 +92,7 @@ const setCounter = ({
   counter,
 }: {
   queueDir: string;
-  counter: ReturnType<typeof getCounter>;
+  counter: number;
 }): void => {
   writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
 };
@@ -99,7 +102,7 @@ const queueClaudeResponse = ({
   response,
 }: {
   queueDir: string;
-  response: ClaudeQueueResponse;
+  response: ClaudeQueueResponseInput;
 }): void => {
   ensureDirSync(queueDir);
   const counter = getCounter({ queueDir });
@@ -138,7 +141,7 @@ export const claudeMockHarness = ({
   agentCwd?: string;
 }): {
   beforeEach: () => void;
-  queueResponse: (params: { response: ClaudeQueueResponse }) => void;
+  queueResponse: (params: { response: ClaudeQueueResponseInput }) => void;
   clearQueue: () => void;
   readInvocations: () => readonly ClaudeInvocation[];
 } => {
@@ -157,7 +160,7 @@ export const claudeMockHarness = ({
     // can write to. Prevents leftover responses from prior tests being consumed by this test's
     // spawns.
     beforeEach: clearAllScopes,
-    queueResponse: ({ response }: { response: ClaudeQueueResponse }): void => {
+    queueResponse: ({ response }: { response: ClaudeQueueResponseInput }): void => {
       queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }), response });
     },
     clearQueue: clearAllScopes,

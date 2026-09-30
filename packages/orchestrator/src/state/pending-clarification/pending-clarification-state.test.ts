@@ -4,7 +4,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { pendingClarificationState } from './pending-clarification-state';
 import { pendingClarificationStateProxy } from './pending-clarification-state.proxy';
 import { ClarificationQuestionStub } from '../../contracts/clarification-question/clarification-question.stub';
-import { PendingClarificationEntryStub } from '../../contracts/pending-clarification-entry/pending-clarification-entry.stub';
 
 describe('pendingClarificationState', () => {
   describe('setForProcess', () => {
@@ -15,7 +14,7 @@ describe('pendingClarificationState', () => {
       const questId = QuestIdStub({ value: 'quest-1' });
       const questions = [ClarificationQuestionStub()];
 
-      pendingClarificationState.setForProcess(PendingClarificationEntryStub({ processId, questId, questions }));
+      pendingClarificationState.setForProcess({ processId, questId, questions });
 
       const sessionId = SessionIdStub({ value: 'session-1' });
       pendingClarificationState.promoteToSession({ processId, sessionId });
@@ -46,7 +45,7 @@ describe('pendingClarificationState', () => {
       const questId = QuestIdStub({ value: 'quest-no-questions' });
 
       expect(() => {
-        pendingClarificationState.setForProcess(PendingClarificationEntryStub({ processId, questId, questions: [] }));
+        pendingClarificationState.setForProcess({ processId, questId, questions: [] });
       }).toThrow(/questions/u);
       expect(
         pendingClarificationState.promoteToSession({
@@ -63,7 +62,7 @@ describe('pendingClarificationState', () => {
       const processId = 'proc-promote';
       const questId = QuestIdStub({ value: 'quest-promote' });
       const questions = [ClarificationQuestionStub()];
-      proxy.setupWithProcessEntry(PendingClarificationEntryStub({ processId, questId, questions }));
+      proxy.setupWithProcessEntry({ processId, questId, questions });
 
       const sessionId = SessionIdStub({ value: 'session-promote' });
       const result = pendingClarificationState.promoteToSession({ processId, sessionId });
@@ -104,7 +103,7 @@ describe('pendingClarificationState', () => {
       const processId = 'proc-remove';
       const questId = QuestIdStub({ value: 'quest-remove' });
       const questions = [ClarificationQuestionStub()];
-      proxy.setupWithProcessEntry(PendingClarificationEntryStub({ processId, questId, questions }));
+      proxy.setupWithProcessEntry({ processId, questId, questions });
 
       const sessionId = SessionIdStub({ value: 'session-remove' });
       pendingClarificationState.promoteToSession({ processId, sessionId });
@@ -124,7 +123,7 @@ describe('pendingClarificationState', () => {
       const sessionId = SessionIdStub({ value: 'session-get' });
       const questId = QuestIdStub({ value: 'quest-get' });
       const questions = [ClarificationQuestionStub()];
-      proxy.setupWithSessionEntry(PendingClarificationEntryStub({ sessionId, questId, questions }));
+      proxy.setupWithSessionEntry({ sessionId, questId, questions });
 
       const result = pendingClarificationState.getForSession({ sessionId });
 
@@ -161,7 +160,7 @@ describe('pendingClarificationState', () => {
       const sessionId = SessionIdStub({ value: 'session-del' });
       const questId = QuestIdStub({ value: 'quest-del' });
       const questions = [ClarificationQuestionStub()];
-      proxy.setupWithSessionEntry(PendingClarificationEntryStub({ sessionId, questId, questions }));
+      proxy.setupWithSessionEntry({ sessionId, questId, questions });
 
       const result = pendingClarificationState.removeForSession({ sessionId });
 
@@ -189,13 +188,13 @@ describe('pendingClarificationState', () => {
       const questions = [ClarificationQuestionStub()];
       const sessionId = SessionIdStub({ value: 'session-clear' });
 
-      pendingClarificationState.setForProcess(PendingClarificationEntryStub({ processId, questId, questions }));
+      pendingClarificationState.setForProcess({ processId, questId, questions });
       pendingClarificationState.promoteToSession({ processId, sessionId });
-      pendingClarificationState.setForProcess(PendingClarificationEntryStub({
+      pendingClarificationState.setForProcess({
         processId: 'proc-clear-2',
         questId,
         questions,
-      }));
+      });
 
       pendingClarificationState.clear();
 

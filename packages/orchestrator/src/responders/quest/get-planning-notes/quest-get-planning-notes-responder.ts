@@ -20,7 +20,7 @@ export type QuestGetPlanningNotesResponderResult =
 export const QuestGetPlanningNotesResponder = async ({
   questId,
 }: {
-  questId: Quest['id'];
+  questId: string;
 }): Promise<QuestGetPlanningNotesResponderResult> => {
   try {
     const parsedQuestId = questContract.shape.id.parse(questId);

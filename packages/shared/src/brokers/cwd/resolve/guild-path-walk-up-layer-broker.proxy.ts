@@ -1,4 +1,3 @@
-import type { Guild } from '../../../contracts/guild/guild-contract';
 import { dirname, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
@@ -8,7 +7,7 @@ type FilePath = string;
 
 export const guildPathWalkUpLayerBrokerProxy = (): {
   setupGuildFoundAtStart: (params: { startPath: string }) => void;
-  setupGuildFoundInParent: (params: { startPath: string; guildPath: Guild['path'] }) => void;
+  setupGuildFoundInParent: (params: { startPath: string; guildPath: string }) => void;
   setupGuildNotFound: (params: { startPath: string }) => void;
 } => {
   const pathExistsHandle = pathExistsProxy();
@@ -75,7 +74,7 @@ export const guildPathWalkUpLayerBrokerProxy = (): {
       guildPath,
     }: {
       startPath: string;
-      guildPath: Guild['path'];
+      guildPath: string;
     }): void => {
       stageMissingUntil({ dirPath: startPath, stopAt: guildPath });
       pathExistsHandle.present({ path: guildConfigPathFor({ dirPath: guildPath }) });

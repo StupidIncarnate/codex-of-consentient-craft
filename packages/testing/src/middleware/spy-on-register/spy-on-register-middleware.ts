@@ -96,10 +96,14 @@ export const spyOnRegisterMiddleware = <T extends object>({
     }
   }
 
-  const handle: MockHandle = mockHandleContract.parse({
+  const handle: MockHandle = {
+    ...mockHandleContract.parse({}),
     calledWith: (args: readonly unknown[]): MockStaging => {
       const staged = stagedBySpy.get(spy) ?? [];
-      const record: StagedCall = stagedCallContract.parse({ args, impl: () => undefined, once: false, consumed: false });
+      const record: StagedCall = {
+        ...stagedCallContract.parse({ args, once: false, consumed: false }),
+        impl: () => undefined,
+      };
 
       staged.push(record);
       stagedBySpy.set(spy, staged);
@@ -120,7 +124,7 @@ export const spyOnRegisterMiddleware = <T extends object>({
       (callsBySpy.get(spy) ?? []).filter(
         (call) => mockArgsMatchTransformer({ staged: args, actual: call }) !== null,
       ),
-  });
+  };
 
   return handle;
 };

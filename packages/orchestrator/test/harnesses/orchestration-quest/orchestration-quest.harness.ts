@@ -66,7 +66,7 @@ type PlanningNotes = Quest['planningNotes'];
 type QuestStatus = Quest['status'];
 type QuestType = Quest['questType'];
 type WorktreePath = NonNullable<Quest['worktreePath']>;
-type BranchName = NonNullable<Quest['branchName']>;
+type BranchName = string;
 
 export const orchestrationQuestHarness = (): {
   afterEach: () => Promise<void>;

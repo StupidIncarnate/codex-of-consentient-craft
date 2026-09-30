@@ -19,12 +19,14 @@ import type { ItemWithId } from '@dungeonmaster/shared/contracts';
 
 import { questItemDeepMergeTransformer } from '../quest-item-deep-merge/quest-item-deep-merge-transformer';
 
+// `updates` is the structural shape, not `T`: a modify-quest patch is partial by design, and the
+// caller re-parses the whole quest after the merge.
 export const questArrayUpsertTransformer = <T extends ItemWithId>({
   existing,
   updates,
 }: {
-  existing: T[];
-  updates: T[];
+  existing: readonly T[];
+  updates: readonly ItemWithId[];
 }): T[] => {
   const result = [...existing];
 
@@ -38,13 +40,14 @@ export const questArrayUpsertTransformer = <T extends ItemWithId>({
     }
 
     const existingIndex = result.findIndex((item) => item.id === update.id);
+    const current = result[existingIndex];
+    const next = (
+      current === undefined ? update : questItemDeepMergeTransformer({ existing: current, update })
+    ) as T;
     if (existingIndex >= 0) {
-      result[existingIndex] = questItemDeepMergeTransformer({
-        existing: result[existingIndex] as ItemWithId,
-        update: update as ItemWithId,
-      }) as T;
+      result[existingIndex] = next;
     } else {
-      result.push(update);
+      result.push(next);
     }
   }
 

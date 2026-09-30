@@ -1,4 +1,3 @@
-import type { Guild } from '../../../contracts/guild/guild-contract';
 import { configRootFindBrokerProxy } from '../../config-root/find/config-root-find-broker.proxy';
 import { projectRootFindBrokerProxy } from '../../project-root/find/project-root-find-broker.proxy';
 import { dungeonmasterHomeFindBrokerProxy } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
@@ -15,7 +14,7 @@ export const cwdResolveBrokerProxy = (): {
     projectRoot: string;
   }) => void;
   setupGuildPathFoundAtStart: (params: { startPath: string }) => void;
-  setupGuildPathFoundInParent: (params: { startPath: string; guildPath: Guild['path'] }) => void;
+  setupGuildPathFoundInParent: (params: { startPath: string; guildPath: string }) => void;
   setupGuildPathNotFound: (params: { startPath: string }) => void;
   setupDungeonmasterHomeFromHomedir: (params: { homeDir: string; homePath: string }) => void;
   setupDungeonmasterHomeFromEnv: (params: { homePath: string }) => void;
@@ -74,7 +73,7 @@ export const cwdResolveBrokerProxy = (): {
       guildPath,
     }: {
       startPath: string;
-      guildPath: Guild['path'];
+      guildPath: string;
     }): void => {
       guildWalkProxy.setupGuildFoundInParent({ startPath, guildPath });
     },

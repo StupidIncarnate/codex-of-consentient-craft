@@ -30,49 +30,61 @@ const getProjectInventorySchema = toJSONSchema(getProjectInventoryInputContract,
 const getProjectMapSchema = toJSONSchema(getProjectMapInputContract, jsonSchemaOptions);
 
 export const ArchitectureFlow = (): ToolRegistration[] => [
-  toolRegistrationContract.parse({
-    name: 'discover' as never,
-    description:
-      'Discover utilities, brokers, and files across the codebase. Identifier-shaped grep patterns (2+ word tokens, no regex metacharacters) match across naming conventions by default — pass strict:true for literal-regex matching.' as never,
-    inputSchema: discoverSchema as never,
+  {
+    ...toolRegistrationContract.parse({
+      name: 'discover',
+      description:
+        'Discover utilities, brokers, and files across the codebase. Identifier-shaped grep patterns (2+ word tokens, no regex metacharacters) match across naming conventions by default — pass strict:true for literal-regex matching.',
+      inputSchema: discoverSchema,
+    }),
     handler: async ({ args, meta }) =>
-      ArchitectureHandleResponder({ tool: 'discover' as never, args, meta }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'get-architecture' as never,
-    description: 'Returns complete architecture overview' as never,
-    inputSchema: emptySchema as never,
+      ArchitectureHandleResponder({ tool: 'discover', args, meta }),
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'get-architecture',
+      description: 'Returns complete architecture overview',
+      inputSchema: emptySchema,
+    }),
     handler: async ({ args, meta }) =>
-      ArchitectureHandleResponder({ tool: 'get-architecture' as never, args, meta }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'get-folder-detail' as never,
-    description: 'Returns detailed information about a specific folder type' as never,
-    inputSchema: folderDetailSchema as never,
+      ArchitectureHandleResponder({ tool: 'get-architecture', args, meta }),
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'get-folder-detail',
+      description: 'Returns detailed information about a specific folder type',
+      inputSchema: folderDetailSchema,
+    }),
     handler: async ({ args, meta }) =>
-      ArchitectureHandleResponder({ tool: 'get-folder-detail' as never, args, meta }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'get-testing-patterns' as never,
-    description: 'Returns testing patterns and philosophy for writing tests and proxies' as never,
-    inputSchema: emptySchema as never,
+      ArchitectureHandleResponder({ tool: 'get-folder-detail', args, meta }),
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'get-testing-patterns',
+      description: 'Returns testing patterns and philosophy for writing tests and proxies',
+      inputSchema: emptySchema,
+    }),
     handler: async ({ args, meta }) =>
-      ArchitectureHandleResponder({ tool: 'get-testing-patterns' as never, args, meta }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'get-project-map' as never,
-    description:
-      'Returns a project-map slice for the requested packages: connection graphs, folder types, file counts. Pass one or more package names; required.' as never,
-    inputSchema: getProjectMapSchema as never,
+      ArchitectureHandleResponder({ tool: 'get-testing-patterns', args, meta }),
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'get-project-map',
+      description:
+        'Returns a project-map slice for the requested packages: connection graphs, folder types, file counts. Pass one or more package names; required.',
+      inputSchema: getProjectMapSchema,
+    }),
     handler: async ({ args, meta }) =>
-      ArchitectureHandleResponder({ tool: 'get-project-map' as never, args, meta }),
-  }),
-  toolRegistrationContract.parse({
-    name: 'get-project-inventory' as never,
-    description:
-      'Returns the per-package folder/file inventory section for a single package' as never,
-    inputSchema: getProjectInventorySchema as never,
+      ArchitectureHandleResponder({ tool: 'get-project-map', args, meta }),
+  },
+  {
+    ...toolRegistrationContract.parse({
+      name: 'get-project-inventory',
+      description:
+        'Returns the per-package folder/file inventory section for a single package',
+      inputSchema: getProjectInventorySchema,
+    }),
     handler: async ({ args, meta }) =>
-      ArchitectureHandleResponder({ tool: 'get-project-inventory' as never, args, meta }),
-  }),
+      ArchitectureHandleResponder({ tool: 'get-project-inventory', args, meta }),
+  },
 ];

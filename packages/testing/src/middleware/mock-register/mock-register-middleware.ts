@@ -80,10 +80,14 @@ export const mockRegisterMiddleware = ({ fn }: { fn: MockFunction }): MockHandle
     }
   }
 
-  const handle: MockHandle = mockHandleContract.parse({
+  const handle: MockHandle = {
+    ...mockHandleContract.parse({}),
     calledWith: (args: readonly unknown[]): MockStaging => {
       const staged = stagedByMock.get(mock) ?? [];
-      const record: StagedCall = stagedCallContract.parse({ args, impl: () => undefined, once: false, consumed: false });
+      const record: StagedCall = {
+        ...stagedCallContract.parse({ args, once: false, consumed: false }),
+        impl: () => undefined,
+      };
 
       staged.push(record);
       stagedByMock.set(mock, staged);
@@ -104,7 +108,7 @@ export const mockRegisterMiddleware = ({ fn }: { fn: MockFunction }): MockHandle
       (callsByMock.get(mock) ?? []).filter(
         (call) => mockArgsMatchTransformer({ staged: args, actual: call }) !== null,
       ),
-  });
+  };
 
   return handle;
 };

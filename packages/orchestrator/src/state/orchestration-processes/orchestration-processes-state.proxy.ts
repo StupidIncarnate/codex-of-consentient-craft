@@ -2,7 +2,7 @@ import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest
 import type { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { orchestrationProcessesState } from './orchestration-processes-state';
-import type { OrchestrationProcessStub } from '../../contracts/orchestration-process/orchestration-process.stub';
+import { OrchestrationProcessStub } from '../../contracts/orchestration-process/orchestration-process.stub';
 
 type OrchestrationProcess = ReturnType<typeof OrchestrationProcessStub>;
 type ProcessId = string;

@@ -3,19 +3,22 @@
  *
  * USAGE:
  * const node = treeNodeContract.parse({
- *   name: folderNameContract.parse('guards'),
+ *   name: 'guards',
  *   children: new Map(),
  *   items: []
  * });
  * // Returns validated TreeNode
  */
 import { z } from '#gateway/npm/zod';
-import { folderNameContract } from '../folder-name/folder-name-contract';
 import { treeItemContract } from '../tree-item/tree-item-contract';
+import type { TreeItem } from '../tree-item/tree-item-contract';
 
-interface TreeNodeSelf {
-  name: string;
-  items: z.infer<typeof treeItemContract>[];
+// Spelled out, not inferred: the getter below needs the node's own type before `treeNodeContract`
+// exists. It carries the same brands the contract's output does, so a child read out of `children`
+// is a `TreeNode`.
+interface TreeNodeSelf extends z.core.$brand<'TreeNode'> {
+  name: string & z.core.$brand<'TreeNodeName'>;
+  items: TreeItem[];
   children: Map<string, TreeNodeSelf>;
 }
 
@@ -24,8 +27,8 @@ interface TreeNodeSelf {
 export const treeNodeContract = z.object({
   name: z.string().brand<'TreeNodeName'>(),
   items: z.array(treeItemContract),
-  get children(): z.ZodMap<typeof folderNameContract, z.core.$ZodType<TreeNodeSelf>> {
-    return z.map(folderNameContract, treeNodeContract);
+  get children(): z.ZodMap<z.ZodString, z.core.$ZodType<TreeNodeSelf>> {
+    return z.map(z.string(), treeNodeContract);
   },
 }).brand<'TreeNode'>();
 

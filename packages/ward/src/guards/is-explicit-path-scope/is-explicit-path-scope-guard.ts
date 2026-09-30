@@ -17,7 +17,7 @@
  * caller hands over the config from BEFORE or AFTER the git scope layer: `committed`/`uncommitted`
  * survive that layer untouched, so a git-derived scope reads as git-derived either way.
  *
- * A CLASSIFICATION IS OWED FOR EVERY FIELD, and `satisfies Record<keyof WardConfig, WardPathOrigin>`
+ * A CLASSIFICATION IS OWED FOR EVERY FIELD, and `satisfies Record<Exclude<keyof WardConfig, symbol>, WardPathOrigin>`
  * collects it — the same build-time trap `isFileScopeRequestedGuard` sets, for a different question.
  * A field added to `wardConfigContract` without an origin fails `tsc`; so does one removed. A second
  * way to name paths therefore cannot be added without deciding whether a human typed it.
@@ -33,9 +33,9 @@ const PATH_ORIGIN_BY_FIELD = {
   committed: 'gitDerived',
   uncommitted: 'gitDerived',
   passthrough: 'callerTyped',
-} as const satisfies Record<keyof WardConfig, WardPathOrigin>;
+} as const satisfies Record<Exclude<keyof WardConfig, symbol>, WardPathOrigin>;
 
-const FIELDS = Object.keys(PATH_ORIGIN_BY_FIELD) as (keyof WardConfig)[];
+const FIELDS = Object.keys(PATH_ORIGIN_BY_FIELD) as Exclude<keyof WardConfig, symbol>[];
 
 const GIT_DERIVED_FIELDS = FIELDS.filter((field) => PATH_ORIGIN_BY_FIELD[field] === 'gitDerived');
 const CALLER_TYPED_FIELDS = FIELDS.filter((field) => PATH_ORIGIN_BY_FIELD[field] === 'callerTyped');

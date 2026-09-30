@@ -21,7 +21,7 @@
  * dispatcher paused but PLAYABLE.
  */
 
-import type { Guild, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
@@ -101,7 +101,7 @@ export const dispatchHarness = ({
     // sessions run in the worktree, so their JSONL lands under the worktree's path encoding and
     // the server has to resolve their tails through this field rather than the guild path.
     worktreePath?: string;
-  }) => Promise<{ questId: Quest['id']; questFolder: Quest['folder']; questFilePath: string }>;
+  }) => Promise<{ questId: string; questFolder: string; questFilePath: string }>;
   queueScript: (params: {
     script: {
       role: string;
@@ -344,7 +344,7 @@ export const dispatchHarness = ({
       const body: unknown = await response.json();
       return {
         status: dmHttpResponseContract.shape.status.parse(response.status()),
-        processId: (body as Record<PropertyKey, unknown>).processId,
+        processId: String((body as Record<PropertyKey, unknown>).processId),
       };
     },
   };

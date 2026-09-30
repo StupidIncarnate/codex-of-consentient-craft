@@ -61,7 +61,7 @@
  */
 
 import { blightChecklistContract, blightChecklistItemContract, blightConcernContract } from '@dungeonmaster/shared/contracts';
-import type { BlightChecklist, Quest, QuestBlightLedgerEntry, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, QuestBlightLedgerEntry, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 
 import { blightConcernGatingStatics } from '../../statics/blight-concern-gating/blight-concern-gating-statics';
 
@@ -97,7 +97,7 @@ export const blightChecklistBuildTransformer = ({
   ledger?: readonly QuestBlightLedgerEntry[];
   packagesAffected?: readonly QuestPackageEntry[];
   projectRoot?: string;
-  baseRef: NonNullable<Quest['baseRef']>;
+  baseRef: string;
 }): BlightChecklist => {
   const selfPairedFiles: string[] = [];
   const groups = new Map<string, string[]>();

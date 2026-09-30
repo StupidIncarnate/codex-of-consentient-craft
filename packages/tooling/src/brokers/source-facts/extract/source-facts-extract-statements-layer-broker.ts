@@ -16,9 +16,9 @@ export const sourceFactsExtractStatementsLayerBroker = ({
 }: {
   sourceFile: ts.SourceFile;
 }): Omit<SourceFacts, 'catchAllSites'> => {
-  const imports: SourceFacts['imports'] = [];
-  const reExports: SourceFacts['reExports'] = [];
-  const exportNames: SourceFacts['exportNames'] = [];
+  const imports: { specifier: string; names: string[] }[] = [];
+  const reExports: { specifier: string; names: string[]; isStar: boolean }[] = [];
+  const exportNames: string[] = [];
 
   for (const statement of sourceFile.statements) {
     if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {

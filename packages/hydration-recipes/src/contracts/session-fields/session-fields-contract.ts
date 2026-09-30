@@ -25,11 +25,18 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 const sessionFieldsShape = z.object({
   sessionId: sessionContract.shape.id,
-  cwd: absoluteFilePathContract,
+  cwd: z
+    .string()
+    .min(1)
+    .refine(
+      (path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path),
+      { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+    )
+    .brand<'SessionFieldsShapeCwd'>(),
   lines: z.array(z.string().min(1).brand<'SessionFieldsShapeLines'>()),
 }).brand<'SessionFieldsShape'>();
 
@@ -38,4 +45,4 @@ export type SessionFields = z.infer<typeof sessionFieldsShape>;
 export const sessionFieldsContract: z.ZodType<
   SessionFields,
   z.input<typeof sessionFieldsShape>
-> = sessionFieldsShape;
+> = sessionFieldsShape.transform((fields) => fields);

@@ -6,7 +6,7 @@
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
  * await quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import type { Guild, WardResult, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { appendFile, ensureDir, readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, dirname, join } from '#gateway/node/path';
@@ -98,7 +98,7 @@ export const questHarness = ({
   baseURL?: string;
   request: APIRequestContext;
 }): {
-  createQuest: (params: { guildId: Guild['id']; title: string; userRequest: string }) => Promise<{
+  createQuest: (params: { guildId: string; title: string; userRequest: string }) => Promise<{
     questId: string;
     questFolder: string;
     filePath: string;
@@ -110,7 +110,7 @@ export const questHarness = ({
     guildId: string;
     title: string;
     userRequest: string;
-  }) => Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: string }>;
+  }) => Promise<{ questId: string; questFolder: string; filePath: string }>;
   writeQuestFile: (params: {
     guildId?: string;
     questId: string;
@@ -248,7 +248,7 @@ export const questHarness = ({
     wardResultId: string;
     detail: Record<PropertyKey, unknown>;
   }) => Promise<void>;
-  patchQuestStatus: (params: { questId: Quest['id']; status: string }) => Promise<void>;
+  patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
   // Walks a quest to 'in_progress' through dmRegistryBroker's declared transitions.reach — the
   // quest ingredient's own route for that hop is the real POST /api/quests/:questId/start (see
   // quest-ingredient-broker.ts's own header), never a bare status write. patchQuestStatus's
@@ -265,14 +265,14 @@ export const questHarness = ({
   // the real PATCH route's side effects, and the WS broadcast is exactly the side effect this one
   // exists for. PATCH /api/quests/:questId with the status the quest ALREADY has is the only route
   // onto it.
-  forceStatusRebroadcast: (params: { questId: Quest['id']; status: string }) => Promise<void>;
+  forceStatusRebroadcast: (params: { questId: string; status: string }) => Promise<void>;
   // RAW ON PURPOSE — same cross-process gap as forceStatusRebroadcast above: dmRegistryBroker's
   // `update` route calls questModifyBroker inside THIS test process, so its questPersistBroker
   // outbox append is cross-process relative to the real dev server hosting
   // orchestratorOutboxWatchAdapter and does not reliably wake it. PATCH /api/quests/:questId run
   // through the server's own HTTP handler is what appends the outbox INSIDE that process, which is
   // what a spec asserting on the WS-delivered flow update actually needs.
-  patchQuestFlows: (params: { questId: Quest['id']; flows: FlowInput[] }) => Promise<void>;
+  patchQuestFlows: (params: { questId: string; flows: FlowInput[] }) => Promise<void>;
   rewindQuestStatus: (params: { questFilePath: string; status: string }) => Promise<void>;
   tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
@@ -300,7 +300,7 @@ export const questHarness = ({
   // one-field shape as patchQuestStatus above, aimed at the snapshot field questPauseBroker stamps
   // for real. A spec proving what RESUME does with an already-paused quest needs this as a
   // PRECONDITION (the quest was paused before the test's own mutation), not as the mutation itself.
-  seedPausedAtStatus: (params: { questId: Quest['id']; pausedAtStatus: string }) => Promise<void>;
+  seedPausedAtStatus: (params: { questId: string; pausedAtStatus: string }) => Promise<void>;
   // RAW ON PURPOSE — same route as pauseQuest above, but hands back the response instead of
   // throwing: a spec asserting the pause route's exact status code AND JSON body (not just that it
   // succeeded) needs both, and pauseQuest deliberately discards them for its own callers, which
@@ -389,7 +389,7 @@ export const questHarness = ({
     guildId: string;
     title: string;
     userRequest: string;
-  }): Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: string }> => {
+  }): Promise<{ questId: string; questFolder: string; filePath: string }> => {
     const plan = recipe(
       { name: 'seed-quest-write', description: 'seed one quest via write route' },
       () => [
@@ -967,7 +967,7 @@ export const questHarness = ({
   // hydration-recipes' own `questOwningGuildFindBroker` exists to close — internal to that
   // package, unreachable from here). This mirrors that broker's own algorithm — scan every guild's
   // quest list for the id — over the one surface this harness can reach: the real HTTP API.
-  const resolveQuestOwningGuildId = async ({ questId }: { questId: Quest['id'] }): Promise<Guild['id']> => {
+  const resolveQuestOwningGuildId = async ({ questId }: { questId: string }): Promise<Guild['id']> => {
     const guildsResponse = await request.get('/api/guilds');
     const guildsBody = (await guildsResponse.json()) as ApiListRecord[];
     const guilds = Array.isArray(guildsBody) ? guildsBody : [];
@@ -1041,7 +1041,7 @@ export const questHarness = ({
   // questModifyBroker entirely and calls the real POST /api/quests/:questId/start — seeding the
   // operations relay and enqueuing the quest exactly as OrchestrationStartResponder does. See
   // quest-ingredient-broker.ts's own header for the full reasoning.
-  const startQuest = async ({ questId }: { questId: Quest['id'] }): Promise<void> => {
+  const startQuest = async ({ questId }: { questId: string }): Promise<void> => {
     const guildId = await resolveQuestOwningGuildId({ questId });
 
     // Same intersection as patchQuestStatus's own filterWhere: `id` is not a QuestFields key, so
@@ -1072,7 +1072,7 @@ export const questHarness = ({
   // questModifyBroker refuses a bare `status: 'paused'` write by name, and reaching it for real
   // requires killing every registered subprocess through `state/`, which this package cannot
   // import. POST /api/quests/:questId/pause is the only route onto it.
-  const pauseQuest = async ({ questId }: { questId: Quest['id'] }): Promise<void> => {
+  const pauseQuest = async ({ questId }: { questId: string }): Promise<void> => {
     const pauseRoute = `/api/quests/${questId}/pause`;
     const response = await request.post(pauseRoute);
     if (!response.ok()) {

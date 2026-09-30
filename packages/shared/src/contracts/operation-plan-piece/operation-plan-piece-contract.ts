@@ -19,7 +19,7 @@ import { relativeFilePathContract } from '../relative-file-path/relative-file-pa
 
 
 export const operationPlanPieceContract = z.object({
-  id: operationPlanPieceId.describe(
+  id: z.uuid().brand<'OperationPlanPieceId'>().describe(
     "Identity for this piece within the plan. Another piece's dependsOn[] references this id to " +
       'order dispatch — the piece that owns a shared file or contract another piece builds on gets ' +
       'referenced there so a worker never starts against something not yet on disk.',
@@ -71,7 +71,7 @@ export const operationPlanPieceContract = z.object({
         'this piece was meant to close.',
     ),
   dependsOn: z
-    .array(operationPlanPieceId)
+    .array(z.uuid().brand<'OperationPlanPieceDependsOn'>())
     .default([])
     .describe(
       'Other piece ids in THIS plan that must land first. Orders dispatch within the plan — a piece ' +

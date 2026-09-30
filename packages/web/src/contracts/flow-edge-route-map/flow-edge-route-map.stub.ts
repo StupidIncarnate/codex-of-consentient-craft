@@ -4,7 +4,7 @@ import { flowEdgeRouteMapContract } from './flow-edge-route-map-contract';
 import type { FlowEdgeRouteMap } from './flow-edge-route-map-contract';
 
 export const FlowEdgeRouteMapStub = (
-  { ...props }: StubArgument<FlowEdgeRouteMap> = {
+  { ...props }: StubArgument<Record<string, readonly { x: number; y: number }[]>> = {
     e1: [
       { x: 0, y: 0 },
       { x: 0, y: 60 },

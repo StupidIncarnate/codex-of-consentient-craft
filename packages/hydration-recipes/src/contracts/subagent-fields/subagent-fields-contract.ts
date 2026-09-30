@@ -56,4 +56,4 @@ export type SubagentFields = z.infer<typeof subagentFieldsShape>;
 export const subagentFieldsContract: z.ZodType<
   SubagentFields,
   z.input<typeof subagentFieldsShape>
-> = subagentFieldsShape;
+> = subagentFieldsShape.transform((fields) => fields);
