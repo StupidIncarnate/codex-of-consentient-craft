@@ -129,11 +129,15 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 13:01, machine clock)
+### Now (updated at every event; last 2026-09-30 13:18, machine clock)
 
-| Running | Where |
-|---|---|
-| operator: the last full `npm run ward` before merging into master | gateway-pivot checkout |
+**gateway-pivot is merged into master** (fast-forward; master had not moved since the 11:00 measurement). Last full ward
+before the merge, run 1790798496503-8a33: **1,013 s (16.9 minutes)**, every check green: lint 11,514 files (103 s),
+typecheck 11,480 (25 s), unit 4,176 (79 s), integration 230 (76 s), e2e 131 (331 s); exit 1 only on slow-lint flags
+(rule 21). The 2026-09-29 baseline was 1,113 s.
+
+**Next:** `build:clean` in the main checkout and settings regeneration there (its hooks otherwise run the old rules);
+remove the `gp-merge-master` worktree and branch; then P2 work bundled with the user's defect swarm, P3 after.
 
 **Final gate:** `build:clean` pass; `check:published` pass; `check:consumer` 174 of 174 (148 local, 26 global);
 full ward 1790796592908-a9ef had two integration reds, both fixed since (0d81eabc0, f6bcd0bd6). If this last full
