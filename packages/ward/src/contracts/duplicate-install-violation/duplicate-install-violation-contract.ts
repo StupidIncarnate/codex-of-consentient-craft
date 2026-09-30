@@ -18,12 +18,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { duplicateInstallPackageNameContract } from '../duplicate-install-package-name/duplicate-install-package-name-contract';
 import { duplicateInstallLocationContract } from '../duplicate-install-location/duplicate-install-location-contract';
 import { duplicateInstallThresholdsStatics } from '../../statics/duplicate-install-thresholds/duplicate-install-thresholds-statics';
 
 export const duplicateInstallViolationContract = z.object({
-  packageName: duplicateInstallPackageNameContract,
+  packageName: z.string().min(1).brand<'DuplicateInstallViolationPackageName'>(),
   locations: z
     .array(duplicateInstallLocationContract)
     .min(duplicateInstallThresholdsStatics.counts.minimumLocationsForViolation),

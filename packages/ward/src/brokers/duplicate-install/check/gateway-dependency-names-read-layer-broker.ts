@@ -15,16 +15,12 @@ import { readFile } from '#gateway/node/fs__promises';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import {
-  duplicateInstallPackageNameContract,
-  type DuplicateInstallPackageName,
-} from '../../../contracts/duplicate-install-package-name/duplicate-install-package-name-contract';
 
 export const gatewayDependencyNamesReadLayerBroker = async ({
   gatewayFolders,
 }: {
   gatewayFolders: readonly ProjectFolder[];
-}): Promise<readonly DuplicateInstallPackageName[]> => {
+}): Promise<readonly string[]> => {
   const namesPerFolder = await Promise.all(
     gatewayFolders.map(async (folder) => {
       const packageJsonPath = `${folder.path}/package.json`;
@@ -40,5 +36,5 @@ export const gatewayDependencyNamesReadLayerBroker = async ({
 
   const uniqueNames = [...new Set(namesPerFolder.flat())].sort();
 
-  return uniqueNames.map((name) => duplicateInstallPackageNameContract.parse(name));
+  return uniqueNames.map((name) => name);
 };
