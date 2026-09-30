@@ -2,7 +2,6 @@ import { violationMessageFormatFullTransformer } from './violation-message-forma
 import { ViolationCountStub } from '../../contracts/violation-count/violation-count.stub';
 import { ViolationDetailStub } from '../../contracts/violation-detail/violation-detail.stub';
 import { PreEditLintConfigStub } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config.stub';
-import { MessageStub } from '../../contracts/message/message.stub';
 
 type ViolationCount = ReturnType<typeof ViolationCountStub>;
 
@@ -160,9 +159,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           {
             rule: 'custom-rule',
             message: (hookData: unknown) => {
-              return MessageStub({
-                value: `Dynamic message for ${JSON.stringify(hookData)}`,
-              });
+              return `Dynamic message for ${JSON.stringify(hookData)}`;
             },
           },
         ],

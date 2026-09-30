@@ -1,6 +1,4 @@
 import { ruleConfigContract } from './rule-config-contract';
-import { messageContract } from '../message/message-contract';
-import type { Message } from '../message/message-contract';
 import { RuleConfigStub } from './rule-config.stub';
 
 describe('ruleConfigContract', () => {
@@ -24,8 +22,8 @@ describe('ruleConfigContract', () => {
   });
 
   it('VALID: {message function} => keeps the same function', () => {
-    const message = (hookData: unknown): Message => {
-      return messageContract.parse(`saw ${typeof hookData}`);
+    const message = (hookData: unknown): string => {
+      return `saw ${typeof hookData}`;
     };
 
     const result = RuleConfigStub({ rule: 'no-console', message });

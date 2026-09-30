@@ -1,6 +1,5 @@
 import { hookPostEditResponderResultContract } from './hook-post-edit-responder-result-contract';
 import { LintResultStub } from '../lint-result/lint-result.stub';
-import { MessageStub } from '../message/message.stub';
 
 type LintResult = ReturnType<typeof LintResultStub>;
 
@@ -8,7 +7,7 @@ describe('hookPostEditResponderResultContract', () => {
   describe('with valid result data', () => {
     it('VALID: {violations: [], message: "message"} => parses successfully', () => {
       const violations: LintResult[] = [];
-      const message = MessageStub({ value: 'No violations detected' });
+      const message = 'No violations detected';
 
       const result = hookPostEditResponderResultContract.parse({
         violations,
@@ -28,7 +27,7 @@ describe('hookPostEditResponderResultContract', () => {
         errorCount: 0,
         warningCount: 0,
       });
-      const message = MessageStub({ value: '1 file checked' });
+      const message = '1 file checked';
 
       const result = hookPostEditResponderResultContract.parse({
         violations: [lintResult],
