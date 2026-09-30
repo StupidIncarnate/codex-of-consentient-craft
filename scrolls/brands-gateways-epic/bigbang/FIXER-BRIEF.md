@@ -15,6 +15,23 @@ they applied are in `scrolls/brands-types-tests-rules.md` (B1 to B6). In short:
 - An id field reuses its owner's field: `Quest['id']`, or `questContract.shape.id` inside another contract.
 - A value enters a branded field by going through the owner's parse, never by a cast.
 
+## Operator decisions (these override anything a script did)
+
+1. **Inputs may be plain; returns are branded.** When a script retyped a parameter, a harness input, an error
+   constructor input or a local accumulator from `string`/`number` to a brand or `Owner['field']`, and callers pass
+   plain values, loosen the receiver back to the plain type. Parse where the value becomes part of a returned or
+   stored contract value. Test harnesses (`test/harnesses/**`) always take raw input.
+2. **A contract used only as a generic constraint is not branded** (`T extends ItemWithId`, `TTarget extends
+   HydrationTarget`). Remove its `.brand()`. It describes a structure, not data.
+3. **A record's keys stay plain** (`z.record(z.string(), …)`), unless the key is an owner's id, which then reuses
+   that owner's field (`questContract.shape.id`).
+4. **An object that holds functions is parsed only for its data.** Zod drops fields it does not list, so
+   `toolRegistrationContract.parse({ name, handler })` loses `handler` at runtime. Write
+   `{ ...contract.parse({ <data fields> }), handler }`, or keep the functions out of the zod schema as a TypeScript
+   intersection. Never let a parse strip a function or a field the caller needs.
+5. **Brand text order:** `.default(x)` comes before `.brand<'X'>()`.
+6. **A contract never imports itself**, and an id reuses its owner's field instead of a parallel brand.
+
 ## Your job
 
 You get a batch of 1 to 5 files and the exact type errors in each. Make every listed error go away with a real fix.
