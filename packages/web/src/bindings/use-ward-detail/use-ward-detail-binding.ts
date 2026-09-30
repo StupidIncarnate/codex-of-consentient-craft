@@ -49,7 +49,7 @@ export const useWardDetailBinding = ({
   );
 
   const requestDetail = useCallback(
-    ({ wardResultId }: { wardResultId: WardResultId }): void => {
+    ({ wardResultId }: { wardResultId: WardResult['id'] }): void => {
       if (!questId) return;
 
       setLoading(true);

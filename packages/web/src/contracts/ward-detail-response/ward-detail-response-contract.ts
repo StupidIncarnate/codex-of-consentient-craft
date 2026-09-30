@@ -7,11 +7,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { wardResultContract } from '@dungeonmaster/shared/contracts';
 
 export const wardDetailResponseContract = z
   .object({
     type: z.literal('ward-detail-response'),
-    wardResultId: z.uuid().brand<'WardDetailResponseWardResultId'>(),
+    wardResultId: wardResultContract.shape.id,
     detail: z.json(),
   })
   .brand<'WardDetailResponse'>();

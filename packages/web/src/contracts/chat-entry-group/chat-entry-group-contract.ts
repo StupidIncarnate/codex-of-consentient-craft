@@ -9,7 +9,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { chatEntryContract } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract, agentContract } from '@dungeonmaster/shared/contracts';
 
 const singleGroupContract = z
   .object({
@@ -21,7 +21,7 @@ const singleGroupContract = z
 const baseSubagentChainGroupContract = z.object({
   kind: z.literal('subagent-chain'),
   // Empty is legal: a Task line that carries no toolUseId still becomes a chain, keyed by ''.
-  agentId: z.string().brand<'SubagentChainGroupAgentId'>(),
+  agentId: agentContract.shape.id,
   description: z.string().brand<'SubagentChainGroupDescription'>(),
   taskToolUse: chatEntryContract.nullable(),
   taskNotification: chatEntryContract.nullable(),

@@ -260,7 +260,7 @@ export const webSocketChannelState = {
     wardResultId,
   }: {
     questId: Quest['id'];
-    wardResultId: WardResultId;
+    wardResultId: WardResult['id'];
   }): boolean => {
     if (internalState.socket === null) return false;
     return internalState.socket.send({ type: 'ward-detail-request', questId, wardResultId });
