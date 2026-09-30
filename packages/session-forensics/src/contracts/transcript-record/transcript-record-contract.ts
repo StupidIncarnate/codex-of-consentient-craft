@@ -19,15 +19,15 @@ import { agentContract } from '@dungeonmaster/shared/contracts';
 import { transcriptRecordContentBlockContract } from '../transcript-record-content-block/transcript-record-content-block-contract';
 
 const transcriptRecordMessageContract = z.object({
-  model: z.string().brand<'TranscriptRecordModel'>().optional(),
+  model: z.string().brand<'TranscriptRecordMessageModel'>().optional(),
   content: z
     .union([
-      z.string().brand<'TranscriptRecordBareContent'>(),
+      z.string().brand<'TranscriptRecordMessageContent'>(),
       z.array(transcriptRecordContentBlockContract),
     ])
     .optional(),
-  usage: z.record(z.string().brand<'TranscriptRecordMessageUsage'>(), z.unknown()).optional(),
-});
+  usage: z.record(z.string().brand<'TranscriptRecordMessageUsageKey'>(), z.unknown()).optional(),
+}).brand<'TranscriptRecordMessage'>();
 
 export const transcriptRecordContract = z
   .object({

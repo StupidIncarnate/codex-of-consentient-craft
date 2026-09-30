@@ -41,7 +41,7 @@ export const verificationUnitContract = z
       codeweaver: unitMarkContract.optional(),
       flowrider: unitMarkContract.optional(),
       siegemaster: unitMarkContract.optional(),
-    }),
+    }).brand<'VerificationUnitTrackMarks'>(),
   })
   .brand<'VerificationUnit'>();
 

@@ -15,7 +15,7 @@ import { z } from '#gateway/npm/zod';
 export const toolBriefContract = z
   .object({
     name: z.string().brand<'ToolBriefName'>(),
-    brief: z.string().brand<'ToolBriefText'>(),
+    brief: z.string().brand<'ToolBriefBrief'>(),
   })
   .brand<'ToolBrief'>();
 

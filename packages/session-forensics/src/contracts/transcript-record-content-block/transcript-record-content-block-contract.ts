@@ -14,10 +14,10 @@ import { z } from '#gateway/npm/zod';
 
 export const transcriptRecordContentBlockContract = z.object({
   type: z.string().brand<'TranscriptRecordContentBlockType'>(),
-  text: z.string().brand<'TranscriptRecordContentText'>().optional(),
-  thinking: z.string().brand<'TranscriptRecordContentThinking'>().optional(),
-  name: z.string().brand<'TranscriptRecordToolName'>().optional(),
-  input: z.record(z.string().brand<'TranscriptRecordContentBlockInput'>(), z.unknown()).optional(),
+  text: z.string().brand<'TranscriptRecordContentBlockText'>().optional(),
+  thinking: z.string().brand<'TranscriptRecordContentBlockThinking'>().optional(),
+  name: z.string().brand<'TranscriptRecordContentBlockName'>().optional(),
+  input: z.record(z.string().brand<'TranscriptRecordContentBlockInputKey'>(), z.unknown()).optional(),
 }).brand<'TranscriptRecordContentBlock'>();
 
 export type TranscriptRecordContentBlock = z.infer<typeof transcriptRecordContentBlockContract>;

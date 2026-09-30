@@ -29,7 +29,7 @@ export const timeBucketContract = z
         z.object({
           name: z.string(),
           count: z.number().int().nonnegative(),
-        }),
+        }).brand<'TimeBucketTopTools'>(),
       )
       .default([]),
   })
