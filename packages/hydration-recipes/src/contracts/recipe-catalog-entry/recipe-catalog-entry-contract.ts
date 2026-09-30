@@ -19,7 +19,6 @@ import type {
 } from '@dungeonmaster/hydration/contracts';
 import type { DmTarget } from '../dm-target/dm-target-contract';
 
-import type { RecipeInputKey } from '../recipe-input-key/recipe-input-key-contract';
 
 const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
 
@@ -43,7 +42,7 @@ export type RecipeCatalogEntry = RecipeCatalogEntryData & {
   probeListing: () => {
     runs: PlanRunsResult;
     makes: readonly PlanMakesEntry[];
-    inputKeys: readonly RecipeInputKey[];
+    inputKeys: readonly string[];
   };
   execute: (args: {
     params?: Record<string, unknown> | null;

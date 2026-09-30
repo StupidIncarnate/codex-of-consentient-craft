@@ -21,7 +21,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-contract';
 
 const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
 
@@ -43,7 +42,7 @@ export const recipeListingEntryContract = z
   .object({
     recipeName: z.string().min(1).regex( /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"', ).brand<'RecipeListingEntryRecipeName'>(),
     description: recipeDescriptionContract,
-    inputKeys: z.array(recipeInputKeyContract),
+    inputKeys: z.array(z.string().min(1).brand<'RecipeListingEntryInputKeys'>()),
     runs: recipeRunsContract,
     makes: z.array(recipeMakesEntryContract),
   })

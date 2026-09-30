@@ -23,7 +23,7 @@ const recipesListingShape = z.array(
     .object({
       recipeName: z.string().min(1).brand<'RecipesListingShapeRecipeName'>(),
       description: z.string().min(1).brand<'RecipeDescription'>(),
-      inputKeys: z.array(z.string().min(1).brand<'RecipeInputKey'>()),
+      inputKeys: z.array(z.string().min(1).brand<'RecipesListingShapeInputKeys'>()),
       runs: z.discriminatedUnion('serverless', [
         z.object({ serverless: z.literal(true) }),
         z.object({ serverless: z.literal(false), needsServerFor: ingredientNameShape }),

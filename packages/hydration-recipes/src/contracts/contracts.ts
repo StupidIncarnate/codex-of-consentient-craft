@@ -47,4 +47,3 @@ export * from './transcript-line/transcript-line-contract';
 
 export * from './recipe-catalog-entry/recipe-catalog-entry-contract';
 
-export * from './recipe-input-key/recipe-input-key-contract';

@@ -14,7 +14,6 @@ import { hydrationRunResultContract, planMakesEntryContract, planRunsResultContr
 import type { RecipeCatalogEntry } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
 import { recipeCatalogEntryContract } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
 import { recipeContextContract } from '../../../contracts/recipe-context/recipe-context-contract';
-import { recipeInputKeyContract } from '../../../contracts/recipe-input-key/recipe-input-key-contract';
 import { questAdvancesOneStepInputsContract } from '../../../contracts/quest-advances-one-step-inputs/quest-advances-one-step-inputs-contract';
 import { sessionWithNestedChainInputsContract } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs-contract';
 import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
@@ -126,7 +125,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       const plan = recipesQuestAdvancesOneStepBroker(parseResult.data);
       const listing = dmRegistryBroker.listing(plan);
       const inputKeys = Object.keys(parseResult.data).map((key) =>
-        recipeInputKeyContract.parse(key),
+        key,
       );
       return {
         runs: listing.runs,
@@ -183,7 +182,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       const plan = recipesSessionSingleTurnBroker(parseResult.data);
       const listing = dmRegistryBroker.listing(plan);
       const inputKeys = Object.keys(parseResult.data).map((key) =>
-        recipeInputKeyContract.parse(key),
+        key,
       );
       return {
         runs: listing.runs,
@@ -218,7 +217,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       const plan = recipesSessionWithNestedChainBroker(parseResult.data);
       const listing = dmRegistryBroker.listing(plan);
       const inputKeys = Object.keys(parseResult.data).map((key) =>
-        recipeInputKeyContract.parse(key),
+        key,
       );
       return {
         runs: listing.runs,
@@ -267,7 +266,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
         planMakesEntryContract.parse({ ingredient: 'session', count: 1 }),
         planMakesEntryContract.parse({ ingredient: 'subagent', count: 2 }),
       ],
-      inputKeys: [recipeInputKeyContract.parse('guild')],
+      inputKeys: ['guild'],
     }),
     execute: async ({ params, target }) => {
       const parsedGuild = guildContract.shape.id.safeParse(params?.guild);

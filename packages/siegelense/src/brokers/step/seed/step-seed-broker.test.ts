@@ -1,6 +1,5 @@
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { RecipeInputKeyStub } from '../../../contracts/recipe-input-key/recipe-input-key.stub';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
@@ -131,7 +130,7 @@ describe('stepSeedBroker', () => {
         listing: [
           RecipeListingEntryStub({
             recipeName: 'session-with-nested-chain',
-            inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
+            inputKeys: ['guildPath'],
           }),
         ],
       });
@@ -165,7 +164,7 @@ describe('stepSeedBroker', () => {
         listing: [
           RecipeListingEntryStub({
             recipeName: 'session-with-nested-chain',
-            inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
+            inputKeys: ['guildPath'],
           }),
         ],
       });
@@ -203,7 +202,7 @@ describe('stepSeedBroker', () => {
         listing: [
           RecipeListingEntryStub({
             recipeName: 'session-with-nested-chain',
-            inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
+            inputKeys: ['guildPath'],
           }),
         ],
       });

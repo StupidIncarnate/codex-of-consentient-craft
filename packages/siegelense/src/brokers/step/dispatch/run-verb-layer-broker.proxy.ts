@@ -8,7 +8,6 @@ import type { BrowserSession } from '../../../contracts/browser-session/browser-
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
-import { RecipeInputKeyStub } from '../../../contracts/recipe-input-key/recipe-input-key.stub';
 import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
 import { stepBoxBrokerProxy } from '../box/step-box-broker.proxy';
 import { stepBeforeBrokerProxy } from '../before/step-before-broker.proxy';
@@ -222,7 +221,7 @@ export const runVerbLayerBrokerProxy = (): {
           }),
           RecipeListingEntryStub({
             recipeName: 'session-with-nested-subagent' as never,
-            inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
+            inputKeys: ['guildPath'],
           }),
         ],
       });

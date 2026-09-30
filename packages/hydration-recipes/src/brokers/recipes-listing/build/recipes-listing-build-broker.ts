@@ -10,13 +10,12 @@
 
 import type { PlanMakesEntry, PlanRunsResult } from '@dungeonmaster/hydration/contracts';
 import type { RecipeDescription } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
-import type { RecipeInputKey } from '../../../contracts/recipe-input-key/recipe-input-key-contract';
 import { recipesCatalogBroker } from '../../recipes/catalog/recipes-catalog-broker';
 
 export const recipesListingBuildBroker = (): readonly {
   recipeName: string;
   description: RecipeDescription;
-  inputKeys: readonly RecipeInputKey[];
+  inputKeys: readonly string[];
   runs: PlanRunsResult;
   makes: readonly PlanMakesEntry[];
 }[] =>
