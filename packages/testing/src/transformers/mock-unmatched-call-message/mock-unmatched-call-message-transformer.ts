@@ -8,7 +8,6 @@
 
 import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-import type { MockFunctionName } from '../../contracts/mock-function-name/mock-function-name-contract';
 import type { StagedCall } from '../../contracts/staged-call/staged-call-contract';
 
 export const mockUnmatchedCallMessageTransformer = ({
@@ -16,7 +15,7 @@ export const mockUnmatchedCallMessageTransformer = ({
   args,
   staged,
 }: {
-  name: MockFunctionName;
+  name: string;
   args: readonly unknown[];
   staged: StagedCall[];
 }): ErrorMessage =>
