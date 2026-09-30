@@ -72,7 +72,6 @@ export * from './quest-branch-name/quest-branch-name-contract';
 
 export * from './base-branch-name/base-branch-name-contract';
 
-export * from './file-name/file-name-contract';
 
 export * from './quest-list-item/quest-list-item-contract';
 export * from './skipped-quest-file/skipped-quest-file-contract';

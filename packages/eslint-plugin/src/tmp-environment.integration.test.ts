@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { execSync } from '#gateway/node/child_process';
 import { envSnapshot } from '#gateway/node/process';
-import { integrationEnvironmentCreateBroker, FileNameStub } from '@dungeonmaster/testing';
+import { integrationEnvironmentCreateBroker } from '@dungeonmaster/testing';
 
 /**
  * Integration test to prove that integration test environments can work in /tmp
@@ -30,12 +30,12 @@ describe('Tmp Environment Integration', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'test.txt' }),
+        fileName: 'test.txt',
         content: 'Hello from /tmp!',
       });
 
-      expect(env.fileExists({ fileName: FileNameStub({ value: 'test.txt' }) })).toBe(true);
-      expect(env.readFile({ fileName: FileNameStub({ value: 'test.txt' }) })).toBe(
+      expect(env.fileExists({ fileName: 'test.txt' })).toBe(true);
+      expect(env.readFile({ fileName: 'test.txt' })).toBe(
         'Hello from /tmp!',
       );
     });
@@ -47,18 +47,18 @@ describe('Tmp Environment Integration', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'src/components/Button.tsx' }),
+        fileName: 'src/components/Button.tsx',
         content: 'export const Button = () => <button />;',
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'src/utils/helpers.ts' }),
+        fileName: 'src/utils/helpers.ts',
         content: 'export const helper = () => {};',
       });
 
       expect(
-        env.fileExists({ fileName: FileNameStub({ value: 'src/components/Button.tsx' }) }),
+        env.fileExists({ fileName: 'src/components/Button.tsx' }),
       ).toBe(true);
-      expect(env.fileExists({ fileName: FileNameStub({ value: 'src/utils/helpers.ts' }) })).toBe(
+      expect(env.fileExists({ fileName: 'src/utils/helpers.ts' })).toBe(
         true,
       );
     });
@@ -72,7 +72,7 @@ describe('Tmp Environment Integration', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'hello.ts' }),
+        fileName: 'hello.ts',
         content: `const greeting: string = 'Hello from /tmp';
 console.log(greeting);`,
       });
@@ -92,12 +92,12 @@ console.log(greeting);`,
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'utils.ts' }),
+        fileName: 'utils.ts',
         content: `export const add = (a: number, b: number): number => a + b;`,
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'main.ts' }),
+        fileName: 'main.ts',
         content: `import { add } from './utils';
 console.log(add(2, 3));`,
       });
@@ -120,7 +120,7 @@ console.log(add(2, 3));`,
 
       // Create a config file
       env.writeFile({
-        fileName: FileNameStub({ value: 'config.json' }),
+        fileName: 'config.json',
         content: JSON.stringify({ name: 'test-app', version: '1.0.0' }),
       });
 
@@ -139,17 +139,17 @@ console.log(add(2, 3));`,
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'package.json' }),
+        fileName: 'package.json',
         content: '{}',
       });
       env.writeFile({
-        fileName: FileNameStub({ value: '.gitignore' }),
+        fileName: '.gitignore',
         content: 'node_modules',
       });
 
-      expect(env.fileExists({ fileName: FileNameStub({ value: 'package.json' }) })).toBe(true);
-      expect(env.fileExists({ fileName: FileNameStub({ value: '.gitignore' }) })).toBe(true);
-      expect(env.fileExists({ fileName: FileNameStub({ value: 'nonexistent.txt' }) })).toBe(false);
+      expect(env.fileExists({ fileName: 'package.json' })).toBe(true);
+      expect(env.fileExists({ fileName: '.gitignore' })).toBe(true);
+      expect(env.fileExists({ fileName: 'nonexistent.txt' })).toBe(false);
     });
   });
 
@@ -161,15 +161,15 @@ console.log(add(2, 3));`,
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'test1.txt' }),
+        fileName: 'test1.txt',
         content: 'content 1',
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'test2.txt' }),
+        fileName: 'test2.txt',
         content: 'content 2',
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'subdir/test3.txt' }),
+        fileName: 'subdir/test3.txt',
         content: 'content 3',
       });
 
@@ -194,7 +194,7 @@ console.log(add(2, 3));`,
       });
 
       const tsconfig = JSON.parse(
-        env.readFile({ fileName: FileNameStub({ value: 'tsconfig.json' }) }),
+        env.readFile({ fileName: 'tsconfig.json' }),
       );
 
       expect(tsconfig).toStrictEqual({
@@ -223,7 +223,7 @@ console.log(add(2, 3));`,
         },
       });
 
-      const eslintConfig = env.readFile({ fileName: FileNameStub({ value: 'eslint.config.js' }) });
+      const eslintConfig = env.readFile({ fileName: 'eslint.config.js' });
       const expectedEslintConfig = `
 // Auto-generated eslint config for integration test environment
 const tsParser = require('@typescript-eslint/parser');

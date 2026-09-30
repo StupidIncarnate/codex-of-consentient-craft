@@ -1,4 +1,4 @@
-import { integrationEnvironmentCreateBroker, FileNameStub } from '@dungeonmaster/testing';
+import { integrationEnvironmentCreateBroker } from '@dungeonmaster/testing';
 
 import { toolingRunnerHarness } from '../../../test/harnesses/tooling-runner/tooling-runner.harness';
 
@@ -15,11 +15,11 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'file1.ts' }),
+        fileName: 'file1.ts',
         content: `export const message1 = 'unique message one';`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file2.ts' }),
+        fileName: 'file2.ts',
         content: `export const message2 = 'unique message two';`,
       });
 
@@ -49,15 +49,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'file1.ts' }),
+        fileName: 'file1.ts',
         content: `export const message = 'duplicate string';\nexport const other = 'different';`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file2.ts' }),
+        fileName: 'file2.ts',
         content: `export const msg = 'duplicate string';\nexport const value = 123;`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file3.ts' }),
+        fileName: 'file3.ts',
         content: `export const text = 'duplicate string';`,
       });
 
@@ -87,11 +87,11 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'file1.ts' }),
+        fileName: 'file1.ts',
         content: `export const msg = 'twice only';`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file2.ts' }),
+        fileName: 'file2.ts',
         content: `export const text = 'twice only';`,
       });
 
@@ -145,15 +145,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
       const longString = 'This is a very long string that appears multiple times in the codebase';
       env.writeFile({
-        fileName: FileNameStub({ value: 'file1.ts' }),
+        fileName: 'file1.ts',
         content: `export const msg1 = '${longString}';`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file2.ts' }),
+        fileName: 'file2.ts',
         content: `export const msg2 = '${longString}';`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file3.ts' }),
+        fileName: 'file3.ts',
         content: `export const msg3 = '${longString}';`,
       });
 
@@ -183,15 +183,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
       });
 
       env.writeFile({
-        fileName: FileNameStub({ value: 'file1.ts' }),
+        fileName: 'file1.ts',
         content: `export const pattern1 = /^[a-z]+$/;`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file2.ts' }),
+        fileName: 'file2.ts',
         content: `export const pattern2 = /^[a-z]+$/;`,
       });
       env.writeFile({
-        fileName: FileNameStub({ value: 'file3.ts' }),
+        fileName: 'file3.ts',
         content: `export const pattern3 = /^[a-z]+$/;`,
       });
 

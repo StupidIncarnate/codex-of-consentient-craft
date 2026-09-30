@@ -4,7 +4,6 @@ import type { TestGuild } from './test-guild-contract';
 import { processOutputContract } from '../process-output/process-output-contract';
 import { packageJsonContract } from '../package-json/package-json-contract';
 import { execResultContract } from '@dungeonmaster/shared/contracts';
-import type { FileName } from '../file-name/file-name-contract';
 
 export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestGuild => {
   const {
@@ -50,7 +49,7 @@ export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestG
             typecheck: 'echo "typecheck placeholder"',
           },
         })),
-    getQuestFiles: getQuestFiles ?? ((): FileName[] => []),
+    getQuestFiles: getQuestFiles ?? ((): string[] => []),
     executeCommand:
       executeCommand ??
       ((): ReturnType<TestGuild['executeCommand']> =>

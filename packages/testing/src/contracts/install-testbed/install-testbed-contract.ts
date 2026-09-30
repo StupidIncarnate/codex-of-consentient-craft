@@ -13,7 +13,6 @@ import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { ClaudeSettings } from '../claude-settings/claude-settings-contract';
 import type { McpConfig } from '../mcp-config/mcp-config-contract';
-import type { FileName } from '../file-name/file-name-contract';
 
 export const installTestbedContract = z.object({
   guildPath: z.string().brand<'GuildPath'>(),
@@ -39,7 +38,7 @@ export type InstallTestbed = InstallTestbedData & {
     relativePath: string;
     targetPath: FilePath;
   }) => void;
-  listDir: ({ relativePath }: { relativePath: string }) => readonly FileName[] | null;
+  listDir: ({ relativePath }: { relativePath: string }) => readonly string[] | null;
   getClaudeSettings: () => ClaudeSettings | null;
   getMcpConfig: () => McpConfig | null;
   getDungeonmasterConfig: () => TestbedConfig | null;
