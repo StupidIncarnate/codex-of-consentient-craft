@@ -7,7 +7,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 
 const rawEslintParserOptionsContract = z
   .object({
@@ -22,7 +21,7 @@ const rawEslintLanguageOptionsContract = z
   .loose();
 
 export const rawEslintConfigContract = z.object({
-  rules: z.record(eslintRuleNameContract, z.unknown()).optional(),
+  rules: z.record(z.string().brand<'RawEslintConfigRules'>(), z.unknown()).optional(),
   language: z.unknown().optional(),
   plugins: z.unknown().optional(),
   languageOptions: rawEslintLanguageOptionsContract.optional(),

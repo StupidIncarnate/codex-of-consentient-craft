@@ -1,7 +1,6 @@
 import { configDungeonmasterBroker } from './config-dungeonmaster-broker';
 import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.proxy';
 import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts/gateway-lint-config/gateway-lint-config.stub';
-import { EslintRuleNameStub } from '../../../contracts/eslint-rule-name/eslint-rule-name.stub';
 import typescriptEslintPlugin from '#gateway/npm/typescript-eslint__eslint-plugin';
 import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';
 import * as eslintPluginEslintComments from '#gateway/npm/eslint-plugin-eslint-comments';
@@ -51,7 +50,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-contract-usage-in-tests' })
+          '@dungeonmaster/enforce-contract-usage-in-tests'
         ],
       ).toBe('error');
     });
@@ -63,7 +62,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-object-destructuring-params' })
+          '@dungeonmaster/enforce-object-destructuring-params'
         ],
       ).toBe('error');
     });
@@ -96,7 +95,7 @@ describe('configDungeonmasterBroker', () => {
       });
 
       expect(
-        stubConfig?.rules?.[EslintRuleNameStub({ value: '@typescript-eslint/no-magic-numbers' })],
+        stubConfig?.rules?.['@typescript-eslint/no-magic-numbers'],
       ).toBe('off');
     });
 
@@ -106,7 +105,7 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker();
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@typescript-eslint/no-explicit-any' })],
+        typescript.rules?.['@typescript-eslint/no-explicit-any'],
       ).toBe('error');
     });
 
@@ -117,7 +116,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@typescript-eslint/explicit-function-return-type' })
+          '@typescript-eslint/explicit-function-return-type'
         ],
       ).toStrictEqual(['error', { allowExpressions: true }]);
     });
@@ -128,7 +127,7 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker();
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: 'eslint-comments/no-unlimited-disable' })],
+        typescript.rules?.['eslint-comments/no-unlimited-disable'],
       ).toBe('error');
     });
 
@@ -138,7 +137,7 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker();
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: 'eslint-comments/no-use' })],
+        typescript.rules?.['eslint-comments/no-use'],
       ).toStrictEqual(['error', { allow: [] }]);
     });
 
@@ -157,7 +156,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/require-object-contract-brands' })
+          '@dungeonmaster/require-object-contract-brands'
         ],
       ).toBe('off');
     });
@@ -169,7 +168,7 @@ describe('configDungeonmasterBroker', () => {
 
         const { typescript, ruleEnforceOn } = configDungeonmasterBroker();
 
-        expect(typescript.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe(undefined);
+        expect(typescript.rules?.[ruleName]).toBe(undefined);
         expect(Reflect.has(ruleEnforceOn, ruleName)).toBe(false);
       },
     );
@@ -221,7 +220,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/ban-contract-type-predicates' })
+          '@dungeonmaster/ban-contract-type-predicates'
         ],
       ).toBe('error');
     });
@@ -240,10 +239,10 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker();
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-type-aliases' })],
+        typescript.rules?.['@dungeonmaster/ban-type-aliases'],
       ).toBe('off');
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-adhoc-types' })],
+        typescript.rules?.['@dungeonmaster/ban-adhoc-types'],
       ).toBe('error');
     });
 
@@ -254,7 +253,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/ban-test-support-in-production' })
+          '@dungeonmaster/ban-test-support-in-production'
         ],
       ).toBe('error');
     });
@@ -282,7 +281,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/ban-join-id-beside-child' })
+          '@dungeonmaster/ban-join-id-beside-child'
         ],
       ).toBe('off');
     });
@@ -345,7 +344,7 @@ describe('configDungeonmasterBroker', () => {
 
       const { gateway } = configDungeonmasterBroker();
 
-      expect(gateway.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe(undefined);
+      expect(gateway.rules?.[ruleName]).toBe(undefined);
     });
 
     it.each([
@@ -360,14 +359,14 @@ describe('configDungeonmasterBroker', () => {
 
       const { gateway } = configDungeonmasterBroker();
 
-      expect(gateway.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe('error');
+      expect(gateway.rules?.[ruleName]).toBe('error');
     });
 
     it('VALID: {} => typescript and gateway rules set enforce-stub-usage to a bare "error"', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript, gateway } = configDungeonmasterBroker();
-      const ruleName = EslintRuleNameStub({ value: '@dungeonmaster/enforce-stub-usage' });
+      const ruleName = '@dungeonmaster/enforce-stub-usage';
 
       expect(typescript.rules?.[ruleName]).toBe('error');
       expect(gateway.rules?.[ruleName]).toBe('error');
@@ -379,7 +378,7 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker();
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-gateway-export' })],
+        typescript.rules?.['@dungeonmaster/ban-gateway-export'],
       ).toStrictEqual(['error', {}]);
     });
 
@@ -400,16 +399,16 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker({ gatewayLintConfig });
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-gateway-export' })],
+        typescript.rules?.['@dungeonmaster/ban-gateway-export'],
       ).toStrictEqual(['error', gatewayLintConfig]);
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-gateway-restricted-to' })
+          '@dungeonmaster/enforce-gateway-restricted-to'
         ],
       ).toStrictEqual(['error', gatewayLintConfig]);
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-gateway-config-names-exist' })
+          '@dungeonmaster/enforce-gateway-config-names-exist'
         ],
       ).toStrictEqual(['error', gatewayLintConfig]);
     });
@@ -420,7 +419,7 @@ describe('configDungeonmasterBroker', () => {
       const { gateway } = configDungeonmasterBroker();
 
       expect(
-        gateway.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/gateway-colocation' })],
+        gateway.rules?.['@dungeonmaster/gateway-colocation'],
       ).toStrictEqual(['error', { requireStub: true }]);
     });
 
@@ -431,12 +430,12 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-project-structure' })
+          '@dungeonmaster/enforce-project-structure'
         ],
       ).toBe('error');
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-proxy-child-creation' })
+          '@dungeonmaster/enforce-proxy-child-creation'
         ],
       ).toBe('error');
     });
@@ -457,7 +456,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         startupConfig?.rules?.[
-          EslintRuleNameStub({ value: '@typescript-eslint/no-unused-expressions' })
+          '@typescript-eslint/no-unused-expressions'
         ],
       ).toStrictEqual(['error', { allowShortCircuit: true }]);
     });
@@ -501,7 +500,7 @@ describe('configDungeonmasterBroker', () => {
       const { test } = configDungeonmasterBroker({ forTesting: true });
 
       expect(
-        test.rules?.[EslintRuleNameStub({ value: '@typescript-eslint/no-magic-numbers' })],
+        test.rules?.['@typescript-eslint/no-magic-numbers'],
       ).toBe('off');
     });
 
@@ -511,7 +510,7 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker();
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-negated-matchers' })],
+        typescript.rules?.['@dungeonmaster/ban-negated-matchers'],
       ).toBe('error');
     });
 
@@ -522,7 +521,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/ban-tautological-assertions' })
+          '@dungeonmaster/ban-tautological-assertions'
         ],
       ).toBe('error');
     });
@@ -534,7 +533,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/ban-object-keys-in-expect' })
+          '@dungeonmaster/ban-object-keys-in-expect'
         ],
       ).toBe('error');
     });
@@ -546,7 +545,7 @@ describe('configDungeonmasterBroker', () => {
 
       expect(
         typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/ban-string-includes-in-expect' })
+          '@dungeonmaster/ban-string-includes-in-expect'
         ],
       ).toBe('error');
     });
@@ -557,7 +556,7 @@ describe('configDungeonmasterBroker', () => {
       const { typescript } = configDungeonmasterBroker({ forTesting: false });
 
       expect(
-        typescript.rules?.[EslintRuleNameStub({ value: '@typescript-eslint/no-magic-numbers' })],
+        typescript.rules?.['@typescript-eslint/no-magic-numbers'],
       ).toStrictEqual([
         'error',
         {

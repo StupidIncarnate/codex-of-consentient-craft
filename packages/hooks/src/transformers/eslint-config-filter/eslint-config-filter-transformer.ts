@@ -10,7 +10,6 @@ import type { Linter } from '#gateway/npm/eslint';
 import { isOffRuleSeverityGuard } from '../../guards/is-off-rule-severity/is-off-rule-severity-guard';
 import { dungeonmasterRuleEnforceOnStatics } from '@dungeonmaster/shared/statics';
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import { eslintRuleNameContract } from '../../contracts/eslint-rule-name/eslint-rule-name-contract';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 import { rawEslintConfigToPartialTransformer } from '../raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer';
 import { rawEslintConfigContract } from '../../contracts/raw-eslint-config/raw-eslint-config-contract';
@@ -42,7 +41,7 @@ export const eslintConfigFilterTransformer = ({
     ruleNames.forEach((rule) => {
       // ESLint rules are always strings, filter out symbols
       if (typeof rule === 'string') {
-        const ruleValue = eslintRules[eslintRuleNameContract.parse(rule)];
+        const ruleValue = eslintRules[rule];
         const isPreEditRule = Object.entries(dungeonmasterRuleEnforceOnStatics).some(
           ([name, enforceOn]) => name === rule && enforceOn === 'pre-edit',
         );

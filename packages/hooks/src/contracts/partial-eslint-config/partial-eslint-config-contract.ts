@@ -7,10 +7,9 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 
 export const partialEslintConfigContract = z.object({
-  rules: z.record(eslintRuleNameContract, z.unknown()).optional(),
+  rules: z.record(z.string().brand<'PartialEslintConfigRules'>(), z.unknown()).optional(),
 });
 
 export type PartialEslintConfig = z.infer<typeof partialEslintConfigContract>;

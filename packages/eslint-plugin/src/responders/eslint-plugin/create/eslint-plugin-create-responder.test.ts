@@ -1,4 +1,3 @@
-import { EslintRuleNameStub } from '../../../contracts/eslint-rule-name/eslint-rule-name.stub';
 import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-responder.proxy';
 
 describe('EslintPluginCreateResponder', () => {
@@ -334,7 +333,7 @@ describe('EslintPluginCreateResponder', () => {
 
       expect(
         plugin.configs.dungeonmaster.typescript.rules?.[
-          EslintRuleNameStub({ value: '@dungeonmaster/enforce-object-destructuring-params' })
+          '@dungeonmaster/enforce-object-destructuring-params'
         ],
       ).toBe('error');
     });
@@ -345,7 +344,7 @@ describe('EslintPluginCreateResponder', () => {
 
       expect(
         plugin.configs.dungeonmaster.test.rules?.[
-          EslintRuleNameStub({ value: '@typescript-eslint/no-unsafe-call' })
+          '@typescript-eslint/no-unsafe-call'
         ],
       ).toBe('off');
     });
