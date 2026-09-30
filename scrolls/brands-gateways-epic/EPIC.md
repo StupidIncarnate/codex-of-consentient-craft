@@ -129,17 +129,20 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:45)
+### Now (updated at every event; last 2026-09-30 12:50)
 
-| Running (2, all in merge worktree W) | Owns |
+| Running (1, in merge worktree W) | Owns |
 |---|---|
 | merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
-| merge fix: siegelense transformers, responders, flows (opus) | incl. the missing `zodIssueParse`, `is-network-line-*` |
 
 Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
 fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
 
-**Just landed:** merge fix siegelense brokers B, done in W (lint/typecheck/unit 1790793655536-951c plus fix
+**Just landed:** merge fix siegelense transformers, responders, flows, done in W (transformer unit 97 files
+1790793824274-5326, integration 1790793716836-2398): `flag-contract-parse` reads zod 4's `invalid_value` issues off the
+real `ZodError` (no `zodIssueParse`); master's raw-JSON steps preflight kept; flow tests spy the gateway `stdout`;
+the old `is-network-line-non2xx` guard moved out (master renamed it `is-network-line-failed`); DEF-103, DEF-105,
+DEF-130, DEF-146 and the stale-build warning pass. Also: merge fix siegelense brokers B, done in W (lint/typecheck/unit 1790793655536-951c plus fix
 1790793724445-6855, integration 1790793744661-a82d): the rest of siegelense's fs, png, stderr and quest-list calls on
 gateway wrappers; the hold proxy restored; DEF-143, DEF-81, DEF-104/106, DEF-70, DEF-139/140, DEF-163 and DEF-94 tests
 pass; orchestrator's `quest-list-broker.proxy.ts` gained `getListCalls` (additive). Also: merge fix siegelense contracts, done in W (lint and unit 1790793546199-4a24, 480 files; no type
