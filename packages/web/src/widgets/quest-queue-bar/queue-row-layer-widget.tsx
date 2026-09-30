@@ -12,7 +12,7 @@
 
 import { Link } from '#gateway/npm/react-router-dom';
 
-import type { ArrayIndex, QuestQueueEntry, TotalCount } from '@dungeonmaster/shared/contracts';
+import type { ArrayIndex, QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -26,7 +26,7 @@ const ROW_PADDING_X = 12;
 export interface QueueRowLayerWidgetProps {
   entry: QuestQueueEntry;
   index: ArrayIndex;
-  total: TotalCount;
+  total: number;
   isActive: boolean;
 }
 

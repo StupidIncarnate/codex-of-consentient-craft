@@ -14,12 +14,11 @@
 import { Group, Text } from '#gateway/npm/mantine__core';
 
 import type { CompletedCount } from '@dungeonmaster/shared/contracts';
-import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface ExecutionStatusBarLayerWidgetProps {
   completedCount: CompletedCount;
-  totalCount: TotalCount;
+  totalCount: number;
   source: 'projection' | 'ledger';
 }
 
