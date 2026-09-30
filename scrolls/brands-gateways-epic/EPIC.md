@@ -139,7 +139,7 @@ Everything P2 and P3 is bundled with the user's defect list after the merge. No 
 |---|---|---|
 | P0 | Blocks the merge | F124 in flight (commit it green); ~~the `check:consumer` fixture~~ (done: the fixture broker returns a plain `string`, `check:consumer --mode=local` 148 of 148); merge master in (below); the final gate on the merged tree: full ward, `build:clean`, `check:consumer`, `check:published` |
 | P1 | Before the swarm starts | F129 texts (concession 29); Z02 and Z03 (`get-architecture`, `get-testing-patterns`, session snippets: every agent reads them); the stale JSDoc USAGE lines naming the deleted `filePathContract` (about 150 files, one scripted sweep); the `warpgate-queue-listing` e2e flake (failed in two full wards; agent active); ~~F122~~ (done: testing declares shared, lock file updated) |
-| P2 | Bundle with defects | B16's rest; F124's tail; F120; R1 switch-on; F100's plugin half; B17's rest; F63; F105; F107; F116; Z08 and F106; the SD1 `parent === null` and `mockArgValueMatchTransformer` cycle-guard decisions |
+| P2 | Bundle with defects | Z09 (codeweaver prompts learn scripted work); B16's rest; F124's tail; F120; R1 switch-on; F100's plugin half; B17's rest; F63; F105; F107; F116; Z08 and F106; the SD1 `parent === null` and `mockArgValueMatchTransformer` cycle-guard decisions |
 | P3 | Backlog | F126, F127, F128, F115, F119, F30, R3 `checkModuleLevelShapes`; Z01, Z04, Z05, Z06, T09; old worktrees `gp-b01-zod4`, `gp-l2-tsestree`; emptying `tmp/deletions/` |
 
 **Merging master in.** At 11:00 master was 95 commits ahead (merge base to master: 420 files). `git merge-tree` shows
@@ -963,7 +963,7 @@ Do this phase last. Every code item above may still change the layout the docs d
 That agent may dispatch sub-agents of its own, overriding `agent-brief.md` rule 6 for this phase only. It uses them
 to deep-dive the epic's change set (`git log` and diffs from the branch point to HEAD, the concessions, the item
 files) so it knows what actually changed before it rewrites any doc. Its sub-agents are fresh agents with written
-briefs, never forks. It still never builds or commits, and the five-agent cap counts its sub-agents.
+briefs, never forks. It still never builds or commits, and the operator's agent cap (rule 1) counts its sub-agents.
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
@@ -973,6 +973,7 @@ briefs, never forks. It still never builds or commits, and the five-agent cap co
 | Z04 | [Every `CLAUDE.md` and `AGENTS.md`](items/z04-claude-md-and-agents-md.md) | every A, B, G, T item | Z01–Z03, Z05, Z06 | todo | operator splits |
 | Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo | operator splits per subpath |
 | Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo | |
+| Z09 | Codeweaver prompts learn scripted work (user, 2026-09-30). **Planner:** when a quest holds operational flows (mainly local operations: setup, migrations, bulk file changes; also cloud configuration), the planner scopes which parts can be scripted, and for each flow names the terminal command that proves the work is done. **Worker:** a worker that builds a script always dry-runs it first, checks the result, and probes the edge cases it can before the real run, so it knows what result to expect. A script meant to run after the feature is complete gets the worker's best effort, plus written instructions on what to look for and what result to expect. | every A, B, G, T item | Z01–Z06 | todo | Find the codeweaver planner and worker prompt sources (the `get-agent-prompt` MCP tool serves them) and name each file in the item's plan. |
 | Z08 | Slow tests: investigate every slow-file flag and load timeout recorded in F106 (and any found since), on a quiet machine | Z01–Z06 | before Z07 | todo | Tabled here by the user (2026-09-29): the refactor runs memory-heavy work in parallel, so slow tests are not chased before this. |
 | Z07 | [The finish line](items/z07-finish-line.md) | Z01–Z06, G27 | — | todo | runs alone |
 
