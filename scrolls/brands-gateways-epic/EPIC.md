@@ -39,7 +39,8 @@ and the one that works unchanged in a consumer repo.
 
 ## How to operate — the user's standing instructions
 
-1. **At most FIVE sub-agents at a time.** The user raised the cap from three to five this session.
+1. **At most EIGHT sub-agents at a time** (user, 2026-09-30; was five). Use `model: "sonnet"` for simple, mechanical
+   work and opus for anything nebulous: conflict resolution that needs judgement, debugging, design.
 2. **A heartbeat every 30 minutes.** Use `CronCreate` with `13,43 * * * *` (recurring). Do NOT use `/loop` or
    `ScheduleWakeup`; the user asked for cron. It fires only while the session is idle, and dies with the session.
 3. **The operator owns builds and commits. A dispatched agent does neither.** Agents also never run `git add` or
@@ -128,7 +129,37 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### In flight (operator session 2026-09-30, from 09:56) — READ THIS FIRST
+### Merge to master (user, 2026-09-30 ~11:00) — THE CURRENT GOAL
+
+The user wants the epic on master so a defect swarm can work on it. **Master gets the merge only once every P0 and P1
+below is done** (user, 2026-09-30).
+Everything P2 and P3 is bundled with the user's defect list after the merge. No new P2 or P3 dispatch.
+
+| Rating | Meaning | Items |
+|---|---|---|
+| P0 | Blocks the merge | F124 in flight (commit it green); ~~the `check:consumer` fixture~~ (done: the fixture broker returns a plain `string`, `check:consumer --mode=local` 148 of 148); merge master in (below); the final gate on the merged tree: full ward, `build:clean`, `check:consumer`, `check:published` |
+| P1 | Before the swarm starts | F129 texts (concession 29); Z02 and Z03 (`get-architecture`, `get-testing-patterns`, session snippets: every agent reads them); the stale JSDoc USAGE lines naming the deleted `filePathContract` (about 150 files, one scripted sweep); the `warpgate-queue-listing` e2e flake (failed in two full wards; agent active); ~~F122~~ (done: testing declares shared, lock file updated) |
+| P2 | Bundle with defects | B16's rest; F124's tail; F120; R1 switch-on; F100's plugin half; B17's rest; F63; F105; F107; F116; Z08 and F106; the SD1 `parent === null` and `mockArgValueMatchTransformer` cycle-guard decisions |
+| P3 | Backlog | F126, F127, F128, F115, F119, F30, R3 `checkModuleLevelShapes`; Z01, Z04, Z05, Z06, T09; old worktrees `gp-b01-zod4`, `gp-l2-tsestree`; emptying `tmp/deletions/` |
+
+**Merging master in.** At 11:00 master was 95 commits ahead (merge base to master: 420 files). `git merge-tree` shows
+119 conflicted files: siegelense 88, server 10, web 9, hydration-recipes 4, orchestrator 3, ward 3, cli 1, shared 1
+(list: `tmp/merge-tree.txt`). Master's side is mostly DEF-102 to DEF-168 fixes written against adapters and standalone
+brands, so a conflict is resolved by keeping this branch's structure and re-applying the fix's behaviour, and a
+cleanly merged file may still call a deleted adapter or contract.
+1. After F124 commits, the operator carves `gp-merge-master` with `create-worktree`, fast-forwards it to
+   `gateway-pivot`, and runs `git merge master` there. Conflict markers never sit in this checkout.
+2. Agents resolve conflicts package by package in that worktree (siegelense split by folder), each reading the DEF
+   commit that touched its files (`git log master -- <file>`). Then `diag.cjs --full` and fixer rounds until
+   typecheck, unit, lint, integration and e2e are green there.
+3. P1 work that touches files master changed waits for the merge: F129 and Z02 both rewrite
+   `session-snippet-statics.ts`, master's one shared conflict, and the USAGE sweep touches files master edited. They
+   run in the merge worktree once it is green, so no conflict is resolved twice. F122 and the e2e flake do not wait.
+4. P1 work that does not wait continues here meanwhile. The operator merges `gateway-pivot` into `gp-merge-master` before the final gate,
+   then fast-forwards `gateway-pivot` to it, then merges into master, then runs `build:clean` and regenerates
+   settings in the main checkout (its hooks otherwise run the old rules).
+
+### In flight (operator session 2026-09-30, from 09:56)
 
 **Step 1 of the 07:40 handoff is done except `check:consumer`.**
 - Full bare ward 1790787377705-edd0 (1,048 s): lint, typecheck, unit (4,129) and integration (226) green in all 21
@@ -961,7 +992,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F116 | `packages/hydration/src/contracts/hydration-run-state/hydration-run-state-contract.ts` holds its map values as a file-local `resolvedRecordContract = z.custom<unknown>()`, which is `z.unknown()` under another name (the pre-edit hook bans `z.unknown()`). Decide the value type in W8 (`z.json()`, the recipe record contracts, or a named exception) and add the pattern `z.custom<unknown>()` to the `z.unknown` ban. | R1-T hydration | open (W8) | Also `hydration-recipes` `recipe-catalog-entry-contract.ts` `inputs: zodSchemaContract` (`z.custom` with no type argument, so `unknown`; same as `recipe-def-contract.ts`). |
 | F120 | `packages/server/src/contracts/responder-result/responder-result-contract.ts`: zod returns the first union member that parses, so the members are `.strict()`; `wardDetailContract` is loose by design and sits last, so any object that fails every other member passes as ward detail. Give ward detail a discriminator or its own response path. | big-bang server agent (b6047b634) | open | |
 | F121 | `@dungeonmaster/require-contract-validation`'s message still names `filePathContract`, which the big-bang deleted, and fixer batch B0003 rewrote its dynamic-import path check as a `startsWith('/', './', '../')` test, a guess at the deleted contract. Point the message at the gateway `dynamicImport` wrapper and confirm the check against the old contract in `tmp/deletions/`. | big-bang lint and integration rounds | open | |
-| F122 | `packages/testing` imports `@dungeonmaster/shared/contracts` (`execResultContract`) without `@dungeonmaster/shared` in its `package.json` dependencies. Declare it, or move the contract; then `check:consumer`. | big-bang R9 agent | open | |
+| F122 | `packages/testing` imports `@dungeonmaster/shared/contracts` (`execResultContract`) without `@dungeonmaster/shared` in its `package.json` dependencies. Declare it, or move the contract; then `check:consumer`. | big-bang R9 agent | done (the consumer-fixture commit) | Declared; shared lists testing as a dev dependency only, which build order ignores (G02). |
 | F123 | `packages/eslint-plugin/src/contracts/ast-node/ast-node-contract.ts`: `parent` is `z.json().optional()`, so a real ESLint node's cyclic `parent` would not parse. Only stubs and tests parse it today; decide whether the contract should exist now that rules use `TSESTree`. | big-bang W10 agent | done 18e637759 | Cluster moved to `tmp/deletions/F123/`; eslint-plugin needs a build before `check:published`. |
 | F124 | The RUNBOOK's hand steps the big-bang deferred: H2 `PieceId` (owner in orchestrator, shared reads it); H3 `ToolUseId` (owner rename first); H4 the four new W4 owners get their other fields; H5 `packageJsonRaw` lift, `GetQuestInput` to `McpGetQuestInput`, and the folder and file renames W2 left; H7 W8's gateway-schema rows and orchestrator's rows 46, 47, 72; H8 `SmoketestRunId`'s shared references. H6 (NOT PLAIN YET) was handled by W10's R2 round. Details: `bigbang/RUNBOOK.md` "Hand pre-steps". | big-bang run | planned | `items/f124-bigbang-hand-steps.md`; decisions accepted (In flight). H8 is already done. |
 | F125 | Script bugs to fix before the scripts run on another repo (`bigbang/PORTING.md` section 0): `b15-value-brands`' build-through-root-parse rewriter wraps at wrong offsets; `b12-object-brand-fallout` parses objects that hold functions; W1 and W5 drop the validation a deleted standalone brand carried; scripts wrap `parse` around un-awaited Promises; `b15-dead-reparse` removes parses a comment calls deliberate; `b13-test-fallout` retypes harness inputs. | big-bang run | done (the F125 commit) | `items/f125-script-bugs.md`; each fix proven on a fixture repo in `tmp/f125/`; `b15-id-brands`' guards smoke-run only. |

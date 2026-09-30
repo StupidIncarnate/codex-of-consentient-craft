@@ -110,6 +110,7 @@
     "@dungeonmaster/bin": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
+    "@dungeonmaster/shared": "*",
     "tsx": "^4.0.0",
     "undici": "^7.21.0"
   },

@@ -84,9 +84,8 @@ const runCreatePackage = async ({ consumerRoot, cliBin, name, type }) => {
 // file (`src/fs__promises/fs__promises.ts`), so `#gateway/node/fs__promises` is the whole legal
 // specifier — `.../read-file-if-exists/read-file-if-exists` is TS2307 (confirmed against a real run
 // of this suite). Only `.proxy`/`.stub` specifically use the deep per-file form, via the gateway's
-// OTHER two export keys (concession 1). The return is a branded `ContentText`, never a raw `string`
-// — `ban-primitives` bans a raw string return everywhere outside the gateway itself, and a broker
-// this suite writes has to obey the same rule a real consumer's lint enforces.
+// OTHER two export keys (concession 1). The return is a plain `string`: a standalone
+// scalar brand no longer exists (EPIC concession 25), and no rule the consumer runs brands a scalar return.
 const HOISTING_PROOF_SOURCE = `/**
  * PURPOSE: Reads a config file through the node gateway and falls back to a default value when the
  * file is missing. Proves a broker resolves the gateway's fs__promises BARREL import
@@ -95,21 +94,19 @@ const HOISTING_PROOF_SOURCE = `/**
  *
  * USAGE:
  * await configReadOrDefaultBroker({ configPath: '/repo/.dungeonmaster.json', fallback: '{}' });
- * // Returns the file's contents, or the fallback, both branded ContentText
+ * // Returns the file's contents, or the fallback
  */
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
-
 export const configReadOrDefaultBroker = async ({
   configPath,
   fallback,
 }: {
   configPath: string;
   fallback: string;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const contents = await readFileIfExists(configPath);
-  return contentTextContract.parse(contents === null ? fallback : contents);
+  return contents === null ? fallback : contents;
 };
 `;
 
