@@ -16,6 +16,8 @@
  * client SUBSCRIBED TO THAT QUEST, and `webSocketChannelState` routes it to `questUpdated$`.
  */
 
+import { useQuestSummaryResultContract } from '../../contracts/use-quest-summary-result/use-quest-summary-result-contract';
+import type { UseQuestSummaryResult } from '../../contracts/use-quest-summary-result/use-quest-summary-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
@@ -30,11 +32,7 @@ export const useQuestSummaryBinding = ({
   questId,
 }: {
   questId: Quest['id'] | null;
-}): {
-  data: QuestSummary | null;
-  loading: boolean;
-  error: Error | null;
-} => {
+}): UseQuestSummaryResult => {
   const [data, setData] = useState<QuestSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -79,5 +77,5 @@ export const useQuestSummaryBinding = ({
     };
   }, [refresh, questId]);
 
-  return { data, loading, error };
+  return useQuestSummaryResultContract.parse({ data, loading, error });
 };

@@ -14,35 +14,37 @@
  * // JSON at all.
  */
 
+import { questLoadResultContract } from '../../../contracts/quest-load-result/quest-load-result-contract';
+import type { QuestLoadResult } from '../../../contracts/quest-load-result/quest-load-result-contract';
 import { readFileSync } from '#gateway/node/fs';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import { flowContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { Flow, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
 export const questLoadBroker = ({
   questId,
 }: {
   questId: Quest['id'];
-}): { flows: readonly Flow[]; workItems: readonly WorkItem[] } => {
+}): QuestLoadResult => {
   const empty = { flows: [], workItems: [] };
   const questPath = questFindBroker({ questId });
 
   if (questPath === undefined) {
-    return empty;
+    return questLoadResultContract.parse(empty);
   }
 
   const contents = readFileSync(questPath);
   const parsed = safeJsonParseTransformer({ value: contents });
 
   if (!parsed.ok) {
-    return empty;
+    return questLoadResultContract.parse(empty);
   }
 
   const questJson = parsed.value;
 
   if (typeof questJson !== 'object' || questJson === null) {
-    return empty;
+    return questLoadResultContract.parse(empty);
   }
 
   const flowsResult =
@@ -50,8 +52,8 @@ export const questLoadBroker = ({
   const workItemsResult =
     'workItems' in questJson ? workItemContract.array().safeParse(questJson.workItems) : undefined;
 
-  return {
+  return questLoadResultContract.parse({
     flows: flowsResult?.success === true ? flowsResult.data : [],
     workItems: workItemsResult?.success === true ? workItemsResult.data : [],
-  };
+  });
 };

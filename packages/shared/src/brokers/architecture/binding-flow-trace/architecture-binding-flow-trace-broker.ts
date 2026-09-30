@@ -15,6 +15,8 @@
  * the boot-tree's widget subtree renderer and the standalone widget tree section
  */
 
+import { architectureBindingFlowTraceResultContract } from '../../../contracts/architecture-binding-flow-trace-result/architecture-binding-flow-trace-result-contract';
+import type { ArchitectureBindingFlowTraceResult } from '../../../contracts/architecture-binding-flow-trace-result/architecture-binding-flow-trace-result-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import { bindingNameToFilePathTransformer } from '../../../transformers/binding-name-to-file-path/binding-name-to-file-path-transformer';
@@ -38,23 +40,12 @@ export const architectureBindingFlowTraceBroker = ({
   projectRoot: string;
   httpEdges: HttpEdge[];
   wsEdges: WsEdge[];
-}): {
-  httpFlows: {
-    method: string;
-    urlPattern: string;
-    serverRef: string | null;
-    orchestratorMethod: string | null;
-  }[];
-  wsEvents: {
-    eventType: string;
-    emitterRef: string | null;
-  }[];
-} => {
+}): ArchitectureBindingFlowTraceResult => {
   const bindingFilePath = bindingNameToFilePathTransformer({ bindingName, packageRoot });
 
   const bindingSource = architectureSourceReadBroker({ filePath: bindingFilePath });
   if (bindingSource === undefined) {
-    return { httpFlows: [], wsEvents: [] };
+    return architectureBindingFlowTraceResultContract.parse({ httpFlows: [], wsEvents: [] });
   }
 
   const imports = importStatementsExtractTransformer({ source: bindingSource });
@@ -116,5 +107,5 @@ export const architectureBindingFlowTraceBroker = ({
       };
     });
 
-  return { httpFlows, wsEvents };
+  return architectureBindingFlowTraceResultContract.parse({ httpFlows, wsEvents });
 };

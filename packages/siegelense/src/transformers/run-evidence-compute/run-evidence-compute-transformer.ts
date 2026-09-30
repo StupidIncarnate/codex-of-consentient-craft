@@ -16,6 +16,8 @@
  * // Returns { runCount: 2, latestRunId: 'run_2', evidenceComplete: false }
  */
 
+import { runEvidenceComputeContract } from '../../contracts/run-evidence-compute/run-evidence-compute-contract';
+import type { RunEvidenceCompute } from '../../contracts/run-evidence-compute/run-evidence-compute-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
@@ -25,7 +27,7 @@ export const runEvidenceComputeTransformer = ({
   entries,
 }: {
   entries: readonly string[];
-}): { runCount: number; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean } => {
+}): RunEvidenceCompute => {
   const runIds: SiegeRun['id'][] = entries
     .filter((entry) => entry.endsWith(evidenceFileStatics.extensions.transcript))
     .map((entry) => entry.slice(0, entry.length - evidenceFileStatics.extensions.transcript.length))
@@ -33,7 +35,7 @@ export const runEvidenceComputeTransformer = ({
     .map((candidate) => siegeRunContract.shape.id.parse(candidate));
 
   if (runIds.length === 0) {
-    return { runCount: 0, latestRunId: null, evidenceComplete: true };
+    return runEvidenceComputeContract.parse({ runCount: 0, latestRunId: null, evidenceComplete: true });
   }
 
   const sortedDescending = [...runIds].sort(
@@ -47,9 +49,9 @@ export const runEvidenceComputeTransformer = ({
       ? true
       : entries.includes(`${latestRunId}${evidenceFileStatics.extensions.runReturn}`);
 
-  return {
+  return runEvidenceComputeContract.parse({
     runCount: runIds.length,
     latestRunId,
     evidenceComplete,
-  };
+  });
 };

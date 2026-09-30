@@ -38,7 +38,9 @@
  * than throwing: the caller learns the flow is not on this quest, which is a real answer.
  */
 
-import type { QaChecklist, VerificationTrack, Quest, OperationItem, Flow } from '@dungeonmaster/shared/contracts';
+import { questGetQaChecklistResultContract } from '../../../contracts/quest-get-qa-checklist-result/quest-get-qa-checklist-result-contract';
+import type { QuestGetQaChecklistResult } from '../../../contracts/quest-get-qa-checklist-result/quest-get-qa-checklist-result-contract';
+import type { Quest, OperationItem, Flow } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -55,7 +57,7 @@ export const questGetQaChecklistBroker = async ({
   questId: Quest['id'];
   operationItemId?: OperationItem['id'];
   flowId?: Flow['id'];
-}): Promise<{ checklists: QaChecklist[]; track?: VerificationTrack }> => {
+}): Promise<QuestGetQaChecklistResult> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
   const questFilePath = join(questPath, locationsStatics.quest.questFile);
@@ -76,7 +78,7 @@ export const questGetQaChecklistBroker = async ({
       operationItem.role !== 'flowrider' &&
       operationItem.role !== 'siegemaster'
     ) {
-      return { checklists: [] };
+      return questGetQaChecklistResultContract.parse({ checklists: [] });
     }
 
     const track = operationItem.role;
@@ -87,7 +89,7 @@ export const questGetQaChecklistBroker = async ({
     const scopedFlowIds = new Set(operationItem.flowIds.map(String));
     const flows = typedFlows.filter((flow) => scopedFlowIds.has(String(flow.id)));
 
-    return {
+    return questGetQaChecklistResultContract.parse({
       checklists: flows.map((flow) =>
         qaChecklistBuildTransformer({
           flow,
@@ -99,7 +101,7 @@ export const questGetQaChecklistBroker = async ({
         }),
       ),
       track,
-    };
+    });
   }
 
   const flows =
@@ -107,7 +109,7 @@ export const questGetQaChecklistBroker = async ({
       ? quest.flows
       : quest.flows.filter((flow) => String(flow.id) === String(flowId));
 
-  return {
+  return questGetQaChecklistResultContract.parse({
     checklists: flows.map((flow) =>
       qaChecklistBuildTransformer({
         flow,
@@ -116,5 +118,5 @@ export const questGetQaChecklistBroker = async ({
         quest,
       }),
     ),
-  };
+  });
 };

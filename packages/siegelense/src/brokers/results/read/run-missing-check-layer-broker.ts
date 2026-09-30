@@ -17,6 +17,8 @@
  * // FileContents (or null, for a run that crashed before its closing write)
  */
 
+import { runMissingCheckLayerResultContract } from '../../../contracts/run-missing-check-layer-result/run-missing-check-layer-result-contract';
+import type { RunMissingCheckLayerResult } from '../../../contracts/run-missing-check-layer-result/run-missing-check-layer-result-contract';
 import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 
@@ -32,10 +34,10 @@ export const runMissingCheckLayerBroker = async ({
   runId: SiegeRun['id'];
   storedReturnPath: string;
   transcriptPath: string;
-}): Promise<{ storedReturnContent: string | null }> => {
+}): Promise<RunMissingCheckLayerResult> => {
   const rawStored = await readFileIfExists(storedReturnPath);
   if (rawStored !== null) {
-    return { storedReturnContent: rawStored };
+    return runMissingCheckLayerResultContract.parse({ storedReturnContent: rawStored });
   }
 
   const transcriptContent = await readFileIfExists(transcriptPath);
@@ -43,5 +45,5 @@ export const runMissingCheckLayerBroker = async ({
     throw new RunMissingError({ instanceId, runId });
   }
 
-  return { storedReturnContent: null };
+  return runMissingCheckLayerResultContract.parse({ storedReturnContent: null });
 };

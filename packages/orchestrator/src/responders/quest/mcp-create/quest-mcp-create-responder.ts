@@ -6,7 +6,9 @@
  * // Returns: { questId, guildSlug }
  */
 
-import type { AddQuestInput, QuestType, Quest, Session } from '@dungeonmaster/shared/contracts';
+import { questMcpCreateResponderResultContract } from '../../../contracts/quest-mcp-create-responder-result/quest-mcp-create-responder-result-contract';
+import type { QuestMcpCreateResponderResult } from '../../../contracts/quest-mcp-create-responder-result/quest-mcp-create-responder-result-contract';
+import type { AddQuestInput, QuestType, Session } from '@dungeonmaster/shared/contracts';
 
 import { questMcpCreateBroker } from '../../../brokers/quest/mcp-create/quest-mcp-create-broker';
 
@@ -18,12 +20,9 @@ export const QuestMcpCreateResponder = async ({
   userRequest: AddQuestInput['userRequest'];
   questType?: QuestType;
   sessionId?: Session['id'];
-}): Promise<{
-  questId: Quest['id'];
-  guildSlug: string;
-}> =>
-  questMcpCreateBroker({
+}): Promise<QuestMcpCreateResponderResult> =>
+  questMcpCreateResponderResultContract.parse(questMcpCreateBroker({
     userRequest,
     ...(questType !== undefined && { questType }),
     ...(sessionId !== undefined && { sessionId }),
-  });
+  }));

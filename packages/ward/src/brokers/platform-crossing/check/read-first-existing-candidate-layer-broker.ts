@@ -10,6 +10,8 @@
  * // Returns: { filePath: '/repo/x.ts', content: '...' } or undefined when every candidate is absent
  */
 
+import { readFirstExistingCandidateLayerResultContract } from '../../../contracts/read-first-existing-candidate-layer-result/read-first-existing-candidate-layer-result-contract';
+import type { ReadFirstExistingCandidateLayerResult } from '../../../contracts/read-first-existing-candidate-layer-result/read-first-existing-candidate-layer-result-contract';
 import { readFile } from '#gateway/node/fs__promises';
 
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
@@ -18,7 +20,7 @@ export const readFirstExistingCandidateLayerBroker = async ({
   candidates,
 }: {
   candidates: readonly string[];
-}): Promise<{ filePath: string; content: string } | undefined> => {
+}): Promise<ReadFirstExistingCandidateLayerResult | undefined> => {
   const [firstCandidate, ...remainingCandidates] = candidates;
   if (firstCandidate === undefined) {
     return undefined;
@@ -31,7 +33,7 @@ export const readFirstExistingCandidateLayerBroker = async ({
     throw error;
   });
   if (raw !== undefined) {
-    return { filePath: firstCandidate, content: raw };
+    return readFirstExistingCandidateLayerResultContract.parse({ filePath: firstCandidate, content: raw });
   }
 
   return readFirstExistingCandidateLayerBroker({ candidates: remainingCandidates });

@@ -13,6 +13,8 @@
  *   questUserAddBroker directly with a known guild.
  */
 
+import { questMcpCreateResultContract } from '../../../contracts/quest-mcp-create-result/quest-mcp-create-result-contract';
+import type { QuestMcpCreateResult } from '../../../contracts/quest-mcp-create-result/quest-mcp-create-result-contract';
 import { basename } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
@@ -21,7 +23,7 @@ import {
   nameToUrlSlugTransformer,
 } from '@dungeonmaster/shared/transformers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
-import type { AddQuestInput, Guild, GuildListItem, QuestType, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, Guild, GuildListItem, QuestType, Session } from '@dungeonmaster/shared/contracts';
 import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { guildCoversRepoRootGuard } from '../../../guards/guild-covers-repo-root/guild-covers-repo-root-guard';
@@ -39,10 +41,7 @@ export const questMcpCreateBroker = async ({
   userRequest: AddQuestInput['userRequest'];
   questType?: QuestType;
   sessionId?: Session['id'];
-}): Promise<{
-  questId: Quest['id'];
-  guildSlug: string;
-}> => {
+}): Promise<QuestMcpCreateResult> => {
   const currentWorkingDirectory = cwd();
 
   // Fall back to the literal cwd as the repo root when .dungeonmaster.json is absent
@@ -91,8 +90,8 @@ export const questMcpCreateBroker = async ({
     ? selectedGuild.urlSlug
     : nameToUrlSlugTransformer({ name: selectedGuild.name });
 
-  return {
+  return questMcpCreateResultContract.parse({
     questId: result.questId,
     guildSlug,
-  };
+  });
 };

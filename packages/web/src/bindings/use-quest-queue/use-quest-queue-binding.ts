@@ -7,6 +7,8 @@
  * // errorEntry = head only if head has `error` set, else undefined
  */
 
+import { useQuestQueueResultContract } from '../../contracts/use-quest-queue-result/use-quest-queue-result-contract';
+import type { UseQuestQueueResult } from '../../contracts/use-quest-queue-result/use-quest-queue-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
@@ -16,12 +18,7 @@ import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 import { questQueueBroker } from '../../brokers/quest/queue/quest-queue-broker';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
-export const useQuestQueueBinding = (): {
-  activeEntry: QuestQueueEntry | null;
-  allEntries: readonly QuestQueueEntry[];
-  errorEntry: QuestQueueEntry | undefined;
-  isLoading: boolean;
-} => {
+export const useQuestQueueBinding = (): UseQuestQueueResult => {
   const [allEntries, setAllEntries] = useState<readonly QuestQueueEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,5 +52,5 @@ export const useQuestQueueBinding = (): {
   const activeEntry = allEntries[0] ?? null;
   const errorEntry = activeEntry?.error ? activeEntry : undefined;
 
-  return { activeEntry, allEntries, errorEntry, isLoading };
+  return useQuestQueueResultContract.parse({ activeEntry, allEntries, errorEntry, isLoading });
 };

@@ -26,9 +26,11 @@
  *   safe — it is a pure function of its inputs.
  */
 
+import { questBuildRelayGraphResultContract } from '../../../contracts/quest-build-relay-graph-result/quest-build-relay-graph-result-contract';
+import type { QuestBuildRelayGraphResult } from '../../../contracts/quest-build-relay-graph-result/quest-build-relay-graph-result-contract';
 import { randomUUID } from '#gateway/node/crypto';
 import { operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
@@ -47,7 +49,7 @@ export const questBuildRelayGraphBroker = ({
   quest: Quest;
   priorWorkItemIds: WorkItem['id'][];
   now: string;
-}): { operations: OperationItem[]; workItems: WorkItem[] } => {
+}): QuestBuildRelayGraphResult => {
   const entryFamily = questFlowStatics[quest.questType].entry;
 
   // Intake plan items (every chat role — chaoswhisperer/bughunt) are done by the time
@@ -75,7 +77,7 @@ export const questBuildRelayGraphBroker = ({
 
   const firstActionable = operations.find((operation) => operation.status === 'pending');
   if (firstActionable === undefined) {
-    return { operations, workItems: [] };
+    return questBuildRelayGraphResultContract.parse({ operations, workItems: [] });
   }
 
   // The step comes from firstActionable's OWN family, never the entry family: a re-seed or a
@@ -104,12 +106,12 @@ export const questBuildRelayGraphBroker = ({
     ...(entryStep === undefined ? {} : { step: entryStep }),
   });
 
-  return {
+  return questBuildRelayGraphResultContract.parse({
     operations: operations.map((operation) =>
       operation.id === firstActionable.id
         ? operationItemContract.parse({ ...operation, status: 'in_progress' })
         : operation,
     ),
     workItems: [firstWorkItem],
-  };
+  });
 };

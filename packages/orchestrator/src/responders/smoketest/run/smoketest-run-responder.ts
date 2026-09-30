@@ -7,6 +7,8 @@
  * // `enqueued[0]` is the first-enqueued quest — the caller uses it to navigate to the execution view.
  */
 
+import { smoketestRunResultContract } from '../../../contracts/smoketest-run-result/smoketest-run-result-contract';
+import type { SmoketestRunResult } from '../../../contracts/smoketest-run-result/smoketest-run-result-contract';
 import { randomUUID } from '#gateway/node/crypto';
 import { questSourceContract } from '@dungeonmaster/shared/contracts';
 import type { SmoketestCaseResult, SmoketestSuite, Quest } from '@dungeonmaster/shared/contracts';
@@ -23,7 +25,6 @@ import { smoketestEnsureGuildBroker } from '../../../brokers/smoketest/ensure-gu
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
 import { EnqueueBundledSuiteLayerResponder } from './enqueue-bundled-suite-layer-responder';
 import { EnqueueOrchestrationScenarioLayerResponder } from './enqueue-orchestration-scenario-layer-responder';
-import type { ActiveSmoketestRun } from '../../../contracts/active-smoketest-run/active-smoketest-run-contract';
 import { activeSmoketestRunContract } from '../../../contracts/active-smoketest-run/active-smoketest-run-contract';
 
 export const SmoketestRunResponder = async ({
@@ -32,11 +33,7 @@ export const SmoketestRunResponder = async ({
 }: {
   suite: SmoketestSuite;
   startPath: string;
-}): Promise<{
-  runId: ActiveSmoketestRun['runId'];
-  enqueued: readonly { questId: Quest['id']; guildSlug: string }[];
-  results: readonly SmoketestCaseResult[];
-}> => {
+}): Promise<SmoketestRunResult> => {
   if (smoketestRunState.isActive()) {
     const existing = smoketestRunState.getActive();
     throw new Error(
@@ -106,7 +103,7 @@ export const SmoketestRunResponder = async ({
       enqueued.push(...orchRecords);
     }
 
-    return { runId, enqueued, results: [] as readonly SmoketestCaseResult[] };
+    return smoketestRunResultContract.parse({ runId, enqueued, results: [] as readonly SmoketestCaseResult[] });
   } catch (error: unknown) {
     // Only clear the active flag on enqueue failure. On success the flag remains set
     // until the post-terminal listener drains the last registered smoketest quest —

@@ -15,6 +15,8 @@
  * // { attempted: false, restored: false } when this quest has no worktree branch to put back
  */
 
+import { worktreeEnsureQuestBranchResultContract } from '../../../contracts/worktree-ensure-quest-branch-result/worktree-ensure-quest-branch-result-contract';
+import type { WorktreeEnsureQuestBranchResult } from '../../../contracts/worktree-ensure-quest-branch-result/worktree-ensure-quest-branch-result-contract';
 import { stderr } from '#gateway/node/process';
 import { type Quest } from '@dungeonmaster/shared/contracts';
 
@@ -30,7 +32,7 @@ export const worktreeEnsureQuestBranchBroker = async ({
   quest: Quest;
   cwdResolution: QuestCwdResolution;
   trigger: QuestResumeTrigger;
-}): Promise<{ attempted: boolean; restored: boolean }> => {
+}): Promise<WorktreeEnsureQuestBranchResult> => {
   const { branchName } = quest;
 
   // A `repo-root` resolution is a legacy pre-worktree quest, and a quest with no recorded
@@ -39,7 +41,7 @@ export const worktreeEnsureQuestBranchBroker = async ({
   // A `missing-worktree` resolution is handled by each caller BEFORE it gets here — that halt
   // route is per-trigger (block the quest, name the path) and is deliberately not absorbed.
   if (cwdResolution.kind !== 'worktree' || branchName === undefined) {
-    return { attempted: false, restored: false };
+    return worktreeEnsureQuestBranchResultContract.parse({ attempted: false, restored: false });
   }
 
   const { restored, output } = await worktreeResumeRestoreBroker({
@@ -56,5 +58,5 @@ export const worktreeEnsureQuestBranchBroker = async ({
     );
   }
 
-  return { attempted: true, restored };
+  return worktreeEnsureQuestBranchResultContract.parse({ attempted: true, restored });
 };

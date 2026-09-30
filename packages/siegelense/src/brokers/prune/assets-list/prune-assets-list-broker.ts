@@ -13,12 +13,13 @@
  * // Returns { assets, runIds } — assets is empty for an instance whose tree was already taken
  */
 
+import { pruneAssetsListResultContract } from '../../../contracts/prune-assets-list-result/prune-assets-list-result-contract';
+import type { PruneAssetsListResult } from '../../../contracts/prune-assets-list-result/prune-assets-list-result-contract';
 import { join } from '#gateway/node/path';
 import { fileNameContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
-import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
 import { pruneAssetKindContract } from '../../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
@@ -26,7 +27,6 @@ import { pruneAssetClassifyTransformer } from '../../../transformers/prune-asset
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsPruneAssetPathsFindBroker } from '../../locations/prune-asset-paths-find/locations-prune-asset-paths-find-broker';
 import { runShotsLayerBroker } from './run-shots-layer-broker';
-import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 // A run's files are `run_2.jsonl` and `run_2.json`; its shots live in a directory named `run_2`
 // with no extension at all. Stripping either suffix and re-parsing is what makes all three forms
@@ -42,7 +42,7 @@ export const pruneAssetsListBroker = async ({
   entry,
 }: {
   entry: RegistryEntry;
-}): Promise<{ assets: readonly PruneAsset[]; runIds: readonly SiegeRun['id'][] }> => {
+}): Promise<PruneAssetsListResult> => {
   const evidencePath = locationsInstanceEvidencePathFindBroker({
     instanceId: entry.id,
     guildId: entry.guildId,
@@ -151,7 +151,7 @@ export const pruneAssetsListBroker = async ({
     }),
   );
 
-  return {
+  return pruneAssetsListResultContract.parse({
     assets: [
       ...logRows.flat(),
       ...bufferRows.flat(),
@@ -160,5 +160,5 @@ export const pruneAssetsListBroker = async ({
       ...videoRows.flat(),
     ],
     runIds,
-  };
+  });
 };

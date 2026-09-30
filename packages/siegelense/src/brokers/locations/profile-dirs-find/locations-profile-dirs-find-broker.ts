@@ -11,6 +11,8 @@
  * //           bootsDir:   '<root>/profiles/<specHash>/boots' }
  */
 
+import { locationsProfileDirsFindResultContract } from '../../../contracts/locations-profile-dirs-find-result/locations-profile-dirs-find-result-contract';
+import type { LocationsProfileDirsFindResult } from '../../../contracts/locations-profile-dirs-find-result/locations-profile-dirs-find-result-contract';
 import { join } from '#gateway/node/path';
 
 import { profileStatics } from '../../../statics/profile/profile-statics';
@@ -20,17 +22,14 @@ export const locationsProfileDirsFindBroker = ({
   specHash,
 }: {
   specHash: string;
-}): {
-  samplesDir: string;
-  bootsDir: string;
-} => {
+}): LocationsProfileDirsFindResult => {
   const profilePath = locationsProfilesPathFindBroker({ specHash });
 
   const samplesDir = join(profilePath, profileStatics.dirs.samples);
   const bootsDir = join(profilePath, profileStatics.dirs.boots);
 
-  return {
+  return locationsProfileDirsFindResultContract.parse({
     samplesDir: samplesDir,
     bootsDir: bootsDir,
-  };
+  });
 };

@@ -13,6 +13,8 @@
  * runs are fire-and-forget test state, so clearing in-progress prior-run quests here is intentional.
  */
 
+import { smoketestClearPriorQuestsResultContract } from '../../../contracts/smoketest-clear-prior-quests-result/smoketest-clear-prior-quests-result-contract';
+import type { SmoketestClearPriorQuestsResult } from '../../../contracts/smoketest-clear-prior-quests-result/smoketest-clear-prior-quests-result-contract';
 import type { QuestSource } from '@dungeonmaster/shared/contracts';
 
 import { questDeleteBroker } from '../../quest/delete/quest-delete-broker';
@@ -23,7 +25,7 @@ export const smoketestClearPriorQuestsBroker = async ({
   questSource,
 }: {
   questSource: QuestSource;
-}): Promise<{ deletedCount: number }> => {
+}): Promise<SmoketestClearPriorQuestsResult> => {
   const { guildId } = await smoketestEnsureGuildBroker();
   const quests = await questListBroker({ guildId });
   const matching = quests.filter((quest) => quest.questSource === questSource);
@@ -32,5 +34,5 @@ export const smoketestClearPriorQuestsBroker = async ({
     matching.map(async (quest) => questDeleteBroker({ questId: quest.id, guildId })),
   );
 
-  return { deletedCount: matching.length };
+  return smoketestClearPriorQuestsResultContract.parse({ deletedCount: matching.length });
 };

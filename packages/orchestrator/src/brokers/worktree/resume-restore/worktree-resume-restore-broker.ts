@@ -15,6 +15,8 @@
  * // restored is true once the worktree is confirmed on branchName, whether or not a checkout ran
  */
 
+import { worktreeResumeRestoreResultContract } from '../../../contracts/worktree-resume-restore-result/worktree-resume-restore-result-contract';
+import type { WorktreeResumeRestoreResult } from '../../../contracts/worktree-resume-restore-result/worktree-resume-restore-result-contract';
 import { checkout, currentBranch } from '#gateway/bin/git';
 
 const COLON_SEPARATOR = ': ';
@@ -26,7 +28,7 @@ export const worktreeResumeRestoreBroker = async ({
 }: {
   worktreePath: string;
   branchName: string;
-}): Promise<{ restored: boolean; currentBranch: string; output: string }> => {
+}): Promise<WorktreeResumeRestoreResult> => {
   const branchAttempt = await (async () => {
     try {
       const result = await currentBranch({ cwd: worktreePath });
@@ -42,11 +44,11 @@ export const worktreeResumeRestoreBroker = async ({
   })();
 
   if (!branchAttempt.success) {
-    return {
+    return worktreeResumeRestoreResultContract.parse({
       restored: false,
       currentBranch: branchAttempt.error,
       output: branchAttempt.error,
-    };
+    });
   }
 
   const { branch: rawBranch } = branchAttempt;
@@ -60,18 +62,18 @@ export const worktreeResumeRestoreBroker = async ({
           .find((line) => line.length > 0) ?? null);
 
   if (branch !== null && branch === String(branchName)) {
-    return {
+    return worktreeResumeRestoreResultContract.parse({
       restored: true,
       currentBranch: branch,
       output: rawBranch,
-    };
+    });
   }
 
   const checkoutResult = await checkout({ cwd: worktreePath, branchName });
 
-  return {
+  return worktreeResumeRestoreResultContract.parse({
     restored: checkoutResult.exitCode === 0,
     currentBranch: (branch ?? 'HEAD'),
     output: checkoutResult.output,
-  };
+  });
 };

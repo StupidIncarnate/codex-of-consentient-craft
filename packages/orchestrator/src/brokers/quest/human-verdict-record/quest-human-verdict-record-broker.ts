@@ -32,6 +32,8 @@
  * the honest shape: a reader checks presence instead.
  */
 
+import { questHumanVerdictRecordResultContract } from '../../../contracts/quest-human-verdict-record-result/quest-human-verdict-record-result-contract';
+import type { QuestHumanVerdictRecordResult } from '../../../contracts/quest-human-verdict-record-result/quest-human-verdict-record-result-contract';
 import { questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -54,8 +56,8 @@ export const questHumanVerdictRecordBroker = async ({
   unitId: string;
   outcome: 'met' | 'not-met';
   reason: string;
-}): Promise<{ quest: Quest }> =>
-  questWithModifyLockBroker({
+}): Promise<QuestHumanVerdictRecordResult> =>
+  questHumanVerdictRecordResultContract.parse(questWithModifyLockBroker({
     questId: questContract.shape.id.parse(questId),
     run: async (): Promise<{ quest: Quest }> => {
       const { questPath } = await questFindQuestPathBroker({
@@ -116,4 +118,4 @@ export const questHumanVerdictRecordBroker = async ({
 
       return { quest: mutated };
     },
-  });
+  }));

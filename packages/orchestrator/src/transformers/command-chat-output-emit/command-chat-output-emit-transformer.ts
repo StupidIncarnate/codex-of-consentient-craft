@@ -13,11 +13,12 @@
  * // Returns: { type, processId, payload } — the argument orchestrationEventsState.emit takes
  */
 
+import { commandChatOutputEmitContract } from '../../contracts/command-chat-output-emit/command-chat-output-emit-contract';
+import type { CommandChatOutputEmit } from '../../contracts/command-chat-output-emit/command-chat-output-emit-contract';
 import { orchestrationEventTypeContract } from '@dungeonmaster/shared/contracts';
-import type { OrchestrationEventType, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputEmitPayloadContract } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
-import type { ChatOutputEmitPayload } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
 import { commandLineToChatEntryTransformer } from '../command-line-to-chat-entry/command-line-to-chat-entry-transformer';
 
 // A command work item runs serially, one at a time — slot 0 is the only slot it can occupy.
@@ -31,14 +32,10 @@ export const commandChatOutputEmitTransformer = ({
   questId: Quest['id'];
   workItemId: WorkItem['id'];
   line: string;
-}): {
-  type: OrchestrationEventType;
-  processId: string;
-  payload: ChatOutputEmitPayload;
-} => {
+}): CommandChatOutputEmit => {
   const chatProcessId = String(workItemId);
 
-  return {
+  return commandChatOutputEmitContract.parse({
     type: orchestrationEventTypeContract.parse('chat-output'),
     processId: chatProcessId,
     payload: chatOutputEmitPayloadContract.parse({
@@ -49,5 +46,5 @@ export const commandChatOutputEmitTransformer = ({
       questId,
       workItemId,
     }),
-  };
+  });
 };

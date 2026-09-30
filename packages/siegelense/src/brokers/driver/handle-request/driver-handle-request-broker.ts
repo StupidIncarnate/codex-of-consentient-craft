@@ -22,6 +22,8 @@
  * // Returns a DriverResponse — ok:true with an empty payload for a ping
  */
 
+import { runPayloadOutcomeContract } from '../../../contracts/run-payload-outcome/run-payload-outcome-contract';
+import type { RunPayloadOutcome } from '../../../contracts/run-payload-outcome/run-payload-outcome-contract';
 import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
@@ -29,12 +31,10 @@ import type { DriverResponse } from '../../../contracts/driver-response/driver-r
 import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
-import type { RunRequest } from '../../../contracts/run-request/run-request-contract';
 import { instanceReleaseBroker } from '../../instance/release/instance-release-broker';
 import { laneTeardownBroker } from '../../lane/teardown/lane-teardown-broker';
 import { runExecuteBroker } from '../../run/execute/run-execute-broker';
 
-type RunPayloadOutcome = { success: true; data: RunRequest } | { success: false; message: string };
 
 export const driverHandleRequestBroker = async ({
   request,
@@ -72,10 +72,10 @@ export const driverHandleRequestBroker = async ({
       try {
         const parsed = runRequestContract.safeParse(JSON.parse(request.payload));
         return parsed.success
-          ? { success: true, data: parsed.data }
-          : { success: false, message: parsed.error.message };
+          ? runPayloadOutcomeContract.parse({ success: true, data: parsed.data })
+          : runPayloadOutcomeContract.parse({ success: false, message: parsed.error.message });
       } catch (error) {
-        return { success: false, message: String(error) };
+        return runPayloadOutcomeContract.parse({ success: false, message: String(error) });
       }
     })();
 

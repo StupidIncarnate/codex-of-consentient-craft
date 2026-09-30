@@ -20,9 +20,9 @@
  * // state: 'dead', entry: the stale registry row — entry is null only when state is 'unknown'
  */
 
+import { instanceStateResolveResultContract } from '../../../contracts/instance-state-resolve-result/instance-state-resolve-result-contract';
+import type { InstanceStateResolveResult } from '../../../contracts/instance-state-resolve-result/instance-state-resolve-result-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
-import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
-import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -33,24 +33,24 @@ export const instanceStateResolveBroker = async ({
   instanceId,
 }: {
   instanceId: SiegeInstance['id'];
-}): Promise<{ state: InstanceState; entry: RegistryEntry | null }> => {
+}): Promise<InstanceStateResolveResult> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((candidate) => candidate.id === instanceId) ?? null;
 
   if (entry === null) {
-    return { state: instanceStateContract.parse('unknown'), entry: null };
+    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('unknown'), entry: null });
   }
 
   if (entry.state === 'pruned') {
-    return { state: instanceStateContract.parse('pruned'), entry };
+    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('pruned'), entry });
   }
 
   if (entry.state === 'killed') {
-    return { state: instanceStateContract.parse('killed'), entry };
+    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('killed'), entry });
   }
 
   if (entry.state === 'unusable') {
-    return { state: instanceStateContract.parse('unusable'), entry };
+    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('unusable'), entry });
   }
 
   const nowMs = Date.now();
@@ -59,5 +59,5 @@ export const instanceStateResolveBroker = async ({
     (isReservedRegistryEntryGuard({ entry }) &&
       nowMs - entry.reservedAtMs > instanceLifecycleStatics.reservation.staleAfterMs);
 
-  return { state: instanceStateContract.parse(isStale ? 'dead' : 'alive'), entry };
+  return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse(isStale ? 'dead' : 'alive'), entry });
 };

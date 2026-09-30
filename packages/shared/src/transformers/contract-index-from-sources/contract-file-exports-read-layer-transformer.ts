@@ -9,6 +9,8 @@
  * contractFileExportsReadLayerTransformer({ sourceFile });
  * // Returns { exportedConstNames, typeExports: [{ typeName, isSchemaInferred, isExempt }] }
  */
+import { contractFileExportsReadLayerContract } from '../../contracts/contract-file-exports-read-layer/contract-file-exports-read-layer-contract';
+import type { ContractFileExportsReadLayer } from '../../contracts/contract-file-exports-read-layer/contract-file-exports-read-layer-contract';
 import * as ts from '#gateway/npm/typescript';
 
 import { typeNodeShapeClassifyLayerTransformer } from './type-node-shape-classify-layer-transformer';
@@ -17,10 +19,7 @@ export const contractFileExportsReadLayerTransformer = ({
   sourceFile,
 }: {
   sourceFile: ts.SourceFile;
-}): {
-  exportedConstNames: string[];
-  typeExports: { typeName: string; isSchemaInferred: boolean; isExempt: boolean }[];
-} => {
+}): ContractFileExportsReadLayer => {
   const exportedStatements = sourceFile.statements.filter(
     (statement) =>
       ts.canHaveModifiers(statement) &&
@@ -90,5 +89,5 @@ export const contractFileExportsReadLayerTransformer = ({
       };
     });
 
-  return { exportedConstNames, typeExports };
+  return contractFileExportsReadLayerContract.parse({ exportedConstNames, typeExports });
 };

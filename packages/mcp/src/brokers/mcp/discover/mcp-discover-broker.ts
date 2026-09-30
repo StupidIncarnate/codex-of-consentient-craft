@@ -6,10 +6,11 @@
  * // Returns { results: DiscoverResultItem[] | TreeOutput, count: ResultCount }
  */
 
+import { mcpDiscoverResultContract } from '../../../contracts/mcp-discover-result/mcp-discover-result-contract';
+import type { McpDiscoverResult } from '../../../contracts/mcp-discover-result/mcp-discover-result-contract';
 import { discoverInputContract } from '../../../contracts/discover-input/discover-input-contract';
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
 import { discoverResultItemContract } from '../../../contracts/discover-result-item/discover-result-item-contract';
-import type { DiscoverResultItem } from '../../../contracts/discover-result-item/discover-result-item-contract';
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
 import { glob as globFind } from '#gateway/npm/glob';
@@ -34,10 +35,7 @@ export const mcpDiscoverBroker = async ({
   // cwd() fallback below exists only for standalone/test callers, never for the
   // real MCP call site (architectureHandleResponder always passes this explicitly).
   rootPath?: string;
-}): Promise<{
-  results: DiscoverResultItem[] | string;
-  count: number;
-}> => {
+}): Promise<McpDiscoverResult> => {
   // Validate input
   const validated = discoverInputContract.parse(input);
 
@@ -67,10 +65,10 @@ export const mcpDiscoverBroker = async ({
 
   // verbose === true → return full DiscoverResultItem[]
   if (validated.verbose === true) {
-    return {
+    return mcpDiscoverResultContract.parse({
       results: resultItems,
       count: resultItems.length,
-    };
+    });
   }
 
   // Tree format for non-verbose queries
@@ -111,10 +109,10 @@ export const mcpDiscoverBroker = async ({
           '',
           `${discoverHintStatics.grepNoMatchExplanation} Glob matched ${fileHits.length} file(s).`,
         ];
-        return {
+        return mcpDiscoverResultContract.parse({
           results: hintLines.join('\n'),
           count: 0,
-        };
+        });
       }
     }
 
@@ -139,15 +137,15 @@ export const mcpDiscoverBroker = async ({
         discoverHintStatics.suggestion,
         ...dirRelatives.map((d) => `  ${d}/`),
       ];
-      return {
+      return mcpDiscoverResultContract.parse({
         results: hintLines.join('\n'),
         count: 0,
-      };
+      });
     }
   }
 
-  return {
+  return mcpDiscoverResultContract.parse({
     results: treeOutput,
     count: fileResults.length,
-  };
+  });
 };

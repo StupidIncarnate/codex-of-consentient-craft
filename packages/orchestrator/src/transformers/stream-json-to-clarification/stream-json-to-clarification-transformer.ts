@@ -6,10 +6,11 @@
  * // Returns { questions: ClarificationQuestion[] } if the entry is an ask-user-question tool_use, null otherwise
  */
 
+import { streamJsonToClarificationContract } from '../../contracts/stream-json-to-clarification/stream-json-to-clarification-contract';
+import type { StreamJsonToClarification } from '../../contracts/stream-json-to-clarification/stream-json-to-clarification-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 import { askUserQuestionInputContract } from '../../contracts/ask-user-question-input/ask-user-question-input-contract';
-import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 
 const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
@@ -17,7 +18,7 @@ export const streamJsonToClarificationTransformer = ({
   entry,
 }: {
   entry: ChatEntry;
-}): { questions: ClarificationQuestion[] } | null => {
+}): StreamJsonToClarification | null => {
   if (entry.role !== 'assistant' || entry.type !== 'tool_use') {
     return null;
   }
@@ -39,7 +40,7 @@ export const streamJsonToClarificationTransformer = ({
       return null;
     }
 
-    return { questions };
+    return streamJsonToClarificationContract.parse({ questions });
   } catch {
     return null;
   }

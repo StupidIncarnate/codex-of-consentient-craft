@@ -66,7 +66,9 @@
  * // ClaudeModel this same work item is dispatched on
  */
 
-import { agentPromptResultContract, workItemRoleContract, type AgentPromptResult, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
+import { workItemToPromptContract } from '../../contracts/work-item-to-prompt/work-item-to-prompt-contract';
+import type { WorkItemToPrompt } from '../../contracts/work-item-to-prompt/work-item-to-prompt-contract';
+import { agentPromptResultContract, workItemRoleContract, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
@@ -84,7 +86,7 @@ export const workItemToPromptTransformer = ({
   quest: Quest;
   workItem: WorkItem;
   agentName: string;
-}): { prompt: string; model: AgentPromptResult['model'] } => {
+}): WorkItemToPrompt => {
   const node = workItemStepNodeTransformer({ quest, workItem });
   const hasStepPrompt = node?.kind === 'prompt' && node.prompt !== undefined;
   const promptName =
@@ -107,10 +109,10 @@ export const workItemToPromptTransformer = ({
   if (!hasStepPrompt && isMinionName) {
     const minionArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
     const { prompt: template, model } = agentNameToPromptTransformer({ agent: promptName });
-    return {
+    return workItemToPromptContract.parse({
       prompt: template.replace('$ARGUMENTS', () => minionArguments),
       model,
-    };
+    });
   }
 
   // A name that is neither a minion nor a WorkItemRole has nothing lawful to serve it: a STEP
@@ -260,8 +262,8 @@ export const workItemToPromptTransformer = ({
   // Function replacement, not a string one: operation text is authored prose that can contain a
   // `$` sequence (`$&`, `` $` ``, `$'`), which a string replacement would expand against the match
   // — `` $` `` splices the whole preceding prompt in. A function replacement is taken verbatim.
-  return {
+  return workItemToPromptContract.parse({
     prompt: template.replace('$ARGUMENTS', () => parts.join('\n')),
     model: resolvedModel,
-  };
+  });
 };

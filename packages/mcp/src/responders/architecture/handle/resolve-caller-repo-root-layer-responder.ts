@@ -7,12 +7,13 @@
  * const { repoRoot, source, configFound } = await ResolveCallerRepoRootLayerResponder({ meta });
  */
 
+import { resolveCallerRepoRootLayerResultContract } from '../../../contracts/resolve-caller-repo-root-layer-result/resolve-caller-repo-root-layer-result-contract';
+import type { ResolveCallerRepoRootLayerResult } from '../../../contracts/resolve-caller-repo-root-layer-result/resolve-caller-repo-root-layer-result-contract';
 import { callerRepoRootResolveBroker } from '../../../brokers/caller-repo-root/resolve/caller-repo-root-resolve-broker';
-import type { CallerRepoRootSource } from '../../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 
 export const ResolveCallerRepoRootLayerResponder = async ({
   meta,
 }: {
   meta: Record<string, unknown> | undefined;
-}): Promise<{ repoRoot: string; source: CallerRepoRootSource; configFound: boolean }> =>
-  callerRepoRootResolveBroker({ meta });
+}): Promise<ResolveCallerRepoRootLayerResult> =>
+  resolveCallerRepoRootLayerResultContract.parse(callerRepoRootResolveBroker({ meta }));

@@ -1,3 +1,5 @@
+import { gatewayBarrelExportedNamesContract } from '../../contracts/gateway-barrel-exported-names/gateway-barrel-exported-names-contract';
+import type { GatewayBarrelExportedNames } from '../../contracts/gateway-barrel-exported-names/gateway-barrel-exported-names-contract';
 /**
  * PURPOSE: Reads a gateway barrel file's own source text and answers which names it exports directly
  * (`export { readFile } from './read-file/read-file'`, `export const x = ...`, `export * as ns from
@@ -20,7 +22,7 @@ export const gatewayBarrelExportedNamesTransformer = ({
   sourceText,
 }: {
   sourceText: string;
-}): { directNames: string[]; reexportTargets: string[] } => {
+}): GatewayBarrelExportedNames => {
   const directNames = new Set<string>();
 
   for (const match of sourceText.matchAll(NAMED_EXPORT_LIST)) {
@@ -57,8 +59,8 @@ export const gatewayBarrelExportedNamesTransformer = ({
     .filter((target) => target !== undefined)
     .map((target) => target);
 
-  return {
+  return gatewayBarrelExportedNamesContract.parse({
     directNames: Array.from(directNames),
     reexportTargets,
-  };
+  });
 };

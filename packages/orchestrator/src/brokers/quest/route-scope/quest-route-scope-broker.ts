@@ -25,6 +25,8 @@
  * graph, so each completes on its own signal and this broker never touches it.
  */
 
+import { questRouteScopeResultContract } from '../../../contracts/quest-route-scope-result/quest-route-scope-result-contract';
+import type { QuestRouteScopeResult } from '../../../contracts/quest-route-scope-result/quest-route-scope-result-contract';
 import { randomUUID } from '#gateway/node/crypto';
 import { join } from '#gateway/node/path';
 import { operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
@@ -53,7 +55,7 @@ export const questRouteScopeBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<{ routed: boolean; blocked: boolean }> => {
+}): Promise<QuestRouteScopeResult> => {
   // The quest folder and the quest itself come off ONE lookup, not two: `questGetBroker` would walk
   // the guilds again for a path this already holds, and the plan file lives beside `quest.json`.
   const { questPath } = await questFindQuestPathBroker({ questId });
@@ -84,7 +86,7 @@ export const questRouteScopeBroker = async ({
   });
 
   if (candidate === undefined) {
-    return { routed: false, blocked: false };
+    return questRouteScopeResultContract.parse({ routed: false, blocked: false });
   }
 
   // The last await the decision needs, ABOVE the lock. The router is pure and synchronous and
@@ -253,8 +255,8 @@ export const questRouteScopeBroker = async ({
       ...(reason === undefined ? {} : { reason }),
     });
 
-    return { routed: false, blocked: true };
+    return questRouteScopeResultContract.parse({ routed: false, blocked: true });
   }
 
-  return { routed: persisted !== null, blocked: false };
+  return questRouteScopeResultContract.parse({ routed: persisted !== null, blocked: false });
 };

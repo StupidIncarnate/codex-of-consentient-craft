@@ -10,11 +10,13 @@
  * // Side effect: watchers started synchronously, then fire-and-forget normalization
  */
 
+import { orchestrationBootFlowStateContract } from '../../contracts/orchestration-boot-flow-state/orchestration-boot-flow-state-contract';
+import type { OrchestrationBootFlowState } from '../../contracts/orchestration-boot-flow-state/orchestration-boot-flow-state-contract';
 import { OrchestrationBootstrapResponder } from '../../responders/orchestration/bootstrap/orchestration-bootstrap-responder';
 import { OrchestrationDispatchNormalizeBootResponder } from '../../responders/orchestration/dispatch-normalize-boot/orchestration-dispatch-normalize-boot-responder';
 import { stderr } from '#gateway/node/process';
 
-const state: { ran: boolean } = { ran: false };
+const state: OrchestrationBootFlowState = orchestrationBootFlowStateContract.parse({ ran: false });
 
 export const OrchestrationBootFlow = {
   bootstrap: (): void => {

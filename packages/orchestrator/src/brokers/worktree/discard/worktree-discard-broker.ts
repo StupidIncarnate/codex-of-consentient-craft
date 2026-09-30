@@ -17,6 +17,8 @@
  */
 
 
+import { worktreeDiscardResultContract } from '../../../contracts/worktree-discard-result/worktree-discard-result-contract';
+import type { WorktreeDiscardResult } from '../../../contracts/worktree-discard-result/worktree-discard-result-contract';
 import { branchDelete, worktreeRemove } from '#gateway/bin/git';
 
 export const worktreeDiscardBroker = async ({
@@ -27,18 +29,18 @@ export const worktreeDiscardBroker = async ({
   repoRoot: string;
   worktreePath: string;
   branchName: string;
-}): Promise<{ discarded: boolean; output: string }> => {
+}): Promise<WorktreeDiscardResult> => {
   const removeResult = await worktreeRemove({ cwd: repoRoot, worktreePath });
 
   if (removeResult.exitCode !== 0) {
-    return { discarded: false, output: removeResult.output };
+    return worktreeDiscardResultContract.parse({ discarded: false, output: removeResult.output });
   }
 
   const deleteResult = await branchDelete({ cwd: repoRoot, branchName });
 
   if (deleteResult.exitCode !== 0) {
-    return { discarded: false, output: deleteResult.output };
+    return worktreeDiscardResultContract.parse({ discarded: false, output: deleteResult.output });
   }
 
-  return { discarded: true, output: '' };
+  return worktreeDiscardResultContract.parse({ discarded: true, output: '' });
 };

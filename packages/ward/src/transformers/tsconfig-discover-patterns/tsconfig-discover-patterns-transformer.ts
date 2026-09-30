@@ -6,6 +6,8 @@
  * // Returns: { patterns: ['src/**\/*.ts', 'src/**\/*.tsx'], exclude: ['node_modules', 'dist'] }
  */
 
+import { tsconfigDiscoverPatternsContract } from '../../contracts/tsconfig-discover-patterns/tsconfig-discover-patterns-contract';
+import type { TsconfigDiscoverPatterns } from '../../contracts/tsconfig-discover-patterns/tsconfig-discover-patterns-contract';
 import { tsconfigJsonContract } from '../../contracts/tsconfig-json/tsconfig-json-contract';
 import { checkCommandsStatics } from '../../statics/check-commands/check-commands-statics';
 import { expandToTsGlobsTransformer } from '../expand-to-ts-globs/expand-to-ts-globs-transformer';
@@ -19,7 +21,7 @@ export const tsconfigDiscoverPatternsTransformer = ({
   tsconfigData,
 }: {
   tsconfigData: unknown;
-}): { patterns: string[]; exclude: string[] } => {
+}): TsconfigDiscoverPatterns => {
   const fallback = {
     patterns: checkCommandsStatics.typecheck.discoverPatterns.map((p) =>
       p,
@@ -36,7 +38,7 @@ export const tsconfigDiscoverPatternsTransformer = ({
   })();
 
   if (tsconfig?.include === undefined) {
-    return fallback;
+    return tsconfigDiscoverPatternsContract.parse(fallback);
   }
 
   const patterns: string[] = [];
@@ -49,7 +51,7 @@ export const tsconfigDiscoverPatternsTransformer = ({
   }
 
   if (patterns.length === 0) {
-    return fallback;
+    return tsconfigDiscoverPatternsContract.parse(fallback);
   }
 
   const exclude: string[] = [...DEFAULT_EXCLUDE];
@@ -62,5 +64,5 @@ export const tsconfigDiscoverPatternsTransformer = ({
     }
   }
 
-  return { patterns, exclude };
+  return tsconfigDiscoverPatternsContract.parse({ patterns, exclude });
 };

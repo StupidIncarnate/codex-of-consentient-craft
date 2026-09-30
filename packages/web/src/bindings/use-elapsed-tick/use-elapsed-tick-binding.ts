@@ -20,6 +20,8 @@
  * // startedAt against it
  */
 
+import { useElapsedTickResultContract } from '../../contracts/use-elapsed-tick-result/use-elapsed-tick-result-contract';
+import type { UseElapsedTickResult } from '../../contracts/use-elapsed-tick-result/use-elapsed-tick-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 import { clearInterval } from '#gateway/browser/clearInterval';
 import { document } from '#gateway/browser/document';
@@ -27,7 +29,7 @@ import { setInterval } from '#gateway/browser/setInterval';
 
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
-export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now: string } => {
+export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): UseElapsedTickResult => {
   // The initialiser reads Date.now() synchronously on the FIRST render, rather than deferring to
   // the first tick — a row that mounts on a work item already 4 minutes old must read "4m"
   // immediately, not "0m" for up to a whole tick period until the interval below fires once.
@@ -58,5 +60,5 @@ export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now:
     };
   }, [enabled, handleVisibilityChange]);
 
-  return { now: new Date(nowMs).toISOString() };
+  return useElapsedTickResultContract.parse({ now: new Date(nowMs).toISOString() });
 };

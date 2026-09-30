@@ -10,6 +10,8 @@
  * barrelNamedReexportsLayerBroker({ node: barrelProgramNode });
  * // Returns [{ name: 'readFileSync', source: './read-file-sync/read-file-sync' }, ...]
  */
+import { barrelNamedReexportsLayerResultContract } from '../../../contracts/barrel-named-reexports-layer-result/barrel-named-reexports-layer-result-contract';
+import type { BarrelNamedReexportsLayerResult } from '../../../contracts/barrel-named-reexports-layer-result/barrel-named-reexports-layer-result-contract';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -18,7 +20,7 @@ export const barrelNamedReexportsLayerBroker = ({
   node,
 }: {
   node: TSESTree.Program;
-}): { name: string; source: string }[] => {
+}): BarrelNamedReexportsLayerResult => {
   const reexports: { name: string; source: string }[] = [];
 
   for (const statement of node.body) {
@@ -34,5 +36,5 @@ export const barrelNamedReexportsLayerBroker = ({
     }
   }
 
-  return reexports;
+  return barrelNamedReexportsLayerResultContract.parse(reexports);
 };

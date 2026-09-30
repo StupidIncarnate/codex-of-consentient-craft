@@ -6,6 +6,8 @@
  * // Returns: { questsPath: AbsoluteFilePath } pointing to ~/.dungeonmaster/guilds/{guildId}/quests
  */
 
+import { questResolveQuestsPathResultContract } from '../../../contracts/quest-resolve-quests-path-result/quest-resolve-quests-path-result-contract';
+import type { QuestResolveQuestsPathResult } from '../../../contracts/quest-resolve-quests-path-result/quest-resolve-quests-path-result-contract';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
@@ -15,7 +17,7 @@ export const questResolveQuestsPathBroker = ({
   guildId,
 }: {
   guildId: Guild['id'];
-}): { questsPath: string } => {
+}): QuestResolveQuestsPathResult => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const questsPath = join(
@@ -25,5 +27,5 @@ export const questResolveQuestsPathBroker = ({
       dungeonmasterHomeStatics.paths.questsDir,
     );
 
-  return { questsPath };
+  return questResolveQuestsPathResultContract.parse({ questsPath });
 };

@@ -31,8 +31,10 @@
  * independently of `sessionId` and takes priority over the ambiguous `questId` resume-hint path.
  */
 
+import { resolveChatQuestLayerResultContract } from '../../../contracts/resolve-chat-quest-layer-result/resolve-chat-quest-layer-result-contract';
+import type { ResolveChatQuestLayerResult } from '../../../contracts/resolve-chat-quest-layer-result/resolve-chat-quest-layer-result-contract';
 import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { QuestType, WorkItemRole, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -59,7 +61,7 @@ export const resolveChatQuestLayerBroker = async ({
   existingQuestId?: Quest['id'];
   sessionId?: Session['id'];
   message: string;
-}): Promise<{ questId: Quest['id']; workItemId: WorkItem['id']; createdQuest: boolean }> => {
+}): Promise<ResolveChatQuestLayerResult> => {
   if (role === 'tavernkeeper') {
     if (!questId) {
       throw new Error('questId is required for tavernkeeper role');
@@ -78,7 +80,7 @@ export const resolveChatQuestLayerBroker = async ({
     if (!tavernkeeperItem) {
       throw new Error(`Quest ${questId} has no tavernkeeper work item`);
     }
-    return { questId, workItemId: tavernkeeperItem.id, createdQuest: false };
+    return resolveChatQuestLayerResultContract.parse({ questId, workItemId: tavernkeeperItem.id, createdQuest: false });
   }
 
   if (existingQuestId) {
@@ -94,7 +96,7 @@ export const resolveChatQuestLayerBroker = async ({
     if (!intakeItem) {
       throw new Error(`Quest ${existingQuestId} has no ${role} work item`);
     }
-    return { questId: existingQuestId, workItemId: intakeItem.id, createdQuest: false };
+    return resolveChatQuestLayerResultContract.parse({ questId: existingQuestId, workItemId: intakeItem.id, createdQuest: false });
   }
 
   if (sessionId && questId) {
@@ -108,7 +110,7 @@ export const resolveChatQuestLayerBroker = async ({
     if (!intakeItem) {
       throw new Error(`Quest ${questId} has no ${role} work item`);
     }
-    return { questId, workItemId: intakeItem.id, createdQuest: false };
+    return resolveChatQuestLayerResultContract.parse({ questId, workItemId: intakeItem.id, createdQuest: false });
   }
 
   const addInput = addQuestInputContract.parse({
@@ -124,9 +126,9 @@ export const resolveChatQuestLayerBroker = async ({
   if (!questResult.success || !questResult.questId || !questResult.intakeWorkItemId) {
     throw new Error(`Failed to create quest: ${questResult.error ?? 'unknown'}`);
   }
-  return {
+  return resolveChatQuestLayerResultContract.parse({
     questId: questResult.questId,
     workItemId: questResult.intakeWorkItemId,
     createdQuest: true,
-  };
+  });
 };

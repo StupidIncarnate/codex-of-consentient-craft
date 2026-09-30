@@ -9,6 +9,8 @@
  * WHEN-NOT-TO-USE: Mid-run — this only reads the quest; it never subscribes to events or loads the quest itself.
  */
 
+import { smoketestAssertFinalStateResultContract } from '../../../contracts/smoketest-assert-final-state-result/smoketest-assert-final-state-result-contract';
+import type { SmoketestAssertFinalStateResult } from '../../../contracts/smoketest-assert-final-state-result/smoketest-assert-final-state-result-contract';
 import type { Quest, WorkItemStatus } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestAssertion } from '../../../contracts/smoketest-assertion/smoketest-assertion-contract';
@@ -19,7 +21,7 @@ export const smoketestAssertFinalStateBroker = ({
 }: {
   quest: Quest;
   assertions: readonly SmoketestAssertion[];
-}): { passed: boolean; failures: readonly SmoketestAssertion[] } => {
+}): SmoketestAssertFinalStateResult => {
   const failures = assertions.filter((assertion) => {
     if (assertion.kind === 'quest-status') {
       return quest.status !== assertion.expected;
@@ -50,8 +52,8 @@ export const smoketestAssertFinalStateBroker = ({
     });
   });
 
-  return {
+  return smoketestAssertFinalStateResultContract.parse({
     passed: failures.length === 0,
     failures,
-  };
+  });
 };

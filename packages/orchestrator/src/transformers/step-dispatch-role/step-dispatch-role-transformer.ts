@@ -14,9 +14,10 @@
  * // prompt step — the caller falls back to its own scope-role model.
  */
 
+import { stepDispatchRoleContract } from '../../contracts/step-dispatch-role/step-dispatch-role-contract';
+import type { StepDispatchRole } from '../../contracts/step-dispatch-role/step-dispatch-role-contract';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { ClaudeModel } from '../../contracts/claude-model/claude-model-contract';
 import { workItemStepNodeTransformer } from '../work-item-step-node/work-item-step-node-transformer';
 
 export const stepDispatchRoleTransformer = ({
@@ -25,15 +26,15 @@ export const stepDispatchRoleTransformer = ({
 }: {
   quest: Quest;
   workItem: WorkItem;
-}): { prompt: string | null; model: ClaudeModel | undefined } => {
+}): StepDispatchRole => {
   const node = workItemStepNodeTransformer({ quest, workItem });
 
   // A DETERMINISTIC step names no prompt because it spawns no session — it runs a handler through
   // `stepHandlerRunBroker`. Answering for one would name a prompt for a dispatch that never happens,
   // and a model for a session nothing spawns.
   if (node === undefined || node.kind !== 'prompt' || node.prompt === undefined) {
-    return { prompt: null, model: undefined };
+    return stepDispatchRoleContract.parse({ prompt: null, model: undefined });
   }
 
-  return { prompt: String(node.prompt), model: node.model };
+  return stepDispatchRoleContract.parse({ prompt: String(node.prompt), model: node.model });
 };

@@ -43,6 +43,8 @@
  * // onLine sees exactly one line for this root — either the mirroring line or the skip line
  */
 
+import { populateOneRootLayerResultContract } from '../../../contracts/populate-one-root-layer-result/populate-one-root-layer-result-contract';
+import type { PopulateOneRootLayerResult } from '../../../contracts/populate-one-root-layer-result/populate-one-root-layer-result-contract';
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { cpRun, CpNotInstalledError } from '#gateway/bin/cp';
@@ -62,10 +64,6 @@ const COPY_GREEN_EXIT_CODE = 0;
 // result to report.
 const RUN_NOT_FOUND_RESULT = { exitCode: 1, output: '', signal: null, timedOut: false } as const;
 
-export type WorktreeRootPair = Readonly<{
-  sourceRoot: string;
-  targetRoot: string;
-}>;
 
 export const populateOneRootLayerBroker = async ({
   sourceRoot,
@@ -78,7 +76,7 @@ export const populateOneRootLayerBroker = async ({
   // monorepo's node_modules takes minutes, so a caller that cannot stream must say so out loud
   // with `() => undefined`.
   onLine: (line: string) => void;
-}): Promise<{ workspacePackageRoots: readonly WorktreeRootPair[] }> => {
+}): Promise<PopulateOneRootLayerResult> => {
   const sourceNodeModules = locationsNodeModulesPathFindBroker({ rootPath: sourceRoot });
   const targetNodeModules = locationsNodeModulesPathFindBroker({ rootPath: targetRoot });
 
@@ -226,5 +224,5 @@ export const populateOneRootLayerBroker = async ({
     }),
   );
 
-  return { workspacePackageRoots: perEntry.flat() };
+  return populateOneRootLayerResultContract.parse({ workspacePackageRoots: perEntry.flat() });
 };

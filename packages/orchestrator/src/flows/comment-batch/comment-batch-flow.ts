@@ -9,6 +9,8 @@
  * // waiting for a reload — Claude's --resume stream never echoes the prompt back.
  */
 
+import { commentBatchResultContract } from '../../contracts/comment-batch-result/comment-batch-result-contract';
+import type { CommentBatchResult } from '../../contracts/comment-batch-result/comment-batch-result-contract';
 import type { CommentBatchEntry, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
@@ -25,7 +27,7 @@ export const CommentBatchFlow = async ({
   sessionId: Session['id'];
   questId: Quest['id'];
   comments: CommentBatchEntry[];
-}): Promise<{ chatProcessId: string; message: string }> => {
+}): Promise<CommentBatchResult> => {
   // Persist gates delivery, mirroring the clarify flow's ordering exactly: the responder throws
   // when the quest write fails, so the markdown is never built and no chat process is ever spawned
   // for feedback the quest does not record. The browser holds its localStorage queue until it sees
@@ -39,5 +41,5 @@ export const CommentBatchFlow = async ({
 
   const { chatProcessId } = await ChatStartResponder({ guildId, message, sessionId });
 
-  return { chatProcessId, message };
+  return commentBatchResultContract.parse({ chatProcessId, message });
 };

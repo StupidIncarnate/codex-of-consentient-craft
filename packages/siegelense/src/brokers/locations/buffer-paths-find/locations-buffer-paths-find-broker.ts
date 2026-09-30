@@ -17,6 +17,8 @@
  * // }
  */
 
+import { locationsBufferPathsFindResultContract } from '../../../contracts/locations-buffer-paths-find-result/locations-buffer-paths-find-result-contract';
+import type { LocationsBufferPathsFindResult } from '../../../contracts/locations-buffer-paths-find-result/locations-buffer-paths-find-result-contract';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -24,20 +26,16 @@ export const locationsBufferPathsFindBroker = ({
   evidencePath,
 }: {
   evidencePath: string;
-}): {
-  console: string;
-  network: string;
-  websocket: string;
-} => {
+}): LocationsBufferPathsFindResult => {
   const consolePath = join(evidencePath, locationsStatics.siegelense.consoleLog);
 
   const networkPath = join(evidencePath, locationsStatics.siegelense.networkLog);
 
   const websocketPath = join(evidencePath, locationsStatics.siegelense.websocketLog);
 
-  return {
+  return locationsBufferPathsFindResultContract.parse({
     console: consolePath,
     network: networkPath,
     websocket: websocketPath,
-  };
+  });
 };

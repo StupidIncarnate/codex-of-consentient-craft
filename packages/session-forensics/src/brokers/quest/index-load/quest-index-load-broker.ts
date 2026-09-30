@@ -14,6 +14,8 @@
  * // found or its file cannot be parsed as JSON at all.
  */
 
+import { questIndexLoadResultContract } from '../../../contracts/quest-index-load-result/quest-index-load-result-contract';
+import type { QuestIndexLoadResult } from '../../../contracts/quest-index-load-result/quest-index-load-result-contract';
 import { readFileSync } from '#gateway/node/fs';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import {
@@ -23,20 +25,14 @@ import {
   wardResultContract,
   riftcarverResultContract,
 } from '@dungeonmaster/shared/contracts';
-import type { WorkItem, OperationItem, WardResult, RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
 export const questIndexLoadBroker = ({
   questId,
 }: {
   questId: Quest['id'];
-}): {
-  userRequest: string | undefined;
-  workItems: readonly WorkItem[];
-  operations: readonly OperationItem[];
-  wardResults: readonly WardResult[];
-  riftcarverResults: readonly RiftcarverResult[];
-} => {
+}): QuestIndexLoadResult => {
   const empty = {
     userRequest: undefined,
     workItems: [],
@@ -47,20 +43,20 @@ export const questIndexLoadBroker = ({
   const questPath = questFindBroker({ questId });
 
   if (questPath === undefined) {
-    return empty;
+    return questIndexLoadResultContract.parse(empty);
   }
 
   const contents = readFileSync(questPath);
   const parsed = safeJsonParseTransformer({ value: contents });
 
   if (!parsed.ok) {
-    return empty;
+    return questIndexLoadResultContract.parse(empty);
   }
 
   const questJson = parsed.value;
 
   if (typeof questJson !== 'object' || questJson === null) {
-    return empty;
+    return questIndexLoadResultContract.parse(empty);
   }
 
   const userRequestResult =
@@ -80,12 +76,12 @@ export const questIndexLoadBroker = ({
       ? riftcarverResultContract.array().safeParse(questJson.riftcarverResults)
       : undefined;
 
-  return {
+  return questIndexLoadResultContract.parse({
     userRequest: userRequestResult?.success === true ? userRequestResult.data : undefined,
     workItems: workItemsResult?.success === true ? workItemsResult.data : [],
     operations: operationsResult?.success === true ? operationsResult.data : [],
     wardResults: wardResultsResult?.success === true ? wardResultsResult.data : [],
     riftcarverResults:
       riftcarverResultsResult?.success === true ? riftcarverResultsResult.data : [],
-  };
+  });
 };

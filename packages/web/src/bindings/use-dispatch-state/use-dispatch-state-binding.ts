@@ -6,6 +6,8 @@
  * // state = DispatchState | null. Null until the first fetch resolves.
  */
 
+import { useDispatchStateResultContract } from '../../contracts/use-dispatch-state-result/use-dispatch-state-result-contract';
+import type { UseDispatchStateResult } from '../../contracts/use-dispatch-state-result/use-dispatch-state-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
@@ -14,10 +16,7 @@ import type { DispatchState } from '@dungeonmaster/shared/contracts';
 import { orchestrationDispatchGetBroker } from '../../brokers/orchestration/dispatch-get/orchestration-dispatch-get-broker';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
-export const useDispatchStateBinding = (): {
-  state: DispatchState | null;
-  isLoading: boolean;
-} => {
+export const useDispatchStateBinding = (): UseDispatchStateResult => {
   const [state, setState] = useState<DispatchState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,5 +47,5 @@ export const useDispatchStateBinding = (): {
     };
   }, [refresh]);
 
-  return { state, isLoading };
+  return useDispatchStateResultContract.parse({ state, isLoading });
 };

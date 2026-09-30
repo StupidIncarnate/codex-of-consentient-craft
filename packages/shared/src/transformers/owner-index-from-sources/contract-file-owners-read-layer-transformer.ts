@@ -9,16 +9,15 @@
  * contractFileOwnersReadLayerTransformer({ sourceFile, filePath, packageName });
  * // Returns { owners, standaloneBrands, enums }: OwnerIndexOwner[], OwnerIndexStandaloneBrand[], OwnerIndexEnum[]
  */
+import { contractFileOwnersReadLayerContract } from '../../contracts/contract-file-owners-read-layer/contract-file-owners-read-layer-contract';
+import type { ContractFileOwnersReadLayer } from '../../contracts/contract-file-owners-read-layer/contract-file-owners-read-layer-contract';
 import * as ts from '#gateway/npm/typescript';
 
 import { ownerIndexEnumContract } from '../../contracts/owner-index-enum/owner-index-enum-contract';
-import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexField } from '../../contracts/owner-index-field/owner-index-field-contract';
 import { ownerIndexFieldContract } from '../../contracts/owner-index-field/owner-index-field-contract';
 import { ownerIndexOwnerContract } from '../../contracts/owner-index-owner/owner-index-owner-contract';
-import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
 import { ownerIndexStandaloneBrandContract } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
-import type { OwnerIndexStandaloneBrand } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
 import { contractIndexStatics } from '../../statics/contract-index/contract-index-statics';
 import { enumValuesReadTransformer } from '../enum-values-read/enum-values-read-transformer';
 import { contractChainReadLayerTransformer } from './contract-chain-read-layer-transformer';
@@ -33,11 +32,7 @@ export const contractFileOwnersReadLayerTransformer = ({
   sourceFile: ts.SourceFile;
   filePath: string;
   packageName: string;
-}): {
-  owners: OwnerIndexOwner[];
-  standaloneBrands: OwnerIndexStandaloneBrand[];
-  enums: OwnerIndexEnum[];
-} => {
+}): ContractFileOwnersReadLayer => {
   const inferredTypeNames = new Map(
     sourceFile.statements
       .filter((statement): statement is ts.TypeAliasDeclaration =>
@@ -183,5 +178,5 @@ export const contractFileOwnersReadLayerTransformer = ({
         ];
   });
 
-  return { owners, standaloneBrands, enums };
+  return contractFileOwnersReadLayerContract.parse({ owners, standaloneBrands, enums });
 };

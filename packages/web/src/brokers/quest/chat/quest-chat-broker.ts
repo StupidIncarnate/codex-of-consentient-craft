@@ -10,6 +10,8 @@
  * // Returns { chatProcessId } on success; throws the server's exact rejection text otherwise
  */
 
+import { questChatResultContract } from '../../../contracts/quest-chat-result/quest-chat-result-contract';
+import type { QuestChatResult } from '../../../contracts/quest-chat-result/quest-chat-result-contract';
 import type { PastedImageUpload, Quest } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
@@ -29,7 +31,7 @@ export const questChatBroker = async ({
   message: string;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;
-}): Promise<{ chatProcessId: string }> => {
+}): Promise<QuestChatResult> => {
   const url = webConfigStatics.api.routes.questChat.replace(':questId', questId);
 
   const post = uploadProgressPostContract.parse({
@@ -61,7 +63,7 @@ export const questChatBroker = async ({
 
   if (result.ok) {
     if (parsed.success && parsed.data.chatProcessId !== undefined) {
-      return { chatProcessId: parsed.data.chatProcessId };
+      return questChatResultContract.parse({ chatProcessId: parsed.data.chatProcessId });
     }
     // A 200 carrying no usable chatProcessId is a broken server contract, not a success.
     throw new Error(`POST ${url} returned 200 with no chatProcessId`);

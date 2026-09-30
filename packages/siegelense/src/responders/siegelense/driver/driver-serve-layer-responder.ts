@@ -52,6 +52,8 @@
  * // Same, but reaps itself after 1_800_000ms of no traffic instead of driverStatics.idle.timeoutMs
  */
 
+import { frameOutcomeContract } from '../../../contracts/frame-outcome/frame-outcome-contract';
+import type { FrameOutcome } from '../../../contracts/frame-outcome/frame-outcome-contract';
 import { clearInterval } from '#gateway/node/clearInterval';
 import { unixSocketServe } from '#gateway/node/net';
 import { on, stderr } from '#gateway/node/process';
@@ -66,7 +68,6 @@ import { locationsInstanceEvidencePathFindBroker } from '../../../brokers/locati
 import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
 import { shutdownReasonWriteBroker } from '../../../brokers/shutdown-reason/write/shutdown-reason-write-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
-import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { driverSessionState } from '../../../state/driver-session/driver-session-state';
@@ -74,7 +75,6 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 
-type FrameOutcome = { success: true; data: DriverRequest } | { success: false; message: string };
 
 const MS_PER_SECOND = 1_000;
 
@@ -153,10 +153,10 @@ export const DriverServeLayerResponder = async ({
         try {
           const parsed = driverRequestContract.safeParse(JSON.parse(line));
           return parsed.success
-            ? { success: true, data: parsed.data }
-            : { success: false, message: parsed.error.message };
+            ? frameOutcomeContract.parse({ success: true, data: parsed.data })
+            : frameOutcomeContract.parse({ success: false, message: parsed.error.message });
         } catch (parseError) {
-          return { success: false, message: String(parseError) };
+          return frameOutcomeContract.parse({ success: false, message: String(parseError) });
         }
       })();
 

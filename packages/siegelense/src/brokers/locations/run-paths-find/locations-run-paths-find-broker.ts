@@ -19,6 +19,8 @@
  * // }
  */
 
+import { locationsRunPathsFindResultContract } from '../../../contracts/locations-run-paths-find-result/locations-run-paths-find-result-contract';
+import type { LocationsRunPathsFindResult } from '../../../contracts/locations-run-paths-find-result/locations-run-paths-find-result-contract';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
@@ -30,11 +32,7 @@ export const locationsRunPathsFindBroker = ({
 }: {
   evidencePath: string;
   runId: SiegeRun['id'];
-}): {
-  transcript: string;
-  storedReturn: string;
-  shotsDir: string;
-} => {
+}): LocationsRunPathsFindResult => {
   const transcript = join(
     evidencePath,
     locationsStatics.siegelense.runsDir,
@@ -49,9 +47,9 @@ export const locationsRunPathsFindBroker = ({
 
   const shotsDir = join(evidencePath, locationsStatics.siegelense.runsDir, runId);
 
-  return {
+  return locationsRunPathsFindResultContract.parse({
     transcript: transcript,
     storedReturn: storedReturn,
     shotsDir: shotsDir,
-  };
+  });
 };

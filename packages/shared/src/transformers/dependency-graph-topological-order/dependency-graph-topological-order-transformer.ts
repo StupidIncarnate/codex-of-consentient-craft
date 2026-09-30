@@ -7,6 +7,8 @@
  * // Returns: { order: ['@pkg/b', '@pkg/a'], cycle: null } (leaves/dependencies first)
  */
 
+import { dependencyGraphTopologicalOrderContract } from '../../contracts/dependency-graph-topological-order/dependency-graph-topological-order-contract';
+import type { DependencyGraphTopologicalOrder } from '../../contracts/dependency-graph-topological-order/dependency-graph-topological-order-contract';
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';
 import { dependencyGraphFindCyclePathTransformer } from '../dependency-graph-find-cycle-path/dependency-graph-find-cycle-path-transformer';
 
@@ -16,7 +18,7 @@ export const dependencyGraphTopologicalOrderTransformer = ({
   adjacency,
 }: {
   adjacency: Map<PackageJsonName, PackageJsonName[]>;
-}): { order: PackageJsonName[] | null; cycle: PackageJsonName[] | null } => {
+}): DependencyGraphTopologicalOrder => {
   // in-degree = number of dependencies each package has (how many packages it depends on)
   // packages with zero dependencies (leaves) go first in the output order
   const inDegree = new Map<PackageJsonName, ReturnType<typeof Number>>();
@@ -62,7 +64,7 @@ export const dependencyGraphTopologicalOrderTransformer = ({
   }
 
   if (order.length === inDegree.size) {
-    return { order, cycle: null };
+    return dependencyGraphTopologicalOrderContract.parse({ order, cycle: null });
   }
 
   const residual = new Set(
@@ -80,9 +82,9 @@ export const dependencyGraphTopologicalOrderTransformer = ({
       visited,
     });
     if (found !== null) {
-      return { order: null, cycle: found };
+      return dependencyGraphTopologicalOrderContract.parse({ order: null, cycle: found });
     }
   }
 
-  return { order: null, cycle: [...residual] };
+  return dependencyGraphTopologicalOrderContract.parse({ order: null, cycle: [...residual] });
 };

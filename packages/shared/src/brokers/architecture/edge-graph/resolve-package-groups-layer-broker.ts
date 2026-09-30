@@ -13,6 +13,8 @@
  * WHEN-TO-USE: Inside httpEdgesLayerBroker, once per scan, before walking flows/ and brokers/
  */
 
+import { resolvePackageGroupsLayerResultContract } from '../../../contracts/resolve-package-groups-layer-result/resolve-package-groups-layer-result-contract';
+import type { ResolvePackageGroupsLayerResult } from '../../../contracts/resolve-package-groups-layer-result/resolve-package-groups-layer-result-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { hasHonoOrExpressDependencyGuard } from '../../../guards/has-hono-or-express-dependency/has-hono-or-express-dependency-guard';
 import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
@@ -27,10 +29,7 @@ export const resolvePackageGroupsLayerBroker = ({
   projectRoot,
 }: {
   projectRoot: string;
-}): {
-  httpBackendRoots: string[];
-  frontendRoots: string[];
-} => {
+}): ResolvePackageGroupsLayerResult => {
   const packagesDir = `${projectRoot}/${projectMapStatics.packagesDirName}`;
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir }).filter(
     (entry) => entry.kind === 'directory',
@@ -85,5 +84,5 @@ export const resolvePackageGroupsLayerBroker = ({
     }
   }
 
-  return { httpBackendRoots, frontendRoots };
+  return resolvePackageGroupsLayerResultContract.parse({ httpBackendRoots, frontendRoots });
 };

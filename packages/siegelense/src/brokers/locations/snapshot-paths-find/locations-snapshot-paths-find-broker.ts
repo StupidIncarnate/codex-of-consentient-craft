@@ -25,6 +25,8 @@
  * // }
  */
 
+import { locationsSnapshotPathsFindResultContract } from '../../../contracts/locations-snapshot-paths-find-result/locations-snapshot-paths-find-result-contract';
+import type { LocationsSnapshotPathsFindResult } from '../../../contracts/locations-snapshot-paths-find-result/locations-snapshot-paths-find-result-contract';
 import { join } from '#gateway/node/path';
 
 import type { SnapshotOrdinal } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
@@ -36,11 +38,7 @@ export const locationsSnapshotPathsFindBroker = ({
 }: {
   homePath: string;
   ordinal: SnapshotOrdinal;
-}): {
-  storeDir: string;
-  index: string;
-  payload: string;
-} => {
+}): LocationsSnapshotPathsFindResult => {
   const storeDir = join(homePath, snapshotStatics.store.dirName);
 
   const index = join(storeDir, snapshotStatics.store.indexFileName);
@@ -50,9 +48,9 @@ export const locationsSnapshotPathsFindBroker = ({
   // directory and the earlier restore point would be silently overwritten.
   const payload = join(storeDir, String(ordinal));
 
-  return {
+  return locationsSnapshotPathsFindResultContract.parse({
     storeDir: storeDir,
     index: index,
     payload: payload,
-  };
+  });
 };

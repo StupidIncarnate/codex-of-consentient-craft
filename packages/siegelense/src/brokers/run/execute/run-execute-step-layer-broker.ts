@@ -50,6 +50,8 @@
  */
 
 
+import { runExecuteStepLayerResultContract } from '../../../contracts/run-execute-step-layer-result/run-execute-step-layer-result-contract';
+import type { RunExecuteStepLayerResult } from '../../../contracts/run-execute-step-layer-result/run-execute-step-layer-result-contract';
 import { isNativeError } from '#gateway/node/util__types';
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -58,10 +60,8 @@ import { serverLogWindowContract } from '../../../contracts/server-log-window/se
 import { stepContract } from '../../../contracts/step/step-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
-import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
-import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
@@ -90,7 +90,7 @@ export const runExecuteStepLayerBroker = async ({
   setLastShotPath: (params: { path: string }) => void;
   outputs: () => Record<PropertyKey, Record<PropertyKey, unknown>>;
   recordOutput: (params: { name: string; result: Record<PropertyKey, unknown> }) => void;
-}): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
+}): Promise<RunExecuteStepLayerResult> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
 
@@ -149,13 +149,13 @@ export const runExecuteStepLayerBroker = async ({
     }
 
     if (reading.ok) {
-      return { reading, stoppedAt: null, timedOut: false };
+      return runExecuteStepLayerResultContract.parse({ reading, stoppedAt: null, timedOut: false });
     }
 
     // The only way `stepDispatchBroker` returns ok: false without throwing is `expect: 'error'`
     // on a step that SUCCEEDED — the attack it was declared to land did not. That is itself a
     // finding, reported here rather than let pass silently, and it is never a ceiling hit.
-    return {
+    return runExecuteStepLayerResultContract.parse({
       reading,
       stoppedAt: stoppedAtContract.parse({
         step: index,
@@ -164,7 +164,7 @@ export const runExecuteStepLayerBroker = async ({
         candidates: [],
       }),
       timedOut: false,
-    };
+    });
   } catch (error: unknown) {
     const nowMs = Date.now();
     // `stepDispatchBroker` wraps a real failure whose failure-path capture was actually attempted
@@ -221,7 +221,7 @@ export const runExecuteStepLayerBroker = async ({
       endedAtMs: nowMs,
     });
 
-    return {
+    return runExecuteStepLayerResultContract.parse({
       reading,
       stoppedAt: stoppedAtContract.parse({
         step: index,
@@ -232,6 +232,6 @@ export const runExecuteStepLayerBroker = async ({
       timedOut:
         underlyingError instanceof WaitForCeilingHitError ||
         underlyingError instanceof UntilCeilingHitError,
-    };
+    });
   }
 };

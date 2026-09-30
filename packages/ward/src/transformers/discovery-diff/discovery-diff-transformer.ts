@@ -7,6 +7,8 @@
  */
 
 
+import { discoveryDiffContract } from '../../contracts/discovery-diff/discovery-diff-contract';
+import type { DiscoveryDiff } from '../../contracts/discovery-diff/discovery-diff-contract';
 import { normalizeToRelativeTransformer } from '../normalize-to-relative/normalize-to-relative-transformer';
 
 export const discoveryDiffTransformer = ({
@@ -17,7 +19,7 @@ export const discoveryDiffTransformer = ({
   discoveredFiles: string[];
   processedFiles: string[];
   cwd: string;
-}): { onlyDiscovered: string[]; onlyProcessed: string[] } => {
+}): DiscoveryDiff => {
   const normalizedDiscovered = new Set(
     discoveredFiles.map((file) => String(normalizeToRelativeTransformer({ filePath: file, cwd }))),
   );
@@ -33,5 +35,5 @@ export const discoveryDiffTransformer = ({
     .filter((file) => !normalizedDiscovered.has(file))
     .map((file) => file);
 
-  return { onlyDiscovered, onlyProcessed };
+  return discoveryDiffContract.parse({ onlyDiscovered, onlyProcessed });
 };

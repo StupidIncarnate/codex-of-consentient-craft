@@ -7,6 +7,8 @@
  * contentItemAgentIdSetAtIndexTransformer({ entry, index: 0, value: 'pre-existing' });
  * // returns `{ success: true }` on stamp, `{ success: false }` if shape was wrong.
  */
+import { setResultContract } from '../../contracts/set-result/set-result-contract';
+import type { SetResult } from '../../contracts/set-result/set-result-contract';
 import {
   normalizedStreamLineContentItemContract,
   type NormalizedStreamLineContentItem,
@@ -16,7 +18,6 @@ import {
   type NormalizedStreamLine,
 } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 
-type SetResult = { success: true } | { success: false };
 
 export const contentItemAgentIdSetAtIndexTransformer = ({
   entry,
@@ -29,18 +30,18 @@ export const contentItemAgentIdSetAtIndexTransformer = ({
 }): SetResult => {
   // Validate the line shape — guards the cast on the original reference below.
   const lineParse = normalizedStreamLineContract.safeParse(entry);
-  if (!lineParse.success) return { success: false };
+  if (!lineParse.success) return setResultContract.parse({ success: false });
   // Walk the ORIGINAL entry (mutation must be observed by the caller's reference).
   const original = entry as NormalizedStreamLine;
   const content = original.message?.content;
-  if (!Array.isArray(content)) return { success: false };
+  if (!Array.isArray(content)) return setResultContract.parse({ success: false });
   const item: unknown = content[index];
   if (item === null || typeof item !== 'object') {
-    return { success: false };
+    return setResultContract.parse({ success: false });
   }
   const itemParse = normalizedStreamLineContentItemContract.safeParse(item);
-  if (!itemParse.success) return { success: false };
+  if (!itemParse.success) return setResultContract.parse({ success: false });
   const mut = item as NormalizedStreamLineContentItem;
   mut.agentId = value as unknown as NormalizedStreamLineContentItem['agentId'];
-  return { success: true };
+  return setResultContract.parse({ success: true });
 };

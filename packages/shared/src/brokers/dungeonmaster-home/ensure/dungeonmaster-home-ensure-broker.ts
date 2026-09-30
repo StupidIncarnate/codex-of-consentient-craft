@@ -6,15 +6,14 @@
  * // Creates both directories and returns their paths
  */
 
+import { dungeonmasterHomeEnsureResultContract } from '../../../contracts/dungeonmaster-home-ensure-result/dungeonmaster-home-ensure-result-contract';
+import type { DungeonmasterHomeEnsureResult } from '../../../contracts/dungeonmaster-home-ensure-result/dungeonmaster-home-ensure-result-contract';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 import { dungeonmasterHomeFindBroker } from '../find/dungeonmaster-home-find-broker';
 
-export const dungeonmasterHomeEnsureBroker = async (): Promise<{
-  homePath: string;
-  guildsPath: string;
-}> => {
+export const dungeonmasterHomeEnsureBroker = async (): Promise<DungeonmasterHomeEnsureResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   await ensureDir(homePath);
@@ -23,5 +22,5 @@ export const dungeonmasterHomeEnsureBroker = async (): Promise<{
 
   await ensureDir(guildsPath);
 
-  return { homePath, guildsPath };
+  return dungeonmasterHomeEnsureResultContract.parse({ homePath, guildsPath });
 };

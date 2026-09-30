@@ -6,6 +6,8 @@
  * // Returns: { patterns: ['src/**\/*.test.ts'], excludePatterns: ['**\/*.integration.test.ts', '**\/*.e2e.test.ts'] }
  */
 
+import { jestDiscoverPatternsContract } from '../../contracts/jest-discover-patterns/jest-discover-patterns-contract';
+import type { JestDiscoverPatterns } from '../../contracts/jest-discover-patterns/jest-discover-patterns-contract';
 import { checkCommandsStatics } from '../../statics/check-commands/check-commands-statics';
 import { tsExtensionsStatics } from '../../statics/ts-extensions/ts-extensions-statics';
 
@@ -17,7 +19,7 @@ export const jestDiscoverPatternsTransformer = ({
 }: {
   checkType: 'unit' | 'integration';
   hasPackageJestConfig: boolean;
-}): { patterns: string[]; excludePatterns: string[] } => {
+}): JestDiscoverPatterns => {
   const statics = checkCommandsStatics[checkType];
   const fallbackPatterns = statics.discoverPatterns.map((p) => p);
   const fallbackExclude =
@@ -26,11 +28,11 @@ export const jestDiscoverPatternsTransformer = ({
       : [];
 
   if (!hasPackageJestConfig) {
-    return { patterns: fallbackPatterns, excludePatterns: fallbackExclude };
+    return jestDiscoverPatternsContract.parse({ patterns: fallbackPatterns, excludePatterns: fallbackExclude });
   }
 
   if (checkType === 'unit') {
-    return {
+    return jestDiscoverPatternsContract.parse({
       patterns: exts.flatMap((ext) => [
         `src/**/*.test.${ext}`,
         `test/**/*.test.${ext}`,
@@ -48,10 +50,10 @@ export const jestDiscoverPatternsTransformer = ({
         `tests/**/*.integration.test.${ext}`,
         `tests/**/*.e2e.test.${ext}`,
       ]),
-    };
+    });
   }
 
-  return {
+  return jestDiscoverPatternsContract.parse({
     patterns: exts.flatMap((ext) => [
       `src/**/*.integration.test.${ext}`,
       `test/**/*.integration.test.${ext}`,
@@ -59,5 +61,5 @@ export const jestDiscoverPatternsTransformer = ({
       `tests/**/*.integration.test.${ext}`,
     ]),
     excludePatterns: [],
-  };
+  });
 };

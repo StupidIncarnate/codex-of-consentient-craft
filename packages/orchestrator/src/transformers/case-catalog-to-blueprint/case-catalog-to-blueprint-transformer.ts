@@ -19,6 +19,8 @@
  * smoketestScenariosStatics.
  */
 
+import { caseCatalogToBlueprintContract } from '../../contracts/case-catalog-to-blueprint/case-catalog-to-blueprint-contract';
+import type { CaseCatalogToBlueprint } from '../../contracts/case-catalog-to-blueprint/case-catalog-to-blueprint-contract';
 import { randomUUID } from '#gateway/node/crypto';
 import {
   operationItemContract,
@@ -45,7 +47,7 @@ export const caseCatalogToBlueprintTransformer = ({
     expectedSignal: string;
   }[];
   now: string;
-}): { blueprint: QuestBlueprint; workItems: WorkItem[] } => {
+}): CaseCatalogToBlueprint => {
   const { minimal } = smoketestBlueprintsStatics;
 
   const suiteTitle = suite === 'mcp' ? 'Smoketest: MCP' : 'Smoketest: Signals';
@@ -106,5 +108,5 @@ export const caseCatalogToBlueprintTransformer = ({
     });
   });
 
-  return { blueprint, workItems };
+  return caseCatalogToBlueprintContract.parse({ blueprint, workItems });
 };

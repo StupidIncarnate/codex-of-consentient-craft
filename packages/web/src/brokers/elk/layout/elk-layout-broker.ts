@@ -13,15 +13,15 @@
  * WHEN-NOT-TO-USE: Do not call inside React render; call in an effect or event handler
  */
 
+import { elkLayoutResultContract } from '../../../contracts/elk-layout-result/elk-layout-result-contract';
+import type { ElkLayoutResult } from '../../../contracts/elk-layout-result/elk-layout-result-contract';
 import ELK from '#gateway/npm/elkjs';
 import type { ElkNode } from '#gateway/npm/elkjs';
 
 import type { FlowEdge, FlowNode } from '@dungeonmaster/shared/contracts';
 
 import { elkPositionMapContract } from '../../../contracts/elk-position-map/elk-position-map-contract';
-import type { ElkPositionMap } from '../../../contracts/elk-position-map/elk-position-map-contract';
 import { flowEdgeRouteMapContract } from '../../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
-import type { FlowEdgeRouteMap } from '../../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import type { FlowPortalNodeData } from '../../../contracts/flow-portal-node-data/flow-portal-node-data-contract';
 import { elkLayoutStatics } from '../../../statics/elk-layout/elk-layout-statics';
 
@@ -35,7 +35,7 @@ export const elkLayoutBroker = async ({
   // Cross-flow portal stand-ins. Their `reference` becomes a graph child id so an edge whose
   // endpoint lives in another flow resolves — without them elk throws on the unknown endpoint.
   portals?: readonly FlowPortalNodeData[];
-}): Promise<{ positions: ElkPositionMap; routes: FlowEdgeRouteMap }> => {
+}): Promise<ElkLayoutResult> => {
   const elk = new ELK();
 
   const nodeChildren = nodes.map((n) => {
@@ -140,8 +140,8 @@ export const elkLayoutBroker = async ({
     return [edge.id, points];
   });
 
-  return {
+  return elkLayoutResultContract.parse({
     positions: elkPositionMapContract.parse(positionEntries),
     routes: flowEdgeRouteMapContract.parse(Object.fromEntries(routeEntries)),
-  };
+  });
 };

@@ -37,6 +37,8 @@
  * //   drained to `skipped` and dispatching from it would run agents against a halted quest.
  */
 
+import { recoverOrphanedWorkItemsLayerResultContract } from '../../../contracts/recover-orphaned-work-items-layer-result/recover-orphaned-work-items-layer-result-contract';
+import type { RecoverOrphanedWorkItemsLayerResult } from '../../../contracts/recover-orphaned-work-items-layer-result/recover-orphaned-work-items-layer-result-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
@@ -49,13 +51,13 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
   quest,
 }: {
   quest: Quest;
-}): Promise<{ quest: Quest; blocked: boolean }> => {
+}): Promise<RecoverOrphanedWorkItemsLayerResult> => {
   const toRecover = quest.workItems.filter((item) =>
     isActiveWorkItemStatusGuard({ status: item.status }),
   );
 
   if (toRecover.length === 0) {
-    return { quest, blocked: false };
+    return recoverOrphanedWorkItemsLayerResultContract.parse({ quest, blocked: false });
   }
 
   // A persistently-crashing session (retryCount at the budget) will not converge by resuming
@@ -86,7 +88,7 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
   }
 
   const resetIds = new Set(toReset.map((item) => item.id));
-  return {
+  return recoverOrphanedWorkItemsLayerResultContract.parse({
     blocked: escalated !== undefined,
     quest: {
       ...quest,
@@ -104,5 +106,5 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
         return item;
       }),
     },
-  };
+  });
 };

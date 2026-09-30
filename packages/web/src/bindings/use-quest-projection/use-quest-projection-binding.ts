@@ -15,6 +15,8 @@
  * `useQuestSummaryBinding` does for the verification summary.
  */
 
+import { useQuestProjectionResultContract } from '../../contracts/use-quest-projection-result/use-quest-projection-result-contract';
+import type { UseQuestProjectionResult } from '../../contracts/use-quest-projection-result/use-quest-projection-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import type { QuestProjection, Quest } from '@dungeonmaster/shared/contracts';
@@ -28,11 +30,7 @@ export const useQuestProjectionBinding = ({
   questId,
 }: {
   questId: Quest['id'] | null;
-}): {
-  data: QuestProjection | null;
-  loading: boolean;
-  error: Error | null;
-} => {
+}): UseQuestProjectionResult => {
   const [data, setData] = useState<QuestProjection | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -77,5 +75,5 @@ export const useQuestProjectionBinding = ({
     };
   }, [refresh, questId]);
 
-  return { data, loading, error };
+  return useQuestProjectionResultContract.parse({ data, loading, error });
 };

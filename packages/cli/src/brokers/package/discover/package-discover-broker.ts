@@ -12,6 +12,8 @@
  * // start-install.js; finalizeInstallPath is null when that package has no finalize step
  */
 
+import { packageDiscoverResultContract } from '../../../contracts/package-discover-result/package-discover-result-contract';
+import type { PackageDiscoverResult } from '../../../contracts/package-discover-result/package-discover-result-contract';
 import { join } from '#gateway/node/path';
 import { existsSync, readdirSync } from '#gateway/node/fs';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
@@ -28,7 +30,7 @@ export const packageDiscoverBroker = ({
   dungeonmasterRoot,
 }: {
   dungeonmasterRoot: string;
-}): { packageName: string; installPath: string; finalizeInstallPath: string | null }[] => {
+}): PackageDiscoverResult => {
   const monorepoPackagesDir = join(dungeonmasterRoot, 'packages');
   // A published install has no `packages/` folder to find: `cli-entry.ts` computes
   // `dungeonmasterRoot` as four directories above the running bin, which lands on the monorepo
@@ -92,5 +94,5 @@ export const packageDiscoverBroker = ({
     }
   }
 
-  return packagesWithInstallers;
+  return packageDiscoverResultContract.parse(packagesWithInstallers);
 };

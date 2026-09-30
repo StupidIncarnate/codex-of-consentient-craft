@@ -16,9 +16,10 @@
  * // run_1.jsonl + run_1.json + run_2.jsonl + run_2.json
  */
 
+import { runListLayerResultContract } from '../../../contracts/run-list-layer-result/run-list-layer-result-contract';
+import type { RunListLayerResult } from '../../../contracts/run-list-layer-result/run-list-layer-result-contract';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists } from '#gateway/node/fs__promises';
 import { runEvidenceComputeTransformer } from '../../../transformers/run-evidence-compute/run-evidence-compute-transformer';
@@ -27,10 +28,10 @@ export const runListLayerBroker = async ({
   evidencePath,
 }: {
   evidencePath: string;
-}): Promise<{ runCount: number; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean }> => {
+}): Promise<RunListLayerResult> => {
   const runsDir = join(evidencePath, locationsStatics.siegelense.runsDir);
 
   const entries = (await readdirIfExists(runsDir)) ?? [];
 
-  return runEvidenceComputeTransformer({ entries });
+  return runListLayerResultContract.parse(runEvidenceComputeTransformer({ entries }));
 };

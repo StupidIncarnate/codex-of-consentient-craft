@@ -13,6 +13,8 @@
  * needs both a package's display name and its real on-disk path relative to `packages/`
  */
 
+import { discoverPackagesLayerResultContract } from '../../../contracts/discover-packages-layer-result/discover-packages-layer-result-contract';
+import type { DiscoverPackagesLayerResult } from '../../../contracts/discover-packages-layer-result/discover-packages-layer-result-contract';
 import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
 
 const GROUP_FOLDER_PREFIX = '@';
@@ -21,7 +23,7 @@ export const discoverPackagesLayerBroker = ({
   dirPath,
 }: {
   dirPath: string;
-}): { name: string; relativeDir: string }[] => {
+}): DiscoverPackagesLayerResult => {
   let topLevelEntries: DirEntrySync[] = [];
   try {
     topLevelEntries = readdirEntriesSync(String(dirPath));
@@ -57,5 +59,5 @@ export const discoverPackagesLayerBroker = ({
         }));
     });
 
-  return [...directPackages, ...groupPackages];
+  return discoverPackagesLayerResultContract.parse([...directPackages, ...groupPackages]);
 };

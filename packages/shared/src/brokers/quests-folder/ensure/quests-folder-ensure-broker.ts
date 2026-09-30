@@ -6,6 +6,8 @@
  * // Creates folder if it doesn't exist, returns path
  */
 
+import { questsFolderEnsureResultContract } from '../../../contracts/quests-folder-ensure-result/quests-folder-ensure-result-contract';
+import type { QuestsFolderEnsureResult } from '../../../contracts/quests-folder-ensure-result/quests-folder-ensure-result-contract';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { questsFolderFindBroker } from '../find/quests-folder-find-broker';
 
@@ -13,10 +15,10 @@ export const questsFolderEnsureBroker = async ({
   startPath,
 }: {
   startPath: string;
-}): Promise<{ questsBasePath: string }> => {
+}): Promise<QuestsFolderEnsureResult> => {
   const questsBasePath = await questsFolderFindBroker({ startPath });
 
   await ensureDir(questsBasePath);
 
-  return { questsBasePath };
+  return questsFolderEnsureResultContract.parse({ questsBasePath });
 };

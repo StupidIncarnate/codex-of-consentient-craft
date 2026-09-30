@@ -10,6 +10,8 @@
  * // Returns [{ toolUseId: 'toolu_01X', prompt: 'do slice A' }]
  */
 
+import { taskPromptsFromContentContract } from '../../contracts/task-prompts-from-content/task-prompts-from-content-contract';
+import type { TaskPromptsFromContent } from '../../contracts/task-prompts-from-content/task-prompts-from-content-contract';
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { taskAgentToolInputContract } from '../../contracts/task-agent-tool-input/task-agent-tool-input-contract';
@@ -21,14 +23,14 @@ export const taskPromptsFromContentTransformer = ({
   entry,
 }: {
   entry: unknown;
-}): { toolUseId: ToolUseId; prompt: TaskAgentToolInput['prompt'] }[] => {
+}): TaskPromptsFromContent => {
   const lineParse = normalizedStreamLineContract.safeParse(entry);
   if (!lineParse.success) {
-    return [];
+    return taskPromptsFromContentContract.parse([]);
   }
   const content = lineParse.data.message?.content;
   if (!Array.isArray(content)) {
-    return [];
+    return taskPromptsFromContentContract.parse([]);
   }
 
   const prompts: { toolUseId: ToolUseId; prompt: TaskAgentToolInput['prompt'] }[] = [];
@@ -47,5 +49,5 @@ export const taskPromptsFromContentTransformer = ({
     });
   }
 
-  return prompts;
+  return taskPromptsFromContentContract.parse(prompts);
 };

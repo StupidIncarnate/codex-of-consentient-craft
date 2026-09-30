@@ -23,14 +23,13 @@
  * // Same shape, describing what WOULD be removed; no file on disk is touched
  */
 
+import { pruneInstanceReclaimResultContract } from '../../../contracts/prune-instance-reclaim-result/prune-instance-reclaim-result-contract';
+import type { PruneInstanceReclaimResult } from '../../../contracts/prune-instance-reclaim-result/prune-instance-reclaim-result-contract';
 import { unlink } from '#gateway/node/fs__promises';
 
-import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { PruneQuery } from '../../../contracts/prune-query/prune-query-contract';
 import { pruneRefusalContract } from '../../../contracts/prune-refusal/prune-refusal-contract';
-import type { PruneRefusal } from '../../../contracts/prune-refusal/prune-refusal-contract';
 import { pruneRemovalContract } from '../../../contracts/prune-removal/prune-removal-contract';
-import type { PruneRemoval } from '../../../contracts/prune-removal/prune-removal-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
@@ -52,11 +51,7 @@ export const pruneInstanceReclaimBroker = async ({
   olderThanMs: number;
   nowMs: number;
   dryRun?: boolean;
-}): Promise<{
-  removal: PruneRemoval | null;
-  refusal: PruneRefusal | null;
-  gaps: readonly CitationGap[];
-}> => {
+}): Promise<PruneInstanceReclaimResult> => {
   const reservationStale =
     isReservedRegistryEntryGuard({ entry }) &&
     nowMs - entry.reservedAtMs > instanceLifecycleStatics.reservation.staleAfterMs;
@@ -64,7 +59,7 @@ export const pruneInstanceReclaimBroker = async ({
     entry.state === 'alive' && !isStaleRegistryEntryGuard({ entry, nowMs }) && !reservationStale;
 
   if (live) {
-    return {
+    return pruneInstanceReclaimResultContract.parse({
       removal: null,
       refusal: pruneRefusalContract.parse({
         id: entry.id,
@@ -75,7 +70,7 @@ export const pruneInstanceReclaimBroker = async ({
               })} ago`),
       }),
       gaps: [],
-    };
+    });
   }
 
   const { assets, runIds } = await pruneAssetsListBroker({ entry });
@@ -87,28 +82,28 @@ export const pruneInstanceReclaimBroker = async ({
   );
 
   if (selected.length === 0) {
-    return { removal: null, refusal: null, gaps: [] };
+    return pruneInstanceReclaimResultContract.parse({ removal: null, refusal: null, gaps: [] });
   }
 
   const resolution = await citationResolveBroker({ entry, runIds });
 
   if (resolution.blocked !== null) {
-    return {
+    return pruneInstanceReclaimResultContract.parse({
       removal: null,
       refusal: pruneRefusalContract.parse({ id: entry.id, why: resolution.blocked }),
       gaps: resolution.gaps,
-    };
+    });
   }
 
   if (resolution.references.length > 0) {
-    return {
+    return pruneInstanceReclaimResultContract.parse({
       removal: null,
       refusal: pruneRefusalContract.parse({
         id: entry.id,
         why: resolution.references.map((reference) => String(reference.why)).join('; '),
       }),
       gaps: resolution.gaps,
-    };
+    });
   }
 
   // The one irreversible step in this tool, and it is reached only past both refusal gates — and,
@@ -121,7 +116,7 @@ export const pruneInstanceReclaimBroker = async ({
 
   const freedBytes = selected.reduce((total, asset) => total + Number(asset.sizeBytes), 0);
 
-  return {
+  return pruneInstanceReclaimResultContract.parse({
     removal: pruneRemovalContract.parse({
       id: entry.id,
       kind: query.kind,
@@ -134,5 +129,5 @@ export const pruneInstanceReclaimBroker = async ({
     }),
     refusal: null,
     gaps: resolution.gaps,
-  };
+  });
 };

@@ -5,15 +5,15 @@
  * const {folderConstraints} = await folderConstraintsInitBroker();
  * // Returns Map of folder types to constraint content
  */
+import { folderConstraintsInitResultContract } from '../../../contracts/folder-constraints-init-result/folder-constraints-init-result-contract';
+import type { FolderConstraintsInitResult } from '../../../contracts/folder-constraints-init-result/folder-constraints-init-result-contract';
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { resolve } from '#gateway/node/path';
 import { readFile } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 
-export const folderConstraintsInitBroker = async (): Promise<{
-  folderConstraints: Map<FolderType, string>;
-}> => {
+export const folderConstraintsInitBroker = async (): Promise<FolderConstraintsInitResult> => {
   const constraintsMap = new Map<FolderType, string>();
   const constraintsDir = resolve(__dirname, '../../../statics/folder-constraints');
 
@@ -44,5 +44,5 @@ export const folderConstraintsInitBroker = async (): Promise<{
     }
   }
 
-  return { folderConstraints: constraintsMap };
+  return folderConstraintsInitResultContract.parse({ folderConstraints: constraintsMap });
 };

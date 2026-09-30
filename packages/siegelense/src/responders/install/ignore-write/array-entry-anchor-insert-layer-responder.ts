@@ -42,6 +42,8 @@
  * //   alreadyPresent: false, matchedEntryValue: '.siegelense' } — inserted INLINE, no new line
  */
 
+import { arrayEntryAnchorInsertLayerResultContract } from '../../../contracts/array-entry-anchor-insert-layer-result/array-entry-anchor-insert-layer-result-contract';
+import type { ArrayEntryAnchorInsertLayerResult } from '../../../contracts/array-entry-anchor-insert-layer-result/array-entry-anchor-insert-layer-result-contract';
 import { ArrayEntryLineParseLayerResponder } from './array-entry-line-parse-layer-responder';
 
 const DEFAULT_INLINE_SEPARATOR = ', ';
@@ -54,12 +56,7 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
   content: string;
   anchorValueCandidates: readonly string[];
   entryValueCandidates: readonly string[];
-}): {
-  content: string;
-  inserted: boolean;
-  alreadyPresent: boolean;
-  matchedEntryValue: string | undefined;
-} => {
+}): ArrayEntryAnchorInsertLayerResult => {
   const lines = content.split('\n');
   const perLineEntries = lines.map((line) => ArrayEntryLineParseLayerResponder({ line }).entries);
 
@@ -78,7 +75,7 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
   const alreadyPresent = presentMatch !== undefined;
 
   if (anchorMatch === undefined || alreadyPresent) {
-    return {
+    return arrayEntryAnchorInsertLayerResultContract.parse({
       content: content,
       inserted: false,
       alreadyPresent,
@@ -86,7 +83,7 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
         presentMatch === undefined
           ? undefined
           : presentMatch.entry.value,
-    };
+    });
   }
 
   // entryValueCandidates and anchorValueCandidates are positional pairs — the shape at this index
@@ -128,12 +125,12 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
       ...lines.slice(anchorMatch.lineIndex + 1),
     ];
 
-    return {
+    return arrayEntryAnchorInsertLayerResultContract.parse({
       content: newLines.join('\n'),
       inserted: true,
       alreadyPresent: false,
       matchedEntryValue: newEntryValue,
-    };
+    });
   }
 
   // The array is packed onto one line alongside the anchor. Copy whatever separator already sits
@@ -159,10 +156,10 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
     ...lines.slice(anchorMatch.lineIndex + 1),
   ];
 
-  return {
+  return arrayEntryAnchorInsertLayerResultContract.parse({
     content: newLines.join('\n'),
     inserted: true,
     alreadyPresent: false,
     matchedEntryValue: newEntryValue,
-  };
+  });
 };

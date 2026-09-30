@@ -7,6 +7,8 @@
  * // Returns validation result with optional error message
  */
 
+import { installCheckResultContract } from '../../../contracts/install-check-result/install-check-result-contract';
+import type { InstallCheckResult } from '../../../contracts/install-check-result/install-check-result-contract';
 import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
@@ -19,17 +21,17 @@ export const installCheckBroker = ({
   projectRoot,
 }: {
   projectRoot: string;
-}): { valid: boolean; error?: string } => {
+}): InstallCheckResult => {
   const packageJsonPath = join(projectRoot, 'package.json');
   const claudeDirPath = join(projectRoot, locationsStatics.repoRoot.claude.dir);
 
   if (!existsSync(packageJsonPath)) {
-    return { valid: false, error: 'No package.json found.' as string };
+    return installCheckResultContract.parse({ valid: false, error: 'No package.json found.' as string });
   }
 
   if (!existsSync(claudeDirPath)) {
-    return { valid: false, error: 'No .claude directory found.' as string };
+    return installCheckResultContract.parse({ valid: false, error: 'No .claude directory found.' as string });
   }
 
-  return { valid: true };
+  return installCheckResultContract.parse({ valid: true });
 };

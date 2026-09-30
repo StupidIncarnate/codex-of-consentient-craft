@@ -9,8 +9,10 @@
  * // Returns { questId, chatProcessId } on success; throws the server's own rejection text otherwise
  */
 
+import { questNewResultContract } from '../../../contracts/quest-new-result/quest-new-result-contract';
+import type { QuestNewResult } from '../../../contracts/quest-new-result/quest-new-result-contract';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import type { PastedImageUpload, QuestType, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, QuestType, Guild } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -33,7 +35,7 @@ export const questNewBroker = async ({
   questType?: QuestType;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;
-}): Promise<{ questId: Quest['id']; chatProcessId: string }> => {
+}): Promise<QuestNewResult> => {
   const url = webConfigStatics.api.routes.questNew.replace(':guildId', guildId);
 
   const post = uploadProgressPostContract.parse({
@@ -73,10 +75,10 @@ export const questNewBroker = async ({
       parsed.data.questId !== undefined &&
       parsed.data.chatProcessId !== undefined
     ) {
-      return {
+      return questNewResultContract.parse({
         questId: questContract.shape.id.parse(parsed.data.questId),
         chatProcessId: parsed.data.chatProcessId,
-      };
+      });
     }
     // A 200 carrying no usable questId/chatProcessId is a broken server contract, not a success.
     throw new Error(`POST ${url} returned 200 with no questId or chatProcessId`);

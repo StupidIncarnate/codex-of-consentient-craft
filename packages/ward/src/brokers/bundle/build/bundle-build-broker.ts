@@ -16,6 +16,8 @@
  * // no build script, and { bundleDir: null, error } when its build failed
  */
 
+import { bundleBuildResultContract } from '../../../contracts/bundle-build-result/bundle-build-result-contract';
+import type { BundleBuildResult } from '../../../contracts/bundle-build-result/bundle-build-result-contract';
 import { NpmNotInstalledError, runScript } from '#gateway/bin/npm';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
@@ -30,7 +32,7 @@ export const bundleBuildBroker = async ({
   packageRoot,
 }: {
   packageRoot: string;
-}): Promise<{ bundleDir: string | null; error: string | null }> => {
+}): Promise<BundleBuildResult> => {
   const manifestRaw = await readFile(
     `${String(packageRoot)}/package.json`,
   ).catch(() => null);
@@ -51,7 +53,7 @@ export const bundleBuildBroker = async ({
   // A package with no build script has no bundle to serve, and asking npm to run one prints an
   // error that has nothing to do with the check the caller asked for.
   if (scripts === undefined || !('build' in scripts)) {
-    return { bundleDir: null, error: null };
+    return bundleBuildResultContract.parse({ bundleDir: null, error: null });
   }
 
   const { repoRoot, relativePaths } = await collectInputsLayerBroker({ packageRoot });
@@ -61,7 +63,7 @@ export const bundleBuildBroker = async ({
   const bundleDir = `${bundleParent}/${String(hash)}`;
 
   if (existsSync(String(bundleDir))) {
-    return { bundleDir, error: null };
+    return bundleBuildResultContract.parse({ bundleDir, error: null });
   }
 
   await ensureDir(bundleParent);
@@ -92,10 +94,10 @@ export const bundleBuildBroker = async ({
   if (result.exitCode !== 0) {
     await rm(String(tempDir), { recursive: true, force: true });
 
-    return {
+    return bundleBuildResultContract.parse({
       bundleDir: null,
       error: `bundle build failed in ${String(packageRoot)}:\n${result.output}`,
-    };
+    });
   }
 
   try {
@@ -107,5 +109,5 @@ export const bundleBuildBroker = async ({
     await rm(String(tempDir), { recursive: true, force: true });
   }
 
-  return { bundleDir, error: null };
+  return bundleBuildResultContract.parse({ bundleDir, error: null });
 };

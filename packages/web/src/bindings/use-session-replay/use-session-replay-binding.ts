@@ -10,6 +10,8 @@
  * read. This guarantees streaming-vs-replay parity even if the wire ever delivers entries in a
  * different order.
  */
+import { useSessionReplayResultContract } from '../../contracts/use-session-replay-result/use-session-replay-result-contract';
+import type { UseSessionReplayResult } from '../../contracts/use-session-replay-result/use-session-replay-result-contract';
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
 import type { ChatEntry, ChatEntryUuid, Guild, Session } from '@dungeonmaster/shared/contracts';
@@ -25,11 +27,7 @@ export const useSessionReplayBinding = ({
 }: {
   sessionId: Session['id'] | null;
   guildId: Guild['id'] | null;
-}): {
-  entries: ChatEntry[];
-  isLoading: boolean;
-  sessionNotFound: boolean;
-} => {
+}): UseSessionReplayResult => {
   const [entriesByUuid, setEntriesByUuid] = useState<Map<ChatEntryUuid, ChatEntry>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [sessionNotFound, setSessionNotFound] = useState(false);
@@ -108,5 +106,5 @@ export const useSessionReplayBinding = ({
     };
   }, [sessionId, guildId]);
 
-  return { entries, isLoading, sessionNotFound };
+  return useSessionReplayResultContract.parse({ entries, isLoading, sessionNotFound });
 };

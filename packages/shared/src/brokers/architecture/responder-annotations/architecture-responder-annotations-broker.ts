@@ -16,11 +16,10 @@
  * WHEN-TO-USE: Inside package-section-build-layer-broker before invoking the boot-tree renderer
  */
 
+import { architectureResponderAnnotationsResultContract } from '../../../contracts/architecture-responder-annotations-result/architecture-responder-annotations-result-contract';
+import type { ArchitectureResponderAnnotationsResult } from '../../../contracts/architecture-responder-annotations-result/architecture-responder-annotations-result-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
-import {
-  responderAnnotationMapContract,
-  type ResponderAnnotationMap,
-} from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
+import { responderAnnotationMapContract } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
 import { httpEdgesToAnnotationsLayerBroker } from './http-edges-to-annotations-layer-broker';
 import { mcpToolsToAnnotationsLayerBroker } from './mcp-tools-to-annotations-layer-broker';
 import { hookBinsToAnnotationsLayerBroker } from './hook-bins-to-annotations-layer-broker';
@@ -34,41 +33,38 @@ export const architectureResponderAnnotationsBroker = ({
   packageType: PackageType;
   projectRoot: string;
   packageRoot: string;
-}): {
-  responderAnnotations: ResponderAnnotationMap;
-  startupAnnotations: ResponderAnnotationMap;
-} => {
+}): ArchitectureResponderAnnotationsResult => {
   const empty = responderAnnotationMapContract.parse(new Map());
 
   if (packageType === 'http-backend') {
-    return {
+    return architectureResponderAnnotationsResultContract.parse({
       responderAnnotations: httpEdgesToAnnotationsLayerBroker({ projectRoot, packageRoot }),
       startupAnnotations: empty,
-    };
+    });
   }
   if (packageType === 'mcp-server') {
-    return {
+    return architectureResponderAnnotationsResultContract.parse({
       responderAnnotations: mcpToolsToAnnotationsLayerBroker({ packageRoot }),
       startupAnnotations: empty,
-    };
+    });
   }
   if (packageType === 'hook-handlers') {
-    return {
+    return architectureResponderAnnotationsResultContract.parse({
       responderAnnotations: empty,
       startupAnnotations: hookBinsToAnnotationsLayerBroker({ packageRoot }),
-    };
+    });
   }
   if (packageType === 'cli-tool') {
-    return {
+    return architectureResponderAnnotationsResultContract.parse({
       responderAnnotations: empty,
       startupAnnotations: cliBinToAnnotationsLayerBroker({ packageRoot }),
-    };
+    });
   }
   // 'frontend-react' uses widgetContext path inside boot-tree, not annotations.
   // 'programmatic-service', 'eslint-plugin', 'frontend-ink' have no type-specific metadata.
   // 'library' is filtered out before reaching this broker.
-  return {
+  return architectureResponderAnnotationsResultContract.parse({
     responderAnnotations: empty,
     startupAnnotations: responderAnnotationMapContract.parse(new Map()),
-  };
+  });
 };

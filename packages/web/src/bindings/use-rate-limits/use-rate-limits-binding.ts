@@ -6,6 +6,8 @@
  * // snapshot = RateLimitsSnapshot | null. Null until first read or when statusline-tap hasn't run yet.
  */
 
+import { useRateLimitsResultContract } from '../../contracts/use-rate-limits-result/use-rate-limits-result-contract';
+import type { UseRateLimitsResult } from '../../contracts/use-rate-limits-result/use-rate-limits-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
@@ -15,10 +17,7 @@ import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import { rateLimitsGetBroker } from '../../brokers/rate-limits/get/rate-limits-get-broker';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
-export const useRateLimitsBinding = (): {
-  snapshot: RateLimitsSnapshot | null;
-  isLoading: boolean;
-} => {
+export const useRateLimitsBinding = (): UseRateLimitsResult => {
   const [snapshot, setSnapshot] = useState<RateLimitsSnapshot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,5 +48,5 @@ export const useRateLimitsBinding = (): {
     };
   }, [refresh]);
 
-  return { snapshot, isLoading };
+  return useRateLimitsResultContract.parse({ snapshot, isLoading });
 };

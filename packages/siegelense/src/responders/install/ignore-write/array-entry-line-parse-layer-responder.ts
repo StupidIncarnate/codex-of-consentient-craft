@@ -1,3 +1,5 @@
+import { arrayEntryLineParseLayerResultContract } from '../../../contracts/array-entry-line-parse-layer-result/array-entry-line-parse-layer-result-contract';
+import type { ArrayEntryLineParseLayerResult } from '../../../contracts/array-entry-line-parse-layer-result/array-entry-line-parse-layer-result-contract';
 /**
  * PURPOSE: Scans one line of a config file for quoted string literals that sit in ARRAY-ENTRY
  * position — preceded, ignoring whitespace, by `[` or `,` (or nothing else on the line), and
@@ -21,14 +23,7 @@ export const ArrayEntryLineParseLayerResponder = ({
   line,
 }: {
   line: string;
-}): {
-  entries: readonly {
-    value: string;
-    start: number;
-    end: number;
-    quoteChar: string;
-  }[];
-} => {
+}): ArrayEntryLineParseLayerResult => {
   const candidates: {
     value: string;
     start: number;
@@ -84,5 +79,5 @@ export const ArrayEntryLineParseLayerResponder = ({
     return sitsAfterAnOpenerOrSeparator && sitsBeforeASeparatorOrCloser;
   });
 
-  return { entries };
+  return arrayEntryLineParseLayerResultContract.parse({ entries });
 };

@@ -13,6 +13,8 @@
  * // Returns the workspace root plus the workspace-relative path of every input file
  */
 
+import { collectInputsLayerResultContract } from '../../../contracts/collect-inputs-layer-result/collect-inputs-layer-result-contract';
+import type { CollectInputsLayerResult } from '../../../contracts/collect-inputs-layer-result/collect-inputs-layer-result-contract';
 import { readFile } from '#gateway/node/fs__promises';
 import { packageJsonContract as workspaceNameContract } from '@dungeonmaster/shared/contracts';
 import {
@@ -35,7 +37,7 @@ export const collectInputsLayerBroker = async ({
   packageRoot,
 }: {
   packageRoot: string;
-}): Promise<{ repoRoot: string; relativePaths: string[] }> => {
+}): Promise<CollectInputsLayerResult> => {
   const workspaceRoot = await resolveWorkspaceRootLayerBroker({ startPath: packageRoot });
   const repoRoot = workspaceRoot ?? packageRoot;
 
@@ -129,5 +131,5 @@ export const collectInputsLayerBroker = async ({
     }
   }
 
-  return { repoRoot, relativePaths };
+  return collectInputsLayerResultContract.parse({ repoRoot, relativePaths });
 };

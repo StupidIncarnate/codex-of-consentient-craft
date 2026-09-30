@@ -15,6 +15,8 @@
  * and call-chain renderer expanding broker → broker / broker → adapter
  */
 
+import { importsInFolderTypeFindLayerResultContract } from '../../../contracts/imports-in-folder-type-find-layer-result/imports-in-folder-type-find-layer-result-contract';
+import type { ImportsInFolderTypeFindLayerResult } from '../../../contracts/imports-in-folder-type-find-layer-result/imports-in-folder-type-find-layer-result-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
@@ -31,10 +33,10 @@ export const importsInFolderTypeFindLayerBroker = ({
   sourceFile: string;
   packageSrcPath: string;
   folderType: string;
-}): { entries: string[]; layers: string[] } => {
+}): ImportsInFolderTypeFindLayerResult => {
   const source = readFileContentsLayerBroker({ filePath: sourceFile });
   if (source === undefined) {
-    return { entries: [], layers: [] };
+    return importsInFolderTypeFindLayerResultContract.parse({ entries: [], layers: [] });
   }
 
   const importPaths = importStatementsExtractTransformer({ source });
@@ -75,5 +77,5 @@ export const importsInFolderTypeFindLayerBroker = ({
     entries.push(onDisk);
   }
 
-  return { entries, layers };
+  return importsInFolderTypeFindLayerResultContract.parse({ entries, layers });
 };

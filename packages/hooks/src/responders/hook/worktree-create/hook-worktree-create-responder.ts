@@ -13,13 +13,12 @@
  */
 
 
+import { hookWorktreeCreateResultContract } from '../../../contracts/hook-worktree-create-result/hook-worktree-create-result-contract';
+import type { HookWorktreeCreateResult } from '../../../contracts/hook-worktree-create-result/hook-worktree-create-result-contract';
 import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
 import { worktreeBlockMessageStatics } from '../../../statics/worktree-block-message/worktree-block-message-statics';
 
-export const HookWorktreeCreateResponder = (): {
-  stderr: string;
-  exitCode: number;
-} => ({
+export const HookWorktreeCreateResponder = (): HookWorktreeCreateResult => (hookWorktreeCreateResultContract.parse({
   stderr: `${worktreeBlockMessageStatics.blockMessage}\n`,
   exitCode: hookExitCodeStatics.blockingFailure,
-});
+}));

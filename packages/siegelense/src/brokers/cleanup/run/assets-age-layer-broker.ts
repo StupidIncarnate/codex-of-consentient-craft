@@ -14,10 +14,11 @@
  * // Returns { instances, freedMB, refusals, gaps } — refusals become cleanup's own leftAlone rows
  */
 
+import { assetsAgeLayerResultContract } from '../../../contracts/assets-age-layer-result/assets-age-layer-result-contract';
+import type { AssetsAgeLayerResult } from '../../../contracts/assets-age-layer-result/assets-age-layer-result-contract';
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
 import { pruneQueryContract } from '../../../contracts/prune-query/prune-query-contract';
-import type { PruneRefusal } from '../../../contracts/prune-refusal/prune-refusal-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { pruneStatics } from '../../../statics/prune/prune-statics';
 import { pruneOlderThanParseTransformer } from '../../../transformers/prune-older-than-parse/prune-older-than-parse-transformer';
@@ -41,12 +42,7 @@ export const assetsAgeLayerBroker = async ({
 }: {
   entries: readonly RegistryEntry[];
   nowMs: number;
-}): Promise<{
-  instances: number;
-  freedMB: number;
-  refusals: readonly PruneRefusal[];
-  gaps: readonly CitationGap[];
-}> => {
+}): Promise<AssetsAgeLayerResult> => {
   const videoMs = pruneOlderThanParseTransformer({ olderThan: VIDEO_QUERY.olderThan });
   const everythingMs = pruneOlderThanParseTransformer({ olderThan: EVERYTHING_QUERY.olderThan });
 
@@ -94,10 +90,10 @@ export const assetsAgeLayerBroker = async ({
     }
   }
 
-  return {
+  return assetsAgeLayerResultContract.parse({
     instances: touched,
     freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
     refusals,
     gaps: [...gapsByKind.values()],
-  };
+  });
 };

@@ -1,3 +1,5 @@
+import { gatewaySubpathBarrelParseContract } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';
+import type { GatewaySubpathBarrelParse } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';
 /**
  * PURPOSE: Reads one gateway subpath's own entry-point barrel (e.g. `fs/fs.ts`) and recovers, from
  * its TEXT, the two facts the discovery tools need to describe it: the real module it passes
@@ -27,7 +29,7 @@ export const gatewaySubpathBarrelParseTransformer = ({
   barrelContent,
 }: {
   barrelContent: string;
-}): { realModule?: string; wrapperNames: string[] } => {
+}): GatewaySubpathBarrelParse => {
   const lines = String(barrelContent)
     .split('\n')
     .map((line) => line.trim());
@@ -56,8 +58,8 @@ export const gatewaySubpathBarrelParseTransformer = ({
         .map((name) => name);
     });
 
-  return {
+  return gatewaySubpathBarrelParseContract.parse({
     ...(realModule !== undefined && { realModule }),
     wrapperNames,
-  };
+  });
 };

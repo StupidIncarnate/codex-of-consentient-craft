@@ -37,7 +37,9 @@
  * // Rejects with WorktreePrepareError, naming the failing step, on any failure
  */
 
-import { questContract, type BaseBranchName, type Quest } from '@dungeonmaster/shared/contracts';
+import { worktreePrepareResultContract } from '../../../contracts/worktree-prepare-result/worktree-prepare-result-contract';
+import type { WorktreePrepareResult } from '../../../contracts/worktree-prepare-result/worktree-prepare-result-contract';
+import { questContract, type BaseBranchName } from '@dungeonmaster/shared/contracts';
 
 import { headSha, verifyRef, worktreeAdd, worktreePrune } from '#gateway/bin/git';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
@@ -47,7 +49,6 @@ import { worktreeDiscardBroker } from '../discard/worktree-discard-broker';
 import { worktreeSeedDistBroker } from '../seed-dist/worktree-seed-dist-broker';
 import { worktreeVerifyLinksBroker } from '../verify-links/worktree-verify-links-broker';
 
-type GitBaseRef = NonNullable<Quest['baseRef']>;
 
 const STEPS = worktreePrepareStepStatics.steps;
 
@@ -61,7 +62,7 @@ export const worktreePrepareBroker = async ({
   worktreePath: string;
   branchName: string;
   baseBranch: BaseBranchName;
-}): Promise<{ baseRef: GitBaseRef }> => {
+}): Promise<WorktreePrepareResult> => {
   // The REAL probe, not the quest record: git is the only authority on whether this branch exists
   // right now, and the answer decides the mode below.
   const branchExists = await verifyRef({ cwd: repoRoot, ref: branchName });
@@ -110,7 +111,7 @@ export const worktreePrepareBroker = async ({
     await worktreeSeedDistBroker({ repoRoot, worktreePath });
     await worktreeVerifyLinksBroker({ worktreePath });
 
-    return { baseRef };
+    return worktreePrepareResultContract.parse({ baseRef });
   }
 
   // An ATTACHED branch is not this call's to destroy: `worktreeDiscardBroker` deletes the branch,

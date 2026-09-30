@@ -10,8 +10,10 @@
  * // feedback the quest did not record.
  */
 
+import { commentBatchResponderResultContract } from '../../../contracts/comment-batch-responder-result/comment-batch-responder-result-contract';
+import type { CommentBatchResponderResult } from '../../../contracts/comment-batch-responder-result/comment-batch-responder-result-contract';
 import { randomUUID } from '#gateway/node/crypto';
-import type { CommentBatchEntry, Flow, QuestComment, Quest } from '@dungeonmaster/shared/contracts';
+import type { CommentBatchEntry, QuestComment, Quest } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract, questCommentContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -23,7 +25,7 @@ export const CommentBatchResponder = async ({
 }: {
   questId: Quest['id'];
   comments: CommentBatchEntry[];
-}): Promise<{ comments: QuestComment[]; flows: Flow[] }> => {
+}): Promise<CommentBatchResponderResult> => {
   const minted: QuestComment[] = comments.map((entry) =>
     questCommentContract.parse({
       id: randomUUID(),
@@ -53,5 +55,5 @@ export const CommentBatchResponder = async ({
     );
   }
 
-  return { comments: minted, flows: getResult.quest.flows };
+  return commentBatchResponderResultContract.parse({ comments: minted, flows: getResult.quest.flows });
 };

@@ -9,6 +9,8 @@
  * // spawns/resumes the chat, streaming output via orchestration events
  */
 
+import { followupChatStartResultContract } from '../../../contracts/followup-chat-start-result/followup-chat-start-result-contract';
+import type { FollowupChatStartResult } from '../../../contracts/followup-chat-start-result/followup-chat-start-result-contract';
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { getQuestInputContract, workItemContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
@@ -29,7 +31,7 @@ export const FollowupChatStartResponder = async ({
   guildId: Guild['id'];
   questId: Quest['id'];
   message: string;
-}): Promise<{ chatProcessId: string }> => {
+}): Promise<FollowupChatStartResult> => {
   const questResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
 
   if (!questResult.success || !questResult.quest) {
@@ -156,7 +158,7 @@ export const FollowupChatStartResponder = async ({
       },
     });
 
-    return { chatProcessId: spawnResult.chatProcessId };
+    return followupChatStartResultContract.parse({ chatProcessId: spawnResult.chatProcessId });
   } catch (error: unknown) {
     // The work item was persisted `in_progress` above so chatSpawnBroker's own quest lookup
     // could find it — but a spawn that throws before ever calling agentLaunchBroker (a missing

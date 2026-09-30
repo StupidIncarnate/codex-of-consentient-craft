@@ -13,6 +13,8 @@
  * // Returns { runsDir, videoDir, logs, transcripts } — absolute paths, none guaranteed to exist
  */
 
+import { locationsPruneAssetPathsFindResultContract } from '../../../contracts/locations-prune-asset-paths-find-result/locations-prune-asset-paths-find-result-contract';
+import type { LocationsPruneAssetPathsFindResult } from '../../../contracts/locations-prune-asset-paths-find-result/locations-prune-asset-paths-find-result-contract';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -23,12 +25,7 @@ export const locationsPruneAssetPathsFindBroker = ({
   evidencePath,
 }: {
   evidencePath: string;
-}): {
-  runsDir: string;
-  videoDir: string;
-  logs: readonly string[];
-  transcripts: readonly string[];
-} => {
+}): LocationsPruneAssetPathsFindResult => {
   const buffers = locationsBufferPathsFindBroker({ evidencePath });
 
   const names = [
@@ -40,7 +37,7 @@ export const locationsPruneAssetPathsFindBroker = ({
     locationsStatics.siegelense.shutdownReason,
   ];
 
-  return {
+  return locationsPruneAssetPathsFindResultContract.parse({
     runsDir: join(evidencePath, locationsStatics.siegelense.runsDir),
     // Where `playwrightSessionAdapter`'s `recordVideo.dir` writes — `--kind video` has to list this
     // directory to have anything to match at all.
@@ -51,5 +48,5 @@ export const locationsPruneAssetPathsFindBroker = ({
     // The three instance-level capture buffers. They span every run rather than one, which is why
     // they sit beside the logs here rather than under `runs/`.
     transcripts: [buffers.console, buffers.network, buffers.websocket],
-  };
+  });
 };

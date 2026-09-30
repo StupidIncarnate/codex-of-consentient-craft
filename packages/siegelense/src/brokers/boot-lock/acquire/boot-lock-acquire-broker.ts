@@ -29,6 +29,8 @@
  * // Fresh lock held by another instance: polls until it frees or throws BootLockHeldError.
  */
 
+import { bootLockAcquireResultContract } from '../../../contracts/boot-lock-acquire-result/boot-lock-acquire-result-contract';
+import type { BootLockAcquireResult } from '../../../contracts/boot-lock-acquire-result/boot-lock-acquire-result-contract';
 import { now } from '#gateway/node/Date';
 import { isFsError } from '#gateway/node/fs';
 import { getPid } from '#gateway/node/process';
@@ -42,7 +44,6 @@ import {
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
-import type { BootLock } from '../../../contracts/boot-lock/boot-lock-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
@@ -55,7 +56,7 @@ export const bootLockAcquireBroker = async ({
   instanceId: SiegeInstance['id'];
   waitStartedAtMs?: number;
   tookOverStaleSoFar?: boolean;
-}): Promise<{ lock: BootLock; tookOverStale: boolean }> => {
+}): Promise<BootLockAcquireResult> => {
   const startedAtMs = waitStartedAtMs ?? now();
   const rootPath = locationsRootPathFindBroker();
   const bootLockPath = locationsBootLockPathFindBroker();
@@ -73,7 +74,7 @@ export const bootLockAcquireBroker = async ({
   try {
     await writeFileExclusive(bootLockPath, JSON.stringify(newLock));
 
-    return { lock: newLock, tookOverStale };
+    return bootLockAcquireResultContract.parse({ lock: newLock, tookOverStale });
   } catch (createError) {
     // Anything but "the file is already there" is a real failure (permissions, disk) — propagate
     // it rather than reading a file whose absence has nothing to do with this error. `isFsError`
@@ -87,17 +88,17 @@ export const bootLockAcquireBroker = async ({
   const existingContents = await readFileIfExists(bootLockPath);
 
   if (existingContents === null) {
-    return bootLockAcquireBroker({
+    return bootLockAcquireResultContract.parse(bootLockAcquireBroker({
       instanceId,
       waitStartedAtMs: startedAtMs,
       tookOverStaleSoFar: tookOverStale,
-    });
+    }));
   }
 
   const existingLock = bootLockContract.parse(JSON.parse(existingContents));
 
   if (existingLock.heldBy === instanceId) {
-    return { lock: existingLock, tookOverStale: false };
+    return bootLockAcquireResultContract.parse({ lock: existingLock, tookOverStale: false });
   }
 
   const isStale = nowMs - existingLock.acquiredAtMs > instanceLifecycleStatics.bootLock.ttlMs;
@@ -115,11 +116,11 @@ export const bootLockAcquireBroker = async ({
     // can still win the re-create in between — that failure falls back through the SAME
     // exclusive-create branch above and reads whatever is there next, rather than this call
     // assuming its own stamp landed.
-    return bootLockAcquireBroker({
+    return bootLockAcquireResultContract.parse(bootLockAcquireBroker({
       instanceId,
       waitStartedAtMs: startedAtMs,
       tookOverStaleSoFar: true,
-    });
+    }));
   }
 
   if (nowMs - startedAtMs >= instanceLifecycleStatics.bootLock.waitCeilingMs) {
@@ -133,9 +134,9 @@ export const bootLockAcquireBroker = async ({
     setTimeout(resolve, instanceLifecycleStatics.bootLock.pollMs);
   });
 
-  return bootLockAcquireBroker({
+  return bootLockAcquireResultContract.parse(bootLockAcquireBroker({
     instanceId,
     waitStartedAtMs: startedAtMs,
     tookOverStaleSoFar: tookOverStale,
-  });
+  }));
 };

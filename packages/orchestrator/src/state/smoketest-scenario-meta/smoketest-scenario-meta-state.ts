@@ -8,13 +8,15 @@
  * smoketestScenarioMetaState.clear();
  */
 
+import { smoketestScenarioMetaStateContract } from '../../contracts/smoketest-scenario-meta-state/smoketest-scenario-meta-state-contract';
+import type { SmoketestScenarioMetaState } from '../../contracts/smoketest-scenario-meta-state/smoketest-scenario-meta-state-contract';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestScenarioMeta } from '../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
 
-const state: { entries: Map<Quest['id'], SmoketestScenarioMeta> } = {
+const state: SmoketestScenarioMetaState = smoketestScenarioMetaStateContract.parse({
   entries: new Map(),
-};
+});
 
 export const smoketestScenarioMetaState = {
   register: ({ questId, meta }: { questId: Quest['id']; meta: SmoketestScenarioMeta }): void => {

@@ -10,6 +10,8 @@
  * WHEN-NOT-TO-USE: For state that cannot be probed without side effects.
  */
 
+import { smoketestRunTeardownChecksResultContract } from '../../../contracts/smoketest-run-teardown-checks-result/smoketest-run-teardown-checks-result-contract';
+import type { SmoketestRunTeardownChecksResult } from '../../../contracts/smoketest-run-teardown-checks-result/smoketest-run-teardown-checks-result-contract';
 import { isPortFree } from '#gateway/node/net';
 
 import type { SmoketestTeardownCheck } from '../../../contracts/smoketest-teardown-check/smoketest-teardown-check-contract';
@@ -19,7 +21,7 @@ export const smoketestRunTeardownChecksBroker = async ({
   checks,
 }: {
   checks: readonly SmoketestTeardownCheck[];
-}): Promise<{ passed: boolean; failures: readonly SmoketestTeardownCheck[] }> => {
+}): Promise<SmoketestRunTeardownChecksResult> => {
   const results = await Promise.all(
     checks.map(async (check) => {
       if (check.kind === 'port-free') {
@@ -34,8 +36,8 @@ export const smoketestRunTeardownChecksBroker = async ({
 
   const failures = results.filter((entry) => !entry.passed).map((entry) => entry.check);
 
-  return {
+  return smoketestRunTeardownChecksResultContract.parse({
     passed: failures.length === 0,
     failures,
-  };
+  });
 };

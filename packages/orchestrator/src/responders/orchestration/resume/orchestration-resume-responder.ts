@@ -24,6 +24,8 @@
  * //   back to its pre-halt status, its work items are rearmed, and the loop is relaunched
  */
 
+import { orchestrationResumeResultContract } from '../../../contracts/orchestration-resume-result/orchestration-resume-result-contract';
+import type { OrchestrationResumeResult } from '../../../contracts/orchestration-resume-result/orchestration-resume-result-contract';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStatus, ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
@@ -60,7 +62,7 @@ export const OrchestrationResumeResponder = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<{ resumed: boolean; restoredStatus: QuestStatus }> => {
+}): Promise<OrchestrationResumeResult> => {
   const input = getQuestInputContract.parse({ questId });
   const getResult = await questGetBroker({ input });
 
@@ -103,7 +105,7 @@ export const OrchestrationResumeResponder = async ({
       await questBlockOnFailureBroker({ questId, failedWorkItemId: carrier.id, reason });
     }
 
-    return { resumed: false, restoredStatus: 'blocked' };
+    return orchestrationResumeResultContract.parse({ resumed: false, restoredStatus: 'blocked' });
   }
 
   // The user-RESUME trigger's turn at the one shared restore step. WHEN it runs is what differs
@@ -172,7 +174,7 @@ export const OrchestrationResumeResponder = async ({
   // Short-circuit if a process is already running for this quest.
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId: reloaded.id });
   if (existingProcess) {
-    return { resumed: true, restoredStatus };
+    return orchestrationResumeResultContract.parse({ resumed: true, restoredStatus });
   }
 
   // Resolve the guild path so questOrchestrationLoopBroker can run from the correct root.
@@ -243,5 +245,5 @@ export const OrchestrationResumeResponder = async ({
       orchestrationProcessesState.remove({ processId });
     });
 
-  return { resumed: true, restoredStatus };
+  return orchestrationResumeResultContract.parse({ resumed: true, restoredStatus });
 };

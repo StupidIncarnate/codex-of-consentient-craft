@@ -12,16 +12,16 @@
  */
 
 
+import { executionQueueBootstrapResponderStateContract } from '../../../contracts/execution-queue-bootstrap-responder-state/execution-queue-bootstrap-responder-state-contract';
+import type { ExecutionQueueBootstrapResponderState } from '../../../contracts/execution-queue-bootstrap-responder-state/execution-queue-bootstrap-responder-state-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 
 const RUNNER_PROCESS_ID = 'execution-queue-runner';
 
-const state: {
-  installed: boolean;
-} = {
+const state: ExecutionQueueBootstrapResponderState = executionQueueBootstrapResponderStateContract.parse({
   installed: false,
-};
+});
 
 export const ExecutionQueueBootstrapResponder = (): void => {
   if (state.installed) {

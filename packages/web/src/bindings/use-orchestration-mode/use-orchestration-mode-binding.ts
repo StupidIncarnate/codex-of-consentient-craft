@@ -8,6 +8,8 @@
  * // mode = OrchestrationMode | null. Null until the first fetch resolves (or on fetch failure).
  */
 
+import { useOrchestrationModeResultContract } from '../../contracts/use-orchestration-mode-result/use-orchestration-mode-result-contract';
+import type { UseOrchestrationModeResult } from '../../contracts/use-orchestration-mode-result/use-orchestration-mode-result-contract';
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
@@ -16,10 +18,7 @@ import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationModeGetBroker } from '../../brokers/orchestration/mode-get/orchestration-mode-get-broker';
 
-export const useOrchestrationModeBinding = (): {
-  mode: OrchestrationMode | null;
-  isLoading: boolean;
-} => {
+export const useOrchestrationModeBinding = (): UseOrchestrationModeResult => {
   const [mode, setMode] = useState<OrchestrationMode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,5 +39,5 @@ export const useOrchestrationModeBinding = (): {
     });
   }, [refresh]);
 
-  return { mode, isLoading };
+  return useOrchestrationModeResultContract.parse({ mode, isLoading });
 };

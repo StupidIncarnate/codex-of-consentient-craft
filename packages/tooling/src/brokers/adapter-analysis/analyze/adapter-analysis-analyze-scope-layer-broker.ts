@@ -8,6 +8,8 @@
  * adapterAnalysisAnalyzeScopeLayerBroker({ sourceFile, nodes });
  * // Returns { bindings, declared }
  */
+import { adapterAnalysisAnalyzeScopeLayerResultContract } from '../../../contracts/adapter-analysis-analyze-scope-layer-result/adapter-analysis-analyze-scope-layer-result-contract';
+import type { AdapterAnalysisAnalyzeScopeLayerResult } from '../../../contracts/adapter-analysis-analyze-scope-layer-result/adapter-analysis-analyze-scope-layer-result-contract';
 import * as ts from '#gateway/npm/typescript';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
 import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
@@ -18,7 +20,7 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
 }: {
   sourceFile: ts.SourceFile;
   nodes: readonly ts.Node[];
-}): { bindings: Map<string, OutsideCall>; declared: Set<string> } => {
+}): AdapterAnalysisAnalyzeScopeLayerResult => {
   const bindings = new Map<string, OutsideCall>();
   const declared = new Set<string>();
 
@@ -67,5 +69,5 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
     }
   }
 
-  return { bindings, declared };
+  return adapterAnalysisAnalyzeScopeLayerResultContract.parse({ bindings, declared });
 };

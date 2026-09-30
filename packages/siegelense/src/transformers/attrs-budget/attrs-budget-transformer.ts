@@ -27,6 +27,8 @@
  */
 
 
+import { attrsBudgetContract } from '../../contracts/attrs-budget/attrs-budget-contract';
+import type { AttrsBudget } from '../../contracts/attrs-budget/attrs-budget-contract';
 import { attrPairContract } from '../../contracts/attr-pair/attr-pair-contract';
 import type { AttrPair } from '../../contracts/attr-pair/attr-pair-contract';
 import { keyStatics } from '../../statics/key/key-statics';
@@ -35,7 +37,7 @@ export const attrsBudgetTransformer = ({
   attributes,
 }: {
   attributes: readonly AttrPair[];
-}): { kept: readonly AttrPair[]; dropped: number } => {
+}): AttrsBudget => {
   const runtimeIdPattern = new RegExp(
     keyStatics.attrs.runtimeIdPattern.source,
     keyStatics.attrs.runtimeIdPattern.flags,
@@ -69,8 +71,8 @@ export const attrsBudgetTransformer = ({
       });
     });
 
-  return {
+  return attrsBudgetContract.parse({
     kept: candidates.slice(0, keyStatics.limits.attrsPerRow),
     dropped: Math.max(candidates.length - keyStatics.limits.attrsPerRow, 0),
-  };
+  });
 };

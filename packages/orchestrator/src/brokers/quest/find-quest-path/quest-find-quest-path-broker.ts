@@ -29,10 +29,12 @@
  * scan still runs.
  */
 
+import { questFindQuestPathResultContract } from '../../../contracts/quest-find-quest-path-result/quest-find-quest-path-result-contract';
+import type { QuestFindQuestPathResult } from '../../../contracts/quest-find-quest-path-result/quest-find-quest-path-result-contract';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { FileName, Quest } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
@@ -44,7 +46,7 @@ export const questFindQuestPathBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<{ questPath: string; guildId: Guild['id'] }> => {
+}): Promise<QuestFindQuestPathResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const guildsDir = join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
@@ -95,7 +97,7 @@ export const questFindQuestPathBroker = async ({
         });
 
   if (probeMatch !== null) {
-    return probeMatch;
+    return questFindQuestPathResultContract.parse(probeMatch);
   }
 
   const candidates: {
@@ -127,7 +129,7 @@ export const questFindQuestPathBroker = async ({
   const scanMatch = await matchCandidatesLayerBroker({ candidates, questId });
 
   if (scanMatch !== null) {
-    return scanMatch;
+    return questFindQuestPathResultContract.parse(scanMatch);
   }
 
   throw new QuestNotFoundError({ questId });

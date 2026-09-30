@@ -15,6 +15,8 @@
  * other `quest-work` payload uses is what keeps that read from racing a concurrent mutation.
  */
 
+import { questWorkPlanWriteResultContract } from '../../../contracts/quest-work-plan-write-result/quest-work-plan-write-result-contract';
+import type { QuestWorkPlanWriteResult } from '../../../contracts/quest-work-plan-write-result/quest-work-plan-write-result-contract';
 import { join } from '#gateway/node/path';
 import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -37,8 +39,8 @@ export const questWorkPlanWriteBroker = async ({
   questId: Quest['id'];
   workItemId: WorkItem['id'];
   plan: PlanEnvelope;
-}): Promise<{ operationItemId: OperationItem['id'] }> =>
-  questWithModifyLockBroker({
+}): Promise<QuestWorkPlanWriteResult> =>
+  questWorkPlanWriteResultContract.parse(questWithModifyLockBroker({
     questId,
     run: async (): Promise<{ operationItemId: OperationItem['id'] }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
@@ -85,4 +87,4 @@ export const questWorkPlanWriteBroker = async ({
 
       return { operationItemId: validatedPlan.operationItemId };
     },
-  });
+  }));

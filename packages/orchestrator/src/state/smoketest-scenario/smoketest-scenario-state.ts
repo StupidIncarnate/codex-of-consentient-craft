@@ -13,6 +13,8 @@
  * double-registration bugs surface immediately.
  */
 
+import { smoketestScenarioStateContract } from '../../contracts/smoketest-scenario-state/smoketest-scenario-state-contract';
+import type { SmoketestScenarioState } from '../../contracts/smoketest-scenario-state/smoketest-scenario-state-contract';
 import { type WorkItemRole } from '@dungeonmaster/shared/contracts';
 
 import { scenarioInstanceContract } from '../../contracts/scenario-instance/scenario-instance-contract';
@@ -20,9 +22,9 @@ import type { ScenarioInstance } from '../../contracts/scenario-instance/scenari
 import type { SmoketestPromptName } from '../../statics/smoketest-prompts/smoketest-prompts-statics';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-const state: { instances: Map<Quest['id'], ScenarioInstance> } = {
+const state: SmoketestScenarioState = smoketestScenarioStateContract.parse({
   instances: new Map(),
-};
+});
 
 export const smoketestScenarioState = {
   register: ({

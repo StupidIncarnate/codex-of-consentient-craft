@@ -20,13 +20,15 @@
  * the user must create one for the repo first; this broker throws a clear error instead.
  */
 
+import { smoketestEnsureGuildResultContract } from '../../../contracts/smoketest-ensure-guild-result/smoketest-ensure-guild-result-contract';
+import type { SmoketestEnsureGuildResult } from '../../../contracts/smoketest-ensure-guild-result/smoketest-ensure-guild-result-contract';
 import { cwdResolveBroker, dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { guildContract } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem, Guild } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 
-export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: Guild['id'] }> => {
+export const smoketestEnsureGuildBroker = async (): Promise<SmoketestEnsureGuildResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
   const homeRepoRoot = await cwdResolveBroker({
     startPath: homePath,
@@ -61,5 +63,5 @@ export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: Guild['id
     );
   }
 
-  return { guildId: guildContract.shape.id.parse(matched.id) };
+  return smoketestEnsureGuildResultContract.parse({ guildId: guildContract.shape.id.parse(matched.id) });
 };

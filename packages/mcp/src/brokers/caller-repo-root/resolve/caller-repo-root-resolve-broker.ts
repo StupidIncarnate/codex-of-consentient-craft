@@ -24,23 +24,20 @@
  * const { repoRoot, source, configFound } = await callerRepoRootResolveBroker({ meta });
  */
 
+import { callerRepoRootResolveResultContract } from '../../../contracts/caller-repo-root-resolve-result/caller-repo-root-resolve-result-contract';
+import type { CallerRepoRootResolveResult } from '../../../contracts/caller-repo-root-resolve-result/caller-repo-root-resolve-result-contract';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { cwd } from '#gateway/node/process';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
 import { callerRepoRootSourceContract } from '../../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
-import type { CallerRepoRootSource } from '../../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
 export const callerRepoRootResolveBroker = async ({
   meta,
 }: {
   meta: Record<string, unknown> | undefined;
-}): Promise<{
-  repoRoot: string;
-  source: CallerRepoRootSource;
-  configFound: boolean;
-}> => {
+}): Promise<CallerRepoRootResolveResult> => {
   const caller = metaCallerContextTransformer({ meta });
 
   if (caller !== undefined) {
@@ -49,39 +46,39 @@ export const callerRepoRootResolveBroker = async ({
         startPath: String(caller.cwd),
         kind: 'repo-root',
       });
-      return {
+      return callerRepoRootResolveResultContract.parse({
         repoRoot,
         source: callerRepoRootSourceContract.parse('caller-cwd'),
         configFound: true,
-      };
+      });
     } catch (error) {
       if (!(error instanceof ProjectRootNotFoundError)) {
         throw error;
       }
-      return {
+      return callerRepoRootResolveResultContract.parse({
         repoRoot: caller.cwd,
         source: callerRepoRootSourceContract.parse('caller-cwd'),
         configFound: false,
-      };
+      });
     }
   }
 
   const serverCwd = cwd();
   try {
     const repoRoot = await cwdResolveBroker({ startPath: serverCwd, kind: 'repo-root' });
-    return {
+    return callerRepoRootResolveResultContract.parse({
       repoRoot,
       source: callerRepoRootSourceContract.parse('server-cwd-fallback'),
       configFound: true,
-    };
+    });
   } catch (error) {
     if (!(error instanceof ProjectRootNotFoundError)) {
       throw error;
     }
-    return {
+    return callerRepoRootResolveResultContract.parse({
       repoRoot: serverCwd,
       source: callerRepoRootSourceContract.parse('server-cwd-fallback'),
       configFound: false,
-    };
+    });
   }
 };

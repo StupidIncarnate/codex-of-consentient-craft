@@ -23,8 +23,9 @@
  */
 
 
+import { staleReapLayerResultContract } from '../../../contracts/stale-reap-layer-result/stale-reap-layer-result-contract';
+import type { StaleReapLayerResult } from '../../../contracts/stale-reap-layer-result/stale-reap-layer-result-contract';
 import { reapedInstanceContract } from '../../../contracts/reaped-instance/reaped-instance-contract';
-import type { ReapedInstance } from '../../../contracts/reaped-instance/reaped-instance-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { elapsedRenderTransformer } from '../../../transformers/elapsed-render/elapsed-render-transformer';
 import { instanceKillBroker } from '../../instance/kill/instance-kill-broker';
@@ -35,7 +36,7 @@ export const staleReapLayerBroker = async ({
 }: {
   entry: RegistryEntry;
   nowMs: number;
-}): Promise<{ reaped: ReapedInstance; portsReleased: readonly number[] }> => {
+}): Promise<StaleReapLayerResult> => {
   const staleSinceMs = entry.lastBeatMs ?? entry.reservedAtMs;
 
   const killResult = await instanceKillBroker({
@@ -47,7 +48,7 @@ export const staleReapLayerBroker = async ({
     elapsedMs: (nowMs - staleSinceMs),
   });
 
-  return {
+  return staleReapLayerResultContract.parse({
     reaped: reapedInstanceContract.parse({
       id: entry.id,
       staleFor,
@@ -55,5 +56,5 @@ export const staleReapLayerBroker = async ({
       homeRemoved: killResult.homeRemoved,
     }),
     portsReleased: killResult.portsReleased,
-  };
+  });
 };

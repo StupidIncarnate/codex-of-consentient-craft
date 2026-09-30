@@ -12,6 +12,8 @@
  * // Returns { processId } on success; throws the server's exact rejection text otherwise
  */
 
+import { questStartResultContract } from '../../../contracts/quest-start-result/quest-start-result-contract';
+import type { QuestStartResult } from '../../../contracts/quest-start-result/quest-start-result-contract';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchWithStatus } from '#gateway/browser/fetch';
@@ -23,7 +25,7 @@ export const questStartBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<{ processId: string }> => {
+}): Promise<QuestStartResult> => {
   const url = webConfigStatics.api.routes.questStart.replace(':questId', questId);
 
   // No `body` on purpose — Begin Quest sends no request body, the questId travels in the URL only.
@@ -41,7 +43,7 @@ export const questStartBroker = async ({
 
   if (result.ok) {
     if (parsed.success && parsed.data.processId !== undefined) {
-      return { processId: parsed.data.processId };
+      return questStartResultContract.parse({ processId: parsed.data.processId });
     }
     // A 200 carrying no usable processId is a broken server contract, not a success.
     throw new Error(`POST ${url} returned 200 with no processId`);

@@ -8,14 +8,12 @@
  * // Returns: { discoveredCount: DiscoveredCount, discoveredFiles: GitRelativePath[] }
  */
 
+import { globDiscoverFilesResultContract } from '../../../contracts/glob-discover-files-result/glob-discover-files-result-contract';
+import type { GlobDiscoverFilesResult } from '../../../contracts/glob-discover-files-result/glob-discover-files-result-contract';
 import { globSync } from '#gateway/node/fs';
 
-import {
-  projectResultContract,
-  type ProjectResult,
-} from '../../../contracts/project-result/project-result-contract';
+import { projectResultContract } from '../../../contracts/project-result/project-result-contract';
 
-type DiscoveredCount = ProjectResult['discoveredCount'];
 
 const discoveredCountContract = projectResultContract.shape.discoveredCount;
 
@@ -27,7 +25,7 @@ export const globDiscoverFilesBroker = ({
   patterns: readonly string[];
   cwd: string;
   exclude?: readonly string[];
-}): { discoveredCount: DiscoveredCount; discoveredFiles: string[] } => {
+}): GlobDiscoverFilesResult => {
   const seen = new Set<string>();
   const uniqueFiles: string[] = [];
   for (const pattern of patterns) {
@@ -44,8 +42,8 @@ export const globDiscoverFilesBroker = ({
       }
     }
   }
-  return {
+  return globDiscoverFilesResultContract.parse({
     discoveredCount: discoveredCountContract.parse(uniqueFiles.length),
     discoveredFiles: uniqueFiles,
-  };
+  });
 };

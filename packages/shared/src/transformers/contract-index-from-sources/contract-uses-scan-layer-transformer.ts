@@ -8,6 +8,8 @@
  * contractUsesScanLayerTransformer({ sourceFile, bindings });
  * // Returns { parseSites: [{ targetFile, line }], valueTargets: AbsoluteFilePath[] }
  */
+import { contractUsesScanLayerContract } from '../../contracts/contract-uses-scan-layer/contract-uses-scan-layer-contract';
+import type { ContractUsesScanLayer } from '../../contracts/contract-uses-scan-layer/contract-uses-scan-layer-contract';
 import * as ts from '#gateway/npm/typescript';
 
 import { contractParseSiteContract } from '../../contracts/contract-parse-site/contract-parse-site-contract';
@@ -23,10 +25,7 @@ export const contractUsesScanLayerTransformer = ({
 }: {
   sourceFile: ts.SourceFile;
   bindings: ContractUsesBinding[];
-}): {
-  parseSites: { targetFile: string; site: ContractParseSite }[];
-  valueTargets: string[];
-} => {
+}): ContractUsesScanLayer => {
   const targetByLocalName = new Map(
     bindings
       .filter((binding) => !binding.isTypeOnly)
@@ -36,7 +35,7 @@ export const contractUsesScanLayerTransformer = ({
   const valueTargets = new Set<string>();
 
   if (targetByLocalName.size === 0) {
-    return { parseSites, valueTargets: [] };
+    return contractUsesScanLayerContract.parse({ parseSites, valueTargets: [] });
   }
 
   const pending: { node: ts.Node; inType: boolean }[] = [{ node: sourceFile, inType: false }];
@@ -107,5 +106,5 @@ export const contractUsesScanLayerTransformer = ({
     });
   }
 
-  return { parseSites, valueTargets: [...valueTargets] };
+  return contractUsesScanLayerContract.parse({ parseSites, valueTargets: [...valueTargets] });
 };
