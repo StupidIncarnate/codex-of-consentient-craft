@@ -17,10 +17,9 @@
 import { z } from '#gateway/npm/zod';
 
 import { filePathContract } from '../file-path/file-path-contract';
-import { operationPlanPieceIdContract } from '../operation-plan-piece-id/operation-plan-piece-id-contract';
 
 export const operationPlanPieceContract = z.object({
-  id: operationPlanPieceIdContract.describe(
+  id: operationPlanPieceId.describe(
     "Identity for this piece within the plan. Another piece's dependsOn[] references this id to " +
       'order dispatch — the piece that owns a shared file or contract another piece builds on gets ' +
       'referenced there so a worker never starts against something not yet on disk.',
@@ -72,7 +71,7 @@ export const operationPlanPieceContract = z.object({
         'this piece was meant to close.',
     ),
   dependsOn: z
-    .array(operationPlanPieceIdContract)
+    .array(operationPlanPieceId)
     .default([])
     .describe(
       'Other piece ids in THIS plan that must land first. Orders dispatch within the plan — a piece ' +

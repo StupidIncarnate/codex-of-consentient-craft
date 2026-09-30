@@ -524,7 +524,6 @@ export * from './quest-section/quest-section-contract';
 
 // Operation Plan Contracts (planner sub-agent output — read back off the quest by the
 // orchestrator session that dispatched the planner, without holding the plan in context)
-export * from './operation-plan-piece-id/operation-plan-piece-id-contract';
 
 export * from './operation-plan-piece/operation-plan-piece-contract';
 
