@@ -43,7 +43,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { ProcessOutput } from '../../../contracts/process-output/process-output-contract';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
-import type { CommandName } from '../../../contracts/command-name/command-name-contract';
 import { scriptNameContract } from '../../../contracts/script-name/script-name-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
@@ -123,7 +122,7 @@ export const integrationEnvironmentCreateBroker = ({
       }
     },
 
-    hasCommand: ({ command }: { command: CommandName }): boolean => {
+    hasCommand: ({ command }: { command: string }): boolean => {
       const packageJsonPath = join(projectPath, 'package.json');
       if (!existsSync(packageJsonPath)) {
         return false;
@@ -188,7 +187,7 @@ export const integrationEnvironmentCreateBroker = ({
         .map((file) => fileNameContract.parse(join(basePath, file)));
     },
 
-    executeCommand: ({ command }: { command: CommandName }): ExecResult => {
+    executeCommand: ({ command }: { command: string }): ExecResult => {
       try {
         // A shell, because a CommandName is a whole command line that may carry pipes or `&&`.
         // runSync folds stderr into `output`, so a failed run reports it whole as stderr.

@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 import type { ProcessOutput } from '../process-output/process-output-contract';
-import type { CommandName } from '../command-name/command-name-contract';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { PackageJson } from '../package-json/package-json-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
@@ -23,7 +22,7 @@ export type TestGuildData = z.infer<typeof testGuildContract>;
 
 export type TestGuild = TestGuildData & {
   installDungeonmaster: () => Promise<ProcessOutput>;
-  hasCommand: ({ command }: { command: CommandName }) => boolean;
+  hasCommand: ({ command }: { command: string }) => boolean;
   fileExists: ({ fileName }: { fileName: string }) => boolean;
   readFile: ({ fileName }: { fileName: string }) => string;
   writeFile: ({ fileName, content }: { fileName: string; content: string }) => void;
@@ -31,6 +30,6 @@ export type TestGuild = TestGuildData & {
   getConfig: () => TestbedConfig | null;
   getPackageJson: () => PackageJson;
   getQuestFiles: ({ subdir }: { subdir?: string }) => string[];
-  executeCommand: ({ command }: { command: CommandName }) => ExecResult;
+  executeCommand: ({ command }: { command: string }) => ExecResult;
   cleanup: () => void;
 };
