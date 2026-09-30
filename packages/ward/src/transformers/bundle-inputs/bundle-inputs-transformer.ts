@@ -13,20 +13,16 @@
  * // Returns the package-relative globs to hash for the package the bundle is being built FOR
  */
 
-import {
-  globPatternContract,
-  type GlobPattern,
-} from '../../contracts/glob-pattern/glob-pattern-contract';
 import { bundleStatics } from '../../statics/bundle/bundle-statics';
 
 export const bundleInputsTransformer = ({
   isBundledPackage,
 }: {
   isBundledPackage: boolean;
-}): readonly GlobPattern[] => {
+}): readonly string[] => {
   const patterns = isBundledPackage
     ? [...bundleStatics.closurePatterns, ...bundleStatics.uiPatterns]
     : bundleStatics.closurePatterns;
 
-  return patterns.map((pattern) => globPatternContract.parse(pattern));
+  return patterns.map((pattern) => pattern);
 };

@@ -6,28 +6,24 @@
  * // Returns: ['src/**\/*.ts', 'src/**\/*.tsx']
  */
 
-import {
-  globPatternContract,
-  type GlobPattern,
-} from '../../contracts/glob-pattern/glob-pattern-contract';
 import { isTypescriptFileGuard } from '../../guards/is-typescript-file/is-typescript-file-guard';
 import { tsExtensionsStatics } from '../../statics/ts-extensions/ts-extensions-statics';
 
 export const expandToTsGlobsTransformer = ({
   pattern,
 }: {
-  pattern: GlobPattern;
-}): GlobPattern[] => {
+  pattern: string;
+}): string[] => {
   const raw = String(pattern);
 
   if (isTypescriptFileGuard({ pattern: raw })) {
-    return [globPatternContract.parse(raw)];
+    return [raw];
   }
 
   if (raw.startsWith('@types')) {
     const base = raw.replace(/\/?\*.*$/u, '');
     return tsExtensionsStatics.declarationExtensions.map((ext) =>
-      globPatternContract.parse(`${base}/**/*.${ext}`),
+      `${base}/**/*.${ext}`,
     );
   }
 
@@ -36,15 +32,15 @@ export const expandToTsGlobsTransformer = ({
   if (trimmed.includes('*')) {
     const base = trimmed.replace(/\/?\*.*$/u, '');
     return tsExtensionsStatics.extensions.map((ext) =>
-      globPatternContract.parse(`${base}/**/*.${ext}`),
+      `${base}/**/*.${ext}`,
     );
   }
 
   if (trimmed.includes('.')) {
-    return [globPatternContract.parse(trimmed)];
+    return [trimmed];
   }
 
   return tsExtensionsStatics.extensions.map((ext) =>
-    globPatternContract.parse(`${trimmed}/**/*.${ext}`),
+    `${trimmed}/**/*.${ext}`,
   );
 };

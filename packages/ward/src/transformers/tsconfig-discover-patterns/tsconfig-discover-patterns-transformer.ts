@@ -6,27 +6,23 @@
  * // Returns: { patterns: ['src/**\/*.ts', 'src/**\/*.tsx'], exclude: ['node_modules', 'dist'] }
  */
 
-import {
-  globPatternContract,
-  type GlobPattern,
-} from '../../contracts/glob-pattern/glob-pattern-contract';
 import { tsconfigJsonContract } from '../../contracts/tsconfig-json/tsconfig-json-contract';
 import { checkCommandsStatics } from '../../statics/check-commands/check-commands-statics';
 import { expandToTsGlobsTransformer } from '../expand-to-ts-globs/expand-to-ts-globs-transformer';
 
-const DEFAULT_EXCLUDE: GlobPattern[] = [
-  globPatternContract.parse('node_modules'),
-  globPatternContract.parse('dist'),
+const DEFAULT_EXCLUDE: string[] = [
+  'node_modules',
+  'dist',
 ];
 
 export const tsconfigDiscoverPatternsTransformer = ({
   tsconfigData,
 }: {
   tsconfigData: unknown;
-}): { patterns: GlobPattern[]; exclude: GlobPattern[] } => {
+}): { patterns: string[]; exclude: string[] } => {
   const fallback = {
     patterns: checkCommandsStatics.typecheck.discoverPatterns.map((p) =>
-      globPatternContract.parse(p),
+      p,
     ),
     exclude: [...DEFAULT_EXCLUDE],
   };
@@ -43,11 +39,11 @@ export const tsconfigDiscoverPatternsTransformer = ({
     return fallback;
   }
 
-  const patterns: GlobPattern[] = [];
+  const patterns: string[] = [];
 
   for (const entry of tsconfig.include) {
     const expanded = expandToTsGlobsTransformer({
-      pattern: globPatternContract.parse(String(entry)),
+      pattern: String(entry),
     });
     patterns.push(...expanded);
   }
@@ -56,10 +52,10 @@ export const tsconfigDiscoverPatternsTransformer = ({
     return fallback;
   }
 
-  const exclude: GlobPattern[] = [...DEFAULT_EXCLUDE];
+  const exclude: string[] = [...DEFAULT_EXCLUDE];
   if (tsconfig.exclude !== undefined) {
     for (const entry of tsconfig.exclude) {
-      const parsed = globPatternContract.parse(String(entry));
+      const parsed = String(entry);
       if (!exclude.includes(parsed)) {
         exclude.push(parsed);
       }
