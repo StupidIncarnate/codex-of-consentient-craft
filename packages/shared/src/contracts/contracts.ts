@@ -507,7 +507,6 @@ export * from './usage-ledger/usage-ledger-contract';
 
 // Routed Graph Contracts (the shape both the family graph and each step graph satisfy, walked by
 // graphReachabilityViolationsTransformer)
-export * from './routed-graph-node-key/routed-graph-node-key-contract';
 export * from './routed-graph-outcome-word/routed-graph-outcome-word-contract';
 export * from './routed-graph/routed-graph-contract';
 

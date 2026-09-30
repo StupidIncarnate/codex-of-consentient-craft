@@ -1,6 +1,5 @@
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RoutedGraphNodeKeyStub } from '@dungeonmaster/shared/contracts/routed-graph-node-key/routed-graph-node-key.stub';
 
 import { agentFlowFamilyResolveTransformer } from '../agent-flow-family-resolve/agent-flow-family-resolve-transformer';
 import { agentFlowPlannedStepsWalkTransformer } from './agent-flow-planned-steps-walk-transformer';
@@ -15,7 +14,7 @@ describe('agentFlowPlannedStepsWalkTransformer', () => {
     it("VALID: {cursor: 'review'} => walks the done chain to the family's own close-out", () => {
       const result = agentFlowPlannedStepsWalkTransformer({
         graph: CODEWEAVER_GRAPH,
-        cursor: RoutedGraphNodeKeyStub({ value: 'review' }),
+        cursor: 'review',
       });
 
       expect(result).toStrictEqual(['review', 'commit', 'ward']);
@@ -33,7 +32,7 @@ describe('agentFlowPlannedStepsWalkTransformer', () => {
       expect(
         agentFlowPlannedStepsWalkTransformer({
           graph: CODEWEAVER_GRAPH,
-          cursor: RoutedGraphNodeKeyStub({ value: 'retired-step' }),
+          cursor: 'retired-step',
         }),
       ).toStrictEqual([]);
     });

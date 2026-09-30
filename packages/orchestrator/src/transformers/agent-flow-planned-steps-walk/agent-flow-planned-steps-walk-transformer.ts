@@ -25,15 +25,15 @@
  */
 
 import { routedGraphOutcomeWordContract } from '@dungeonmaster/shared/contracts';
-import type { RoutedGraph, RoutedGraphNodeKey } from '@dungeonmaster/shared/contracts';
+import type { RoutedGraph } from '@dungeonmaster/shared/contracts';
 
 export const agentFlowPlannedStepsWalkTransformer = ({
   graph,
   cursor,
 }: {
   graph: RoutedGraph;
-  cursor: RoutedGraphNodeKey | undefined;
-}): RoutedGraphNodeKey[] => {
+  cursor: string | undefined;
+}): string[] => {
   if (cursor === undefined) {
     return [];
   }

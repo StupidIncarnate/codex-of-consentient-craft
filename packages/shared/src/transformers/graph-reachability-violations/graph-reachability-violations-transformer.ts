@@ -16,10 +16,9 @@
  * });
  * // Returns [] when every step is reachable, reaches a terminal, and every route target is real
  */
-import { routedGraphNodeKeyContract } from '../../contracts/routed-graph-node-key/routed-graph-node-key-contract';
 import type { RoutedGraph } from '../../contracts/routed-graph/routed-graph-contract';
-import type { RoutedGraphNodeKey } from '../../contracts/routed-graph-node-key/routed-graph-node-key-contract';
 import { graphOutcomeWordStatics } from '../../statics/graph-outcome-word/graph-outcome-word-statics';
+import { routedGraphContract } from '../../contracts/routed-graph/routed-graph-contract';
 
 export const graphReachabilityViolationsTransformer = ({
   graph,
@@ -43,7 +42,7 @@ export const graphReachabilityViolationsTransformer = ({
   // rather than compared against the raw string it arrived as everywhere below.
   const nodesMap = new Map(
     Object.entries(graph.nodes).map(
-      ([stepKey, node]) => [routedGraphNodeKeyContract.parse(stepKey), node] as const,
+      ([stepKey, node]) => [stepKey, node] as const,
     ),
   );
 
@@ -60,14 +59,14 @@ export const graphReachabilityViolationsTransformer = ({
       continue;
     }
     for (const target of Object.values(currentNode.routes)) {
-      if (nodesMap.has(target) && !reachableFromEntry.has(target)) {
-        reachableFromEntry.add(target);
-        reachabilityQueue.push(target);
+      if (nodesMap.has(target) && !reachableFromEntry.has(routedGraphContract.shape.entry.parse(target))) {
+        reachableFromEntry.add(routedGraphContract.shape.entry.parse(target));
+        reachabilityQueue.push(routedGraphContract.shape.entry.parse(target));
       }
     }
   }
   for (const [stepKey, node] of nodesMap) {
-    if (!reachableFromEntry.has(stepKey) && node[exemptFlag] !== true) {
+    if (!reachableFromEntry.has(routedGraphContract.shape.entry.parse(stepKey)) && node[exemptFlag] !== true) {
       violations.push(
         `Step '${stepKey}' in the '${graph.graphName}' graph is reached by no route from '${graph.entry}'. Route something to it, or declare mintableOnRequest: true if a running session asks for it. A step nothing reaches is a prompt that is never dispatched, and the quest that needed it stalls with no error.`,
       );
@@ -76,7 +75,7 @@ export const graphReachabilityViolationsTransformer = ({
 
   // Rule 2: every step reaches a terminal. A fixed-point sweep — small graphs, so a naive re-scan
   // to convergence costs nothing and needs no reverse-edge index.
-  const reachesTerminal = new Set<RoutedGraphNodeKey>();
+  const reachesTerminal = new Set<string>();
   let grew = true;
   while (grew) {
     grew = false;
@@ -140,11 +139,11 @@ export const graphReachabilityViolationsTransformer = ({
   // Rule 6: a cyclic path declares `maxVisits` somewhere on it. Iterative DFS whose frames consume
   // their own remaining-edge list — no locally-declared helper function, which
   // `forbid-non-exported-functions` bans, and no `while (true)`, banned outright.
-  const color = new Map<RoutedGraphNodeKey, 'white' | 'gray' | 'black'>(
+  const color = new Map<string, 'white' | 'gray' | 'black'>(
     [...nodesMap.keys()].map((key) => [key, 'white'] as const),
   );
-  const frameStack: { node: RoutedGraphNodeKey; remaining: RoutedGraphNodeKey[] }[] = [];
-  const reportedCycles: RoutedGraphNodeKey[][] = [];
+  const frameStack: { node: string; remaining: string[] }[] = [];
+  const reportedCycles: string[][] = [];
   for (const startKey of nodesMap.keys()) {
     if (color.get(startKey) !== 'white') {
       continue;

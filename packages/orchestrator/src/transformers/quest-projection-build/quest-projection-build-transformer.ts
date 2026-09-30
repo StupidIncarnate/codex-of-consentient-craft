@@ -25,18 +25,8 @@
  * what `nextActionTransformer` mints once that step's actual items fold to `done`).
  */
 
-import type {
-  Quest,
-  QuestProjection,
-  RoutedGraphNodeKey,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
-import {
-  questProjectionContract,
-  routedGraphNodeKeyContract,
-  routedGraphOutcomeWordContract,
-  stepNameContract,
-} from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestProjection, WorkItem } from '@dungeonmaster/shared/contracts';
+import { questProjectionContract, routedGraphOutcomeWordContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { agentFlowFamilyResolveTransformer } from '../agent-flow-family-resolve/agent-flow-family-resolve-transformer';
@@ -68,17 +58,17 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
     );
 
     const lastStepped = [...scopeWorkItems].reverse().find((item) => item.step !== undefined);
-    const currentStepKey: RoutedGraphNodeKey =
+    const currentStepKey: string =
       lastStepped?.step === undefined
         ? graph.entry
-        : routedGraphNodeKeyContract.parse(String(lastStepped.step));
+        : String(lastStepped.step);
 
     // A scope with no actual work items yet has not entered its entry step — the entry step ITSELF
     // is the first planned row. A scope already underway starts its planned tail one hop PAST the
     // current step, along that step's own `routes.done` — never the current step again. No separate
     // `'@done'` / `'@blocked'` check: `agentFlowPlannedStepsWalkTransformer` already stops the moment
     // a cursor names no declared node, which is what either terminal marker resolves to.
-    const plannedStart: RoutedGraphNodeKey | undefined =
+    const plannedStart: string | undefined =
       actualSteps.length === 0
         ? graph.entry
         : graph.nodes[currentStepKey]?.routes[routedGraphOutcomeWordContract.parse('done')];
