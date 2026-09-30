@@ -1,5 +1,4 @@
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
-import { SummaryLineStub } from '../../contracts/summary-line/summary-line.stub';
 import { firstMeaningfulLineTransformer } from './first-meaningful-line-transformer';
 
 describe('firstMeaningfulLineTransformer', () => {
@@ -11,7 +10,7 @@ describe('firstMeaningfulLineTransformer', () => {
 
       const result = firstMeaningfulLineTransformer({ message });
 
-      expect(result).toBe(SummaryLineStub({ value: 'Expected true to be false' }));
+      expect(result).toBe('Expected true to be false');
     });
 
     it('VALID: {message: single line} => returns that line', () => {
@@ -19,7 +18,7 @@ describe('firstMeaningfulLineTransformer', () => {
 
       const result = firstMeaningfulLineTransformer({ message });
 
-      expect(result).toBe(SummaryLineStub({ value: 'Assertion error' }));
+      expect(result).toBe('Assertion error');
     });
   });
 
@@ -31,7 +30,7 @@ describe('firstMeaningfulLineTransformer', () => {
 
       const result = firstMeaningfulLineTransformer({ message });
 
-      expect(result).toBe(SummaryLineStub({ value: 'Actual meaningful error' }));
+      expect(result).toBe('Actual meaningful error');
     });
 
     it('VALID: {message: timeout annotation} => returns annotation first line', () => {
@@ -43,9 +42,7 @@ describe('firstMeaningfulLineTransformer', () => {
       const result = firstMeaningfulLineTransformer({ message });
 
       expect(result).toBe(
-        SummaryLineStub({
-          value: 'TIMEOUT: Test killed before reaching any expect() calls.',
-        }),
+        'TIMEOUT: Test killed before reaching any expect() calls.',
       );
     });
 
@@ -57,7 +54,7 @@ describe('firstMeaningfulLineTransformer', () => {
 
       const result = firstMeaningfulLineTransformer({ message });
 
-      expect(result).toBe(SummaryLineStub({ value: 'Some actual context here' }));
+      expect(result).toBe('Some actual context here');
     });
   });
 
@@ -67,7 +64,7 @@ describe('firstMeaningfulLineTransformer', () => {
 
       const result = firstMeaningfulLineTransformer({ message });
 
-      expect(result).toBe(SummaryLineStub({ value: 'Error: thrown: "' }));
+      expect(result).toBe('Error: thrown: "');
     });
   });
 });
