@@ -10,8 +10,6 @@
  * Returns null when the values do not match.
  */
 
-import { matchSpecificityContract } from '../../contracts/match-specificity/match-specificity-contract';
-import type { MatchSpecificity } from '../../contracts/match-specificity/match-specificity-contract';
 
 export const mockArgValueMatchTransformer = ({
   staged,
@@ -19,11 +17,11 @@ export const mockArgValueMatchTransformer = ({
 }: {
   staged: unknown;
   actual: unknown;
-}): MatchSpecificity | null => {
+}): number | null => {
   if (typeof staged === 'function') {
     const predicate = staged as (value: unknown) => unknown;
 
-    return predicate(actual) === true ? matchSpecificityContract.parse(1) : null;
+    return predicate(actual) === true ? 1 : null;
   }
 
   if (Array.isArray(staged)) {
@@ -43,18 +41,18 @@ export const mockArgValueMatchTransformer = ({
       total += score;
     }
 
-    return matchSpecificityContract.parse(total);
+    return total;
   }
 
   if (staged instanceof Date) {
     return actual instanceof Date && staged.getTime() === actual.getTime()
-      ? matchSpecificityContract.parse(1)
+      ? 1
       : null;
   }
 
   if (staged instanceof RegExp) {
     return typeof actual === 'string' && staged.test(actual)
-      ? matchSpecificityContract.parse(1)
+      ? 1
       : null;
   }
 
@@ -80,8 +78,8 @@ export const mockArgValueMatchTransformer = ({
       total += score;
     }
 
-    return matchSpecificityContract.parse(total);
+    return total;
   }
 
-  return Object.is(staged, actual) ? matchSpecificityContract.parse(1) : null;
+  return Object.is(staged, actual) ? 1 : null;
 };

@@ -9,8 +9,6 @@
  * the path ignores the encoding. Returns null when the call does not match.
  */
 
-import { matchSpecificityContract } from '../../contracts/match-specificity/match-specificity-contract';
-import type { MatchSpecificity } from '../../contracts/match-specificity/match-specificity-contract';
 import { mockArgValueMatchTransformer } from '../mock-arg-value-match/mock-arg-value-match-transformer';
 
 export const mockArgsMatchTransformer = ({
@@ -19,7 +17,7 @@ export const mockArgsMatchTransformer = ({
 }: {
   staged: readonly unknown[];
   actual: readonly unknown[];
-}): MatchSpecificity | null => {
+}): number | null => {
   if (staged.length > actual.length) {
     return null;
   }
@@ -36,5 +34,5 @@ export const mockArgsMatchTransformer = ({
     total += score;
   }
 
-  return matchSpecificityContract.parse(total);
+  return total;
 };
