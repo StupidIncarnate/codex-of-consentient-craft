@@ -7,8 +7,6 @@ import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-co
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -59,7 +57,7 @@ export const multiPackageLayerBrokerProxy = (): {
   childCrashLayerBrokerProxy();
   // The resolved bin path depends on rootPath, so `getAllSpawnedArgs` (which takes no params)
   // addresses the spawn read against whatever setup last resolved — set here, read there.
-  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
+  const resolvedCommandRef: { value: string } = { value: '/project/node_modules/.bin/eslint' };
 
   const configProxy = configResolveBrokerProxy();
   // A resolved config carrying no `ward` key at all, matching what a consumer who has never heard
@@ -87,10 +85,10 @@ export const multiPackageLayerBrokerProxy = (): {
   // Matches what a child ward actually prints — id plus the trailing total-duration suffix.
   const childSummaryLine = `run: ${runId}  (1.2s)\n`;
 
-  const resolveWardBin = ({ rootPath }: { rootPath: string }): BinCommand => {
+  const resolveWardBin = ({ rootPath }: { rootPath: string }): string => {
     const command = binProxy.setupFound({
       cwd: rootPath,
-      binName: BinCommandStub({ value: wardSpawnCommandStatics.bin }),
+      binName: wardSpawnCommandStatics.bin,
     });
     resolvedCommandRef.value = command;
     stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub() });

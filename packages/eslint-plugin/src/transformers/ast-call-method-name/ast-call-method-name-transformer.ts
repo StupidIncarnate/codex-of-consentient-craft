@@ -6,7 +6,6 @@
  * astCallMethodNameTransformer({ node: callNode });
  * // Returns 'brand' for `z.string().brand<'X'>()`
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 

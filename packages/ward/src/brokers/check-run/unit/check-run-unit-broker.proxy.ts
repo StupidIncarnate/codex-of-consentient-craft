@@ -13,8 +13,6 @@ import { openHandleReportStatics } from '../../../statics/open-handle-report/ope
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
@@ -97,10 +95,10 @@ export const checkRunUnitBrokerProxy = (): {
   // explicitly, so `stage()` never clobbers that with its own default regardless of call order.
   const unsupportedCwds = new Set<string>();
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): string => {
     const command = binProxy.setupFound({
       cwd: projectFolder.path,
-      binName: BinCommandStub({ value: checkCommandsStatics.unit.bin }),
+      binName: checkCommandsStatics.unit.bin,
     });
     resolvedCommandRef.value = command;
     return command;

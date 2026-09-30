@@ -1,5 +1,4 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
-import { FilePathStub as SharedFilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -47,7 +46,7 @@ export const QuestWardDetailResponderProxy = (): {
     });
     locationsProxy.setupWardResultsPath({
       questFolderPath: '/home/testuser/quest',
-      wardResultsPath: SharedFilePathStub({ value: '/home/testuser/quest/ward-results' }),
+      wardResultsPath: '/home/testuser/quest/ward-results',
     });
     joinHandle
       .calledWith(['/home/testuser/quest/ward-results', `${DETAIL_WARD_RESULT_ID}.json`])

@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
-import { TotalCountStub } from '@dungeonmaster/shared/contracts/total-count/total-count.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QueueRowLayerWidget } from './queue-row-layer-widget';
@@ -24,7 +23,7 @@ describe('QueueRowLayerWidget', () => {
             <QueueRowLayerWidget
               entry={entry}
               index={0}
-              total={TotalCountStub({ value: 2 })}
+              total={2}
               isActive={false}
             />
           </MemoryRouter>
@@ -51,7 +50,7 @@ describe('QueueRowLayerWidget', () => {
             <QueueRowLayerWidget
               entry={entry}
               index={1}
-              total={TotalCountStub({ value: 2 })}
+              total={2}
               isActive={false}
             />
           </MemoryRouter>
@@ -75,7 +74,7 @@ describe('QueueRowLayerWidget', () => {
             <QueueRowLayerWidget
               entry={entry}
               index={0}
-              total={TotalCountStub({ value: 1 })}
+              total={1}
               isActive={true}
             />
           </MemoryRouter>
@@ -105,7 +104,7 @@ describe('QueueRowLayerWidget', () => {
             <QueueRowLayerWidget
               entry={entry}
               index={0}
-              total={TotalCountStub({ value: 1 })}
+              total={1}
               isActive={false}
             />
           </MemoryRouter>
@@ -141,7 +140,7 @@ describe('QueueRowLayerWidget', () => {
             <QueueRowLayerWidget
               entry={entry}
               index={0}
-              total={TotalCountStub({ value: 1 })}
+              total={1}
               isActive={false}
             />
           </MemoryRouter>
@@ -163,7 +162,7 @@ describe('QueueRowLayerWidget', () => {
             <QueueRowLayerWidget
               entry={entry}
               index={0}
-              total={TotalCountStub({ value: 1 })}
+              total={1}
               isActive={false}
             />
           </MemoryRouter>

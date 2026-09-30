@@ -6,7 +6,6 @@
 // USAGE: const proxy = untilBufferMatchLayerBrokerProxy(); const { readSince } = proxy.linesAnswering({ lines: [...] });
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
@@ -40,7 +39,7 @@ export const untilBufferMatchLayerBrokerProxy = (): {
     }: {
       lines: readonly string[];
     }): { readSince: (params: { fromIndex: number }) => readonly ContentText[] } => {
-      const allLines = lines.map((value) => ContentTextStub({ value }));
+      const allLines = lines.map((value) => value);
       return {
         readSince: ({ fromIndex }: { fromIndex: number }): readonly ContentText[] =>
           allLines.slice(fromIndex),

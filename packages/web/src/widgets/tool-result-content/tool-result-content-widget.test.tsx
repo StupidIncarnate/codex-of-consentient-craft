@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { ToolResultDisplayContentStub } from '../../contracts/tool-result-display-content/tool-result-display-content.stub';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { ToolResultContentWidget } from './tool-result-content-widget';
 import { ToolResultContentWidgetProxy } from './tool-result-content-widget.proxy';
@@ -16,7 +15,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({ value: 'file contents here' })}
+            content={'file contents here'}
             color={DIM}
           />
         ),
@@ -32,9 +31,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value: '> @dungeonmaster/web@1.0.0 build\n> tsc\n\ndone in 4s',
-            })}
+            content={'> @dungeonmaster/web@1.0.0 build\n> tsc\n\ndone in 4s'}
             color={DIM}
           />
         ),
@@ -52,7 +49,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({ value: 'short' })}
+            content={'short'}
             color={DIM}
           />
         ),
@@ -69,13 +66,11 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value: JSON.stringify({
+            content={JSON.stringify({
                 name: 'codeweaver',
                 model: 'sonnet',
                 prompt: '# Operator\n\nYou own ONE operation item.',
-              }),
-            })}
+              })}
             color={DIM}
           />
         ),
@@ -95,9 +90,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value: JSON.stringify({ prompt: '# Operator\n\nYou own ONE operation item.' }),
-            })}
+            content={JSON.stringify({ prompt: '# Operator\n\nYou own ONE operation item.' })}
             color={DIM}
           />
         ),
@@ -117,9 +110,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value: JSON.stringify({ exitCode: 1, stdout: 'building...\nfailed at step 2' }),
-            })}
+            content={JSON.stringify({ exitCode: 1, stdout: 'building...\nfailed at step 2' })}
             color={DIM}
           />
         ),
@@ -142,10 +133,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value:
-                '## Contracts\n\n#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.',
-            })}
+            content={'## Contracts\n\n#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.'}
             color={DIM}
           />
         ),
@@ -167,9 +155,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value: '## Contracts\n\n#a — one\n  prop: two',
-            })}
+            content={'## Contracts\n\n#a — one\n  prop: two'}
             color={DIM}
           />
         ),
@@ -186,9 +172,7 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={ToolResultDisplayContentStub({
-              value: '# Architecture Overview\n\nLLMs squirrel code away.',
-            })}
+            content={'# Architecture Overview\n\nLLMs squirrel code away.'}
             color={DIM}
           />
         ),

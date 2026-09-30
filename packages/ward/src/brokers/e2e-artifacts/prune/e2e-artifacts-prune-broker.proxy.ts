@@ -3,7 +3,6 @@ import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exis
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
@@ -59,7 +58,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
   }: {
     packageRoot: string;
     parentDir: string;
-  }): ReturnType<typeof filePathContract.parse> =>
+  }): string =>
     `${String(packageRoot)}/${parentDir}`;
 
   const entryPathFor = ({
@@ -70,7 +69,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
     packageRoot: string;
     parentDir: string;
     name: string;
-  }): ReturnType<typeof filePathContract.parse> =>
+  }): string =>
     `${String(packageRoot)}/${parentDir}/${name}`;
 
   return {

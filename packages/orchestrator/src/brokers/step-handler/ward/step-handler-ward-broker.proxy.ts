@@ -27,7 +27,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import type { FileName, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -64,7 +64,7 @@ export const stepHandlerWardBrokerProxy = (): {
   wardExits: (params: {
     questId: Quest['id'];
     exitCode: number;
-    runId: FileName;
+    runId: string;
     detailJson: string;
   }) => void;
   wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: number }) => void;
@@ -156,7 +156,7 @@ export const stepHandlerWardBrokerProxy = (): {
     }: {
       questId: Quest['id'];
       exitCode: number;
-      runId: FileName;
+      runId: string;
       detailJson: string;
     }): void => {
       stageQuest({ questId });

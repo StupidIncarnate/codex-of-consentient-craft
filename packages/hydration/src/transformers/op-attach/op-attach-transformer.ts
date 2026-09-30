@@ -13,7 +13,6 @@
  */
 import { opAttachContract } from '../../contracts/op-attach/op-attach-contract';
 import type { OpAttach } from '../../contracts/op-attach/op-attach-contract';
-import type { CallIndex } from '../../contracts/call-index/call-index-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { rowRefTransformer } from '../row-ref/row-ref-transformer';
 
@@ -26,7 +25,7 @@ export const opAttachTransformer = ({
   where,
 }: {
   ingredient: string;
-  callIndex: CallIndex;
+  callIndex: number;
   ancestors: readonly string[];
   where: FieldValues;
 }): OpAttach => {

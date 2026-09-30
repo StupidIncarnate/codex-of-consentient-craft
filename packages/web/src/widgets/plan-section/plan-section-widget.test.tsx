@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { PlanSectionWidget } from './plan-section-widget';
 import { PlanSectionWidgetProxy } from './plan-section-widget.proxy';
 
@@ -11,7 +10,7 @@ describe('PlanSectionWidget', () => {
   describe('rendering', () => {
     it('VALID: {title: "STEPS", items: [step-a, step-b]} => renders section header', () => {
       PlanSectionWidgetProxy();
-      const title = SectionLabelStub({ value: 'STEPS' });
+      const title = 'STEPS';
       const itemA = 'step-a';
       const itemB = 'step-b';
 
@@ -24,7 +23,7 @@ describe('PlanSectionWidget', () => {
 
     it('VALID: {items: [step-a, step-b]} => renders all items', () => {
       PlanSectionWidgetProxy();
-      const title = SectionLabelStub({ value: 'STEPS' });
+      const title = 'STEPS';
       const itemA = 'step-a';
       const itemB = 'step-b';
 
@@ -40,7 +39,7 @@ describe('PlanSectionWidget', () => {
 
     it('EMPTY: {items: []} => renders section with count zero', () => {
       PlanSectionWidgetProxy();
-      const title = SectionLabelStub({ value: 'STEPS' });
+      const title = 'STEPS';
       const items: string[] = [];
 
       mantineRenderMiddleware({
@@ -54,7 +53,7 @@ describe('PlanSectionWidget', () => {
   describe('no edit affordances', () => {
     it('VALID: {items: [item]} => renders no add or remove buttons', () => {
       PlanSectionWidgetProxy();
-      const title = SectionLabelStub({ value: 'STEPS' });
+      const title = 'STEPS';
       const itemA = 'step-a';
 
       mantineRenderMiddleware({

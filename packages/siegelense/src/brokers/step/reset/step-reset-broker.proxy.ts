@@ -8,7 +8,7 @@
  */
 
 import type { DirEntrySync } from '#gateway/node/fs';
-import type { FileName, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -43,7 +43,7 @@ export const stepResetBrokerProxy = (): {
   setupRestoreRmSucceeds: (params: { filePaths: readonly string[] }) => void;
   setupRestoreCpSucceeds: (params: {
     sourcePath: string;
-    entries: readonly FileName[];
+    entries: readonly string[];
   }) => void;
   setupReseed: (params: {
     apiBaseUrl: string;

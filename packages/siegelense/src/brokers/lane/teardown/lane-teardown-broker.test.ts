@@ -8,7 +8,6 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
-import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 
 describe('laneTeardownBroker', () => {
   describe('the SIGTERM-then-SIGKILL escalation', () => {
@@ -233,8 +232,8 @@ describe('laneTeardownBroker', () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
       const pgid = 9001;
-      const fdA = FileDescriptorStub({ value: 10 });
-      const fdB = FileDescriptorStub({ value: 11 });
+      const fdA = 10;
+      const fdB = 11;
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
       proxy.setupFdCloseSucceeds({ fd: fdA });
@@ -259,7 +258,7 @@ describe('laneTeardownBroker', () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
       const pgid = 9002;
-      const fd = FileDescriptorStub({ value: 12 });
+      const fd = 12;
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
       proxy.setupFdCloseSucceeds({ fd });
@@ -302,8 +301,8 @@ describe('laneTeardownBroker', () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
       const pgid = 9003;
-      const failingFd = FileDescriptorStub({ value: 13 });
-      const okFd = FileDescriptorStub({ value: 14 });
+      const failingFd = 13;
+      const okFd = 14;
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
       proxy.setupFdCloseFails({

@@ -12,7 +12,6 @@ import { architectureProjectMapBrokerProxy } from '@dungeonmaster/shared/brokers
 import { architectureGatewayInventoryBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/gateway-inventory/architecture-gateway-inventory-broker.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discover-broker.proxy';
 import { architectureFolderDetailBrokerProxy } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
@@ -38,9 +37,9 @@ export const ArchitectureHandleResponderProxy = (): {
   setupFileDiscovery: (params: {
     filepath: string;
     contents: string;
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
-  setupDiscoverIgnore: (params: { patterns: readonly GlobPattern[] }) => void;
+  setupDiscoverIgnore: (params: { patterns: readonly string[] }) => void;
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
   setupLibraryPackage: (params: { packageName: string }) => void;
   setupFrontendInkPackage: (params: { packageName: string }) => void;
@@ -82,7 +81,7 @@ export const ArchitectureHandleResponderProxy = (): {
   return {
     callResponder: async ({ tool, args, meta }) =>
       ArchitectureHandleResponder({ tool, args, meta }),
-    setupDiscoverIgnore: ({ patterns }: { patterns: readonly GlobPattern[] }): void => {
+    setupDiscoverIgnore: ({ patterns }: { patterns: readonly string[] }): void => {
       discoverIgnoreState.set({ patterns });
     },
     setupFileDiscovery: ({
@@ -92,7 +91,7 @@ export const ArchitectureHandleResponderProxy = (): {
     }: {
       filepath: string;
       contents: string;
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       discoverProxy.setupFileDiscovery({ filepath, contents, pattern });
     },

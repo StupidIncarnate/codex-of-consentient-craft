@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 import {
   ToolResultMarkdownPartStub,
   ToolResultPartStub,
@@ -11,7 +10,7 @@ import { ToolResultPartLayerWidget } from './tool-result-part-layer-widget';
 import { ToolResultPartLayerWidgetProxy } from './tool-result-part-layer-widget.proxy';
 
 const DIM = emberDepthsThemeStatics.colors['text-dim'];
-const FONT_SIZE = CssPixelsStub({ value: 12 });
+const FONT_SIZE = 12;
 
 describe('ToolResultPartLayerWidget', () => {
   describe('text part, no label', () => {

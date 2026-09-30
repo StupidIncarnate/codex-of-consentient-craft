@@ -1,16 +1,15 @@
 import { globIgnoreFilterTransformer } from './glob-ignore-filter-transformer';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
 const STATIC_PATTERNS = fileDiscoveryStatics.globIgnorePatterns.map((value) =>
-  GlobPatternStub({ value }),
+  value,
 );
 
 describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "src/..."} => returns all ignore rules (no targeted dir)', () => {
     const result = globIgnoreFilterTransformer({
       patterns: STATIC_PATTERNS,
-      glob: GlobPatternStub({ value: 'src/**' }),
+      glob: 'src/**',
     });
 
     expect(result).toStrictEqual([
@@ -24,7 +23,7 @@ describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "node_modules/zod/..."} => removes node_modules rule', () => {
     const result = globIgnoreFilterTransformer({
       patterns: STATIC_PATTERNS,
-      glob: GlobPatternStub({ value: 'node_modules/zod/**' }),
+      glob: 'node_modules/zod/**',
     });
 
     expect(result).toStrictEqual([
@@ -37,7 +36,7 @@ describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "packages/mcp/dist/..."} => removes dist rule', () => {
     const result = globIgnoreFilterTransformer({
       patterns: STATIC_PATTERNS,
-      glob: GlobPatternStub({ value: 'packages/mcp/dist/**' }),
+      glob: 'packages/mcp/dist/**',
     });
 
     expect(result).toStrictEqual([
@@ -50,7 +49,7 @@ describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "node_modules/.../dist/..."} => removes both node_modules and dist rules', () => {
     const result = globIgnoreFilterTransformer({
       patterns: STATIC_PATTERNS,
-      glob: GlobPatternStub({ value: 'node_modules/@hono/node-server/dist/**' }),
+      glob: 'node_modules/@hono/node-server/dist/**',
     });
 
     expect(result).toStrictEqual([
@@ -62,7 +61,7 @@ describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "build/output/..."} => removes build rule', () => {
     const result = globIgnoreFilterTransformer({
       patterns: STATIC_PATTERNS,
-      glob: GlobPatternStub({ value: 'build/output/**' }),
+      glob: 'build/output/**',
     });
 
     expect(result).toStrictEqual([
@@ -75,7 +74,7 @@ describe('globIgnoreFilterTransformer', () => {
   it('EMPTY: {glob: ""} => returns all ignore rules', () => {
     const result = globIgnoreFilterTransformer({
       patterns: STATIC_PATTERNS,
-      glob: GlobPatternStub({ value: '' }),
+      glob: '',
     });
 
     expect(result).toStrictEqual([
@@ -89,10 +88,10 @@ describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "tmp/..."} => removes the tmp rule so an agent can search scratch on purpose', () => {
     const result = globIgnoreFilterTransformer({
       patterns: [
-        GlobPatternStub({ value: '**/node_modules/**' }),
-        GlobPatternStub({ value: '**/tmp/**' }),
+        '**/node_modules/**',
+        '**/tmp/**',
       ],
-      glob: GlobPatternStub({ value: 'tmp/**/*' }),
+      glob: 'tmp/**/*',
     });
 
     expect(result).toStrictEqual(['**/node_modules/**']);
@@ -103,10 +102,10 @@ describe('globIgnoreFilterTransformer', () => {
     // repo's own testbeds and e2e harness do — must not have its tmp rule silently disabled.
     const result = globIgnoreFilterTransformer({
       patterns: [
-        GlobPatternStub({ value: '**/node_modules/**' }),
-        GlobPatternStub({ value: '**/tmp/**' }),
+        '**/node_modules/**',
+        '**/tmp/**',
       ],
-      glob: GlobPatternStub({ value: '**/*' }),
+      glob: '**/*',
     });
 
     expect(result).toStrictEqual([
@@ -117,8 +116,8 @@ describe('globIgnoreFilterTransformer', () => {
 
   it('EDGE: {glob: "packages/web/src/coverage-report/..."} => keeps the coverage rule (segment, not substring)', () => {
     const result = globIgnoreFilterTransformer({
-      patterns: [GlobPatternStub({ value: '**/coverage/**' })],
-      glob: GlobPatternStub({ value: 'packages/web/src/coverage-report/**' }),
+      patterns: ['**/coverage/**'],
+      glob: 'packages/web/src/coverage-report/**',
     });
 
     expect(result).toStrictEqual(['**/coverage/**']);
@@ -126,8 +125,8 @@ describe('globIgnoreFilterTransformer', () => {
 
   it('EDGE: {rule: "**/*.log", glob: any} => keeps a wildcard-only rule (no directory to target)', () => {
     const result = globIgnoreFilterTransformer({
-      patterns: [GlobPatternStub({ value: '**/*.log' })],
-      glob: GlobPatternStub({ value: 'packages/**' }),
+      patterns: ['**/*.log'],
+      glob: 'packages/**',
     });
 
     expect(result).toStrictEqual(['**/*.log']);
@@ -135,8 +134,8 @@ describe('globIgnoreFilterTransformer', () => {
 
   it('EDGE: {rule: "tests/tmp/**", glob: "tests/..."} => keeps the rule until every segment is targeted', () => {
     const result = globIgnoreFilterTransformer({
-      patterns: [GlobPatternStub({ value: 'tests/tmp/**' })],
-      glob: GlobPatternStub({ value: 'tests/**' }),
+      patterns: ['tests/tmp/**'],
+      glob: 'tests/**',
     });
 
     expect(result).toStrictEqual(['tests/tmp/**']);
@@ -144,8 +143,8 @@ describe('globIgnoreFilterTransformer', () => {
 
   it('VALID: {rule: "tests/tmp/**", glob: "tests/tmp/..."} => removes the rule when every segment is targeted', () => {
     const result = globIgnoreFilterTransformer({
-      patterns: [GlobPatternStub({ value: 'tests/tmp/**' })],
-      glob: GlobPatternStub({ value: 'tests/tmp/**' }),
+      patterns: ['tests/tmp/**'],
+      glob: 'tests/tmp/**',
     });
 
     expect(result).toStrictEqual([]);
@@ -154,7 +153,7 @@ describe('globIgnoreFilterTransformer', () => {
   it('EMPTY: {patterns: []} => returns no rules', () => {
     const result = globIgnoreFilterTransformer({
       patterns: [],
-      glob: GlobPatternStub({ value: 'src/**' }),
+      glob: 'src/**',
     });
 
     expect(result).toStrictEqual([]);

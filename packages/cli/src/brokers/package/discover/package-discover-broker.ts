@@ -16,8 +16,6 @@ import { packageDiscoverResultContract } from '../../../contracts/package-discov
 import type { PackageDiscoverResult } from '../../../contracts/package-discover-result/package-discover-result-contract';
 import { join } from '#gateway/node/path';
 import { existsSync, readdirSync } from '#gateway/node/fs';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 // A directory directly under `packages/` whose name starts with `@` is a scope/group folder, not
 // a package itself — the same nesting `node_modules/@scope/name` uses. Its children are the real
@@ -41,9 +39,9 @@ export const packageDiscoverBroker = ({
   // shapes: `node_modules/@dungeonmaster` is exactly a "`@`-prefixed group folder" of the kind
   // `packages/@gateway` already is.
   const packagesDir = existsSync(monorepoPackagesDir) ? monorepoPackagesDir : dungeonmasterRoot;
-  const topLevelDirs = readdirSync(packagesDir).map((dir) => fileNameContract.parse(dir));
+  const topLevelDirs = readdirSync(packagesDir).map((dir) => dir);
 
-  const candidates: { relativeDir: FileName[]; packageDirName: FileName }[] = [];
+  const candidates: { relativeDir: string[]; packageDirName: string }[] = [];
 
   for (const dir of topLevelDirs) {
     if (!dir.startsWith(GROUP_FOLDER_PREFIX)) {
@@ -52,7 +50,7 @@ export const packageDiscoverBroker = ({
     }
 
     const groupDir = join(packagesDir, dir);
-    for (const child of readdirSync(groupDir).map((entry) => fileNameContract.parse(entry))) {
+    for (const child of readdirSync(groupDir).map((entry) => entry)) {
       candidates.push({ relativeDir: [dir, child], packageDirName: child });
     }
   }

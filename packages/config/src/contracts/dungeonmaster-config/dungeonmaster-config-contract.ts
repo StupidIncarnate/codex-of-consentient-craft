@@ -13,7 +13,6 @@
 import { z } from '#gateway/npm/zod';
 import {
   gatewayLintConfigContract,
-  networkPortContract,
   orchestrationModeContract,
 } from '@dungeonmaster/shared/contracts';
 import { configDefaultsStatics } from '../../statics/config-defaults/config-defaults-statics';
@@ -75,7 +74,7 @@ export const dungeonmasterConfigContract = z
       .optional(),
     dungeonmaster: z
       .object({
-        port: networkPortContract.optional(),
+        port: z.number().int().min(1).max(65_535).brand<'DungeonmasterConfigDungeonmasterPort'>().optional(),
       }).brand<'DungeonmasterConfigDungeonmaster'>()
       .optional(),
     devServer: z

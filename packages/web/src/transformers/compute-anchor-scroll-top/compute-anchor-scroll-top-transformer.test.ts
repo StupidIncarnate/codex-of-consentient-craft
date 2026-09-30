@@ -1,5 +1,3 @@
-import { ScrollOffsetPxStub } from '../../contracts/scroll-offset-px/scroll-offset-px.stub';
-import { ScrollPositionPxStub } from '../../contracts/scroll-position-px/scroll-position-px.stub';
 import { computeAnchorScrollTopTransformer } from './compute-anchor-scroll-top-transformer';
 
 describe('computeAnchorScrollTopTransformer', () => {
@@ -9,10 +7,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('VALID: {anchor drifted 200px down} => scrolls down by 200', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 400 }),
-          anchorOffset: ScrollOffsetPxStub({ value: 260 }),
-          heldOffset: ScrollOffsetPxStub({ value: 60 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 900 }),
+          currentScrollTop: 400,
+          anchorOffset: 260,
+          heldOffset: 60,
+          maxScrollTop: 900,
         }),
       ).toBe(600);
     });
@@ -22,10 +20,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('VALID: {anchor drifted 150px up} => scrolls up by 150', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 400 }),
-          anchorOffset: ScrollOffsetPxStub({ value: 10 }),
-          heldOffset: ScrollOffsetPxStub({ value: 160 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 900 }),
+          currentScrollTop: 400,
+          anchorOffset: 10,
+          heldOffset: 160,
+          maxScrollTop: 900,
         }),
       ).toBe(250);
     });
@@ -35,10 +33,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('VALID: {anchor now above the fold} => scrolls up to put it back at the held offset', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 2000 }),
-          anchorOffset: ScrollOffsetPxStub({ value: -1400 }),
-          heldOffset: ScrollOffsetPxStub({ value: 0 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 5000 }),
+          currentScrollTop: 2000,
+          anchorOffset: -1400,
+          heldOffset: 0,
+          maxScrollTop: 5000,
         }),
       ).toBe(600);
     });
@@ -50,10 +48,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('VALID: {offsets equal} => leaves the scrollport where it is', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 320 }),
-          anchorOffset: ScrollOffsetPxStub({ value: 44 }),
-          heldOffset: ScrollOffsetPxStub({ value: 44 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 900 }),
+          currentScrollTop: 320,
+          anchorOffset: 44,
+          heldOffset: 44,
+          maxScrollTop: 900,
         }),
       ).toBe(320);
     });
@@ -63,10 +61,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('EDGE: {target below zero} => clamps to the top', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 40 }),
-          anchorOffset: ScrollOffsetPxStub({ value: 0 }),
-          heldOffset: ScrollOffsetPxStub({ value: 500 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 900 }),
+          currentScrollTop: 40,
+          anchorOffset: 0,
+          heldOffset: 500,
+          maxScrollTop: 900,
         }),
       ).toBe(0);
     });
@@ -77,10 +75,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('EDGE: {target past the new bottom} => clamps to the bottom', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 800 }),
-          anchorOffset: ScrollOffsetPxStub({ value: 600 }),
-          heldOffset: ScrollOffsetPxStub({ value: 0 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 1000 }),
+          currentScrollTop: 800,
+          anchorOffset: 600,
+          heldOffset: 0,
+          maxScrollTop: 1000,
         }),
       ).toBe(1000);
     });
@@ -88,10 +86,10 @@ describe('computeAnchorScrollTopTransformer', () => {
     it('EDGE: {content shorter than the scrollport} => clamps to zero', () => {
       expect(
         computeAnchorScrollTopTransformer({
-          currentScrollTop: ScrollPositionPxStub({ value: 0 }),
-          anchorOffset: ScrollOffsetPxStub({ value: 500 }),
-          heldOffset: ScrollOffsetPxStub({ value: 0 }),
-          maxScrollTop: ScrollPositionPxStub({ value: 0 }),
+          currentScrollTop: 0,
+          anchorOffset: 500,
+          heldOffset: 0,
+          maxScrollTop: 0,
         }),
       ).toBe(0);
     });

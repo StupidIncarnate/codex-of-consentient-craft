@@ -1,4 +1,3 @@
-import { BaseNameStub } from '@dungeonmaster/testing';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questOutboxHarness } from '../../../../test/harnesses/quest-outbox/quest-outbox.harness';
@@ -13,7 +12,7 @@ describe('questOutboxWatchBroker against a real event-outbox.jsonl', () => {
   it(
     'VALID: {one watcher, one line appended} => the listener receives that questId',
     async () => {
-      const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-deliver' }) });
+      const { homeDir, end } = harness.begin({ name: 'outbox-deliver' });
       const listener = harness.listener();
 
       const watcher = await questOutboxWatchBroker(listener.callbacks);
@@ -40,7 +39,7 @@ describe('questOutboxWatchBroker against a real event-outbox.jsonl', () => {
       // the file back is the only way to see the destruction — a delivery assertion cannot, because
       // the surviving watcher re-reads from offset zero once the truncate's own change event lands
       // and can appear to recover from a loss it actually took.
-      const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-survives' }) });
+      const { homeDir, end } = harness.begin({ name: 'outbox-survives' });
       const first = harness.listener();
       const second = harness.listener();
 
@@ -65,7 +64,7 @@ describe('questOutboxWatchBroker against a real event-outbox.jsonl', () => {
   it(
     'VALID: {two watchers already running, one line appended} => both listeners receive that questId',
     async () => {
-      const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-fan-out' }) });
+      const { homeDir, end } = harness.begin({ name: 'outbox-fan-out' });
       const first = harness.listener();
       const second = harness.listener();
 
@@ -95,7 +94,7 @@ describe('questOutboxWatchBroker against a real event-outbox.jsonl', () => {
       // Nothing empties the bus on a watcher's behalf any more, so the tail has to start at the
       // file's current end. A watcher draining from zero would re-broadcast quest-modified for
       // every event still on disk on every server boot.
-      const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-no-replay' }) });
+      const { homeDir, end } = harness.begin({ name: 'outbox-no-replay' });
       const listener = harness.listener();
 
       harness.appendQuestLine({ homeDir, questId: QuestIdStub({ value: 'already-written' }) });
@@ -118,7 +117,7 @@ describe('questOutboxWatchBroker against a real event-outbox.jsonl', () => {
   it(
     'EMPTY: {no outbox file at all} => the watcher creates it and delivers a line appended afterwards',
     async () => {
-      const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-absent' }) });
+      const { homeDir, end } = harness.begin({ name: 'outbox-absent' });
       const listener = harness.listener();
 
       harness.removeOutbox({ homeDir });
@@ -147,7 +146,7 @@ describe('questOutboxWatchBroker against a real event-outbox.jsonl', () => {
     async () => {
       // The single owner's boot reset — the one thing bounding the file's growth, since nothing
       // rotates or trims it anywhere else.
-      const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-reset' }) });
+      const { homeDir, end } = harness.begin({ name: 'outbox-reset' });
       const listener = harness.listener();
 
       harness.appendQuestLine({ homeDir, questId: QuestIdStub({ value: 'stale-history' }) });

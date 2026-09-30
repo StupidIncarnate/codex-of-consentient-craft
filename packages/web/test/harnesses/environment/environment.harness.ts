@@ -13,7 +13,7 @@
  * // Returns [] while the fixture repo holds no quest worktree
  * // Call env.cleanup() or rely on afterEach if wired
  */
-import type { Guild, FileName } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
@@ -54,7 +54,7 @@ export const environmentHarness = ({
   setupGuildPath: () => void;
   cleanup: () => void;
   getHomedir: () => string;
-  listWorktreeDirNames: () => readonly FileName[];
+  listWorktreeDirNames: () => readonly string[];
   carveQuestWorktree: (params: { name: string }) => string;
 } => {
   const clearStaleJsonlForGuild = (): void => {
@@ -228,7 +228,7 @@ export const environmentHarness = ({
   //
   // A missing directory reads as no worktrees rather than throwing: `git worktree add` is what
   // creates `worktrees/` in the first place, so its absence IS the answer.
-  const listWorktreeDirNames = (): readonly FileName[] => {
+  const listWorktreeDirNames = (): readonly string[] => {
     const worktreesDir = path.join(guildPath, locationsStatics.repoRoot.worktreesDir);
 
     if (!fs.existsSync(worktreesDir)) {

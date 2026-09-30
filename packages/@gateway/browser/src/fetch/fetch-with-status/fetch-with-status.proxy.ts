@@ -1,5 +1,5 @@
 import { StartEndpointMock } from '@dungeonmaster/testing';
-import type { HttpMethod, RequestCount } from '@dungeonmaster/testing';
+import type { HttpMethod } from '@dungeonmaster/testing';
 
 // See fetch-json.proxy.ts's own header for why this no longer spies on `globalThis.fetch` directly.
 type Endpoint = ReturnType<typeof StartEndpointMock.listen>;
@@ -22,7 +22,7 @@ export const fetchWithStatusProxy = (): {
     release: () => void;
   };
   getRequestBodies: (params: { method?: HttpMethod; url: string }) => Promise<unknown[]>;
-  getRequestCount: (params: { method?: HttpMethod; url: string }) => RequestCount;
+  getRequestCount: (params: { method?: HttpMethod; url: string }) => number;
 } => {
   const endpoints = new Map<string, Endpoint>();
 
@@ -78,7 +78,7 @@ export const fetchWithStatusProxy = (): {
       method?: HttpMethod;
       url: string;
     }): Promise<unknown[]> => endpointFor({ method, url }).getRequestBodies(),
-    getRequestCount: ({ method, url }: { method?: HttpMethod; url: string }): RequestCount =>
+    getRequestCount: ({ method, url }: { method?: HttpMethod; url: string }): number =>
       endpointFor({ method, url }).getRequestCount(),
   };
 };

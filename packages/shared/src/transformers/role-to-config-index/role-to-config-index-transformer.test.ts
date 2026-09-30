@@ -1,4 +1,3 @@
-import { FloorNameStub } from '../../contracts/floor-name/floor-name.stub';
 import { WorkItemRoleStub } from '../../contracts/work-item-role/work-item-role.stub';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
 
@@ -42,7 +41,7 @@ describe('roleToConfigIndexTransformer', () => {
     it('VALID: {role: ward, floorName: MINI BOSS} => returns 4 (MINI BOSS entry)', () => {
       const result = roleToConfigIndexTransformer({
         role: 'ward',
-        floorName: FloorNameStub({ value: 'MINI BOSS' }),
+        floorName: 'MINI BOSS',
       });
 
       expect(result).toBe(4);
@@ -51,7 +50,7 @@ describe('roleToConfigIndexTransformer', () => {
     it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 8 (FLOOR BOSS entry)', () => {
       const result = roleToConfigIndexTransformer({
         role: 'ward',
-        floorName: FloorNameStub({ value: 'FLOOR BOSS' }),
+        floorName: 'FLOOR BOSS',
       });
 
       expect(result).toBe(8);

@@ -32,7 +32,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { blightDispositionContract } from '../blight-disposition/blight-disposition-contract';
-import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 import { workItemContract } from '../work-item/work-item-contract';
 import { blightChecklistItemContract } from '../blight-checklist-item/blight-checklist-item-contract';
 
@@ -68,7 +67,7 @@ export const questBlightLedgerEntryContract = z.object({
       'Required in practice for `recorded`: the named owner a defect was handed to. "Noted for later" with no owner is not a disposition.',
     ),
   rippleSites: z
-    .array(repoRelativePathContract)
+    .array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'QuestBlightLedgerEntryRippleSites'>())
     .default([])
     .describe(
       'For `fixed`: every other place the same value renders or the same logic runs, that was checked for the identical defect. A fix without a ripple list is half a fix. Repo-relative so the persisted ledger stays portable across machines.',

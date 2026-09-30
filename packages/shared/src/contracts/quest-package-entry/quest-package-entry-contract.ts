@@ -20,14 +20,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { packageTypeContract } from '../package-type/package-type-contract';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
 export const questPackageEntryContract = z.object({
   name: z.string().min(1).brand<'QuestPackageEntryName'>().describe(
     'The package directory name under the workspace root, which is how every node tag and operation item refers to it',
   ),
-  location: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestPackageEntryLocation'>().describe(
+  location: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestPackageEntryLocation'>(), relativeFilePathContract]).brand<'QuestPackageEntryLocation'>().describe(
     "The package root, either absolute or prefixed './' relative to the quest's own project root. Carried rather than derived because a 'new' package has no path to look up yet, and because a quest may run in a repo whose layout is not packages/<name>.",
   ),
   changeType: z

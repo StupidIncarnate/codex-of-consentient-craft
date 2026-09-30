@@ -21,8 +21,6 @@ import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern as IgnorePattern } from '@dungeonmaster/shared/contracts';
 import { cwd } from '#gateway/node/process';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -45,7 +43,7 @@ export const fileScannerBroker = async ({
   grep?: GrepPattern;
   context?: ContextLines;
   strict?: StrictGrep;
-  ignorePatterns?: readonly IgnorePattern[];
+  ignorePatterns?: readonly string[];
   // The resolved project root to scan from. Every MCP call site resolves this explicitly via
   // callerRepoRootResolveBroker and always passes it — the `cwd()` default below
   // exists only for standalone/test callers, and relying on it at a real call site silently
@@ -63,7 +61,7 @@ export const fileScannerBroker = async ({
   const ignore = globIgnoreFilterTransformer({
     patterns:
       ignorePatterns ??
-      fileDiscoveryStatics.globIgnorePatterns.map((value) => globPatternContract.parse(value)),
+      fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
     glob: globSuffix,
   });
 

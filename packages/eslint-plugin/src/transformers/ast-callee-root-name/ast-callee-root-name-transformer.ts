@@ -9,7 +9,6 @@
  *
  * WHEN-TO-USE: When an ESLint rule needs to identify the base test function (describe/it/test) regardless of chaining (.each, .only, .skip)
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 

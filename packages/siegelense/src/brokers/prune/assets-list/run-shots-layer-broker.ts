@@ -14,7 +14,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
@@ -35,7 +34,7 @@ export const runShotsLayerBroker = async ({
 
   const found = await Promise.all(
     entries.map(async (entryName) => {
-      const fileName = fileNameContract.parse(entryName);
+      const fileName = entryName;
       const kind = pruneAssetClassifyTransformer({ fileName });
 
       if (kind === null) {

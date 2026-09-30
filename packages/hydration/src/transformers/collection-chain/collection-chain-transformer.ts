@@ -47,7 +47,6 @@ import type { Handle, Op } from '../../contracts/ingredient-handle/ingredient-ha
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
-import { callIndexContract } from '../../contracts/call-index/call-index-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
 import { rowRefTransformer } from '../row-ref/row-ref-transformer';
 import { opCreateTransformer } from '../op-create/op-create-transformer';
@@ -94,7 +93,7 @@ export const collectionChainTransformer = <
         lastSeenBuildSequence = currentBuildSequence;
         nextCallIndex = 0;
       }
-      const callIndex = callIndexContract.parse(nextCallIndex);
+      const callIndex = nextCallIndex;
       nextCallIndex += 1;
 
       const refs = Array.from({ length: count }, (_unused, index) =>
@@ -202,7 +201,7 @@ export const collectionChainTransformer = <
         lastSeenBuildSequence = currentBuildSequence;
         nextCallIndex = 0;
       }
-      const callIndex = callIndexContract.parse(nextCallIndex);
+      const callIndex = nextCallIndex;
       nextCallIndex += 1;
 
       const attachOp = opAttachTransformer({

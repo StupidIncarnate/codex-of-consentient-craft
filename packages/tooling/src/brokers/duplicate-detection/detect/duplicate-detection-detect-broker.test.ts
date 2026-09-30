@@ -1,6 +1,5 @@
 import { duplicateDetectionDetectBroker } from './duplicate-detection-detect-broker';
 import { duplicateDetectionDetectBrokerProxy } from './duplicate-detection-detect-broker.proxy';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 import { OccurrenceThresholdStub } from '../../../contracts/occurrence-threshold/occurrence-threshold.stub';
 
 // Helper function to create file test data
@@ -14,7 +13,7 @@ const createFile = (params: {
 describe('duplicateDetectionDetectBroker', () => {
   it('VALID: {files with duplicates meeting threshold} => returns duplicate reports', async () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
-    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const pattern = '**/*.ts';
     const file1 = createFile({
       filePath: '/file1.ts',
       sourceCode: 'const x = "error"; const y = "error";',
@@ -46,7 +45,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
   it('VALID: {files with duplicates below threshold} => returns empty array', async () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
-    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const pattern = '**/*.ts';
     const file1 = createFile({
       filePath: '/file1.ts',
       sourceCode: 'const x = "test";',
@@ -67,7 +66,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
   it('VALID: {files with multiple different duplicates} => returns all sorted by count', async () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
-    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const pattern = '**/*.ts';
     const file1 = createFile({
       filePath: '/file1.ts',
       sourceCode: 'const a = "error"; const b = "error"; const c = "warning";',
@@ -109,7 +108,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
   it('VALID: {minLength: 10} => excludes short strings', async () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
-    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const pattern = '**/*.ts';
     const file1 = createFile({
       filePath: '/file1.ts',
       sourceCode: 'const x = "short"; const y = "very-long-string";',
@@ -145,7 +144,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
   it('EMPTY: {no files found} => returns empty array', async () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
-    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const pattern = '**/*.ts';
     const files = [] as const;
     const threshold = OccurrenceThresholdStub({ value: 3 });
 
@@ -158,7 +157,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
   it('EMPTY: {files with no string literals} => returns empty array', async () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
-    const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const pattern = '**/*.ts';
     const file1 = createFile({
       filePath: '/file1.ts',
       sourceCode: 'const x = 123; const y = true;',
@@ -180,7 +179,7 @@ describe('duplicateDetectionDetectBroker', () => {
   describe('regex literal detection', () => {
     it('VALID: {regex with flags /test/g} => detects regex type', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const p1 = /test/g; const p2 = /test/g;',
@@ -212,7 +211,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {regex without flags /test/} => detects regex type', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const p1 = /test/; const p2 = /test/;',
@@ -244,7 +243,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {regex with multiple flags /test/gimsu} => detects regex type', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const p1 = /test/gimsu; const p2 = /test/gimsu;',
@@ -276,7 +275,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {mixed strings and regex} => returns both types correctly', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const s = "error"; const r = /test/g; const s2 = "error";',
@@ -318,7 +317,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {only regex literals} => returns only regex reports', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const r1 = /pattern/i; const r2 = /pattern/i;',
@@ -352,7 +351,7 @@ describe('duplicateDetectionDetectBroker', () => {
   describe('default parameters', () => {
     it('VALID: {threshold omitted} => uses default threshold of 3', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "test"; const b = "test"; const c = "test";',
@@ -379,7 +378,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {minLength omitted} => uses default minLength of 3', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "ab"; const b = "ab"; const c = "ab"; const d = "abc";',
@@ -413,7 +412,7 @@ describe('duplicateDetectionDetectBroker', () => {
   describe('cwd parameter', () => {
     it('VALID: {cwd provided} => passes cwd to glob adapter', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const cwd = '/custom/path';
       const file1 = createFile({
         filePath: '/custom/path/file1.ts',
@@ -442,7 +441,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {cwd omitted} => uses current directory', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const x = "test"; const y = "test"; const z = "test";',
@@ -472,7 +471,7 @@ describe('duplicateDetectionDetectBroker', () => {
   describe('special characters in literals', () => {
     it('VALID: {strings with escaped quotes} => handles escaped characters', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "He said \\"hello\\""; const b = "He said \\"hello\\"";',
@@ -504,7 +503,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {strings with newlines} => handles multiline strings', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "line1\\nline2"; const b = "line1\\nline2";',
@@ -536,7 +535,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {strings with unicode} => handles unicode characters', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "Hello 👋 世界"; const b = "Hello 👋 世界";',
@@ -568,7 +567,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {strings with backslashes} => handles escape sequences', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "C:\\\\path\\\\to\\\\file"; const b = "C:\\\\path\\\\to\\\\file";',
@@ -602,7 +601,7 @@ describe('duplicateDetectionDetectBroker', () => {
   describe('threshold boundary cases', () => {
     it('EDGE: {duplicates at exact threshold} => includes them', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "exact"; const b = "exact";',
@@ -634,7 +633,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('EDGE: {duplicates one below threshold} => excludes them', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "below";',
@@ -655,7 +654,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {threshold: 2, multiple duplicates} => returns all meeting threshold', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "twice"; const b = "twice"; const c = "once";',
@@ -698,7 +697,7 @@ describe('duplicateDetectionDetectBroker', () => {
   describe('minLength boundary cases', () => {
     it('EDGE: {strings at exact minLength} => includes them', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "abc"; const b = "abc";',
@@ -730,7 +729,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('EDGE: {strings one char below minLength} => excludes them', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "ab"; const b = "ab";',
@@ -751,7 +750,7 @@ describe('duplicateDetectionDetectBroker', () => {
 
     it('VALID: {minLength: 1} => includes single character strings', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const pattern = '**/*.ts';
       const file1 = createFile({
         filePath: '/file1.ts',
         sourceCode: 'const a = "x"; const b = "x";',

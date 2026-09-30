@@ -24,7 +24,6 @@ import { writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import type { BaseNameStub } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
@@ -35,7 +34,7 @@ import { rateLimitsBootstrapState } from '../../../src/state/rate-limits-bootstr
 import { rateLimitsState } from '../../../src/state/rate-limits/rate-limits-state';
 import { orchestrationEventsState } from '../../../src/state/orchestration-events/orchestration-events-state';
 
-type BaseName = ReturnType<typeof BaseNameStub>;
+type BaseName = string;
 type DispatchHold = ReturnType<typeof DispatchHoldStub>;
 type DispatchState = ReturnType<typeof DispatchStateStub>;
 interface PersistedDispatchState {

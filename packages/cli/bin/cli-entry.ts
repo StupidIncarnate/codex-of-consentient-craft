@@ -9,7 +9,7 @@
  * node cli-entry.js                                       // Launches HTTP server and opens browser
  */
 
-import { filePathContract, installContextContract } from '@dungeonmaster/shared/contracts';
+import { installContextContract } from '@dungeonmaster/shared/contracts';
 import { resolve } from '#gateway/node/path';
 import { argv, cwd, exit, stderr } from '#gateway/node/process';
 
@@ -32,8 +32,8 @@ const DIRNAME_TO_ROOT_DEPTH = __filename.endsWith('.ts') ? '../../..' : '../../.
 if (require.main === module) {
   const [command, ...args] = argv.slice(COMMAND_ARG_START_INDEX);
 
-  const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, DIRNAME_TO_ROOT_DEPTH));
-  const targetProjectRoot = filePathContract.parse(cwd());
+  const dungeonmasterRoot = resolve(__dirname, DIRNAME_TO_ROOT_DEPTH);
+  const targetProjectRoot = cwd();
 
   StartCli({ command, args, context: installContextContract.parse({ dungeonmasterRoot, targetProjectRoot }) }).catch(
     (error: unknown) => {

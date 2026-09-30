@@ -7,10 +7,9 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { guildNameContract } from '@dungeonmaster/shared/contracts';
 
 export const guildAddBodyContract = z.object({
-  name: guildNameContract,
+  name: z.string().min(1).max(100).brand<'GuildAddBodyName'>(),
   path: z.string().min(1).brand<'GuildAddBodyPath'>(),
 }).brand<'GuildAddBody'>();
 

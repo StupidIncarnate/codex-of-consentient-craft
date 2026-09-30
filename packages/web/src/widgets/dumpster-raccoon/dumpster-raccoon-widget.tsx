@@ -19,7 +19,6 @@ import { Box, Group, Text } from '#gateway/npm/mantine__core';
 import { useEffect, useState } from '#gateway/npm/react';
 
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
-import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 import { dumpsterFirePixelsStatics } from '../../statics/dumpster-fire-pixels/dumpster-fire-pixels-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
@@ -88,17 +87,17 @@ export const DumpsterRaccoonWidget = ({
         <Box style={{ position: 'relative', zIndex: 1, marginRight: 12 }}>
           <PixelSpriteWidget
             pixels={raccoonPixels}
-            scale={RACCOON_SCALE as PixelDimension}
-            width={raccoonWizardPixelsStatics.dimensions.width as PixelDimension}
-            height={raccoonWizardPixelsStatics.dimensions.height as PixelDimension}
+            scale={RACCOON_SCALE as number}
+            width={raccoonWizardPixelsStatics.dimensions.width as number}
+            height={raccoonWizardPixelsStatics.dimensions.height as number}
             flip={flipped}
           />
         </Box>
         <PixelSpriteWidget
           pixels={flameFrame ? fireFrameB : fireFrameA}
-          scale={FIRE_SCALE as PixelDimension}
-          width={dumpsterFirePixelsStatics.dimensions.width as PixelDimension}
-          height={dumpsterFirePixelsStatics.dimensions.height as PixelDimension}
+          scale={FIRE_SCALE as number}
+          width={dumpsterFirePixelsStatics.dimensions.width as number}
+          height={dumpsterFirePixelsStatics.dimensions.height as number}
         />
       </Group>
       {ornament ? null : (

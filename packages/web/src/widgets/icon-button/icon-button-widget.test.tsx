@@ -3,14 +3,13 @@ import { IconSend, IconTrash } from '#gateway/npm/tabler__icons-react';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
 import { IconButtonSizeStub } from '../../contracts/icon-button-size/icon-button-size.stub';
-import { TestIdStub } from '../../contracts/test-id/test-id.stub';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
 
 import { IconButtonWidget } from './icon-button-widget';
 import { IconButtonWidgetProxy } from './icon-button-widget.proxy';
 
 const LABEL = ButtonLabelStub({ value: 'Send queued comments' });
-const TEST_ID = TestIdStub({ value: 'ICON_BUTTON' });
+const TEST_ID = 'ICON_BUTTON';
 // The Ember Depths tokens this widget paints, as jsdom normalises them out of the inline style:
 // bg-raised #2a1a14, text #e0cfc0, primary #ff6b35, danger #ef4444, bg-deep #0d0907.
 const BROWN_BACKGROUND = 'rgb(42, 26, 20)';

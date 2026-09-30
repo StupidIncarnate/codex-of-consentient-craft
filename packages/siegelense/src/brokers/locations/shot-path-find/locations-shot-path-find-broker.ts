@@ -24,7 +24,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { type FileName } from '@dungeonmaster/shared/contracts';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 
 export const locationsShotPathFindBroker = ({
@@ -34,7 +33,7 @@ export const locationsShotPathFindBroker = ({
 }: {
   shotsDir: string;
   step: number;
-  name?: FileName;
+  name?: string;
 }): string => {
   const fileName =
     name ?? `${evidenceFileStatics.naming.shotPrefix}${step}${evidenceFileStatics.extensions.shot}`;

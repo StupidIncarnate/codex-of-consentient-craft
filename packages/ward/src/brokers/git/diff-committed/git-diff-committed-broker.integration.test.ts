@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
-import { GitBranchNameStub } from '../../../contracts/git-branch-name/git-branch-name.stub';
 import { wardGitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 import { gitDiffCommittedBroker } from './git-diff-committed-broker';
@@ -27,7 +26,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     await git.addWorktree({
       repoPath,
       worktreePath,
-      branchName: GitBranchNameStub({ value: 'quest/diff-scope-test' }),
+      branchName: 'quest/diff-scope-test',
     });
 
     // Advances `main` in the REPO ROOT checkout only — the worktree's branch tip does not move.
@@ -73,7 +72,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     });
     const repoPath = `${testbed.guildPath}/repo`;
     const remotePath = `${testbed.guildPath}/origin.git`;
-    const mainBranch = GitBranchNameStub({ value: 'main' });
+    const mainBranch = 'main';
 
     await git.initRepo({ repoPath });
     await git.initBareRemote({ remotePath });

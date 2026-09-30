@@ -41,7 +41,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
@@ -55,7 +55,7 @@ export const registryEntryContract = z.object({
   specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'RegistryEntrySpecHash'>(),
   pid: z.string().min(1).brand<'RegistryEntryPid'>().nullable(),
   pgids: z.array(z.number().int().positive().brand<'RegistryEntryPgids'>()).readonly(),
-  socketPath: absoluteFilePathContract.nullable(),
+  socketPath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'RegistryEntrySocketPath'>().nullable(),
   ports: portPairContract,
   state: instanceStateContract,
   reservedAtMs: z.number().int().nonnegative().brand<'RegistryEntryReservedAtMs'>(),

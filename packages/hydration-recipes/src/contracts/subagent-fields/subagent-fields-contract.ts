@@ -32,7 +32,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
@@ -48,7 +48,7 @@ const subagentFieldsShape = z.object({
   lines: z.array(z.string().min(1).brand<'SubagentFieldsShapeLines'>()),
   completed: z.boolean(),
   sessionId: sessionContract.shape.id,
-  cwd: absoluteFilePathContract,
+  cwd: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'SubagentFieldsCwd'>(),
 }).brand<'SubagentFieldsShape'>();
 
 export type SubagentFields = z.infer<typeof subagentFieldsShape>;

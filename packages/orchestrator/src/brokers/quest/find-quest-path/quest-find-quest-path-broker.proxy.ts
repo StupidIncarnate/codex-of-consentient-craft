@@ -3,8 +3,7 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import { join } from '#gateway/node/path';
 
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -50,7 +49,7 @@ const setupProbeEntries = ({
   layerProxy,
 }: {
   guilds: {
-    dirName: FileName;
+    dirName: string;
     questsDirPath: string;
     probe?: {
       questFolderPath: string;
@@ -59,7 +58,7 @@ const setupProbeEntries = ({
       contents?: string;
     };
     questFolders: {
-      folderName: FileName;
+      folderName: string;
       questFilePath: string;
       questFolderPath: string;
       contents: string;
@@ -110,10 +109,10 @@ const setupScanEntries = ({
   layerProxy,
 }: {
   guilds: {
-    dirName: FileName;
+    dirName: string;
     questsDirPath: string;
     questFolders: {
-      folderName: FileName;
+      folderName: string;
       questFilePath: string;
       questFolderPath: string;
       contents: string;
@@ -169,7 +168,7 @@ export const questFindQuestPathBrokerProxy = (): {
     guildsDir: string;
     stageProbe?: boolean;
     guilds: {
-      dirName: FileName;
+      dirName: string;
       questsDirPath: string;
       probe?: {
         questFolderPath: string;
@@ -178,7 +177,7 @@ export const questFindQuestPathBrokerProxy = (): {
         contents?: string;
       };
       questFolders: {
-        folderName: FileName;
+        folderName: string;
         questFilePath: string;
         questFolderPath: string;
         contents: string;
@@ -197,7 +196,7 @@ export const questFindQuestPathBrokerProxy = (): {
     guildsDir: string;
     stageProbe?: boolean;
     guilds: {
-      dirName: FileName;
+      dirName: string;
       questsDirPath: string;
       probe?: {
         questFolderPath: string;
@@ -206,7 +205,7 @@ export const questFindQuestPathBrokerProxy = (): {
         contents?: string;
       };
       questFolders: {
-        folderName: FileName;
+        folderName: string;
         questFilePath: string;
         questFolderPath: string;
         contents: string;
@@ -217,7 +216,7 @@ export const questFindQuestPathBrokerProxy = (): {
     homeDir: string;
     homePath: string;
     guildsDir: string;
-    guildDirName: FileName;
+    guildDirName: string;
     questsDirPath: string;
   }) => void;
   // Caller-level scenarios: address by questId alone, and let the REAL broker (probe → scan →
@@ -280,7 +279,7 @@ export const questFindQuestPathBrokerProxy = (): {
     guilds,
   }: {
     guildsDir: string;
-    guilds: readonly { dirName: FileName }[];
+    guilds: readonly { dirName: string }[];
   }): void => {
     readdirProxy.returns({
       path: guildsDir,
@@ -313,7 +312,7 @@ export const questFindQuestPathBrokerProxy = (): {
       guildsDir: string;
       stageProbe?: boolean;
       guilds: {
-        dirName: FileName;
+        dirName: string;
         questsDirPath: string;
         probe?: {
           questFolderPath: string;
@@ -322,7 +321,7 @@ export const questFindQuestPathBrokerProxy = (): {
           contents?: string;
         };
         questFolders: {
-          folderName: FileName;
+          folderName: string;
           questFilePath: string;
           questFolderPath: string;
           contents: string;
@@ -384,7 +383,7 @@ export const questFindQuestPathBrokerProxy = (): {
       guildsDir: string;
       stageProbe?: boolean;
       guilds: {
-        dirName: FileName;
+        dirName: string;
         questsDirPath: string;
         probe?: {
           questFolderPath: string;
@@ -393,7 +392,7 @@ export const questFindQuestPathBrokerProxy = (): {
           contents?: string;
         };
         questFolders: {
-          folderName: FileName;
+          folderName: string;
           questFilePath: string;
           questFolderPath: string;
           contents: string;
@@ -420,7 +419,7 @@ export const questFindQuestPathBrokerProxy = (): {
       homeDir: string;
       homePath: string;
       guildsDir: string;
-      guildDirName: FileName;
+      guildDirName: string;
       questsDirPath: string;
     }): void => {
       runRealBroker();
@@ -469,7 +468,7 @@ export const questFindQuestPathBrokerProxy = (): {
       const questFilePath = `${String(questPath)}/${locationsStatics.quest.questFile}`;
       const guilds = [
         {
-          dirName: fileNameContract.parse(String(guildId)),
+          dirName: String(guildId),
           questsDirPath: `${guildsDir}/${String(guildId)}/quests`,
           probe: {
             questFolderPath: String(questPath),

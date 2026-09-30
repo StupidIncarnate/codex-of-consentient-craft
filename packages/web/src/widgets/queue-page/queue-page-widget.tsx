@@ -16,7 +16,6 @@
 
 import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 
-import { totalCountContract } from '@dungeonmaster/shared/contracts';
 
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -122,7 +121,7 @@ export const QueuePageWidget = (): React.JSX.Element => {
               key={entry.questId}
               entry={entry}
               index={index}
-              total={totalCountContract.parse(total)}
+              total={total}
               isActive={index === 0}
             />
           ))}

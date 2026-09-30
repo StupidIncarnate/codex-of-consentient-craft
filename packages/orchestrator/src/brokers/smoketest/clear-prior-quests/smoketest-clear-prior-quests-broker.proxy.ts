@@ -1,7 +1,7 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { FileName, GuildConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -30,7 +30,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   }) => void;
   setupQuestsPath: (params: { homeDir: string; homePath: string; questsPath: string }) => void;
   setupQuestDirectoryListing: (params: { files: readonly never[] }) => void;
-  setupQuestFolderListing: (params: { files: readonly FileName[] }) => void;
+  setupQuestFolderListing: (params: { files: readonly string[] }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
   getRmCallArgs: () => readonly unknown[][];
   setupSucceeds: (params: { questSource: QuestSource }) => void;
@@ -111,7 +111,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       list.setupQuestDirectories({ files: [] });
     },
 
-    setupQuestFolderListing: ({ files }: { files: readonly FileName[] }): void => {
+    setupQuestFolderListing: ({ files }: { files: readonly string[] }): void => {
       list.setupQuestDirectories({ files: files.slice() });
     },
 

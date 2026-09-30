@@ -7,7 +7,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 export const getServerConfigOutputContract = z
   .object({
@@ -17,7 +16,7 @@ export const getServerConfigOutputContract = z
       .describe(
         'Full base URL the dungeonmaster server is listening on (e.g. http://localhost:3737)',
       ),
-    port: networkPortContract.describe('Numeric port the server is bound to'),
+    port: z.number().int().min(1).max(65_535).brand<'GetServerConfigOutputPort'>().describe('Numeric port the server is bound to'),
   })
   .strict().brand<'GetServerConfigOutput'>();
 

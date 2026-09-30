@@ -10,7 +10,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
 /**
@@ -18,8 +17,8 @@ import { relativeFilePathContract } from '../relative-file-path/relative-file-pa
  * Contains the target project root and dungeonmaster installation root
  */
 export const installContextContract = z.object({
-  targetProjectRoot: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'InstallContextTargetProjectRoot'>(),
-  dungeonmasterRoot: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'InstallContextDungeonmasterRoot'>(),
+  targetProjectRoot: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstallContextTargetProjectRoot'>(), relativeFilePathContract]).brand<'InstallContextTargetProjectRoot'>(),
+  dungeonmasterRoot: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstallContextDungeonmasterRoot'>(), relativeFilePathContract]).brand<'InstallContextDungeonmasterRoot'>(),
 }).brand<'InstallContext'>();
 
 export type InstallContext = z.infer<typeof installContextContract>;

@@ -1,4 +1,3 @@
-import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { imageMeasureBroker } from './image-measure-broker';
 import { imageMeasureBrokerProxy } from './image-measure-broker.proxy';
 
@@ -6,7 +5,7 @@ describe('imageMeasureBroker', () => {
   describe('successful decode', () => {
     it('VALID: {bitmap: 6000x4000} => returns { widthPx: 6000, heightPx: 4000 }', async () => {
       const proxy = imageMeasureBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await imageMeasureBroker({ dataUrl });
@@ -16,7 +15,7 @@ describe('imageMeasureBroker', () => {
 
     it('VALID: {bitmap: 2000x2000} => returns a square size unchanged', async () => {
       const proxy = imageMeasureBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 2000, heightPx: 2000 });
 
       const result = await imageMeasureBroker({ dataUrl });
@@ -46,7 +45,7 @@ describe('imageMeasureBroker', () => {
   describe('decode failure', () => {
     it('ERROR: {decode rejects} => propagates the rejection', async () => {
       const proxy = imageMeasureBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodeFails({ dataUrl, error: new Error('EncodingError: truncated image') });
 
       await expect(imageMeasureBroker({ dataUrl })).rejects.toThrow(/EncodingError/u);
@@ -56,7 +55,7 @@ describe('imageMeasureBroker', () => {
   describe('bitmap lifecycle', () => {
     it('EDGE: {successful decode} => closes the bitmap after reading its dimensions', async () => {
       const proxy = imageMeasureBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       await imageMeasureBroker({ dataUrl });

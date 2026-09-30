@@ -14,10 +14,7 @@ import {
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
-import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { ExecutionStepStatusStub } from '../../contracts/execution-step-status/execution-step-status.stub';
-import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import type { ExecutionRowLayerWidgetProps } from './execution-row-layer-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
@@ -26,7 +23,7 @@ import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy
 type Props = ExecutionRowLayerWidgetProps;
 
 const defaultProps = (): Props => ({
-  order: RowOrderStub({ value: 1 }),
+  order: 1,
   name: 'Build auth flow',
   role: 'codeweaver',
   status: 'pending',
@@ -330,7 +327,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            dependsOn={[DependencyLabelStub({ value: 'step-1' })]}
+            dependsOn={['step-1']}
           />
         ),
       });
@@ -348,7 +345,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="queued"
-            dependsOn={[DependencyLabelStub({ value: 'step-1' })]}
+            dependsOn={['step-1']}
           />
         ),
       });
@@ -378,7 +375,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="in_progress"
-            files={[DisplayFilePathStub({ value: 'src/auth.ts' })]}
+            files={['src/auth.ts']}
           />
         ),
       });
@@ -693,8 +690,8 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="in_progress"
             files={[
-              DisplayFilePathStub({ value: 'src/auth.ts' }),
-              DisplayFilePathStub({ value: 'src/users.ts' }),
+              'src/auth.ts',
+              'src/users.ts',
             ]}
           />
         ),

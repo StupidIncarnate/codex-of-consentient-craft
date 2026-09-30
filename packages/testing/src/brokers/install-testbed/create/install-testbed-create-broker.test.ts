@@ -2,9 +2,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { installTestbedCreateBroker } from './install-testbed-create-broker';
 import { installTestbedCreateBrokerProxy } from './install-testbed-create-broker.proxy';
-import { BaseNameStub } from '../../../contracts/base-name/base-name.stub';
-import { FileContentStub } from '../../../contracts/file-content/file-content.stub';
-import { RelativePathStub } from '../../../contracts/relative-path/relative-path.stub';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { Buffer } from '#gateway/node/buffer';
 
@@ -14,7 +11,7 @@ describe('installTestbedCreateBroker', () => {
       const proxy = installTestbedCreateBrokerProxy();
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
-      const baseName = BaseNameStub({ value: 'test-install' });
+      const baseName = 'test-install';
 
       const testbed = installTestbedCreateBroker({ baseName });
 
@@ -52,7 +49,7 @@ describe('installTestbedCreateBroker', () => {
       const customBaseDir = '/tmp/custom-base-test';
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'custom-base' }),
+        baseName: 'custom-base',
         baseDir: customBaseDir,
       });
 
@@ -72,7 +69,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupPathExists({ path: '/tmp/test-existing-74657374' });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-existing' }),
+        baseName: 'test-existing',
       });
 
       expect(proxy.getEnsuredDirCalls({ path: testbed.guildPath })).toStrictEqual([]);
@@ -86,7 +83,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-write' }),
+        baseName: 'test-write',
       });
 
       expect(testbed).toStrictEqual({
@@ -110,12 +107,12 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-write' }),
+        baseName: 'test-write',
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'deep/dir/file.txt' }),
-        content: FileContentStub({ value: 'hello' }),
+        relativePath: 'deep/dir/file.txt',
+        content: 'hello',
       });
 
       expect({
@@ -132,13 +129,13 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-write' }),
+        baseName: 'test-write',
       });
       proxy.setupPathExists({ path: '/tmp/test-write-74657374/deep/dir' });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'deep/dir/file.txt' }),
-        content: FileContentStub({ value: 'hello' }),
+        relativePath: 'deep/dir/file.txt',
+        content: 'hello',
       });
 
       expect({
@@ -152,11 +149,11 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-read' }),
+        baseName: 'test-read',
       });
       proxy.setupFileContents({ path: '/tmp/test-read-74657374/notes.txt', contents: 'on disk' });
 
-      const result = testbed.readFile({ relativePath: RelativePathStub({ value: 'notes.txt' }) });
+      const result = testbed.readFile({ relativePath: 'notes.txt' });
 
       expect(result).toBe('on disk');
     });
@@ -166,10 +163,10 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-read' }),
+        baseName: 'test-read',
       });
 
-      const result = testbed.readFile({ relativePath: RelativePathStub({ value: 'notes.txt' }) });
+      const result = testbed.readFile({ relativePath: 'notes.txt' });
 
       expect(result).toBe(null);
     });
@@ -181,7 +178,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-link' }),
+        baseName: 'test-link',
       });
       proxy.setupSymlinkSucceeds({
         target: '/tmp/target-dir',
@@ -189,7 +186,7 @@ describe('installTestbedCreateBroker', () => {
       });
 
       testbed.createSymlink({
-        relativePath: RelativePathStub({ value: 'nested/.legacy-link' }),
+        relativePath: 'nested/.legacy-link',
         targetPath: '/tmp/target-dir',
       });
 
@@ -212,7 +209,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-clean' }),
+        baseName: 'test-clean',
       });
       proxy.setupPathExists({ path: testbed.guildPath });
       proxy.setupRemoveSucceeds({ path: testbed.guildPath });
@@ -229,7 +226,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-clean' }),
+        baseName: 'test-clean',
       });
 
       testbed.cleanup();
@@ -245,11 +242,11 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-listdir' }),
+        baseName: 'test-listdir',
       });
 
       const result = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'no-such-dir' }),
+        relativePath: 'no-such-dir',
       });
 
       expect(result).toBe(null);
@@ -260,14 +257,14 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-listdir' }),
+        baseName: 'test-listdir',
       });
       proxy.setupDirEntries({
         path: '/tmp/test-listdir-74657374/src',
         names: ['b.txt', 'c.txt', 'a.txt'],
       });
 
-      const result = testbed.listDir({ relativePath: RelativePathStub({ value: 'src' }) });
+      const result = testbed.listDir({ relativePath: 'src' });
 
       expect(result).toStrictEqual(['a.txt', 'b.txt', 'c.txt']);
     });
@@ -279,7 +276,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-settings' }),
+        baseName: 'test-settings',
       });
       proxy.setupFileContents({
         path: `/tmp/test-settings-74657374/${locationsStatics.repoRoot.claude.dir}/${locationsStatics.repoRoot.claude.settings}`,
@@ -297,7 +294,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-settings' }),
+        baseName: 'test-settings',
       });
 
       const result = testbed.getClaudeSettings();
@@ -310,7 +307,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-mcp' }),
+        baseName: 'test-mcp',
       });
       proxy.setupFileContents({
         path: `/tmp/test-mcp-74657374/${locationsStatics.repoRoot.mcpJson}`,
@@ -328,7 +325,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-mcp' }),
+        baseName: 'test-mcp',
       });
 
       const result = testbed.getMcpConfig();
@@ -342,7 +339,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-config' }),
+        baseName: 'test-config',
       });
 
       const result = testbed.getDungeonmasterConfig();
@@ -356,7 +353,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
 
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-eslint' }),
+        baseName: 'test-eslint',
       });
 
       const result = testbed.getEslintConfig();
@@ -372,7 +369,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       proxy.setupCommandSucceeds({ command: 'dungeonmaster', stdout: 'initialised' });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-init' }),
+        baseName: 'test-init',
       });
 
       expect(testbed.runInitCommand()).toStrictEqual({
@@ -393,7 +390,7 @@ describe('installTestbedCreateBroker', () => {
         stderr: 'boom',
       });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-init' }),
+        baseName: 'test-init',
       });
 
       expect(testbed.runInitCommand()).toStrictEqual({
@@ -409,7 +406,7 @@ describe('installTestbedCreateBroker', () => {
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
       proxy.setupCommandNotFound({ command: 'dungeonmaster', code: 'ENOENT' });
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'test-init' }),
+        baseName: 'test-init',
       });
 
       expect(testbed.runInitCommand()).toStrictEqual({

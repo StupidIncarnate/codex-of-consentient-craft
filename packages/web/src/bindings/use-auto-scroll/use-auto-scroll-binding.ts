@@ -9,13 +9,11 @@
 import { useCallback, useEffect, useRef } from '#gateway/npm/react';
 
 import { ResizeObserver } from '#gateway/browser/ResizeObserver';
-import type { ScrollPositionPx } from '../../contracts/scroll-position-px/scroll-position-px-contract';
-import { scrollThresholdPxContract } from '../../contracts/scroll-threshold-px/scroll-threshold-px-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { disclosureAnchorState } from '../../state/disclosure-anchor/disclosure-anchor-state';
 import { computeScrollCaptureTransformer } from '../../transformers/compute-scroll-capture/compute-scroll-capture-transformer';
 
-const threshold = scrollThresholdPxContract.parse(raccoonAnimationConfigStatics.scrollThresholdPx);
+const threshold = raccoonAnimationConfigStatics.scrollThresholdPx;
 
 export const useAutoScrollBinding = (): {
   scrollContainerProps: {
@@ -27,7 +25,7 @@ export const useAutoScrollBinding = (): {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const isUserCapturingScroll = useRef(false);
-  const lastScrollTopRef = useRef(0 as ScrollPositionPx);
+  const lastScrollTopRef = useRef(0 as number);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -59,15 +57,15 @@ export const useAutoScrollBinding = (): {
   const onScroll = useCallback((event: React.UIEvent<HTMLDivElement>): void => {
     const target = event.currentTarget;
     const { isCapturing } = computeScrollCaptureTransformer({
-      currentTop: target.scrollTop as ScrollPositionPx,
+      currentTop: target.scrollTop as number,
       lastTop: lastScrollTopRef.current,
-      scrollHeight: target.scrollHeight as ScrollPositionPx,
-      clientHeight: target.clientHeight as ScrollPositionPx,
+      scrollHeight: target.scrollHeight as number,
+      clientHeight: target.clientHeight as number,
       threshold,
       wasCapturing: isUserCapturingScroll.current,
     });
     isUserCapturingScroll.current = isCapturing;
-    lastScrollTopRef.current = target.scrollTop as ScrollPositionPx;
+    lastScrollTopRef.current = target.scrollTop as number;
   }, []);
 
   return {

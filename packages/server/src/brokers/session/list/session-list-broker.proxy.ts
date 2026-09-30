@@ -10,12 +10,11 @@ import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
-import type { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
-type GlobPattern = ReturnType<typeof GlobPatternStub>;
+type GlobPattern = string;
 type FilePath = string;
 
 export const sessionListBrokerProxy = (): {

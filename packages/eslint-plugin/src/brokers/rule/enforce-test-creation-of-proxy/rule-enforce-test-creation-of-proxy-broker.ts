@@ -18,7 +18,6 @@ import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { isHarnessImportGuard } from '../../../guards/is-harness-import/is-harness-import-guard';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
 import { astCalleeRootNameTransformer } from '../../../transformers/ast-callee-root-name/ast-callee-root-name-transformer';
 

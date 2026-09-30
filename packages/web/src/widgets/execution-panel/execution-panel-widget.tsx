@@ -17,19 +17,15 @@ import { useEffect, useMemo, useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { Quest, QuestStatus, WorkItem, ChatEntry, CompletedCount, PastedImageUpload, TotalCount, Session } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, WorkItem, ChatEntry, PastedImageUpload, Session } from '@dungeonmaster/shared/contracts';
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import { completedCountContract, totalCountContract } from '@dungeonmaster/shared/contracts';
-import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
-import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
-import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import {
   isActiveWorkItemStatusGuard,
@@ -211,9 +207,9 @@ export const ExecutionPanelWidget = ({
   });
   const { now } = useElapsedTickBinding({ enabled: hasRunningWorkItem });
 
-  const totalOperations = quest.operations.length as TotalCount;
+  const totalOperations = quest.operations.length as number;
   const completedOperations = quest.operations.filter((op) => op.status === 'complete')
-    .length as CompletedCount;
+    .length as number;
 
   // The status bar prefers the PROJECTION's own step walk (27d) — it counts every family's actual
   // and planned STEPS, not merely operations, so it advances even mid-scope. `data` stays null both
@@ -234,10 +230,8 @@ export const ExecutionPanelWidget = ({
   // 27d's own ASSERT: the ratio must never exceed 1. `questProjectionContract`'s doc says
   // completedSteps <= totalPlannedSteps "by construction", but this bar clamps anyway rather than
   // trust a producer it cannot see fail — a stale or malformed projection must never read past 100%.
-  const progressTotalCount = totalCountContract.parse(rawTotalSteps);
-  const progressCompletedCount = completedCountContract.parse(
-    Math.min(rawCompletedSteps, rawTotalSteps),
-  );
+  const progressTotalCount = rawTotalSteps;
+  const progressCompletedCount = Math.min(rawCompletedSteps, rawTotalSteps);
 
   const operationsById = new Map(quest.operations.map((op) => [op.id, op]));
 
@@ -446,16 +440,16 @@ export const ExecutionPanelWidget = ({
   // skipped here and rendered together with its first, via `emittedScopeKeys`), then every
   // still-unclaimed operation continues the same running number.
   type ExecutionRenderRow =
-    | { kind: 'header'; scopeKey: string; order: RowOrder }
+    | { kind: 'header'; scopeKey: string; order: number }
     | {
         kind: 'workItem';
         workItem: WorkItem;
-        order?: RowOrder;
+        order?: number;
         indented?: boolean;
         stepLabel?: string;
         mintedByLabel?: string;
       }
-    | { kind: 'unclaimed'; operation: (typeof quest.operations)[0]; order: RowOrder };
+    | { kind: 'unclaimed'; operation: (typeof quest.operations)[0]; order: number };
 
   const renderRows: ExecutionRenderRow[] = [];
   const emittedScopeKeys = new Set<string>();
@@ -481,13 +475,13 @@ export const ExecutionPanelWidget = ({
         renderRows.push({
           kind: 'workItem',
           workItem: soleItem,
-          order: nextRowOrder++ as RowOrder,
+          order: nextRowOrder++ as number,
           ...(soleItemMintedByLabel === undefined ? {} : { mintedByLabel: soleItemMintedByLabel }),
         });
       }
       return;
     }
-    renderRows.push({ kind: 'header', scopeKey, order: nextRowOrder++ as RowOrder });
+    renderRows.push({ kind: 'header', scopeKey, order: nextRowOrder++ as number });
     group.forEach((child) => {
       const childStepLabel = stepLabelByWorkItemId.get(child.id);
       const childMintedByLabel =
@@ -502,7 +496,7 @@ export const ExecutionPanelWidget = ({
     });
   });
   unclaimedOperations.forEach((op) => {
-    renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ as RowOrder });
+    renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ as number });
   });
 
   // The running-row auto-expand "focus" (T2-9a) hands to exactly one work item — the FIRST one, in
@@ -626,8 +620,8 @@ export const ExecutionPanelWidget = ({
                     name={info.name}
                     role={info.role as unknown as ExecutionRole}
                     status={info.status}
-                    files={[] as DisplayFilePath[]}
-                    dependsOn={[] as DependencyLabel[]}
+                    files={[] as string[]}
+                    dependsOn={[] as string[]}
                     isAdhoc={false}
                     {...(scopeWorkItems === undefined ? {} : { scopeWorkItems })}
                   />
@@ -641,8 +635,8 @@ export const ExecutionPanelWidget = ({
                     name={row.operation.text}
                     role={row.operation.role as unknown as ExecutionRole}
                     status={row.operation.status as ExecutionStepStatus}
-                    files={[] as DisplayFilePath[]}
-                    dependsOn={[] as DependencyLabel[]}
+                    files={[] as string[]}
+                    dependsOn={[] as string[]}
                     isAdhoc={false}
                   />
                 );

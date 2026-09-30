@@ -33,7 +33,6 @@ import {
 import { join } from '#gateway/node/path';
 
 import { run } from '#gateway/node/child_process';
-import { type FileName } from '@dungeonmaster/shared/contracts';
 import { deleteEnv, envSnapshot, getEnv, setEnv } from '#gateway/node/process';
 
 const ARGV_LOG_FILENAME = 'argv.log';
@@ -57,19 +56,19 @@ const GIT_COMMIT_ENV = {
 export const gitWorktreeFixtureHarness = (): {
   initRepoWithPackages: (params: {
     repoPath: string;
-    initialBranchName: FileName;
-    packageNames: readonly FileName[];
+    initialBranchName: string;
+    packageNames: readonly string[];
   }) => Promise<{ baseRef: string }>;
   createBranchAt: (params: {
     repoPath: string;
-    branchName: FileName;
+    branchName: string;
     fromRef?: string;
   }) => Promise<void>;
   // Runs `git checkout <branchName>` inside repoPath — reach for this against a WORKTREE's own
   // path to simulate branch drift (something checked the worktree out onto a different existing
   // branch between sessions), since each worktree carries an independent HEAD and can check out
   // any branch not already checked out elsewhere without disturbing the main checkout.
-  checkoutBranch: (params: { repoPath: string; branchName: FileName }) => Promise<void>;
+  checkoutBranch: (params: { repoPath: string; branchName: string }) => Promise<void>;
   commitFile: (params: {
     repoPath: string;
     relativePath: string;
@@ -103,8 +102,8 @@ export const gitWorktreeFixtureHarness = (): {
   gitWorktreeListOutput: (params: { repoPath: string }) => Promise<string>;
   writeWorkspaceNodeModulesFixture: (params: {
     repoPath: string;
-    workspacePackages: readonly FileName[];
-    hoistedDep: { packageName: FileName; depName: FileName };
+    workspacePackages: readonly string[];
+    hoistedDep: { packageName: string; depName: string };
   }) => Promise<void>;
   // Adds ONE additional @dungeonmaster scope entry whose stored target names a packages/ directory
   // that was never created, alongside whatever writeWorkspaceNodeModulesFixture already wrote for
@@ -113,7 +112,7 @@ export const gitWorktreeFixtureHarness = (): {
   // what creates the @dungeonmaster scope directory this reaches into.
   writeBrokenWorkspaceLink: (params: {
     repoPath: string;
-    packageName: FileName;
+    packageName: string;
   }) => Promise<void>;
   captureGitArgv: (params: {
     captureDir: string;
@@ -153,8 +152,8 @@ export const gitWorktreeFixtureHarness = (): {
     packageNames,
   }: {
     repoPath: string;
-    initialBranchName: FileName;
-    packageNames: readonly FileName[];
+    initialBranchName: string;
+    packageNames: readonly string[];
   }): Promise<{ baseRef: string }> => {
     ensureDirSync(repoPath);
     await runGit({ repoPath, args: ['init', '-b', initialBranchName] });
@@ -193,7 +192,7 @@ export const gitWorktreeFixtureHarness = (): {
     fromRef,
   }: {
     repoPath: string;
-    branchName: FileName;
+    branchName: string;
     fromRef?: string;
   }): Promise<void> => {
     await runGit({
@@ -248,7 +247,7 @@ export const gitWorktreeFixtureHarness = (): {
     branchName,
   }: {
     repoPath: string;
-    branchName: FileName;
+    branchName: string;
   }): Promise<void> => {
     await runGit({ repoPath, args: ['checkout', branchName] });
   };
@@ -327,8 +326,8 @@ export const gitWorktreeFixtureHarness = (): {
       hoistedDep,
     }: {
       repoPath: string;
-      workspacePackages: readonly FileName[];
-      hoistedDep: { packageName: FileName; depName: FileName };
+      workspacePackages: readonly string[];
+      hoistedDep: { packageName: string; depName: string };
     }): Promise<void> => {
       const nodeModules = join(repoPath, 'node_modules');
       await fs.promises.mkdir(nodeModules, { recursive: true });
@@ -375,7 +374,7 @@ export const gitWorktreeFixtureHarness = (): {
       packageName,
     }: {
       repoPath: string;
-      packageName: FileName;
+      packageName: string;
     }): Promise<void> => {
       const scopeDir = join(repoPath, 'node_modules', '@dungeonmaster');
       await fs.promises.symlink(

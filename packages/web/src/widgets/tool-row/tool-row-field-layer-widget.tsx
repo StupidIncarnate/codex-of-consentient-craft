@@ -13,7 +13,6 @@
 import { Box, Text } from '#gateway/npm/mantine__core';
 import { useState } from '#gateway/npm/react';
 
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { FormattedToolField } from '../../contracts/formatted-tool-field/formatted-tool-field-contract';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -21,7 +20,7 @@ import { elideMiddleTransformer } from '../../transformers/elide-middle/elide-mi
 import { ToolResultContentWidget } from '../tool-result-content/tool-result-content-widget';
 
 const DETAIL_FONT_SIZE = 10;
-const RESULT_FONT_SIZE = cssPixelsContract.parse(DETAIL_FONT_SIZE);
+const RESULT_FONT_SIZE = DETAIL_FONT_SIZE;
 
 export interface ToolRowFieldLayerWidgetProps {
   field: FormattedToolField;

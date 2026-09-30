@@ -1,6 +1,5 @@
 import { walkGatewayCrossingsLayerBroker } from './walk-gateway-crossings-layer-broker';
 import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
-import { GatewayPackageNameStub } from '../../../contracts/gateway-package-name/gateway-package-name.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 
 describe('walkGatewayCrossingsLayerBroker', () => {
@@ -16,7 +15,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         pathHistory: [entryPath],
         chainLabels: [],
         knownPackages: [],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([['@dungeonmaster/node/fs']]);
@@ -35,7 +34,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
         ],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([['@dungeonmaster/node/fs']]);
@@ -62,7 +61,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
             path: '/repo/packages/@gateway/browser',
           }),
         ],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([]);
@@ -79,7 +78,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         pathHistory: [entryPath],
         chainLabels: [],
         knownPackages: [],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([]);
@@ -103,7 +102,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         pathHistory: [entryPath],
         chainLabels: [],
         knownPackages: [],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([['./helper', '@dungeonmaster/node/fs']]);
@@ -136,7 +135,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         pathHistory: [entryPath],
         chainLabels: [],
         knownPackages: [],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([
@@ -166,7 +165,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         pathHistory: [entryPath],
         chainLabels: [],
         knownPackages: [],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([]);
@@ -198,7 +197,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
         pathHistory: [entryPath],
         chainLabels: [],
         knownPackages: [],
-        forbiddenPackageNames: [GatewayPackageNameStub()],
+        forbiddenPackageNames: ['@dungeonmaster/node'],
       });
 
       expect(result).toStrictEqual([

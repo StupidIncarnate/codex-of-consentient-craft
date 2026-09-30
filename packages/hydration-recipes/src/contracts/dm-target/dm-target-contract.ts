@@ -16,7 +16,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 /**
  * Returns `unknown`, not a `{ status, body }` shape — whatever an `api` route reads back through
@@ -41,8 +40,8 @@ const httpRequestFnContract = z.custom<HttpRequestFn>((value) => typeof value ==
 
 export const dmTargetContract = z
   .object({
-    home: absoluteFilePathContract,
-    claudeHome: absoluteFilePathContract,
+    home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'DmTargetHome'>(),
+    claudeHome: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'DmTargetClaudeHome'>(),
     baseUrl: urlContract.optional(),
     request: httpRequestFnContract.optional(),
   })

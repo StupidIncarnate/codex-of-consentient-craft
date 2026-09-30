@@ -23,7 +23,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { leftAloneContract } from '../left-alone/left-alone-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
@@ -31,7 +30,7 @@ import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contr
 export const cleanupAnswerContract = z
   .object({
     reaped: z.array(reapedInstanceContract).readonly(),
-    portsReleased: z.array(networkPortContract).readonly(),
+    portsReleased: z.array(z.number().int().min(1).max(65_535).brand<'CleanupAnswerPortsReleased'>()).readonly(),
     lockReleased: z.boolean(),
     assetsAged: z
       .object({

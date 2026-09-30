@@ -10,13 +10,12 @@ import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
 
-import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormTagListWidget } from '../form-tag-list/form-tag-list-widget';
 import { PlanSectionWidget } from '../plan-section/plan-section-widget';
 
-const DESIGN_DECISIONS_LABEL = 'DESIGN DECISIONS' as SectionLabel;
-const NODES_TAG_LABEL = 'nodes' as SectionLabel;
+const DESIGN_DECISIONS_LABEL = 'DESIGN DECISIONS' as string;
+const NODES_TAG_LABEL = 'nodes' as string;
 const HEADER_FONT_SIZE = 'xs' as const;
 
 const { colors } = emberDepthsThemeStatics;

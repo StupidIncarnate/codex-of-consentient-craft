@@ -31,7 +31,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readdirIfExists, readFile, statIfExists } from '#gateway/node/fs__promises';
@@ -163,13 +162,13 @@ export const instanceEntryLayerBroker = async ({
   const logs = [
     ...(apiLogStat === null
       ? []
-      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.apiLog))]),
+      : [join(repoLocalDir.path, locationsStatics.siegelense.apiLog)]),
     ...(webLogStat === null
       ? []
-      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.webLog))]),
+      : [join(repoLocalDir.path, locationsStatics.siegelense.webLog)]),
     ...(driverLogStat === null
       ? []
-      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.driverLog))]),
+      : [join(repoLocalDir.path, locationsStatics.siegelense.driverLog)]),
   ];
 
   if (lastRunId === null) {
@@ -215,9 +214,7 @@ export const instanceEntryLayerBroker = async ({
       orphans,
       evidence: instanceEvidenceListingContract.parse({
         dir: repoLocalDir,
-        transcript: fileNameContract.parse(
-          `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
-        ),
+        transcript: `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
         logs,
         lastShot: null,
       }),
@@ -236,9 +233,7 @@ export const instanceEntryLayerBroker = async ({
   const lastShot =
     lastReading.shot === null
       ? null
-      : fileNameContract.parse(
-          `${lastRunId}/${evidenceFileStatics.naming.shotPrefix}${lastReading.step}${evidenceFileStatics.extensions.shot}`,
-        );
+      : `${lastRunId}/${evidenceFileStatics.naming.shotPrefix}${lastReading.step}${evidenceFileStatics.extensions.shot}`;
 
   return instanceStatusContract.parse({
     id: entry.id,
@@ -253,9 +248,7 @@ export const instanceEntryLayerBroker = async ({
     orphans,
     evidence: instanceEvidenceListingContract.parse({
       dir: repoLocalDir,
-      transcript: fileNameContract.parse(
-        `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
-      ),
+      transcript: `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
       logs,
       lastShot,
     }),

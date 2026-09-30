@@ -12,7 +12,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -396,9 +395,7 @@ export const ChatMessageWidget = ({
             }}
           >
             <ToolResultContentWidget
-              content={toolResultDisplayContentContract.parse(
-                truncateContentTransformer({ content: entry.content }),
-              )}
+              content={truncateContentTransformer({ content: entry.content })}
               color={toolResultColor}
             />
           </Box>
@@ -420,7 +417,7 @@ export const ChatMessageWidget = ({
         <Box>
           <Box style={{ maxHeight: RESULT_EXPANDED_MAX_HEIGHT, overflowY: 'auto' }}>
             <ToolResultContentWidget
-              content={toolResultDisplayContentContract.parse(entry.content)}
+              content={entry.content}
               color={toolResultColor}
             />
           </Box>
@@ -439,7 +436,7 @@ export const ChatMessageWidget = ({
         </Box>
       ) : (
         <ToolResultContentWidget
-          content={toolResultDisplayContentContract.parse(entry.content)}
+          content={entry.content}
           color={toolResultColor}
         />
       )}

@@ -1,11 +1,10 @@
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { mcpServerStatics } from '../../../statics/mcp-server/mcp-server-statics';
 import { agentsPluginCreateBrokerProxy } from './agents-plugin-create-broker.proxy';
 
 describe('agentsPluginCreateBroker', () => {
   it('VALID: {targetProjectRoot} => creates plugin.json and mcp_config.json under .agents/plugins/dungeonmaster', async () => {
     const proxy = agentsPluginCreateBrokerProxy();
-    const targetProjectRoot = FilePathStub({ value: '/project' });
+    const targetProjectRoot = '/project';
 
     proxy.setupSuccess({ targetProjectRoot });
 

@@ -1,6 +1,5 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { typeAliasResolveLayerTransformer } from './type-alias-resolve-layer-transformer';
 
 const resolveFrom = ({
@@ -22,7 +21,7 @@ const resolveFrom = ({
       const found = typeAliasResolveLayerTransformer({
         typeNode: declaration.type,
         typeAliases,
-        visitedNames: visited.map((value) => IdentifierStub({ value })),
+        visitedNames: visited.map((value) => value),
       });
       return found === undefined ? [] : [{ name: String(found.name), kind: found.node.kind }];
     });

@@ -19,12 +19,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionRecordContract = z.object({
   sessionId: sessionContract.shape.id,
-  cwd: absoluteFilePathContract,
-  filePath: absoluteFilePathContract,
+  cwd: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'SessionRecordCwd'>(),
+  filePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'SessionRecordFilePath'>(),
   lineCount: z.number().int().positive().brand<'SessionRecordLineCount'>(),
 }).brand<'SessionRecord'>();
 

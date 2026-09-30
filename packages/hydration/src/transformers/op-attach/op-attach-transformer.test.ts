@@ -1,12 +1,11 @@
 import { opAttachTransformer } from './op-attach-transformer';
-import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
 
 describe('opAttachTransformer', () => {
   it('VALID: {ingredient: quest, callIndex: 0, ancestors: []} => returns the whole attach op, deriving a top-level ref at index 0', () => {
     const result = opAttachTransformer({
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       ancestors: [],
       where: FieldValuesStub({ id: 'q1' }),
     });
@@ -23,7 +22,7 @@ describe('opAttachTransformer', () => {
   it('VALID: {ancestors: [guild[0:0]]} => derives a ref nested under its immediate host', () => {
     const result = opAttachTransformer({
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       ancestors: ['guild[0:0]'],
       where: FieldValuesStub({ id: 'q1' }),
     });
@@ -40,7 +39,7 @@ describe('opAttachTransformer', () => {
   it('VALID: {callIndex: 1} => a second attach call on the same collection derives a distinct ref, always at row index 0', () => {
     const result = opAttachTransformer({
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 1 }),
+      callIndex: 1,
       ancestors: [],
       where: FieldValuesStub({ id: 'q2' }),
     });

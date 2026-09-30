@@ -21,8 +21,7 @@
 import { Box, Text } from '#gateway/npm/mantine__core';
 import { useState } from '#gateway/npm/react';
 
-import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
@@ -48,7 +47,7 @@ export interface SubagentChainWidgetProps {
   // Where this chain's header pins once it is open — the combined height of every expandable header
   // it is nested inside. Chains rendered straight into a scroll panel take the default and pin flush
   // to its top.
-  stickyTop?: CssPixels;
+  stickyTop?: number;
   // Which way the tail window starts, until the reader touches the toggle. The toggle renders either
   // way, so a chain opened whole can still be folded back down by hand.
   defaultShowAllEarlier?: boolean;
@@ -58,7 +57,7 @@ export interface SubagentChainWidgetProps {
   now?: string;
 }
 
-const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
+const STICKY_TOP_ROOT = 0;
 const DURATION_FONT_SIZE = 9;
 
 export const SubagentChainWidget = ({
@@ -91,9 +90,7 @@ export const SubagentChainWidget = ({
   // Everything inside this chain pins below this chain's own header. Passing the running total down
   // rather than a depth count is what lets a level stack correctly without knowing what it is nested
   // in — a tool row adds nothing of its own, a nested chain adds another header's worth.
-  const innerStickyTop = cssPixelsContract.parse(
-    Number(stickyTop) + stickyHeaderStatics.heights.subagentChain,
-  );
+  const innerStickyTop = Number(stickyTop) + stickyHeaderStatics.heights.subagentChain;
 
   const formattedTokens =
     group.contextTokens === null

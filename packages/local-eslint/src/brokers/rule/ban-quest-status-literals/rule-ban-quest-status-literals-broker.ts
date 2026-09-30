@@ -8,7 +8,6 @@
  * WHEN-TO-USE: Registered in @dungeonmaster-local/local-eslint (this repo only, never shipped) to prevent hardcoded
  * quest/work-item status-literal comparisons; callers use the shared status guards instead.
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isStatusComparisonAllowlistedGuard } from '../../../guards/is-status-comparison-allowlisted/is-status-comparison-allowlisted-guard';

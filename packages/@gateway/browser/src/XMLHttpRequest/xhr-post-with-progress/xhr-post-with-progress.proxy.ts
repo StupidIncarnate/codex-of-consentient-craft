@@ -1,5 +1,4 @@
 import { StartEndpointMock } from '@dungeonmaster/testing';
-import type { RequestCount } from '@dungeonmaster/testing';
 
 // Stages through MSW's XHR interceptor, the same mechanism the fetch proxies use for `fetch`, so a
 // file mixing both stays on one staging path. MSW itself emits the upload `progress` event, with
@@ -11,7 +10,7 @@ export const xhrPostWithProgressProxy = (): {
   setupResponse: (params: { url: string; status: number; bodyText: string }) => void;
   setupRefused: (params: { url: string }) => void;
   getRequestBodies: (params: { url: string }) => Promise<unknown[]>;
-  getRequestCount: (params: { url: string }) => RequestCount;
+  getRequestCount: (params: { url: string }) => number;
 } => {
   const endpoints = new Map<string, Endpoint>();
 
@@ -42,7 +41,7 @@ export const xhrPostWithProgressProxy = (): {
     },
     getRequestBodies: async ({ url }: { url: string }): Promise<unknown[]> =>
       endpointFor({ url }).getRequestBodies(),
-    getRequestCount: ({ url }: { url: string }): RequestCount =>
+    getRequestCount: ({ url }: { url: string }): number =>
       endpointFor({ url }).getRequestCount(),
   };
 };

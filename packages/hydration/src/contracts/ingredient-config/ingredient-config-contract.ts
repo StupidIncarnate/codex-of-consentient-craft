@@ -23,7 +23,6 @@
  * // Returns IngredientConfigData
  */
 import { z } from '#gateway/npm/zod';
-import { copiesTargetContract } from '../copies-target/copies-target-contract';
 import { linkSpecContract } from '../link-spec/link-spec-contract';
 import type { LinkSpecFor } from '../link-spec/link-spec-contract';
 import { transitionSpecContract } from '../transition-spec/transition-spec-contract';
@@ -79,7 +78,7 @@ export const ingredientConfigContract = z
     links: z.array(linkSpecContract).optional(),
     transitions: transitionSpecContract.optional(),
     defaults: ingredientDefaultsFnContract.optional(),
-    copies: copiesTargetContract.optional(),
+    copies: z.string().min(1).superRefine((value, ctx) => { if (value.includes('/')) { ctx.addIssue({ code: 'custom', message: "copies: may not contain '/'. Use a bare identifier naming in-repo production code " + "(e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo " + "(e.g. 'external:claude-cli').", }); return; } if (value.startsWith('external:') && value.slice('external:'.length).length === 0) { ctx.addIssue({ code: 'custom', message: "copies: 'external:' must name a producer after the prefix. Use a bare identifier " + "naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a " + "producer outside the repo (e.g. 'external:claude-cli').", }); } }).brand<'IngredientConfigDataCopies'>().optional(),
     extras: z.record(extraVerbNameContract, extraContract).optional(),
   })
   .superRefine((config, ctx) => {

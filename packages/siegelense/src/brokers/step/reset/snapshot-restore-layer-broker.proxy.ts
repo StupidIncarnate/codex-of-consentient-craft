@@ -1,7 +1,6 @@
 import type { DirEntrySync, FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
@@ -25,17 +24,17 @@ export const snapshotRestoreLayerBrokerProxy = (): {
     contents: readonly { filePath: string; content: string }[];
   }) => void;
   setupRmSucceeds: (params: { filePaths: readonly string[] }) => void;
-  setupCpSucceeds: (params: { sourcePath: string; entries: readonly FileName[] }) => void;
+  setupCpSucceeds: (params: { sourcePath: string; entries: readonly string[] }) => void;
   // The copy is entry by entry, so the failure is staged on the SECOND entry: the first lands, then
   // the gateway removes it from the destination before rethrowing.
   setupCpThrows: (params: {
     sourcePath: string;
     destinationPath: string;
-    entries: readonly [FileName, FileName];
+    entries: readonly [string, string];
     error: FsError;
   }) => void;
   getRemovedPaths: () => unknown[];
-  getCopiedFor: (params: { sourcePath: string; entry: FileName }) => unknown;
+  getCopiedFor: (params: { sourcePath: string; entry: string }) => unknown;
   getRolledBackFor: (params: { path: string }) => unknown;
 } => {
   const readdirProxy = readdirEntriesSyncProxy();

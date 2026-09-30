@@ -17,14 +17,14 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
 export const subagentRecordContract = z.object({
   agentId: agentContract.shape.id,
   toolUseId: toolUseIdContract,
-  filePath: absoluteFilePathContract,
+  filePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'SubagentRecordFilePath'>(),
   lineCount: z.number().int().positive().brand<'SubagentRecordLineCount'>(),
 }).brand<'SubagentRecord'>();
 

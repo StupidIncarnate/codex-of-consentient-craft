@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { TailStartIndexStub } from '../../contracts/tail-start-index/tail-start-index.stub';
 import { ToggleTestIdStub } from '../../contracts/toggle-test-id/toggle-test-id.stub';
 import { ShowEarlierToggleWidget } from './show-earlier-toggle-widget';
 import { ShowEarlierToggleWidgetProxy } from './show-earlier-toggle-widget.proxy';
@@ -15,7 +14,7 @@ describe('ShowEarlierToggleWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ShowEarlierToggleWidget
-            hiddenCount={TailStartIndexStub({ value: 1 })}
+            hiddenCount={1}
             expanded={false}
             onToggle={(): void => undefined}
             testId={ToggleTestIdStub()}
@@ -34,7 +33,7 @@ describe('ShowEarlierToggleWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ShowEarlierToggleWidget
-            hiddenCount={TailStartIndexStub({ value: 5 })}
+            hiddenCount={5}
             expanded={false}
             onToggle={(): void => undefined}
             testId="CHAT_LIST_SHOW_EARLIER_TOGGLE"
@@ -53,7 +52,7 @@ describe('ShowEarlierToggleWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ShowEarlierToggleWidget
-            hiddenCount={TailStartIndexStub({ value: 5 })}
+            hiddenCount={5}
             expanded={true}
             onToggle={(): void => undefined}
             testId={ToggleTestIdStub()}
@@ -72,7 +71,7 @@ describe('ShowEarlierToggleWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ShowEarlierToggleWidget
-            hiddenCount={TailStartIndexStub({ value: 1 })}
+            hiddenCount={1}
             expanded={true}
             onToggle={(): void => undefined}
             testId={ToggleTestIdStub()}
@@ -94,7 +93,7 @@ describe('ShowEarlierToggleWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ShowEarlierToggleWidget
-            hiddenCount={TailStartIndexStub({ value: 3 })}
+            hiddenCount={3}
             expanded={false}
             onToggle={onToggle}
             testId={ToggleTestIdStub()}
@@ -119,7 +118,7 @@ describe('ShowEarlierToggleWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ShowEarlierToggleWidget
-            hiddenCount={TailStartIndexStub({ value: 3 })}
+            hiddenCount={3}
             expanded={false}
             onToggle={(): void => undefined}
             testId={ToggleTestIdStub()}

@@ -33,8 +33,7 @@ import { questFindQuestPathResultContract } from '../../../contracts/quest-find-
 import type { QuestFindQuestPathResult } from '../../../contracts/quest-find-quest-path-result/quest-find-quest-path-result-contract';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { FileName, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
@@ -91,7 +90,7 @@ export const questFindQuestPathBroker = async ({
       ? null
       : await matchCandidatesLayerBroker({
           candidates: [
-            { ...probeHit, guildDirName: fileNameContract.parse(probeHit.guildDirName) },
+            { ...probeHit, guildDirName: probeHit.guildDirName },
           ],
           questId,
         });
@@ -103,7 +102,7 @@ export const questFindQuestPathBroker = async ({
   const candidates: {
     questFilePath: string;
     questFolderPath: string;
-    guildDirName: FileName;
+    guildDirName: string;
   }[] = [];
 
   for (const guildDir of guildDirs) {
@@ -118,7 +117,7 @@ export const questFindQuestPathBroker = async ({
         candidates.push({
           questFilePath: join(questsDirPath, questFolder.name, locationsStatics.quest.questFile),
           questFolderPath: join(questsDirPath, questFolder.name),
-          guildDirName: fileNameContract.parse(guildDir.name),
+          guildDirName: guildDir.name,
         });
       }
     } catch {

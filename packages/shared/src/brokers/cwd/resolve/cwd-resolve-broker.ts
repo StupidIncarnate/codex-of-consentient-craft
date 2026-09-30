@@ -14,7 +14,6 @@ import { projectRootFindBroker } from '../../project-root/find/project-root-find
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
 import { guildPathWalkUpLayerBroker } from './guild-path-walk-up-layer-broker';
 import { dungeonmasterHomeCwdContract } from '../../../contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd-contract';
-import type { DungeonmasterHomeCwd } from '../../../contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd-contract';
 
 export type CwdKind = 'repo-root' | 'project-root' | 'guild-path' | 'dungeonmaster-home';
 
@@ -25,7 +24,7 @@ export type ResolvedCwdFor<K extends CwdKind> = K extends 'repo-root'
     : K extends 'guild-path'
       ? string
       : K extends 'dungeonmaster-home'
-        ? DungeonmasterHomeCwd
+        ? string
         : never;
 
 export const cwdResolveBroker = async <K extends CwdKind>({

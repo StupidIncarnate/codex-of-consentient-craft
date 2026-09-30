@@ -1,12 +1,11 @@
 import { rowRefTransformer } from './row-ref-transformer';
-import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
 
 describe('rowRefTransformer', () => {
   it('VALID: {ancestors: [], ingredient: guild, callIndex: 0, index: 0} => returns "guild[0:0]"', () => {
     const result = rowRefTransformer({
       ancestors: [],
       ingredient: 'guild',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 0,
     });
 
@@ -17,7 +16,7 @@ describe('rowRefTransformer', () => {
     const result = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 2,
     });
 
@@ -28,13 +27,13 @@ describe('rowRefTransformer', () => {
     const first = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 2,
     });
     const second = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 2,
     });
 
@@ -48,7 +47,7 @@ describe('rowRefTransformer', () => {
         'guild[0:0]/quest[0:0]',
       ],
       ingredient: 'operation',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 0,
     });
 
@@ -59,13 +58,13 @@ describe('rowRefTransformer', () => {
     const fromFirstCall = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 0,
     });
     const fromSecondCall = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 1 }),
+      callIndex: 1,
       index: 0,
     });
 

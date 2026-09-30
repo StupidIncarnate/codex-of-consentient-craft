@@ -17,7 +17,6 @@ import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/trans
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
-import type { SessionSummary } from '../../../contracts/session-summary/session-summary-contract';
 
 export const sessionListBroker = async ({
   guildId,
@@ -28,11 +27,11 @@ export const sessionListBroker = async ({
   getCache: (params: {
     sessionId: Session['id'];
     mtimeMs: number;
-  }) => { hit: true; summary: SessionSummary | undefined } | { hit: false };
+  }) => { hit: true; summary: string | undefined } | { hit: false };
   setCache: (params: {
     sessionId: Session['id'];
     mtimeMs: number;
-    summary: SessionSummary | undefined;
+    summary: string | undefined;
   }) => void;
 }): Promise<unknown[]> => {
   const guild = await StartOrchestrator.getGuild({ guildId });

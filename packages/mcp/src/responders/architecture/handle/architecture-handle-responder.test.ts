@@ -1,6 +1,4 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { projectMapStatics } from '@dungeonmaster/shared/statics';
 import { ArchitectureHandleResponderProxy } from './architecture-handle-responder.proxy';
 
@@ -9,11 +7,9 @@ describe('ArchitectureHandleResponder', () => {
     it('VALID: {tool: discover, glob pattern} => returns JSON-stringified discover result', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupFileDiscovery({
-        filepath: FilePathStub({
-          value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
-        }),
+        filepath: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         contents: 'export const ArchitectureHandleResponder = () => {};',
-        pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
+        pattern: 'packages/mcp/src/responders/**',
       });
 
       const result = await proxy.callResponder({
@@ -29,11 +25,9 @@ describe('ArchitectureHandleResponder', () => {
     it('VALID: {tool: discover, verbose: true, strict: true} => accepts JSON booleans without coercion', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupFileDiscovery({
-        filepath: FilePathStub({
-          value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
-        }),
+        filepath: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         contents: 'export const ArchitectureHandleResponder = () => {};',
-        pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
+        pattern: 'packages/mcp/src/responders/**',
       });
 
       const result = await proxy.callResponder({
@@ -54,11 +48,9 @@ describe('ArchitectureHandleResponder', () => {
     it('VALID: {tool: discover, verbose: "true", strict: "true"} => coerces stringified booleans from MCP transport', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupFileDiscovery({
-        filepath: FilePathStub({
-          value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
-        }),
+        filepath: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         contents: 'export const ArchitectureHandleResponder = () => {};',
-        pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
+        pattern: 'packages/mcp/src/responders/**',
       });
 
       const result = await proxy.callResponder({

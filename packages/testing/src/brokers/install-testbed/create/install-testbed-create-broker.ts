@@ -22,7 +22,6 @@ import {
 import { dirname, join } from '#gateway/node/path';
 import { runSync } from '#gateway/node/child_process';
 import { randomBytes } from '#gateway/node/crypto';
-import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
 import { claudeSettingsContract } from '../../../contracts/claude-settings/claude-settings-contract';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
@@ -32,11 +31,8 @@ import { testbedConfigContract } from '../../../contracts/testbed-config/testbed
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { findRepoRootLayerBroker } from './find-repo-root-layer-broker';
-import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
-import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const installTestbedCreateBroker = ({
   baseName,
@@ -96,7 +92,7 @@ export const installTestbedCreateBroker = ({
       content,
     }: {
       relativePath: string;
-      content: FileContent;
+      content: string;
     }): void => {
       const fullPath = join(projectPath, relativePath);
       const dir = dirname(fullPath);
@@ -106,13 +102,13 @@ export const installTestbedCreateBroker = ({
       writeFileSync(fullPath, content);
     },
 
-    readFile: ({ relativePath }: { relativePath: string }): FileContent | null => {
+    readFile: ({ relativePath }: { relativePath: string }): string | null => {
       const fullPath = join(projectPath, relativePath);
       if (!existsSync(fullPath)) {
         return null;
       }
       const content = readFileSync(fullPath);
-      return fileContentContract.parse(content);
+      return content;
     },
 
     createSymlink: ({
@@ -130,13 +126,13 @@ export const installTestbedCreateBroker = ({
       symlinkSync({ target: targetPath, path: fullPath, type: 'dir' });
     },
 
-    listDir: ({ relativePath }: { relativePath: string }): readonly FileName[] | null => {
+    listDir: ({ relativePath }: { relativePath: string }): readonly string[] | null => {
       const fullPath = join(projectPath, relativePath);
       if (!existsSync(fullPath)) {
         return null;
       }
       return readdirSync(fullPath)
-        .map((entry) => fileNameContract.parse(entry))
+        .map((entry) => entry)
         .sort();
     },
 
@@ -171,13 +167,13 @@ export const installTestbedCreateBroker = ({
       return testbedConfigContract.parse(JSON.parse(content));
     },
 
-    getEslintConfig: (): FileContent | null => {
+    getEslintConfig: (): string | null => {
       const eslintPath = join(projectPath, locationsStatics.repoRoot.eslintConfig[1]);
       if (!existsSync(eslintPath)) {
         return null;
       }
       const content = readFileSync(eslintPath);
-      return fileContentContract.parse(content);
+      return content;
     },
 
     runInitCommand: (): ReturnType<InstallTestbed['runInitCommand']> => {

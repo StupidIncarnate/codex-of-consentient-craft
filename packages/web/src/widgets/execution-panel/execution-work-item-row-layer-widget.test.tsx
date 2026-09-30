@@ -11,7 +11,6 @@ import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer-widget';
 import { ExecutionWorkItemRowLayerWidgetProxy } from './execution-work-item-row-layer-widget.proxy';
@@ -25,7 +24,7 @@ const WARD_RESULT_ID = '9f92cf78-df88-8045-8f8b-9d869216ec50';
 const RIFTCARVER_RESULT_ID = '8db58781-279c-7bd0-a752-efcc1eab8df0';
 
 const defaultParams = ({ workItem }: { workItem: WorkItem }) => ({
-  order: RowOrderStub({ value: 1 }),
+  order: 1,
   workItem,
   questId: QuestIdStub(),
   includeSkipped: false,

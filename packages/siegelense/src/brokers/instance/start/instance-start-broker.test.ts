@@ -4,7 +4,6 @@ import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-ser
 
 import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -473,9 +472,7 @@ describe('instanceStartBroker', () => {
         // Well past instanceLifecycleStatics.reservation.staleAfterMs (300_000ms / 5m) relative to
         // EpochMsStub()'s own default value (1_700_000_000_000), which is what this proxy's
         // sticky Date.now() default answers every unstaged call with.
-        reservedAtMs: EpochMsStub({
-          value: 1 - instanceLifecycleStatics.reservation.staleAfterMs - 1,
-        }),
+        reservedAtMs: 1 - instanceLifecycleStatics.reservation.staleAfterMs - 1,
       });
       const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: 1 });
 

@@ -7,11 +7,10 @@
  */
 
 import { buildTimestampContract } from '../../contracts/build-timestamp/build-timestamp-contract';
-import type { BuildTimestamp } from '../../contracts/build-timestamp/build-timestamp-contract';
 
 declare const __BUILD_TIMESTAMP__: unknown;
 
-export const getBuildTimestampTransformer = (): BuildTimestamp => {
+export const getBuildTimestampTransformer = (): string => {
   const timestamp = typeof __BUILD_TIMESTAMP__ === 'undefined' ? 'dev' : __BUILD_TIMESTAMP__;
   return buildTimestampContract.parse(timestamp);
 };

@@ -29,9 +29,8 @@ import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.pro
 import { join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddlewareProxy } from '../workspace-package-json-read/workspace-package-json-read-middleware.proxy';
 import { workspaceRootFindMiddlewareProxy } from '../workspace-root-find/workspace-root-find-middleware.proxy';
-import { FileNameStub } from '../../contracts/file-name/file-name.stub';
 
-type FileName = ReturnType<typeof FileNameStub>;
+type FileName = string;
 
 const isPath = (candidate: unknown): boolean => typeof candidate === 'string';
 
@@ -98,7 +97,7 @@ export const workspacePackageImportResolveMiddlewareProxy = (): {
       const existingFolderNames = folderNamesByPackagesDir.get(packagesDirPath);
       const folderNames: FileName[] = [
         ...(existingFolderNames ?? []),
-        FileNameStub({ value: packageFolderName }),
+        packageFolderName,
       ];
       folderNamesByPackagesDir.set(packagesDirPath, folderNames);
       readdirProxy.returns({ path: packagesDirPath, names: folderNames });

@@ -1,5 +1,4 @@
 import { censusFileKindTransformer } from './census-file-kind-transformer';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 
 describe('censusFileKindTransformer', () => {
   it.each([
@@ -17,7 +16,7 @@ describe('censusFileKindTransformer', () => {
     ['packages/@gateway/node/index.ts', 'barrel'],
     ['packages/a/jest/setup.ts', 'other'],
   ])('VALID: {file: %s} => %s', (value, expected) => {
-    const result = censusFileKindTransformer({ file: CensusPathStub({ value }) });
+    const result = censusFileKindTransformer({ file: value });
 
     expect(result).toBe(expected);
   });

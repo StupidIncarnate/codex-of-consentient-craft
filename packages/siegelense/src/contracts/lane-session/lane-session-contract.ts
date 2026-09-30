@@ -23,18 +23,16 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../browser-session/browser-session-contract';
-import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
 
 export const laneSessionContract = z
   .object({
     specName: z.string().min(1).brand<'LaneSessionSpecName'>(),
     ports: portPairContract,
-    homePath: absoluteFilePathContract,
-    evidencePath: absoluteFilePathContract,
+    homePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'LaneSessionHomePath'>(),
+    evidencePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'LaneSessionEvidencePath'>(),
     baseUrl: z.string().brand<'LaneSessionBaseUrl'>(),
     apiBaseUrl: z.string().brand<'LaneSessionApiBaseUrl'>(),
     pgids: z.array(z.number().int().positive().brand<'LaneSessionPgids'>()).readonly(),
@@ -43,7 +41,7 @@ export const laneSessionContract = z
     browser: z.custom<BrowserSession | null>(
       (value: unknown) => value === null || typeof value === 'object',
     ),
-    logFds: z.array(fileDescriptorContract).readonly(),
+    logFds: z.array(z.number().int().nonnegative().brand<'LaneSessionLogFds'>()).readonly(),
   })
   .brand<'LaneSession'>();
 

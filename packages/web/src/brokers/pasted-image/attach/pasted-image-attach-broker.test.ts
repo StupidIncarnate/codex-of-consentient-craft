@@ -1,7 +1,6 @@
 import { pastedImageAttachBroker } from './pasted-image-attach-broker';
 import { pastedImageAttachBrokerProxy } from './pasted-image-attach-broker.proxy';
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
-import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 
 describe('pastedImageAttachBroker', () => {
   describe('successful attach', () => {
@@ -112,7 +111,7 @@ describe('pastedImageAttachBroker', () => {
 
       await expect(
         pastedImageAttachBroker({
-          dataUrl: ImageDataUrlStub(),
+          dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
           mediaType: 'image/png',
         }),
       ).rejects.toThrow(/truncated clipboard image/u);

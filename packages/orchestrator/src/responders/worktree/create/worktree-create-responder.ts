@@ -17,7 +17,6 @@
  */
 
 import { cwdResolveBroker, locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { pathExists } from '#gateway/node/fs__promises';
 import { cwd } from '#gateway/node/process';
 
@@ -32,7 +31,7 @@ export const WorktreeCreateResponder = async ({
   name: string;
 }): Promise<{ worktreePath: string }> => {
   const repoRoot = (await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' }));
-  const worktreeDirName = fileNameContract.parse(name);
+  const worktreeDirName = name;
   const worktreePath = locationsWorktreePathFindBroker({ repoRoot, worktreeDirName });
 
   // The directory is the done-check for the git step, because `git worktree add` is the one step

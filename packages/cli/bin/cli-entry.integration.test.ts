@@ -5,7 +5,6 @@
  * npm test -- cli-entry.integration.test.ts
  */
 
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliBinHarness } from '../test/harnesses/cli-bin/cli-bin.harness';
@@ -78,7 +77,7 @@ describe('dungeonmaster binary', () => {
 
   describe('process execution', () => {
     it('VALID: {non-TTY, init} => runs init command and exits successfully', () => {
-      expect(init.exitCode).toBe(ExitCodeStub({ value: 0 }));
+      expect(init.exitCode).toBe(0);
     });
 
     it('VALID: {required as a module} => exits cleanly without booting the server or opening a browser', () => {
@@ -136,7 +135,7 @@ describe('dungeonmaster siegelense subcommand seam', () => {
   it.each(BUILT_CALL_NAMES)(
     "VALID: {dungeonmaster siegelense %s --help} => exits 0 and stdout's first line is that call's summary",
     (call) => {
-      expect(helpResults[call].exitCode).toBe(ExitCodeStub({ value: 0 }));
+      expect(helpResults[call].exitCode).toBe(0);
       expect(helpResults[call].stdout.split('\n')[0]).toBe(
         siegelenseHelpStatics.calls[call].summary,
       );
@@ -144,13 +143,13 @@ describe('dungeonmaster siegelense subcommand seam', () => {
   );
 
   it('VALID: {dungeonmaster siegelense --help} => exits 0 and prints the index page', () => {
-    expect(bareHelp.exitCode).toBe(ExitCodeStub({ value: 0 }));
+    expect(bareHelp.exitCode).toBe(0);
     expect(bareHelp.stdout.split('\n')[0]).toBe(EXPECTED_INDEX_HEADLINE);
   });
 
   it('INVALID: {dungeonmaster siegelense statuss} => exits 1 and names the unknown subcommand on stderr', () => {
     expect(unknownSubcommand).toStrictEqual({
-      exitCode: ExitCodeStub({ value: 1 }),
+      exitCode: 1,
       stdout: '',
       stderr: UNKNOWN_SUBCOMMAND_STDERR,
     });
@@ -161,7 +160,7 @@ describe('dungeonmaster siegelense subcommand seam', () => {
   // subcommand no longer in the usage line, exactly like any other unrecognised name.
   it('INVALID: {dungeonmaster siegelense profile} => exits 1, refused as an unknown subcommand no longer in the usage line', () => {
     expect(profileSubcommand).toStrictEqual({
-      exitCode: ExitCodeStub({ value: 1 }),
+      exitCode: 1,
       stdout: '',
       stderr: PROFILE_UNKNOWN_SUBCOMMAND_STDERR,
     });
@@ -187,6 +186,6 @@ describe('dungeonmaster siegelense piped into a reader that closes early', () =>
   }, SPAWNS_TIMEOUT_MS);
 
   it('VALID: {dungeonmaster siegelense | head -n 0} => the CLI still exits 0, with no EPIPE stack trace on stderr', () => {
-    expect(closedReader).toStrictEqual({ cliExitCode: ExitCodeStub({ value: 0 }), cliStderr: '' });
+    expect(closedReader).toStrictEqual({ cliExitCode: 0, cliStderr: '' });
   });
 });

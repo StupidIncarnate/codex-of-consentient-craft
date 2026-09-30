@@ -12,7 +12,6 @@
  */
 import { barrelNamedReexportsLayerResultContract } from '../../../contracts/barrel-named-reexports-layer-result/barrel-named-reexports-layer-result-contract';
 import type { BarrelNamedReexportsLayerResult } from '../../../contracts/barrel-named-reexports-layer-result/barrel-named-reexports-layer-result-contract';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 

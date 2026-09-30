@@ -17,22 +17,21 @@
 import { ensureDirSync, rmSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { fileNameContract, type FileName } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
 import { pid } from '#gateway/node/process';
 
 const MARKER_PREFIX = 'directory-flow-default-path-marker-';
 
 export const homeDirectoryMarkerHarness = (): {
-  create: () => Promise<{ name: FileName; path: string }>;
+  create: () => Promise<{ name: string; path: string }>;
   cleanup: (params: { path: string }) => void;
 } => ({
   // Async only to satisfy `ban-sync-seeding-methods`, which requires every harness seeding method
   // to return a Promise — the write itself (ensureDirSync) stays synchronous, same as
   // `orchestrationEnvironmentHarness.seedHome`.
-  create: async (): Promise<{ name: FileName; path: string }> => {
+  create: async (): Promise<{ name: string; path: string }> => {
     await Promise.resolve();
-    const name = fileNameContract.parse(`${MARKER_PREFIX}${String(pid)}`);
+    const name = `${MARKER_PREFIX}${String(pid)}`;
     const markerPath = join(homedir(), name);
     ensureDirSync(markerPath);
     return { name, path: markerPath };

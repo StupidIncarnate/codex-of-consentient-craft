@@ -12,7 +12,6 @@
 
 import { stderr } from '#gateway/node/process';
 import type { SetupServer } from '#gateway/npm/msw__node';
-import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 import { networkLogEntryContract } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import { networkLogStatics } from '../../../statics/network-log/network-log-statics';
 import { mswResponseToNetworkEntryTransformer } from '../../../transformers/msw-response-to-network-entry/msw-response-to-network-entry-transformer';
@@ -44,7 +43,7 @@ export const networkRecordCaptureBroker = ({
         pendingRequests.set(parsedRequestId, pendingRequestContract.parse({
           method: networkLogEntryContract.shape.method.parse(request.method),
           url: networkLogEntryContract.shape.url.parse(request.url),
-          timestampMs: epochTimestampContract.parse(Date.now()),
+          timestampMs: Date.now(),
         }));
 
         pendingBodies.push(

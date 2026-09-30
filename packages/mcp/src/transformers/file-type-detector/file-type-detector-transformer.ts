@@ -12,9 +12,8 @@
  */
 import { fileTypeContract } from '../../contracts/file-type/file-type-contract';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
-import type { FileType } from '../../contracts/file-type/file-type-contract';
 
-export const fileTypeDetectorTransformer = ({ filepath }: { filepath: string }): FileType => {
+export const fileTypeDetectorTransformer = ({ filepath }: { filepath: string }): string => {
   const pathParts = filepath.split('/');
 
   // Find the folder immediately after any path anchor (src, test)
@@ -34,7 +33,7 @@ export const fileTypeDetectorTransformer = ({ filepath }: { filepath: string }):
           : folderAfterAnchor.endsWith(sSuffix.ending)
             ? folderAfterAnchor.slice(0, -sSuffix.stripLength)
             : folderAfterAnchor;
-        return fileTypeContract.parse(singularForm);
+        return singularForm;
       }
     }
   }
@@ -46,5 +45,5 @@ export const fileTypeDetectorTransformer = ({ filepath }: { filepath: string }):
     return fileTypeContract.parse(suffixMatch[1]);
   }
 
-  return fileTypeContract.parse('unknown');
+  return 'unknown';
 };

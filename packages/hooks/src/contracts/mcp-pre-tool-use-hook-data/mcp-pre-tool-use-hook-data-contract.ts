@@ -10,13 +10,13 @@
  * // Returns McpPreToolUseHookData
  */
 import { z } from '#gateway/npm/zod';
-import { absoluteFilePathContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { mcpToolInputContract } from '../mcp-tool-input/mcp-tool-input-contract';
 
 export const mcpPreToolUseHookDataContract = z.object({
   session_id: sessionContract.shape.id,
-  cwd: absoluteFilePathContract,
+  cwd: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'McpPreToolUseHookDataCwd'>(),
   hook_event_name: z.literal('PreToolUse'),
   tool_name: z.string().min(1).brand<'McpPreToolUseHookDataToolName'>(),
   tool_input: mcpToolInputContract,

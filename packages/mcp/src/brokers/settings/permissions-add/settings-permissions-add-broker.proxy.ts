@@ -2,10 +2,9 @@ import { join } from '#gateway/node/path';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 type FileContents = string;
 
 export const settingsPermissionsAddBrokerProxy = (): {
@@ -48,7 +47,7 @@ export const settingsPermissionsAddBrokerProxy = (): {
   // Mirrors the broker's own settingsDir computation so the ensureDir address matches what the
   // broker really calls join with, instead of an arbitrary stub.
   const settingsDirFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
-    FilePathStub({ value: join(targetProjectRoot, locationsStatics.repoRoot.claude.dir) });
+    join(targetProjectRoot, locationsStatics.repoRoot.claude.dir);
 
   return {
     setupExistingSettings: ({

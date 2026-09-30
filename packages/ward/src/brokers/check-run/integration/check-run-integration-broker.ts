@@ -11,7 +11,6 @@ import { existsSync } from '#gateway/node/fs';
 import { readFile, unlink } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
 
-import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -165,7 +164,7 @@ export const checkRunIntegrationBroker = async ({
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }
-  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
+  const command = String(binResolveBroker({ binName: bin, cwd }));
 
   // `--detectOpenHandles` above only reports from the MAIN thread, so the worker branch would
   // otherwise report no leaks at all. `@dungeonmaster/testing`'s jest setup watches the timer

@@ -4,7 +4,6 @@ import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file
 import type { dirname } from '#gateway/node/path';
 import { basename, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 import { packageScaffoldWriteBrokerProxy } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker.proxy';
 import { gatewayExistingPackagesListBrokerProxy } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker.proxy';
 import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker.proxy';
@@ -18,7 +17,7 @@ export const InstallSetupGatewayResponderProxy = (): {
   setupRootTsconfigMissing: (params: { rootTsconfigPath: string }) => void;
   setupExistingPackages: (params: {
     packagesDir: string;
-    packages: { name: FileName; hasPackageJson: boolean }[];
+    packages: { name: string; hasPackageJson: boolean }[];
   }) => void;
   setupPackageJson: (params: { packageJsonPath: string; content: string }) => void;
   setupPackageTsconfig: (params: { tsconfigPath: string; content: string }) => void;

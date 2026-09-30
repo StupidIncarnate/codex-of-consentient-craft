@@ -22,7 +22,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
 
 import { portRoleContract } from '../port-role/port-role-contract';
 
@@ -32,7 +31,7 @@ export const laneProcessContract = z.object({
   args: z.array(z.string().brand<'LaneProcessArgs'>()).readonly(),
   portRole: portRoleContract.nullable(),
   readyPath: z.string().startsWith('/').brand<'LaneProcessReadyPath'>().nullable(),
-  logFileName: fileNameContract,
+  logFileName: z.string().brand<'LaneProcessLogFileName'>(),
   env: z.record(z.string().brand<'LaneProcessEnvKey'>(), z.string().brand<'LaneProcessEnv'>()),
 }).brand<'LaneProcess'>();
 

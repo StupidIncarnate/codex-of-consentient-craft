@@ -2,11 +2,10 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { agentsPluginCreateBroker } from './agents-plugin-create-broker';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const agentsPluginCreateBrokerProxy = (): {
   callBroker: typeof agentsPluginCreateBroker;
@@ -29,30 +28,24 @@ export const agentsPluginCreateBrokerProxy = (): {
       actualPath.join(...(segments as Parameters<typeof join>))) as (...args: never[]) => unknown);
 
   const pluginDirFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
-    FilePathStub({
-      value: actualPath.join(
+    actualPath.join(
         targetProjectRoot,
         locationsStatics.repoRoot.agents.dir,
         locationsStatics.repoRoot.agents.pluginsDir,
         mcpToolsStatics.server.name,
-      ),
-    });
+      );
 
   const pluginJsonPathFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
-    FilePathStub({
-      value: actualPath.join(
+    actualPath.join(
         pluginDirFor({ targetProjectRoot }),
         locationsStatics.repoRoot.agents.pluginJson,
-      ),
-    });
+      );
 
   const mcpConfigJsonPathFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
-    FilePathStub({
-      value: actualPath.join(
+    actualPath.join(
         pluginDirFor({ targetProjectRoot }),
         locationsStatics.repoRoot.agents.mcpConfigJson,
-      ),
-    });
+      );
 
   return {
     callBroker: agentsPluginCreateBroker,

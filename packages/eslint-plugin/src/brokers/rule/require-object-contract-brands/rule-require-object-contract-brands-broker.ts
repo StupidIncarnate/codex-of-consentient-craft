@@ -14,7 +14,6 @@
  * // Reports `z.object({ id: idContract })` in quest-contract.ts and fixes it to
  * // `z.object({ id: idContract }).brand<'Quest'>()`
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';

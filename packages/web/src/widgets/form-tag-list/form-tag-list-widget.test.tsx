@@ -1,8 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
-import { TagItemStub } from '../../contracts/tag-item/tag-item.stub';
 import { FormTagListWidget } from './form-tag-list-widget';
 import { FormTagListWidgetProxy } from './form-tag-list-widget.proxy';
 
@@ -10,8 +8,8 @@ describe('FormTagListWidget', () => {
   describe('rendering with items', () => {
     it('VALID: {label: "Tags", items: ["alpha","beta"]} => renders label text', () => {
       FormTagListWidgetProxy();
-      const label = SectionLabelStub({ value: 'Tags' });
-      const items = [TagItemStub({ value: 'alpha' }), TagItemStub({ value: 'beta' })];
+      const label = 'Tags';
+      const items = ['alpha', 'beta'];
 
       mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
@@ -20,8 +18,8 @@ describe('FormTagListWidget', () => {
 
     it('VALID: {items: ["alpha","beta"]} => renders all tag items', () => {
       FormTagListWidgetProxy();
-      const label = SectionLabelStub({ value: 'Tags' });
-      const items = [TagItemStub({ value: 'alpha' }), TagItemStub({ value: 'beta' })];
+      const label = 'Tags';
+      const items = ['alpha', 'beta'];
 
       mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
@@ -33,8 +31,8 @@ describe('FormTagListWidget', () => {
 
     it('VALID: {items: ["alpha","beta"]} => does not render empty text', () => {
       FormTagListWidgetProxy();
-      const label = SectionLabelStub({ value: 'Tags' });
-      const items = [TagItemStub({ value: 'alpha' }), TagItemStub({ value: 'beta' })];
+      const label = 'Tags';
+      const items = ['alpha', 'beta'];
 
       mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
@@ -45,8 +43,8 @@ describe('FormTagListWidget', () => {
   describe('rendering empty', () => {
     it('EMPTY: {items: []} => renders "none" text', () => {
       FormTagListWidgetProxy();
-      const label = SectionLabelStub({ value: 'Tags' });
-      const items: ReturnType<typeof TagItemStub>[] = [];
+      const label = 'Tags';
+      const items: string[] = [];
 
       mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
@@ -57,8 +55,8 @@ describe('FormTagListWidget', () => {
 
     it('EMPTY: {items: []} => does not render any tag items', () => {
       FormTagListWidgetProxy();
-      const label = SectionLabelStub({ value: 'Tags' });
-      const items: ReturnType<typeof TagItemStub>[] = [];
+      const label = 'Tags';
+      const items: string[] = [];
 
       mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 

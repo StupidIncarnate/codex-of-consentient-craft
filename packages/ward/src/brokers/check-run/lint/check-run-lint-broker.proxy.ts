@@ -2,8 +2,6 @@ import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 
@@ -28,10 +26,10 @@ export const checkRunLintBrokerProxy = (): {
   RunNotFoundErrorProxy();
   const binProxy = binResolveBrokerProxy();
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
     binProxy.setupFound({
       cwd: projectFolder.path,
-      binName: BinCommandStub({ value: checkCommandsStatics.lint.bin }),
+      binName: checkCommandsStatics.lint.bin,
     });
 
   // Every eslint invocation this broker makes is a single call per test, so addressing by command

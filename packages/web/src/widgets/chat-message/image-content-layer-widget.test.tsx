@@ -4,7 +4,6 @@ import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/ch
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageContentLayerWidget } from './image-content-layer-widget';
 import { ImageContentLayerWidgetProxy } from './image-content-layer-widget.proxy';
@@ -211,7 +210,7 @@ describe('ImageContentLayerWidget', () => {
   describe('optimistic messages (in-memory bytes)', () => {
     it('VALID: {content: bare placeholder, matching uuid staged in memory} => renders the staged data URL immediately', () => {
       const proxy = ImageContentLayerWidgetProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       const { content, uuid } = [
         UserChatEntryStub({ content: 'Look at this [Pasted Image 1]' }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;

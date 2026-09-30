@@ -1,5 +1,4 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const resolveWorkspaceRootLayerBrokerProxy = (): {
   declaresWorkspaces: (params: { dirPath: string; patterns: string[] }) => void;
@@ -13,7 +12,7 @@ export const resolveWorkspaceRootLayerBrokerProxy = (): {
     dirPath,
   }: {
     dirPath: string;
-  }): ReturnType<typeof filePathContract.parse> =>
+  }): string =>
     `${String(dirPath)}/package.json`;
 
   return {

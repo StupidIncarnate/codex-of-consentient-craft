@@ -26,7 +26,6 @@
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { builtinModules } from '#gateway/node/module';
-import { type Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';

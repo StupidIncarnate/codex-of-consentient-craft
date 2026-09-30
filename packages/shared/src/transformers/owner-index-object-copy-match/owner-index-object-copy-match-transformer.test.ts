@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
@@ -59,7 +58,7 @@ describe('ownerIndexObjectCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        objectText: ContentTextStub({ value }),
+        objectText: value,
       });
 
       expect(result).toBe(undefined);

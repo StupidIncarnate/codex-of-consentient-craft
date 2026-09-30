@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PixelCoordinateStub } from '../../contracts/pixel-coordinate/pixel-coordinate.stub';
-import { PixelDimensionStub } from '../../contracts/pixel-dimension/pixel-dimension.stub';
 import { PixelSpriteWidget } from './pixel-sprite-widget';
 import { PixelSpriteWidgetProxy } from './pixel-sprite-widget.proxy';
 
@@ -12,9 +11,9 @@ describe('PixelSpriteWidget', () => {
       PixelSpriteWidgetProxy();
 
       const pixels = [PixelCoordinateStub({ value: '2 3 #ff4500' })] as const;
-      const scale = PixelDimensionStub({ value: 4 });
-      const width = PixelDimensionStub({ value: 8 });
-      const height = PixelDimensionStub({ value: 20 });
+      const scale = 4;
+      const width = 8;
+      const height = 20;
 
       mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
@@ -38,9 +37,9 @@ describe('PixelSpriteWidget', () => {
         PixelCoordinateStub({ value: '0 0 #ff0000' }),
         PixelCoordinateStub({ value: '1 1 #00ff00' }),
       ] as const;
-      const scale = PixelDimensionStub({ value: 2 });
-      const width = PixelDimensionStub({ value: 4 });
-      const height = PixelDimensionStub({ value: 4 });
+      const scale = 2;
+      const width = 4;
+      const height = 4;
 
       mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
@@ -55,9 +54,9 @@ describe('PixelSpriteWidget', () => {
       PixelSpriteWidgetProxy();
 
       const pixels = [PixelCoordinateStub({ value: '2 0 #ff4500' })] as const;
-      const scale = PixelDimensionStub({ value: 4 });
-      const width = PixelDimensionStub({ value: 8 });
-      const height = PixelDimensionStub({ value: 20 });
+      const scale = 4;
+      const width = 8;
+      const height = 20;
 
       mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} flip />,
@@ -77,9 +76,9 @@ describe('PixelSpriteWidget', () => {
       PixelSpriteWidgetProxy();
 
       const pixels = [PixelCoordinateStub({ value: '0 0 #ff4500' })] as const;
-      const scale = PixelDimensionStub({ value: 4 });
-      const width = PixelDimensionStub({ value: 8 });
-      const height = PixelDimensionStub({ value: 20 });
+      const scale = 4;
+      const width = 8;
+      const height = 20;
 
       mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
@@ -100,9 +99,9 @@ describe('PixelSpriteWidget', () => {
       PixelSpriteWidgetProxy();
 
       const pixels = [PixelCoordinateStub({ value: '0 0 #ff4500' })] as const;
-      const scale = PixelDimensionStub({ value: 4 });
-      const width = PixelDimensionStub({ value: 8 });
-      const height = PixelDimensionStub({ value: 20 });
+      const scale = 4;
+      const width = 8;
+      const height = 20;
 
       mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} flip />,
@@ -117,9 +116,9 @@ describe('PixelSpriteWidget', () => {
       PixelSpriteWidgetProxy();
 
       const pixels: readonly ReturnType<typeof PixelCoordinateStub>[] = [];
-      const scale = PixelDimensionStub({ value: 4 });
-      const width = PixelDimensionStub({ value: 8 });
-      const height = PixelDimensionStub({ value: 20 });
+      const scale = 4;
+      const width = 8;
+      const height = 20;
 
       mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,

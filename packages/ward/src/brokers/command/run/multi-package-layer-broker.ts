@@ -11,7 +11,6 @@ import { stderr } from '#gateway/node/process';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
-import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
   wardRunResultContract,
   type WardRunResult,
@@ -50,7 +49,7 @@ export const multiPackageLayerBroker = async ({
   const timestamp = Date.now();
   const wardBin = String(
     binResolveBroker({
-      binName: binCommandContract.parse(wardSpawnCommandStatics.bin),
+      binName: wardSpawnCommandStatics.bin,
       cwd: rootPath,
     }),
   );

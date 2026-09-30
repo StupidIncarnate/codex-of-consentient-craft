@@ -37,7 +37,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
 import { keyListingContract } from '../key-listing/key-listing-contract';
@@ -53,7 +52,7 @@ export const stepReadingContract = z.object({
   ok: z.boolean(),
   expected: stepExpectationContract,
   reading: z.string().brand<'StepReadingReading'>(),
-  shot: absoluteFilePathContract.nullable(),
+  shot: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'StepReadingShot'>().nullable(),
   pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'StepReadingPixelChange'>().nullable(),
   blank: z.boolean().nullable(),
   blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'StepReadingBlankColour'>().nullable(),

@@ -27,14 +27,14 @@
  * file drives through, and the spec file is what carries the `proves` list.
  */
 
-import { qaWalkPathContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import { qaWalkPathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { workPlanFileEntryContract } from '../work-plan-file-entry/work-plan-file-entry-contract';
 import { workPlanFlowriderUnitContract } from '../work-plan-flowrider-unit/work-plan-flowrider-unit-contract';
 
 export const workPlanPayloadFlowriderContract = z.object({
-  specPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'WorkPlanPayloadFlowriderSpecPath'>(),
+  specPath: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WorkPlanPayloadFlowriderSpecPath'>(), relativeFilePathContract]).brand<'WorkPlanPayloadFlowriderSpecPath'>(),
   mode: z
     .enum(['new', 'extend'])
     .describe('Whether this piece writes a fresh spec file or extends one that already exists.'),

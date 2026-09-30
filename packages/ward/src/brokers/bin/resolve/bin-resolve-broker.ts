@@ -10,13 +10,12 @@
  */
 
 
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { binWalkUpLayerBroker } from './bin-walk-up-layer-broker';
 
 export const binResolveBroker = ({
   binName,
   cwd,
 }: {
-  binName: BinCommand;
+  binName: string;
   cwd: string;
-}): BinCommand => binWalkUpLayerBroker({ binName, dir: cwd });
+}): string => binWalkUpLayerBroker({ binName, dir: cwd });

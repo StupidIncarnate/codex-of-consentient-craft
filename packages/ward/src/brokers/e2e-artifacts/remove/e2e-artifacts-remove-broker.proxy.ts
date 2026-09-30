@@ -1,6 +1,5 @@
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const e2eArtifactsRemoveBrokerProxy = (): {
   setupRemovable: (params: { packageRoot: string; port: number }) => void;
@@ -18,7 +17,7 @@ export const e2eArtifactsRemoveBrokerProxy = (): {
   }: {
     packageRoot: string;
     port: number;
-  }): ReturnType<typeof filePathContract.parse> =>
+  }): string =>
     `${String(packageRoot)}/node_modules/.vite-${String(port)}`;
 
   return {

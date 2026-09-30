@@ -8,13 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { exitCodeContract } from '../exit-code/exit-code-contract';
 import { sessionContract } from '../session/session-contract';
 
 export const claudeQueueResponseContract = z.object({
   sessionId: sessionContract.shape.id,
   lines: z.array(z.string().min(1).brand<'ClaudeQueueResponseLines'>()),
-  exitCode: exitCodeContract.optional(),
+  exitCode: z.number().int().min(0).max(255).brand<'ClaudeQueueResponseExitCode'>().optional(),
   delayMs: z.number().int().min(0).brand<'ClaudeQueueResponseDelayMs'>().optional(),
   // E2E dispatch-loop driver: when true, the fake Claude CLI parses questId/workItemId from the
   // `-p` task prompt and POSTs the env-gated /api/quests/:questId/signal-back endpoint (awaited)

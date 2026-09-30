@@ -8,12 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { networkPortContract } from '../network-port/network-port-contract';
 
 export const projectConfigContract = z.object({
   dungeonmaster: z
     .object({
-      port: networkPortContract.optional(),
+      port: z.number().int().min(1).max(65_535).brand<'ProjectConfigDungeonmasterPort'>().optional(),
     }).brand<'ProjectConfigDungeonmaster'>()
     .optional(),
 }).brand<'ProjectConfig'>();

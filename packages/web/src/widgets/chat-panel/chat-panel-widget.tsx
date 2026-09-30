@@ -14,7 +14,6 @@ import { useEffect, useRef, useState } from '#gateway/npm/react';
 import type { ChatEntry, PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
-import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -117,9 +116,9 @@ export const ChatPanelWidget = ({
       >
         <PixelSpriteWidget
           pixels={raccoonPixels}
-          scale={RACCOON_SCALE as PixelDimension}
-          width={raccoonWizardPixelsStatics.dimensions.width as PixelDimension}
-          height={raccoonWizardPixelsStatics.dimensions.height as PixelDimension}
+          scale={RACCOON_SCALE as number}
+          width={raccoonWizardPixelsStatics.dimensions.width as number}
+          height={raccoonWizardPixelsStatics.dimensions.height as number}
           flip={raccoonFlip}
         />
       </Box>

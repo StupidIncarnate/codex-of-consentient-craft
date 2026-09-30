@@ -40,7 +40,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
@@ -51,11 +51,11 @@ export const instanceManifestContract = z.object({
   baseUrl: z.string().brand<'InstanceManifestBaseUrl'>().nullable(),
   url: z.string().brand<'InstanceManifestUrl'>().optional(),
   apiUrl: z.string().brand<'InstanceManifestApiUrl'>().optional(),
-  home: absoluteFilePathContract,
+  home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstanceManifestHome'>(),
   evidence: repoLocalPathContract,
   paths: z
     .object({
-      home: absoluteFilePathContract,
+      home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstanceManifestPathsHome'>(),
       evidenceDir: z.string().brand<'InstanceManifestPathsEvidenceDir'>(),
     }).brand<'InstanceManifestPaths'>()
     .optional(),

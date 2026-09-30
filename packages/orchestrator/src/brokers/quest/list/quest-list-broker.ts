@@ -30,7 +30,7 @@
  */
 
 import type { Quest, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
-import { fileNameContract, skippedQuestFileContract } from '@dungeonmaster/shared/contracts';
+import { skippedQuestFileContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readdirSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -51,7 +51,7 @@ export const questListBroker = async ({
 }): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
 
-  const entries = readdirSync(questsPath).map((name) => fileNameContract.parse(name));
+  const entries = readdirSync(questsPath).map((name) => name);
 
   const questFolders = entries.filter((folderName) => isQuestFolderGuard({ folderName }));
 

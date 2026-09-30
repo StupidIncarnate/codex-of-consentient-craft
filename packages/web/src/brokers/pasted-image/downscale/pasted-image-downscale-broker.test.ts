@@ -3,7 +3,6 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { pastedImageDownscaleBroker } from './pasted-image-downscale-broker';
 import { pastedImageDownscaleBrokerProxy } from './pasted-image-downscale-broker.proxy';
 import { AttachmentIdStub } from '../../../contracts/attachment-id/attachment-id.stub';
-import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 
 describe('pastedImageDownscaleBroker', () => {
   describe('caps the longest edge on the first re-encode', () => {
@@ -222,7 +221,7 @@ describe('pastedImageDownscaleBroker', () => {
   describe('decode failure', () => {
     it('ERROR: {measure broker rejects} => propagates the decode failure', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodeFails({ dataUrl, error: new Error('truncated clipboard image') });
 
       await expect(

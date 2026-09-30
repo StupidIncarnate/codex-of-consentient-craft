@@ -1,8 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { SectionCountStub } from '../../contracts/section-count/section-count.stub';
-import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { SectionHeaderWidget } from './section-header-widget';
 import { SectionHeaderWidgetProxy } from './section-header-widget.proxy';
 
@@ -10,7 +8,7 @@ describe('SectionHeaderWidget', () => {
   describe('rendering', () => {
     it('VALID: {label: "OBJECTIVES"} => renders label text', () => {
       SectionHeaderWidgetProxy();
-      const label = SectionLabelStub({ value: 'OBJECTIVES' });
+      const label = 'OBJECTIVES';
 
       mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} /> });
 
@@ -19,8 +17,8 @@ describe('SectionHeaderWidget', () => {
 
     it('VALID: {label: "STEPS", count: 5} => renders label with count', () => {
       SectionHeaderWidgetProxy();
-      const label = SectionLabelStub({ value: 'STEPS' });
-      const count = SectionCountStub({ value: 5 });
+      const label = 'STEPS';
+      const count = 5;
 
       mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} count={count} /> });
 
@@ -33,8 +31,8 @@ describe('SectionHeaderWidget', () => {
 
     it('VALID: {count: 0} => renders count of zero', () => {
       SectionHeaderWidgetProxy();
-      const label = SectionLabelStub({ value: 'ITEMS' });
-      const count = SectionCountStub({ value: 0 });
+      const label = 'ITEMS';
+      const count = 0;
 
       mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} count={count} /> });
 
@@ -47,7 +45,7 @@ describe('SectionHeaderWidget', () => {
   describe('without count', () => {
     it('VALID: {no count} => does not render count element', () => {
       SectionHeaderWidgetProxy();
-      const label = SectionLabelStub({ value: 'HEADER' });
+      const label = 'HEADER';
 
       mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} /> });
 

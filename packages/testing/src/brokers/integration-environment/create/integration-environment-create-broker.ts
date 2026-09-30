@@ -32,15 +32,11 @@ import { dirname, join } from '#gateway/node/path';
 import { runSync } from '#gateway/node/child_process';
 import { runScript } from '#gateway/bin/npm';
 import { randomBytes } from '#gateway/node/crypto';
-import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
-import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
 import { execResultContract } from '@dungeonmaster/shared/contracts';
 import { testGuildContract } from '../../../contracts/test-guild/test-guild-contract';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
-import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
@@ -129,15 +125,15 @@ export const integrationEnvironmentCreateBroker = ({
       return Boolean(packageJson.scripts[String(command)]);
     },
 
-    fileExists: ({ fileName }: { fileName: FileName }): boolean =>
+    fileExists: ({ fileName }: { fileName: string }): boolean =>
       existsSync(join(projectPath, fileName)),
 
-    readFile: ({ fileName }: { fileName: FileName }): FileContent => {
+    readFile: ({ fileName }: { fileName: string }): string => {
       const content = readFileSync(join(projectPath, fileName));
-      return fileContentContract.parse(content);
+      return content;
     },
 
-    writeFile: ({ fileName, content }: { fileName: FileName; content: FileContent }): void => {
+    writeFile: ({ fileName, content }: { fileName: string; content: string }): void => {
       const filePath = join(projectPath, fileName);
       const dir = dirname(filePath);
       if (!existsSync(dir)) {
@@ -146,7 +142,7 @@ export const integrationEnvironmentCreateBroker = ({
       writeFileSync(filePath, content);
     },
 
-    deleteFile: ({ fileName }: { fileName: FileName }): void => {
+    deleteFile: ({ fileName }: { fileName: string }): void => {
       const filePath = join(projectPath, fileName);
       if (existsSync(filePath)) {
         unlinkSync(filePath);
@@ -167,7 +163,7 @@ export const integrationEnvironmentCreateBroker = ({
       return packageJsonContract.parse(JSON.parse(content));
     },
 
-    getQuestFiles: ({ subdir }: { subdir?: FileName }): FileName[] => {
+    getQuestFiles: ({ subdir }: { subdir?: string }): string[] => {
       const questDir = subdir
         ? join(projectPath, 'dungeonmaster', subdir)
         : join(projectPath, 'dungeonmaster');
@@ -181,7 +177,7 @@ export const integrationEnvironmentCreateBroker = ({
 
       return readdirSync(questDir)
         .filter((file) => file.endsWith(extension))
-        .map((file) => fileNameContract.parse(join(basePath, file)));
+        .map((file) => join(basePath, file));
     },
 
     executeCommand: ({ command }: { command: string }): ExecResult => {

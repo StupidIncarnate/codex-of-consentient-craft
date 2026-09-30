@@ -1,5 +1,4 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { BaseNameStub } from '@dungeonmaster/testing';
 import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
 import { rateLimitsWatcherHarness } from '../../../test/harnesses/rate-limits-watcher/rate-limits-watcher.harness';
@@ -77,7 +76,7 @@ describe('OrchestrationDispatchFlow', () => {
     it(
       'VALID: {user presses play while a hold stands} => dispatch-state.json carries node-playing AND the hold, and getIsPlaying() is still false',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-play' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-play' });
         const nowMs = Date.now();
         const standingHold = DispatchHoldStub({
           reason: 'approaching-limit',
@@ -115,7 +114,7 @@ describe('OrchestrationDispatchFlow', () => {
     it(
       'VALID: {user pauses while a hold stands, then the hold expires} => getIsPlaying() stays false because the user never asked to play',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-pause' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-pause' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         // Nothing calibrated and nothing spent, so the only thing the guardrail pass after the

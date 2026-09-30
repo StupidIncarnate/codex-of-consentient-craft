@@ -1,15 +1,13 @@
-import { ScrollPositionPxStub } from '../../contracts/scroll-position-px/scroll-position-px.stub';
-import { ScrollThresholdPxStub } from '../../contracts/scroll-threshold-px/scroll-threshold-px.stub';
 import { computeScrollCaptureTransformer } from './compute-scroll-capture-transformer';
 
 const ComputeScrollCaptureParamsStub = (
   overrides: Partial<Parameters<typeof computeScrollCaptureTransformer>[0]> = {},
 ): Parameters<typeof computeScrollCaptureTransformer>[0] => ({
-  scrollHeight: ScrollPositionPxStub({ value: 1000 }),
-  clientHeight: ScrollPositionPxStub({ value: 400 }),
-  threshold: ScrollThresholdPxStub(),
-  currentTop: ScrollPositionPxStub(),
-  lastTop: ScrollPositionPxStub(),
+  scrollHeight: 1000,
+  clientHeight: 400,
+  threshold: 10,
+  currentTop: 0,
+  lastTop: 0,
   wasCapturing: false,
   ...overrides,
 });
@@ -19,8 +17,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {user scrolls upward, not at bottom} => captures', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 200 }),
-          lastTop: ScrollPositionPxStub({ value: 250 }),
+          currentTop: 200,
+          lastTop: 250,
           wasCapturing: false,
         }),
       );
@@ -31,8 +29,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {already capturing, user scrolls down but not to bottom} => stays captured', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 300 }),
-          lastTop: ScrollPositionPxStub({ value: 200 }),
+          currentTop: 300,
+          lastTop: 200,
           wasCapturing: true,
         }),
       );
@@ -43,9 +41,9 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {already capturing, content grows} => stays captured', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          scrollHeight: ScrollPositionPxStub({ value: 1500 }),
-          currentTop: ScrollPositionPxStub({ value: 300 }),
-          lastTop: ScrollPositionPxStub({ value: 300 }),
+          scrollHeight: 1500,
+          currentTop: 300,
+          lastTop: 300,
           wasCapturing: true,
         }),
       );
@@ -58,8 +56,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {user scrolls all the way to bottom} => releases', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 595 }),
-          lastTop: ScrollPositionPxStub({ value: 500 }),
+          currentTop: 595,
+          lastTop: 500,
           wasCapturing: true,
         }),
       );
@@ -70,8 +68,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {at bottom within threshold} => releases', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 591 }),
-          lastTop: ScrollPositionPxStub({ value: 580 }),
+          currentTop: 591,
+          lastTop: 580,
           wasCapturing: true,
         }),
       );
@@ -82,8 +80,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {programmatic scroll to exact bottom} => releases', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 600 }),
-          lastTop: ScrollPositionPxStub(),
+          currentTop: 600,
+          lastTop: 0,
           wasCapturing: false,
         }),
       );
@@ -96,8 +94,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {scroll moves down, not at bottom, was not capturing} => stays not captured', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 300 }),
-          lastTop: ScrollPositionPxStub({ value: 200 }),
+          currentTop: 300,
+          lastTop: 200,
           wasCapturing: false,
         }),
       );
@@ -108,8 +106,8 @@ describe('computeScrollCaptureTransformer', () => {
     it('VALID: {scroll position unchanged, was not capturing} => stays not captured', () => {
       const result = computeScrollCaptureTransformer(
         ComputeScrollCaptureParamsStub({
-          currentTop: ScrollPositionPxStub({ value: 200 }),
-          lastTop: ScrollPositionPxStub({ value: 200 }),
+          currentTop: 200,
+          lastTop: 200,
           wasCapturing: false,
         }),
       );

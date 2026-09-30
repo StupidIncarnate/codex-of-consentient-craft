@@ -8,10 +8,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { exitCodeContract } from '../exit-code/exit-code-contract';
 
 export const wardQueueResponseContract = z.object({
-  exitCode: exitCodeContract.optional(),
+  exitCode: z.number().int().min(0).max(255).brand<'WardQueueResponseExitCode'>().optional(),
   runId: wardQueueResponseRunId.optional(),
   wardResultJson: z.json().optional(),
   outputLines: z.array(z.string().brand<'WardQueueResponseOutputLines'>()).optional(),

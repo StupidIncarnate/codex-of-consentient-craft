@@ -17,9 +17,8 @@
 import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { RiftcarverResult, WardResult, WorkItem, ChatEntry, CssPixels, Quest } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResult, WardResult, WorkItem, ChatEntry, Quest } from '@dungeonmaster/shared/contracts';
 
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -120,10 +119,8 @@ const DOTS = '\u00B7\u00B7\u00B7';
 
 // This row is the outermost expandable in the execution panel's scroll area, so its header pins
 // flush to the top and everything it contains pins below that header's own height.
-const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
-const STICKY_TOP_INSIDE_ROW: CssPixels = cssPixelsContract.parse(
-  stickyHeaderStatics.heights.executionRow,
-);
+const STICKY_TOP_ROOT = 0;
+const STICKY_TOP_INSIDE_ROW: number = stickyHeaderStatics.heights.executionRow;
 
 export const ExecutionRowLayerWidget = ({
   order,

@@ -1,8 +1,6 @@
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { scanStatics } from '../../../statics/scan/scan-statics';
 
@@ -33,10 +31,10 @@ export const scanPackageBrokerProxy = (): {
 
   // The eslint bin is resolved by walking up from the PACKAGE folder; the child itself runs from
   // the repo root.
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
     binProxy.setupFound({
       cwd: projectFolder.path,
-      binName: BinCommandStub({ value: scanStatics.eslint.bin }),
+      binName: scanStatics.eslint.bin,
     });
 
   return {

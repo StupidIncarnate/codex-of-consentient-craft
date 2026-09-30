@@ -2,7 +2,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { join } from '#gateway/node/path';
 
-import { type FileName } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -22,9 +21,9 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const questListBrokerProxy = (): {
   setupQuestsPath: (params: { homeDir: string; homePath: string; questsPath: string }) => void;
-  setupQuestDirectories: (params: { files: FileName[] }) => void;
+  setupQuestDirectories: (params: { files: string[] }) => void;
   setupQuestDirectoriesFailure: (params: { error: Error }) => void;
-  setupQuestFilePath: (params: { folderName: FileName; result: string }) => void;
+  setupQuestFilePath: (params: { folderName: string; result: string }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
   setupDirectList: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
   setupDirectListOnce: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
@@ -71,7 +70,7 @@ export const questListBrokerProxy = (): {
         questsPath,
       });
     },
-    setupQuestDirectories: ({ files }: { files: FileName[] }): void => {
+    setupQuestDirectories: ({ files }: { files: string[] }): void => {
       readdirProxy.returns({ path: String(questsPathRef.value), names: files });
     },
     setupQuestDirectoriesFailure: ({ error }: { error: Error }): void => {
@@ -81,7 +80,7 @@ export const questListBrokerProxy = (): {
       folderName,
       result,
     }: {
-      folderName: FileName;
+      folderName: string;
       result: string;
     }): void => {
       // questListBroker's own per-folder join(questsPath, folderName, quest.json) -> result,

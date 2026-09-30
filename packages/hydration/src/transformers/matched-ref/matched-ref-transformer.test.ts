@@ -1,6 +1,5 @@
 import { matchedRefTransformer } from './matched-ref-transformer';
 import { rowRefTransformer } from '../row-ref/row-ref-transformer';
-import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
 
 describe('matchedRefTransformer', () => {
   it('VALID: {ancestors: [], ingredient: operation} => returns "operation[match]"', () => {
@@ -54,7 +53,7 @@ describe('matchedRefTransformer', () => {
     const realRow = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
-      callIndex: CallIndexStub({ value: 0 }),
+      callIndex: 0,
       index: 0,
     });
 

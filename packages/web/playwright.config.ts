@@ -1,7 +1,5 @@
 import { defineConfig, devices } from '#gateway/npm/playwright__test';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
 import { readFileSync } from '#gateway/node/fs';
 import { homedir, tmpdir } from '#gateway/node/os';
 import { join, resolve } from '#gateway/node/path';
@@ -58,11 +56,11 @@ setEnv('XDG_CONFIG_HOME', join(TEST_HOME, '.config'));
 // .dungeonmaster.json reaches both, so this suite and a `dungeonmaster siegelense start` lane can
 // never drift onto two different dev commands or two different fakes.
 interface E2eProcessConfig {
-  name: ContentText;
-  command: ContentText;
-  portRole: ContentText;
-  readyPath: ContentText;
-  env?: Record<PropertyKey, ContentText>;
+  name: string;
+  command: string;
+  portRole: string;
+  readyPath: string;
+  env?: Record<PropertyKey, string>;
 }
 
 interface DungeonmasterConfigShape {
@@ -91,9 +89,9 @@ if (!Array.isArray(processes) || processes.length === 0) {
   );
 }
 
-const PORT_BY_ROLE: Record<PropertyKey, NetworkPort> = {
-  api: networkPortContract.parse(TEST_PORT),
-  web: networkPortContract.parse(WEB_PORT),
+const PORT_BY_ROLE: Record<PropertyKey, number> = {
+  api: TEST_PORT,
+  web: WEB_PORT,
 };
 
 // `__dirname` IS this package's own directory at runtime — never a literal `packages/web/...`
@@ -104,35 +102,31 @@ const WEB_VITE_CONFIG_PATH = join(__dirname, 'vite.config.ts');
 // bundle — keyed by portRole, like PORT_BY_ROLE above, rather than a bare `=== 'web'` branch: see
 // laneProcessPortResolveTransformer's own header for why `no-hardcoded-package-names` reads that
 // comparison as deciding something ON a package name.
-const OVERRIDE_COMMAND_BY_ROLE: Record<PropertyKey, ContentText> =
+const OVERRIDE_COMMAND_BY_ROLE: Record<PropertyKey, string> =
   WEB_BUNDLE_DIR_OVERRIDE === undefined
     ? {}
     : {
-        web: contentTextContract.parse(
-          `npx vite preview --config ${WEB_VITE_CONFIG_PATH} --strictPort --outDir "${WEB_BUNDLE_DIR_OVERRIDE}"`,
-        ),
+        web: `npx vite preview --config ${WEB_VITE_CONFIG_PATH} --strictPort --outDir "${WEB_BUNDLE_DIR_OVERRIDE}"`,
       };
 
 // The five tokens `lanePlaceholderSubstituteTransformer` fills for a siegelense lane. {apiWorkspace}
 // and {webWorkspace} are deliberately NOT in this list — this repo's own config never needs them (it
 // names its workspaces literally), so a value using either refuses loudly below instead of spawning
 // a command carrying the unexpanded token text.
-const RESOLVABLE_TOKENS: Record<PropertyKey, ContentText> = {
-  '{apiPort}': contentTextContract.parse(String(TEST_PORT)),
-  '{webPort}': contentTextContract.parse(String(WEB_PORT)),
-  '{home}': contentTextContract.parse(TEST_HOME),
-  '{claudeQueueDir}': contentTextContract.parse(FAKE_CLAUDE_QUEUE_DIR),
-  '{wardQueueDir}': contentTextContract.parse(FAKE_WARD_QUEUE_DIR),
+const RESOLVABLE_TOKENS: Record<PropertyKey, string> = {
+  '{apiPort}': String(TEST_PORT),
+  '{webPort}': String(WEB_PORT),
+  '{home}': TEST_HOME,
+  '{claudeQueueDir}': FAKE_CLAUDE_QUEUE_DIR,
+  '{wardQueueDir}': FAKE_WARD_QUEUE_DIR,
 };
 const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
 
-const substituteTokens = (value: string): ContentText =>
-  contentTextContract.parse(
-    Object.entries(RESOLVABLE_TOKENS).reduce(
+const substituteTokens = (value: string): string =>
+  Object.entries(RESOLVABLE_TOKENS).reduce(
       (result, [token, replacement]) => result.split(token).join(replacement),
       value,
-    ),
-  );
+    );
 
 const refuseUnresolvableToken = ({ value, field }: { value: string; field: string }): void => {
   const token = UNRESOLVABLE_TOKENS.find((candidate) => value.includes(candidate));
@@ -151,10 +145,10 @@ const refuseUnresolvableToken = ({ value, field }: { value: string; field: strin
 const isRelativePathEnvValue = (value: string): boolean =>
   !value.startsWith('/') && !value.startsWith('@') && value.includes('/');
 
-const resolveEnvValue = (value: string): ContentText => {
+const resolveEnvValue = (value: string): string => {
   const substituted = substituteTokens(value);
   return isRelativePathEnvValue(substituted)
-    ? contentTextContract.parse(join(REPO_ROOT, substituted))
+    ? join(REPO_ROOT, substituted)
     : substituted;
 };
 
@@ -167,12 +161,10 @@ const resolveEnvValue = (value: string): ContentText => {
 // TypeScript; the servers must not inherit it. Vite loads `vite.config.ts` through plain Node, which
 // under that condition reads `.ts` barrels and dies on `SyntaxError: Unexpected token 'export'`. The
 // API server picks source itself (`tsx --conditions=source`), so stripping loses it nothing.
-const SERVER_NODE_OPTIONS = contentTextContract.parse(
-  (getEnv('NODE_OPTIONS') ?? '')
+const SERVER_NODE_OPTIONS = (getEnv('NODE_OPTIONS') ?? '')
     .split(' ')
     .filter((token) => token !== '' && token !== '--conditions=source')
-    .join(' '),
-);
+    .join(' ');
 
 const webServer = processes.map((entry) => {
   const port = PORT_BY_ROLE[entry.portRole];
@@ -185,9 +177,9 @@ const webServer = processes.map((entry) => {
 
   refuseUnresolvableToken({ value: entry.command, field: 'command' });
 
-  const env: Record<PropertyKey, ContentText> = {
-    DUNGEONMASTER_PORT: contentTextContract.parse(String(TEST_PORT)),
-    DUNGEONMASTER_WEB_PORT: contentTextContract.parse(String(WEB_PORT)),
+  const env: Record<PropertyKey, string> = {
+    DUNGEONMASTER_PORT: String(TEST_PORT),
+    DUNGEONMASTER_WEB_PORT: String(WEB_PORT),
     NODE_OPTIONS: SERVER_NODE_OPTIONS,
   };
   for (const [key, value] of Object.entries(entry.env ?? {})) {

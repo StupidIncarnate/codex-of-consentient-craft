@@ -1,5 +1,4 @@
 import { PackageJsonStub } from '../../../contracts/package-json/package-json.stub';
-import { FileCountStub } from '../../../contracts/file-count/file-count.stub';
 import { detectPackageTypeLayerBrokerProxy } from './detect-package-type-layer-broker.proxy';
 import { detectPackageTypeLayerBroker } from './detect-package-type-layer-broker';
 
@@ -20,7 +19,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('http-backend');
@@ -43,7 +42,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('http-backend');
@@ -64,7 +63,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('library');
@@ -87,7 +86,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('mcp-server');
@@ -109,7 +108,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('mcp-server');
@@ -130,7 +129,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('library');
@@ -151,7 +150,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('mcp-server');
@@ -174,7 +173,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('frontend-ink');
@@ -197,7 +196,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('frontend-react');
@@ -220,7 +219,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 2 }),
+        binEntryCount: 2,
       });
 
       expect(result).toBe('hook-handlers');
@@ -243,7 +242,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: true,
         exportsHasDot: true,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('eslint-plugin');
@@ -266,7 +265,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 1 }),
+        binEntryCount: 1,
       });
 
       expect(result).toBe('cli-tool');
@@ -290,7 +289,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: true,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('programmatic-service');
@@ -313,7 +312,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('library');
@@ -336,7 +335,7 @@ describe('detectPackageTypeLayerBroker', () => {
         hasStateDir: false,
         hasResponderCreate: false,
         exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
+        binEntryCount: 0,
       });
 
       expect(result).toBe('http-backend');

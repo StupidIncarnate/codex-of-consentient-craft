@@ -1,4 +1,3 @@
-import { BaseNameStub } from '@dungeonmaster/testing';
 import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
@@ -44,7 +43,7 @@ describe('RateLimitsFlow', () => {
   it(
     'VALID: {snapshot file present at bootstrap} => its content is never published, because the ledger is the only source',
     async () => {
-      const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-watch' }) });
+      const { tempDir, end } = harness.begin({ name: 'rl-watch' });
       await harness.writeSnapshot({ tempDir, snapshot: RateLimitsSnapshotStub() });
 
       const collector = harness.collectRateLimitsUpdated();
@@ -69,7 +68,7 @@ describe('RateLimitsFlow', () => {
   it(
     'ERROR: {malformed JSON in snapshot file} => state stays null and parse error is logged to stderr without firing rate-limits-updated event',
     async () => {
-      const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-bad-json' }) });
+      const { tempDir, end } = harness.begin({ name: 'rl-bad-json' });
       await harness.writeRaw({ tempDir, content: 'not json at all' });
 
       const handler = jest.fn();
@@ -104,7 +103,7 @@ describe('RateLimitsFlow', () => {
   it(
     'EMPTY: {file never present} => state stays null and no rate-limits-updated events fire across at least one poll cycle',
     async () => {
-      const { end } = harness.begin({ name: BaseNameStub({ value: 'rl-no-file' }) });
+      const { end } = harness.begin({ name: 'rl-no-file' });
 
       const handler = jest.fn();
       const subscription = harness.subscribeRateLimitsUpdated({ handler });
@@ -128,7 +127,7 @@ describe('RateLimitsFlow', () => {
     it(
       'VALID: {seven-day spend at 90% of a calibrated seven-day ceiling} => dispatch-state.json carries an approaching-limit hold on seven-day and getIsPlaying() is false while mode stays node-playing',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-raise' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-raise' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         await harness.seedLedger({
@@ -179,7 +178,7 @@ describe('RateLimitsFlow', () => {
     it(
       'EDGE: {seven-day spend at 89% of the same ceiling} => no hold is ever written and getIsPlaying() stays true',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-under' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-under' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         await harness.seedLedger({
@@ -212,7 +211,7 @@ describe('RateLimitsFlow', () => {
     it(
       'EDGE: {spend measured but both ceilings null} => no hold is raised at any spend level',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-uncal' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-uncal' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         // Ten times what every other test here calls a full quota. With nothing calibrated there is
@@ -247,7 +246,7 @@ describe('RateLimitsFlow', () => {
     it(
       'EDGE: {both windows over the threshold} => the persisted hold names seven-day, whose later reset clears both',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-both' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-both' });
         const nowMs = Date.now();
         // Two hours old, so this one hour of spend sits inside BOTH windows, at 95% of each.
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
@@ -289,7 +288,7 @@ describe('RateLimitsFlow', () => {
     it(
       'VALID: {five-hour hold past its resumeAt with the spend aged out of the five-hour window} => the next pass clears the hold on disk and getIsPlaying() returns true',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-lift' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-lift' });
         const nowMs = Date.now();
         // Ten hours old: still inside the seven-day window, already outside the five-hour one, so
         // the five-hour reading this pass takes is zero.
@@ -334,7 +333,7 @@ describe('RateLimitsFlow', () => {
     it(
       'VALID: {seven-day hold past its resumeAt while the spend is still over the threshold} => the hold is re-raised off the fresh reading rather than left clear',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-rehold' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-rehold' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         await harness.seedLedger({
@@ -381,7 +380,7 @@ describe('RateLimitsFlow', () => {
     it(
       'VALID: {rejected hold past its thirty-minute wait while the window is still spent} => re-holds as approaching-limit off the fresh reading',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-429' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-429' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         await harness.seedLedger({
@@ -430,7 +429,7 @@ describe('RateLimitsFlow', () => {
     it(
       'EDGE: {hold not yet expired while the current reading has dipped under the threshold} => the persisted hold is left exactly as it stands',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-standing' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-standing' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         await harness.seedLedger({
@@ -472,7 +471,7 @@ describe('RateLimitsFlow', () => {
     it(
       'VALID: {spend inside the seven-day window but outside the five-hour one} => the five-hour window recovers while the seven-day one does not',
       async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-split' }) });
+        const { tempDir, end } = harness.begin({ name: 'rl-split' });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TEN_HOURS_MS;
         // BOTH windows are calibrated, so a five-hour breach would be visible if there were one.

@@ -1,4 +1,3 @@
-import { MockFunctionNameStub } from '../../contracts/mock-function-name/mock-function-name.stub';
 import { StagedCallStub } from '../../contracts/staged-call/staged-call.stub';
 import { mockUnmatchedCallMessageTransformer } from './mock-unmatched-call-message-transformer';
 
@@ -6,7 +5,7 @@ describe('mockUnmatchedCallMessageTransformer', () => {
   describe('single staged description', () => {
     it('VALID: {call args, one staged description} => names the call and the one description', () => {
       const message = mockUnmatchedCallMessageTransformer({
-        name: MockFunctionNameStub({ value: 'mockFn' }),
+        name: 'mockFn',
         args: ['/a/other.json'],
         staged: [StagedCallStub({ args: ['/a/quest.json'] })],
       });
@@ -20,7 +19,7 @@ describe('mockUnmatchedCallMessageTransformer', () => {
   describe('multiple staged descriptions', () => {
     it('VALID: {two staged descriptions} => joins them with " | "', () => {
       const message = mockUnmatchedCallMessageTransformer({
-        name: MockFunctionNameStub({ value: 'mockFn' }),
+        name: 'mockFn',
         args: ['/a/other.json'],
         staged: [
           StagedCallStub({ args: ['/a/quest.json'] }),
@@ -37,7 +36,7 @@ describe('mockUnmatchedCallMessageTransformer', () => {
   describe('function-valued arguments', () => {
     it('VALID: {function argument, no staged descriptions} => renders the argument as <predicate>', () => {
       const message = mockUnmatchedCallMessageTransformer({
-        name: MockFunctionNameStub({ value: 'mockFn' }),
+        name: 'mockFn',
         args: [(): void => undefined],
         staged: [],
       });
@@ -51,7 +50,7 @@ describe('mockUnmatchedCallMessageTransformer', () => {
   describe('empty args', () => {
     it('EMPTY: {no call args, one staged description with no args} => renders both as empty parens', () => {
       const message = mockUnmatchedCallMessageTransformer({
-        name: MockFunctionNameStub({ value: 'mockFn' }),
+        name: 'mockFn',
         args: [],
         staged: [StagedCallStub({ args: [] })],
       });

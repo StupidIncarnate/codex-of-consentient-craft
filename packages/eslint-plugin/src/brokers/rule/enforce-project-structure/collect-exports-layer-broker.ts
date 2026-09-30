@@ -9,7 +9,6 @@ import { collectedExportContract } from '../../../contracts/collected-export/col
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const collectExportsLayerBroker = ({

@@ -8,12 +8,10 @@
 
 import { Box, Stack } from '#gateway/npm/mantine__core';
 
-import type { SectionCount } from '../../contracts/section-count/section-count-contract';
-import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import { SectionHeaderWidget } from '../section-header/section-header-widget';
 
 export interface PlanSectionWidgetProps<T> {
-  title: SectionLabel;
+  title: string;
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
 }
@@ -25,7 +23,7 @@ export const PlanSectionWidget = <T,>({
 }: PlanSectionWidgetProps<T>): React.JSX.Element => (
   <Box mb="sm" data-testid="PLAN_SECTION">
     <Box mb={4}>
-      <SectionHeaderWidget label={title} count={items.length as SectionCount} />
+      <SectionHeaderWidget label={title} count={items.length as number} />
     </Box>
     <Stack gap={4}>
       {items.map((item, index) => (

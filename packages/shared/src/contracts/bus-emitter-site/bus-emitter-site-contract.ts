@@ -14,10 +14,9 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const busEmitterSiteContract = z.object({
-  emitterFile: absoluteFilePathContract,
+  emitterFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'BusEmitterSiteEmitterFile'>(),
   eventType: z.string().brand<'BusEmitterSiteEventType'>(),
   busExportName: z.string().brand<'BusEmitterSiteBusExportName'>(),
 }).brand<'BusEmitterSite'>();

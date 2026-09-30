@@ -12,7 +12,6 @@
  * naming both what was asked for and what is staged.
  */
 
-import { mockFunctionNameContract } from '../../contracts/mock-function-name/mock-function-name-contract';
 import type { MockHandle } from '../../contracts/mock-handle/mock-handle-contract';
 import type { MockStaging } from '../../contracts/mock-staging/mock-staging-contract';
 import type { StagedCall } from '../../contracts/staged-call/staged-call-contract';
@@ -66,7 +65,7 @@ export const mockRegisterMiddleware = ({ fn }: { fn: MockFunction }): MockHandle
 
         throw new Error(
           mockUnmatchedCallMessageTransformer({
-            name: mockFunctionNameContract.parse(mock.name || 'mock'),
+            name: mock.name || 'mock',
             args,
             staged,
           }),

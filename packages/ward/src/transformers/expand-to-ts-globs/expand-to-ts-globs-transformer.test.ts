@@ -1,4 +1,3 @@
-import { GlobPatternStub } from '../../contracts/glob-pattern/glob-pattern.stub';
 
 import { expandToTsGlobsTransformer } from './expand-to-ts-globs-transformer';
 
@@ -6,7 +5,7 @@ describe('expandToTsGlobsTransformer', () => {
   describe('bare directories', () => {
     it('VALID: {pattern: "src"} => returns ts and tsx globs', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'src' }),
+        pattern: 'src',
       });
 
       expect(result).toStrictEqual(['src/**/*.ts', 'src/**/*.tsx']);
@@ -14,7 +13,7 @@ describe('expandToTsGlobsTransformer', () => {
 
     it('VALID: {pattern: "test"} => returns ts and tsx globs for test dir', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'test' }),
+        pattern: 'test',
       });
 
       expect(result).toStrictEqual(['test/**/*.ts', 'test/**/*.tsx']);
@@ -24,7 +23,7 @@ describe('expandToTsGlobsTransformer', () => {
   describe('wildcard patterns', () => {
     it('VALID: {pattern: "src/**/*"} => returns ts and tsx globs', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'src/**/*' }),
+        pattern: 'src/**/*',
       });
 
       expect(result).toStrictEqual(['src/**/*.ts', 'src/**/*.tsx']);
@@ -32,7 +31,7 @@ describe('expandToTsGlobsTransformer', () => {
 
     it('VALID: {pattern: "src/.test-tmp/**/*"} => returns ts and tsx globs for dotdir', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'src/.test-tmp/**/*' }),
+        pattern: 'src/.test-tmp/**/*',
       });
 
       expect(result).toStrictEqual(['src/.test-tmp/**/*.ts', 'src/.test-tmp/**/*.tsx']);
@@ -42,7 +41,7 @@ describe('expandToTsGlobsTransformer', () => {
   describe('typescript files kept as-is', () => {
     it('VALID: {pattern: "vite.config.ts"} => returns pattern unchanged', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'vite.config.ts' }),
+        pattern: 'vite.config.ts',
       });
 
       expect(result).toStrictEqual(['vite.config.ts']);
@@ -50,7 +49,7 @@ describe('expandToTsGlobsTransformer', () => {
 
     it('VALID: {pattern: "*.ts"} => returns pattern unchanged', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: '*.ts' }),
+        pattern: '*.ts',
       });
 
       expect(result).toStrictEqual(['*.ts']);
@@ -58,7 +57,7 @@ describe('expandToTsGlobsTransformer', () => {
 
     it('VALID: {pattern: "index.ts"} => returns pattern unchanged', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'index.ts' }),
+        pattern: 'index.ts',
       });
 
       expect(result).toStrictEqual(['index.ts']);
@@ -66,7 +65,7 @@ describe('expandToTsGlobsTransformer', () => {
 
     it('VALID: {pattern: "src/app.tsx"} => returns pattern unchanged', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'src/app.tsx' }),
+        pattern: 'src/app.tsx',
       });
 
       expect(result).toStrictEqual(['src/app.tsx']);
@@ -76,7 +75,7 @@ describe('expandToTsGlobsTransformer', () => {
   describe('@types patterns', () => {
     it('VALID: {pattern: "@types/**/*"} => returns ts and d.ts globs', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: '@types/**/*' }),
+        pattern: '@types/**/*',
       });
 
       expect(result).toStrictEqual(['@types/**/*.ts', '@types/**/*.d.ts']);
@@ -86,7 +85,7 @@ describe('expandToTsGlobsTransformer', () => {
   describe('non-ts file with extension', () => {
     it('VALID: {pattern: "vite.config.js"} => returns pattern as-is', () => {
       const result = expandToTsGlobsTransformer({
-        pattern: GlobPatternStub({ value: 'vite.config.js' }),
+        pattern: 'vite.config.js',
       });
 
       expect(result).toStrictEqual(['vite.config.js']);

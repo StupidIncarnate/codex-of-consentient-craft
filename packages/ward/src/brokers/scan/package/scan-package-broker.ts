@@ -17,7 +17,6 @@
 
 import { run } from '#gateway/node/child_process';
 
-import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { ScanConfigFile } from '../../../contracts/scan-config-file/scan-config-file-contract';
 import {
@@ -46,7 +45,7 @@ export const scanPackageBroker = async ({
 }): Promise<ScanPackageResult> => {
   const command = String(
     binResolveBroker({
-      binName: binCommandContract.parse(scanStatics.eslint.bin),
+      binName: scanStatics.eslint.bin,
       cwd: projectFolder.path,
     }),
   );

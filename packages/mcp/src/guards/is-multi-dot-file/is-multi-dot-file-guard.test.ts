@@ -1,9 +1,8 @@
 import { isMultiDotFileGuard } from './is-multi-dot-file-guard';
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('isMultiDotFileGuard', () => {
   it('VALID: returns true for .test.ts files', () => {
-    const filepath = FilePathStub({ value: '/test/user-broker.test.ts' });
+    const filepath = '/test/user-broker.test.ts';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -11,7 +10,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns true for .proxy.ts files', () => {
-    const filepath = FilePathStub({ value: '/test/user-broker.proxy.ts' });
+    const filepath = '/test/user-broker.proxy.ts';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -19,9 +18,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns true for .integration.test.ts files', () => {
-    const filepath = FilePathStub({
-      value: '/test/user-broker.integration.test.ts',
-    });
+    const filepath = '/test/user-broker.integration.test.ts';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -29,7 +26,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns true for .spec.ts files', () => {
-    const filepath = FilePathStub({ value: '/test/user-broker.spec.ts' });
+    const filepath = '/test/user-broker.spec.ts';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -37,7 +34,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns false for regular .ts files', () => {
-    const filepath = FilePathStub({ value: '/test/user-broker.ts' });
+    const filepath = '/test/user-broker.ts';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -45,7 +42,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns false for files with hyphenated names', () => {
-    const filepath = FilePathStub({ value: '/test/user-fetch-broker.ts' });
+    const filepath = '/test/user-fetch-broker.ts';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -59,7 +56,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns true for .tsx multi-dot files', () => {
-    const filepath = FilePathStub({ value: '/test/component.test.tsx' });
+    const filepath = '/test/component.test.tsx';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -67,7 +64,7 @@ describe('isMultiDotFileGuard', () => {
   });
 
   it('VALID: returns false for regular .tsx files', () => {
-    const filepath = FilePathStub({ value: '/test/component.tsx' });
+    const filepath = '/test/component.tsx';
 
     const result = isMultiDotFileGuard({ filepath });
 
@@ -76,9 +73,7 @@ describe('isMultiDotFileGuard', () => {
 
   describe('standalone multi-dot files', () => {
     it('VALID: {filepath: .harness.ts} => returns false (standalone implementation)', () => {
-      const filepath = FilePathStub({
-        value: '/test/harnesses/orchestration-queue/orchestration-queue.harness.ts',
-      });
+      const filepath = '/test/harnesses/orchestration-queue/orchestration-queue.harness.ts';
 
       const result = isMultiDotFileGuard({ filepath });
 
@@ -86,9 +81,7 @@ describe('isMultiDotFileGuard', () => {
     });
 
     it('VALID: {filepath: .harness.integration.test.ts} => returns true (companion of harness)', () => {
-      const filepath = FilePathStub({
-        value: '/test/harnesses/lifecycle-verify/lifecycle-verify.harness.integration.test.ts',
-      });
+      const filepath = '/test/harnesses/lifecycle-verify/lifecycle-verify.harness.integration.test.ts';
 
       const result = isMultiDotFileGuard({ filepath });
 
@@ -98,7 +91,7 @@ describe('isMultiDotFileGuard', () => {
 
   describe('javascript extensions', () => {
     it('VALID: returns true for .test.js files', () => {
-      const filepath = FilePathStub({ value: '/test/user-broker.test.js' });
+      const filepath = '/test/user-broker.test.js';
 
       const result = isMultiDotFileGuard({ filepath });
 
@@ -106,7 +99,7 @@ describe('isMultiDotFileGuard', () => {
     });
 
     it('VALID: returns true for .proxy.js files', () => {
-      const filepath = FilePathStub({ value: '/test/user-broker.proxy.js' });
+      const filepath = '/test/user-broker.proxy.js';
 
       const result = isMultiDotFileGuard({ filepath });
 
@@ -114,7 +107,7 @@ describe('isMultiDotFileGuard', () => {
     });
 
     it('VALID: returns true for .test.jsx files', () => {
-      const filepath = FilePathStub({ value: '/test/component.test.jsx' });
+      const filepath = '/test/component.test.jsx';
 
       const result = isMultiDotFileGuard({ filepath });
 
@@ -122,7 +115,7 @@ describe('isMultiDotFileGuard', () => {
     });
 
     it('VALID: returns false for regular .js files', () => {
-      const filepath = FilePathStub({ value: '/test/user-broker.js' });
+      const filepath = '/test/user-broker.js';
 
       const result = isMultiDotFileGuard({ filepath });
 
@@ -130,7 +123,7 @@ describe('isMultiDotFileGuard', () => {
     });
 
     it('VALID: returns false for regular .jsx files', () => {
-      const filepath = FilePathStub({ value: '/test/component.jsx' });
+      const filepath = '/test/component.jsx';
 
       const result = isMultiDotFileGuard({ filepath });
 

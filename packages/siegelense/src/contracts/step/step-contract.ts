@@ -33,7 +33,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
 
 import { domFieldContract } from '../dom-field/dom-field-contract';
 import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
@@ -42,16 +41,14 @@ import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
-import { stepFilePathContract } from '../step-file-path/step-file-path-contract';
 import { stepStatics } from '../../statics/step/step-statics';
 import { holdStatics } from '../../statics/hold/hold-statics';
 import { storageStatics } from '../../statics/storage/storage-statics';
-import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
-import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
 import { untilResponseContract } from '../until-response/until-response-contract';
 import { resetLevelContract } from '../reset-level/reset-level-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
+import { fileStatics } from '../../statics/file/file-statics';
 
 const HANDLE_MESSAGE =
   'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
@@ -124,7 +121,7 @@ export const stepContract = z
         // preference: every reader of this tree decodes PNG (`shotBlankReadBroker`,
         // `shotChangeReadBroker`, and `compare`'s pixel path), so refusing here is what keeps a
         // capture readable by the calls that exist to read it.
-        name: fileNameContract.refine(
+        name: z.string().brand<'StepName'>().refine(
           (candidate) => candidate.endsWith(evidenceFileStatics.extensions.shot),
           {
             message: `a screenshot name must end in "${evidenceFileStatics.extensions.shot}" — the capture is a PNG and every call that reads one decodes it as such. Try { "step": "screenshot", "name": "after-create${evidenceFileStatics.extensions.shot}" }`,
@@ -207,9 +204,9 @@ export const stepContract = z
         // ZodEffects and `z.discriminatedUnion` accepts only ZodObjects.
         visible: z.string().min(1).brand<'StepVisible'>().nullable().default(null),
         response: untilResponseContract.nullable().default(null),
-        file: untilFilePathContract.nullable().default(null),
+        file: z.string().min(1).refine((candidate) => !candidate.startsWith('/'), { message: 'an `until { file }` path is resolved against the lane\'s own throwaway home and must not start with "/" — a leading slash would silently wait on a file outside the lane the walk is driving. Try { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json" }', }).brand<'StepFile'>().nullable().default(null),
         predicate: z.string().brand<'StepPredicate'>().nullable().default(null),
-        console: untilConsolePatternContract.nullable().default(null),
+        console: z.string().min(1).refine((candidate) => !(candidate.length >= 2 && candidate.startsWith('/') && candidate.endsWith('/')), { message: 'a console pattern is a regex SOURCE string, not a regex literal — JSON carries no /pattern/ syntax. Drop the surrounding slashes: { "step": "until", "console": "hydrated" }', },).refine((candidate) => { try { const compiled = new RegExp(candidate, 'u'); return typeof compiled.source === 'string'; } catch { return false; } }, { message: 'a console pattern must be a compilable regular expression source' },).brand<'StepConsole'>().nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
@@ -275,7 +272,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('file'),
-        path: stepFilePathContract,
+        path: z.string().min(1).refine((candidate) => !candidate.startsWith('/'), { message: fileStatics.errors.leadingSlash, }).refine((candidate) => !candidate.split('/').includes('..'), { message: fileStatics.errors.traversal, }).brand<'StepPath'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),

@@ -9,7 +9,6 @@
 import { Group } from '#gateway/npm/mantine__core';
 
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
-import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { fireballPixelsStatics } from '../../statics/fireball-pixels/fireball-pixels-statics';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
@@ -32,9 +31,9 @@ const logo = `\
 export const LogoWidget = (): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const { dimensions } = fireballPixelsStatics;
-  const spriteScale = SPRITE_SCALE as PixelDimension;
-  const spriteWidth = dimensions.width as PixelDimension;
-  const spriteHeight = dimensions.height as PixelDimension;
+  const spriteScale = SPRITE_SCALE as number;
+  const spriteWidth = dimensions.width as number;
+  const spriteHeight = dimensions.height as number;
 
   return (
     <Group align="center" gap={LOGO_GAP} data-testid="LOGO_GROUP">

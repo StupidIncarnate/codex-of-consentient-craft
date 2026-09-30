@@ -1,6 +1,5 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { MapFrameWidget } from './map-frame-widget';
@@ -89,7 +88,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {custom maxWidth} => overrides default', () => {
       MapFrameWidgetProxy();
 
-      const maxWidth = CssPixelsStub({ value: 900 });
+      const maxWidth = 900;
 
       mantineRenderMiddleware({
         ui: (
@@ -107,7 +106,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {custom padding} => overrides default', () => {
       MapFrameWidgetProxy();
 
-      const padding = CssPixelsStub({ value: 32 });
+      const padding = 32;
 
       mantineRenderMiddleware({
         ui: (

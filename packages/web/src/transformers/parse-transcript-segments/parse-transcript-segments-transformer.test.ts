@@ -1,6 +1,5 @@
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { parseTranscriptSegmentsTransformer } from './parse-transcript-segments-transformer';
 
 describe('parseTranscriptSegmentsTransformer', () => {
@@ -65,7 +64,7 @@ describe('parseTranscriptSegmentsTransformer', () => {
 
   describe('bare placeholder resolved from memory', () => {
     it('VALID: {content: a bare placeholder, memoryImages carrying its bytes} => resolves to the in-memory data URL', () => {
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
 
       const result = parseTranscriptSegmentsTransformer({
         content: 'A[Pasted Image 1]B',
@@ -98,7 +97,7 @@ describe('parseTranscriptSegmentsTransformer', () => {
   // ordinal would resolve through the wrong form's extraction path.
   describe('mixed markdown token and bare placeholder in one message', () => {
     it("VALID: {content: a bare placeholder at ordinal 2, memoryImages carrying its bytes} => the bare placeholder resolves through memory, not through the token's own url", () => {
-      const firstDataUrl = ImageDataUrlStub();
+      const firstDataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       const secondDataUrl = 'data:image/png;base64,BBBB';
 
       const result = parseTranscriptSegmentsTransformer({
@@ -110,7 +109,7 @@ describe('parseTranscriptSegmentsTransformer', () => {
     });
 
     it('VALID: {content: an image token at ordinal 1, memoryImages present} => the token resolves through its own parentheses, not through memory', () => {
-      const firstDataUrl = ImageDataUrlStub();
+      const firstDataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       const secondDataUrl = 'data:image/png;base64,BBBB';
 
       const result = parseTranscriptSegmentsTransformer({

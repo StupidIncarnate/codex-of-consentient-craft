@@ -25,11 +25,10 @@
 import { z } from '#gateway/npm/zod';
 
 import { blightConcernContract } from '../blight-concern/blight-concern-contract';
-import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 
 export const blightChecklistItemContract = z.object({
   id: z.string().min(1).brand<'BlightChecklistItemId'>(),
-  implPath: repoRelativePathContract,
+  implPath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'BlightChecklistItemImplPath'>(),
   concern: blightConcernContract,
   packageName: z.string().min(1).brand<'BlightChecklistItemPackageName'>()
     .optional()
@@ -37,7 +36,7 @@ export const blightChecklistItemContract = z.object({
       'The quest package entry whose `location` contains `implPath`, resolved by longest matching prefix. Absent when the path sits under none of them — a file outside every declared package, which is a real state and is owned by the residual partition group rather than assigned to a neighbour.',
     ),
   pairedFiles: z
-    .array(repoRelativePathContract)
+    .array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'BlightChecklistItemPairedFiles'>())
     .default([])
     .describe(
       'The test/proxy/stub files that collapsed onto this impl — the diff units a reviewer must also read to review this concern.',

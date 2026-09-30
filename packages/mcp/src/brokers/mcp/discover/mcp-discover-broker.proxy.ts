@@ -19,7 +19,6 @@
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 
 // Placeholder content for a file glob genuinely matched but grep then filters out — any real
 // content works here, as long as it never contains a grep pattern a setupGrepFilteredEmpty
@@ -30,25 +29,25 @@ export const mcpDiscoverBrokerProxy = (): {
   setupFileDiscovery: (params: {
     filepath: string;
     contents: string;
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
   setupMultipleFileDiscovery: (params: {
     files: readonly { filepath: string; contents: string }[];
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
   setupEmptyWithDirectoryHits: (params: {
     directoryPaths: readonly string[];
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
   setupGrepFilteredEmpty: (params: {
     filePaths: readonly string[];
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
   setupFileDiscoveryAtRoot: (params: {
     rootPath: string;
     filepath: string;
     contents: string;
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
 } => {
   const cwdStage = cwdProxy();
@@ -69,7 +68,7 @@ export const mcpDiscoverBrokerProxy = (): {
     }: {
       filepath: string;
       contents: string;
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       fileScannerProxy.setupFiles({ files: [{ filepath, contents }], pattern });
@@ -80,7 +79,7 @@ export const mcpDiscoverBrokerProxy = (): {
       pattern,
     }: {
       files: readonly { filepath: string; contents: string }[];
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       fileScannerProxy.setupFiles({ files, pattern });
@@ -91,7 +90,7 @@ export const mcpDiscoverBrokerProxy = (): {
       pattern,
     }: {
       directoryPaths: readonly string[];
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       // The scanner's own file scan finds nothing (staged through fileScannerProxy, which owns
@@ -112,7 +111,7 @@ export const mcpDiscoverBrokerProxy = (): {
       pattern,
     }: {
       filePaths: readonly string[];
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       // The scanner's own file scan and this hint's file-hit probe reach the gateway's glob with
@@ -137,7 +136,7 @@ export const mcpDiscoverBrokerProxy = (): {
       rootPath: string;
       filepath: string;
       contents: string;
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       fileScannerProxy.setupFilesAtRoot({ rootPath, files: [{ filepath, contents }], pattern });

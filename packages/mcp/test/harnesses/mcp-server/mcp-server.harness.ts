@@ -16,7 +16,7 @@ import { join } from '#gateway/node/path';
 import { envSnapshot } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import {
   CallToolResultSchema,
@@ -50,7 +50,7 @@ interface McpClient {
 }
 
 export const mcpServerHarness = (): {
-  createClient: (params?: { baseName?: ReturnType<typeof BaseNameStub> }) => Promise<McpClient>;
+  createClient: (params?: { baseName?: string }) => Promise<McpClient>;
   buildInitRequest: (params?: { id?: RpcId }) => JsonRpcRequest;
   buildToolListRequest: (params?: { id?: RpcId }) => JsonRpcRequest;
   readToolCallResult: (params: { response: JsonRpcReply }) => {
@@ -91,8 +91,8 @@ export const mcpServerHarness = (): {
     });
 
   const createClient = async ({
-    baseName = BaseNameStub({ value: 'mcp-harness' }),
-  }: { baseName?: ReturnType<typeof BaseNameStub> } = {}): Promise<McpClient> => {
+    baseName = 'mcp-harness',
+  }: { baseName?: string } = {}): Promise<McpClient> => {
     const serverEntryPoint = join(__dirname, '../../../src/index.ts');
 
     const testbed = installTestbedCreateBroker({

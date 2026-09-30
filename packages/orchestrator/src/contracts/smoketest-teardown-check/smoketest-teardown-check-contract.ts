@@ -8,12 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 
 const portFreeCheckContract = z.object({
   kind: z.literal('port-free'),
-  port: networkPortContract,
+  port: z.number().int().min(1).max(65_535).brand<'PortFreeCheckPort'>(),
 }).brand<'PortFreeCheck'>();
 
 const processGoneCheckContract = z.object({

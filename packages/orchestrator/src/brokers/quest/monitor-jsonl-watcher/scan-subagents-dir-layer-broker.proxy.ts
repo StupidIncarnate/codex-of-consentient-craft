@@ -2,12 +2,11 @@ import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
 
 export const scanSubagentsDirLayerBrokerProxy = (): {
-  setupSubagentDirFiles: (params: { subagentsDir: string; files: readonly FileName[] }) => void;
+  setupSubagentDirFiles: (params: { subagentsDir: string; files: readonly string[] }) => void;
   // For a caller that stages "empty at startup, then a file appears by the next poll" — a
   // sticky `setupSubagentDirFiles({files: []})` staged BEFORE a later `setupSubagentDirFiles`
   // call at the same subagentsDir would be shadowed by it for EVERY real readdir call
@@ -20,7 +19,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
   setupLines: (params: { path: string; lines: readonly string[] }) => void;
   setupFirstLineRead: (params: {
     subagentsDir: string;
-    fileName: FileName;
+    fileName: string;
     content: string;
   }) => void;
 } => {
@@ -42,7 +41,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
       files,
     }: {
       subagentsDir: string;
-      files: readonly FileName[];
+      files: readonly string[];
     }): void => {
       readdirProxy.returns({ path: subagentsDir, names: [...files] });
     },
@@ -67,7 +66,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
       content,
     }: {
       subagentsDir: string;
-      fileName: FileName;
+      fileName: string;
       content: string;
     }): void => {
       readLinesProxy.returnsRaw({

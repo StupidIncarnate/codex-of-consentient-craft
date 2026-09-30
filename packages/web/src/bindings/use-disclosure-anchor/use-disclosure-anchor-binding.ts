@@ -22,9 +22,6 @@ import { useCallback, useLayoutEffect, useRef } from '#gateway/npm/react';
 
 import { requestAnimationFrame } from '#gateway/browser/requestAnimationFrame';
 import { window } from '#gateway/browser/window';
-import { scrollOffsetPxContract } from '../../contracts/scroll-offset-px/scroll-offset-px-contract';
-import type { ScrollOffsetPx } from '../../contracts/scroll-offset-px/scroll-offset-px-contract';
-import { scrollPositionPxContract } from '../../contracts/scroll-position-px/scroll-position-px-contract';
 import { disclosureAnchorState } from '../../state/disclosure-anchor/disclosure-anchor-state';
 import { computeAnchorScrollTopTransformer } from '../../transformers/compute-anchor-scroll-top/compute-anchor-scroll-top-transformer';
 
@@ -36,7 +33,7 @@ export const useDisclosureAnchorBinding = (): {
 } => {
   const nodeRef = useRef<HTMLElement | null>(null);
   const scrollportRef = useRef<HTMLElement | null>(null);
-  const heldOffsetRef = useRef<ScrollOffsetPx | null>(null);
+  const heldOffsetRef = useRef<number | null>(null);
   const pendingRef = useRef(false);
 
   // A callback ref rather than a RefObject, so one binding serves a Mantine `Box` (HTMLDivElement)
@@ -77,9 +74,7 @@ export const useDisclosureAnchorBinding = (): {
     }
 
     scrollportRef.current = scrollport;
-    heldOffsetRef.current = scrollOffsetPxContract.parse(
-      anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top,
-    );
+    heldOffsetRef.current = (anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top);
   }, []);
 
   // Deliberately a LAYOUT effect and deliberately un-deped: it has to run after React commits the
@@ -100,14 +95,10 @@ export const useDisclosureAnchorBinding = (): {
 
     scrollport.scrollTop = Number(
       computeAnchorScrollTopTransformer({
-        currentScrollTop: scrollPositionPxContract.parse(Math.max(scrollport.scrollTop, 0)),
-        anchorOffset: scrollOffsetPxContract.parse(
-          anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top,
-        ),
+        currentScrollTop: Math.max(scrollport.scrollTop, 0),
+        anchorOffset: anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top,
         heldOffset,
-        maxScrollTop: scrollPositionPxContract.parse(
-          Math.max(scrollport.scrollHeight - scrollport.clientHeight, 0),
-        ),
+        maxScrollTop: Math.max(scrollport.scrollHeight - scrollport.clientHeight, 0),
       }),
     );
   });

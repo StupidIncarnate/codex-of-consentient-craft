@@ -1,7 +1,6 @@
 import { setImmediate } from '#gateway/node/setImmediate';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 
 import { agentSpawnUnifiedBroker } from './agent-spawn-unified-broker';
 import { agentSpawnUnifiedBrokerProxy } from './agent-spawn-unified-broker.proxy';
@@ -48,7 +47,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -82,7 +81,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -109,7 +108,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -134,7 +133,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -162,7 +161,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -188,7 +187,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -218,7 +217,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -246,7 +245,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -275,7 +274,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         model: 'sonnet',
         onLine,
@@ -301,7 +300,7 @@ describe('agentSpawnUnifiedBroker', () => {
       });
 
       agentSpawnUnifiedBroker({
-        prompt: PromptTextStub(),
+        prompt: 'You are an AI assistant.',
         cwd: '/test',
         resumeSessionId,
         model: 'opus',
@@ -315,7 +314,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       expect(spawnedArgs).toStrictEqual([
         '-p',
-        PromptTextStub(),
+        'You are an AI assistant.',
         '--output-format',
         'stream-json',
         '--verbose',

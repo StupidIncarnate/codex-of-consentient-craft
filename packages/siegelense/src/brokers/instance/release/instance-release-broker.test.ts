@@ -2,7 +2,6 @@
 import { instanceReleaseBroker } from './instance-release-broker';
 import { instanceReleaseBrokerProxy } from './instance-release-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
@@ -14,7 +13,7 @@ describe('instanceReleaseBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         pid: 'proc-12345',
-        pgids: [ProcessGroupIdStub()],
+        pgids: [4821],
         socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
         state: 'alive',
       });
@@ -37,7 +36,7 @@ describe('instanceReleaseBroker', () => {
       const released = RegistryEntryStub({
         id: instanceId,
         pid: 'proc-12345',
-        pgids: [ProcessGroupIdStub()],
+        pgids: [4821],
         socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
       });
       const bystander = RegistryEntryStub({ id: bystanderId });

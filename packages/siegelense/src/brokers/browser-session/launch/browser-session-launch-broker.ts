@@ -36,7 +36,6 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
 import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
-import { matchCountContract } from '../../../contracts/match-count/match-count-contract';
 import { locatorStateContract } from '../../../contracts/locator-state/locator-state-contract';
 import type { RefResolution } from '../../../contracts/ref-resolution/ref-resolution-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -48,7 +47,6 @@ import type { DomTextMode } from '../../../contracts/dom-text-mode/dom-text-mode
 import { bufferLengthsContract } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
-import type { MatchCount } from '../../../contracts/match-count/match-count-contract';
 import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
 import { storageReadingContract } from '../../../contracts/storage-reading/storage-reading-contract';
@@ -316,10 +314,10 @@ export const browserSessionLaunchBroker = async ({
     }: {
       target: string;
       within?: string;
-    }): Promise<MatchCount> => {
+    }): Promise<number> => {
       const scoped = within === undefined ? target : `${within} ${target}`;
       const count = await page.locator(scoped).count();
-      return matchCountContract.parse(count);
+      return count;
     },
 
     describeMatches: async ({

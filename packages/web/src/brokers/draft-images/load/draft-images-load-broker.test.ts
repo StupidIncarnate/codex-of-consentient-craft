@@ -1,5 +1,4 @@
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
-import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 import { draftImagesSaveBroker } from '../save/draft-images-save-broker';
 
@@ -89,7 +88,7 @@ describe('draftImagesLoadBroker', () => {
         scopeKey: 'quest-b',
       });
       proxy.storeHolds({ drafts: [questA, questB] });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
+      proxy.measures({ dataUrl: 'data:image/png;base64,iVBORw0KGgo=', widthPx: 800, heightPx: 600 });
 
       const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 

@@ -1,5 +1,3 @@
-import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
-import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { executionRowSubtitleTransformer } from './execution-row-subtitle-transformer';
 
 describe('executionRowSubtitleTransformer', () => {
@@ -7,7 +5,7 @@ describe('executionRowSubtitleTransformer', () => {
     it('VALID: {status: "queued", dependsOn: ["step-1"]} => returns waiting for slot text', () => {
       const result = executionRowSubtitleTransformer({
         status: 'queued',
-        dependsOn: [DependencyLabelStub({ value: 'step-1' })],
+        dependsOn: ['step-1'],
         files: [],
       });
 
@@ -18,8 +16,8 @@ describe('executionRowSubtitleTransformer', () => {
       const result = executionRowSubtitleTransformer({
         status: 'queued',
         dependsOn: [
-          DependencyLabelStub({ value: 'step-1' }),
-          DependencyLabelStub({ value: 'step-2' }),
+          'step-1',
+          'step-2',
         ],
         files: [],
       });
@@ -32,7 +30,7 @@ describe('executionRowSubtitleTransformer', () => {
     it('VALID: {status: "pending", dependsOn: ["step-1"]} => returns depends on text', () => {
       const result = executionRowSubtitleTransformer({
         status: 'pending',
-        dependsOn: [DependencyLabelStub({ value: 'step-1' })],
+        dependsOn: ['step-1'],
         files: [],
       });
 
@@ -45,7 +43,7 @@ describe('executionRowSubtitleTransformer', () => {
       const result = executionRowSubtitleTransformer({
         status: 'in_progress',
         dependsOn: [],
-        files: [DisplayFilePathStub({ value: 'src/auth.ts' })],
+        files: ['src/auth.ts'],
       });
 
       expect(result).toBe('\u2514\u2500 src/auth.ts');
@@ -55,7 +53,7 @@ describe('executionRowSubtitleTransformer', () => {
       const result = executionRowSubtitleTransformer({
         status: 'complete',
         dependsOn: [],
-        files: [DisplayFilePathStub({ value: 'a.ts' }), DisplayFilePathStub({ value: 'b.ts' })],
+        files: ['a.ts', 'b.ts'],
       });
 
       expect(result).toBe('\u2514\u2500 a.ts, b.ts');
@@ -77,7 +75,7 @@ describe('executionRowSubtitleTransformer', () => {
       const result = executionRowSubtitleTransformer({
         status: 'queued',
         dependsOn: [],
-        files: [DisplayFilePathStub({ value: 'src/auth.ts' })],
+        files: ['src/auth.ts'],
       });
 
       expect(result).toBe('\u2514\u2500 src/auth.ts');

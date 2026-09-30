@@ -2,14 +2,13 @@ import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 export const gatewayExistingPackagesListBrokerProxy = (): {
   setupPackages: (params: {
     packagesDir: string;
     packages: (
-      | { name: FileName; hasPackageJson: boolean }
-      | { name: FileName; children: { name: FileName; hasPackageJson: boolean }[] }
+      | { name: string; hasPackageJson: boolean }
+      | { name: string; children: { name: string; hasPackageJson: boolean }[] }
     )[];
   }) => void;
   setupNoPackagesDir: (params: { packagesDir: string }) => void;

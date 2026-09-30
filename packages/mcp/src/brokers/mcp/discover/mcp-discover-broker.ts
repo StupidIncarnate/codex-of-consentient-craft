@@ -14,8 +14,6 @@ import { discoverResultItemContract } from '../../../contracts/discover-result-i
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
 import { glob as globFind } from '#gateway/npm/glob';
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
@@ -30,7 +28,7 @@ export const mcpDiscoverBroker = async ({
   rootPath,
 }: {
   input: DiscoverInput;
-  ignorePatterns?: readonly GlobPattern[];
+  ignorePatterns?: readonly string[];
   // The resolved project root to scan from — see fileScannerBroker's own rootPath for why the
   // cwd() fallback below exists only for standalone/test callers, never for the
   // real MCP call site (architectureHandleResponder always passes this explicitly).
@@ -93,7 +91,7 @@ export const mcpDiscoverBroker = async ({
     const ignore = globIgnoreFilterTransformer({
       patterns:
         ignorePatterns ??
-        fileDiscoveryStatics.globIgnorePatterns.map((value) => globPatternContract.parse(value)),
+        fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
       glob: globSuffix,
     });
 

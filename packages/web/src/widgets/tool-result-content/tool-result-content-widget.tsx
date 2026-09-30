@@ -16,8 +16,6 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
-import type { CssPixels } from '@dungeonmaster/shared/contracts';
 import type { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { markdownTypographyStatics } from '../../statics/markdown-typography/markdown-typography-statics';
 import { parseToolResultDisplayTransformer } from '../../transformers/parse-tool-result-display/parse-tool-result-display-transformer';
@@ -26,10 +24,10 @@ import { ToolResultPartLayerWidget } from './tool-result-part-layer-widget';
 export interface ToolResultContentWidgetProps {
   content: string;
   color: (typeof emberDepthsThemeStatics.colors)[keyof typeof emberDepthsThemeStatics.colors];
-  fontSize?: CssPixels;
+  fontSize?: number;
 }
 
-const DEFAULT_FONT_SIZE = cssPixelsContract.parse(markdownTypographyStatics.bodyFontSize);
+const DEFAULT_FONT_SIZE = markdownTypographyStatics.bodyFontSize;
 
 export const ToolResultContentWidget = ({
   content,

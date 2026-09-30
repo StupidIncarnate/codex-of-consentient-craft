@@ -1,10 +1,9 @@
 import { kebabToCamelTransformer } from './kebab-to-camel-transformer';
-import { FunctionNameStub } from '../../contracts/function-name/function-name.stub';
 
 describe('kebabToCamelTransformer', () => {
   it('VALID: "has-permission-guard" => "hasPermissionGuard"', () => {
     const result = kebabToCamelTransformer({
-      kebabCase: FunctionNameStub({ value: 'has-permission-guard' }),
+      kebabCase: 'has-permission-guard',
     });
 
     expect(result).toBe('hasPermissionGuard');
@@ -12,7 +11,7 @@ describe('kebabToCamelTransformer', () => {
 
   it('VALID: "user-fetch-broker" => "userFetchBroker"', () => {
     const result = kebabToCamelTransformer({
-      kebabCase: FunctionNameStub({ value: 'user-fetch-broker' }),
+      kebabCase: 'user-fetch-broker',
     });
 
     expect(result).toBe('userFetchBroker');
@@ -20,7 +19,7 @@ describe('kebabToCamelTransformer', () => {
 
   it('VALID: "simple" => "simple" (no hyphens)', () => {
     const result = kebabToCamelTransformer({
-      kebabCase: FunctionNameStub({ value: 'simple' }),
+      kebabCase: 'simple',
     });
 
     expect(result).toBe('simple');
@@ -28,7 +27,7 @@ describe('kebabToCamelTransformer', () => {
 
   it('VALID: "a-b-c-d" => "aBCD" (multiple hyphens)', () => {
     const result = kebabToCamelTransformer({
-      kebabCase: FunctionNameStub({ value: 'a-b-c-d' }),
+      kebabCase: 'a-b-c-d',
     });
 
     expect(result).toBe('aBCD');

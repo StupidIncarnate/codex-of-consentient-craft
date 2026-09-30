@@ -2,23 +2,22 @@ import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 export const packageDiscoverBrokerProxy = (): {
   setupPackageDiscovery: (params: {
     packagesPath: string;
     packages: (
       | {
-          name: FileName;
+          name: string;
           standardPath: string;
           alternatePath?: string;
           installerLocation: 'standard' | 'alternate' | 'none';
           hasFinalize?: boolean;
         }
       | {
-          name: FileName;
+          name: string;
           children: {
-            name: FileName;
+            name: string;
             standardPath: string;
             alternatePath?: string;
             installerLocation: 'standard' | 'alternate' | 'none';
@@ -32,16 +31,16 @@ export const packageDiscoverBrokerProxy = (): {
     dungeonmasterRoot: string;
     packages: (
       | {
-          name: FileName;
+          name: string;
           standardPath: string;
           alternatePath?: string;
           installerLocation: 'standard' | 'alternate' | 'none';
           hasFinalize?: boolean;
         }
       | {
-          name: FileName;
+          name: string;
           children: {
-            name: FileName;
+            name: string;
             standardPath: string;
             alternatePath?: string;
             installerLocation: 'standard' | 'alternate' | 'none';
@@ -68,7 +67,7 @@ export const packageDiscoverBrokerProxy = (): {
       // into it via a second `readdirSync` call, keyed here by the joined group path, and its
       // `children` are the leaf entries that actually get an existsSync check below.
       const leafEntries: {
-        name: FileName;
+        name: string;
         standardPath: string;
         alternatePath?: string;
         installerLocation: 'standard' | 'alternate' | 'none';
@@ -137,7 +136,7 @@ export const packageDiscoverBrokerProxy = (): {
       });
 
       const leafEntries: {
-        name: FileName;
+        name: string;
         standardPath: string;
         alternatePath?: string;
         installerLocation: 'standard' | 'alternate' | 'none';

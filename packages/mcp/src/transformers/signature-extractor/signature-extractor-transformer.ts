@@ -7,12 +7,7 @@
  * });
  * // Returns: { raw: '...', parameters: [...], returnType: 'string' }
  */
-import { signatureRawContract } from '../../contracts/signature-raw/signature-raw-contract';
-import { parameterNameContract } from '../../contracts/parameter-name/parameter-name-contract';
-import { returnTypeContract } from '../../contracts/return-type/return-type-contract';
-import { typeNameContract } from '../../contracts/type-name/type-name-contract';
 import type { FunctionSignature } from '../../contracts/file-metadata/file-metadata-contract';
-import type { TypeName } from '../../contracts/type-name/type-name-contract';
 import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transformer';
 
 // Allows one level of `{}` nesting inside a `{...}` block — e.g. `{ x: { y: string } }`.
@@ -55,7 +50,7 @@ export const signatureExtractorTransformer = ({
       }
     }
 
-    const paramTypesObj: Record<TypeName, TypeName> = {} as Record<TypeName, TypeName>;
+    const paramTypesObj: Record<string, string> = {} as Record<string, string>;
 
     // Walk the types block once, respecting bracket depth so nested `{...}` and generics
     // don't split prematurely. We split the block on top-level `;`, then split each entry
@@ -93,7 +88,7 @@ export const signatureExtractorTransformer = ({
         const name = entry.slice(0, colonIdx).trim();
         const type = entry.slice(colonIdx + 1).trim();
         if (name && type) {
-          paramTypesObj[typeNameContract.parse(name)] = typeNameContract.parse(type);
+          paramTypesObj[name] = type;
         }
       } else {
         current += ch;
@@ -101,14 +96,14 @@ export const signatureExtractorTransformer = ({
     }
 
     return {
-      raw: signatureRawContract.parse(matchWithParams[0]),
+      raw: matchWithParams[0],
       parameters: [
         {
-          name: parameterNameContract.parse('destructured object'),
+          name: 'destructured object',
           type: paramTypesObj,
         },
       ],
-      returnType: returnTypeContract.parse(returnTypeStr),
+      returnType: returnTypeStr,
     };
   }
 
@@ -133,9 +128,9 @@ export const signatureExtractorTransformer = ({
     }
 
     return {
-      raw: signatureRawContract.parse(matchNoParams[0]),
+      raw: matchNoParams[0],
       parameters: [],
-      returnType: returnTypeContract.parse(returnTypeStr),
+      returnType: returnTypeStr,
     };
   }
 

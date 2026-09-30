@@ -8,7 +8,6 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
-import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 
 export const astModuleMockCallsTransformer = ({
@@ -36,7 +35,7 @@ export const astModuleMockCallsTransformer = ({
       const [firstArg] = node.arguments;
       if (firstArg && ts.isObjectLiteralExpression(firstArg)) {
         let moduleProp: string | null = null;
-        let factoryProp: ReturnType<typeof factoryFunctionTextContract.parse> | null = null;
+        let factoryProp: string | null = null;
 
         for (const prop of firstArg.properties) {
           if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name)) {

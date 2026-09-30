@@ -1,5 +1,4 @@
 
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 
 import { binResolveBroker } from './bin-resolve-broker';
 import { binResolveBrokerProxy } from './bin-resolve-broker.proxy';
@@ -9,7 +8,7 @@ describe('binResolveBroker', () => {
     it('VALID: {eslint exists in .bin} => returns absolute path to binary', () => {
       const proxy = binResolveBrokerProxy();
       const cwd = '/project';
-      const binName = BinCommandStub({ value: 'eslint' });
+      const binName = 'eslint';
       proxy.setupFound({ cwd, binName });
 
       const result = binResolveBroker({ binName, cwd });
@@ -23,7 +22,7 @@ describe('binResolveBroker', () => {
       const proxy = binResolveBrokerProxy();
       const cwd = '/repo/packages/ward';
       const root = '/repo';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupFoundAt({ cwd, binName, binDir: root, workspaceRoot: root });
 
       const result = binResolveBroker({ binName, cwd });
@@ -36,7 +35,7 @@ describe('binResolveBroker', () => {
     it('VALID: {eslint not in .bin} => returns bare binary name', () => {
       const proxy = binResolveBrokerProxy();
       const cwd = '/project';
-      const binName = BinCommandStub({ value: 'eslint' });
+      const binName = 'eslint';
       proxy.setupNotFound({ cwd, binName });
 
       const result = binResolveBroker({ binName, cwd });

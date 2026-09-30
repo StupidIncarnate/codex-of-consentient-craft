@@ -19,7 +19,6 @@
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
-import { type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { typedFunctionTakesNoArgsTransformer } from '../../../transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer';
 import { typedSpyMethodTakesNoArgsLayerBroker } from './typed-spy-method-takes-no-args-layer-broker';

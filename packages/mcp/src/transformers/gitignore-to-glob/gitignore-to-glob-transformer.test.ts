@@ -1,5 +1,4 @@
 import { gitignoreToGlobTransformer } from './gitignore-to-glob-transformer';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('gitignoreToGlobTransformer', () => {
   describe('line translation', () => {
@@ -21,7 +20,7 @@ describe('gitignoreToGlobTransformer', () => {
         contents: line,
       });
 
-      expect(result).toStrictEqual(expected.map((value) => GlobPatternStub({ value })));
+      expect(result).toStrictEqual(expected.map((value) => value));
     });
   });
 

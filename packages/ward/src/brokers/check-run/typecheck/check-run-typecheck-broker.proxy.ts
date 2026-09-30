@@ -6,8 +6,6 @@ import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-dis
 import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
 import { tsconfigDiscoverPatternsTransformer } from '../../../transformers/tsconfig-discover-patterns/tsconfig-discover-patterns-transformer';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -46,7 +44,7 @@ export const checkRunTypecheckBrokerProxy = (): {
   // `tsconfig.build.json` defaults to NOT FOUND, so every scenario in this proxy is single-pass
   // unless a test calls `setupBuildConfigPresent` — every test written before that method existed
   // keeps exercising the same one tsc invocation it always did.
-  const setupDiscovery = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
+  const setupDiscovery = ({ projectFolder }: { projectFolder: ProjectFolder }): string => {
     const tsconfigPath = `${projectFolder.path}/tsconfig.json`;
     const buildTsconfigPath = `${projectFolder.path}/tsconfig.build.json`;
     existsProxy.returns({ path: tsconfigPath, exists: true });
@@ -58,7 +56,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
     return binProxy.setupFound({
       cwd: projectFolder.path,
-      binName: BinCommandStub({ value: checkCommandsStatics.typecheck.bin }),
+      binName: checkCommandsStatics.typecheck.bin,
     });
   };
 

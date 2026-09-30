@@ -10,10 +10,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const ownerIndexUsageContract = z.object({
-  filePath: absoluteFilePathContract,
+  filePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'OwnerIndexUsageFilePath'>(),
   contractName: z.string().brand<'OwnerIndexUsageContractName'>(),
   key: z.string().brand<'OwnerIndexUsageKey'>(),
   kind: z.enum(['owner-reuse', 'brand-ref', 'inline-copy']),

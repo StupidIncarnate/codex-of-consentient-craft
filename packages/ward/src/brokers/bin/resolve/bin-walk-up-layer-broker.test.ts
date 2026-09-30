@@ -1,5 +1,4 @@
 
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 
 import { binWalkUpLayerBroker } from './bin-walk-up-layer-broker';
 import { binWalkUpLayerBrokerProxy } from './bin-walk-up-layer-broker.proxy';
@@ -9,7 +8,7 @@ describe('binWalkUpLayerBroker', () => {
     it('VALID: {jest in /repo/packages/ward/node_modules/.bin} => returns that absolute path', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/repo/packages/ward';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupWalk({ dir, binName, binDir: dir, workspaceRoot: null });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -23,7 +22,7 @@ describe('binWalkUpLayerBroker', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/repo/packages/ward';
       const root = '/repo';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupWalk({ dir, binName, binDir: root, workspaceRoot: root });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -35,7 +34,7 @@ describe('binWalkUpLayerBroker', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/repo/packages/ward';
       const root = '/repo';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupWalk({ dir, binName, binDir: dir, workspaceRoot: root });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -48,7 +47,7 @@ describe('binWalkUpLayerBroker', () => {
       const dir = '/repo/packages/ward/src';
       const middle = '/repo/packages';
       const root = '/repo';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupWalk({ dir, binName, binDir: middle, workspaceRoot: root });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -62,7 +61,7 @@ describe('binWalkUpLayerBroker', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/repo/packages/ward';
       const root = '/repo';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupWalk({ dir, binName, binDir: null, workspaceRoot: root });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -74,7 +73,7 @@ describe('binWalkUpLayerBroker', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/home/me/repo/packages/ward';
       const root = '/home/me/repo';
-      const binName = BinCommandStub({ value: 'jest' });
+      const binName = 'jest';
       proxy.setupWalk({ dir, binName, binDir: null, workspaceRoot: root });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -85,7 +84,7 @@ describe('binWalkUpLayerBroker', () => {
     it('EDGE: {no workspaces anywhere and no .bin} => walks to the filesystem root and returns the bare name', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/solo/pkg';
-      const binName = BinCommandStub({ value: 'tsc' });
+      const binName = 'tsc';
       proxy.setupWalk({ dir, binName, binDir: null, workspaceRoot: null });
 
       const result = binWalkUpLayerBroker({ binName, dir });
@@ -97,7 +96,7 @@ describe('binWalkUpLayerBroker', () => {
       const proxy = binWalkUpLayerBrokerProxy();
       const dir = '/solo/pkg';
       const fsRoot = '/';
-      const binName = BinCommandStub({ value: 'tsc' });
+      const binName = 'tsc';
       proxy.setupWalk({ dir, binName, binDir: fsRoot, workspaceRoot: null });
 
       const result = binWalkUpLayerBroker({ binName, dir });

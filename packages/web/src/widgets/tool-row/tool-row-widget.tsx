@@ -20,8 +20,7 @@
 import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useState } from '#gateway/npm/react';
 
-import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { offscreenPlaceholderStatics } from '../../statics/offscreen-placeholder/offscreen-placeholder-statics';
@@ -52,10 +51,10 @@ export interface ToolRowWidgetProps {
   // Where this row's header pins once it is open — the combined height of every expandable header
   // it is nested inside. Rows rendered straight into a scroll panel take the default and pin flush
   // to its top.
-  stickyTop?: CssPixels;
+  stickyTop?: number;
 }
 
-const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
+const STICKY_TOP_ROOT = 0;
 
 const CHEVRON_EXPANDED = '\u25BE';
 const CHEVRON_COLLAPSED = '\u25B8';
@@ -65,7 +64,7 @@ const STATUS_SKIP = '\u2298';
 const TOOL_NAME_FONT_SIZE = 11;
 const PARAM_FONT_SIZE = 10;
 const DETAIL_FONT_SIZE = 10;
-const RESULT_FONT_SIZE = cssPixelsContract.parse(DETAIL_FONT_SIZE);
+const RESULT_FONT_SIZE = DETAIL_FONT_SIZE;
 
 export const ToolRowWidget = ({
   toolUse,

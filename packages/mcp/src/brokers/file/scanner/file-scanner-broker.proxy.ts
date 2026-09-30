@@ -20,8 +20,6 @@ import { resolvePackageRoot } from '#gateway/node/module';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import type { FsError } from '#gateway/node/fs';
 
 const BROAD_GLOB_PREFIX = '**';
@@ -29,8 +27,8 @@ const BROAD_GLOB_PREFIX = '**';
 export const fileScannerBrokerProxy = (): {
   setupFiles: (params: {
     files: readonly { filepath: string; contents: string }[];
-    pattern: GlobPattern;
-    ignorePatterns?: readonly GlobPattern[];
+    pattern: string;
+    ignorePatterns?: readonly string[];
   }) => void;
   setupFilesWithFailingReads: (params: {
     files: readonly {
@@ -38,14 +36,14 @@ export const fileScannerBrokerProxy = (): {
       contents?: string;
       error?: FsError;
     }[];
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
   setupFilesAtRoot: (params: {
     rootPath: string;
     files: readonly { filepath: string; contents: string }[];
-    pattern: GlobPattern;
+    pattern: string;
   }) => void;
-  setupGlobFailure: (params: { pattern: GlobPattern; error: Error }) => void;
+  setupGlobFailure: (params: { pattern: string; error: Error }) => void;
 } => {
   const cwdStage = cwdProxy();
   const stageDefaultCwd = (): void => {
@@ -71,13 +69,13 @@ export const fileScannerBrokerProxy = (): {
     pattern,
     ignorePatterns,
   }: {
-    pattern: GlobPattern;
-    ignorePatterns?: readonly GlobPattern[];
-  }): readonly GlobPattern[] =>
+    pattern: string;
+    ignorePatterns?: readonly string[];
+  }): readonly string[] =>
     globIgnoreFilterTransformer({
       patterns:
         ignorePatterns ??
-        fileDiscoveryStatics.globIgnorePatterns.map((value) => globPatternContract.parse(value)),
+        fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
       glob: pattern,
     });
 
@@ -126,8 +124,8 @@ export const fileScannerBrokerProxy = (): {
       ignorePatterns,
     }: {
       files: readonly { filepath: string; contents: string }[];
-      pattern: GlobPattern;
-      ignorePatterns?: readonly GlobPattern[];
+      pattern: string;
+      ignorePatterns?: readonly string[];
     }): void => {
       stageDefaultCwd();
       stageScans({
@@ -149,7 +147,7 @@ export const fileScannerBrokerProxy = (): {
         contents?: string;
         error?: FsError;
       }[];
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       stageScans({
@@ -177,7 +175,7 @@ export const fileScannerBrokerProxy = (): {
     }: {
       rootPath: string;
       files: readonly { filepath: string; contents: string }[];
-      pattern: GlobPattern;
+      pattern: string;
     }): void => {
       stageDefaultCwd();
       stageScans({
@@ -194,10 +192,10 @@ export const fileScannerBrokerProxy = (): {
     // Stages the project scan to REJECT, the way a bad pattern or an unreadable cwd does through
     // the gateway's own try/catch — proving the broker's rejection now carries the gateway's
     // pattern-naming message rather than a raw, unwrapped one.
-    setupGlobFailure: ({ pattern, error }: { pattern: GlobPattern; error: Error }): void => {
+    setupGlobFailure: ({ pattern, error }: { pattern: string; error: Error }): void => {
       stageDefaultCwd();
       globGateway.throws({
-        pattern: globPatternContract.parse(`${scanRoot}/${pattern}`),
+        pattern: `${scanRoot}/${pattern}`,
         options: { cwd: scanRoot, ignore: ignoreFor({ pattern }) },
         error,
       });

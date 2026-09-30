@@ -8,7 +8,6 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 
-import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { eslintJsonReportContract } from '../../../contracts/eslint-json-report/eslint-json-report-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -37,7 +36,7 @@ export const checkRunLintBroker = async ({
   const { bin, args } = checkCommandsStatics.lint;
   const cwd = projectFolder.path;
   const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
-  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
+  const command = String(binResolveBroker({ binName: bin, cwd }));
 
   // A missing `eslint` binary rejects `run` with RunNotFoundError rather than resolving a result —
   // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved

@@ -27,7 +27,6 @@ import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-com
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
 import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
@@ -37,16 +36,16 @@ const DROPDOWN_WIDTH = 260;
 const PRIMARY_VARIANT = buttonVariantContract.parse('primary');
 const DANGER_VARIANT = buttonVariantContract.parse('danger');
 const BUBBLE_LABEL = buttonLabelContract.parse('Comment on this box');
-const BUBBLE_TEST_ID = testIdContract.parse('COMMENT_BUTTON');
-const BUBBLE_ROW_TEST_ID = testIdContract.parse('COMMENT_BUTTON_ROW');
+const BUBBLE_TEST_ID = 'COMMENT_BUTTON';
+const BUBBLE_ROW_TEST_ID = 'COMMENT_BUTTON_ROW';
 const QUEUE_LABEL = buttonLabelContract.parse('Queue comment');
-const QUEUE_TEST_ID = testIdContract.parse('COMMENT_QUEUE_BUTTON');
+const QUEUE_TEST_ID = 'COMMENT_QUEUE_BUTTON';
 const CANCEL_LABEL = buttonLabelContract.parse('Cancel comment');
-const CANCEL_TEST_ID = testIdContract.parse('COMMENT_CANCEL_BUTTON');
+const CANCEL_TEST_ID = 'COMMENT_CANCEL_BUTTON';
 const EDIT_LABEL = buttonLabelContract.parse('Edit queued comment');
-const EDIT_TEST_ID = testIdContract.parse('COMMENT_EDIT_BUTTON');
+const EDIT_TEST_ID = 'COMMENT_EDIT_BUTTON';
 const DELETE_LABEL = buttonLabelContract.parse('Delete queued comment');
-const DELETE_TEST_ID = testIdContract.parse('COMMENT_DELETE_BUTTON');
+const DELETE_TEST_ID = 'COMMENT_DELETE_BUTTON';
 
 export interface CommentPopoverWidgetProps {
   questId: Quest['id'];

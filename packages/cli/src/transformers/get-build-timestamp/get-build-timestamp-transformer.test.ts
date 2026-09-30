@@ -1,7 +1,6 @@
 import { getBuildTimestampTransformer } from './get-build-timestamp-transformer';
-import type { BuildTimestampStub } from '../../contracts/build-timestamp/build-timestamp.stub';
 
-type BuildTimestamp = ReturnType<typeof BuildTimestampStub>;
+type BuildTimestamp = string;
 
 describe('getBuildTimestampTransformer', () => {
   describe('when __BUILD_TIMESTAMP__ is not defined', () => {

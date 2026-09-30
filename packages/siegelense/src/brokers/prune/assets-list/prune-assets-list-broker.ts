@@ -16,7 +16,7 @@
 import { pruneAssetsListResultContract } from '../../../contracts/prune-assets-list-result/prune-assets-list-result-contract';
 import type { PruneAssetsListResult } from '../../../contracts/prune-assets-list-result/prune-assets-list-result-contract';
 import { join } from '#gateway/node/path';
-import { fileNameContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
@@ -98,7 +98,7 @@ export const pruneAssetsListBroker = async ({
 
   const runFileRows = await Promise.all(
     runsEntries.map(async (entryName) => {
-      const fileName = fileNameContract.parse(entryName);
+      const fileName = entryName;
       const kind = pruneAssetClassifyTransformer({ fileName });
 
       if (kind === null) {
@@ -128,7 +128,7 @@ export const pruneAssetsListBroker = async ({
   const videoEntries = (await readdirIfExists(videoDir)) ?? [];
   const videoRows = await Promise.all(
     videoEntries.map(async (entryName) => {
-      const fileName = fileNameContract.parse(entryName);
+      const fileName = entryName;
       const kind = pruneAssetClassifyTransformer({ fileName });
 
       if (kind === null) {

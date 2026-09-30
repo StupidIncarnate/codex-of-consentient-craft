@@ -1,13 +1,10 @@
-import { ModulePathStub } from '@dungeonmaster/shared/contracts/module-path/module-path.stub';
 import { workspaceFolderBarrelProxyPathTransformer } from './workspace-folder-barrel-proxy-path-transformer';
 
 describe('workspaceFolderBarrelProxyPathTransformer', () => {
   it('VALID: {brokers barrel, nested wrapper path} => joins them and appends .proxy', () => {
     const result = workspaceFolderBarrelProxyPathTransformer({
-      importPath: ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
-      relativeWrapperPath: ModulePathStub({
-        value: 'project-root/find/project-root-find-broker',
-      }),
+      importPath: '@dungeonmaster/shared/brokers',
+      relativeWrapperPath: 'project-root/find/project-root-find-broker',
     });
 
     expect(result).toBe(
@@ -17,8 +14,8 @@ describe('workspaceFolderBarrelProxyPathTransformer', () => {
 
   it('VALID: {startup barrel, single-level wrapper path} => joins them and appends .proxy', () => {
     const result = workspaceFolderBarrelProxyPathTransformer({
-      importPath: ModulePathStub({ value: '@acme/orders/startup' }),
-      relativeWrapperPath: ModulePathStub({ value: 'start-orders' }),
+      importPath: '@acme/orders/startup',
+      relativeWrapperPath: 'start-orders',
     });
 
     expect(result).toBe('@acme/orders/startup/start-orders.proxy');

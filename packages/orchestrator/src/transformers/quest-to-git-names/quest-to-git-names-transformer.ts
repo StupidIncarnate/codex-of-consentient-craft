@@ -13,8 +13,7 @@
  */
 
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { FileName, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questBranchStatics } from '../../statics/quest-branch/quest-branch-statics';
 
@@ -27,7 +26,7 @@ export const questToGitNamesTransformer = ({
 }: {
   title: string;
   questId: Quest['id'];
-}): { branchName: string; worktreeDirName: FileName } => {
+}): { branchName: string; worktreeDirName: string } => {
   // nameToUrlSlugTransformer's output contract (urlSlugContract) requires at least one character,
   // so it throws rather than returning '' for a title with no alphanumeric content at all. A title
   // containing at least one alphanumeric character is guaranteed to slug to a non-empty string
@@ -41,9 +40,7 @@ export const questToGitNamesTransformer = ({
     .replace(TRAILING_HYPHENS_PATTERN, '');
   const slug = truncatedSlug.length === 0 ? questBranchStatics.fallbackSlug : truncatedSlug;
 
-  const worktreeDirName = fileNameContract.parse(
-    `${slug}-${questId.slice(0, questBranchStatics.questIdSuffixLength)}`,
-  );
+  const worktreeDirName = `${slug}-${questId.slice(0, questBranchStatics.questIdSuffixLength)}`;
   const branchName = `${questBranchStatics.branchPrefix}${worktreeDirName}`;
 
   return { branchName, worktreeDirName };

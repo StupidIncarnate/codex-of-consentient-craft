@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -1192,7 +1191,7 @@ describe('runExecuteBroker', () => {
           path: '/tmp/dm-siege-inst_seed/siege-repo',
           urlSlug: 'siege-guild',
         }),
-        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+        questIds: MINTED_QUEST_IDS.map((value) => value),
       });
       const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
 
@@ -1228,7 +1227,7 @@ describe('runExecuteBroker', () => {
           path: '/tmp/dm-siege-inst_seed/siege-repo',
           urlSlug: 'siege-guild',
         }),
-        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+        questIds: MINTED_QUEST_IDS.map((value) => value),
       });
       const { lane } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
 
@@ -1278,7 +1277,7 @@ describe('runExecuteBroker', () => {
           path: '/tmp/first-guild',
           urlSlug: 'first-guild',
         }),
-        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+        questIds: MINTED_QUEST_IDS.map((value) => value),
         secondGuild: GuildStub({
           id: '88888888-8888-4888-8888-888888888888',
           name: 'Second Guild',

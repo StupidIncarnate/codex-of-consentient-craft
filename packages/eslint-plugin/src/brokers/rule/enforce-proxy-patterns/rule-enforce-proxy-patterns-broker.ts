@@ -8,7 +8,6 @@
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isIoBoundaryProxyGuard } from '../../../guards/is-io-boundary-proxy/is-io-boundary-proxy-guard';
 import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';

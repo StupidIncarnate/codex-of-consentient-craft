@@ -6,7 +6,6 @@
  * // Returns FileName('1739625600000-a3f1') or null if not found
  */
 
-import { fileNameContract, type FileName } from '@dungeonmaster/shared/contracts';
 
 // Capture only the `<timestamp>-<hex>` run id. The line may carry a trailing total-duration
 // suffix (`run: 1780108054226-a080  (80.7s)`) appended by ward's resultToSummaryTransformer;
@@ -17,12 +16,12 @@ export const wardOutputToRunIdTransformer = ({
   output,
 }: {
   output: string;
-}): FileName | null => {
+}): string | null => {
   const match = RUN_ID_REGEX.exec(String(output));
 
   if (!match?.[1]) {
     return null;
   }
 
-  return fileNameContract.parse(match[1]);
+  return match[1];
 };

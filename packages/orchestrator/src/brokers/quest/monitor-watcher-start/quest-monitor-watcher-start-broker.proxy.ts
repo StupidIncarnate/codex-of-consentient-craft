@@ -1,5 +1,5 @@
 import { homedir } from '#gateway/node/os';
-import { type FileName, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -21,7 +21,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
     homeDir: string;
     projectDir: string;
     parentSessionId: string;
-    files: readonly FileName[];
+    files: readonly string[];
   }) => void;
   // homeDir/projectDir/parentSessionId of the three methods below must match the values the
   // test's own questMonitorWatcherStartBroker call uses — the real broker derives every tailed
@@ -44,7 +44,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
     homeDir: string;
     projectDir: string;
     parentSessionId: string;
-    fileName: FileName;
+    fileName: string;
     lines: readonly string[];
   }) => void;
   // Queues the content the scan reads as a not-yet-paired sub-agent file's FIRST line —
@@ -95,7 +95,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       homeDir: string;
       projectDir: string;
       parentSessionId: string;
-      files: readonly FileName[];
+      files: readonly string[];
     }): void => {
       const sessionFilePath = claudeProjectPathEncoderTransformer({
         homeDir: homeDir,
@@ -144,7 +144,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       homeDir: string;
       projectDir: string;
       parentSessionId: string;
-      fileName: FileName;
+      fileName: string;
       lines: readonly string[];
     }): void => {
       jsonlWatcherProxy.setupLines({

@@ -16,7 +16,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, repoRootCwdContract } from '@dungeonmaster/shared/contracts';
+import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 
 export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   // The cwd this SESSION was recorded running in, read off the quest's `sessions` ledger. It
@@ -37,7 +37,7 @@ export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('missing-worktree'),
-    worktreePath: absoluteFilePathContract,
+    worktreePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestCwdResolutionWorktreePath'>(),
   }).brand<'QuestCwdResolution'>(),
 ]);
 

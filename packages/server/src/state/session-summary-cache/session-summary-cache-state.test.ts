@@ -1,7 +1,5 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { MtimeMsStub } from '../../contracts/mtime-ms/mtime-ms.stub';
-import { SessionSummaryStub } from '../../contracts/session-summary/session-summary.stub';
 
 import { sessionSummaryCacheState } from './session-summary-cache-state';
 import { sessionSummaryCacheStateProxy } from './session-summary-cache-state.proxy';
@@ -15,7 +13,7 @@ describe('sessionSummaryCacheState', () => {
 
       const result = sessionSummaryCacheState.get({
         sessionId,
-        mtimeMs: MtimeMsStub({ value: 1000 }),
+        mtimeMs: 1000,
       });
 
       expect(result).toStrictEqual({ hit: false });
@@ -25,8 +23,8 @@ describe('sessionSummaryCacheState', () => {
       const proxy = sessionSummaryCacheStateProxy();
       proxy.setupEmpty();
       const sessionId = SessionIdStub({ value: 'cached-session' });
-      const summary = SessionSummaryStub({ value: 'Built login page' });
-      const mtimeMs = MtimeMsStub({ value: 1000 });
+      const summary = 'Built login page';
+      const mtimeMs = 1000;
       sessionSummaryCacheState.set({ sessionId, mtimeMs, summary });
 
       const result = sessionSummaryCacheState.get({ sessionId, mtimeMs });
@@ -38,12 +36,12 @@ describe('sessionSummaryCacheState', () => {
       const proxy = sessionSummaryCacheStateProxy();
       proxy.setupEmpty();
       const sessionId = SessionIdStub({ value: 'stale-session' });
-      const summary = SessionSummaryStub({ value: 'Old summary' });
-      sessionSummaryCacheState.set({ sessionId, mtimeMs: MtimeMsStub({ value: 1000 }), summary });
+      const summary = 'Old summary';
+      sessionSummaryCacheState.set({ sessionId, mtimeMs: 1000, summary });
 
       const result = sessionSummaryCacheState.get({
         sessionId,
-        mtimeMs: MtimeMsStub({ value: 2000 }),
+        mtimeMs: 2000,
       });
 
       expect(result).toStrictEqual({ hit: false });
@@ -53,7 +51,7 @@ describe('sessionSummaryCacheState', () => {
       const proxy = sessionSummaryCacheStateProxy();
       proxy.setupEmpty();
       const sessionId = SessionIdStub({ value: 'no-summary-session' });
-      const mtimeMs = MtimeMsStub({ value: 1000 });
+      const mtimeMs = 1000;
       sessionSummaryCacheState.set({ sessionId, mtimeMs, summary: undefined });
 
       const result = sessionSummaryCacheState.get({ sessionId, mtimeMs });
@@ -68,9 +66,9 @@ describe('sessionSummaryCacheState', () => {
       proxy.setupEmpty();
       const sessionId1 = SessionIdStub({ value: 'session-1' });
       const sessionId2 = SessionIdStub({ value: 'session-2' });
-      const summary = SessionSummaryStub({ value: 'Some summary' });
-      const mtimeMs1 = MtimeMsStub({ value: 1000 });
-      const mtimeMs2 = MtimeMsStub({ value: 2000 });
+      const summary = 'Some summary';
+      const mtimeMs1 = 1000;
+      const mtimeMs2 = 2000;
       sessionSummaryCacheState.set({ sessionId: sessionId1, mtimeMs: mtimeMs1, summary });
       sessionSummaryCacheState.set({ sessionId: sessionId2, mtimeMs: mtimeMs2, summary });
 

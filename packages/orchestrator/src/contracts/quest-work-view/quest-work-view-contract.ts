@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
@@ -108,7 +108,7 @@ const questWorkCommit = z.object({
   sha: z.string().regex(/^[0-9a-f]{7,40}$/u).brand<'QuestWorkCommitSha'>(),
   scope: z.string().min(1).brand<'QuestWorkCommitScope'>().nullable(),
   subject: z.string().min(1).brand<'QuestWorkCommitSubject'>(),
-  paths: z.array(repoRelativePathContract).default([]),
+  paths: z.array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'QuestWorkCommitPaths'>()).default([]),
 }).brand<'QuestWorkCommit'>();
 
 // `.unwrap().nullable()` rather than re-declaring the branch types — the pattern
@@ -130,9 +130,9 @@ const questWorkGit = z.object({
 const questWorkWard = z.object({
   wardResultId: wardResultContract.shape.id,
   runId: wardResultContract.shape.runId.unwrap().nullable(),
-  blobPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardBlobPath'>(),
+  blobPath: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkWardBlobPath'>(), relativeFilePathContract]).brand<'QuestWorkWardBlobPath'>(),
   failingCheckTypes: z.array(z.string().min(1).brand<'QuestWorkWardFailingCheckTypes'>()).default([]),
-  failingPaths: z.array(z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardFailingPaths'>()).default([]),
+  failingPaths: z.array(z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkWardFailingPaths'>(), relativeFilePathContract]).brand<'QuestWorkWardFailingPaths'>()).default([]),
 }).brand<'QuestWorkWard'>();
 
 // An attack is an ABSENCE claim, and an absence is only evidence against a known-good reading taken
@@ -167,10 +167,10 @@ export const questWorkViewContract = z.object({
   sessionNotes: z.array(questNoteContract).default([]),
   mintingObservation: unitObservationContract.nullable(),
   recipes: z.array(questWorkRecipe).default([]),
-  uncommittedPaths: z.array(repoRelativePathContract).default([]),
+  uncommittedPaths: z.array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'QuestWorkViewUncommittedPaths'>()).default([]),
   committedPaths: z.array(questWorkCommit).default([]),
   ward: questWorkWard.nullable(),
-  riftcarverLogPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkViewRiftcarverLogPath'>().nullable(),
+  riftcarverLogPath: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkViewRiftcarverLogPath'>(), relativeFilePathContract]).brand<'QuestWorkViewRiftcarverLogPath'>().nullable(),
   git: questWorkGit,
   instance: questWorkInstanceContract.nullable(),
   baseline: questWorkBaseline.nullable(),

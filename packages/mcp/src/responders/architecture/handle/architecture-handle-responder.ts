@@ -30,7 +30,6 @@ import {
   architectureProjectMapBroker,
   architectureGatewayInventoryBroker,
 } from '@dungeonmaster/shared/brokers';
-import { contentTextContract as sharedContentTextContract } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
@@ -196,7 +195,7 @@ export const ArchitectureHandleResponder = async ({
     const srcPath = `${packageDir}/src`;
     const packageJsonPath = `${packageDir}/package.json`;
     const result = architecturePackageInventoryBroker({
-      packageName: sharedContentTextContract.parse(packageName),
+      packageName: packageName,
       srcPath,
       packageJsonPath,
     });

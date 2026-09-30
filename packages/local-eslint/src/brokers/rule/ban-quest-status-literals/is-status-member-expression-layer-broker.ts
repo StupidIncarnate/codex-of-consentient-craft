@@ -7,7 +7,6 @@
  *
  * WHEN-TO-USE: Only the ban-quest-status-literals rule should call this.
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { matchesStatusHolderIdentifierGuard } from '../../../guards/matches-status-holder-identifier/matches-status-holder-identifier-guard';

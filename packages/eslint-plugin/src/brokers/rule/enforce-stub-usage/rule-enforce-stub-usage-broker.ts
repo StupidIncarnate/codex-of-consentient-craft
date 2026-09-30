@@ -11,7 +11,6 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { ModulePath } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstObjectStubSpreadGuard } from '../../../guards/is-ast-object-stub-spread/is-ast-object-stub-spread-guard';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
@@ -70,7 +69,7 @@ export const ruleEnforceStubUsageBroker = (): TSESLint.RuleModule<
     // stub is where the outside value is built from real code, never by hand and cast.
     const checksOutsideCasts = outsideTypeCasts && isTestSupportFileGuard({ filename });
 
-    const imports = new Map<string, ModulePath>();
+    const imports = new Map<string, string>();
 
     const castListeners = checksOutsideCasts
       ? {

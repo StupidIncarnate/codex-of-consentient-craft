@@ -16,7 +16,6 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
   'noFieldTypeAlias' | 'noLibraryTypeAlias'

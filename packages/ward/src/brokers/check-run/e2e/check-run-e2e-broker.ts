@@ -17,7 +17,6 @@ import {
 } from '@dungeonmaster/shared/brokers';
 
 
-import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -124,7 +123,7 @@ export const checkRunE2eBroker = async ({
     testNamePattern === undefined
       ? [...args, ...e2eFiles]
       : [...args, '--grep', testNamePattern, '--pass-with-no-tests', ...e2eFiles];
-  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
+  const command = String(binResolveBroker({ binName: bin, cwd }));
 
   // The prebuilt UI bundle `vite preview` serves, keyed by a hash of every source in this package's
   // `dependencies` closure — so a run whose inputs have not changed reuses the build instead of

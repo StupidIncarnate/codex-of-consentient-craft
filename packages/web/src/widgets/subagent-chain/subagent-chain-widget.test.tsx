@@ -9,7 +9,6 @@ import {
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 import {
   SingleGroupStub,
   SubagentChainGroupStub,
@@ -1272,7 +1271,7 @@ describe('SubagentChainWidget', () => {
       const group = SubagentChainGroupStub();
 
       mantineRenderMiddleware({
-        ui: <SubagentChainWidget group={group} stickyTop={CssPixelsStub({ value: 23 })} />,
+        ui: <SubagentChainWidget group={group} stickyTop={23} />,
       });
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
@@ -1310,7 +1309,7 @@ describe('SubagentChainWidget', () => {
       });
 
       mantineRenderMiddleware({
-        ui: <SubagentChainWidget group={group} stickyTop={CssPixelsStub({ value: 23 })} />,
+        ui: <SubagentChainWidget group={group} stickyTop={23} />,
       });
 
       const toolHeader = screen.getByTestId('TOOL_ROW_HEADER');

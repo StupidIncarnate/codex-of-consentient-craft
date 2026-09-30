@@ -1,5 +1,4 @@
 import { isAdapterEntryFileGuard } from './is-adapter-entry-file-guard';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 
 describe('isAdapterEntryFileGuard', () => {
   describe('adapter entry files', () => {
@@ -25,7 +24,7 @@ describe('isAdapterEntryFileGuard', () => {
       'packages/a/src/brokers/fs/read/fs-read-broker.ts',
       'packages/a/adapters.ts',
     ])('VALID: {file: %s} => false', (value) => {
-      const file = CensusPathStub({ value });
+      const file = value;
 
       expect(isAdapterEntryFileGuard({ file })).toBe(false);
     });

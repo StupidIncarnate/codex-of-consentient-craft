@@ -22,12 +22,11 @@ import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import type { BaseNameStub } from '@dungeonmaster/testing';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { QuestOutboxLineStub } from '../../../src/contracts/quest-outbox-line/quest-outbox-line.stub';
 
-type BaseName = ReturnType<typeof BaseNameStub>;
+type BaseName = string;
 
 const OUTBOX_FILENAME = 'event-outbox.jsonl';
 

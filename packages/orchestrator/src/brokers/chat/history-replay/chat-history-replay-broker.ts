@@ -33,7 +33,7 @@ import { readdirSync } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -141,12 +141,12 @@ export const chatHistoryReplayBroker = async ({
   }[] = [];
 
   try {
-    const files = readdirSync(subagentsDir).map((name) => fileNameContract.parse(name));
+    const files = readdirSync(subagentsDir).map((name) => name);
     const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
 
     const results = await Promise.all(
       jsonlFiles.map(async (file) => ({
-        agentId: stripAgentFilenamePrefixTransformer({ fileName: fileNameContract.parse(file) }),
+        agentId: stripAgentFilenamePrefixTransformer({ fileName: file }),
         lines: streamJsonLinesFromRawTransformer({
           rawLines: await readNonEmptyLines(
             `${subagentsDir}/${file}`,

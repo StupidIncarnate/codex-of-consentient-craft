@@ -18,7 +18,7 @@
 import { isFsError, readdirSync } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
-import { fileNameContract, type ChatEntry, type FileName } from '@dungeonmaster/shared/contracts';
+import { type ChatEntry } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -71,13 +71,13 @@ export const scanSubagentsDirLayerBroker = async ({
 
   // Collect every candidate file not already tailed — idempotency against a re-invoked
   // poll tick, not a filter on which files are eligible.
-  const pendingPairing: { agentId: Agent['id']; fileName: FileName }[] = [];
+  const pendingPairing: { agentId: Agent['id']; fileName: string }[] = [];
   try {
     const files = readdirSync(subagentsDir);
     for (const file of files) {
       if (!file.startsWith('agent-')) continue;
       if (!file.endsWith('.jsonl')) continue;
-      const fileName = fileNameContract.parse(file);
+      const fileName = file;
       const agentId = stripAgentFilenamePrefixTransformer({ fileName });
       if (subagentHandles.has(agentId)) continue;
       pendingPairing.push({ agentId, fileName });

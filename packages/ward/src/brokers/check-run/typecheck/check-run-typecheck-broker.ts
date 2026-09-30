@@ -25,7 +25,6 @@
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
 
-import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -82,7 +81,7 @@ export const checkRunTypecheckBroker = async ({
     cwd,
     exclude,
   });
-  const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
+  const command = String(binResolveBroker({ binName: bin, cwd }));
 
   // The build config's `-p` target is per-package, so only `--noEmit` is a static arg; the path is
   // appended here. Run alongside the checking pass, never after it — a sequential second `tsc`

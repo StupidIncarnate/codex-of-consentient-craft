@@ -1,6 +1,5 @@
 import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts/pasted-image-media-type/pasted-image-media-type.stub';
 
-import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { ImageSizeStub } from '../../../contracts/image-size/image-size.stub';
 import { imageRescaleBroker } from './image-rescale-broker';
 import { imageRescaleBrokerProxy } from './image-rescale-broker.proxy';
@@ -9,7 +8,7 @@ describe('imageRescaleBroker', () => {
   describe('drawing and encoding', () => {
     it('VALID: {size: 2000x1333, image/png, quality 0.82} => canvasEncode receives exactly that size, media type and quality', async () => {
       const proxy = imageRescaleBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
       proxy.encodesTo({
         dataUrl: 'data:image/png;base64,AAAA',
@@ -31,7 +30,7 @@ describe('imageRescaleBroker', () => {
 
     it('VALID: {encode answers a data url} => returns that exact data url', async () => {
       const proxy = imageRescaleBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
       proxy.encodesTo({
         dataUrl: 'data:image/png;base64,AAAA',
@@ -53,7 +52,7 @@ describe('imageRescaleBroker', () => {
   describe('bitmap lifecycle', () => {
     it('EDGE: {successful encode} => closes the decoded bitmap', async () => {
       const proxy = imageRescaleBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
       proxy.encodesTo({
         dataUrl: 'data:image/png;base64,AAAA',
@@ -75,7 +74,7 @@ describe('imageRescaleBroker', () => {
   describe('context unavailable', () => {
     it('ERROR: {2d context unavailable} => rejects with the encode failure and still closes the bitmap', async () => {
       const proxy = imageRescaleBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
       proxy.contextUnavailable();
 
@@ -94,7 +93,7 @@ describe('imageRescaleBroker', () => {
   describe('decode failure', () => {
     it('ERROR: {decode rejects} => propagates the rejection', async () => {
       const proxy = imageRescaleBrokerProxy();
-      const dataUrl = ImageDataUrlStub();
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
       proxy.decodeFails({ dataUrl, error: new Error('EncodingError: truncated image') });
 
       await expect(

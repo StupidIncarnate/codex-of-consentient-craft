@@ -16,7 +16,6 @@
  * // Returns null
  */
 
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { pruneAssetKindContract } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import type { PruneAssetKind } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
@@ -26,7 +25,7 @@ import { pruneStatics } from '../../statics/prune/prune-statics';
 export const pruneAssetClassifyTransformer = ({
   fileName,
 }: {
-  fileName: FileName;
+  fileName: string;
 }): PruneAssetKind | null => {
   const name = String(fileName);
 

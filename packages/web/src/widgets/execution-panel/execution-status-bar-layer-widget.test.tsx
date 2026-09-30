@@ -1,8 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { CompletedCountStub } from '@dungeonmaster/shared/contracts/completed-count/completed-count.stub';
-import { TotalCountStub } from '@dungeonmaster/shared/contracts/total-count/total-count.stub';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 
@@ -14,8 +12,8 @@ describe('ExecutionStatusBarLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ExecutionStatusBarLayerWidget
-            completedCount={CompletedCountStub({ value: 0 })}
-            totalCount={TotalCountStub({ value: 0 })}
+            completedCount={0}
+            totalCount={0}
             source="ledger"
           />
         ),
@@ -32,8 +30,8 @@ describe('ExecutionStatusBarLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ExecutionStatusBarLayerWidget
-            completedCount={CompletedCountStub({ value: 0 })}
-            totalCount={TotalCountStub({ value: 0 })}
+            completedCount={0}
+            totalCount={0}
             source="projection"
           />
         ),
@@ -52,8 +50,8 @@ describe('ExecutionStatusBarLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ExecutionStatusBarLayerWidget
-            completedCount={CompletedCountStub({ value: 3 })}
-            totalCount={TotalCountStub({ value: 8 })}
+            completedCount={3}
+            totalCount={8}
             source="ledger"
           />
         ),
@@ -70,8 +68,8 @@ describe('ExecutionStatusBarLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ExecutionStatusBarLayerWidget
-            completedCount={CompletedCountStub({ value: 0 })}
-            totalCount={TotalCountStub({ value: 5 })}
+            completedCount={0}
+            totalCount={5}
             source="ledger"
           />
         ),
@@ -90,8 +88,8 @@ describe('ExecutionStatusBarLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ExecutionStatusBarLayerWidget
-            completedCount={CompletedCountStub({ value: 1 })}
-            totalCount={TotalCountStub({ value: 4 })}
+            completedCount={1}
+            totalCount={4}
             source="projection"
           />
         ),
@@ -110,8 +108,8 @@ describe('ExecutionStatusBarLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ExecutionStatusBarLayerWidget
-            completedCount={CompletedCountStub({ value: 0 })}
-            totalCount={TotalCountStub({ value: 8 })}
+            completedCount={0}
+            totalCount={8}
             source="ledger"
           />
         ),

@@ -21,7 +21,6 @@ import type { QuestListItem, QuestStatus, Quest } from '@dungeonmaster/shared/co
 
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
@@ -127,7 +126,7 @@ export const QuestRowLayerWidget = ({
             <Popover.Target>
               <IconButtonWidget
                 label={DELETE_QUEST_LABEL}
-                testId={testIdContract.parse(`QUEST_DELETE_${String(quest.id)}`)}
+                testId={`QUEST_DELETE_${String(quest.id)}`}
                 icon={IconSkull}
                 variant={DANGER_VARIANT}
                 onClick={(event) => {

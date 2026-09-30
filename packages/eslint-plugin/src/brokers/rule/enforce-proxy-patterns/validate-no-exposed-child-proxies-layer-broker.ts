@@ -5,7 +5,6 @@
  * validateNoExposedChildProxiesLayerBroker({ objectNode, proxyVariables, context });
  * // Reports error if return object exposes child proxy via shorthand { childProxy } or explicit { child: childProxy }
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 

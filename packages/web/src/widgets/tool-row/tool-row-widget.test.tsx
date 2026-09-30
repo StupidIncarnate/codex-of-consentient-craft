@@ -6,7 +6,6 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 import type { ToolRowWidgetProps } from './tool-row-widget';
 import { ToolRowWidget } from './tool-row-widget';
 import { ToolRowWidgetProxy } from './tool-row-widget.proxy';
@@ -1009,7 +1008,7 @@ describe('ToolRowWidget', () => {
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
             defaultExpanded={true}
-            stickyTop={CssPixelsStub({ value: 54 })}
+            stickyTop={54}
           />
         ),
       });

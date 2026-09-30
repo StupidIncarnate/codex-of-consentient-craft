@@ -8,7 +8,6 @@
  * astFieldListOwnersTransformer({ program: programNode });
  * // Returns Map { 'treeNodeFields' => 'treeNodeContract' }
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astCollectNodesTransformer } from '../ast-collect-nodes/ast-collect-nodes-transformer';

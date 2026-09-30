@@ -9,10 +9,9 @@ import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
-import type { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 
 type ProcessGroupId = number;
-type FileDescriptor = ReturnType<typeof FileDescriptorStub>;
+type FileDescriptor = number;
 
 // The evidence-link resolution a lane's evidencePath must resolve through for
 // locationsRepoLinkPathFindBroker to answer a repo-local RepoLocalPath. Fixed rather than

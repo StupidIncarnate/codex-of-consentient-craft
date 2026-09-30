@@ -76,15 +76,9 @@ export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';
 
 
-export { slotCountContract } from '@dungeonmaster/shared/contracts';
-export type { SlotCount } from '@dungeonmaster/shared/contracts';
-
-export { slotIndexContract } from '@dungeonmaster/shared/contracts';
-export type { SlotIndex } from '@dungeonmaster/shared/contracts';
 
 
-export { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
-export type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
+
 
 export { streamSignalContract } from './contracts/stream-signal/stream-signal-contract';
 export type { StreamSignal } from './contracts/stream-signal/stream-signal-contract';

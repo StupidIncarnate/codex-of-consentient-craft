@@ -1,7 +1,6 @@
 import type { GetQuestResult, OrchestrationEventType, Quest as QuestContract } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { FileName } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -36,7 +35,7 @@ export const ChatStartResponderProxy = ({
     homeDir: Parameters<ReturnType<typeof questListBrokerProxy>['setupQuestsPath']>[0]['homeDir'];
     homePath: string;
     questsPath: string;
-    questFiles: FileName[];
+    questFiles: string[];
     questFilePath: string;
     questJson: Parameters<
       ReturnType<typeof questListBrokerProxy>['setupQuestFile']

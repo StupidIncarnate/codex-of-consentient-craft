@@ -9,11 +9,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { exitCodeContract } from '../exit-code/exit-code-contract';
 
 export const portKillListenerResultContract = z.object({
   pid: z.number().int().positive().brand<'PortKillListenerResultPid'>(),
-  exitCode: exitCodeContract,
+  exitCode: z.number().int().min(0).max(255).brand<'PortKillListenerResultExitCode'>(),
   output: z.string().brand<'PortKillListenerResultOutput'>(),
 }).brand<'PortKillListenerResult'>();
 

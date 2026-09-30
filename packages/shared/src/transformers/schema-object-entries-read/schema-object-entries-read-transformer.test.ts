@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { schemaObjectEntriesReadTransformer } from './schema-object-entries-read-transformer';
 
 describe('schemaObjectEntriesReadTransformer', () => {
@@ -35,7 +34,7 @@ describe('schemaObjectEntriesReadTransformer', () => {
       'EMPTY: {%s} => returns no entries',
       (value) => {
         expect(
-          schemaObjectEntriesReadTransformer({ text: ContentTextStub({ value }) }),
+          schemaObjectEntriesReadTransformer({ text: value }),
         ).toStrictEqual([]);
       },
     );

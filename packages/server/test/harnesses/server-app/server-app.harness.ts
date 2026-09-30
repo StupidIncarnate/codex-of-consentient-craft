@@ -27,8 +27,8 @@ import { setTimeout } from '#gateway/node/setTimeout';
 import { z } from '#gateway/npm/zod';
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { Base64ImageData, FileName, Guild, Quest } from '@dungeonmaster/shared/contracts';
-import { fileNameContract, pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import type { Base64ImageData, Guild, Quest } from '@dungeonmaster/shared/contracts';
+import { pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -202,7 +202,7 @@ export const serverAppHarness = (): {
     exists: boolean;
     dirPath: string;
     ino: unknown;
-    fileNames: readonly FileName[];
+    fileNames: readonly string[];
   };
   // Reads an arbitrary file's REAL bytes back as base64 — the byte-for-byte proof a written
   // pasted-image file matches what was posted. Takes a bare path rather than a questId-scoped one
@@ -604,14 +604,14 @@ export const serverAppHarness = (): {
     dungeonmasterHome: string;
     guildId: string;
     questId: string;
-  }): { exists: boolean; dirPath: string; ino: unknown; fileNames: readonly FileName[] } => {
+  }): { exists: boolean; dirPath: string; ino: unknown; fileNames: readonly string[] } => {
     const dirPath = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
     const exists = existsSync(dirPath);
     return {
       exists,
       dirPath: dirPath,
       ino: exists ? lstatSync(dirPath).ino : null,
-      fileNames: exists ? readdirSync(dirPath).map((name) => fileNameContract.parse(name)) : [],
+      fileNames: exists ? readdirSync(dirPath).map((name) => name) : [],
     };
   };
 

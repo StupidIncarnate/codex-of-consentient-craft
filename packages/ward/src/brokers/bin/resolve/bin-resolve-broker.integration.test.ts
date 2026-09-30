@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { binResolveHarness } from '../../../../test/harnesses/bin-resolve/bin-resolve.harness';
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import { binResolveBroker } from './bin-resolve-broker';
 
 // The unit tests stage every existsSync and readFileSync by exact path, so they would stay green
@@ -34,7 +33,7 @@ describe('binResolveBroker (integration)', () => {
     harness.prependPathDecoy({ root, binName: 'jest' });
     const cwd = `${testbed.guildPath}/packages/app`;
 
-    const result = binResolveBroker({ binName: BinCommandStub({ value: 'jest' }), cwd });
+    const result = binResolveBroker({ binName: 'jest', cwd });
 
     const firstPathDir = harness.firstPathDir();
 
@@ -68,7 +67,7 @@ describe('binResolveBroker (integration)', () => {
     });
     const cwd = `${testbed.guildPath}/packages/app`;
 
-    const result = binResolveBroker({ binName: BinCommandStub({ value: 'jest' }), cwd });
+    const result = binResolveBroker({ binName: 'jest', cwd });
 
     testbed.cleanup();
 
@@ -93,7 +92,7 @@ describe('binResolveBroker (integration)', () => {
     harness.prependPathDecoy({ root, binName: 'jest' });
     const cwd = `${testbed.guildPath}/packages/app`;
 
-    const result = binResolveBroker({ binName: BinCommandStub({ value: 'jest' }), cwd });
+    const result = binResolveBroker({ binName: 'jest', cwd });
 
     testbed.cleanup();
 

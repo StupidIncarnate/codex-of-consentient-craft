@@ -15,7 +15,6 @@ import {
 } from '../assistant-stream-line/assistant-stream-line.stub';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '../session-id/session-id.stub';
-import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
 import { SystemInitStreamLineStub } from '../system-init-stream-line/system-init-stream-line.stub';
 
 type ClaudeQueueResponse = ReturnType<typeof ClaudeQueueResponseStub>;
@@ -24,7 +23,7 @@ const DEFAULT_SESSION_ID = SessionIdStub({
   value: 'e2e-session-00000000-0000-0000-0000-000000000000',
 });
 
-const toLine = (obj: object): ReturnType<typeof streamJsonLineContract.parse> =>
+const toLine = (obj: object): string =>
   JSON.stringify(obj);
 
 const initLine = toLine(SystemInitStreamLineStub({ session_id: DEFAULT_SESSION_ID }));

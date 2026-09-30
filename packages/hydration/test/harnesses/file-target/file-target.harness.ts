@@ -22,12 +22,11 @@ import {
   writeFileSync,
 } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import type { FileContentStub } from '@dungeonmaster/testing';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
 import { HydrationTargetStub } from '../../../src/contracts/hydration-target/hydration-target.stub';
 
-type FileContent = ReturnType<typeof FileContentStub>;
+type FileContent = string;
 
 export type FileTarget = HydrationTarget & { home: string };
 

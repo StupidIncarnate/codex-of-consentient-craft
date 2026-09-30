@@ -6,7 +6,6 @@
  * proxy.setupPackagesAndResults({ packages, results });
  */
 
-import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { packageDiscoverBrokerProxy } from '../../package/discover/package-discover-broker.proxy';
 import { installFinalizeOrchestrateBrokerProxy } from '../finalize-orchestrate/install-finalize-orchestrate-broker.proxy';
@@ -16,7 +15,7 @@ export const installRunBrokerProxy = (): {
   setupPackageDiscovery: (params: {
     packagesPath: string;
     packages: {
-      name: FileName;
+      name: string;
       standardPath: string;
       alternatePath?: string;
       installerLocation: 'standard' | 'alternate' | 'none';
@@ -35,7 +34,7 @@ export const installRunBrokerProxy = (): {
     setupPackageDiscovery: (params: {
       packagesPath: string;
       packages: {
-        name: FileName;
+        name: string;
         standardPath: string;
         alternatePath?: string;
         installerLocation: 'standard' | 'alternate' | 'none';

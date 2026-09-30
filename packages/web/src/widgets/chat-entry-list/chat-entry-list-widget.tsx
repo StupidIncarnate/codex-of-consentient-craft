@@ -20,11 +20,9 @@
 
 import { useState } from '#gateway/npm/react';
 
-import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
 import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
@@ -64,7 +62,7 @@ export interface ChatEntryListWidgetProps {
   defaultShowAllEarlier?: boolean;
   // Forwarded untouched to the expandables this list renders: the list itself has no header of its
   // own, so it adds nothing to the offset — it only carries what its host already pinned.
-  stickyTop?: CssPixels;
+  stickyTop?: number;
   // The execution panel's shared 60-second clock, forwarded untouched to every sub-agent
   // chain this list renders. This list holds no clock of its own and starts no interval —
   // its host decides whether a running chain gets one at all.
@@ -75,7 +73,7 @@ export interface ChatEntryListWidgetProps {
   isCommandOutput?: boolean;
 }
 
-const STICKY_TOP_ROOT = cssPixelsContract.parse(0);
+const STICKY_TOP_ROOT = 0;
 
 export const ChatEntryListWidget = ({
   entries,
@@ -277,7 +275,7 @@ export const ChatEntryListWidget = ({
     wouldHideCount > 0 ? (
       <ShowEarlierToggleWidget
         key="show-earlier-toggle"
-        hiddenCount={tailStartIndexContract.parse(wouldHideCount)}
+        hiddenCount={wouldHideCount}
         expanded={showAllEarlier}
         onToggle={(): void => {
           setReaderToggled(!showAllEarlier);

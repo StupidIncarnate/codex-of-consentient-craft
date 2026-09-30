@@ -7,7 +7,6 @@ import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questBuildRelayGraphBroker } from './quest-build-relay-graph-broker';
 import { questBuildRelayGraphBrokerProxy } from './quest-build-relay-graph-broker.proxy';
-import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 
 type QuestTypeKey = keyof typeof questFlowStatics;
 
@@ -37,7 +36,7 @@ describe('questBuildRelayGraphBroker', () => {
         const result = questBuildRelayGraphBroker({
           quest,
           priorWorkItemIds: [priorId],
-          now: IsoTimestampStub(),
+          now: '2024-01-15T10:00:00.000Z',
         });
 
         expect(result).toStrictEqual({
@@ -97,7 +96,7 @@ describe('questBuildRelayGraphBroker', () => {
       const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
-        now: IsoTimestampStub(),
+        now: '2024-01-15T10:00:00.000Z',
       });
 
       expect(result).toStrictEqual({
@@ -172,7 +171,7 @@ describe('questBuildRelayGraphBroker', () => {
       const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
-        now: IsoTimestampStub(),
+        now: '2024-01-15T10:00:00.000Z',
       });
 
       expect(result).toStrictEqual({
@@ -220,7 +219,7 @@ describe('questBuildRelayGraphBroker', () => {
       const result = questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
-        now: IsoTimestampStub(),
+        now: '2024-01-15T10:00:00.000Z',
       });
 
       expect(result).toStrictEqual({

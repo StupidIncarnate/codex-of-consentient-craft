@@ -6,7 +6,6 @@
  * // Returns ErrorMessage with JSON output, or null if command fails
  */
 
-import { type FileName } from '@dungeonmaster/shared/contracts';
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
@@ -18,7 +17,7 @@ export const wardDetailBroker = async ({
   runId,
 }: {
   startPath: string;
-  runId: FileName;
+  runId: string;
 }): Promise<string | null> => {
   const { exitCode, output } = await run({
     command: getEnv('WARD_CLI_PATH') ?? WARD_COMMAND,

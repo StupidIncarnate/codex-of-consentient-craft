@@ -1,9 +1,8 @@
 import { appendLinesCreatingParentProxy } from '#gateway/node/fs__promises/append-lines-creating-parent/append-lines-creating-parent.proxy';
-import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 
 import { subagentWriteRouteBrokerProxy } from '../../subagent/write-route/subagent-write-route-broker.proxy';
 
-type StreamJsonLine = ReturnType<typeof streamJsonLineContract.parse>;
+type StreamJsonLine = string;
 
 export const sessionNestedChainBrokerProxy = (): {
   succeeds: ({ filePaths }: { filePaths: readonly string[] }) => void;
