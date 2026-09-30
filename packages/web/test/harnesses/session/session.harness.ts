@@ -131,7 +131,7 @@ export const sessionHarness = ({
   guildPath,
   target,
 }: {
-  guildPath: Guild['path'];
+  guildPath: string;
   target?: DmTarget;
 }): {
   beforeEach: () => Promise<void>;

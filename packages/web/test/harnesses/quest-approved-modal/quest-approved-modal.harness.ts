@@ -31,11 +31,11 @@ export const questApprovedModalHarness = ({
   guildPath,
 }: {
   sessions: ReturnType<typeof sessionHarness>;
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   setupTest: (params: {
     request: APIRequestContext;
-    guildName: Guild['name'];
+    guildName: string;
     sessionId: string;
     status: string;
     operations?: {
@@ -60,7 +60,7 @@ export const questApprovedModalHarness = ({
     operations = DEFAULT_APPROVAL_OPERATIONS,
   }: {
     request: APIRequestContext;
-    guildName: Guild['name'];
+    guildName: string;
     sessionId: string;
     status: string;
     operations?: {

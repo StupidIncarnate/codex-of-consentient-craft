@@ -108,7 +108,7 @@ const buildNotificationLine = ({
 export const subagentDurationHarness = ({
   guildPath,
 }: {
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   beforeEach: () => Promise<void>;
   afterEach: () => Promise<void>;

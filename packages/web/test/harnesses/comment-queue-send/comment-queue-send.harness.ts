@@ -144,11 +144,11 @@ export const commentQueueSendHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
   claudeMock: ReturnType<typeof claudeMockHarness>;
 }): {
-  seedAndOpen: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedAndOpen: (params: { guildName: string }) => Promise<void>;
   nodeCard: (params: { which: 'alpha' | 'beta' | 'gamma' }) => Locator;
   observableCard: () => Locator;
   filledBubbles: () => Locator;
@@ -263,7 +263,7 @@ export const commentQueueSendHarness = ({
   ];
 
   return {
-    seedAndOpen: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedAndOpen: async ({ guildName }: { guildName: string }): Promise<void> => {
       const quests = questHarness({ request });
       const guild = await guildHarness({ request }).createGuild({
         name: guildName,

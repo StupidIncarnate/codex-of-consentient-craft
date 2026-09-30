@@ -471,8 +471,8 @@ export const composerSendHarness = ({
       guildId,
       questId,
     }: {
-      guildId: Guild['id'];
-      questId: Quest['id'];
+      guildId: string;
+      questId: string;
     }): unknown => {
       const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
       if (dungeonmasterHome === undefined) {

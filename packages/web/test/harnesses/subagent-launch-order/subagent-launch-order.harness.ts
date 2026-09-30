@@ -130,10 +130,10 @@ export const subagentLaunchOrderHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedBackgroundLaunchQuest: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedBackgroundLaunchQuest: (params: { guildName: string }) => Promise<void>;
   revealParentChainEntries: () => Promise<void>;
   paintedOrderInParentChainIs: (params: { order: string }) => Promise<boolean>;
 } => {
@@ -298,7 +298,7 @@ export const subagentLaunchOrderHarness = ({
   return {
     // An `in_progress` work item auto-opens its execution row, so both chains are on screen — the
     // arrangement the reader saw the background explorers stranded in.
-    seedBackgroundLaunchQuest: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedBackgroundLaunchQuest: async ({ guildName }: { guildName: string }): Promise<void> => {
       const guilds = guildHarness({ request });
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });

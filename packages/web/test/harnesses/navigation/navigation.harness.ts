@@ -28,7 +28,7 @@ export const navigationHarness = ({
     questId,
   }: {
     urlSlug: string;
-    questId: Quest['id'];
+    questId: string;
   }): Promise<void> => {
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
@@ -55,7 +55,7 @@ export const navigationHarness = ({
     guildId,
     sessionIds,
   }: {
-    guildId: Guild['id'];
+    guildId: string;
     sessionIds: string[];
   }): Promise<void> => {
     await page.evaluate(

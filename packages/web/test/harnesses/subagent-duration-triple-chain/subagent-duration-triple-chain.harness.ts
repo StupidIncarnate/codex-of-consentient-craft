@@ -86,7 +86,7 @@ const buildNotificationContent = ({
 export const subagentDurationTripleChainHarness = ({
   guildPath,
 }: {
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   beforeEach: () => void;
   afterEach: () => void;

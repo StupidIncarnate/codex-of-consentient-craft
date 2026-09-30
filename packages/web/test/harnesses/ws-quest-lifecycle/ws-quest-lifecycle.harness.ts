@@ -34,7 +34,7 @@ export const wsQuestLifecycleHarness = ({
   questId,
 }: {
   page: Page;
-  questId: Quest['id'];
+  questId: string;
 }): {
   beforeEach: () => void;
   matchedQuestIdsFor: (params: {

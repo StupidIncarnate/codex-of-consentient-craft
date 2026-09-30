@@ -37,23 +37,23 @@ export const warpgateHarness = ({
   guildPath,
 }: {
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   setup: (params: { guildName: Guild['name']; title: string }) => Promise<{
     guildId: Guild['id'];
     urlSlug: string;
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }>;
   createQuestInGuild: (params: { guildId: Guild['id']; title: string }) => Promise<{
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }>;
   seedWarpgateQuest: (params: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     status: string;
@@ -73,13 +73,13 @@ export const warpgateHarness = ({
     guildName,
     title,
   }: {
-    guildName: Guild['name'];
+    guildName: string;
     title: string;
   }): Promise<{
     guildId: Guild['id'];
     urlSlug: string;
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }> => {
     const guild = await guilds.createGuild({ name: guildName, path: guildPath });
@@ -111,8 +111,8 @@ export const warpgateHarness = ({
     guildId: Guild['id'];
     title: string;
   }): Promise<{
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }> => {
     const created = await quests.createQuest({
@@ -141,8 +141,8 @@ export const warpgateHarness = ({
     warpgateStatus,
     tavernkeeperSessionId,
   }: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     status: string;

@@ -62,14 +62,14 @@ export const mcpServerHarness = (): {
   }) => ReturnType<typeof ListToolsResultSchema.parse>;
   seedQuest: (params: {
     dungeonmasterHome: string;
-    guildId: Guild['id'];
-    questFolder: Quest['folder'];
+    guildId: string;
+    questFolder: string;
     quest: unknown;
   }) => Promise<void>;
   readQuestFile: (params: {
     dungeonmasterHome: string;
-    guildId: Guild['id'];
-    questFolder: Quest['folder'];
+    guildId: string;
+    questFolder: string;
   }) => unknown;
 } => {
   const buildInitRequest = ({ id = 1 }: { id?: RpcId } = {}): JsonRpcRequest =>
@@ -255,8 +255,8 @@ export const mcpServerHarness = (): {
     quest,
   }: {
     dungeonmasterHome: string;
-    guildId: Guild['id'];
-    questFolder: Quest['folder'];
+    guildId: string;
+    questFolder: string;
     quest: unknown;
   }): Promise<void> => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
@@ -275,8 +275,8 @@ export const mcpServerHarness = (): {
     questFolder,
   }: {
     dungeonmasterHome: string;
-    guildId: Guild['id'];
-    questFolder: Quest['folder'];
+    guildId: string;
+    questFolder: string;
   }): unknown => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
     const raw = readFileSync(join(questDir, 'quest.json'));

@@ -327,10 +327,10 @@ export const flowDiagramHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedAndOpen: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedAndOpen: (params: { guildName: string }) => Promise<void>;
   hasExpectedNodeCount: () => Promise<boolean>;
   nodesHaveDistinctCoordinates: () => Promise<boolean>;
   nodesDoNotOverlap: () => Promise<boolean>;
@@ -407,7 +407,7 @@ export const flowDiagramHarness = ({
   };
 
   return {
-    seedAndOpen: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedAndOpen: async ({ guildName }: { guildName: string }): Promise<void> => {
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });
       const guild = await guildHarness({ request }).createGuild({

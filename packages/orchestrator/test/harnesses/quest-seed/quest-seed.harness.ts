@@ -21,7 +21,7 @@ export const questSeedHarness = (): {
   seed: (params: {
     tempDir: string;
     quest: ReturnType<typeof QuestStub>;
-    guildId?: Guild['id'];
+    guildId?: string;
   }) => Promise<void>;
 } => ({
   seed: async ({
@@ -31,7 +31,7 @@ export const questSeedHarness = (): {
   }: {
     tempDir: string;
     quest: ReturnType<typeof QuestStub>;
-    guildId?: Guild['id'];
+    guildId?: string;
   }): Promise<void> => {
     const questDir = path.join(tempDir, 'guilds', guildId, 'quests', quest.folder);
     await fs.promises.mkdir(questDir, { recursive: true });

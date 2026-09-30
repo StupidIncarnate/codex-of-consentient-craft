@@ -48,7 +48,7 @@ const FIXTURE_PACKAGE_NAME = 'demo';
 export const environmentHarness = ({
   guildPath,
 }: {
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   beforeEach: () => void;
   setupGuildPath: () => void;

@@ -128,7 +128,7 @@ export const claudeMockHarness = ({
   guildPath,
   agentCwd,
 }: {
-  guildPath: Guild['path'];
+  guildPath: string;
   // WHERE THE FAKE CLI WILL ACTUALLY RUN, when that is not the guild path. The queue is scoped by
   // the spawned child's own `process.cwd()`, and the orchestrator sets that to the quest's cwd — so
   // once a quest is CARVED, every agent after riftcarver runs in the WORKTREE and looks for its

@@ -80,10 +80,10 @@ export const followupHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   seedAndOpen: (params: {
-    guildName: Guild['name'];
+    guildName: string;
     status: string;
     worktreePath?: string;
     workItems?: WorkItemInput[];
@@ -129,7 +129,7 @@ export const followupHarness = ({
     worktreePath,
     workItems,
   }: {
-    guildName: Guild['name'];
+    guildName: string;
     status: string;
     worktreePath?: string;
     workItems?: WorkItemInput[];
@@ -191,7 +191,7 @@ export const followupHarness = ({
     questId,
   }: {
     urlSlug: string;
-    questId: Quest['id'];
+    questId: string;
   }): Promise<void> => {
     const nav = navigationHarness({ page });
     await nav.navigateToQuest({ urlSlug, questId });

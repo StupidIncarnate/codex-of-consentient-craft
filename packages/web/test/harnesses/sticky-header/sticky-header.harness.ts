@@ -124,11 +124,11 @@ export const stickyHeaderHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedNestedChainQuest: (params: { guildName: Guild['name'] }) => Promise<void>;
-  seedChatPanelChain: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedNestedChainQuest: (params: { guildName: string }) => Promise<void>;
+  seedChatPanelChain: (params: { guildName: string }) => Promise<void>;
   scrollTranscriptToFoot: () => Promise<void>;
   pinnedStackIs: (params: { testIds: string }) => Promise<boolean>;
   pinnedStackIsContiguous: () => Promise<boolean>;
@@ -224,7 +224,7 @@ export const stickyHeaderHarness = ({
   return {
     // The execution surface: an in_progress work item auto-opens its row, so the transcript is on
     // screen with the row header above it — the arrangement the outermost pin exists for.
-    seedNestedChainQuest: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedNestedChainQuest: async ({ guildName }: { guildName: string }): Promise<void> => {
       const guilds = guildHarness({ request });
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });
@@ -268,7 +268,7 @@ export const stickyHeaderHarness = ({
 
     // The chat surface: the same transcript on the session route, where a chain is the OUTERMOST
     // expandable and must pin flush with the top of the transcript area.
-    seedChatPanelChain: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedChatPanelChain: async ({ guildName }: { guildName: string }): Promise<void> => {
       const guilds = guildHarness({ request });
       const nav = navigationHarness({ page });
       const guild = await guilds.createGuild({ name: guildName, path: guildPath });

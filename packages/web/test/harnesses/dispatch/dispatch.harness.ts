@@ -66,7 +66,7 @@ export const dispatchHarness = ({
   agentCwd,
 }: {
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   // The directory dispatched agents will really run in, when that is not the guild path — i.e. the
   // quest's worktree, once it is carved. See claudeMockHarness's own note: the fake CLI's queue is
   // scoped by the child's own cwd, so a spec driving a CARVED quest must say where that is or its
@@ -76,7 +76,7 @@ export const dispatchHarness = ({
   beforeEach: () => Promise<void>;
   afterEach: () => Promise<void>;
   seedQuest: (params: {
-    guildId: Guild['id'];
+    guildId: string;
     title: string;
     userRequest: string;
     operations: {
@@ -94,9 +94,9 @@ export const dispatchHarness = ({
       // `questAdvanceBroker` opens the next scope, with no `questRouteScopeBroker` route in between.
       step?: string;
     }[];
-    firstWorkItemId: WorkItem['id'];
-    firstWorkItemStatus?: WorkItem['status'];
-    firstWorkItemSessionId?: WorkItem['sessionId'];
+    firstWorkItemId: string;
+    firstWorkItemStatus?: string;
+    firstWorkItemSessionId?: string;
     // Seeds the quest as ALREADY CARVED — the state every role after riftcarver runs in. Its
     // sessions run in the worktree, so their JSONL lands under the worktree's path encoding and
     // the server has to resolve their tails through this field rather than the guild path.
@@ -122,7 +122,7 @@ export const dispatchHarness = ({
     agentLineDelayMs?: number;
   }) => void;
   playAndDrive: (params: {
-    questId: Quest['id'];
+    questId: string;
     script: {
       role: string;
       outcome: 'done' | 'green' | 'red';
@@ -137,7 +137,7 @@ export const dispatchHarness = ({
   // orchestrator passed (null on a fresh spawn) and the verbatim prompt it dispatched.
   readClaudeInvocations: () => ReturnType<ReturnType<typeof claudeMockHarness>['readInvocations']>;
   waitForQuest: (params: {
-    questId: Quest['id'];
+    questId: string;
     predicate: (params: { quest: Quest }) => boolean;
     timeoutMs: number;
   }) => Promise<Quest>;
@@ -150,7 +150,7 @@ export const dispatchHarness = ({
   // that polls `/api/process/:processId` next needs that id and no ingredient exposes it. See its
   // own body for why this is RAW ON PURPOSE.
   startQuestViaStartRoute: (params: {
-    questId: Quest['id'];
+    questId: string;
   }) => Promise<{ status: DmHttpResponse['status']; processId: string }>;
 } => {
   const claudeMock = claudeMockHarness({
@@ -338,7 +338,7 @@ export const dispatchHarness = ({
     startQuestViaStartRoute: async ({
       questId,
     }: {
-      questId: Quest['id'];
+      questId: string;
     }): Promise<{ status: DmHttpResponse['status']; processId: string }> => {
       const response = await request.post(`/api/quests/${questId}/start`);
       const body: unknown = await response.json();

@@ -759,8 +759,8 @@ export const composerPasteHarness = ({
   beforeEach: () => Promise<void>;
   openComposerPage: (params: {
     request: APIRequestContext;
-    guildName: Guild['name'];
-    guildPath: Guild['path'];
+    guildName: string;
+    guildPath: string;
   }) => Promise<void>;
   buildImageDataUrl: (params: {
     widthPx: number;
@@ -832,8 +832,8 @@ export const composerPasteHarness = ({
     guildPath,
   }: {
     request: APIRequestContext;
-    guildName: Guild['name'];
-    guildPath: Guild['path'];
+    guildName: string;
+    guildPath: string;
   }): Promise<void> => {
     const guild = await guildHarness({ request }).createGuild({ name: guildName, path: guildPath });
     const urlSlug = String(guild.urlSlug ?? guild.name)

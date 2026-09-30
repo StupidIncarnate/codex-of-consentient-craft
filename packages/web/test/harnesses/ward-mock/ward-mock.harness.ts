@@ -105,7 +105,7 @@ const clearWardQueue = ({ queueDir }: { queueDir: string }): void => {
 export const wardMockHarness = ({
   guildPath,
 }: {
-  guildPath: Guild['path'];
+  guildPath: string;
 }): {
   beforeEach: () => void;
   queueResponse: (params: { response: WardQueueResponse }) => void;

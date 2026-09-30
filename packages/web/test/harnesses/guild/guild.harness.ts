@@ -39,7 +39,7 @@ export const guildHarness = ({
   // Removes one guild through dmRegistryBroker's `remove` route (guildRemoveRouteBroker), which
   // sends `DELETE /api/guilds/:guildId` over HTTP whenever the target carries a `baseUrl` — see
   // that route's own header for the full resolution.
-  deleteGuild: (params: { guildId: Guild['id'] }) => Promise<void>;
+  deleteGuild: (params: { guildId: string }) => Promise<void>;
   extractGuildId: (params: { guild: GuildRecord }) => Guild['id'];
   extractUrlSlug: (params: { guild: GuildRecord }) => string;
 } => {

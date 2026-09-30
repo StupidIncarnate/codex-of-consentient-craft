@@ -122,10 +122,10 @@ export const commentQueueLifecycleHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
 }): {
-  seedTwoQuests: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedTwoQuests: (params: { guildName: string }) => Promise<void>;
   openQuest: (params: { which: 'first' | 'second' }) => Promise<void>;
   reloadQuest: () => Promise<void>;
   writeQueue: (params: {
@@ -233,7 +233,7 @@ export const commentQueueLifecycleHarness = ({
     // affordance and the queue bar are UNGATED on both. That matters for every absence assertion
     // below: a missing COMMENT_QUEUE_BAR then means "this quest's queue is empty" rather than "the
     // status or session gate closed it".
-    seedTwoQuests: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedTwoQuests: async ({ guildName }: { guildName: string }): Promise<void> => {
       const quests = questHarness({ request });
       const guild = await guildHarness({ request }).createGuild({
         name: guildName,

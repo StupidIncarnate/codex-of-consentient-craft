@@ -99,22 +99,22 @@ export const questHarness = ({
   request: APIRequestContext;
 }): {
   createQuest: (params: { guildId: Guild['id']; title: string; userRequest: string }) => Promise<{
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     filePath: string;
     success: boolean;
   }>;
   // Same plan shape as createQuest, run against the `write` target instead of the `api` one — for
   // a spec proving the two routes produce equivalent domain state for the same ingredient.
   createQuestViaWriteRoute: (params: {
-    guildId: Guild['id'];
+    guildId: string;
     title: string;
     userRequest: string;
   }) => Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: string }>;
   writeQuestFile: (params: {
-    guildId?: Guild['id'];
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    guildId?: string;
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     status: string;
@@ -184,8 +184,8 @@ export const questHarness = ({
   // rejects on read. Never reach for this to work around a writeQuestFile throw elsewhere: that
   // throw is the framework refusing a shape it cannot honestly write, not a gap to route around.
   writeMalformedQuestFile: (params: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     status: string;
@@ -234,18 +234,18 @@ export const questHarness = ({
     baseBranch?: string;
   }) => Promise<void>;
   writeUnparseableQuestFile: (params: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }) => Promise<void>;
   tamperQuestUnparseableFile: (params: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }) => Promise<void>;
   writeWardResultDetail: (params: {
     questFilePath: string;
-    wardResultId: WardResult['id'];
+    wardResultId: string;
     detail: Record<PropertyKey, unknown>;
   }) => Promise<void>;
   patchQuestStatus: (params: { questId: Quest['id']; status: string }) => Promise<void>;
@@ -254,13 +254,13 @@ export const questHarness = ({
   // quest-ingredient-broker.ts's own header), never a bare status write. patchQuestStatus's
   // setRaw flips the field with none of the real route's side effects (operations relay seed,
   // execution-queue enqueue, the WS broadcast); reach for THIS whenever a spec asserts on those.
-  startQuest: (params: { questId: Quest['id'] }) => Promise<void>;
+  startQuest: (params: { questId: string }) => Promise<void>;
   // RAW ON PURPOSE: 'paused' is deliberately excluded from the quest ingredient's own
   // `transitions.to` — its header names the gap directly: "questModifyBroker REFUSES a bare
   // status: 'paused' write outright... Reaching it for real also kills every registered
   // subprocess, which needs state/ this package cannot import." POST /api/quests/:questId/pause
   // is the only route onto it; no dmRegistryBroker verb can express it.
-  pauseQuest: (params: { questId: Quest['id'] }) => Promise<void>;
+  pauseQuest: (params: { questId: string }) => Promise<void>;
   // RAW ON PURPOSE — see the broker's own header: patchQuestStatus's setRaw route fires none of
   // the real PATCH route's side effects, and the WS broadcast is exactly the side effect this one
   // exists for. PATCH /api/quests/:questId with the status the quest ALREADY has is the only route
@@ -277,8 +277,8 @@ export const questHarness = ({
   tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
   seedInProgressWithOperations: (params: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     operations: {
@@ -291,9 +291,9 @@ export const questHarness = ({
       workItemId?: string;
       step?: string;
     }[];
-    firstWorkItemId: WorkItem['id'];
-    firstWorkItemStatus?: WorkItem['status'];
-    firstWorkItemSessionId?: WorkItem['sessionId'];
+    firstWorkItemId: string;
+    firstWorkItemStatus?: string;
+    firstWorkItemSessionId?: string;
     worktreePath?: string;
   }) => Promise<void>;
   // Seeds `pausedAtStatus` on an already-written quest via dmRegistryBroker's setRaw route — same
@@ -306,7 +306,7 @@ export const questHarness = ({
   // succeeded) needs both, and pauseQuest deliberately discards them for its own callers, which
   // only want a throw on failure.
   pauseQuestResponse: (params: {
-    questId: Quest['id'];
+    questId: string;
   }) => Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }>;
   // RAW ON PURPOSE — the resume counterpart of pauseQuestResponse. 'paused' is deliberately off
   // the quest ingredient's own `transitions.to` (see quest-ingredient-broker.ts's own header), so
@@ -314,14 +314,14 @@ export const questHarness = ({
   // deciding whether to restart the global dispatcher are real side effects only
   // POST /api/quests/:questId/resume performs.
   resumeQuestResponse: (params: {
-    questId: Quest['id'];
+    questId: string;
   }) => Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }>;
   // RAW ON PURPOSE — dmRegistryBroker's `update` route (patchQuestStatus above) calls
   // questModifyBroker IN-PROCESS (quest-update-route-broker.ts), so it never produces a wire-level
   // HTTP response at all — there is no status code the framework route could ever hand back. A
   // spec asserting the real PATCH /api/quests/:questId response code needs the actual request.
   patchQuestStatusResponse: (params: {
-    questId: Quest['id'];
+    questId: string;
     status: string;
   }) => Promise<{ status: DmHttpResponse['status'] }>;
   // RAW ON PURPOSE — `merging`/`merged` are deliberately off the quest ingredient's own
@@ -334,7 +334,7 @@ export const questHarness = ({
   // same gap for /start), so a spec proving the route's own response shape has no route through
   // the framework for either value.
   mergeQuestViaMergeRoute: (params: {
-    questId: Quest['id'];
+    questId: string;
   }) => Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }>;
 } => {
   const resolvedBaseUrl =
@@ -348,12 +348,12 @@ export const questHarness = ({
     title,
     userRequest,
   }: {
-    guildId: Guild['id'];
+    guildId: string;
     title: string;
     userRequest: string;
   }): Promise<{
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     filePath: string;
     success: boolean;
   }> => {
@@ -386,7 +386,7 @@ export const questHarness = ({
     title,
     userRequest,
   }: {
-    guildId: Guild['id'];
+    guildId: string;
     title: string;
     userRequest: string;
   }): Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: string }> => {
@@ -440,8 +440,8 @@ export const questHarness = ({
     branchName,
     baseBranch,
   }: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     title: string;
     status: string;
     questType?: string;
@@ -632,9 +632,9 @@ export const questHarness = ({
     branchName,
     baseBranch,
   }: {
-    guildId?: Guild['id'];
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    guildId?: string;
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     status: string;
@@ -812,8 +812,8 @@ export const questHarness = ({
     branchName,
     baseBranch,
   }: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     status: string;
@@ -906,8 +906,8 @@ export const questHarness = ({
     questFolder,
     questFilePath,
   }: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
   }): Promise<void> => {
     const quest = {
@@ -947,7 +947,7 @@ export const questHarness = ({
     detail,
   }: {
     questFilePath: string;
-    wardResultId: WardResult['id'];
+    wardResultId: string;
     detail: Record<PropertyKey, unknown>;
   }): Promise<void> => {
     // The server's ward-detail endpoint reads <questFolder>/ward-results/<id>.json. The quest
@@ -1002,7 +1002,7 @@ export const questHarness = ({
     questId,
     status,
   }: {
-    questId: Quest['id'];
+    questId: string;
     status: string;
   }): Promise<void> => {
     const guildId = await resolveQuestOwningGuildId({ questId });
@@ -1096,7 +1096,7 @@ export const questHarness = ({
     questId,
     status,
   }: {
-    questId: Quest['id'];
+    questId: string;
     status: string;
   }): Promise<void> => {
     const rebroadcastRoute = `/api/quests/${questId}`;
@@ -1119,7 +1119,7 @@ export const questHarness = ({
     questId,
     flows,
   }: {
-    questId: Quest['id'];
+    questId: string;
     flows: FlowInput[];
   }): Promise<void> => {
     const patchRoute = `/api/quests/${questId}`;
@@ -1184,8 +1184,8 @@ export const questHarness = ({
     firstWorkItemSessionId,
     worktreePath,
   }: {
-    questId: Quest['id'];
-    questFolder: Quest['folder'];
+    questId: string;
+    questFolder: string;
     questFilePath: string;
     title?: string;
     operations: {
@@ -1201,12 +1201,12 @@ export const questHarness = ({
       // The step that work item carries. Omit it for a scope that runs no step graph.
       step?: string;
     }[];
-    firstWorkItemId: WorkItem['id'];
-    firstWorkItemStatus?: WorkItem['status'];
+    firstWorkItemId: string;
+    firstWorkItemStatus?: string;
     // Seeds a RETAINED session on the first work item — the shape a quest is left in when its
     // agent died mid-flight. Deliberately seeded WITHOUT a `resume` marker, because that is the
     // state that used to fresh-spawn and overwrite the session.
-    firstWorkItemSessionId?: WorkItem['sessionId'];
+    firstWorkItemSessionId?: string;
     // Seeds the quest as ALREADY CARVED. Set it whenever the ledger's riftcarver item is seeded
     // complete, because that is the only arrangement in which the roles after it run where they
     // really run — in the worktree, writing their session JSONL under the worktree's own path
@@ -1266,7 +1266,7 @@ export const questHarness = ({
     questId,
     pausedAtStatus,
   }: {
-    questId: Quest['id'];
+    questId: string;
     pausedAtStatus: string;
   }): Promise<void> => {
     const guildId = await resolveQuestOwningGuildId({ questId });
@@ -1301,7 +1301,7 @@ export const questHarness = ({
   const mergeQuestViaMergeRoute = async ({
     questId,
   }: {
-    questId: Quest['id'];
+    questId: string;
   }): Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }> => {
     const mergeRoute = `/api/quests/${questId}/merge`;
     const response = await request.post(mergeRoute);
@@ -1319,7 +1319,7 @@ export const questHarness = ({
   const pauseQuestResponse = async ({
     questId,
   }: {
-    questId: Quest['id'];
+    questId: string;
   }): Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }> => {
     const pauseRoute = `/api/quests/${questId}/pause`;
     const response = await request.post(pauseRoute);
@@ -1338,7 +1338,7 @@ export const questHarness = ({
   const resumeQuestResponse = async ({
     questId,
   }: {
-    questId: Quest['id'];
+    questId: string;
   }): Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }> => {
     const resumeRoute = `/api/quests/${questId}/resume`;
     const response = await request.post(resumeRoute);
@@ -1357,7 +1357,7 @@ export const questHarness = ({
     questId,
     status,
   }: {
-    questId: Quest['id'];
+    questId: string;
     status: string;
   }): Promise<{ status: DmHttpResponse['status'] }> => {
     const patchRoute = `/api/quests/${questId}`;

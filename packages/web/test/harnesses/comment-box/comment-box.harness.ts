@@ -307,11 +307,11 @@ export const commentBoxHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
 }): {
   seedAndOpen: (params: {
-    guildName: Guild['name'];
+    guildName: string;
     status: string;
     withSession: boolean;
     preQueuedText?: string;
@@ -478,7 +478,7 @@ export const commentBoxHarness = ({
       withSession,
       preQueuedText,
     }: {
-      guildName: Guild['name'];
+      guildName: string;
       status: string;
       withSession: boolean;
       preQueuedText?: string;

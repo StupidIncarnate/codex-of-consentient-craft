@@ -296,11 +296,11 @@ export const persistedCommentsHarness = ({
 }: {
   page: Page;
   request: APIRequestContext;
-  guildPath: Guild['path'];
+  guildPath: string;
   sessions: ReturnType<typeof sessionHarness>;
 }): {
   seedAndOpenSpecPanel: (params: {
-    guildName: Guild['name'];
+    guildName: string;
     status: string;
     withSession: boolean;
     withComments?: boolean;
@@ -308,7 +308,7 @@ export const persistedCommentsHarness = ({
     withScrambledOrder?: boolean;
     withSecondFlow?: boolean;
   }) => Promise<void>;
-  seedAndOpenReadOnlySpecTab: (params: { guildName: Guild['name'] }) => Promise<void>;
+  seedAndOpenReadOnlySpecTab: (params: { guildName: string }) => Promise<void>;
   nodeCard: () => Locator;
   contractsOnlyCard: () => Locator;
   bareCard: () => Locator;
@@ -375,7 +375,7 @@ export const persistedCommentsHarness = ({
     withScrambledOrder,
     withSecondFlow,
   }: {
-    guildName: Guild['name'];
+    guildName: string;
     status: string;
     withSession: boolean;
     withComments: boolean;
@@ -461,7 +461,7 @@ export const persistedCommentsHarness = ({
       withScrambledOrder = false,
       withSecondFlow = false,
     }: {
-      guildName: Guild['name'];
+      guildName: string;
       status: string;
       withSession: boolean;
       withComments?: boolean;
@@ -494,7 +494,7 @@ export const persistedCommentsHarness = ({
     // A complete quest renders the full-width execution panel instead of the spec panel; its QUEST
     // SPEC tab is the readOnly QuestSpecPanelWidget. Reaching the panel through the real tab is what
     // makes this the read-only surface rather than a second render of the live one.
-    seedAndOpenReadOnlySpecTab: async ({ guildName }: { guildName: Guild['name'] }): Promise<void> => {
+    seedAndOpenReadOnlySpecTab: async ({ guildName }: { guildName: string }): Promise<void> => {
       await seed({
         guildName,
         status: 'complete',
