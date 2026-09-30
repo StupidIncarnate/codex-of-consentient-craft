@@ -44,7 +44,6 @@ export * from './folder-dependency-tree/folder-dependency-tree-contract';
 export * from './user-input/user-input-contract';
 
 // Exit Code Contracts
-export * from './exit-code/exit-code-contract';
 
 // Exec Result Contracts
 export * from './exec-result/exec-result-contract';

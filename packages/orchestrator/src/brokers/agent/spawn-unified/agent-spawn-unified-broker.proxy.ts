@@ -1,7 +1,6 @@
 import { setImmediate } from '#gateway/node/setImmediate';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 
 import { agentSpawnStreamJsonBrokerProxy } from '../spawn-stream-json/agent-spawn-stream-json-broker.proxy';
@@ -97,7 +96,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     }): { mockProcess: MockProcess } => {
       stageSpawnedReaders();
       spawnProxy.setupExitOnKill({
-        exitCode: exitCode === null ? null : ExitCodeStub({ value: exitCode }),
+        exitCode: exitCode === null ? null : exitCode,
       });
       const { mockProcess } = spawnProxy.setupSpawn();
 

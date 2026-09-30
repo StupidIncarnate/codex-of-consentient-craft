@@ -1,4 +1,3 @@
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
@@ -18,7 +17,7 @@ describe('stepHandlerWardBroker', () => {
       const runId = '1780108054226-a080';
       proxy.wardExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
         runId,
         detailJson: '{"checks":[]}',
       });
@@ -38,7 +37,7 @@ describe('stepHandlerWardBroker', () => {
       const runId = '1780108054226-a080';
       proxy.wardExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
         runId,
         detailJson: '{"checks":[]}',
       });
@@ -59,7 +58,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
       });
 
       const result = await stepHandlerWardBroker({
@@ -78,7 +77,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.failing }),
+        exitCode: wardExitCodeStatics.exitCodes.failing,
       });
 
       const result = await stepHandlerWardBroker({
@@ -97,7 +96,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.crash }),
+        exitCode: wardExitCodeStatics.exitCodes.crash,
       });
 
       const result = await stepHandlerWardBroker({
@@ -116,7 +115,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
       });
 
       await stepHandlerWardBroker({
@@ -133,7 +132,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
       });
 
       await stepHandlerWardBroker({
@@ -171,7 +170,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
         runId: '1780108054226-a080',
         detailJson: '{"checks":[]}',
       });

@@ -28,7 +28,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type { ExitCode, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract, modifyQuestInputContract, processIdContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -103,7 +103,7 @@ export const spawnOneAgentLayerBroker = async ({
   const sessionStamps: Promise<void>[] = [];
   const capturedSession: { id: Session['id'] | undefined } = { id: undefined };
 
-  const { exitCode } = await new Promise<{ exitCode: ExitCode | null }>((resolve) => {
+  const { exitCode } = await new Promise<{ exitCode: number | null }>((resolve) => {
     const { kill, sessionId$ } = agentSpawnUnifiedBroker({
       prompt: resumePrompt ?? instruction.taskPrompt,
       ...(resumeSessionId === undefined ? {} : { resumeSessionId }),

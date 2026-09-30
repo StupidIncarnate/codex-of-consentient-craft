@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { installTestbedContract } from './install-testbed-contract';
-import { exitCodeContract } from '../exit-code/exit-code-contract';
 import { processOutputContract } from '../process-output/process-output-contract';
 import type { InstallTestbed } from './install-testbed-contract';
 
@@ -39,7 +38,7 @@ export const InstallTestbedStub = ({
     runInitCommand:
       runInitCommand ??
       ((): ReturnType<InstallTestbed['runInitCommand']> => ({
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
         stdout: processOutputContract.parse(''),
         stderr: processOutputContract.parse(''),
       })),

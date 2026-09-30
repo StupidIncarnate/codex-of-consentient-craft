@@ -12,7 +12,7 @@ import { z } from '#gateway/npm/zod';
 export const execResultContract = z.object({
   stdout: z.string().brand<'Stdout'>(),
   stderr: z.string().brand<'Stderr'>(),
-  exitCode: z.number().int().brand<'ExitCode'>(),
+  exitCode: z.number().int().brand<'ExecResultExitCode'>(),
 });
 
 export type ExecResult = z.infer<typeof execResultContract>;

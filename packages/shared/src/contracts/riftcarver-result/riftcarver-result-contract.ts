@@ -20,7 +20,7 @@ import { z } from '#gateway/npm/zod';
 export const riftcarverResultContract = z.object({
   id: z.uuid().brand<'RiftcarverResultId'>(),
   createdAt: z.iso.datetime().brand<'RiftcarverResultCreatedAt'>(),
-  exitCode: z.number().int().brand<'ExitCode'>(),
+  exitCode: z.number().int().brand<'RiftcarverResultExitCode'>(),
   failedStep: z.string().min(1).brand<'WorktreePrepareStep'>().optional(),
   outcome: z.enum(['green', 'repairable', 'blocked']),
 });

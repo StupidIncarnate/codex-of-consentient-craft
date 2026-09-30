@@ -8,7 +8,6 @@
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import { stderr } from '#gateway/node/process';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
@@ -178,7 +177,7 @@ export const multiPackageLayerBroker = async ({
           projectFolder: folder,
           checkTypes,
           exitCode:
-            spawnResult.exitCode === null ? null : exitCodeContract.parse(spawnResult.exitCode),
+            spawnResult.exitCode === null ? null : spawnResult.exitCode,
           output: spawnResult.output,
         }),
       };

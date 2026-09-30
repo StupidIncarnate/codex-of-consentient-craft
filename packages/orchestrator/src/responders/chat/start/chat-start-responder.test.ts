@@ -2,7 +2,6 @@ import {
   AssistantAskUserQuestionStreamLineStub,
   AssistantTextStreamLineStub,
 } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -38,7 +37,7 @@ describe('ChatStartResponder', () => {
   describe('basic start', () => {
     it('VALID: {guildId, message} => returns chatProcessId from spawn broker', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       proxy.setupNewSession({ exitCode });
 
       const result = await proxy.callResponder({
@@ -53,7 +52,7 @@ describe('ChatStartResponder', () => {
   describe('session resumption', () => {
     it('VALID: {sessionId, no pending clarification} => starts chat with session', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-resume' });
 
@@ -83,7 +82,7 @@ describe('ChatStartResponder', () => {
 
     it('VALID: {resumed session, message carrying an absolute image path} => answers with the processId while the spawn carries the path unaltered', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-resume-image' });
 
@@ -138,7 +137,7 @@ describe('ChatStartResponder', () => {
   describe('quest lookup failure', () => {
     it('ERROR: {quest lookup fails} => still spawns chat normally', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-quest-fail' });
 
@@ -173,7 +172,7 @@ describe('ChatStartResponder', () => {
       const questId = QuestIdStub({ value: 'quest-inflight' });
       const existingProcessId = ProcessIdStub({ value: 'existing-proc-123' });
       const killMock = jest.fn();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
 
       const proxy = ChatStartResponderProxy({
         questSetup: {
@@ -234,7 +233,7 @@ describe('ChatStartResponder', () => {
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-no-proc' });
       const questId = QuestIdStub({ value: 'quest-no-proc' });
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
 
       const proxy = ChatStartResponderProxy({
         questSetup: {
@@ -286,7 +285,7 @@ describe('ChatStartResponder', () => {
 
     it('VALID: {first message, no quest exists} => creates quest and spawns', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       proxy.setupNewSession({ exitCode });
 
       const result = await proxy.callResponder({
@@ -304,7 +303,7 @@ describe('ChatStartResponder', () => {
       const otherQuestId = QuestIdStub({ value: 'quest-other' });
       const otherProcessId = ProcessIdStub({ value: 'other-proc-456' });
       const killMock = jest.fn();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
 
       const proxy = ChatStartResponderProxy({
         questSetup: {
@@ -371,7 +370,7 @@ describe('ChatStartResponder', () => {
       await flushAsync();
 
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionLine = JSON.stringify({ session_id: 'new-session-abc' });
       // Quest seeded with the chaoswhisperer work item that questUserAddBroker creates
@@ -437,7 +436,7 @@ describe('ChatStartResponder', () => {
     // item on this quest for a wrongly-derived 'chaoswhisperer' lookup to find.
     it('VALID: {existingQuestId names a bug-hunt quest whose bughunt work item has no sessionId} => resolves without throwing, proving the role was derived as bughunt', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub();
       // Matches the sticky crypto.randomUUID literal chatSpawnBrokerProxy mocks (see
       // CREATED_QUEST_ID in chat-spawn-broker.proxy.ts). setupResumeSession({exitCode}) (no
@@ -478,7 +477,7 @@ describe('ChatStartResponder', () => {
   describe('chat-output buffered emit flush race', () => {
     it('VALID: {chat-output emits arrive BEFORE workItemId lookup resolves} => emits stay buffered then flush in order with questId+workItemId stamped', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const firstAssistantLine = JSON.stringify({
         ...AssistantTextStreamLineStub({
@@ -578,7 +577,7 @@ describe('ChatStartResponder', () => {
   describe('clarification-request buffered emit flush race', () => {
     it('VALID: {clarification arrives BEFORE workItemId lookup resolves} => buffers then flushes with questId stamped', async () => {
       const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
+      const exitCode = 0;
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const askLine = JSON.stringify(AssistantAskUserQuestionStreamLineStub());
       const seededQuest = QuestStub({

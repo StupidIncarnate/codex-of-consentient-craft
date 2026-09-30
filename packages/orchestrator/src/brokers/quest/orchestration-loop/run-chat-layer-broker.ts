@@ -6,7 +6,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { workItemRoleContract, type ExitCode, type UserInput, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, type UserInput, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -64,7 +64,7 @@ export const runChatLayerBroker = async ({
 
     const { sessionId, exitCode } = await new Promise<{
       sessionId: Session['id'] | null;
-      exitCode: ExitCode | null;
+      exitCode: number | null;
     }>((resolve) => {
       let trackedSessionId: Session['id'] | null = null;
       agentLaunchBroker({

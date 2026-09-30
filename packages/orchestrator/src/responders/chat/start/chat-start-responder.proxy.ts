@@ -6,7 +6,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import type { FileName } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -23,7 +22,7 @@ import { ChatStartResponder } from './chat-start-responder';
 
 registerModuleMock({ module: '../../../brokers/quest/get/quest-get-broker' });
 
-type ExitCode = ReturnType<typeof ExitCodeStub>;
+type ExitCode = number;
 
 type Quest = ReturnType<typeof QuestStub>;
 

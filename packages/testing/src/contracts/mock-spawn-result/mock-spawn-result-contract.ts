@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const mockSpawnResultContract = z.object({
-  code: z.number().int().brand<'ExitCode'>(),
+  code: z.number().int().brand<'MockSpawnResultCode'>(),
   stdout: z.string().brand<'StdoutOutput'>(),
   stderr: z.string().brand<'StderrOutput'>(),
 });

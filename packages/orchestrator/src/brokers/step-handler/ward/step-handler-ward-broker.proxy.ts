@@ -27,7 +27,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import type { ExitCode, FileName, Quest } from '@dungeonmaster/shared/contracts';
+import type { FileName, Quest } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -63,11 +63,11 @@ export const stepHandlerWardBrokerProxy = (): {
   setupWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   wardExits: (params: {
     questId: Quest['id'];
-    exitCode: ExitCode;
+    exitCode: number;
     runId: FileName;
     detailJson: string;
   }) => void;
-  wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: ExitCode }) => void;
+  wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: number }) => void;
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
 } => {
@@ -155,7 +155,7 @@ export const stepHandlerWardBrokerProxy = (): {
       detailJson,
     }: {
       questId: Quest['id'];
-      exitCode: ExitCode;
+      exitCode: number;
       runId: FileName;
       detailJson: string;
     }): void => {
@@ -174,7 +174,7 @@ export const stepHandlerWardBrokerProxy = (): {
       exitCode,
     }: {
       questId: Quest['id'];
-      exitCode: ExitCode;
+      exitCode: number;
     }): void => {
       stageQuest({ questId });
       wardSpawn.setupSuccess({

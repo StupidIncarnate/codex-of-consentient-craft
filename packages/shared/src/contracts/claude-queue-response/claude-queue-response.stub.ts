@@ -12,7 +12,6 @@ import type { ToolUseBlockParam } from '../tool-use-block-param/tool-use-block-p
 // `textBlockParamContract` / `toolUseBlockParamContract` are value imports so the internal
 // line builders can brand plain-string inputs via `.shape.text.parse` / `.shape.name.parse`.
 import type { ToolResultBlockParam } from '../tool-result-block-param/tool-result-block-param-contract';
-import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '../session-id/session-id.stub';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
@@ -182,7 +181,7 @@ export const ErrorResponseStub = ({
   return claudeQueueResponseContract.parse({
     sessionId,
     lines: [initLine({ sessionId }), textLine({ text: customText ?? 'Processing...' })],
-    exitCode: ExitCodeStub({ value: 1 }),
+    exitCode: 1,
     ...rest,
   });
 };

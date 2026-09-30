@@ -2,7 +2,6 @@ import { randomUUID } from '#gateway/node/crypto';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -103,7 +102,7 @@ export const FollowupChatStartResponderProxy = (): {
     stdoutLines?: readonly string[];
   }): void => {
     spawnProxy.setupResumeSession({
-      exitCode: ExitCodeStub({ value: 0 }),
+      exitCode: 0,
       stdoutLines: stdoutLines ?? [],
     });
     spawnProxy.setupResumeWithWorktree({

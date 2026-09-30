@@ -23,7 +23,7 @@ const LEGACY_COMMITTED = 'changed';
 export const wardResultContract = z.object({
   id: z.uuid().brand<'WardResultId'>(),
   createdAt: z.iso.datetime().brand<'WardResultCreatedAt'>(),
-  exitCode: z.number().int().brand<'ExitCode'>(),
+  exitCode: z.number().int().brand<'WardResultExitCode'>(),
   runId: wardQueueResponseContract.shape.runId.optional(),
   wardMode: z
     .preprocess(

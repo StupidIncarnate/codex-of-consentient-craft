@@ -16,7 +16,7 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { exitCodeContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -68,7 +68,7 @@ export const checkRunE2eBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'not e2e-eligible (packageType is not frontend-react or frontend-ink)',
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
       }),
     });
   }
@@ -86,7 +86,7 @@ export const checkRunE2eBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'e2e-eligible package is missing playwright.config.ts',
-        exitCode: exitCodeContract.parse(1),
+        exitCode: 1,
       }),
     });
   }
@@ -113,7 +113,7 @@ export const checkRunE2eBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'no matching e2e test files in passthrough',
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
       }),
     });
   }
@@ -150,7 +150,7 @@ export const checkRunE2eBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: String(bundle.error),
-        exitCode: exitCodeContract.parse(1),
+        exitCode: 1,
       }),
     });
   }
@@ -210,8 +210,8 @@ export const checkRunE2eBroker = async ({
     portKillListenersBroker({ port: networkPortContract.parse(webPort) }),
   ]);
 
-  const exitCode = exitCodeContract.parse(result.exitCode);
-  const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+  const exitCode = result.exitCode;
+  const status = exitCode === 0 ? 'pass' : 'fail';
 
   let testFailures: ReturnType<typeof parsePlaywrightCrashOutputTransformer> = [];
 

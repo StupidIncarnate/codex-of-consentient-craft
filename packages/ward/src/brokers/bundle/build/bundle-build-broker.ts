@@ -20,7 +20,6 @@ import { NpmNotInstalledError, runScript } from '#gateway/bin/npm';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -90,7 +89,7 @@ export const bundleBuildBroker = async ({
     return { exitCode: 1, output: '' };
   });
 
-  if (result.exitCode !== exitCodeContract.parse(0)) {
+  if (result.exitCode !== 0) {
     await rm(String(tempDir), { recursive: true, force: true });
 
     return {

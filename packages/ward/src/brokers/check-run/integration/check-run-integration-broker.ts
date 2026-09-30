@@ -10,7 +10,6 @@ import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, unlink } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -76,7 +75,7 @@ export const checkRunIntegrationBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'no test files discovered',
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
       }),
     });
   }
@@ -94,7 +93,7 @@ export const checkRunIntegrationBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'no matching integration test files in passthrough',
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
       }),
     });
   }
@@ -119,7 +118,7 @@ export const checkRunIntegrationBroker = async ({
         rawOutput: rawOutputContract.parse({
           stdout: '',
           stderr: 'no matching integration test files in passthrough',
-          exitCode: exitCodeContract.parse(0),
+          exitCode: 0,
         }),
       });
     }
@@ -207,8 +206,8 @@ export const checkRunIntegrationBroker = async ({
     return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = exitCodeContract.parse(result.exitCode);
-  const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+  const exitCode = result.exitCode;
+  const status = exitCode === 0 ? 'pass' : 'fail';
 
   // In file scope (--committed / --uncommitted / passthrough), jest's "no tests found" banner means none of the
   // changed files has a related integration test — a skip, not a failure. Full runs keep failing
@@ -224,7 +223,7 @@ export const checkRunIntegrationBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'no integration tests related to changed files',
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
       }),
     });
   }

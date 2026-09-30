@@ -14,7 +14,6 @@
  */
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
@@ -41,7 +40,7 @@ export const stepHandlerRunBrokerProxy = (): {
     setupWardDone: ({ questId }: { questId: Quest['id'] }): void => {
       wardProxy.wardExits({
         questId,
-        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
+        exitCode: wardExitCodeStatics.exitCodes.pass,
         runId: '1780108054226-a080',
         detailJson: '{"checks":[]}',
       });
@@ -60,7 +59,7 @@ export const stepHandlerRunBrokerProxy = (): {
     setupCleanupDone: ({ questId }: { questId: Quest['id'] }): void => {
       cleanupProxy.cleanupExits({
         questId,
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         answer: CleanupCliAnswerStub({ lockReleased: true }),
       });
     },

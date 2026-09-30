@@ -13,7 +13,6 @@ import {
   AssistantToolUseStreamLineStub,
   AssistantToolResultStreamLineStub,
 } from '../assistant-stream-line/assistant-stream-line.stub';
-import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '../session-id/session-id.stub';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
@@ -133,14 +132,14 @@ describe('claudeQueueResponseContract', () => {
       const result = claudeQueueResponseContract.parse({
         sessionId: SessionIdStub(),
         lines: [],
-        exitCode: ExitCodeStub(),
+        exitCode: 0,
         delayMs: TimeoutMsStub(),
       });
 
       expect(result).toStrictEqual({
         sessionId: SessionIdStub(),
         lines: [],
-        exitCode: ExitCodeStub(),
+        exitCode: 0,
         delayMs: TimeoutMsStub(),
       });
     });
@@ -230,7 +229,7 @@ describe('claudeQueueResponseContract', () => {
       expect(response).toStrictEqual({
         sessionId: DEFAULT_SESSION_ID,
         lines: [initLine, customTextLine({ text: 'Processing...' })],
-        exitCode: ExitCodeStub({ value: 1 }),
+        exitCode: 1,
       });
     });
 
@@ -242,7 +241,7 @@ describe('claudeQueueResponseContract', () => {
       expect(response).toStrictEqual({
         sessionId: DEFAULT_SESSION_ID,
         lines: [initLine, customTextLine({ text: 'Crashed mid-turn' })],
-        exitCode: ExitCodeStub({ value: 1 }),
+        exitCode: 1,
       });
     });
 

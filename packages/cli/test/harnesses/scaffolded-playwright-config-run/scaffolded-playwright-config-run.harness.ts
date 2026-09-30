@@ -31,14 +31,13 @@ import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 import { packageJsonContract } from '@dungeonmaster/shared/contracts';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 const RUN_TIMEOUT_MS = 20_000;
 
 export const scaffoldedPlaywrightConfigRunHarness = (): {
   installGatewayNodeStub: (params: { dirPath: string }) => void;
   run: (params: { configPath: string; cwd: string; env: Record<string, string> }) => Promise<{
-    exitCode: ReturnType<typeof ExitCodeStub>;
+    exitCode: number;
     stdout: string;
     stderr: string;
   }>;
@@ -94,7 +93,7 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
     cwd: string;
     env: Record<string, string>;
   }): Promise<{
-    exitCode: ReturnType<typeof ExitCodeStub>;
+    exitCode: number;
     stdout: string;
     stderr: string;
   }> =>
@@ -141,7 +140,7 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
           return;
         }
         promiseResolve({
-          exitCode: ExitCodeStub({ value: code ?? 1 }),
+          exitCode: (code ?? 1),
           stdout: text.stdout,
           stderr: text.stderr,
         });

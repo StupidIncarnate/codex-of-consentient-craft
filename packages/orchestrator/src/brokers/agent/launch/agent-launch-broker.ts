@@ -19,7 +19,7 @@
  * });
  */
 
-import type { ChatEntry, ExitCode, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderr } from '#gateway/node/process';
@@ -78,7 +78,7 @@ export const agentLaunchBroker = ({
   onSessionId: (params: { chatProcessId: ProcessId; sessionId: Session['id'] }) => void;
   onComplete: (params: {
     chatProcessId: ProcessId;
-    exitCode: ExitCode | null;
+    exitCode: number | null;
     sessionId: Session['id'] | null;
   }) => void;
 

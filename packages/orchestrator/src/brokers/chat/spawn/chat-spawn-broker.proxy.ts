@@ -4,7 +4,6 @@ import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { Session } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
@@ -18,7 +17,7 @@ import { questSessionRecordBroker } from '../../quest/session-record/quest-sessi
 import { questSessionRecordBrokerProxy } from '../../quest/session-record/quest-session-record-broker.proxy';
 import { resolveChatQuestLayerBrokerProxy } from './resolve-chat-quest-layer-broker.proxy';
 
-type ExitCode = ReturnType<typeof ExitCodeStub>;
+type ExitCode = number;
 type Quest = ReturnType<typeof QuestStubType>;
 
 type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
@@ -256,7 +255,7 @@ export const chatSpawnBrokerProxy = (): {
       });
       resolveProxy.setupQuestFound({ quest });
       cwdProxy.setupWorktreePresent({ quest });
-      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
     },
 
     setupResumeWithMissingWorktree: ({
@@ -292,7 +291,7 @@ export const chatSpawnBrokerProxy = (): {
       const quest = QuestStub({ id: questId, folder: questId, workItems: [chaosItem] });
       resolveProxy.setupQuestFound({ quest });
       cwdProxy.setupLegacyQuest({ quest, repoRoot });
-      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
     },
 
     getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),

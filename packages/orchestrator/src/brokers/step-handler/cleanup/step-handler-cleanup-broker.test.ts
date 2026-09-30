@@ -1,4 +1,3 @@
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
@@ -17,7 +16,7 @@ describe('stepHandlerCleanupBroker', () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         answer: CleanupCliAnswerStub(),
       });
 
@@ -37,7 +36,7 @@ describe('stepHandlerCleanupBroker', () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         answer: CleanupCliAnswerStub({ reaped: [{ id: 'inst_9b2c' }] }),
       });
 
@@ -57,7 +56,7 @@ describe('stepHandlerCleanupBroker', () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupFails({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: 1 }),
+        exitCode: 1,
         output: 'driver crashed',
       });
 
@@ -77,7 +76,7 @@ describe('stepHandlerCleanupBroker', () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         answer: CleanupCliAnswerStub(),
       });
 
@@ -95,7 +94,7 @@ describe('stepHandlerCleanupBroker', () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         answer: CleanupCliAnswerStub(),
       });
 
@@ -115,7 +114,7 @@ describe('stepHandlerCleanupBroker', () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
         questId: QUEST_ID,
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         answer: CleanupCliAnswerStub({ lockReleased: true }),
       });
       const seenLines: ContentText[] = [];

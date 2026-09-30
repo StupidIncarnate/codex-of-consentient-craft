@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
@@ -37,7 +36,7 @@ describe('chatSpawnBroker', () => {
       const guildId = GuildIdStub();
       const role = 'chaoswhisperer';
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       const result = await chatSpawnBroker({
         role,
@@ -57,7 +56,7 @@ describe('chatSpawnBroker', () => {
       const role = 'chaoswhisperer';
       const registerProcess = jest.fn();
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       await chatSpawnBroker({
         role,
@@ -87,7 +86,7 @@ describe('chatSpawnBroker', () => {
       const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
       const message = `here is the mock ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) build me this`;
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       await chatSpawnBroker({
         role,
@@ -126,7 +125,7 @@ describe('chatSpawnBroker', () => {
       const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
       const message = `here is the mock ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) build me this`;
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       await chatSpawnBroker({
         role,
@@ -157,7 +156,7 @@ describe('chatSpawnBroker', () => {
       const sessionId = SessionIdStub({ value: 'existing-session-123' });
       const questId = QuestIdStub({ value: 'existing-quest-resume' });
 
-      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), questId });
+      proxy.setupResumeSession({ exitCode: 0, questId });
 
       const result = await chatSpawnBroker({
         role,
@@ -181,7 +180,7 @@ describe('chatSpawnBroker', () => {
       const role = 'chaoswhisperer';
       const onComplete = jest.fn();
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       const { chatProcessId } = await chatSpawnBroker({
         role,
@@ -211,7 +210,7 @@ describe('chatSpawnBroker', () => {
       const questId = QuestIdStub({ value: 'existing-quest-resume-completion' });
       const onComplete = jest.fn();
 
-      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), questId });
+      proxy.setupResumeSession({ exitCode: 0, questId });
 
       const { chatProcessId } = await chatSpawnBroker({
         role,
@@ -247,7 +246,7 @@ describe('chatSpawnBroker', () => {
       const role = 'chaoswhisperer';
       const onQuestCreated = jest.fn();
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       const result = await chatSpawnBroker({
         role,
@@ -277,7 +276,7 @@ describe('chatSpawnBroker', () => {
       const questId = QuestIdStub({ value: 'existing-quest-resume-no-create' });
       const onQuestCreated = jest.fn();
 
-      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), questId });
+      proxy.setupResumeSession({ exitCode: 0, questId });
 
       await chatSpawnBroker({
         role,
@@ -325,7 +324,7 @@ describe('chatSpawnBroker', () => {
       const assistantLine = JSON.stringify(AssistantTextStreamLineStub());
 
       proxy.setupNewSession({
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         stdoutLines: [assistantLine],
       });
 
@@ -359,7 +358,7 @@ describe('chatSpawnBroker', () => {
       const sessionLine = JSON.stringify({ session_id: 'extracted-session-xyz' });
 
       proxy.setupNewSession({
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         stdoutLines: [sessionLine],
       });
 
@@ -402,7 +401,7 @@ describe('chatSpawnBroker', () => {
       });
 
       proxy.setupNewSession({
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         stdoutLines: [sessionLine],
       });
       proxy.setupSessionLinkQuest({ quest: linkQuest });
@@ -447,7 +446,7 @@ describe('chatSpawnBroker', () => {
       const sessionLine = JSON.stringify({ session_id: 'extracted-session-should-ignore' });
 
       proxy.setupResumeSession({
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         stdoutLines: [sessionLine],
         questId,
       });
@@ -493,7 +492,7 @@ describe('chatSpawnBroker', () => {
       });
 
       proxy.setupNewSession({
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         stdoutLines: [sessionLine],
       });
 
@@ -586,7 +585,7 @@ describe('chatSpawnBroker', () => {
       const assistantLine = JSON.stringify(AssistantTextStreamLineStub());
 
       proxy.setupNewSession({
-        exitCode: ExitCodeStub({ value: 0 }),
+        exitCode: 0,
         stdoutLines: [assistantLine],
       });
 
@@ -718,7 +717,7 @@ describe('chatSpawnBroker', () => {
       const guildId = GuildIdStub();
       const role = 'bughunt';
 
-      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupNewSession({ exitCode: 0 });
 
       const result = await chatSpawnBroker({
         role,

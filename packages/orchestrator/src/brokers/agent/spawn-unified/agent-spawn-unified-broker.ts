@@ -13,8 +13,7 @@
 
 import { lineReader } from '#gateway/node/readline';
 import { stderr } from '#gateway/node/process';
-import type { ExitCode, Session } from '@dungeonmaster/shared/contracts';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
@@ -43,7 +42,7 @@ export const agentSpawnUnifiedBroker = ({
   disableToolSearch?: boolean;
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
-  onComplete: (params: { exitCode: ExitCode | null; sessionId: Session['id'] | null }) => void;
+  onComplete: (params: { exitCode: number | null; sessionId: Session['id'] | null }) => void;
   // Forwarded to the spawn broker. Default behavior (undefined) inherits stderr to the
   // parent terminal. The launcher always passes a tagging callback so each subprocess's
   // stderr gets `proc:<id>` attribution in the dev log.
@@ -115,7 +114,7 @@ export const agentSpawnUnifiedBroker = ({
     if (trackedSessionId === null) {
       deferred.resolve(null);
     }
-    const parsedExitCode = code === null ? null : exitCodeContract.parse(code);
+    const parsedExitCode = code === null ? null : code;
     onComplete({ exitCode: parsedExitCode, sessionId: trackedSessionId });
   });
 

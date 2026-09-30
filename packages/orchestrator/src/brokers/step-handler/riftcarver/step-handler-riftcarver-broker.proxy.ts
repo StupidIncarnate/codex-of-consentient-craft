@@ -27,7 +27,7 @@ import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.pro
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
-import { baseBranchNameContract, exitCodeContract, questBranchNameContract, riftcarverResultContract, type ExitCode, type Quest } from '@dungeonmaster/shared/contracts';
+import { baseBranchNameContract, questBranchNameContract, riftcarverResultContract, type Quest } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -117,8 +117,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     exists: false,
     addFailureOutput: null,
   };
-  const typecheckOutcome: { exitCode: ExitCode; lines: readonly string[] } = {
-    exitCode: exitCodeContract.parse(GIT_SUCCESS),
+  const typecheckOutcome: { exitCode: number; lines: readonly string[] } = {
+    exitCode: GIT_SUCCESS,
     lines: ['✓ typecheck'],
   };
 
@@ -248,7 +248,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     },
 
     setupTypecheckFails: ({ lines }: { lines: readonly string[] }): void => {
-      typecheckOutcome.exitCode = exitCodeContract.parse(TYPECHECK_FAILURE);
+      typecheckOutcome.exitCode = TYPECHECK_FAILURE;
       typecheckOutcome.lines = lines.map((line) => line);
       // Re-stages the same address `setupQuest` already staged — the later registration wins (see
       // `mockStagedBestMatchTransformer`), so this overrides the green default without needing a

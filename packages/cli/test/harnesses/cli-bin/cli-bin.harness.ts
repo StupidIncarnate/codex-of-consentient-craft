@@ -24,7 +24,6 @@ import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 // binExists/binIsExecutable/readBinContent back the "file structure" assertions in
 // cli-entry.integration.test.ts, which must keep grading the built esbuild bundle — see that
@@ -61,14 +60,14 @@ export const cliBinHarness = (): {
   binIsExecutable: () => boolean;
   readBinContent: () => string;
   runCommand: ({ args }: { args: readonly string[] }) => Promise<{
-    exitCode: ReturnType<typeof ExitCodeStub>;
+    exitCode: number;
     stdout: string;
     stderr: string;
   }>;
-  runInit: () => Promise<{ exitCode: ReturnType<typeof ExitCodeStub> }>;
+  runInit: () => Promise<{ exitCode: number }>;
   requireWithoutAutorun: () => Promise<{ exitedCleanly: boolean; servedLineSeen: boolean }>;
   runWithClosedStdoutReader: ({ args }: { args: readonly string[] }) => Promise<{
-    cliExitCode: ReturnType<typeof ExitCodeStub>;
+    cliExitCode: number;
     cliStderr: string;
   }>;
 } => {
@@ -90,7 +89,7 @@ export const cliBinHarness = (): {
     timeoutLabel: string;
     closeStdin: boolean;
   }): Promise<{
-    exitCode: ReturnType<typeof ExitCodeStub>;
+    exitCode: number;
     stdout: string;
     stderr: string;
   }> =>
@@ -127,7 +126,7 @@ export const cliBinHarness = (): {
           return;
         }
         promiseResolve({
-          exitCode: ExitCodeStub({ value: code ?? 1 }),
+          exitCode: (code ?? 1),
           stdout: text.stdout,
           stderr: text.stderr,
         });
@@ -144,7 +143,7 @@ export const cliBinHarness = (): {
   }: {
     args: readonly string[];
   }): Promise<{
-    exitCode: ReturnType<typeof ExitCodeStub>;
+    exitCode: number;
     stdout: string;
     stderr: string;
   }> => {
@@ -181,7 +180,7 @@ export const cliBinHarness = (): {
   }: {
     args: readonly string[];
   }): Promise<{
-    cliExitCode: ReturnType<typeof ExitCodeStub>;
+    cliExitCode: number;
     cliStderr: string;
   }> => {
     const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-'));
@@ -200,7 +199,7 @@ export const cliBinHarness = (): {
       closeStdin: true,
     });
 
-    const cliExitCode = ExitCodeStub({ value: Number(readFileSync(exitCodeFile)) });
+    const cliExitCode = Number(readFileSync(exitCodeFile));
 
     rmSync(tempDir, { recursive: true, force: true });
     rmSync(dungeonmasterHome, { recursive: true, force: true });
@@ -228,7 +227,7 @@ export const cliBinHarness = (): {
 
     runWithClosedStdoutReader,
 
-    runInit: async (): Promise<{ exitCode: ReturnType<typeof ExitCodeStub> }> => {
+    runInit: async (): Promise<{ exitCode: number }> => {
       const { exitCode } = await runCommand({ args: ['init'] });
       return { exitCode };
     },

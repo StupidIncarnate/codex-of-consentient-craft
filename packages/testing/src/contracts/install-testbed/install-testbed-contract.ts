@@ -7,7 +7,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import type { ExitCode } from '../exit-code/exit-code-contract';
 import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { ClaudeSettings } from '../claude-settings/claude-settings-contract';
@@ -42,5 +41,5 @@ export type InstallTestbed = InstallTestbedData & {
   getMcpConfig: () => McpConfig | null;
   getDungeonmasterConfig: () => TestbedConfig | null;
   getEslintConfig: () => string | null;
-  runInitCommand: () => { exitCode: ExitCode; stdout: ProcessOutput; stderr: ProcessOutput };
+  runInitCommand: () => { exitCode: number; stdout: ProcessOutput; stderr: ProcessOutput };
 };

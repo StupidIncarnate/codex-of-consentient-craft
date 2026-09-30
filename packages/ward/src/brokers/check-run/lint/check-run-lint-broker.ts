@@ -7,7 +7,6 @@
  */
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { eslintJsonReportContract } from '../../../contracts/eslint-json-report/eslint-json-report-contract';
@@ -51,8 +50,8 @@ export const checkRunLintBroker = async ({
     return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = exitCodeContract.parse(result.exitCode);
-  const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+  const exitCode = result.exitCode;
+  const status = exitCode === 0 ? 'pass' : 'fail';
 
   // A scoped path holding no lintable file (a JSON fixture folder) aborts ESLint for the WHOLE run, real
   // files included. Only the exact sentence naming a path this run passed counts: that path is dropped

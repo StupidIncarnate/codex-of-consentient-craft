@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { StartInstall } from './start-install';
 import { scaffoldedTemplateTypecheckHarness } from '../../test/harnesses/scaffolded-template-typecheck/scaffolded-template-typecheck.harness';
 import { scaffoldedPlaywrightConfigRunHarness } from '../../test/harnesses/scaffolded-playwright-config-run/scaffolded-playwright-config-run.harness';
@@ -132,7 +131,7 @@ describe('StartInstall', () => {
 
       expect(diagnostics).toStrictEqual([]);
       expect(stderr).toBe('');
-      expect(exitCode).toStrictEqual(ExitCodeStub({ value: 0 }));
+      expect(exitCode).toStrictEqual(0);
       expect(JSON.parse(stdout)).toStrictEqual({
         testMatch: '**/*.e2e.ts',
         timeout: 30_000,
@@ -207,7 +206,7 @@ describe('StartInstall', () => {
 
       testbed.cleanup();
 
-      expect(exitCode).toStrictEqual(ExitCodeStub({ value: 1 }));
+      expect(exitCode).toStrictEqual(1);
       expect(stderr).toMatch(
         /^Error: playwright\.config\.ts found the unedited placeholder in devServer\.e2e\.processes\[0\] — edit devServer\.e2e\.processes in \.dungeonmaster\.json to point at your app's own no-watch dev command\.$/mu,
       );
@@ -251,7 +250,7 @@ describe('StartInstall', () => {
 
       testbed.cleanup();
 
-      expect(exitCode).toStrictEqual(ExitCodeStub({ value: 1 }));
+      expect(exitCode).toStrictEqual(1);
       expect(stderr).toMatch(
         /^Error: playwright\.config\.ts found no devServer\.e2e\.processes in \.dungeonmaster\.json — edit that array to name your app's own no-watch dev command \(name, command, portRole, readyPath\), the same way you would write a Playwright webServer entry\.$/mu,
       );
@@ -308,7 +307,7 @@ describe('StartInstall', () => {
 
       testbed.cleanup();
 
-      expect(exitCode).toStrictEqual(ExitCodeStub({ value: 1 }));
+      expect(exitCode).toStrictEqual(1);
       expect(stderr).toMatch(
         /^Error: playwright\.config\.ts: devServer\.e2e\.processes\[\]\.command in \.dungeonmaster\.json uses \{apiWorkspace\}, which this scaffolded config cannot resolve — write a literal value instead\.$/mu,
       );
@@ -360,7 +359,7 @@ describe('StartInstall', () => {
 
       testbed.cleanup();
 
-      expect(exitCode).toStrictEqual(ExitCodeStub({ value: 1 }));
+      expect(exitCode).toStrictEqual(1);
       expect(stderr).toMatch(
         /^Error: playwright\.config\.ts: devServer\.e2e\.processes\["worker"\]\.portRole must be "api" or "web" in \.dungeonmaster\.json$/mu,
       );

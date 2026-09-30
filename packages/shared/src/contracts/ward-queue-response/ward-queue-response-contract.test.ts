@@ -1,7 +1,6 @@
 import { wardQueueResponseContract } from './ward-queue-response-contract';
 import { WardQueueResponseStub } from './ward-queue-response.stub';
 
-import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { WardRunIdStub } from '../ward-run-id/ward-run-id.stub';
 
 type WardQueueResponse = ReturnType<typeof WardQueueResponseStub>;
@@ -16,13 +15,13 @@ describe('wardQueueResponseContract', () => {
 
     it('VALID: {all fields} => parses response with all fields', () => {
       const result = wardQueueResponseContract.parse({
-        exitCode: ExitCodeStub(),
+        exitCode: 0,
         runId: WardRunIdStub(),
         wardResultJson: { summary: 'test' },
       });
 
       expect(result).toStrictEqual({
-        exitCode: ExitCodeStub(),
+        exitCode: 0,
         runId: WardRunIdStub(),
         wardResultJson: { summary: 'test' },
       });

@@ -1,4 +1,3 @@
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
@@ -15,7 +14,7 @@ describe('childCrashLayerBroker', () => {
       const result = childCrashLayerBroker({
         projectFolder,
         checkTypes: ['lint', 'unit'],
-        exitCode: ExitCodeStub({ value: 1 }),
+        exitCode: 1,
         output: 'boom',
       });
 
@@ -32,7 +31,7 @@ describe('childCrashLayerBroker', () => {
       const result = childCrashLayerBroker({
         projectFolder,
         checkTypes: ['lint'],
-        exitCode: ExitCodeStub({ value: 137 }),
+        exitCode: 137,
         output: 'partial output',
       });
 

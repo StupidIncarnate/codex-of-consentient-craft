@@ -1,6 +1,5 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { setImmediate } from '#gateway/node/setImmediate';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
@@ -379,7 +378,7 @@ describe('agentSpawnStreamJsonBroker', () => {
   describe('exit config', () => {
     it('VALID: {setupSuccess exit 0, default child} => the child emits exit 0 once the spawn returns', async () => {
       const proxy = agentSpawnStreamJsonBrokerProxy();
-      proxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSuccess({ exitCode: 0 });
       const onExit = jest.fn();
 
       const { process: child } = agentSpawnStreamJsonBroker({

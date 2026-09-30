@@ -5,7 +5,6 @@ import { join } from '#gateway/node/path';
 import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
-import type { ExitCode } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -25,8 +24,8 @@ const isSettingsFilePath = (filePath: unknown): boolean =>
 export const agentSpawnStreamJsonBrokerProxy = (): {
   setupSpawn: () => { mockProcess: MockProcess };
   setupSpawnLazy: () => void;
-  setupSuccess: (params: { exitCode: ExitCode }) => void;
-  setupExitOnKill: (params: { exitCode: ExitCode | null }) => void;
+  setupSuccess: (params: { exitCode: number }) => void;
+  setupExitOnKill: (params: { exitCode: number | null }) => void;
   setupError: (params: { error: Error }) => void;
   setupSpawnThrow: (params: { error: Error }) => void;
   setupSpawnThrowOnce: (params: { error: Error }) => void;
@@ -87,11 +86,11 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
       spawnProxy.setupSpawnLazy();
     },
 
-    setupSuccess: ({ exitCode }: { exitCode: ExitCode }): void => {
+    setupSuccess: ({ exitCode }: { exitCode: number }): void => {
       spawnProxy.setupExitCode({ exitCode });
     },
 
-    setupExitOnKill: ({ exitCode }: { exitCode: ExitCode | null }): void => {
+    setupExitOnKill: ({ exitCode }: { exitCode: number | null }): void => {
       spawnProxy.setupExitOnKill({ exitCode });
     },
 

@@ -12,7 +12,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import type { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
@@ -35,7 +34,7 @@ export const orchestrationJsonlHarness = (): {
   agentFailedResponse: (params?: {
     sessionId?: ClaudeQueueResponse['sessionId'];
     summary?: string;
-    exitCode?: ReturnType<typeof ExitCodeStub>;
+    exitCode?: number;
   }) => ClaudeQueueResponse;
   wardPassResponse: () => WardQueueResponse;
   wardFailResponse: (params?: {
@@ -91,11 +90,11 @@ export const orchestrationJsonlHarness = (): {
   const agentFailedResponse = ({
     sessionId = SessionIdStub({ value: 'sess-integ-fail' }),
     summary = 'Task failed',
-    exitCode = ExitCodeStub({ value: 0 }),
+    exitCode = 0,
   }: {
     sessionId?: ClaudeQueueResponse['sessionId'];
     summary?: Parameters<typeof signalBackLine>[0]['summary'];
-    exitCode?: ReturnType<typeof ExitCodeStub>;
+    exitCode?: number;
   } = {}): ClaudeQueueResponse => ({
     sessionId,
     exitCode,
@@ -107,7 +106,7 @@ export const orchestrationJsonlHarness = (): {
   });
 
   const wardPassResponse = (): WardQueueResponse => ({
-    exitCode: ExitCodeStub({ value: 0 }),
+    exitCode: 0,
     runId: WardRunIdStub({ value: `ward-${String(Date.now())}` }),
     wardResultJson: { checks: [] },
   });
@@ -115,7 +114,7 @@ export const orchestrationJsonlHarness = (): {
   const wardFailResponse = ({
     filePaths = [],
   }: { filePaths?: string[] } = {}): WardQueueResponse => ({
-    exitCode: ExitCodeStub({ value: 1 }),
+    exitCode: 1,
     runId: WardRunIdStub({ value: `ward-fail-${String(Date.now())}` }),
     wardResultJson: {
       checks: [

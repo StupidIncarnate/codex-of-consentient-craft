@@ -24,7 +24,6 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -63,7 +62,7 @@ export const checkRunTypecheckBroker = async ({
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'no tsconfig.json',
-        exitCode: exitCodeContract.parse(0),
+        exitCode: 0,
       }),
     });
   }
@@ -116,8 +115,8 @@ export const checkRunTypecheckBroker = async ({
       : Promise.resolve(null),
   ]);
 
-  const exitCode = exitCodeContract.parse(result.exitCode);
-  const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+  const exitCode = result.exitCode;
+  const status = exitCode === 0 ? 'pass' : 'fail';
 
   let mainErrors: ReturnType<typeof tscOutputParseTransformer> = [];
 
@@ -132,13 +131,13 @@ export const checkRunTypecheckBroker = async ({
   let buildStatus: 'pass' | 'fail' = 'pass';
   let buildErrors: ReturnType<typeof tscOutputParseTransformer> = [];
   let buildStrippedOutput = '';
-  let buildExitCode = exitCodeContract.parse(0);
+  let buildExitCode = 0;
   let buildSignal: NodeJS.Signals | null = null;
 
   if (buildResult !== null) {
-    buildExitCode = exitCodeContract.parse(buildResult.exitCode);
+    buildExitCode = buildResult.exitCode;
     buildSignal = buildResult.signal;
-    buildStatus = buildExitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+    buildStatus = buildExitCode === 0 ? 'pass' : 'fail';
 
     if (buildStatus === 'fail') {
       try {
