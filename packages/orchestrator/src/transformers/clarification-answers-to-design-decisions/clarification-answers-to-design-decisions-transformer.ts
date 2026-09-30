@@ -7,7 +7,6 @@
  */
 
 import { designDecisionContract } from '@dungeonmaster/shared/contracts';
-import { designDecisionIdContract } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
@@ -37,7 +36,7 @@ export const clarificationAnswersToDesignDecisionsTransformer = ({
       .replace(/[^a-z0-9]+/gu, '-')
       .replace(/^-|-$/gu, '');
 
-    const id = designDecisionIdContract.parse(`dd-${kebabHeader}`);
+    const id = designDecisionContract.shape.id.parse(`dd-${kebabHeader}`);
     const title = designDecisionContract.shape.title.parse(`${answer.header}: ${answer.label}`);
     const parsedRationale = designDecisionContract.shape.rationale.parse(rationale);
 

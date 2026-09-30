@@ -37,7 +37,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { designDecisionContract } from '../design-decision/design-decision-contract';
-import { designDecisionIdContract } from '../design-decision-id/design-decision-id-contract';
 import { flowContract } from '../flow/flow-contract';
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
@@ -172,7 +171,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullDesignDecision,
           fullDesignDecision.partial().required({ id: true }),
-          z.object({ id: designDecisionIdContract, _delete: deleteMarker }),
+          z.object({ id: designDecisionContract.shape.id, _delete: deleteMarker }),
         ]),
       )
       .describe(

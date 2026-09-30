@@ -8,11 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { designDecisionIdContract } from '../design-decision-id/design-decision-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const designDecisionContract = z.object({
-  id: designDecisionIdContract,
+  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'DesignDecisionId'>(),
   title: z.string().min(1).brand<'DecisionTitle'>(),
   rationale: z.string().brand<'DecisionRationale'>(),
   relatedNodeIds: z.array(flowNodeContract.shape.id),
