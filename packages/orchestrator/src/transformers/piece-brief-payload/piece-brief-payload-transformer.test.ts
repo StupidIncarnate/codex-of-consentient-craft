@@ -1,7 +1,7 @@
 import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
 
 import { WorkPlanPayloadSiegemasterStub } from '../../contracts/work-plan-payload-siegemaster/work-plan-payload-siegemaster.stub';
-import { WorkPlanPieceStub } from '../../contracts/work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 import { pieceBriefPayloadTransformer } from './piece-brief-payload-transformer';
 
 const KEPT_UNIT_ID = UnitIdStub({ value: 'send-flow:observable:check-badge-count-text' });

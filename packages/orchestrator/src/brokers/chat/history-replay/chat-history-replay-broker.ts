@@ -34,7 +34,7 @@ import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { agentContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, Quest, Guild, Session, ToolUse } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -219,7 +219,7 @@ export const chatHistoryReplayBroker = async ({
     ...subagentFiles.map((f) => ({ lines: f.lines, container: f.agentId })),
   ];
   const childParentCandidates: {
-    childToolUseId: string;
+    childToolUseId: ToolUse['id'];
     container: ReturnType<typeof agentContract.shape.id.parse>;
   }[] = [];
 

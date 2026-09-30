@@ -8,12 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { unitObservationContract } from '../unit-observation/unit-observation-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
+import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 import { sessionContract } from '../session/session-contract';
 
@@ -97,7 +97,7 @@ export const workItemContract = z
     // session gets a fresh, complete set that freezes when the step signals; a re-mint writes its
     // own set of the same units from scratch rather than amending its predecessor's.
     observations: z.array(unitObservationContract).default([]),
-    pieceId: pieceIdContract.optional(),
+    pieceId: workPlanPieceContract.shape.id.optional(),
     // What this work item was ASSIGNED, as distinct from what it MARKED (`observations`). The
     // router (story 15) WRITES this on every work item it mints; story 14's signal gate READS it
     // and refuses to let a session signal while any id here has no matching

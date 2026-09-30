@@ -17,7 +17,7 @@
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
 
-import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
 import type { ManifestEntryDeclaration } from '../../../contracts/manifest-entry-declaration/manifest-entry-declaration-contract';
 import { packageJsonDeclaredEntriesTransformer } from '../../../transformers/package-json-declared-entries/package-json-declared-entries-transformer';
 

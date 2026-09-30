@@ -16,7 +16,7 @@ import {
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
 import { installScriptsStatics } from '../../../statics/install-scripts/install-scripts-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';

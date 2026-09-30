@@ -22,7 +22,7 @@ import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observ
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { WorkPlanBatchStub } from '../../../contracts/work-plan-batch/work-plan-batch.stub';
-import { WorkPlanPieceStub } from '../../../contracts/work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 import { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { plannedWorkWriteBroker } from '../../planned-work/write/planned-work-write-broker';
 import { orchestrationQuestHarness } from '../../../../test/harnesses/orchestration-quest/orchestration-quest.harness';

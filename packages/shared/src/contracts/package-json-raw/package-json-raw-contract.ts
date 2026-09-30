@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const ordered = packageJsonRawContract.parse(JSON.parse(content));
- * // Returns a record of package.json keys → unknown values, in their original file order
+ * // Returns a record of package.json keys → JSON values, in their original file order
  */
 
 import { z } from '#gateway/npm/zod';

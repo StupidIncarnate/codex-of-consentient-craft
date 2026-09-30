@@ -1,4 +1,4 @@
-import { PackageJsonRawStub } from '../../contracts/package-json-raw/package-json-raw.stub';
+import { PackageJsonRawStub } from '@dungeonmaster/shared/contracts/package-json-raw/package-json-raw.stub';
 import { gatewayWorkspacesMergeTransformer } from './gateway-workspaces-merge-transformer';
 
 describe('gatewayWorkspacesMergeTransformer', () => {

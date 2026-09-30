@@ -32,12 +32,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract, toolUseContract } from '@dungeonmaster/shared/contracts';
 
 const subagentFieldsShape = z
   .object({
     agentId: agentContract.shape.id,
-    toolUseId: z.string().min(1).brand<'SubagentFieldsShapeToolUseId'>(),
+    toolUseId: toolUseContract.shape.id,
     taskDescription: z.string().min(1).brand<'SubagentFieldsShapeTaskDescription'>(),
     taskPrompt: z.string().min(1).brand<'SubagentFieldsShapeTaskPrompt'>(),
     lines: z.array(z.string().min(1).brand<'SubagentFieldsShapeLines'>()),

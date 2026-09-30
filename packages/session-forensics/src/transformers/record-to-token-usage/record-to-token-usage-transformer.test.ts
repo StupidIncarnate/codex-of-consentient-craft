@@ -156,7 +156,7 @@ describe('recordToTokenUsageTransformer', () => {
             output_tokens_details: { thinking_tokens: 51_539 },
             service_tier: 'standard',
             cache_creation: { ephemeral_5m_input_tokens: 32_335, ephemeral_1h_input_tokens: 0 },
-          },
+          } as never,
         },
       });
 

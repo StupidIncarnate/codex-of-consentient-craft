@@ -14,6 +14,9 @@
  * });
  * // Returns: WorkPlanPiece
  *
+ * `id` is the owner of the piece id: a field that holds one (`workItemContract.shape.pieceId`, a
+ * projection's piece id) reuses `workPlanPieceContract.shape.id`.
+ *
  * `assignedUnitIds` is what this session must MARK; `contextUnitIds` is what it must READ and build
  * against and may NOT mark. That split is how a seam's far half stays visible to the cell that does
  * not own it, so a scope check binds the assigned list ALONE — a context unit is by definition a unit
@@ -27,7 +30,7 @@
  * and never re-reads this one. Living in a directory called `planned-work` is what marks this copy as
  * a forecast; the field name does not need to.
  *
- * `payload` is `z.unknown()` HERE deliberately. The piece alone does not know its own family — only
+ * `payload` is `z.json()` HERE deliberately. The piece alone does not know its own family — only
  * the plan envelope's `family` field does — so there is nothing for `z.discriminatedUnion` to key on
  * at this level, and the real per-family check runs once in `workPlanContract`'s own refinement,
  * which has the family and every piece in scope at the same time.
@@ -49,12 +52,15 @@
  * a plan for omitting (`id`, `step`, `context`).
  */
 
-import { pieceIdContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
+
+import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
+
+const workPlanPieceId = z.string().min(1).brand<'WorkPlanPieceId'>();
 
 export const workPlanPieceContract = z
   .object({
-    id: pieceIdContract,
+    id: workPlanPieceId,
     pieceName: z
       .string()
       .min(1)
@@ -85,7 +91,7 @@ export const workPlanPieceContract = z
       .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
       .brand<'WorkPlanPieceRecipeId'>()
       .optional(),
-    baselineFor: pieceIdContract
+    baselineFor: workPlanPieceId
       .optional()
       .describe('Adversarial pieces only — the happy-walk piece this attack measures against.'),
     context: z

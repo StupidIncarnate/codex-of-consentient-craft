@@ -66,6 +66,7 @@ import type {
   OperationItem,
   QaChecklistItem,
   Flow,
+  WorkPlanPiece,
 } from '@dungeonmaster/shared/contracts';
 import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
@@ -75,7 +76,6 @@ import { nextActionContract } from '../../contracts/next-action/next-action-cont
 import type { NextAction } from '../../contracts/next-action/next-action-contract';
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
 import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
-import type { WorkPlanPiece } from '../../contracts/work-plan-piece/work-plan-piece-contract';
 import { deriveOutcomeTransformer } from '../derive-outcome/derive-outcome-transformer';
 import { foldOutcomesTransformer } from '../fold-outcomes/fold-outcomes-transformer';
 import { mintNextActionTransformer } from '../mint-next-action/mint-next-action-transformer';

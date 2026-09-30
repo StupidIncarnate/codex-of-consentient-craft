@@ -6,8 +6,9 @@
  * // Returns valid PackageJsonRaw record
  */
 
-import { packageJsonRawContract, type PackageJsonRaw } from './package-json-raw-contract';
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import { packageJsonRawContract } from './package-json-raw-contract';
+import type { PackageJsonRaw } from './package-json-raw-contract';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 export const PackageJsonRawStub = ({
   ...props

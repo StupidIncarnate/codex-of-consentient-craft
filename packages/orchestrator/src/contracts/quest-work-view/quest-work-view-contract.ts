@@ -41,7 +41,6 @@
 import {
   operationItemContract,
   outcomeTypeContract,
-  pieceIdContract,
   qaChecklistItemContract,
   qaChecklistKindContract,
   qaWalkPathContract,
@@ -52,6 +51,7 @@ import {
   unitObservationFieldsContract,
   wardResultContract,
   workItemContract,
+  workPlanPieceContract,
   flowNodeContract,
   flowContract,
   flowEdgeContract,
@@ -63,7 +63,6 @@ import {
 import { z } from '#gateway/npm/zod';
 
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
-import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 
 // `flowId` is SINGULAR and nullable, not the operation item's `flowIds` array. Every fan-out mints
 // one item per flow — codeweaver per (package, flow) cell, flowrider and siegemaster per flow — so
@@ -111,7 +110,7 @@ const questWorkFlow = z
 
 const questWorkPiece = z
   .object({
-    pieceId: pieceIdContract,
+    pieceId: workPlanPieceContract.shape.id,
     step: z.string().min(1).brand<'QuestWorkPieceStep'>(),
     context: workPlanPieceContract.shape.context,
     recipeId: z
@@ -120,7 +119,7 @@ const questWorkPiece = z
       .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
       .brand<'QuestWorkPieceRecipeId'>()
       .nullable(),
-    baselineFor: pieceIdContract.nullable(),
+    baselineFor: workPlanPieceContract.shape.id.nullable(),
     contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
     payload: z.record(z.string(), z.json()),
   })
@@ -250,7 +249,7 @@ const questWorkWard = z
 // `baselineFor`.
 const questWorkBaseline = z
   .object({
-    pieceId: pieceIdContract,
+    pieceId: workPlanPieceContract.shape.id,
     workItemId: workItemContract.shape.id,
     instanceId: siegeInstanceContract.shape.id,
     runId: siegeRunContract.shape.id,

@@ -12,6 +12,7 @@
 // One parsed line of a Claude Code session JSONL, and one block of its content
 export * from './transcript-record/transcript-record-contract';
 export * from './transcript-record-content-block/transcript-record-content-block-contract';
+export * from './transcript-record-usage/transcript-record-usage-contract';
 
 // The five token counts one API response reports, never summed together
 export * from './token-usage/token-usage-contract';

@@ -1,10 +1,10 @@
-import { toolUseBlockParamContract } from './tool-use-block-param-contract';
-import { ToolUseBlockParamStub } from './tool-use-block-param.stub';
+import { toolUseContract } from './tool-use-contract';
+import { ToolUseStub } from './tool-use.stub';
 
-describe('toolUseBlockParamContract', () => {
+describe('toolUseContract', () => {
   describe('valid input', () => {
-    it('VALID: {type: "tool_use", id, name, input: object} => returns ToolUseBlockParam', () => {
-      const result = ToolUseBlockParamStub();
+    it('VALID: {type: "tool_use", id, name, input: object} => returns ToolUse', () => {
+      const result = ToolUseStub();
 
       expect(result).toStrictEqual({
         type: 'tool_use',
@@ -15,7 +15,7 @@ describe('toolUseBlockParamContract', () => {
     });
 
     it('VALID: {input: null} => accepts null input', () => {
-      const result = toolUseBlockParamContract.parse({
+      const result = toolUseContract.parse({
         type: 'tool_use',
         id: 'toolu_abc',
         name: 'Read',
@@ -26,7 +26,7 @@ describe('toolUseBlockParamContract', () => {
     });
 
     it('VALID: {input: string} => accepts string input', () => {
-      const result = toolUseBlockParamContract.parse({
+      const result = toolUseContract.parse({
         type: 'tool_use',
         id: 'toolu_abc',
         name: 'Read',
@@ -40,7 +40,7 @@ describe('toolUseBlockParamContract', () => {
   describe('invalid input', () => {
     it('INVALID: {type: "text"} => throws wrong discriminator', () => {
       expect(() =>
-        toolUseBlockParamContract.parse({
+        toolUseContract.parse({
           type: 'text',
           id: 'toolu_abc',
           name: 'Bash',
@@ -50,20 +50,20 @@ describe('toolUseBlockParamContract', () => {
     });
 
     it('INVALID: {id missing} => throws on missing required field', () => {
-      expect(() =>
-        toolUseBlockParamContract.parse({ type: 'tool_use', name: 'Bash', input: {} }),
-      ).toThrow(/received undefined/u);
+      expect(() => toolUseContract.parse({ type: 'tool_use', name: 'Bash', input: {} })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {id: ""} => throws on empty id', () => {
       expect(() =>
-        toolUseBlockParamContract.parse({ type: 'tool_use', id: '', name: 'Bash', input: {} }),
+        toolUseContract.parse({ type: 'tool_use', id: '', name: 'Bash', input: {} }),
       ).toThrow(/too_small/u);
     });
 
     it('INVALID: {name missing} => throws on missing required field', () => {
       expect(() =>
-        toolUseBlockParamContract.parse({
+        toolUseContract.parse({
           type: 'tool_use',
           id: 'toolu_abc',
           input: {},

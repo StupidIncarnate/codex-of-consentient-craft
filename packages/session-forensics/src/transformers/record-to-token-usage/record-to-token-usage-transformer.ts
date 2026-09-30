@@ -1,10 +1,10 @@
 /**
  * PURPOSE: Settles the token counts an assistant record's `message.usage` reports into this
- * package's stable `TokenUsage` shape. Claude Code adds new keys to `message.usage` over time. It
- * also reports them in snake_case. Because of that, `transcriptRecordContract` leaves
- * `message.usage` loosely typed. This transformer is the one place that defaults every count Claude
- * Code did not report to 0, including the whole `usage` object on a non-assistant record. Without
- * it, every digest transformer that sums `TokenUsage` would have to re-derive that default itself.
+ * package's stable `TokenUsage` shape. Claude Code reports the counts in snake_case and leaves any
+ * of them out, so `transcriptRecordUsageContract` makes every key optional. This transformer is
+ * the one place that defaults every count Claude Code did not report to 0, including the whole
+ * `usage` object on a non-assistant record. Without it, every digest transformer that sums
+ * `TokenUsage` would have to re-derive that default itself.
  *
  * USAGE:
  * recordToTokenUsageTransformer({
@@ -27,11 +27,7 @@ export const recordToTokenUsageTransformer = ({
   record: TranscriptRecord;
 }): TokenUsage => {
   const usage = record.message?.usage;
-  const details = usage?.output_tokens_details;
-  const thinkingTokens =
-    typeof details === 'object' && details !== null && 'thinking_tokens' in details
-      ? details.thinking_tokens
-      : undefined;
+  const thinkingTokens = usage?.output_tokens_details?.thinking_tokens;
 
   return tokenUsageContract.parse({
     inputTokens: usage?.input_tokens ?? 0,

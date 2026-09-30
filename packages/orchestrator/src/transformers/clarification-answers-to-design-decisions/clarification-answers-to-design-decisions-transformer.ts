@@ -8,6 +8,7 @@
 
 import { designDecisionContract } from '@dungeonmaster/shared/contracts';
 
+import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
 
@@ -15,7 +16,7 @@ export const clarificationAnswersToDesignDecisionsTransformer = ({
   answers,
   questions,
 }: {
-  answers: { header: string; label: string }[];
+  answers: ClarificationAnswer[];
   questions: ClarificationQuestion[];
 }): DesignDecision[] => {
   const decisions: DesignDecision[] = [];
@@ -27,7 +28,9 @@ export const clarificationAnswersToDesignDecisionsTransformer = ({
 
     if (!matchingQuestion) continue;
 
-    const matchingOption = matchingQuestion.options.find((opt) => opt.label === answer.label);
+    const matchingOption = matchingQuestion.options.find(
+      (opt) => opt.label === String(answer.label),
+    );
 
     const rationale = matchingOption ? String(matchingOption.description) : answer.label;
 

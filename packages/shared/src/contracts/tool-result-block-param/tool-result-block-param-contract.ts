@@ -8,6 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { toolUseContract } from '../tool-use/tool-use-contract';
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 import { imageBlockParamContract } from '../image-block-param/image-block-param-contract';
 import { searchResultBlockParamContract } from '../search-result-block-param/search-result-block-param-contract';
@@ -17,7 +18,7 @@ import { toolReferenceBlockParamContract } from '../tool-reference-block-param/t
 export const toolResultBlockParamContract = z
   .object({
     type: z.literal('tool_result'),
-    tool_use_id: z.string().min(1).brand<'ToolResultBlockParamToolUseId'>(),
+    tool_use_id: toolUseContract.shape.id,
     content: z
       .union([
         z.string().brand<'ToolResultBlockParamContent'>(),

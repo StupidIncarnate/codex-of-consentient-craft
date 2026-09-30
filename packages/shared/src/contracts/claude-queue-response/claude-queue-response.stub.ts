@@ -7,9 +7,9 @@ import {
   AssistantToolResultStreamLineStub,
 } from '../assistant-stream-line/assistant-stream-line.stub';
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
-import { toolUseBlockParamContract } from '../tool-use-block-param/tool-use-block-param-contract';
-import type { ToolUseBlockParam } from '../tool-use-block-param/tool-use-block-param-contract';
-// `textBlockParamContract` / `toolUseBlockParamContract` are value imports so the internal
+import { toolUseContract } from '../tool-use/tool-use-contract';
+import type { ToolUse } from '../tool-use/tool-use-contract';
+// `textBlockParamContract` / `toolUseContract` are value imports so the internal
 // line builders can brand plain-string inputs via `.shape.text.parse` / `.shape.name.parse`.
 import type { ToolResultBlockParam } from '../tool-result-block-param/tool-result-block-param-contract';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
@@ -22,7 +22,7 @@ import type { Session } from '../session/session-contract';
 
 // ── Branded type aliases ───────────────────────────────────────────────────────
 
-type ToolUseId = ToolUseBlockParam['id'];
+type ToolUseId = ToolUse['id'];
 type ToolResultContent = Exclude<NonNullable<ToolResultBlockParam['content']>, unknown[]>;
 type UsageBlock = NonNullable<AssistantStreamLine['message']['usage']>;
 type InputTokenCount = UsageBlock['input_tokens'];
@@ -83,8 +83,8 @@ const toolUseLine = ({
           {
             type: 'tool_use' as const,
             id,
-            name: toolUseBlockParamContract.shape.name.parse(name),
-            input: toolUseBlockParamContract.shape.input.parse(input),
+            name: toolUseContract.shape.name.parse(name),
+            input: toolUseContract.shape.input.parse(input),
           },
         ],
         stop_reason: null,

@@ -7,19 +7,13 @@
  * // Returns validated ToolingSmoketestStateResponseData
  */
 
+import { activeSmoketestRunContract } from '@dungeonmaster/orchestrator';
+
 import { z } from '#gateway/npm/zod';
-import { smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
 
 export const toolingSmoketestStateResponseDataContract = z
   .strictObject({
-    active: z
-      .strictObject({
-        runId: z.uuid().brand<'ToolingSmoketestStateResponseDataActiveRunId'>(),
-        suite: smoketestSuiteContract,
-        startedAt: z.iso.datetime().brand<'ToolingSmoketestStateResponseDataActiveStartedAt'>(),
-      })
-      .brand<'ToolingSmoketestStateResponseDataActive'>()
-      .nullable(),
+    active: activeSmoketestRunContract.nullable(),
     events: z.array(z.json()),
   })
   .brand<'ToolingSmoketestStateResponseData'>();

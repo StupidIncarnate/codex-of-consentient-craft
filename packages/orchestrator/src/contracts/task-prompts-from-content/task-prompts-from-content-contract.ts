@@ -6,12 +6,13 @@
  * // Returns validated TaskPromptsFromContent
  */
 import { z } from '#gateway/npm/zod';
+import { toolUseContract } from '@dungeonmaster/shared/contracts';
 import { taskAgentToolInputContract } from '../task-agent-tool-input/task-agent-tool-input-contract';
 
 export const taskPromptsFromContentContract = z.array(
   z
     .object({
-      toolUseId: z.string().min(1).brand<'TaskPromptsFromContentToolUseId'>(),
+      toolUseId: toolUseContract.shape.id,
       prompt: taskAgentToolInputContract.shape.prompt,
     })
     .brand<'TaskPromptsFromContent'>(),

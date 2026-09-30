@@ -9,6 +9,7 @@
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
+import type { ClarificationAnswer } from '../../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { clarificationAnswersToDesignDecisionsTransformer } from '../../../transformers/clarification-answers-to-design-decisions/clarification-answers-to-design-decisions-transformer';
@@ -19,7 +20,7 @@ export const ClarifyAnswerResponder = async ({
   questions,
 }: {
   questId: Quest['id'];
-  answers: { header: string; label: string }[];
+  answers: ClarificationAnswer[];
   questions: ClarificationQuestion[];
 }): Promise<void> => {
   const decisions = clarificationAnswersToDesignDecisionsTransformer({ answers, questions });

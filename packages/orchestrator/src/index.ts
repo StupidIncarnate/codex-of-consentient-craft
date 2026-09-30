@@ -48,6 +48,12 @@ export type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 // MCP-driven result contracts — exported for the MCP package's adapters
 export { nextStepContract } from './contracts/next-step/next-step-contract';
 export type { NextStep } from './contracts/next-step/next-step-contract';
+export { clarificationAnswerContract } from './contracts/clarification-answer/clarification-answer-contract';
+export type { ClarificationAnswer } from './contracts/clarification-answer/clarification-answer-contract';
+export { clarificationQuestionContract } from './contracts/clarification-question/clarification-question-contract';
+export type { ClarificationQuestion } from './contracts/clarification-question/clarification-question-contract';
+export { activeSmoketestRunContract } from './contracts/active-smoketest-run/active-smoketest-run-contract';
+export type { ActiveSmoketestRun } from './contracts/active-smoketest-run/active-smoketest-run-contract';
 export { questGetServerConfigResultContract } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 export type { QuestGetServerConfigResult } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 export { spawnInstructionContract } from './contracts/spawn-instruction/spawn-instruction-contract';

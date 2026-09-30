@@ -6,12 +6,14 @@
  * // Returns validated ToolingSmoketestRunResponseData
  */
 
+import { activeSmoketestRunContract } from '@dungeonmaster/orchestrator';
+
 import { z } from '#gateway/npm/zod';
 import { questContract, smoketestCaseResultContract } from '@dungeonmaster/shared/contracts';
 
 export const toolingSmoketestRunResponseDataContract = z
   .strictObject({
-    runId: z.uuid().brand<'ToolingSmoketestRunResponseDataRunId'>(),
+    runId: activeSmoketestRunContract.shape.runId,
     enqueued: z.array(
       z
         .strictObject({

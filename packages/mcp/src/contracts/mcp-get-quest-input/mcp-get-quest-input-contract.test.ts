@@ -1,14 +1,14 @@
 import { getQuestInputConflictsStatics } from '@dungeonmaster/shared/statics';
 
-import { getQuestInputContract } from './get-quest-input-contract';
-import { McpGetQuestInputStub } from './get-quest-input.stub';
+import { mcpGetQuestInputContract } from './mcp-get-quest-input-contract';
+import { McpGetQuestInputStub } from './mcp-get-quest-input.stub';
 
-describe('getQuestInputContract', () => {
+describe('mcpGetQuestInputContract', () => {
   describe('valid inputs', () => {
     it('VALID: {questId: "add-auth"} => parses successfully', () => {
       const input = McpGetQuestInputStub({ questId: 'add-auth' });
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', format: 'text' });
     });
@@ -16,7 +16,7 @@ describe('getQuestInputContract', () => {
     it('VALID: {questId: "test-quest"} => parses with default stub value', () => {
       const input = McpGetQuestInputStub();
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'test-quest', format: 'text' });
     });
@@ -27,7 +27,7 @@ describe('getQuestInputContract', () => {
         stage: 'spec',
       });
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
@@ -39,7 +39,7 @@ describe('getQuestInputContract', () => {
     it('VALID: {questId with implementation stage} => parses successfully', () => {
       const input = McpGetQuestInputStub({ questId: 'add-auth', stage: 'implementation' });
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
@@ -51,13 +51,13 @@ describe('getQuestInputContract', () => {
     it('VALID: {questId without stage} => stage omitted from result', () => {
       const input = McpGetQuestInputStub({ questId: 'add-auth' });
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', format: 'text' });
     });
 
     it('VALID: {questId with planning stage} => parses successfully', () => {
-      const result = getQuestInputContract.parse({ questId: 'add-auth', stage: 'planning' });
+      const result = mcpGetQuestInputContract.parse({ questId: 'add-auth', stage: 'planning' });
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
@@ -73,7 +73,7 @@ describe('getQuestInputContract', () => {
         packageName: 'web',
       });
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
@@ -86,7 +86,7 @@ describe('getQuestInputContract', () => {
     it('VALID: {questId with packageName alone} => parses the foundation-view call', () => {
       const input = McpGetQuestInputStub({ questId: 'add-auth', packageName: 'shared' });
 
-      const result = getQuestInputContract.parse(input);
+      const result = mcpGetQuestInputContract.parse(input);
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
@@ -101,7 +101,7 @@ describe('getQuestInputContract', () => {
     // `.extend()`ed with `format` — so this is the half an MCP caller actually hits.
     it('INVALID: {flowId with stage} => throws naming the call to make instead', () => {
       expect(() => {
-        return getQuestInputContract.parse({
+        return mcpGetQuestInputContract.parse({
           questId: 'add-auth',
           flowId: 'login-flow',
           stage: 'planning',
@@ -111,7 +111,7 @@ describe('getQuestInputContract', () => {
 
     it('INVALID: {packageName with stage} => throws naming the call to make instead', () => {
       expect(() => {
-        return getQuestInputContract.parse({
+        return mcpGetQuestInputContract.parse({
           questId: 'add-auth',
           packageName: 'web',
           stage: 'spec',
@@ -121,25 +121,25 @@ describe('getQuestInputContract', () => {
 
     it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
-        return getQuestInputContract.parse({ questId: '' });
+        return mcpGetQuestInputContract.parse({ questId: '' });
       }).toThrow(/too_small/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
-        return getQuestInputContract.parse({});
+        return mcpGetQuestInputContract.parse({});
       }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {stage with invalid value} => throws validation error', () => {
       expect(() => {
-        return getQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
+        return mcpGetQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
       }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {
       expect(() => {
-        return getQuestInputContract.parse({
+        return mcpGetQuestInputContract.parse({
           questId: 'add-auth',
           path: '/some/path',
         });

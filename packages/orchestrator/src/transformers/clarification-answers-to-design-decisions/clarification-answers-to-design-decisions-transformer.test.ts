@@ -1,3 +1,4 @@
+import { ClarificationAnswerStub } from '../../contracts/clarification-answer/clarification-answer.stub';
 import { ClarificationQuestionStub } from '../../contracts/clarification-question/clarification-question.stub';
 import { clarificationAnswersToDesignDecisionsTransformer } from './clarification-answers-to-design-decisions-transformer';
 
@@ -18,7 +19,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Database Selection', label: 'PostgreSQL' }],
+        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' })],
         questions,
       });
 
@@ -41,7 +42,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Icon Choice', label: 'Custom freeform answer' }],
+        answers: [
+          ClarificationAnswerStub({ header: 'Icon Choice', label: 'Custom freeform answer' }),
+        ],
         questions,
       });
 
@@ -69,8 +72,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
         answers: [
-          { header: 'Auth Method', label: 'JWT' },
-          { header: 'Storage Layer', label: 'S3' },
+          ClarificationAnswerStub({ header: 'Auth Method', label: 'JWT' }),
+          ClarificationAnswerStub({ header: 'Storage Layer', label: 'S3' }),
         ],
         questions,
       });
@@ -101,7 +104,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Unrelated Header', label: 'Something' }],
+        answers: [ClarificationAnswerStub({ header: 'Unrelated Header', label: 'Something' })],
         questions,
       });
 
@@ -119,7 +122,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
     it('EMPTY: {empty questions array} => returns empty array', () => {
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Something', label: 'Value' }],
+        answers: [ClarificationAnswerStub({ header: 'Something', label: 'Value' })],
         questions: [],
       });
 
@@ -145,9 +148,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
         answers: [
-          { header: 'Nonexistent Topic', label: 'Irrelevant' },
-          { header: 'Auth Method', label: 'JWT' },
-          { header: 'Another Missing', label: 'Nothing' },
+          ClarificationAnswerStub({ header: 'Nonexistent Topic', label: 'Irrelevant' }),
+          ClarificationAnswerStub({ header: 'Auth Method', label: 'JWT' }),
+          ClarificationAnswerStub({ header: 'Another Missing', label: 'Nothing' }),
         ],
         questions,
       });
@@ -173,7 +176,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'database selection', label: 'PostgreSQL' }],
+        answers: [ClarificationAnswerStub({ header: 'database selection', label: 'PostgreSQL' })],
         questions,
       });
 
@@ -196,7 +199,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: '  Database Selection  ', label: 'PostgreSQL' }],
+        answers: [
+          ClarificationAnswerStub({ header: '  Database Selection  ', label: 'PostgreSQL' }),
+        ],
         questions,
       });
 
@@ -219,7 +224,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Storage Layer', label: 'S3' }],
+        answers: [ClarificationAnswerStub({ header: 'Storage Layer', label: 'S3' })],
         questions,
       });
 
@@ -244,7 +249,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Database Selection', label: 'postgresql' }],
+        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'postgresql' })],
         questions,
       });
 
@@ -269,7 +274,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'UI Framework (v2)', label: 'React' }],
+        answers: [ClarificationAnswerStub({ header: 'UI Framework (v2)', label: 'React' })],
         questions,
       });
 
@@ -292,7 +297,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Auth---Method', label: 'JWT' }],
+        answers: [ClarificationAnswerStub({ header: 'Auth---Method', label: 'JWT' })],
         questions,
       });
 
@@ -315,7 +320,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: '---Cache Strategy', label: 'Redis' }],
+        answers: [ClarificationAnswerStub({ header: '---Cache Strategy', label: 'Redis' })],
         questions,
       });
 
@@ -338,7 +343,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [{ header: 'Cache Strategy!!!', label: 'Redis' }],
+        answers: [ClarificationAnswerStub({ header: 'Cache Strategy!!!', label: 'Redis' })],
         questions,
       });
 

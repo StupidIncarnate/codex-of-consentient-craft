@@ -19,7 +19,7 @@ import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers'
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
 import { extractDevDependenciesTransformer } from '../../../transformers/extract-dev-dependencies/extract-dev-dependencies-transformer';
 import { dependencyMapContract } from '../../../contracts/dependency-map/dependency-map-contract';
-import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 

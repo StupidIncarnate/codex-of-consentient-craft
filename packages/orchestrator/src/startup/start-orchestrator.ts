@@ -43,6 +43,7 @@ import type {
 
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
+import type { ClarificationAnswer } from '../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
 import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
@@ -306,7 +307,7 @@ export const StartOrchestrator = {
     guildId: Guild['id'];
     sessionId: Session['id'];
     questId: Quest['id'];
-    answers: { header: string; label: string }[];
+    answers: ClarificationAnswer[];
     questions: ClarificationQuestion[];
   }): Promise<{ chatProcessId: string }> =>
     ClarifyAnswerFlow({ guildId, sessionId, questId, answers, questions }),

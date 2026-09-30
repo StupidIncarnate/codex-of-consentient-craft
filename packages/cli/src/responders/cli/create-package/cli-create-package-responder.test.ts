@@ -1,7 +1,7 @@
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 import { CreatePackageRequestStub } from '../../../contracts/create-package-request/create-package-request.stub';
-import { PackageJsonRawStub } from '../../../contracts/package-json-raw/package-json-raw.stub';
+import { PackageJsonRawStub } from '@dungeonmaster/shared/contracts/package-json-raw/package-json-raw.stub';
 import { packageScaffoldFilesTransformer } from '../../../transformers/package-scaffold-files/package-scaffold-files-transformer';
 
 import { CliCreatePackageResponder } from './cli-create-package-responder';

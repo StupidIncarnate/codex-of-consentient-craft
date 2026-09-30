@@ -7,7 +7,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { WorkPlanBatchStub } from '../../../contracts/work-plan-batch/work-plan-batch.stub';
 import { WorkPlanPayloadCodeweaverStub } from '../../../contracts/work-plan-payload-codeweaver/work-plan-payload-codeweaver.stub';
-import { WorkPlanPieceStub } from '../../../contracts/work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 import { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { questGetWorkPlanBroker } from './quest-get-work-plan-broker';
 import { questGetWorkPlanBrokerProxy } from './quest-get-work-plan-broker.proxy';

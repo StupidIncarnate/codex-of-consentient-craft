@@ -15,7 +15,7 @@
 import { z } from '#gateway/npm/zod';
 import { inflatedTaskNotificationContentContract } from '../inflated-task-notification-content/inflated-task-notification-content-contract';
 import { normalizedStreamLineContentItemContract } from '../normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
-import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract, toolUseContract } from '@dungeonmaster/shared/contracts';
 
 const _contentItem = z
   .object({
@@ -26,7 +26,7 @@ const _contentItem = z
     id: z.string().brand<'ContentItemId'>().optional(),
     name: z.string().brand<'ContentItemName'>().optional(),
     input: z.json().optional(),
-    toolUseId: z.string().brand<'ContentItemToolUseId'>().optional(),
+    toolUseId: toolUseContract.shape.id.optional(),
     content: z.union([z.string(), z.array(normalizedStreamLineContentItemContract)]).optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'ContentItemSource'>().optional(),
@@ -91,7 +91,7 @@ const taskNotification = z
         z.number().brand<'TaskNotificationDurationMs'>(),
       ])
       .optional(),
-    toolUseId: z.string().brand<'TaskNotificationToolUseId'>().optional(),
+    toolUseId: toolUseContract.shape.id.optional(),
   })
   .brand<'TaskNotification'>()
   .loose();
@@ -120,11 +120,7 @@ export const normalizedStreamLineContract = z
     type: z.string().brand<'NormalizedStreamLineType'>().optional(),
     subtype: z.string().brand<'NormalizedStreamLineSubtype'>().optional(),
     message: message.optional(),
-    parentToolUseId: z
-      .string()
-      .brand<'NormalizedStreamLineParentToolUseId'>()
-      .nullable()
-      .optional(),
+    parentToolUseId: toolUseContract.shape.id.nullable().optional(),
     toolUseResult: toolUseResult.optional(),
     taskNotification: taskNotification.optional(),
     source: z.string().brand<'NormalizedStreamLineSource'>().optional(),

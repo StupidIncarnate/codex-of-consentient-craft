@@ -40,7 +40,7 @@ import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/tra
 import { createPackageResolveRequestBroker } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker';
 import { packageRegisterBroker } from '../../../brokers/package/register/package-register-broker';
 import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker';
-import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
 import { packageScaffoldConfigStatics } from '../../../statics/package-scaffold-config/package-scaffold-config-statics';
 import { createPackageArgsParseTransformer } from '../../../transformers/create-package-args-parse/create-package-args-parse-transformer';
 import { packageScaffoldFilesTransformer } from '../../../transformers/package-scaffold-files/package-scaffold-files-transformer';

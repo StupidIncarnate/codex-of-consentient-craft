@@ -10,7 +10,7 @@ import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { WorkPlanBatchStub } from '../../contracts/work-plan-batch/work-plan-batch.stub';
 import { WorkPlanPayloadSiegemasterStub } from '../../contracts/work-plan-payload-siegemaster/work-plan-payload-siegemaster.stub';
-import { WorkPlanPieceStub } from '../../contracts/work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 import { WorkPlanStub } from '../../contracts/work-plan/work-plan.stub';
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 import { nextActionTransformer } from './next-action-transformer';

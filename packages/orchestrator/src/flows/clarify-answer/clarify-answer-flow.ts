@@ -10,6 +10,7 @@ import { clarifyAnswerResultContract } from '../../contracts/clarify-answer-resu
 import type { ClarifyAnswerResult } from '../../contracts/clarify-answer-result/clarify-answer-result-contract';
 import type { Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
+import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 import { ClarifyAnswerResponder } from '../../responders/clarify/answer/clarify-answer-responder';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
@@ -24,7 +25,7 @@ export const ClarifyAnswerFlow = async ({
   guildId: Guild['id'];
   sessionId: Session['id'];
   questId: Quest['id'];
-  answers: { header: string; label: string }[];
+  answers: ClarificationAnswer[];
   questions: ClarificationQuestion[];
 }): Promise<ClarifyAnswerResult> => {
   await ClarifyAnswerResponder({ questId, answers, questions });

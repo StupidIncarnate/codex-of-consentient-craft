@@ -17,14 +17,14 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { agentContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, toolUseContract } from '@dungeonmaster/shared/contracts';
 
 const CONTENT_ITEM = z
   .object({
     type: z.string().min(1).brand<'CONTENTITEMType'>(),
     text: z.string().brand<'CONTENTITEMText'>().optional(),
     id: z.string().min(1).brand<'CONTENTITEMId'>().optional(),
-    tool_use_id: z.string().min(1).brand<'CONTENTITEMToolUseId'>().optional(),
+    tool_use_id: toolUseContract.shape.id.optional(),
   })
   .brand<'CONTENTITEM'>()
   .loose();

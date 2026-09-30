@@ -26,7 +26,7 @@ import {
   jsonFileContentsTransformer,
   workspaceScopeFromRootNameTransformer,
 } from '@dungeonmaster/shared/transformers';
-import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
 import { tsconfigCompilerOptionsContract } from '../../../contracts/tsconfig-compiler-options/tsconfig-compiler-options-contract';
 import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker';
 import { gatewayExistingPackagesListBroker } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker';

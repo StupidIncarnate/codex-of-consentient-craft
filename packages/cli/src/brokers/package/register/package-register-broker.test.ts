@@ -1,5 +1,5 @@
 import { packageRegisterBrokerProxy } from './package-register-broker.proxy';
-import { PackageJsonRawStub } from '../../../contracts/package-json-raw/package-json-raw.stub';
+import { PackageJsonRawStub } from '@dungeonmaster/shared/contracts/package-json-raw/package-json-raw.stub';
 
 describe('packageRegisterBroker', () => {
   describe('VALID: registering a package missing from root dependencies', () => {

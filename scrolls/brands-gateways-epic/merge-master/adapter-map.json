@@ -1,0 +1,938 @@
+[
+  {
+    "adapterPath": "packages/siegelense/src/adapters/async/delay/async-delay-adapter",
+    "exportName": "asyncDelayAdapter / asyncDelayAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/setTimeout",
+      "exportName": "setTimeout",
+      "proxyImport": "#gateway/node/setTimeout/set-timeout/set-timeout.proxy",
+      "proxyExportName": "setTimeoutProxy"
+    },
+    "callShape": "asyncDelayAdapter({ ms }) (Promise<AdapterResult>) becomes `await new Promise<void>((resolve) => { setTimeout(resolve, ms); })`; there is no {success:true} to read.",
+    "proxyShape": "getRequestedDelay() has no counterpart. Old proxy auto-fired any delay; new: setupFiresImmediately({ ms }) (must name the exact ms the caller passes) or setupNeverFires({ ms }), and getCallsFor({ ms }) reads the calls.",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/step/hold/step-hold-broker.ts",
+      "line": "-      await asyncDelayAdapter({ ms: everyMs });  +        setTimeout(resolve, everyMs);"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/child-process/spawn-detached/child-process-spawn-detached-adapter",
+    "exportName": "childProcessSpawnDetachedAdapter / childProcessSpawnDetachedAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/child_process",
+      "exportName": "spawnDetached",
+      "proxyImport": "#gateway/node/child_process/spawn-detached/spawn-detached.proxy",
+      "proxyExportName": "spawnDetachedProxy"
+    },
+    "callShape": "childProcessSpawnDetachedAdapter({ command, args, cwd, env, stdoutFd, stderrFd }) becomes spawnDetached({ command, args, cwd, env, stdoutFd, stderrFd }). Return changes from { pid: ProcessId (string brand), pgid: ProcessGroupId } to plain { pid: number, pgid: number }; re-parse with processIdContract/processGroupIdContract only where a branded value is needed.",
+    "proxyShape": "succeeds({ command, args, pid }) -> setupSuccess({ command, args, cwd, pid }) (cwd is now part of the address); succeedsWithNoPid({ command, args }) -> setupNoPid({ command, args, cwd }); getOptionsFor({ command, args }) -> getSpawnedOptions({ command, args, cwd }) (returns an array, one entry per call); unrefedPids() has no counterpart (getCallsFor({ command }) is the nearest read).",
+    "evidence": {
+      "commit": "cade93840",
+      "file": "packages/siegelense/src/brokers/instance/start/instance-start-broker.proxy.ts",
+      "line": "-import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';  +import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/spawn-detached.proxy';"
+    },
+    "confidence": "high",
+    "note": "HEAD instance-start-broker.ts:256 calls spawnDetached({ command: execPath, ... })."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/crypto/hash/crypto-hash-adapter",
+    "exportName": "cryptoHashAdapter / cryptoHashAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/crypto",
+      "exportName": "createHash",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "cryptoHashAdapter({ content }) (ContentText) becomes createHash('sha256').update(content).digest('hex'), a plain string; drop the contentTextContract.parse wrap.",
+    "proxyShape": "No gateway proxy exists (#gateway/node/crypto is a raw `export * from 'crypto'`). Delete the cryptoHashAdapterProxy() call; tests use the real digest.",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.ts",
+      "line": "-      cryptoHashAdapter({ content: contentTextContract.parse(homeContent) }) !==  +    const homeHash = createHash('sha256').update(homeContent).digest('hex');"
+    },
+    "confidence": "high",
+    "note": "HEAD lane-spec-hash-broker.proxy.ts carries the same note: 'createHash from #gateway/node/crypto with nothing to mock'."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter",
+    "exportName": "dungeonmasterConfigResolveAdapter / dungeonmasterConfigResolveAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/config",
+      "exportName": "configResolveBroker",
+      "proxyImport": "@dungeonmaster/config/startup/start-config.proxy",
+      "proxyExportName": "configResolveBrokerProxy"
+    },
+    "callShape": "dungeonmasterConfigResolveAdapter({ startPath }) (Promise<DungeonmasterConfig>) becomes configResolveBroker({ filePath: startPath }).",
+    "proxyShape": "setupConfigResolved({ startPath, config }) -> setupConfigFound({ startPath, configPath }) then setupValidConfig({ configPath, config }) (real broker is staged through its find and load steps, not mocked); setupConfigResolveError({ startPath, error }) -> setupConfigNotFound({ startPath }) or setupFileNotFound({ configPath }); makeRealConfig / makeConfigWithArgs -> DungeonmasterConfigStub from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub'.",
+    "evidence": {
+      "commit": "3747a95c0",
+      "file": "packages/siegelense/src/brokers/served-build/stale-read (master-only caller)",
+      "line": "No HEAD caller in siegelense used this adapter; the forwarder commit deleted it. Switch is shown by HEAD callers of the same broker: packages/ward/src/brokers/command/run/multi-package-layer-broker.ts:12 \"import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';\" and packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy.ts:11 \"import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';\""
+    },
+    "confidence": "low",
+    "note": "Only caller on master (served-build-stale-read-broker) is new on master; siegelense's package.json must still list @dungeonmaster/config (the deleted adapter imported it)."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/error/is-native-error/error-is-native-error-adapter",
+    "exportName": "errorIsNativeErrorAdapter / errorIsNativeErrorAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/util__types",
+      "exportName": "isNativeError",
+      "proxyImport": "#gateway/node/util__types/is-native-error/is-native-error.proxy",
+      "proxyExportName": "isNativeErrorProxy"
+    },
+    "callShape": "errorIsNativeErrorAdapter({ value }) becomes isNativeError(value) (type guard `value is Error`; realm-safe via Object.prototype.toString).",
+    "proxyShape": "Both proxies are empty: errorIsNativeErrorAdapterProxy() -> isNativeErrorProxy().",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.ts",
+      "line": "-    // `errorIsNativeErrorAdapter` checks the V8-internal error slot instead ...  -      !errorIsNativeErrorAdapter({ value: createError }) ||  +import { isNativeError } from '#gateway/node/util__types';"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter",
+    "exportName": "fsCloseFdAdapter / fsCloseFdAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs",
+      "exportName": "closeSync",
+      "proxyImport": "#gateway/node/fs/close-sync/close-sync.proxy",
+      "proxyExportName": "closeSyncProxy"
+    },
+    "callShape": "fsCloseFdAdapter({ fd }) (AdapterResult) becomes closeSync(fd), returns void. fd is a plain number (FileDescriptor brand gone at the call).",
+    "proxyShape": "succeeds({ fd }) -> succeeds({ fd }); throws({ fd, error }) -> throws({ fd, error: NodeJS.ErrnoException }); getClosedFds() -> calls({ fd: (value) => true }) (matcher, returns unknown[][]).",
+    "evidence": {
+      "commit": "0a7d99398",
+      "file": "packages/siegelense/src/brokers/lane/teardown/lane-teardown-broker.ts",
+      "line": "-      fsCloseFdAdapter({ fd });  +      closeSync(fd);"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/copy-file/fs-copy-file-adapter",
+    "exportName": "fsCopyFileAdapter / fsCopyFileAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "copyFile",
+      "proxyImport": "#gateway/node/fs__promises/copy-file/copy-file.proxy",
+      "proxyExportName": "copyFileProxy"
+    },
+    "callShape": "fsCopyFileAdapter({ sourcePath, destinationPath }) becomes `await copyFile(sourcePath, destinationPath)` (positional from, to; returns void).",
+    "proxyShape": "succeeds({ sourcePath }) -> succeeds({ from, to }) (destination is now part of the address); throws({ sourcePath, error }) -> rejects({ from, to, error: FsError }); getDestinationPathFor({ sourcePath }) -> getCallsFor({ from, to: matcher }).at(-1)?.[1].",
+    "evidence": {
+      "commit": "ba951a330",
+      "file": "packages/siegelense/src/brokers/step/hold/step-hold-broker.ts",
+      "line": "-      await fsCopyFileAdapter({ sourcePath: lastFramePath, destinationPath: shotPath });  +      await copyFile(lastFramePath, shotPath);"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/cp/fs-cp-adapter",
+    "exportName": "fsCpAdapter / fsCpAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "copyDirContents",
+      "proxyImport": "#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy",
+      "proxyExportName": "copyDirContentsProxy"
+    },
+    "callShape": "fsCpAdapter({ sourcePath, destinationPath, excludeName: string | null }) becomes copyDirContents({ from: sourcePath, to: destinationPath, excludeNames: excludeName === null ? [] : [excludeName] }); recursive/force options live inside the gateway; returns void.",
+    "proxyShape": "setupSourceEntries({ sourcePath, entries }) and succeeds({ sourcePath, destinationPath, entries }) -> succeeds({ from, entries }); throws({ ..., error }) -> secondEntryFails({ from, to, entries: [a, b], error }) or readdirRejects({ from, error }); getCopiedPairs() -> cpCallsFor({ source }) per entry; getOptionsFor({ sourceEntryPath }) -> cpCallsFor({ source: sourceEntryPath }) / getCallsFor({ seam: 'cp', path }).",
+    "evidence": {
+      "commit": "ba951a330",
+      "file": "packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.ts",
+      "line": "-      await fsCpAdapter({  +      await copyDirContents({ from: payloadPath, to: homePath, excludeNames: [] });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/open-fd/fs-open-fd-adapter",
+    "exportName": "fsOpenFdAdapter / fsOpenFdAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs",
+      "exportName": "openForAppendSync",
+      "proxyImport": "#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy",
+      "proxyExportName": "openForAppendSyncProxy"
+    },
+    "callShape": "fsOpenFdAdapter({ filePath }) (FileDescriptor) becomes openForAppendSync(filePath) returning a plain number; wrap with fileDescriptorContract.parse only if the brand is still needed.",
+    "proxyShape": "returns({ filePath, fd }) -> returns({ path, fd }); throws({ filePath, error }) -> throws({ path, error: ErrnoException }); getFlagFor({ filePath }) has no counterpart (the 'a' flag is part of the address, so a wrong flag simply misses the mock); calls({ path }) reads calls.",
+    "evidence": {
+      "commit": "16097fbe1",
+      "file": "packages/siegelense/src/brokers/instance/start/instance-start-broker.ts",
+      "line": "-    const driverLogFd = fsOpenFdAdapter({ filePath: driverLogPath });  +    const driverLogFd = openForAppendSync(driverLogPath);"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter",
+    "exportName": "fsReadFileAdapter / fsReadFileAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "readFileIfExists",
+      "proxyImport": "#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy",
+      "proxyExportName": "readFileIfExistsProxy"
+    },
+    "callShape": "fsReadFileAdapter({ filePath }).catch(ENOENT -> null) becomes `await readFileIfExists(path)` returning string | null. A caller with no ENOENT handling uses readFile(path) (string, throws raw FsError). encoding is dropped: utf8 only; a caller that read 'latin1' for PNG bytes uses readFileBytes(path) -> Uint8Array. The old 'Failed to read file at <path>' wrapper error is gone.",
+    "proxyShape": "resolves({ filePath, content }) -> returns({ path, contents }); resolvesAny({ content }) -> returnsMatchingPath({ path: () => true, contents }); rejects({ filePath, error }) -> missing({ path }) / denied({ path }) / throwsMatchingPath({ path, error: FsError }); encodingUsedFor has no counterpart. readFileProxy (readFile) has the same method set plus returnsOnce/throwsOnce.",
+    "evidence": {
+      "commit": "f3da1a336",
+      "file": "packages/siegelense/src/brokers/citation/resolve/citation-resolve-broker.ts",
+      "line": "-      const contents = await fsReadFileAdapter({ filePath: questFilePath }).catch((error: unknown) => {  +      const contents = await readFileIfExists(questFilePath);"
+    },
+    "confidence": "high",
+    "note": "Master's new caller buffer-latest-run-layer-broker has the same .catch(isNativeError ENOENT) shape; HEAD buffer-read-layer-broker.ts:30 already imports readFileIfExists. Second evidence: ee9b1643e compare-read-broker.ts."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/readdir/fs-readdir-adapter",
+    "exportName": "fsReaddirAdapter / fsReaddirAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "readdirIfExists",
+      "proxyImport": "#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy",
+      "proxyExportName": "readdirIfExistsProxy"
+    },
+    "callShape": "fsReaddirAdapter({ dirPath }) (Promise<FileName[]>, [] on ENOENT) becomes `(await readdirIfExists(path))` returning string[] | null; null replaces the old empty array, so handle it (`?? []`).",
+    "proxyShape": "resolves({ dirPath, entries }) -> returns({ path, names }); rejects({ dirPath, error }) -> missing({ path }) for ENOENT, denied({ path }) / notADirectory({ path }) / throwsMatchingPath({ path, error: FsError }) otherwise.",
+    "evidence": {
+      "commit": "e5d4ca0ae",
+      "file": "packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.proxy.ts",
+      "line": "-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';  +import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/rm/fs-rm-adapter",
+    "exportName": "fsRmAdapter / fsRmAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "rm",
+      "proxyImport": "#gateway/node/fs__promises/rm/rm.proxy",
+      "proxyExportName": "rmProxy"
+    },
+    "callShape": "fsRmAdapter({ dirPath }) becomes `await rm(dirPath, { recursive: true, force: true })`; the options were hardcoded in the adapter and now live at the call. Returns void.",
+    "proxyShape": "succeeds({ dirPath }) -> succeeds({ path }); throws({ dirPath, error }) -> rejects({ path, error: FsError }); getRemovedPaths() -> getCallsFor({ path: matcher }).map((call) => call[0]); getOptionsFor({ dirPath }) -> getCallsFor({ path: dirPath }).at(-1)?.[1]. succeedsMatchingPath / rejectsMatchingPath take a PathMatcher.",
+    "evidence": {
+      "commit": "0a7d99398",
+      "file": "packages/siegelense/src/brokers/instance/kill/instance-kill-broker.ts",
+      "line": "-      await fsRmAdapter({ dirPath: homePath });  +import { rm } from '#gateway/node/fs__promises';"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/stat/fs-stat-adapter",
+    "exportName": "fsStatAdapter / fsStatAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "statIfExists",
+      "proxyImport": "#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy",
+      "proxyExportName": "statIfExistsProxy"
+    },
+    "callShape": "fsStatAdapter({ filePath }) (FileStat | null, ENOENT -> null) becomes `await statIfExists(path)` returning { kind, sizeBytes, modifiedAtMs, createdAtMs } | null. Fields sizeBytes and modifiedAtMs keep their names; kind and createdAtMs are new.",
+    "proxyShape": "resolves({ filePath, sizeBytes, modifiedAtMs }) -> returnsFile({ path, sizeBytes, modifiedAtMs, createdAtMs? }) (or returnsMatchingPath({ path, kind, ... })); rejects({ filePath, error }) -> missing({ path }) for ENOENT, denied({ path }) / throwsMatchingPath({ path, error }) otherwise.",
+    "evidence": {
+      "commit": "7cb5ff272",
+      "file": "packages/siegelense/src/brokers/driving-oddity/read/driving-oddity-read-broker.ts",
+      "line": "-  const stat = await fsStatAdapter({ filePath });  +import { readFile, statIfExists } from '#gateway/node/fs__promises';"
+    },
+    "confidence": "high",
+    "note": "Master callers served-build-stale-read-broker and evidence-tree-layer-broker are new on master."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/statfs/fs-statfs-adapter",
+    "exportName": "fsStatfsAdapter / fsStatfsAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "diskFreeBytes",
+      "proxyImport": "#gateway/node/fs__promises/disk-free-bytes/disk-free-bytes.proxy",
+      "proxyExportName": "diskFreeBytesProxy"
+    },
+    "callShape": "fsStatfsAdapter({ dirPath }) (Megabytes | null) becomes diskFreeBytes(path) returning BYTES | null; divide by machineStatics.units.bytesPerMegabyte in the caller (HEAD machine-read-broker.ts does this).",
+    "proxyShape": "resolves({ dirPath, bavail, bsize }) -> returns({ path, bavail, bsize }); rejects({ dirPath, error }) -> missing({ path }) / denied({ path }) / throwsMatchingPath({ path, error: FsError }).",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/machine/read/machine-read-broker.proxy.ts",
+      "line": "-import { fsStatfsAdapterProxy } from '../../../adapters/fs/statfs/fs-statfs-adapter.proxy';  +import { diskFreeBytesProxy } from '#gateway/node/fs__promises/disk-free-bytes/disk-free-bytes.proxy';"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/fs/write-file/fs-write-file-adapter",
+    "exportName": "fsWriteFileAdapter / fsWriteFileAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "writeFile",
+      "proxyImport": "#gateway/node/fs__promises/write-file/write-file.proxy",
+      "proxyExportName": "writeFileProxy"
+    },
+    "callShape": "fsWriteFileAdapter({ filePath, contents }) becomes `await writeFile(path, contents)` (utf8, flag 'w'). The `exclusive: true` form becomes writeFileExclusive(path, contents) (flag 'wx') from the same subpath, proxy writeFileExclusiveProxy.",
+    "proxyShape": "succeeds({ filePath }) -> succeeds({ path }); throws({ filePath, error }) -> rejects({ path, error: FsError }); throwsOnce -> rejectsOnce({ path, error }); getWrittenFor({ filePath }) -> writtenContentsFor({ path }); getFlagFor has no counterpart on writeFile (flag is fixed).",
+    "evidence": {
+      "commit": "7cb5ff272",
+      "file": "packages/siegelense/src/brokers/heartbeat/write/heartbeat-write-broker.ts",
+      "line": "-    await fsWriteFileAdapter({ filePath: heartbeatPath, contents });  +    await writeFile(heartbeatPath, contents);"
+    },
+    "confidence": "high",
+    "note": "Deleting commit 663e54098 only removed the adapter files; the caller switch is 7cb5ff272. writeFileExclusiveProxy was not opened; confirm its method names before use."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/net/unix-request/net-unix-request-adapter",
+    "exportName": "netUnixRequestAdapter / netUnixRequestAdapterProxy",
+    "replacement": {
+      "import": "packages/siegelense/src/brokers/driver/socket-request/driver-socket-request-broker",
+      "exportName": "driverSocketRequestBroker",
+      "proxyImport": "packages/siegelense/src/brokers/driver/socket-request/driver-socket-request-broker.proxy",
+      "proxyExportName": "driverSocketRequestBrokerProxy"
+    },
+    "callShape": "netUnixRequestAdapter({ socketPath, request, timeoutMs }) becomes driverSocketRequestBroker({ socketPath, request, timeoutMs }), same arguments, still Promise<DriverResponse>. The broker wraps unixSocketRequest from #gateway/node/net and does the JSON/contract parse the adapter did. Relative import from brokers/<x>/<y>/: '../../driver/socket-request/driver-socket-request-broker'.",
+    "proxyShape": "respondsWith({ socketPath, response }) unchanged; respondsWithRawFrame({ socketPath, frame }) -> respondsWithRawLine({ socketPath, line }); connectFails({ socketPath, error }) -> connectFailsNoSocket({ socketPath }) (ENOENT) or connectFailsRefused({ socketPath }) (ECONNREFUSED), the error is no longer free-form; neverResponds unchanged; getWrittenFor({ socketPath }) -> getRequestLinesFor({ socketPath }) (array of request lines); getConnectionCountFor({ socketPath }) is new.",
+    "evidence": {
+      "commit": "cade93840",
+      "file": "packages/siegelense/src/brokers/instance/kill/instance-kill-broker.ts",
+      "line": "-  return netUnixRequestAdapter({  +  return driverSocketRequestBroker({"
+    },
+    "confidence": "high",
+    "note": "Replacement is a siegelense broker, not a #gateway wrapper (the gateway function underneath is unixSocketRequest in #gateway/node/net)."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/os/info/os-info-adapter",
+    "exportName": "osInfoAdapter / osInfoAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/os",
+      "exportName": "cpus, freemem, loadavg, totalmem",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "osInfoAdapter() ({ freeMemMB, totalMemMB, cores, loadAvg }) becomes four raw calls in the caller: Math.floor(freemem() / bytesPerMegabyte), Math.floor(totalmem() / bytesPerMegabyte), cpus().length, loadavg(), with bytesPerMegabyte from machineStatics.units.",
+    "proxyShape": "#gateway/node/os is a raw `export * from 'os'` with no gateway proxy. Stage each function with registerMock({ fn: freemem }).calledWith([]).returns(bytes), likewise totalmem, cpus (array of length N), loadavg (3-tuple), as HEAD machine-read-broker.proxy.ts:55-74 does.",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/machine/read/machine-read-broker.ts",
+      "line": "-  const { freeMemMB, totalMemMB, cores, loadAvg } = osInfoAdapter();  +  const freeMemMB = Math.floor(freemem() / bytesPerMegabyte);"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/os/tmpdir/os-tmpdir-adapter",
+    "exportName": "osTmpdirAdapter / osTmpdirAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/os",
+      "exportName": "tmpdir",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "osTmpdirAdapter() becomes tmpdir() from #gateway/node/os (plain string).",
+    "proxyShape": "No gateway proxy (raw os passthrough). Stage with registerMock({ fn: tmpdir }).calledWith([]).returns(path), as HEAD instance-kill-broker.proxy.ts:82 does.",
+    "evidence": {
+      "commit": "0a7d99398",
+      "file": "packages/siegelense/src/brokers/instance/kill/instance-kill-broker.ts",
+      "line": "-        join(osTmpdirAdapter(), `dm-siege-${instanceId}`),  +import { tmpdir } from '#gateway/node/os';"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/pixelmatch/compare/pixelmatch-compare-adapter",
+    "exportName": "pixelmatchCompareAdapter / pixelmatchCompareAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/pixelmatch",
+      "exportName": "default (pixelmatch)",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "pixelmatchCompareAdapter({ before, after }) (ReadingCount) becomes `pixelmatch(before.pixels, after.pixels, null, before.width, before.height, { threshold: perceptionStatics.diff.yiqThreshold, includeAA: false })` returning a plain number. `import pixelmatch from '#gateway/npm/pixelmatch'`.",
+    "proxyShape": "No proxy: the adapter's proxy ran the real library. Drop pixelmatchCompareAdapterProxy(); #gateway/npm/pixelmatch has no .proxy file, only a diff-count.stub.",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.ts",
+      "line": "HEAD line 52: `const diffCount = pixelmatch(previousFrame.pixels, currentFrame.pixels, null, previousFrame.width, previousFrame.height, { threshold: perceptionStatics.diff.yiqThreshold, includeAA: false })`; the proxy drop is at a7b84bfbe shot-change-read-broker.proxy.ts: -  pixelmatchCompareAdapterProxy();"
+    },
+    "confidence": "high",
+    "note": "Master's new caller shot-diff-count-broker must follow the same inline shape; the old adapter already imported #gateway/npm/pixelmatch."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/playwright/session/playwright-session-adapter",
+    "exportName": "playwrightSessionAdapter / playwrightSessionAdapterProxy",
+    "replacement": {
+      "import": "packages/siegelense/src/brokers/browser-session/launch/browser-session-launch-broker",
+      "exportName": "browserSessionLaunchBroker",
+      "proxyImport": "packages/siegelense/src/brokers/browser-session/launch/browser-session-launch-broker.proxy",
+      "proxyExportName": "browserSessionLaunchBrokerProxy"
+    },
+    "callShape": "playwrightSessionAdapter({ baseUrl, evidencePath }) becomes browserSessionLaunchBroker({ baseUrl, evidencePath }), same arguments, same BrowserSession result.",
+    "proxyShape": "The adapter's setters moved with it: the HEAD proxy exposes setLocatorCount, setDescribeMatchesResult, setKeyReadResult, setDomReadResult, setRefState, setBoxResult, setEvaluateSourceResult, setRootPresent, setSettleProbeResult, setStorageResult, setupFileExists, getLaunchCalls, getGotoCalls, and so on. Layer adapters became layer brokers (paste-payload, ref-registry, settle-poll, settle-wait).",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/lane/boot/lane-boot-broker.ts",
+      "line": "-  ? await playwrightSessionAdapter({ baseUrl: webBaseUrl, evidencePath })  +  ? await browserSessionLaunchBroker({ baseUrl: webBaseUrl, evidencePath })"
+    },
+    "confidence": "high",
+    "note": "Master also modified adapters/playwright/session/{playwright-session-adapter.test,playwright-session-adapter.integration.test,key-read-layer-adapter,key-read-layer-adapter.test}.ts. The tests port to brokers/browser-session/launch/browser-session-launch-broker.{test,integration.test}.ts. key-read-layer-adapter has no HEAD counterpart (HEAD has no key-read-layer-broker): see its own row."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/playwright/session/key-read-layer-adapter",
+    "exportName": "keyReadLayerAdapter / keyReadLayerAdapterProxy",
+    "replacement": {
+      "import": null,
+      "exportName": null,
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "NEW on master (no HEAD version). Natural home: brokers/browser-session/launch/key-read-layer-broker.ts, following paste-payload-layer-broker, ref-registry-layer-broker, settle-poll-layer-broker and settle-wait-layer-broker in that folder.",
+    "proxyShape": "Not derivable. browserSessionLaunchBrokerProxy already has setKeyReadResult({ raw }) for the key-read step; the layer's own proxy would be key-read-layer-broker.proxy.ts.",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/browser-session/launch/",
+      "line": "Precedent only: the other four layer adapters in this folder became layer brokers in a7b84bfbe."
+    },
+    "confidence": "low",
+    "note": "Only imported by its own test on master (key-read-layer-adapter.test.ts); browser-session-launch-broker.ts on master may also import it. Check before assuming."
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/pngjs/decode/pngjs-decode-adapter",
+    "exportName": "pngjsDecodeAdapter / pngjsDecodeAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/pngjs",
+      "exportName": "decodePng",
+      "proxyImport": "#gateway/npm/pngjs/decode-png/decode-png.proxy",
+      "proxyExportName": "decodePngProxy"
+    },
+    "callShape": "pngjsDecodeAdapter({ bytes: Uint8Array }) (DecodedFrame) becomes decodePng({ bytes: Buffer.from(bytes) }) returning plain { width, height, pixels: Uint8Array }; the Buffer wrap is at the call.",
+    "proxyShape": "Both proxies are empty: pngjsDecodeAdapterProxy() -> decodePngProxy() (real decode).",
+    "evidence": {
+      "commit": "a7b84bfbe",
+      "file": "packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.ts",
+      "line": "-  const previousFrame = pngjsDecodeAdapter({ bytes: previousBytes });  +  const previousFrame = decodePng({ bytes: Buffer.from(previousBytes) });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/process/is-alive/process-is-alive-adapter",
+    "exportName": "processIsAliveAdapter / processIsAliveAdapterProxy",
+    "replacement": {
+      "import": "packages/siegelense/src/brokers/process/is-alive/process-is-alive-broker",
+      "exportName": "processIsAliveBroker",
+      "proxyImport": "packages/siegelense/src/brokers/process/is-alive/process-is-alive-broker.proxy",
+      "proxyExportName": "processIsAliveBrokerProxy"
+    },
+    "callShape": "processIsAliveAdapter({ pgid }) becomes processIsAliveBroker({ pgid }) returning boolean; pgid is a plain number. Relative import from brokers/lane/boot/: '../../process/is-alive/process-is-alive-broker'.",
+    "proxyShape": "setupAlive({ pgid }) and setupGone({ pgid }) unchanged; setupUnknownError({ pgid, error }) -> setupPermissionDenied({ pgid }) (the realm-safety error case is covered inside isFsError/isNativeError now); new: setupAliveThenGone({ pgid }); getCallFor({ pgid }) unchanged.",
+    "evidence": {
+      "commit": "0a7d99398",
+      "file": "packages/siegelense/src/brokers/driver/live-check/driver-live-check-broker.ts",
+      "line": "-  if (processIsAliveAdapter({ pgid: processGroupIdContract.parse(Number(entry.pid)) })) {  +  if (processIsAliveBroker({ pgid: processGroupIdContract.parse(Number(entry.pid)) })) {"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/siegelense/src/adapters/process/kill-group/process-kill-group-adapter",
+    "exportName": "processKillGroupAdapter / processKillGroupAdapterProxy",
+    "replacement": {
+      "import": "packages/siegelense/src/brokers/process/kill-group/process-kill-group-broker",
+      "exportName": "processKillGroupBroker",
+      "proxyImport": "packages/siegelense/src/brokers/process/kill-group/process-kill-group-broker.proxy",
+      "proxyExportName": "processKillGroupBrokerProxy"
+    },
+    "callShape": "processKillGroupAdapter({ pgid, signal }) becomes processKillGroupBroker({ pgid, signal }) returning { signalSent: boolean }, same arguments.",
+    "proxyShape": "setupSent({ pgid, signal }) -> setupSent({ pgid, signal: NodeJS.Signals, onSent? }); setupAlreadyGone({ pgid, signal }) unchanged; setupUnknownError({ pgid, signal, error }) -> setupPermissionDenied({ pgid, signal }); getCallsFor({ pgid }) now returns the signals only (probe signal 0 filtered out).",
+    "evidence": {
+      "commit": "0a7d99398",
+      "file": "packages/siegelense/src/brokers/lane/boot/lane-boot-broker.ts",
+      "line": "-      processKillGroupAdapter({ pgid: entry.pgid, signal: 'SIGKILL' });  +      processKillGroupBroker({ pgid: entry.pgid, signal: 'SIGKILL' });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/add-guild/orchestrator-add-guild-adapter",
+    "exportName": "orchestratorAddGuildAdapter / orchestratorAddGuildAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.addGuild",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorAddGuildAdapter({ name, path }) becomes StartOrchestrator.addGuild({ name, path }) (Promise<Guild>).",
+    "proxyShape": "returns({ name, path, guild }) -> addGuildReturns({ name, path, guild }); throws({ name, path, error }) -> addGuildThrows({ name, path, error }). Construct with StartOrchestratorProxy().",
+    "evidence": {
+      "commit": "40ae05573",
+      "file": "packages/server/src/responders/guild/add/guild-add-responder.ts",
+      "line": "-  const result = await orchestratorAddGuildAdapter({ name, path });  +  const result = await StartOrchestrator.addGuild({ name, path });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/update-guild/orchestrator-update-guild-adapter",
+    "exportName": "orchestratorUpdateGuildAdapter / orchestratorUpdateGuildAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.updateGuild",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorUpdateGuildAdapter({ guildId, name?, path? }) becomes StartOrchestrator.updateGuild({ guildId, ...(name !== undefined && { name }), ...(path !== undefined && { path }) }).",
+    "proxyShape": "returns({ guildId, guild }) -> updateGuildReturns({ guildId, guild }); throws({ guildId, error }) -> updateGuildThrows({ guildId, error }).",
+    "evidence": {
+      "commit": "4af30fdaf",
+      "file": "packages/server/src/responders/guild/update/guild-update-responder.ts",
+      "line": "-  const guild = await orchestratorUpdateGuildAdapter({  +  const guild = await StartOrchestrator.updateGuild({"
+    },
+    "confidence": "high",
+    "note": "Master also modified add-guild and update-guild adapter .proxy.ts files: a modify/delete conflict, resolve by taking HEAD's deletion."
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter",
+    "exportName": "orchestratorGetQuestAdapter / orchestratorGetQuestAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.getQuest",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorGetQuestAdapter({ questId, stage? }) becomes StartOrchestrator.getQuest({ questId, ...(stage && { stage }) }) (Promise<GetQuestResult>).",
+    "proxyShape": "returns({ questId, result }) -> getQuestReturns({ questId, result }); throws({ questId, error }) -> getQuestThrows({ questId, error }); also getQuestNotFound({ questId }).",
+    "evidence": {
+      "commit": "f21d348c4",
+      "file": "packages/server/src/responders/quest/start/quest-start-responder.ts",
+      "line": "-  const questResult = await orchestratorGetQuestAdapter({ questId });  +  const questResult = await StartOrchestrator.getQuest({ questId });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/load-quest/orchestrator-load-quest-adapter",
+    "exportName": "orchestratorLoadQuestAdapter / orchestratorLoadQuestAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.loadQuest",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorLoadQuestAdapter({ questId }) becomes StartOrchestrator.loadQuest({ questId }) (Promise<Quest>).",
+    "proxyShape": "returns -> loadQuestReturns({ questId, quest }); throws -> loadQuestThrows({ questId, error }); returnsOnce -> loadQuestReturnsOnce({ questId, quest }); returnsOnceDelayed -> loadQuestReturnsOnceDelayed({ questId, quest, delayMs }).",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorLoadQuestAdapter({ questId: subQuestId })  +      StartOrchestrator.loadQuest({ questId: subQuestId })"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/start-quest/orchestrator-start-quest-adapter",
+    "exportName": "orchestratorStartQuestAdapter / orchestratorStartQuestAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.startQuest",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorStartQuestAdapter({ questId }) becomes StartOrchestrator.startQuest({ questId }) (Promise<ProcessId>).",
+    "proxyShape": "returns({ questId, processId }) -> startQuestReturns({ questId, processId }); throws({ questId, error }) -> startQuestThrows({ questId, error }).",
+    "evidence": {
+      "commit": "f21d348c4",
+      "file": "packages/server/src/responders/quest/start/quest-start-responder.ts",
+      "line": "-  const processId = await orchestratorStartQuestAdapter({ questId });  +  const processId = await StartOrchestrator.startQuest({ questId });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter",
+    "exportName": "orchestratorPlayDispatchAdapter / orchestratorPlayDispatchAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.playDispatch",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorPlayDispatchAdapter({ force? }) becomes StartOrchestrator.playDispatch({ ...(force !== undefined && { force }) }); HEAD's responder calls StartOrchestrator.playDispatch() with no argument.",
+    "proxyShape": "returns({ response }) -> playDispatchReturns({ state: DispatchState }) (the parameter is now `state`, typed DispatchState, not `response`); throws({ error }) -> playDispatchThrows({ error }); getCalls() -> playDispatchGetCalls().",
+    "evidence": {
+      "commit": "f21d348c4",
+      "file": "packages/server/src/responders/quest/start/quest-start-responder.ts",
+      "line": "-  const dispatch = await orchestratorPlayDispatchAdapter({}).then(  +  const dispatch = await StartOrchestrator.playDispatch().then("
+    },
+    "confidence": "high",
+    "note": "Return type differs: the old adapter returned DispatchPlayResponse, the HEAD proxy stages a DispatchState. Check what master's responder and its tests read off the result."
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter",
+    "exportName": "orchestratorReplayChatHistoryAdapter / orchestratorReplayChatHistoryAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.replayChatHistory",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorReplayChatHistoryAdapter({ sessionId, agentId?, guildId, chatProcessId }) (Promise<AdapterResult>) becomes `await StartOrchestrator.replayChatHistory({ sessionId, ...(agentId && { agentId }), guildId, chatProcessId })` returning void.",
+    "proxyShape": "setupSuccess() -> replayChatHistorySetupSuccess(); setupFailure({ error }) -> replayChatHistorySetupFailure({ error }); getAllCalledArgs() -> replayChatHistoryGetCalls().",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorReplayChatHistoryAdapter({  +      StartOrchestrator.replayChatHistory({"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter",
+    "exportName": "orchestratorStopAllChatsAdapter / orchestratorStopAllChatsAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.stopAllChats",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorStopAllChatsAdapter() (AdapterResult) becomes StartOrchestrator.stopAllChats() returning void.",
+    "proxyShape": "throws({ error }) -> stopAllChatsThrows({ error }); wasCalled() -> stopAllChatsWasCalled(). StartOrchestratorProxy() stages stopAllChats as a no-op by default.",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorStopAllChatsAdapter();  +      StartOrchestrator.stopAllChats();"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter",
+    "exportName": "orchestratorFindQuestByWorkItemIdAdapter / orchestratorFindQuestByWorkItemIdAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "StartOrchestrator.findQuestByWorkItemId",
+      "proxyImport": "@dungeonmaster/orchestrator/startup/start-orchestrator.proxy",
+      "proxyExportName": "StartOrchestratorProxy"
+    },
+    "callShape": "orchestratorFindQuestByWorkItemIdAdapter({ workItemId }) becomes StartOrchestrator.findQuestByWorkItemId({ workItemId }) (Promise<QuestId | null>).",
+    "proxyShape": "returns({ workItemId, questId }) -> findQuestByWorkItemIdReturns({ workItemId, questId }); throws({ workItemId, error }) -> findQuestByWorkItemIdThrows({ workItemId, error }).",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorFindQuestByWorkItemIdAdapter({ workItemId: payloadWorkItemId })  +      StartOrchestrator.findQuestByWorkItemId({ workItemId: payloadWorkItemId })"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter",
+    "exportName": "orchestratorFindQuestPathAdapter / orchestratorFindQuestPathAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "questFindQuestPathBroker",
+      "proxyImport": "@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy",
+      "proxyExportName": "questFindQuestPathBrokerProxy"
+    },
+    "callShape": "orchestratorFindQuestPathAdapter({ questId }) becomes questFindQuestPathBroker({ questId }) (Promise<{ questPath, guildId }>), imported from the orchestrator barrel.",
+    "proxyShape": "returns({ questId, questPath, guildId }) -> setupResolves({ questId, questPath, guildId }) (answers that questId outright) or setupQuestPath({ questId, guildId, questPath, homeDir? }) (real lookup over staged fs); throws({ questId, error }) -> setupQuestPathError({ questId, homeDir? }) (the error is the real lookup's, not a caller-supplied Error).",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorFindQuestPathAdapter({ questId })  +  (import) questFindQuestPathBroker from '@dungeonmaster/orchestrator'; HEAD proxy line 263: findQuestPathProxy.setupResolves({ questId, questPath, guildId });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/events-on/orchestrator-events-on-adapter",
+    "exportName": "orchestratorEventsOnAdapter / orchestratorEventsOnAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "orchestrationEventsState.on",
+      "proxyImport": "@dungeonmaster/orchestrator/state/orchestration-events/orchestration-events-state.proxy",
+      "proxyExportName": "orchestrationEventsStateProxy"
+    },
+    "callShape": "orchestratorEventsOnAdapter({ type, handler }) (AdapterResult) becomes orchestrationEventsState.on({ type, handler }) returning void.",
+    "proxyShape": "Call eventsProxy = orchestrationEventsStateProxy(); eventsProxy.captureHandlers() first; getCapturedHandler({ type }) and getCapturedHandlers() keep their names. Also new: setupEmpty(), captureEmits({ type }).",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorEventsOnAdapter({  +  orchestrationEventsState,  (HEAD server-init-responder.proxy.ts:134 eventsProxy.captureHandlers(); :244 eventsProxy.getCapturedHandler({ type }))"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter",
+    "exportName": "orchestratorOutboxWatchAdapter / orchestratorOutboxWatchAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/orchestrator",
+      "exportName": "questOutboxWatchBroker",
+      "proxyImport": "@dungeonmaster/orchestrator/brokers/quest/outbox-watch/quest-outbox-watch-broker.proxy",
+      "proxyExportName": "questOutboxWatchBrokerProxy"
+    },
+    "callShape": "orchestratorOutboxWatchAdapter({ onQuestChanged, onError, resetOnStart? }) becomes questOutboxWatchBroker({ onQuestChanged, onError, ...(resetOnStart === undefined ? {} : { resetOnStart }) }) (Promise<{ stop }>).",
+    "proxyShape": "returns({ stop }) -> setupWatchStarted() (stop is the real broker's) or setupWatchCaptureOnly() (capture callbacks, run nothing); throws({ error }) -> triggerWatchError({ path, error }); getCapturedCallbacks() unchanged. Also getCapturedResetOnStart(), setupLines({ path, lines }).",
+    "evidence": {
+      "commit": "2b1896cf6",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-      orchestratorOutboxWatchAdapter({  +  questOutboxWatchBroker,  (HEAD proxy line 159: outboxWatchProxy.setupWatchCaptureOnly(); :248 outboxWatchProxy.getCapturedCallbacks())"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/fs/read-file/fs-read-file-adapter",
+    "exportName": "fsReadFileAdapter / fsReadFileAdapterProxy (server copy)",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "readFile",
+      "proxyImport": "#gateway/node/fs__promises/read-file/read-file.proxy",
+      "proxyExportName": "readFileProxy"
+    },
+    "callShape": "fsReadFileAdapter({ filepath }) (Promise<FileContents>) becomes `await readFile(filepath)` (utf8 string, positional). Note the parameter was spelled `filepath` here.",
+    "proxyShape": "returns({ filepath, contents }) -> returns({ path, contents }); throws({ filepath, error }) -> missing({ path }) / denied({ path }) / throwsMatchingPath({ path, error: FsError }). A matcher filepath -> returnsMatchingPath({ path: matcher, contents }).",
+    "evidence": {
+      "commit": "fc74b4ea9",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-        const contents = await fsReadFileAdapter({ filepath: ... })  +  const contents = await readFile(filePathContract.parse(detailFilePath));"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/hono/serve/hono-serve-adapter",
+    "exportName": "honoServeAdapter / honoServeAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/hono__node-server",
+      "exportName": "serve",
+      "proxyImport": "#gateway/npm/hono__node-server/server/server.proxy",
+      "proxyExportName": "serveProxy"
+    },
+    "callShape": "honoServeAdapter({ fetch, port, hostname, onListen }) becomes serve({ fetch, port, hostname }, onListen).",
+    "proxyShape": "getCapturedFetch() -> setupListen({ port, hostname? }) then getCapturedOptions()?.fetch (undefined until serve is called, instead of throwing 'fetch not captured').",
+    "evidence": {
+      "commit": "39daffdbf",
+      "file": "packages/server/src/responders/server/init/server-init-responder.proxy.ts",
+      "line": "-  const serveProxy = honoServeAdapterProxy();  +import { serve } from '#gateway/npm/hono__node-server';  (HEAD proxy line 17: import { serveProxy } from '#gateway/npm/hono__node-server/server/server.proxy';)"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter",
+    "exportName": "honoCreateNodeWebSocketAdapter / honoCreateNodeWebSocketAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/hono__node-ws",
+      "exportName": "createNodeWebSocket",
+      "proxyImport": "#gateway/npm/hono__node-ws/node-web-socket/node-web-socket.proxy",
+      "proxyExportName": "createNodeWebSocketProxy"
+    },
+    "callShape": "honoCreateNodeWebSocketAdapter({ app }) becomes createNodeWebSocket({ app }); type HonoApp = Parameters<typeof createNodeWebSocket>[0]['app'].",
+    "proxyShape": "simulateConnection / simulateMessage / simulateDisconnect have no gateway counterpart. Use setupUpgrade({ app }), getCapturedApp(), getCapturedUpgradeFactory() and drive the captured WsHandlers (onOpen/onMessage/onClose) directly, as HEAD server-init-responder.proxy.ts does at line 119.",
+    "evidence": {
+      "commit": "39daffdbf",
+      "file": "packages/server/src/responders/server/init/server-init-responder.ts",
+      "line": "-type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];  +type HonoApp = Parameters<typeof createNodeWebSocket>[0]['app'];"
+    },
+    "confidence": "high",
+    "note": "The simulate* helpers are test-driving behaviour, so porting master's server-init tests that use them needs real rewriting against the captured upgrade factory."
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/process/dev-log/process-dev-log-adapter",
+    "exportName": "processDevLogAdapter / processDevLogAdapterProxy",
+    "replacement": {
+      "import": "packages/server/src/brokers/process/dev-log/process-dev-log-broker",
+      "exportName": "processDevLogBroker",
+      "proxyImport": "packages/server/src/brokers/process/dev-log/process-dev-log-broker.proxy",
+      "proxyExportName": "processDevLogBrokerProxy"
+    },
+    "callShape": "processDevLogAdapter({ message }) becomes processDevLogBroker({ message }) returning void (was AdapterResult). Relative import: '../../../brokers/process/dev-log/process-dev-log-broker' from responders/<x>/<y>/.",
+    "proxyShape": "enableVerbose() and disableVerbose() unchanged; getWrittenLines() unchanged shape (unknown[][]).",
+    "evidence": {
+      "commit": "39daffdbf",
+      "file": "packages/server/src/brokers/image/serve/image-serve-broker.ts",
+      "line": "-    processDevLogAdapter({ message: `Image read failed for ${filePath}: ${reason}` });  +    processDevLogBroker({ message: `Image read failed for ${filePath}: ${reason}` });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/server/src/adapters/process/request-log/process-request-log-adapter",
+    "exportName": "processRequestLogAdapter / processRequestLogAdapterProxy",
+    "replacement": {
+      "import": null,
+      "exportName": null,
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "NO gateway equivalent and no HEAD equivalent. Master adds processRequestLogAdapter({ line }) (writes `${line}\\n` to stdout when DUNGEONMASTER_REQUEST_LOG === '1'). Follow the dev-log broker: packages/server/src/brokers/process/request-log/process-request-log-broker.ts using getEnv('DUNGEONMASTER_REQUEST_LOG') from #gateway/node/process and stdout.write, returning void.",
+    "proxyShape": "Mirror processDevLogBrokerProxy: getEnvProxy() + stdoutProxy() with enable/disable helpers that setEnv/deleteEnv('DUNGEONMASTER_REQUEST_LOG') and a getWrittenLines() read.",
+    "evidence": {
+      "commit": "39daffdbf",
+      "file": "packages/server/src/brokers/process/dev-log/process-dev-log-broker.ts",
+      "line": "Precedent: the dev-log adapter became processDevLogBroker on the same commit; HEAD broker body is `if (getEnv('VERBOSE') !== '1') return; stdout.write(`[dev] ${message}\\n`);`"
+    },
+    "confidence": "low",
+    "note": "Adapter, its test and its proxy are all master-modified/added files under an adapters/ folder absent on HEAD. The only caller is server-request-log-responder (new on master). Needs a new broker, not a swap."
+  },
+  {
+    "adapterPath": "packages/orchestrator/src/adapters/fs/is-accessible/fs-is-accessible-adapter",
+    "exportName": "fsIsAccessibleAdapter / fsIsAccessibleAdapterProxy",
+    "replacement": {
+      "import": "#gateway/node/fs__promises",
+      "exportName": "pathExists",
+      "proxyImport": "#gateway/node/fs__promises/path-exists/path-exists.proxy",
+      "proxyExportName": "pathExistsProxy"
+    },
+    "callShape": "fsIsAccessibleAdapter({ filePath }) (Promise<boolean>, false on any error) becomes `await pathExists(path)` (true, or false only for ENOENT/ENOTDIR; other errors such as EACCES now throw).",
+    "proxyShape": "resolves({ filePath }) -> present({ path }); rejects({ filePath, error }) -> missing({ path }) / denied({ path }) / notADirectory({ path }); defaultsToNotFound() and defaultsToFound() -> presentMatchingPath / throwsMatchingPath with a matcher.",
+    "evidence": {
+      "commit": "b189c757a",
+      "file": "packages/orchestrator/src/brokers/path/is-accessible/path-is-accessible-broker.ts",
+      "line": "-    return fsIsAccessibleAdapter({ filePath: ... });  +  import { pathExists } from '#gateway/node/fs__promises';"
+    },
+    "confidence": "high",
+    "note": "Behaviour change on permission errors: the old adapter swallowed every failure; pathExists rethrows non-ENOENT/ENOTDIR errors. HEAD path-is-accessible-broker.proxy.ts uses pathExistsProxy (present/missing/denied)."
+  },
+  {
+    "adapterPath": "packages/orchestrator/src/adapters/fs/readdir/fs-readdir-adapter",
+    "exportName": "fsReaddirAdapter / fsReaddirAdapterProxy (orchestrator copy)",
+    "replacement": {
+      "import": "#gateway/node/fs",
+      "exportName": "readdirSync",
+      "proxyImport": "#gateway/node/fs/readdir-sync/readdir-sync.proxy",
+      "proxyExportName": "readdirSyncProxy"
+    },
+    "callShape": "fsReaddirAdapter({ dirPath }) (sync, FileName[]) becomes readdirSync(path) returning string[] (sync; fileNameContract.parse dropped: map to plain strings).",
+    "proxyShape": "returns({ dirPath, files }) -> returns({ path, names }); returnsOnceFor({ dirPath, files }) -> returnsOnce({ path, names }); throws({ dirPath, error }) -> throws({ path, error: ErrnoException }). The old proxy defaulted readdirSync to [] for unstaged paths; the new one does not.",
+    "evidence": {
+      "commit": "274a2a534",
+      "file": "packages/orchestrator/src/brokers/quest/list/quest-list-broker.ts",
+      "line": "-  const entries = fsReaddirAdapter({ dirPath: questsPath });  +  const entries = readdirSync(questsPath).map((name) => name);  (HEAD quest-list-broker.ts:54)"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/hydration-recipes/src/adapters/dm-http/request/dm-http-request-adapter",
+    "exportName": "dmHttpRequestAdapter / dmHttpRequestAdapterProxy",
+    "replacement": {
+      "import": "packages/hydration-recipes/src/brokers/dm/http-request/dm-http-request-broker",
+      "exportName": "dmHttpRequestBroker",
+      "proxyImport": "packages/hydration-recipes/src/brokers/dm/http-request/dm-http-request-broker.proxy",
+      "proxyExportName": "dmHttpRequestBrokerProxy"
+    },
+    "callShape": "dmHttpRequestAdapter({ target, method, path, ... }) becomes dmHttpRequestBroker({ target, method, path, ... }), same arguments. Relative import from brokers/quest/reach-route/: '../../dm/http-request/dm-http-request-broker'. It wraps fetchWithStatus from #gateway/node/fetch/fetch-with-status.",
+    "proxyShape": "Pure rename: dmHttpRequestAdapterProxy() -> dmHttpRequestBrokerProxy(); its staging methods kept their names (the proxy now composes fetchWithStatusProxy).",
+    "evidence": {
+      "commit": "852830806",
+      "file": "packages/hydration-recipes/src/brokers/quest/reach-route/quest-reach-route-broker.ts",
+      "line": "-  const response = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {  +  const response = await (async (): ReturnType<typeof dmHttpRequestBroker> => {"
+    },
+    "confidence": "high",
+    "note": "Error message text changed with the rename: 'dmHttpRequestAdapter: target carries no request function...' is now 'dmHttpRequestBroker: ...'."
+  },
+  {
+    "adapterPath": "packages/hydration-recipes/src/adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter",
+    "exportName": "dmHttpResponseUnwrapAdapter / dmHttpResponseUnwrapAdapterProxy",
+    "replacement": {
+      "import": "packages/hydration-recipes/src/transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer",
+      "exportName": "dmHttpResponseUnwrapTransformer",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "dmHttpResponseUnwrapAdapter({ response, url }) becomes dmHttpResponseUnwrapTransformer({ response, url }), same arguments. Relative import from brokers/<x>/<y>/: '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer'.",
+    "proxyShape": "No proxy: a transformer needs none. Delete the dmHttpResponseUnwrapAdapterProxy() call.",
+    "evidence": {
+      "commit": "852830806",
+      "file": "packages/hydration-recipes/src/brokers/guild/api-route/guild-api-route-broker.ts",
+      "line": "-  return dmHttpResponseUnwrapAdapter({ response, url });  +  return dmHttpResponseUnwrapTransformer({ response, url });"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/web/src/adapters/mantine/notifications-show/mantine-notifications-show-adapter",
+    "exportName": "mantineNotificationsShowAdapter / mantineNotificationsShowAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/mantine__notifications",
+      "exportName": "notifications",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "mantineNotificationsShowAdapter({ message, color }) (AdapterResult) becomes notifications.show({ message, color }).",
+    "proxyShape": "No gateway proxy (`export * from '@mantine/notifications'`). Stage inline: const handle = registerMock({ fn: notifications.show }); handle.calledWith([isNotificationPayload]).returns(undefined); read with handle.callsMatching([isNotificationPayload]).at(-1)?.[0]; exactly what the old proxy did, now in the widget proxy (HEAD chat-input-widget.proxy.tsx:105).",
+    "evidence": {
+      "commit": "5b5019790",
+      "file": "packages/web/src/widgets/home-content/home-content-widget.tsx",
+      "line": "-  mantineNotificationsShowAdapter({  +  notifications.show({"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/web/src/adapters/mantine/notifications/mantine-notifications-adapter",
+    "exportName": "mantineNotificationsAdapter / mantineNotificationsAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/mantine__notifications",
+      "exportName": "Notifications",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "`const NotificationsComponent = mantineNotificationsAdapter();` becomes `import { Notifications } from '#gateway/npm/mantine__notifications'` and renders <Notifications />.",
+    "proxyShape": "Proxy was empty: delete mantineNotificationsAdapterProxy().",
+    "evidence": {
+      "commit": "22d8c7566",
+      "file": "packages/web/src/widgets/app-root/app-root-widget.tsx",
+      "line": "-  const NotificationsComponent = mantineNotificationsAdapter();  +  <Notifications />"
+    },
+    "confidence": "high",
+    "note": "The old adapter also imported '@mantine/notifications/styles.css'. Check where HEAD imports the stylesheet (HEAD app-root-widget.tsx shows no css import) before dropping it."
+  },
+  {
+    "adapterPath": "packages/web/src/adapters/mantine/render/mantine-render-adapter",
+    "exportName": "mantineRenderAdapter / mantineRenderAdapterProxy",
+    "replacement": {
+      "import": "@dungeonmaster/testing/middleware/mantine-render",
+      "exportName": "mantineRenderMiddleware",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "mantineRenderAdapter({ ui }) becomes mantineRenderMiddleware({ ui, options? }) returning RenderResult (render wrapped in MantineProvider).",
+    "proxyShape": "Proxy was empty: delete mantineRenderAdapterProxy(). (packages/testing/src/middleware/mantine-render/mantine-render-middleware.proxy.ts exports an empty mantineRenderMiddlewareProxy, unneeded.)",
+    "evidence": {
+      "commit": "f7eabaf73",
+      "file": "packages/web/src/widgets/app/app-widget.test.tsx",
+      "line": "-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';  +import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';"
+    },
+    "confidence": "high",
+    "note": "Two-step history: 2d7f1d25f moved it to @dungeonmaster/testing/adapters/mantine/render, then f7eabaf73 (A14) turned it into middleware. Only the final form exists on HEAD."
+  },
+  {
+    "adapterPath": "packages/web/src/adapters/testing-library/act/testing-library-act-adapter",
+    "exportName": "testingLibraryActAdapter / testingLibraryActAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/testing-library__react",
+      "exportName": "act",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "testingLibraryActAdapter({ callback }) becomes `act(() => { ... })`: drop the callback wrapper and inline the body.",
+    "proxyShape": "Proxy was empty: delete testingLibraryActAdapterProxy().",
+    "evidence": {
+      "commit": "cdd59573b",
+      "file": "packages/web/src/bindings/use-comment-queue/use-comment-queue-binding.test.ts",
+      "line": "-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';  +import { act, renderHook } from '#gateway/npm/testing-library__react';"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/web/src/adapters/testing-library/act-async/testing-library-act-async-adapter",
+    "exportName": "testingLibraryActAsyncAdapter / testingLibraryActAsyncAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/testing-library__react",
+      "exportName": "act",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "`await testingLibraryActAsyncAdapter({ callback: async () => { ... } })` becomes `await act(async () => { ... })`.",
+    "proxyShape": "Proxy was empty: delete testingLibraryActAsyncAdapterProxy().",
+    "evidence": {
+      "commit": "cdd59573b",
+      "file": "packages/web/src/widgets/app/app-widget.test.tsx",
+      "line": "-      await testingLibraryActAsyncAdapter({  +      await act(async () => {"
+    },
+    "confidence": "high"
+  },
+  {
+    "adapterPath": "packages/web/src/adapters/testing-library/wait-for/testing-library-wait-for-adapter",
+    "exportName": "testingLibraryWaitForAdapter / testingLibraryWaitForAdapterProxy",
+    "replacement": {
+      "import": "#gateway/npm/testing-library__react",
+      "exportName": "waitFor",
+      "proxyImport": null,
+      "proxyExportName": null
+    },
+    "callShape": "`await testingLibraryWaitForAdapter({ callback: () => { ... } })` becomes `await waitFor(() => { ... })`.",
+    "proxyShape": "Proxy was empty: delete testingLibraryWaitForAdapterProxy().",
+    "evidence": {
+      "commit": "cdd59573b",
+      "file": "packages/web/src/widgets/execution-panel/execution-panel-widget.test.tsx",
+      "line": "-      await testingLibraryWaitForAdapter({  +      await waitFor(() => {"
+    },
+    "confidence": "high"
+  }
+]

@@ -11,10 +11,7 @@
  */
 
 import { dependencyMapContract } from '../../contracts/dependency-map/dependency-map-contract';
-import {
-  packageJsonRawContract,
-  type PackageJsonRaw,
-} from '../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract, type PackageJsonRaw } from '@dungeonmaster/shared/contracts';
 import { packageScaffoldConfigStatics } from '../../statics/package-scaffold-config/package-scaffold-config-statics';
 
 export const rootPackageJsonRegisterTransformer = ({

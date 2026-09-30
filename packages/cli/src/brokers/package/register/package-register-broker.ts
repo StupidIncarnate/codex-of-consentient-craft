@@ -13,7 +13,7 @@
 import { join } from '#gateway/node/path';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
 import { rootPackageJsonRegisterTransformer } from '../../../transformers/root-package-json-register/root-package-json-register-transformer';
 
 export const packageRegisterBroker = async ({

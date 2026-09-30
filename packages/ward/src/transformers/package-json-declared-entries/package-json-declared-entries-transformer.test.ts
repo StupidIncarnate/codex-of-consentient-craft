@@ -1,4 +1,4 @@
-import { PackageJsonRawStub } from '../../contracts/package-json-raw/package-json-raw.stub';
+import { PackageJsonRawStub } from '@dungeonmaster/shared/contracts/package-json-raw/package-json-raw.stub';
 
 import { packageJsonDeclaredEntriesTransformer } from './package-json-declared-entries-transformer';
 

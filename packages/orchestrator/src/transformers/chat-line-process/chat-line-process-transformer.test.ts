@@ -9,6 +9,7 @@ import {
   SuccessfulToolResultStreamLineStub,
   ToolReferenceArrayToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import { ToolUseStub } from '@dungeonmaster/shared/contracts/tool-use/tool-use.stub';
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 
@@ -836,7 +837,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const preSeededToolUseId = 'toolu_preseed_01';
+      const preSeededToolUseId = ToolUseStub({ id: 'toolu_preseed_01' }).id;
       const realAgentId = AgentIdStub({ value: 'agent-preseeded' });
       const source = 'subagent';
 
@@ -880,7 +881,7 @@ describe('chatLineProcessTransformer', () => {
   describe('resolveToolUseIdForAgent lookup API', () => {
     it('VALID: {registerAgentTranslation then resolveToolUseIdForAgent with same agentId} => returns the registered toolUseId', () => {
       const processor = chatLineProcessTransformer();
-      const toolUseId = 'toolu_resolve_01';
+      const toolUseId = ToolUseStub({ id: 'toolu_resolve_01' }).id;
       const realAgentId = AgentIdStub({ value: 'agent-resolve' });
 
       processor.registerAgentTranslation({ agentId: realAgentId, toolUseId });
@@ -935,7 +936,7 @@ describe('chatLineProcessTransformer', () => {
       // chain grouping silently shows (0 entries) for one of the two paths.
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1, UUID1] });
-      const toolUseId = 'toolu_parity_01';
+      const toolUseId = ToolUseStub({ id: 'toolu_parity_01' }).id;
       const realAgentId = AgentIdStub({ value: 'agent-parity' });
 
       // Path A: streaming — line already has parent_tool_use_id
@@ -1252,7 +1253,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
 
       const toluA = 'toolu_chain_a';
-      const toluB = 'toolu_chain_b';
+      const toluB = ToolUseStub({ id: 'toolu_chain_b' }).id;
       const realA = AgentIdStub({ value: 'real-a' });
       const realB = AgentIdStub({ value: 'real-b' });
       const sessionSource = 'session';
@@ -1371,13 +1372,13 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
 
-      const toluB = 'toolu_chain_b';
+      const toluB = ToolUseStub({ id: 'toolu_chain_b' }).id;
       const realB = AgentIdStub({ value: 'real-b' });
       const subagentSource = 'subagent';
 
       processor.registerAgentTranslation({ agentId: realB, toolUseId: toluB });
       processor.registerParentChain({
-        childToolUseId: 'toolu_chain_b',
+        childToolUseId: toluB,
         parentAgentId: AgentIdStub({ value: 'toolu_chain_a' }),
       });
 
@@ -1417,7 +1418,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
 
       const toluA = 'toolu_chain_a';
-      const toluB = 'toolu_chain_b';
+      const toluB = ToolUseStub({ id: 'toolu_chain_b' }).id;
       const realA = AgentIdStub({ value: 'real-a' });
       const sessionSource = 'session';
       const subagentSource = 'subagent';
@@ -1483,7 +1484,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
 
       const toluA = 'toolu_chain_a';
-      const toluB = 'toolu_chain_b';
+      const toluB = ToolUseStub({ id: 'toolu_chain_b' }).id;
       const realA = AgentIdStub({ value: 'real-a' });
       const realB = AgentIdStub({ value: 'real-b' });
       const unknownId = AgentIdStub({ value: 'never-seen' });
@@ -1707,7 +1708,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const taskToolUseId = 'toolu_pair_already';
+      const taskToolUseId = ToolUseStub({ id: 'toolu_pair_already' }).id;
       const realAgentId = AgentIdStub({ value: 'real-already' });
 
       processor.registerAgentTranslation({ agentId: realAgentId, toolUseId: taskToolUseId });

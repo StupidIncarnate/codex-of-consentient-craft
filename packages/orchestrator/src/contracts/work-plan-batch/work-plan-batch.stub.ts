@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-
-import { WorkPlanPieceStub } from '../work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 
 import { workPlanBatchContract } from './work-plan-batch-contract';
 import type { WorkPlanBatch } from './work-plan-batch-contract';

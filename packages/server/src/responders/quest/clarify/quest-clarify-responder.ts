@@ -18,8 +18,6 @@ import { httpStatusStatics } from '../../../statics/http-status/http-status-stat
 import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
 import { questClarifyResponseDataContract } from '../../../contracts/quest-clarify-response-data/quest-clarify-response-data-contract';
 
-type ClarifyAdapterParams = Parameters<typeof StartOrchestrator.clarifyAnswer>[0];
-
 export const QuestClarifyResponder = async ({
   params,
   body,
@@ -92,8 +90,8 @@ export const QuestClarifyResponder = async ({
       guildId,
       sessionId: resolvedSessionId,
       questId,
-      answers: answers as ClarifyAdapterParams['answers'],
-      questions: questions as ClarifyAdapterParams['questions'],
+      answers,
+      questions,
     });
 
     return responderResultContract.parse({

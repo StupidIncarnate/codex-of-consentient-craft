@@ -2,7 +2,7 @@ import { WorkPlanBatchStub } from '../work-plan-batch/work-plan-batch.stub';
 import { WorkPlanPayloadCodeweaverStub } from '../work-plan-payload-codeweaver/work-plan-payload-codeweaver.stub';
 import { WorkPlanPayloadFlowriderStub } from '../work-plan-payload-flowrider/work-plan-payload-flowrider.stub';
 import { WorkPlanPayloadSiegemasterStub } from '../work-plan-payload-siegemaster/work-plan-payload-siegemaster.stub';
-import { WorkPlanPieceStub } from '../work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 
 import { workPlanContract } from './work-plan-contract';
 import { WorkPlanStub } from './work-plan.stub';

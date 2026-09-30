@@ -30,12 +30,11 @@
  * the antagonist's absence claim has nothing behind it.
  */
 
-import type { QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type { QaChecklistItem, WorkPlanPiece } from '@dungeonmaster/shared/contracts';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
 import type { MintedWorkItem } from '../../contracts/minted-work-item/minted-work-item-contract';
 import { workItemAssignmentContract } from '../../contracts/work-item-assignment/work-item-assignment-contract';
-import type { WorkPlanPiece } from '../../contracts/work-plan-piece/work-plan-piece-contract';
 
 export const pieceBriefPayloadTransformer = ({
   piece,

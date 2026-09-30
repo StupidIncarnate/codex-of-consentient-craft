@@ -17,6 +17,7 @@ import { z } from '#gateway/npm/zod';
 
 import { agentContract } from '@dungeonmaster/shared/contracts';
 import { transcriptRecordContentBlockContract } from '../transcript-record-content-block/transcript-record-content-block-contract';
+import { transcriptRecordUsageContract } from '../transcript-record-usage/transcript-record-usage-contract';
 
 const transcriptRecordMessageContract = z
   .object({
@@ -27,7 +28,7 @@ const transcriptRecordMessageContract = z
         z.array(transcriptRecordContentBlockContract),
       ])
       .optional(),
-    usage: z.record(z.string(), z.json()).optional(),
+    usage: transcriptRecordUsageContract.optional(),
   })
   .brand<'TranscriptRecordMessage'>();
 

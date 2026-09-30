@@ -33,7 +33,7 @@ import {
   TaskNotificationUserTextStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
-import type { ToolUseBlockParam } from '@dungeonmaster/shared/contracts';
+import type { ToolUse } from '@dungeonmaster/shared/contracts';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 import { getEnv } from '#gateway/node/process';
@@ -194,7 +194,7 @@ export const sessionHarness = ({
     userMessage: string;
     taskDescription: string;
     subagentToolName: string;
-    subagentToolInput: ToolUseBlockParam['input'];
+    subagentToolInput: ToolUse['input'];
     subagentToolResult: string;
   }) => Promise<void>;
   createBackgroundAgentSession: (params: {
@@ -737,7 +737,7 @@ export const sessionHarness = ({
     userMessage: string;
     taskDescription: string;
     subagentToolName: string;
-    subagentToolInput: ToolUseBlockParam['input'];
+    subagentToolInput: ToolUse['input'];
     subagentToolResult: string;
   }): Promise<void> => {
     const mainLines = [

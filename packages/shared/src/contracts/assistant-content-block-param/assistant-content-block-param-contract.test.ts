@@ -30,7 +30,7 @@ describe('assistantContentBlockParamContract', () => {
       expect(result.type).toBe('redacted_thinking');
     });
 
-    it('VALID: {type: "tool_use"} => parses as ToolUseBlockParam', () => {
+    it('VALID: {type: "tool_use"} => parses as ToolUse', () => {
       const result = assistantContentBlockParamContract.parse({
         type: 'tool_use',
         id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',

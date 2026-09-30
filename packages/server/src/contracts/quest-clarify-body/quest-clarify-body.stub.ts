@@ -7,6 +7,13 @@ export const QuestClarifyBodyStub = ({
 }: StubArgument<QuestClarifyBody> = {}): QuestClarifyBody =>
   questClarifyBodyContract.parse({
     answers: [{ header: 'q1', label: 'a1' }],
-    questions: [{ id: 'q1', text: 'a question' }],
+    questions: [
+      {
+        question: 'a question',
+        header: 'q1',
+        options: [{ label: 'a1', description: 'first option' }],
+        multiSelect: false,
+      },
+    ],
     ...props,
   });

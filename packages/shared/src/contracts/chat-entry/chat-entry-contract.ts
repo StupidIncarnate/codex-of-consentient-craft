@@ -16,6 +16,7 @@
 
 import { z } from '#gateway/npm/zod';
 import { agentContract } from '../agent/agent-contract';
+import { toolUseContract } from '../tool-use/tool-use-contract';
 
 const chatUsageContract = z
   .object({
@@ -66,7 +67,7 @@ const assistantToolUseEntryContract = z
   .object({
     role: z.literal('assistant'),
     type: z.literal('tool_use'),
-    toolUseId: z.string().min(1).brand<'AssistantToolUseEntryToolUseId'>().optional(),
+    toolUseId: toolUseContract.shape.id.optional(),
     toolName: z.string().min(1).brand<'AssistantToolUseEntryToolName'>(),
     toolInput: z.string().brand<'AssistantToolUseEntryToolInput'>(),
     model: z.string().min(1).brand<'AssistantToolUseEntryModel'>().optional(),

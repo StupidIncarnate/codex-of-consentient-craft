@@ -11,12 +11,13 @@
  * });
  */
 import { z } from '#gateway/npm/zod';
+import { toolUseContract } from '@dungeonmaster/shared/contracts';
 
 export const subagentMetaContract = z
   .object({
     agentType: z.string().min(1).brand<'SubagentMetaAgentType'>(),
     description: z.string().min(1).brand<'SubagentMetaDescription'>(),
-    toolUseId: z.string().min(1).brand<'SubagentMetaToolUseId'>(),
+    toolUseId: toolUseContract.shape.id,
     spawnDepth: z.number().int().nonnegative().brand<'SubagentMetaSpawnDepth'>(),
     model: z.string().min(1).brand<'SubagentMetaModel'>().optional(),
   })

@@ -24,9 +24,9 @@
  */
 
 import {
-  pieceIdContract,
   workItemRoleContract,
   workItemContract,
+  workPlanPieceContract,
   qaChecklistItemContract,
 } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
@@ -38,7 +38,7 @@ export const mintedWorkItemContract = z
       'Copied from the operation item this scope belongs to — never invented.',
     ),
     assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
-    pieceId: pieceIdContract.optional(),
+    pieceId: workPlanPieceContract.shape.id.optional(),
     payload: z
       .record(z.string(), z.json())
       .optional()

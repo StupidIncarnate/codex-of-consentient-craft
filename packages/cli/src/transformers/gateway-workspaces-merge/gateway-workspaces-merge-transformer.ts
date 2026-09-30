@@ -9,10 +9,7 @@
  * // Returns rootPackageJson with workspaces: ['packages/*', 'packages/@gateway/*']
  */
 
-import {
-  packageJsonRawContract,
-  type PackageJsonRaw,
-} from '../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract, type PackageJsonRaw } from '@dungeonmaster/shared/contracts';
 
 const GATEWAY_WORKSPACE_GLOB = 'packages/@gateway/*';
 

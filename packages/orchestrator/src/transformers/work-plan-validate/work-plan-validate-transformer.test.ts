@@ -15,7 +15,7 @@ import { WorkPlanFlowriderUnitStub } from '../../contracts/work-plan-flowrider-u
 import { WorkPlanPayloadCodeweaverStub } from '../../contracts/work-plan-payload-codeweaver/work-plan-payload-codeweaver.stub';
 import { WorkPlanPayloadFlowriderStub } from '../../contracts/work-plan-payload-flowrider/work-plan-payload-flowrider.stub';
 import { WorkPlanPayloadSiegemasterStub } from '../../contracts/work-plan-payload-siegemaster/work-plan-payload-siegemaster.stub';
-import { WorkPlanPieceStub } from '../../contracts/work-plan-piece/work-plan-piece.stub';
+import { WorkPlanPieceStub } from '@dungeonmaster/shared/contracts/work-plan-piece/work-plan-piece.stub';
 import { WorkPlanStub } from '../../contracts/work-plan/work-plan.stub';
 
 import { workPlanValidateTransformer } from './work-plan-validate-transformer';

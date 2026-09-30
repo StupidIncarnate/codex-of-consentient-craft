@@ -59,11 +59,11 @@
 import { z } from '#gateway/npm/zod';
 
 import { operationItemContract } from '../operation-item/operation-item-contract';
-import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 import { questContract } from '../quest/quest-contract';
 import { workItemContract } from '../work-item/work-item-contract';
+import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 
 const questProjectionStepContract = z
   .object({
@@ -79,7 +79,7 @@ const questProjectionStepContract = z
           '`routes.done`, never yet dispatched.',
       ),
     workItemId: workItemContract.shape.id.optional().describe('Present iff kind === "actual".'),
-    pieceId: pieceIdContract
+    pieceId: workPlanPieceContract.shape.id
       .optional()
       .describe('Present iff kind === "actual" and the work item ran a piece.'),
     status: workItemStatusContract.optional().describe('Present iff kind === "actual".'),

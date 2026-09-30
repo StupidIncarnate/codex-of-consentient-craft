@@ -17,13 +17,13 @@
  * across the whole plan rather than inventing a sentinel id nothing dispatches against.
  */
 
-import { pieceIdContract } from '@dungeonmaster/shared/contracts';
+import { workPlanPieceContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 import { workPlanValidationCheckStatics } from '../../statics/work-plan-validation-check/work-plan-validation-check-statics';
 
 export const workPlanValidationFailureContract = z
   .object({
-    pieceId: pieceIdContract,
+    pieceId: workPlanPieceContract.shape.id,
     check: z
       .number()
       .int()

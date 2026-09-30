@@ -25,7 +25,7 @@
 
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';
 import type { ChatLineSource } from '../chat-line-source/chat-line-source-contract';
-import type { Agent } from '@dungeonmaster/shared/contracts';
+import type { Agent, ToolUse } from '@dungeonmaster/shared/contracts';
 
 export interface ChatLineProcessor {
   processLine: ({
@@ -55,7 +55,7 @@ export interface ChatLineProcessor {
     toolUseId,
   }: {
     agentId: Agent['id'];
-    toolUseId: string;
+    toolUseId: ToolUse['id'];
   }) => void;
 
   // Register the parent-chain link for a nested sub-agent: the child sub-agent's chain key
@@ -66,7 +66,7 @@ export interface ChatLineProcessor {
     childToolUseId,
     parentAgentId,
   }: {
-    childToolUseId: string;
+    childToolUseId: ToolUse['id'];
     parentAgentId: Agent['id'];
   }) => void;
 

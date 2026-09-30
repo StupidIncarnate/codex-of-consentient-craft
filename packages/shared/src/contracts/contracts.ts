@@ -186,7 +186,9 @@ export * from './riftcarver-result/riftcarver-result-contract';
 
 export * from './quest-session/quest-session-contract';
 
-export * from './piece-id/piece-id-contract';
+export * from './work-plan-piece/work-plan-piece-contract';
+
+export * from './package-json-raw/package-json-raw-contract';
 
 export * from './work-item/work-item-contract';
 
@@ -366,7 +368,7 @@ export * from './search-result-block-param/search-result-block-param-contract';
 
 export * from './tool-reference-block-param/tool-reference-block-param-contract';
 
-export * from './tool-use-block-param/tool-use-block-param-contract';
+export * from './tool-use/tool-use-contract';
 
 export * from './tool-result-block-param/tool-result-block-param-contract';
 

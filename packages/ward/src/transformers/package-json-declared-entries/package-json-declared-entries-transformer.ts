@@ -10,8 +10,8 @@
  * // Returns ManifestEntryDeclaration[] — one per main/types/bin/exports-condition field found
  */
 
-import { packageJsonRawContract } from '../../contracts/package-json-raw/package-json-raw-contract';
-import type { PackageJsonRaw } from '../../contracts/package-json-raw/package-json-raw-contract';
+import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
+import type { PackageJsonRaw } from '@dungeonmaster/shared/contracts';
 import { manifestEntryDeclarationContract } from '../../contracts/manifest-entry-declaration/manifest-entry-declaration-contract';
 import type { ManifestEntryDeclaration } from '../../contracts/manifest-entry-declaration/manifest-entry-declaration-contract';
 

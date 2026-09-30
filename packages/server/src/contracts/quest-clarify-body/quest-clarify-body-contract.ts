@@ -3,15 +3,20 @@
  *
  * USAGE:
  * const { answers, questions } = questClarifyBodyContract.parse(body);
- * // Returns: { answers: array, questions: array }
+ * // Returns: { answers: ClarificationAnswer[], questions: ClarificationQuestion[] }
  */
+
+import {
+  clarificationAnswerContract,
+  clarificationQuestionContract,
+} from '@dungeonmaster/orchestrator';
 
 import { z } from '#gateway/npm/zod';
 
 export const questClarifyBodyContract = z
   .object({
-    answers: z.array(z.json()).min(1),
-    questions: z.array(z.json()),
+    answers: z.array(clarificationAnswerContract).min(1),
+    questions: z.array(clarificationQuestionContract),
   })
   .brand<'QuestClarifyBody'>();
 

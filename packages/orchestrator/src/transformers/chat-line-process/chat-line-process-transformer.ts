@@ -40,7 +40,7 @@ import { streamJsonToChatEntryTransformer } from '../stream-json-to-chat-entry/s
 import { taskPromptsFromContentTransformer } from '../task-prompts-from-content/task-prompts-from-content-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { toolUseIdsFromContentTransformer } from '../tool-use-ids-from-content/tool-use-ids-from-content-transformer';
-import type { Agent } from '@dungeonmaster/shared/contracts';
+import type { Agent, ToolUse } from '@dungeonmaster/shared/contracts';
 
 const NUMERIC_TASK_NOTIFICATION_KEYS = new Set(['totalTokens', 'toolUses', 'durationMs']);
 
@@ -105,7 +105,7 @@ export const chatLineProcessTransformer = ({
       toolUseId,
     }: {
       agentId: Agent['id'];
-      toolUseId: string;
+      toolUseId: ToolUse['id'];
     }): void => {
       agentIdMap.set(toolUseId, realAgentId);
       reverseAgentIdMap.set(realAgentId, toolUseId);
@@ -114,7 +114,7 @@ export const chatLineProcessTransformer = ({
       childToolUseId,
       parentAgentId,
     }: {
-      childToolUseId: string;
+      childToolUseId: ToolUse['id'];
       parentAgentId: Agent['id'];
     }): void => {
       parentChainMap.set(childToolUseId, parentAgentId);

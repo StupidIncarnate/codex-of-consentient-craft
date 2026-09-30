@@ -1,3 +1,4 @@
+import { ClarificationAnswerStub } from '../../../contracts/clarification-answer/clarification-answer.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ClarificationQuestionStub } from '../../../contracts/clarification-question/clarification-question.stub';
 import { ClarifyAnswerResponder } from './clarify-answer-responder';
@@ -26,7 +27,7 @@ describe('ClarifyAnswerResponder', () => {
 
       await ClarifyAnswerResponder({
         questId: quest.id,
-        answers: [{ header: 'Database Selection', label: 'PostgreSQL' }],
+        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' })],
         questions,
       });
 
@@ -72,8 +73,8 @@ describe('ClarifyAnswerResponder', () => {
       await ClarifyAnswerResponder({
         questId: quest.id,
         answers: [
-          { header: 'Database Selection', label: 'PostgreSQL' },
-          { header: 'Auth Strategy', label: 'JWT' },
+          ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' }),
+          ClarificationAnswerStub({ header: 'Auth Strategy', label: 'JWT' }),
         ],
         questions,
       });
@@ -116,7 +117,7 @@ describe('ClarifyAnswerResponder', () => {
 
       await ClarifyAnswerResponder({
         questId: quest.id,
-        answers: [{ header: 'Database Selection', label: 'PostgreSQL' }],
+        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' })],
         questions,
       });
 
@@ -146,7 +147,7 @@ describe('ClarifyAnswerResponder', () => {
 
       await ClarifyAnswerResponder({
         questId: quest.id,
-        answers: [{ header: 'No Match', label: 'Value' }],
+        answers: [ClarificationAnswerStub({ header: 'No Match', label: 'Value' })],
         questions,
       });
 
@@ -197,8 +198,8 @@ describe('ClarifyAnswerResponder', () => {
       await ClarifyAnswerResponder({
         questId: quest.id,
         answers: [
-          { header: 'Database Selection', label: 'PostgreSQL' },
-          { header: 'Nonexistent Question', label: 'Some Value' },
+          ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' }),
+          ClarificationAnswerStub({ header: 'Nonexistent Question', label: 'Some Value' }),
         ],
         questions,
       });
