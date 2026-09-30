@@ -31,7 +31,7 @@ export const opCreateContract = z
       .brand<'OpCreateIngredient'>(),
     ref: z.string().min(1).brand<'OpCreateRef'>(),
     index: z.number().int().nonnegative().brand<'OpCreateIndex'>(),
-    ancestors: z.array(z.string().min(1).brand<'OpCreateAncestor'>()),
+    ancestors: z.array(z.string().min(1).brand<'OpCreateAncestors'>()),
     fields: fieldValuesContract,
   })
   .brand<'OpCreate'>();

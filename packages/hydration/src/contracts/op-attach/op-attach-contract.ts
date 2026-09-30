@@ -32,7 +32,7 @@ export const opAttachContract = z
       )
       .brand<'OpAttachIngredient'>(),
     ref: z.string().min(1).brand<'OpAttachRef'>(),
-    ancestors: z.array(z.string().min(1).brand<'OpAttachAncestor'>()),
+    ancestors: z.array(z.string().min(1).brand<'OpAttachAncestors'>()),
     where: fieldValuesContract,
   })
   .brand<'OpAttach'>();

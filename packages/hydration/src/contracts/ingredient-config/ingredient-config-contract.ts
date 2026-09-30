@@ -112,7 +112,7 @@ export const ingredientConfigContract = z
           });
         }
       })
-      .brand<'IngredientConfigDataCopies'>()
+      .brand<'IngredientConfigCopies'>()
       .optional(),
     extras: z
       .record(z.string(), extraContract)
