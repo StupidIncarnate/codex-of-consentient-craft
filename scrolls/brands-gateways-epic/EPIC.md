@@ -129,9 +129,9 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:10)
+### Now (updated at every event; last 2026-09-30 12:15)
 
-| Running (7, all in merge worktree W) | Owns |
+| Running (6, all in merge worktree W) | Owns |
 |---|---|
 | merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
 | merge fix: siegelense brokers B (opus) | every other siegelense broker folder |
@@ -139,12 +139,11 @@ More rules for the operator:
 | merge fix: siegelense transformers, responders, flows (opus) | incl. the missing `zodIssueParse`, `is-network-line-*` |
 | merge fix: server and cli (opus) | forwarder adapters, `process-request-log` broker |
 | merge fix: web (sonnet) | `mantineRenderAdapter`, widget conflicts |
-| merge fix: orchestrator and hydration-recipes (opus) | DEF-133 `GuildName` parameters, dm-http brokers |
 
 Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
 fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
 
-**Just landed:** merge fix ward and shared, done in W (gate 1790793024213-b2c8): `setupUnitCompanionTestMissing` restored in the single-package layer proxy, DEF-161's crash tests on `WardRunResultStub` and passing; shared needed nothing; DEF-168 was only logged on master, so there is no fix to check. Ward needs a build before DEF-161 is live. Earlier: `plain-brand-residue.cjs` (the script commit): W's type errors 700 to 330 ("Cannot find name" 381 to
+**Just landed:** merge fix orchestrator and hydration-recipes, done in W (gate 1790793276388-e48e, integration 1790793260092-f220; exit 1 only on two slow-lint flags, rule 21): DEF-133's slug parameter stays `Guild['name']` and `guild-add-broker` parses at its boundary; `urlSlugContract`'s check moved into `guildContract.shape.urlSlug`; `pathExists` with a false-on-throw keeps master's path check; reach-route uses `dmHttpRequestBroker`; DEF-133 and DEF-71 tests pass. Also: merge fix ward and shared, done in W (gate 1790793024213-b2c8): `setupUnitCompanionTestMissing` restored in the single-package layer proxy, DEF-161's crash tests on `WardRunResultStub` and passing; shared needed nothing; DEF-168 was only logged on master, so there is no fix to check. Ward needs a build before DEF-161 is live. Earlier: `plain-brand-residue.cjs` (the script commit): W's type errors 700 to 330 ("Cannot find name" 381 to
 73); 27 validating parse sites left for the fixers. Z02-B done in W (session snippet and `searchStrategy`).
 
 **Next:** when the fixers report: `diag.cjs --full` on W to 0, then W's unit, lint and integration by package, a
