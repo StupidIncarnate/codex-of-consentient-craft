@@ -1,6 +1,5 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
-import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
@@ -143,7 +142,7 @@ describe('agentNameToPromptTransformer', () => {
       'VALID: {agent: %s} => returns that name own template, on that name own model',
       (name, model, prompt) => {
         expect(
-          agentNameToPromptTransformer({ agent: AgentPromptNameStub({ value: name }) }),
+          agentNameToPromptTransformer({ agent: name }),
         ).toStrictEqual({
           name,
           model,
@@ -162,7 +161,7 @@ describe('agentNameToPromptTransformer', () => {
       'VALID: {agent: %s} => served prompt still carries exactly one $ARGUMENTS for its caller',
       (name) => {
         const { prompt } = agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: name }),
+          agent: name,
         });
 
         expect(prompt.split('$ARGUMENTS').length - 1).toBe(1);
@@ -176,7 +175,7 @@ describe('agentNameToPromptTransformer', () => {
       'VALID: {agent: %s} => served prompt carries no $DISCIPLINE or $MY_DISCIPLINE token',
       (name) => {
         const { prompt } = agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: name }),
+          agent: name,
         });
 
         expect({
@@ -200,7 +199,7 @@ describe('agentNameToPromptTransformer', () => {
       'VALID: {agent: %s} => served MCP block stays within the verbatim budget',
       (minionName) => {
         const { name, model, prompt } = agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: minionName }),
+          agent: minionName,
         });
 
         const servedBlock = JSON.stringify(
@@ -224,7 +223,7 @@ describe('agentNameToPromptTransformer', () => {
       (unservedName) => {
         expect(() => {
           agentNameToPromptTransformer({
-            agent: AgentPromptNameStub({ value: unservedName }),
+            agent: unservedName,
           });
         }).toThrow(
           `Unknown agent prompt name: '${unservedName}'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.`,
@@ -235,7 +234,7 @@ describe('agentNameToPromptTransformer', () => {
     it("ERROR: {agent: 'a-prompt-nobody-declared'} => throws naming the unknown name", () => {
       expect(() => {
         agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: 'a-prompt-nobody-declared' }),
+          agent: 'a-prompt-nobody-declared',
         });
       }).toThrow(
         "Unknown agent prompt name: 'a-prompt-nobody-declared'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",

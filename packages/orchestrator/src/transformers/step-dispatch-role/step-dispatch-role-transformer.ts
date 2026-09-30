@@ -16,8 +16,6 @@
 
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import type { ClaudeModel } from '../../contracts/claude-model/claude-model-contract';
 import { workItemStepNodeTransformer } from '../work-item-step-node/work-item-step-node-transformer';
 
@@ -27,7 +25,7 @@ export const stepDispatchRoleTransformer = ({
 }: {
   quest: Quest;
   workItem: WorkItem;
-}): { prompt: AgentPromptName | null; model: ClaudeModel | undefined } => {
+}): { prompt: string | null; model: ClaudeModel | undefined } => {
   const node = workItemStepNodeTransformer({ quest, workItem });
 
   // A DETERMINISTIC step names no prompt because it spawns no session — it runs a handler through
@@ -37,5 +35,5 @@ export const stepDispatchRoleTransformer = ({
     return { prompt: null, model: undefined };
   }
 
-  return { prompt: agentPromptNameContract.parse(String(node.prompt)), model: node.model };
+  return { prompt: String(node.prompt), model: node.model };
 };

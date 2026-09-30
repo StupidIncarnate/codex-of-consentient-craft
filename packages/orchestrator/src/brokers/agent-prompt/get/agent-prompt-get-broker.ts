@@ -41,7 +41,6 @@ import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 
 import { headSha } from '#gateway/bin/git';
-import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
@@ -60,7 +59,7 @@ export const agentPromptGetBroker = async ({
   questId: Quest['id'];
   workItemId?: WorkItem['id'];
 }): Promise<AgentPromptResult> => {
-  const parsedAgent = agentPromptNameContract.parse(agent);
+  const parsedAgent = agent;
   const isMinion = agentPromptClassificationStatics.minionNames.some(
     (name) => name === parsedAgent,
   );

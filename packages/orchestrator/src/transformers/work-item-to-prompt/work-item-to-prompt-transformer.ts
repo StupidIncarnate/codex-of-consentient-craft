@@ -91,7 +91,7 @@ export const workItemToPromptTransformer = ({
     node?.kind === 'prompt' && node.prompt !== undefined
       ? node.prompt
       : (agentPromptNameContract.safeParse(agentName).data ??
-        agentPromptNameContract.parse(workItem.role));
+        workItem.role);
 
   const isWorkItemRole = workItemRoleContract.safeParse(promptName).success;
   const isMinionName = agentPromptClassificationStatics.minionNames.some(

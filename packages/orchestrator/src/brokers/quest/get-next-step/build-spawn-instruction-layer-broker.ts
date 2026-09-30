@@ -45,7 +45,6 @@
 
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import {
   agentRoleContract,
   type AgentRole,
@@ -65,7 +64,7 @@ export const buildSpawnInstructionLayerBroker = ({
 }): SpawnInstruction => {
   const questId = quest.id;
   const { prompt: stepPrompt, model: stepModel } = stepDispatchRoleTransformer({ quest, workItem });
-  const promptToFetch = stepPrompt ?? agentPromptNameContract.parse(workItem.role);
+  const promptToFetch = stepPrompt ?? workItem.role;
 
   const role: AgentRole = agentRoleContract.safeParse(workItem.role).success
     ? agentRoleContract.parse(workItem.role)

@@ -1,13 +1,12 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
-import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentTaskPromptTransformer } from './agent-task-prompt-transformer';
 
 describe('agentTaskPromptTransformer', () => {
   describe('fresh dispatch prompt', () => {
     it('VALID: {agent: codeweaver-worker, workItemId, questId} => interpolates all three, routes the marks and the outcome through quest-work, and signals with no outcome key', () => {
-      const agent = AgentPromptNameStub({ value: 'codeweaver-worker' });
+      const agent = 'codeweaver-worker';
       const workItemId = QuestWorkItemIdStub({
         value: 'aaaaaaaa-1111-4222-9333-444444444444',
       });
@@ -21,7 +20,7 @@ describe('agentTaskPromptTransformer', () => {
     });
 
     it('VALID: {agent: flowrider-worker} => uses the flowrider agent name', () => {
-      const agent = AgentPromptNameStub({ value: 'flowrider-worker' });
+      const agent = 'flowrider-worker';
       const workItemId = QuestWorkItemIdStub({
         value: 'bbbbbbbb-1111-4222-9333-444444444444',
       });
@@ -51,7 +50,7 @@ describe('agentTaskPromptTransformer', () => {
 
   describe('resume prompt', () => {
     it('VALID: {agent: siege-planner, resume: true} => returns the resume-session prompt telling the agent to finish, record through quest-work, then signal back', () => {
-      const agent = AgentPromptNameStub({ value: 'siege-planner' });
+      const agent = 'siege-planner';
       const workItemId = QuestWorkItemIdStub({
         value: 'cccccccc-1111-4222-9333-444444444444',
       });

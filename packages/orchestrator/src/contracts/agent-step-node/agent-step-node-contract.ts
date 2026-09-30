@@ -28,7 +28,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { agentPromptNameContract } from '../agent-prompt-name/agent-prompt-name-contract';
 import { claudeModelContract } from '../claude-model/claude-model-contract';
 import { stepHandlerNameContract } from '../step-handler-name/step-handler-name-contract';
 
@@ -38,7 +37,7 @@ export const agentStepNodeContract = z
     kind: z.enum(['prompt', 'deterministic']),
     handler: stepHandlerNameContract.optional(),
     args: z.array(z.string().brand<'StepHandlerArg'>()).optional(),
-    prompt: agentPromptNameContract.optional(),
+    prompt: z.string().min(1).brand<'AgentStepNodePrompt'>().optional(),
     model: claudeModelContract.optional(),
   })
   .loose();

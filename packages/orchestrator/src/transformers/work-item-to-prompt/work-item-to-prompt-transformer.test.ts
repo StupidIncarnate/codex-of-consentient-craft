@@ -10,7 +10,6 @@ import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-ite
 
 import { mcpToolResultStatics, workItemRoleStatics } from '@dungeonmaster/shared/statics';
 
-import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
@@ -80,7 +79,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'chaoswhisperer-gap-minion' }),
+        agentName: 'chaoswhisperer-gap-minion',
       });
 
       const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
@@ -99,7 +98,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'chaoswhisperer-gap-minion' }),
+        agentName: 'chaoswhisperer-gap-minion',
       });
 
       const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
@@ -124,7 +123,7 @@ describe('workItemToPromptTransformer', () => {
           workItemToPromptTransformer({
             quest,
             workItem,
-            agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+            agentName: 'codeweaver',
           }),
         ).toThrow(
           new RegExp(
@@ -172,7 +171,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+        agentName: 'spiritmender',
       });
 
       const expectedArgs = [
@@ -214,7 +213,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+        agentName: 'codeweaver',
       });
 
       const expectedArgs = [
@@ -243,7 +242,7 @@ describe('workItemToPromptTransformer', () => {
         workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         }),
       ).toThrow(/role chaoswhisperer is not served by get-agent-prompt/u);
     });
@@ -271,7 +270,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+        agentName: 'codeweaver',
       });
 
       const expectedArgs = [
@@ -309,7 +308,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+        agentName: 'codeweaver',
       });
 
       const expectedArgs = [
@@ -355,7 +354,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
 
         const expectedArgs = [
@@ -390,7 +389,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
 
         const expectedArgs = [
@@ -443,7 +442,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
 
         const expectedArgs = [
@@ -509,12 +508,12 @@ describe('workItemToPromptTransformer', () => {
         const long = workItemToPromptTransformer({
           quest: QuestStub({ id: questId, operations: longLedger, workItems: [workItem] }),
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
         const short = workItemToPromptTransformer({
           quest: QuestStub({ id: questId, operations: [ownOperation], workItems: [workItem] }),
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
 
         const expectedArgs = [
@@ -563,7 +562,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'warpgate' }),
+          agentName: 'warpgate',
         });
 
         const expectedArgs = [
@@ -601,7 +600,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'warpgate' }),
+          agentName: 'warpgate',
         });
 
         const expectedArgs = [
@@ -645,7 +644,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
 
         const expectedArgs = [
@@ -690,7 +689,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+        agentName: 'spiritmender',
       });
 
       const expectedArgs = [
@@ -748,7 +747,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+        agentName: 'spiritmender',
       });
 
       const expectedArgs = [
@@ -791,7 +790,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+        agentName: 'spiritmender',
       });
 
       const expectedArgs = [
@@ -835,7 +834,7 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+        agentName: 'spiritmender',
       });
 
       const expectedArgs = [
@@ -889,7 +888,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+          agentName: 'siegemaster',
         });
 
         const expectedArgs = [
@@ -940,7 +939,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+          agentName: 'siegemaster',
         });
 
         const expectedArgs = [
@@ -979,7 +978,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+          agentName: 'siegemaster',
         });
 
         const expectedArgs = [
@@ -1027,7 +1026,7 @@ describe('workItemToPromptTransformer', () => {
         const result = workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+          agentName: 'codeweaver',
         });
 
         const expectedArgs = [
@@ -1050,7 +1049,7 @@ describe('workItemToPromptTransformer', () => {
           workItemToPromptTransformer({
             quest,
             workItem,
-            agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+            agentName: 'codeweaver',
           }),
         ).toThrow(/has no resolvable operations\/<id> reference/u);
       });
@@ -1068,7 +1067,7 @@ describe('workItemToPromptTransformer', () => {
           workItemToPromptTransformer({
             quest,
             workItem,
-            agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+            agentName: 'codeweaver',
           }),
         ).toThrow(/has no resolvable operations\/<id> reference/u);
       });
@@ -1109,7 +1108,7 @@ describe('workItemToPromptTransformer', () => {
         workItemToPromptTransformer({
           quest,
           workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver-planner' }),
+          agentName: 'codeweaver-planner',
         }),
       ).toThrow(
         `workItemToPromptTransformer: 'codeweaver-planner' names a step prompt, but work item ${String(workItemId)} carries no step to serve it at. Only chaoswhisperer-gap-minion may be fetched with no step at all.`,
@@ -1166,7 +1165,7 @@ describe('workItemToPromptTransformer', () => {
         });
 
         const { model, name } = agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: agentName }),
+          agent: agentName,
         });
         const { prompt } = workItemToPromptTransformer({
           quest,
@@ -1247,7 +1246,7 @@ describe('workItemToPromptTransformer', () => {
         });
 
         const { model, name } = agentNameToPromptTransformer({
-          agent: AgentPromptNameStub({ value: agentName }),
+          agent: agentName,
         });
         const { prompt } = workItemToPromptTransformer({
           quest,
@@ -1276,7 +1275,7 @@ describe('workItemToPromptTransformer', () => {
       const quest = QuestStub({ workItems: [workItem] });
 
       const { model, name } = agentNameToPromptTransformer({
-        agent: AgentPromptNameStub({ value: agentName }),
+        agent: agentName,
       });
       const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName });
 

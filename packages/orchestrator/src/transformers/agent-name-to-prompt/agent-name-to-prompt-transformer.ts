@@ -38,7 +38,6 @@
 
 import { agentPromptResultContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
 
-import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
 import { codeweaverWorkerStatics } from '../../statics/codeweaver-worker/codeweaver-worker-statics';
@@ -119,7 +118,7 @@ const AGENT_PROMPTS = {
 export const agentNameToPromptTransformer = ({
   agent,
 }: {
-  agent: AgentPromptName;
+  agent: string;
 }): AgentPromptResult => {
   if (!(agent in AGENT_PROMPTS)) {
     throw new Error(
