@@ -24,7 +24,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
@@ -35,7 +34,7 @@ export const rawKeyReadingContract = z.object({
     .array(
       z.object({
         ref: refContract,
-        depth: arrayIndexContract,
+        depth: z.number().int().nonnegative().brand<'RawKeyReadingRowsDepth'>(),
         parentRef: refContract.nullable(),
         testId: z.string().brand<'RawKeyReadingRowsTestId'>().nullable(),
         tag: z.string().brand<'RawKeyReadingRowsTag'>(),

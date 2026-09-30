@@ -8,7 +8,7 @@
  * // Renders a FLOW_TAB button; adds the queue mark only when commentQuestId is set
  */
 
-import type { ArrayIndex, Flow, Quest } from '@dungeonmaster/shared/contracts';
+import type { Flow, Quest } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowTabQueueMarkLayerWidget } from './flow-tab-queue-mark-layer-widget';
@@ -53,7 +53,7 @@ const TAB_STYLE_ACTIVE = {
 
 export interface FlowTabLayerWidgetProps {
   flow: Flow;
-  index: ArrayIndex;
+  index: number;
   isActive: boolean;
   onSelect: () => void;
   /** Set only when the comment compose controls are allowed; absence renders no queue mark. */

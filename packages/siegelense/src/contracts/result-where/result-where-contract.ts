@@ -13,7 +13,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { httpMethodContract } from '../http-method/http-method-contract';
 import { logLevelContract } from '../log-level/log-level-contract';
@@ -23,7 +22,7 @@ export const resultWhereContract = z
   .object({
     path: z.string().brand<'ResultWherePath'>().nullable(),
     method: httpMethodContract.nullable(),
-    nth: arrayIndexContract.nullable(),
+    nth: z.number().int().nonnegative().brand<'ResultWhereNth'>().nullable(),
     level: logLevelContract.nullable(),
     steps: stepRangeContract.nullable(),
   })

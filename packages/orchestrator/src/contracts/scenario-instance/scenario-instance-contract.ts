@@ -8,7 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 
 import {
   smoketestPromptsStatics,
@@ -26,7 +26,7 @@ const smoketestPromptNameContract = z.enum(smoketestPromptNames);
 // required), and a real scenario only ever scripts the roles it dispatches.
 export const scenarioInstanceContract = z.object({
   scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
-  callOrdinals: z.partialRecord(workItemRoleContract, arrayIndexContract),
+  callOrdinals: z.partialRecord(workItemRoleContract, z.number().int().nonnegative().brand<'ScenarioInstanceCallOrdinals'>()),
 });
 
 export type ScenarioInstance = z.infer<typeof scenarioInstanceContract>;

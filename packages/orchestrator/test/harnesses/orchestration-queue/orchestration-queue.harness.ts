@@ -9,7 +9,6 @@
 import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
 
 export const orchestrationQueueHarness = (): {
   beforeEach: () => void;
@@ -21,7 +20,7 @@ export const orchestrationQueueHarness = (): {
   enqueue: (params: { queueDir: string; response: unknown }) => void;
   resetCounters: () => void;
 } => {
-  const counters = new Map<string, ReturnType<typeof ArrayIndexStub>>();
+  const counters = new Map<string, number>();
 
   return {
     beforeEach: (): void => {
@@ -50,10 +49,10 @@ export const orchestrationQueueHarness = (): {
 
     enqueue: ({ queueDir, response }: { queueDir: string; response: unknown }): void => {
       const key = queueDir;
-      const counter = counters.get(key) ?? ArrayIndexStub({ value: 0 });
+      const counter = counters.get(key) ?? 0;
       const filePath = path.join(queueDir, `${String(counter).padStart(4, '0')}.json`);
       writeFileSync(filePath, JSON.stringify(response));
-      counters.set(key, ArrayIndexStub({ value: Number(counter) + 1 }));
+      counters.set(key, (Number(counter) + 1));
     },
 
     resetCounters: (): void => {

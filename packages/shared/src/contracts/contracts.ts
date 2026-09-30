@@ -191,7 +191,6 @@ export * from './line-count/line-count-contract';
 // File Count Contracts
 
 // Array Index Contracts
-export * from './array-index/array-index-contract';
 
 // Step Chunk Size Contracts
 

@@ -11,7 +11,6 @@ import { useState } from '#gateway/npm/react';
 
 import { Box, Group, Text } from '#gateway/npm/mantine__core';
 
-import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 import type { Flow, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
@@ -91,7 +90,7 @@ export const FlowsLayerWidget = ({
             <FlowTabLayerWidget
               key={String(flow.id)}
               flow={flow}
-              index={arrayIndexContract.parse(i)}
+              index={i}
               isActive={i === activeIndex}
               onSelect={() => {
                 setActiveTab(i);

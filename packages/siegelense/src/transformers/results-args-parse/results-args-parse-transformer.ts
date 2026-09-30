@@ -31,7 +31,7 @@
  * //   kind: 'network', where: null, fields: null, since: null, isJson: false }
  */
 
-import { arrayIndexContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { httpMethodContract } from '../../contracts/http-method/http-method-contract';
 import { logLevelContract } from '../../contracts/log-level/log-level-contract';
@@ -188,7 +188,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
                   flag: WHERE_NTH_FLAG,
                   raw: whereNthValue,
                   accepts: 'a whole number of 0 or more',
-                  parse: (value) => arrayIndexContract.parse(value),
+                  parse: (value) => value,
                 }),
           level:
             whereLevelValue === null

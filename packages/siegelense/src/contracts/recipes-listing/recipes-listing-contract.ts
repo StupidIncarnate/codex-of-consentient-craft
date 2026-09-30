@@ -15,8 +15,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
-import type { ArrayIndex } from '@dungeonmaster/shared/contracts';
 
 import { recipeListingEntryContract } from '../recipe-listing-entry/recipe-listing-entry-contract';
 import type { RecipeName } from '../recipe-name/recipe-name-contract';
@@ -24,10 +22,10 @@ import type { RecipeName } from '../recipe-name/recipe-name-contract';
 export const recipesListingContract = z
   .array(recipeListingEntryContract)
   .superRefine((entries, ctx) => {
-    const seenAt = new Map<RecipeName, ArrayIndex>();
+    const seenAt = new Map<RecipeName, number>();
 
     entries.forEach((entry, index) => {
-      const position = arrayIndexContract.parse(index);
+      const position = index;
       const firstPosition = seenAt.get(entry.recipeName);
       if (firstPosition === undefined) {
         seenAt.set(entry.recipeName, position);

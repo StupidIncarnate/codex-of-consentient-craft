@@ -1,6 +1,5 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -32,7 +31,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 0 })}
+          index={0}
           isActive={false}
           onSelect={() => undefined}
         />
@@ -50,7 +49,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 2 })}
+          index={2}
           isActive={false}
           onSelect={() => undefined}
         />
@@ -68,7 +67,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 0 })}
+          index={0}
           isActive={false}
           onSelect={() => undefined}
         />
@@ -87,7 +86,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 0 })}
+          index={0}
           isActive={false}
           onSelect={() => undefined}
         />
@@ -105,7 +104,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 0 })}
+          index={0}
           isActive={true}
           onSelect={() => undefined}
         />
@@ -123,7 +122,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 0 })}
+          index={0}
           isActive={false}
           onSelect={() => undefined}
         />
@@ -142,7 +141,7 @@ describe('FlowTabLayerWidget', () => {
       ui: (
         <FlowTabLayerWidget
           flow={flow}
-          index={ArrayIndexStub({ value: 0 })}
+          index={0}
           isActive={false}
           onSelect={onSelect}
         />
@@ -167,7 +166,7 @@ describe('FlowTabLayerWidget', () => {
         ui: (
           <FlowTabLayerWidget
             flow={flow}
-            index={ArrayIndexStub({ value: 0 })}
+            index={0}
             isActive={false}
             onSelect={() => undefined}
             commentQuestId={QUEST_ID}
@@ -192,7 +191,7 @@ describe('FlowTabLayerWidget', () => {
         ui: (
           <FlowTabLayerWidget
             flow={flow}
-            index={ArrayIndexStub({ value: 0 })}
+            index={0}
             isActive={false}
             onSelect={() => undefined}
           />
@@ -212,7 +211,7 @@ describe('FlowTabLayerWidget', () => {
         ui: (
           <FlowTabLayerWidget
             flow={flow}
-            index={ArrayIndexStub({ value: 0 })}
+            index={0}
             isActive={false}
             onSelect={() => undefined}
             commentQuestId={QUEST_ID}

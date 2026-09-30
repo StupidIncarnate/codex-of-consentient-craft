@@ -16,7 +16,6 @@
  * // ] } — "exclude" itself is dropped: it is followed by `:`, not `,`/`]`.
  */
 
-import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';
 
 export const ArrayEntryLineParseLayerResponder = ({
   line,
@@ -25,24 +24,24 @@ export const ArrayEntryLineParseLayerResponder = ({
 }): {
   entries: readonly {
     value: string;
-    start: ArrayIndex;
-    end: ArrayIndex;
+    start: number;
+    end: number;
     quoteChar: string;
   }[];
 } => {
   const candidates: {
     value: string;
-    start: ArrayIndex;
-    end: ArrayIndex;
+    start: number;
+    end: number;
     quoteChar: string;
   }[] = [];
   // One object, not three `let`s: `@typescript-eslint/init-declarations` demands a nullable `let`
   // carry an initializer and `no-undef-init` then strips an `= undefined` one straight back off,
   // an oscillation ward's --fix pass cannot resolve on its own. A property on an object literal is
   // a plain assignment, not a variable declaration, so neither rule reaches it.
-  const openQuote: { char: string | undefined; start: ArrayIndex; content: string } = {
+  const openQuote: { char: string | undefined; start: number; content: string } = {
     char: undefined,
-    start: arrayIndexContract.parse(0),
+    start: 0,
     content: '',
   };
 
@@ -53,7 +52,7 @@ export const ArrayEntryLineParseLayerResponder = ({
         candidates.push({
           value: openQuote.content,
           start: openQuote.start,
-          end: arrayIndexContract.parse(i + 1),
+          end: (i + 1),
           quoteChar: openQuote.char,
         });
         openQuote.char = undefined;
@@ -70,7 +69,7 @@ export const ArrayEntryLineParseLayerResponder = ({
     }
     if (char === "'" || char === '"') {
       openQuote.char = char;
-      openQuote.start = arrayIndexContract.parse(i);
+      openQuote.start = i;
       openQuote.content = '';
     }
   }

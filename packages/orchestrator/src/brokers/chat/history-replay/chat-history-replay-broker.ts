@@ -33,8 +33,8 @@ import { readdirSync } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { arrayIndexContract, fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
-import type { ArrayIndex, ChatEntry, StreamJsonLine, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, StreamJsonLine, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -170,7 +170,7 @@ export const chatHistoryReplayBroker = async ({
     source: ChatLineSource;
     agentId?: ReturnType<typeof agentContract.shape.id.parse>;
     timestamp: string;
-    index: ArrayIndex;
+    index: number;
   }[] = [];
 
   let globalIndex = 0;
@@ -182,7 +182,7 @@ export const chatHistoryReplayBroker = async ({
       parsed,
       source: sessionSource,
       timestamp,
-      index: arrayIndexContract.parse(globalIndex),
+      index: globalIndex,
     });
     globalIndex += 1;
   }
@@ -196,7 +196,7 @@ export const chatHistoryReplayBroker = async ({
         source: subagentSource,
         agentId: subagentFile.agentId,
         timestamp,
-        index: arrayIndexContract.parse(globalIndex),
+        index: globalIndex,
       });
       globalIndex += 1;
     }

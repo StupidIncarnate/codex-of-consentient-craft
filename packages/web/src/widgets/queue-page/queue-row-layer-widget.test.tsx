@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
-import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 import { TotalCountStub } from '@dungeonmaster/shared/contracts/total-count/total-count.stub';
 
@@ -25,7 +24,7 @@ describe('QueueRowLayerWidget', () => {
           <MemoryRouter>
             <QueueRowLayerWidget
               entry={entry}
-              index={ArrayIndexStub({ value: 0 })}
+              index={0}
               total={TotalCountStub({ value: 2 })}
               isActive={false}
             />
@@ -52,7 +51,7 @@ describe('QueueRowLayerWidget', () => {
           <MemoryRouter>
             <QueueRowLayerWidget
               entry={entry}
-              index={ArrayIndexStub({ value: 1 })}
+              index={1}
               total={TotalCountStub({ value: 2 })}
               isActive={false}
             />
@@ -77,7 +76,7 @@ describe('QueueRowLayerWidget', () => {
           <MemoryRouter>
             <QueueRowLayerWidget
               entry={entry}
-              index={ArrayIndexStub({ value: 0 })}
+              index={0}
               total={TotalCountStub({ value: 1 })}
               isActive={true}
             />
@@ -107,7 +106,7 @@ describe('QueueRowLayerWidget', () => {
           <MemoryRouter>
             <QueueRowLayerWidget
               entry={entry}
-              index={ArrayIndexStub({ value: 0 })}
+              index={0}
               total={TotalCountStub({ value: 1 })}
               isActive={false}
             />
@@ -143,7 +142,7 @@ describe('QueueRowLayerWidget', () => {
           <MemoryRouter>
             <QueueRowLayerWidget
               entry={entry}
-              index={ArrayIndexStub({ value: 0 })}
+              index={0}
               total={TotalCountStub({ value: 1 })}
               isActive={false}
             />
@@ -165,7 +164,7 @@ describe('QueueRowLayerWidget', () => {
           <MemoryRouter>
             <QueueRowLayerWidget
               entry={entry}
-              index={ArrayIndexStub({ value: 0 })}
+              index={0}
               total={TotalCountStub({ value: 1 })}
               isActive={false}
             />

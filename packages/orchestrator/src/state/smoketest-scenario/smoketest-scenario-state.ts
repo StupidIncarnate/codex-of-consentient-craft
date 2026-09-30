@@ -13,7 +13,7 @@
  * double-registration bugs surface immediately.
  */
 
-import { arrayIndexContract, type WorkItemRole } from '@dungeonmaster/shared/contracts';
+import { type WorkItemRole } from '@dungeonmaster/shared/contracts';
 
 import { scenarioInstanceContract } from '../../contracts/scenario-instance/scenario-instance-contract';
 import type { ScenarioInstance } from '../../contracts/scenario-instance/scenario-instance-contract';
@@ -53,12 +53,12 @@ export const smoketestScenarioState = {
     if (script === undefined) {
       return null;
     }
-    const ordinal = instance.callOrdinals[role] ?? arrayIndexContract.parse(0);
+    const ordinal = instance.callOrdinals[role] ?? 0;
     if (ordinal >= script.length) {
       return null;
     }
     const promptName = script[ordinal] ?? null;
-    instance.callOrdinals[role] = arrayIndexContract.parse(ordinal + 1);
+    instance.callOrdinals[role] = scenarioInstanceContract.shape.callOrdinals.parse(scenarioInstanceContract.shape.callOrdinals.parse(scenarioInstanceContract.shape.callOrdinals.parse((ordinal + 1))));
     return promptName;
   },
 
