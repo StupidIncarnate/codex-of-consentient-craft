@@ -12,7 +12,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const loadAverageContract = z
-  .tuple([z.number(), z.number(), z.number()])
+  .tuple([z.number().brand<'LoadAverage0'>(), z.number().brand<'LoadAverage1'>(), z.number().brand<'LoadAverage2'>()])
   .brand<'LoadAverage'>();
 
 export type LoadAverage = z.infer<typeof loadAverageContract>;
