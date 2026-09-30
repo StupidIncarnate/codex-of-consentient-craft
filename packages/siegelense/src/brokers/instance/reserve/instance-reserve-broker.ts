@@ -93,8 +93,8 @@ export const instanceReserveBroker = async ({
           !registry.instances.some(
             (existing) =>
               existing.ports.api === candidate.api ||
-              existing.ports.api === candidate.web ||
-              existing.ports.web === candidate.api ||
+              Number(existing.ports.api) === Number(candidate.web) ||
+              Number(existing.ports.web) === Number(candidate.api) ||
               existing.ports.web === candidate.web,
           ),
       );

@@ -38,10 +38,10 @@ import { domFieldContract } from '../dom-field/dom-field-contract';
 import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
 import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
-import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepStatics } from '../../statics/step/step-statics';
+import { stepRefStatics } from '../../statics/step-ref/step-ref-statics';
 import { holdStatics } from '../../statics/hold/hold-statics';
 import { storageStatics } from '../../statics/storage/storage-statics';
 import { untilResponseContract } from '../until-response/until-response-contract';
@@ -49,6 +49,8 @@ import { resetLevelContract } from '../reset-level/reset-level-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 import { fileStatics } from '../../statics/file/file-statics';
+
+const STEP_REF_SHAPE = /^\{(.+)\}$/u;
 
 const HANDLE_MESSAGE =
   'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
@@ -65,7 +67,49 @@ export const stepContract = z
         // contains (siegelense-recipes.md:2090-2091) — `{s.nested.url}` does not start with `/`, so
         // `urlPathContract` alone would refuse it. Resolving the reference into a real path is a run's
         // job (holding earlier steps' outputs), not this contract's.
-        path: z.string().startsWith('/').brand<'StepPath'>().or(stepRefContract),
+        // `.pipe()` rather than a `.refine()` on the string: the reference form parses to its
+        // `{ step, row, field }` segments, which `stepRefResolveTransformer` reads by key.
+        path: z
+          .string()
+          .startsWith('/')
+          .brand<'StepPath'>()
+          .or(
+            z
+              .string()
+              .transform((raw, ctx) => {
+                const match = STEP_REF_SHAPE.exec(raw);
+                if (match === null) {
+                  ctx.addIssue({
+                    code: 'custom',
+                    message: `"${raw}" is not a step reference — a reference is wrapped in braces: {step.row.field}.`,
+                  });
+                  return z.NEVER;
+                }
+
+                const segments = (match[1] ?? '').split('.');
+                if (
+                  segments.length !== stepRefStatics.grammar.segmentCount ||
+                  segments.some((segment) => segment.length === 0)
+                ) {
+                  ctx.addIssue({
+                    code: 'custom',
+                    message: `Step reference "${raw}" has ${String(segments.length)} segment(s) (${segments.join('.')}) — a step reference always has three: {step.row.field}.`,
+                  });
+                  return z.NEVER;
+                }
+
+                return { step: segments[0], row: segments[1], field: segments[2] };
+              })
+              .pipe(
+                z
+                  .object({
+                    step: z.string().min(1).brand<'StepPathStep'>(),
+                    row: z.string().min(1).brand<'StepPathRow'>(),
+                    field: z.string().min(1).brand<'StepPathField'>(),
+                  })
+                  .brand<'StepPath'>(),
+              ),
+          ),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),

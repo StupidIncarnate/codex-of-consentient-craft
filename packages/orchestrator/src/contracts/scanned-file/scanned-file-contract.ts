@@ -11,6 +11,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { usageLedgerContract } from '@dungeonmaster/shared/contracts';
+
+// A cursor records exactly these two stat numbers, so they share the ledger cursor's fields —
+// the scan compares a file's reading against its cursor for equality.
+const cursorShape = usageLedgerContract.shape.cursors.valueType.shape;
 
 export const scannedFileContract = z.object({
   path: z
@@ -20,8 +25,8 @@ export const scannedFileContract = z.object({
       message: 'Path must be absolute (start with / or C:\\ on Windows)',
     })
     .brand<'ScannedFilePath'>(),
-  mtimeMs: z.number().min(0).brand<'ScannedFileMtimeMs'>(),
-  size: z.number().int().min(0).brand<'ScannedFileSize'>(),
+  mtimeMs: cursorShape.mtimeMs,
+  size: cursorShape.size,
 }).brand<'ScannedFile'>();
 
 export type ScannedFile = z.infer<typeof scannedFileContract>;

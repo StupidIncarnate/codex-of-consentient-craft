@@ -53,6 +53,7 @@ import { laneProcessPortResolveTransformer } from '../../../transformers/lane-pr
 import { lanePlaceholderSubstituteTransformer } from '../../../transformers/lane-placeholder-substitute/lane-placeholder-substitute-transformer';
 import { laneSessionContract } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { laneSpecContract } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
@@ -141,7 +142,7 @@ export const laneBootBroker = async ({
       }),
     );
     const substitutedProcessEnv = laneEnvSubstituteTransformer({
-      env: laneProcess.env,
+      env: laneSpecContract.shape.env.parse(laneProcess.env),
       ports,
       home: homePath,
       claudeQueueDir,

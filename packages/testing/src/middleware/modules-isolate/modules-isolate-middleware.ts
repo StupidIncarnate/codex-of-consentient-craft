@@ -4,7 +4,7 @@
  * replacement must apply to one load of the entry point only, not to the whole test file.
  *
  * USAGE:
- * await modulesIsolateMiddleware({ mocks: [{ module: filePathContract.parse('/abs/path/to/module'), factory: () => ({}) }], entrypoint: filePathContract.parse('/abs/path/to/index') });
+ * await modulesIsolateMiddleware({ mocks: [{ module: '/abs/path/to/module', factory: () => ({}) }], entrypoint: '/abs/path/to/index' });
  * // Loads entrypoint in an isolated module scope with specified modules mocked
  */
 import {
@@ -17,7 +17,7 @@ export const modulesIsolateMiddleware = async ({
   mocks,
   entrypoint,
 }: {
-  mocks: IsolateModulesMock[];
+  mocks: { module: string; factory: IsolateModulesMock['factory'] }[];
   entrypoint: string;
 }): Promise<void> => {
   await gatewayIsolateModulesAsync({

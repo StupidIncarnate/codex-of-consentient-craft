@@ -9,6 +9,7 @@
  * transitionFromTransformer({ record: { status: 'created' }, field: 'status' });
  * // Returns 'created'
  */
+import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 
 export const transitionFromTransformer = ({
@@ -17,4 +18,7 @@ export const transitionFromTransformer = ({
 }: {
   record: Record<string, unknown>;
   field: string;
-}): FieldValues[string] => record[field];
+}): FieldValues[string] | undefined => {
+  const value = record[field];
+  return value === undefined ? undefined : fieldValuesContract.valueType.parse(value);
+};

@@ -16,6 +16,7 @@
  */
 import { rowRefIngredientTransformer } from '../row-ref-ingredient/row-ref-ingredient-transformer';
 import type { LinkSpec } from '../../contracts/link-spec/link-spec-contract';
+import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 
 export const filterScopeWhereTransformer = ({
@@ -46,5 +47,5 @@ export const filterScopeWhereTransformer = ({
       ? (scopeRecord as Record<PropertyKey, unknown>)[fromField]
       : undefined;
 
-  return { ...where, [link.as]: scopeId };
+  return fieldValuesContract.parse({ ...where, [link.as]: scopeId });
 };

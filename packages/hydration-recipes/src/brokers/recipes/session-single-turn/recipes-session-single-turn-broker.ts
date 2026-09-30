@@ -24,7 +24,7 @@ export const recipesSessionSingleTurnBroker = recipe(
   },
   ({ guildPath }) => [
     dmRegistryBroker.sessions
-      .under({ cwd: guildPath })
+      .under({ cwd: sessionFieldsShape.shape.cwd.parse(guildPath) })
       .add(1, (s) => [
         s[0].set({
           lines: sessionFieldsShape.shape.lines.parse([

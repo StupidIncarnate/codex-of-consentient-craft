@@ -8,7 +8,7 @@ import { exitProxy } from '#gateway/node/process/exit/exit.proxy';
 import { onProxy } from '#gateway/node/process/on/on.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { isolateModules } from '@dungeonmaster/testing/register-mock';
-import type { IsolateModulesMock, RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 export const indexProxy = (): {
   getExitCalls: () => RecordedCalls;
@@ -29,18 +29,16 @@ export const indexProxy = (): {
   const loadIndexWithStartupBehavior = async (
     startMcpServerBehavior: () => Promise<void>,
   ): Promise<void> => {
-    type ModulePath = IsolateModulesMock['module'];
-
     await isolateModules({
       mocks: [
         {
-          module: resolve(__dirname, './startup/start-mcp-server') as ModulePath,
+          module: resolve(__dirname, './startup/start-mcp-server'),
           factory: () => ({
             StartMcpServer: startMcpServerBehavior,
           }),
         },
       ],
-      entrypoint: resolve(__dirname, './index') as ModulePath,
+      entrypoint: resolve(__dirname, './index'),
     });
   };
 

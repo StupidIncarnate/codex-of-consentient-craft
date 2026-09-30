@@ -40,7 +40,7 @@ const taskPromptContract = z.string().min(1).brand<'TaskPrompt'>();
 
 export type TaskPrompt = z.infer<typeof taskPromptContract>;
 
-const subagentFieldsShape = z.object({
+export const subagentFieldsShape = z.object({
   agentId: agentContract.shape.id,
   toolUseId: toolUseIdContract,
   taskDescription: z.string().min(1).brand<'SubagentFieldsShapeTaskDescription'>(),

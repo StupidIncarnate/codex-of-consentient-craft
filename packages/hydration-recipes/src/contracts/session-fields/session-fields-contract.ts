@@ -27,7 +27,7 @@ import { z } from '#gateway/npm/zod';
 
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
-const sessionFieldsShape = z.object({
+export const sessionFieldsShape = z.object({
   sessionId: sessionContract.shape.id,
   cwd: z
     .string()

@@ -12,6 +12,7 @@
  * });
  * // Returns 's1'
  */
+import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import type { SavedRef } from '../../contracts/saved-ref/saved-ref-contract';
 
@@ -21,16 +22,14 @@ export const savedRefResolveTransformer = ({
 }: {
   ref: SavedRef;
   saved: Map<string, unknown>;
-}): FieldValues[string] => {
+}): FieldValues[string] | undefined => {
   const record = saved.get(ref.name);
+  const value =
+    ref.field === undefined
+      ? record
+      : typeof record === 'object' && record !== null
+        ? Reflect.get(record, ref.field)
+        : undefined;
 
-  if (ref.field === undefined) {
-    return record;
-  }
-
-  if (typeof record !== 'object' || record === null) {
-    return undefined;
-  }
-
-  return (record as Record<PropertyKey, unknown>)[ref.field];
+  return value === undefined ? undefined : fieldValuesContract.valueType.parse(value);
 };

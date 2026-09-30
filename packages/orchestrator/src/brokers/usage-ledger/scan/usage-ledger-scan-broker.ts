@@ -83,17 +83,10 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
 
   const buckets: UsageLedger['buckets'] = needsRebuild ? {} : { ...ledger.buckets };
 
-  const pending = files
-    .map((file) =>
-      transcriptReadContract.parse({
-        path: file.path,
-        fromByte: needsRebuild ? 0 : (ledger.cursors[file.path]?.size ?? 0),
-      }),
-    )
-    .filter((entry) => {
-      const file = files.find((candidate) => candidate.path === entry.path);
-      return file !== undefined && entry.fromByte < file.size;
-    });
+  const pending = files.flatMap((file) => {
+    const fromByte = needsRebuild ? 0 : (ledger.cursors[file.path]?.size ?? 0);
+    return fromByte < file.size ? [transcriptReadContract.parse({ path: file.path, fromByte })] : [];
+  });
 
   const folded = await foldBatchLayerBroker({
     pending,

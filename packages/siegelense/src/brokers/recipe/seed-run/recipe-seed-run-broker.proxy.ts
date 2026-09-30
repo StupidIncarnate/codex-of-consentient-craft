@@ -12,6 +12,7 @@ import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-
 import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
+import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 
@@ -79,11 +80,12 @@ export const recipeSeedRunBrokerProxy = (): {
       questComplete: Quest;
     }): void => {
       stageEntry();
+      // A saved row enters the seed result as JSON — parsed through the record's own value schema.
       const result: SeedResult = SeedResultStub({
-        guild,
-        questCreated,
-        questInProgress,
-        questComplete,
+        guild: seedResultContract.valueType.parse(guild),
+        questCreated: seedResultContract.valueType.parse(questCreated),
+        questInProgress: seedResultContract.valueType.parse(questInProgress),
+        questComplete: seedResultContract.valueType.parse(questComplete),
       });
       moduleExports[recipesConventionStatics.exports.seed] = jest.fn().mockResolvedValue(result);
     },

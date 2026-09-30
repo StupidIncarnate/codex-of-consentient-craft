@@ -17,7 +17,7 @@
  */
 
 
-import { stepRefContract } from '../../contracts/step-ref/step-ref-contract';
+import { stepContract } from '../../contracts/step/step-contract';
 import { StepRefUnresolvedError } from '../../errors/step-ref-unresolved/step-ref-unresolved-error';
 import { stepRefStatics } from '../../statics/step-ref/step-ref-statics';
 
@@ -30,9 +30,14 @@ export const stepRefResolveTransformer = ({
   ref: string;
   outputs: Record<PropertyKey, Record<PropertyKey, unknown>>;
 }): string => {
-  const parsed = stepRefContract.safeParse(ref);
+  // The grammar lives on `goto.path`, the field a reference is admitted on, so it is parsed there.
+  const parsed = stepContract.safeParse({ step: 'goto', path: ref });
+  const reference =
+    parsed.success && parsed.data.step === 'goto' && typeof parsed.data.path !== 'string'
+      ? parsed.data.path
+      : null;
 
-  if (!parsed.success) {
+  if (reference === null) {
     const inner = BRACE_SHAPE.exec(ref)?.[1] ?? '';
     const rawSegments = inner.split('.');
     if (rawSegments.length === stepRefStatics.mistakes.stepFieldSegmentCount) {
@@ -57,10 +62,12 @@ export const stepRefResolveTransformer = ({
         available: Object.keys(outputs),
       });
     }
-    throw parsed.error;
+    throw new Error(
+      `"${ref}" is not a step reference — a reference is wrapped in braces and always has three segments: {step.row.field}.`,
+    );
   }
 
-  const { step, row, field } = parsed.data;
+  const { step, row, field } = reference;
 
   const rowRecord = outputs[step];
   if (rowRecord === undefined) {

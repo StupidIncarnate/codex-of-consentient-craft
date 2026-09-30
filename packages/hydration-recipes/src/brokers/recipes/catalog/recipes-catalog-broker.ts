@@ -63,7 +63,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'guild-empty' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return dmRegistryBroker.run(recipesGuildEmptyBroker(), target);
+      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesGuildEmptyBroker(), target));
     },
   },
   {
@@ -87,7 +87,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'guild-with-three-quests' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return dmRegistryBroker.run(recipesGuildWithThreeQuestsBroker(), target);
+      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesGuildWithThreeQuestsBroker(), target));
     },
   },
   {
@@ -172,7 +172,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'quest-completed' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return dmRegistryBroker.run(recipesQuestCompletedBroker(), target);
+      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesQuestCompletedBroker(), target));
     },
   },
   {
@@ -270,7 +270,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'guild-active-suite' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return dmRegistryBroker.run(recipesGuildActiveSuiteBroker(), target);
+      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesGuildActiveSuiteBroker(), target));
     },
   },
   {

@@ -550,8 +550,12 @@ export const useQuestChatBinding = ({
         if (
           questUpdateBaseline.hasApplied &&
           isQuestUpdateStaleGuard({
-            incomingUpdatedAt: questParsed.data.updatedAt,
-            lastAppliedUpdatedAt: questUpdateBaseline.updatedAt,
+            ...(questParsed.data.updatedAt === undefined
+              ? {}
+              : { incomingUpdatedAt: questParsed.data.updatedAt }),
+            ...(questUpdateBaseline.updatedAt === undefined
+              ? {}
+              : { lastAppliedUpdatedAt: questUpdateBaseline.updatedAt }),
           })
         ) {
           return;
