@@ -151,6 +151,14 @@ now reads `dependencies` and `peerDependencies` only, like the build order (G02)
 `process-request-log-adapter` and `key-read-layer-adapter` are new on master and need a broker each). Its README lists
 the behaviour changes to watch and the modify/delete conflicts.
 
+**Merge worktree (active):** `worktrees/gateway-pivot/worktrees/gp-merge-master` (create-worktree nested it under this
+checkout), branch `gp-merge-master` set to 9b7ed4e9f, then `git merge --no-commit master`: 108 content conflicts, 9 DU,
+2 UD, 125 added, 176 merged clean; master changed no `package.json`. Nothing there is staged or committed yet. First
+pass: `merge-master/resolve.cjs` (one opus agent): import-only hunks union, other hunks take master's side with the
+dropped side saved to `<W>/tmp/merge-master/lost-ours/`, then the adapter map, `fix-dangling`, the brand autofix;
+leftovers in `<W>/tmp/merge-master/leftovers.json`. Then review agents per folder restore pivot-only edits, then
+diag fixer rounds.
+
 **Merging master in.** At 11:00 master was 95 commits ahead (merge base to master: 420 files). `git merge-tree` shows
 119 conflicted files: siegelense 88, server 10, web 9, hydration-recipes 4, orchestrator 3, ward 3, cli 1, shared 1
 (list: `tmp/merge-tree.txt`). Master's side is mostly DEF-102 to DEF-168 fixes written against adapters and standalone
