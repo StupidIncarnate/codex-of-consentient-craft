@@ -72,7 +72,6 @@ export * from './route-failure/route-failure-contract';
 
 export * from './route-plan/route-plan-contract';
 
-export * from './row-index/row-index-contract';
 
 
 

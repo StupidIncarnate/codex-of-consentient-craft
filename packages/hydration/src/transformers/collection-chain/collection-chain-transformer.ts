@@ -47,7 +47,6 @@ import type { Handle, Op } from '../../contracts/ingredient-handle/ingredient-ha
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
-import { rowIndexContract } from '../../contracts/row-index/row-index-contract';
 import { callIndexContract } from '../../contracts/call-index/call-index-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
@@ -104,7 +103,7 @@ export const collectionChainTransformer = <
           ancestors,
           ingredient: ingredientConfig.name,
           callIndex,
-          index: rowIndexContract.parse(index),
+          index: index,
         }),
       );
 
@@ -112,7 +111,7 @@ export const collectionChainTransformer = <
         opCreateTransformer({
           ingredient: ingredientConfig.name,
           callIndex,
-          index: rowIndexContract.parse(index),
+          index: index,
           ancestors,
           fields: fieldValuesContract.parse({
             ...(underValues ?? {}),

@@ -17,14 +17,13 @@
  */
 import { z } from '#gateway/npm/zod';
 import { rowRefContract } from '../row-ref/row-ref-contract';
-import { rowIndexContract } from '../row-index/row-index-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 
 export const opCreateContract = z.object({
   op: z.literal('create'),
   ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'OpCreateIngredient'>(),
   ref: rowRefContract,
-  index: rowIndexContract,
+  index: z.number().int().nonnegative().brand<'OpCreateIndex'>(),
   ancestors: z.array(rowRefContract),
   fields: fieldValuesContract,
 });

@@ -1,6 +1,5 @@
 import { opCreateTransformer } from './op-create-transformer';
 import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
-import { RowIndexStub } from '../../contracts/row-index/row-index.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
 
 describe('opCreateTransformer', () => {
@@ -8,7 +7,7 @@ describe('opCreateTransformer', () => {
     const result = opCreateTransformer({
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 1 }),
+      index: 1,
       ancestors: ['guild[0:0]'],
       fields: FieldValuesStub({ title: 'The running one' }),
     });
@@ -27,7 +26,7 @@ describe('opCreateTransformer', () => {
     const result = opCreateTransformer({
       ingredient: 'guild',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 0 }),
+      index: 0,
       ancestors: [],
       fields: FieldValuesStub({ name: 'Siege' }),
     });
@@ -46,7 +45,7 @@ describe('opCreateTransformer', () => {
     const result = opCreateTransformer({
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 1 }),
-      index: RowIndexStub({ value: 0 }),
+      index: 0,
       ancestors: ['guild[0:0]'],
       fields: FieldValuesStub({ title: 'Quest 1' }),
     });

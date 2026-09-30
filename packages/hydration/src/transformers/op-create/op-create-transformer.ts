@@ -12,7 +12,6 @@
 import { opCreateContract } from '../../contracts/op-create/op-create-contract';
 import type { OpCreate } from '../../contracts/op-create/op-create-contract';
 import type { CallIndex } from '../../contracts/call-index/call-index-contract';
-import type { RowIndex } from '../../contracts/row-index/row-index-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { rowRefTransformer } from '../row-ref/row-ref-transformer';
 
@@ -25,7 +24,7 @@ export const opCreateTransformer = ({
 }: {
   ingredient: string;
   callIndex: CallIndex;
-  index: RowIndex;
+  index: number;
   ancestors: readonly string[];
   fields: FieldValues;
 }): OpCreate => {

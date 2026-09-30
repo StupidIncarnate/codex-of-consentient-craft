@@ -1,6 +1,5 @@
 import { rowRefTransformer } from './row-ref-transformer';
 import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
-import { RowIndexStub } from '../../contracts/row-index/row-index.stub';
 
 describe('rowRefTransformer', () => {
   it('VALID: {ancestors: [], ingredient: guild, callIndex: 0, index: 0} => returns "guild[0:0]"', () => {
@@ -8,7 +7,7 @@ describe('rowRefTransformer', () => {
       ancestors: [],
       ingredient: 'guild',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 0 }),
+      index: 0,
     });
 
     expect(result).toBe('guild[0:0]');
@@ -19,7 +18,7 @@ describe('rowRefTransformer', () => {
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 2 }),
+      index: 2,
     });
 
     expect(result).toBe('guild[0:0]/quest[0:2]');
@@ -30,13 +29,13 @@ describe('rowRefTransformer', () => {
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 2 }),
+      index: 2,
     });
     const second = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 2 }),
+      index: 2,
     });
 
     expect(first).toBe(second);
@@ -50,7 +49,7 @@ describe('rowRefTransformer', () => {
       ],
       ingredient: 'operation',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 0 }),
+      index: 0,
     });
 
     expect(result).toBe('guild[0:0]/quest[0:0]/operation[0:0]');
@@ -61,13 +60,13 @@ describe('rowRefTransformer', () => {
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 0 }),
-      index: RowIndexStub({ value: 0 }),
+      index: 0,
     });
     const fromSecondCall = rowRefTransformer({
       ancestors: ['guild[0:0]'],
       ingredient: 'quest',
       callIndex: CallIndexStub({ value: 1 }),
-      index: RowIndexStub({ value: 0 }),
+      index: 0,
     });
 
     expect([fromFirstCall, fromSecondCall]).toStrictEqual([
