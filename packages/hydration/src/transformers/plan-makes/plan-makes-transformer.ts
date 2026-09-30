@@ -14,7 +14,6 @@ import { planMakesEntryContract } from '../../contracts/plan-makes-entry/plan-ma
 import type { PlanMakesEntry } from '../../contracts/plan-makes-entry/plan-makes-entry-contract';
 import type { HydrationPlan } from '../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 
 export const planMakesTransformer = ({
   plan,
@@ -24,8 +23,8 @@ export const planMakesTransformer = ({
   // Depth-first, declaration order — see plan-runs-transformer for why the stack is seeded and
   // re-pushed in reverse.
   const stack: HydrationOp[] = [...plan.ops].reverse();
-  const counts = new Map<IngredientName, number | 'varies'>();
-  const declaredInOrder: IngredientName[] = [];
+  const counts = new Map<string, number | 'varies'>();
+  const declaredInOrder: string[] = [];
 
   while (stack.length > 0) {
     const op = stack.pop();

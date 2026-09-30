@@ -7,7 +7,6 @@ import { OpRemoveStub } from '../../../contracts/op-remove/op-remove.stub';
 import { OpSetStub } from '../../../contracts/op-set/op-set.stub';
 import { OpCreateStub } from '../../../contracts/op-create/op-create.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
-import { IngredientNameStub } from '../../../contracts/ingredient-name/ingredient-name.stub';
 import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
 
 describe('verbCheckLayerBroker', () => {
@@ -22,7 +21,7 @@ describe('verbCheckLayerBroker', () => {
       });
       const configByName = new Map([
         [
-          IngredientNameStub({ value: 'operation' }),
+          'operation',
           IngredientConfigStub({
             name: 'operation',
             routes: { write: (): unknown => undefined, query: (): unknown => [] },
@@ -41,7 +40,7 @@ describe('verbCheckLayerBroker', () => {
       verbCheckLayerBrokerProxy();
       const op = OpFilterStub({ ingredient: 'operation', matchedRef: 'operation[match]', ops: [] });
       const configByName = new Map([
-        [IngredientNameStub({ value: 'operation' }), IngredientConfigStub({ name: 'operation' })],
+        ['operation', IngredientConfigStub({ name: 'operation' })],
       ]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
@@ -56,7 +55,7 @@ describe('verbCheckLayerBroker', () => {
       const op = OpAttachStub({ ingredient: 'quest', ref: 'quest[0:0]', ancestors: [] });
       const configByName = new Map([
         [
-          IngredientNameStub({ value: 'quest' }),
+          'quest',
           IngredientConfigStub({
             name: 'quest',
             routes: { write: (): unknown => undefined, query: (): unknown => [] },
@@ -75,7 +74,7 @@ describe('verbCheckLayerBroker', () => {
       verbCheckLayerBrokerProxy();
       const op = OpAttachStub({ ingredient: 'quest', ref: 'quest[0:0]', ancestors: [] });
       const configByName = new Map([
-        [IngredientNameStub({ value: 'quest' }), IngredientConfigStub({ name: 'quest' })],
+        ['quest', IngredientConfigStub({ name: 'quest' })],
       ]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
@@ -89,7 +88,7 @@ describe('verbCheckLayerBroker', () => {
       verbCheckLayerBrokerProxy();
       const op = OpRemoveStub({ ref: 'quest[0:0]' });
       const configByName = new Map([
-        [IngredientNameStub({ value: 'quest' }), IngredientConfigStub({ name: 'quest' })],
+        ['quest', IngredientConfigStub({ name: 'quest' })],
       ]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
@@ -103,7 +102,7 @@ describe('verbCheckLayerBroker', () => {
       verbCheckLayerBrokerProxy();
       const op = OpSetStub({ ref: 'quest[0:0]', written: { title: 'x' } });
       const configByName = new Map([
-        [IngredientNameStub({ value: 'quest' }), IngredientConfigStub({ name: 'quest' })],
+        ['quest', IngredientConfigStub({ name: 'quest' })],
       ]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
@@ -117,7 +116,7 @@ describe('verbCheckLayerBroker', () => {
       verbCheckLayerBrokerProxy();
       const op = OpCreateStub();
       const configByName = new Map([
-        [IngredientNameStub({ value: 'quest' }), IngredientConfigStub({ name: 'quest' })],
+        ['quest', IngredientConfigStub({ name: 'quest' })],
       ]);
 
       const result = verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName });
@@ -129,7 +128,7 @@ describe('verbCheckLayerBroker', () => {
       verbCheckLayerBrokerProxy();
       const op = OpSetStub({ ref: 'quest[0:0]', written: {} });
       const configByName = new Map([
-        [IngredientNameStub({ value: 'quest' }), IngredientConfigStub({ name: 'quest' })],
+        ['quest', IngredientConfigStub({ name: 'quest' })],
       ]);
 
       const result = verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName });

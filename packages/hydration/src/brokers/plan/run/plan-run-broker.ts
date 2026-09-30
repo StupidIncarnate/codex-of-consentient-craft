@@ -39,7 +39,6 @@ import type {
 import { hydrationTargetContract } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import { hydrationRunStateContract } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
@@ -58,7 +57,7 @@ export const planRunBroker = async <TOut = HydrationRunResult>({
   const routePlan = planPreflightBroker({ plan, target, ingredients });
   const foldedPlan = planFoldWritesTransformer({ plan });
 
-  const configByName = new Map<IngredientName, IngredientConfigData>(
+  const configByName = new Map<string, IngredientConfigData>(
     ingredients.map((config) => [config.name, config] as const),
   );
 

@@ -45,7 +45,6 @@ import type {
 } from '../../contracts/ingredient-config/ingredient-config-contract';
 import type { Handle, Op } from '../../contracts/ingredient-handle/ingredient-handle-contract';
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { rowIndexContract } from '../../contracts/row-index/row-index-contract';
@@ -79,7 +78,7 @@ export const collectionChainTransformer = <
   registry: R;
   ingredientConfig: IngredientConfigData;
   ancestors: readonly string[];
-  ancestorNames: readonly IngredientName[];
+  ancestorNames: readonly string[];
   under?: Record<string, unknown>;
 }): Collection<R, I, Anc> => {
   const identity = hydrationCollectionContract.parse({ ingredient: ingredientConfig.name });

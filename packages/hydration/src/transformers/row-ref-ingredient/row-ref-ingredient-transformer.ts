@@ -7,11 +7,9 @@
  * rowRefIngredientTransformer({ rowRef: 'guild[0:0]/quest[0:2]' });
  * // Returns the branded IngredientName 'quest'
  */
-import { ingredientNameContract } from '../../contracts/ingredient-name/ingredient-name-contract';
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 
-export const rowRefIngredientTransformer = ({ rowRef }: { rowRef: string }): IngredientName => {
+export const rowRefIngredientTransformer = ({ rowRef }: { rowRef: string }): string => {
   const lastSegment = rowRef.split('/').at(-1) ?? '';
   const ingredientName = lastSegment.split('[').at(0) ?? '';
-  return ingredientNameContract.parse(ingredientName);
+  return ingredientName;
 };

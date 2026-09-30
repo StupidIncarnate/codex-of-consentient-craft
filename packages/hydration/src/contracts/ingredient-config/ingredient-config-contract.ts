@@ -23,7 +23,6 @@
  * // Returns IngredientConfigData
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { copiesTargetContract } from '../copies-target/copies-target-contract';
 import { linkSpecContract } from '../link-spec/link-spec-contract';
 import type { LinkSpecFor } from '../link-spec/link-spec-contract';
@@ -72,7 +71,7 @@ const extraContract = z.object({
 
 export const ingredientConfigContract = z
   .object({
-    name: ingredientNameContract,
+    name: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'IngredientConfigName'>(),
     description: ingredientDescriptionContract,
     fields: zodSchemaContract,
     record: zodSchemaContract,

@@ -1,12 +1,11 @@
 import { opFilterTransformer } from './op-filter-transformer';
-import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
 import { OpRemoveStub } from '../../contracts/op-remove/op-remove.stub';
 
 describe('opFilterTransformer', () => {
   it('VALID: {scoped filter, expect one, one nested remove} => returns the whole filter op with a scoped matchedRef', () => {
     const result = opFilterTransformer({
-      ingredient: IngredientNameStub({ value: 'operation' }),
+      ingredient: 'operation',
       scope: 'guild[0:0]/quest[0:0]',
       where: FieldValuesStub({ role: 'riftcarver' }),
       expect: 'one',
@@ -26,7 +25,7 @@ describe('opFilterTransformer', () => {
 
   it('VALID: {expect omitted, no scope} => defaults expect to "some" and carries no scope key', () => {
     const result = opFilterTransformer({
-      ingredient: IngredientNameStub({ value: 'operation' }),
+      ingredient: 'operation',
       where: FieldValuesStub({ role: 'ward' }),
       ops: [],
     });
@@ -43,7 +42,7 @@ describe('opFilterTransformer', () => {
 
   it('VALID: {an add-created row and a same-scope filter placeholder} => the two refs are distinct strings', () => {
     const { matchedRef } = opFilterTransformer({
-      ingredient: IngredientNameStub({ value: 'operation' }),
+      ingredient: 'operation',
       scope: 'guild[0:0]/quest[0:0]',
       where: FieldValuesStub({ role: 'riftcarver' }),
       ops: [],

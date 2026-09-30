@@ -16,7 +16,6 @@
  * matchedRefTransformer({ ancestors: ['guild[0:0]/quest[0:0]'], ingredient: 'operation' });
  * // Returns the branded RowRef 'guild[0:0]/quest[0:0]/operation[match]'
  */
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
 
 export const matchedRefTransformer = ({
@@ -24,7 +23,7 @@ export const matchedRefTransformer = ({
   ingredient,
 }: {
   ancestors: readonly string[];
-  ingredient: IngredientName;
+  ingredient: string;
 }): string => {
   const immediateParent = ancestors.at(-1);
   const ownSegment = `${ingredient}[${rowRefStatics.slot.matchWord}]`;

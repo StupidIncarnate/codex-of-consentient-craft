@@ -15,7 +15,6 @@ import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-ro
 import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 
 export const verbCheckLayerBroker = ({
   op,
@@ -24,7 +23,7 @@ export const verbCheckLayerBroker = ({
 }: {
   op: HydrationOp;
   plan: HydrationPlan;
-  configByName: Map<IngredientName, IngredientConfigData>;
+  configByName: Map<string, IngredientConfigData>;
 }): readonly HydrationOp[] => {
   if (op.op === 'filter' || op.op === 'attach') {
     const query = configByName.get(op.ingredient)?.routes.query;

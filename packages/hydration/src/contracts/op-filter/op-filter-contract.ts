@@ -18,7 +18,6 @@
  * // Returns an OpFilter
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 import { filterExpectContract } from '../filter-expect/filter-expect-contract';
@@ -35,7 +34,7 @@ import type { OpExtra } from '../op-extra/op-extra-contract';
 
 const baseOpFilterContract = z.object({
   op: z.literal('filter'),
-  ingredient: ingredientNameContract,
+  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'BaseOpFilterIngredient'>(),
   scope: rowRefContract.optional(),
   where: fieldValuesContract,
   expect: filterExpectContract,

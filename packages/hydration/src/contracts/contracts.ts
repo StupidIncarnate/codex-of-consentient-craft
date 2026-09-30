@@ -38,7 +38,6 @@ export * from './ingredient-config/ingredient-config-contract';
 
 export * from './ingredient-handle/ingredient-handle-contract';
 
-export * from './ingredient-name/ingredient-name-contract';
 
 export * from './link-spec/link-spec-contract';
 

@@ -17,7 +17,6 @@
  * // Returns IngredientHandleData
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import type { FieldValuesFor } from '../field-values/field-values-contract';
 import type {
@@ -32,7 +31,7 @@ import type {
 import type { Collection } from '../hydration-collection/hydration-collection-contract';
 
 export const ingredientHandleContract = z.object({
-  ingredient: ingredientNameContract,
+  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'IngredientHandleIngredient'>(),
   ref: rowRefContract,
 });
 

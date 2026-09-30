@@ -33,7 +33,6 @@ import { HydrationNestedIngredientUnregisteredError } from '../../../errors/hydr
 import type { OpFilter } from '../../../contracts/op-filter/op-filter-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 export const opFilterApplyLayerBroker = async ({
@@ -51,7 +50,7 @@ export const opFilterApplyLayerBroker = async ({
 }): Promise<HydrationRunState> => {
   // Defaults to just this filter's own ingredient when no broader list is supplied, so a caller
   // naming only `config` still resolves a same-named nested op and refuses any other.
-  const configByName = new Map<IngredientName, IngredientConfigData>(
+  const configByName = new Map<string, IngredientConfigData>(
     (ingredients ?? [config]).map((candidate) => [candidate.name, candidate] as const),
   );
 
@@ -107,7 +106,7 @@ export const opFilterApplyLayerBroker = async ({
         // `filter`, `ref` for the rest — never from this filter's own `config`. Reusing the
         // enclosing config here is exactly how a nested `create` for a different ingredient would
         // silently run someone else's write route and hand its output back as its own.
-        const nestedIngredientName: IngredientName =
+        const nestedIngredientName: string =
           nestedOp.op === 'create' || nestedOp.op === 'filter'
             ? nestedOp.ingredient
             : rowRefIngredientTransformer({ rowRef: nestedOp.ref });

@@ -1,5 +1,4 @@
 import { opCreateTransformer } from './op-create-transformer';
-import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
 import { CallIndexStub } from '../../contracts/call-index/call-index.stub';
 import { RowIndexStub } from '../../contracts/row-index/row-index.stub';
 import { FieldValuesStub } from '../../contracts/field-values/field-values.stub';
@@ -7,7 +6,7 @@ import { FieldValuesStub } from '../../contracts/field-values/field-values.stub'
 describe('opCreateTransformer', () => {
   it('VALID: {ingredient: quest, callIndex: 0, index: 1, ancestors: [guild[0:0]]} => returns the whole create op, deriving ref', () => {
     const result = opCreateTransformer({
-      ingredient: IngredientNameStub({ value: 'quest' }),
+      ingredient: 'quest',
       callIndex: CallIndexStub({ value: 0 }),
       index: RowIndexStub({ value: 1 }),
       ancestors: ['guild[0:0]'],
@@ -26,7 +25,7 @@ describe('opCreateTransformer', () => {
 
   it('VALID: {ancestors: []} => derives a top-level ref with no ancestor segment', () => {
     const result = opCreateTransformer({
-      ingredient: IngredientNameStub({ value: 'guild' }),
+      ingredient: 'guild',
       callIndex: CallIndexStub({ value: 0 }),
       index: RowIndexStub({ value: 0 }),
       ancestors: [],
@@ -45,7 +44,7 @@ describe('opCreateTransformer', () => {
 
   it('VALID: {ingredient: quest, callIndex: 1, index: 0, ancestors: [guild[0:0]]} => a second call on the same collection derives a distinct ref', () => {
     const result = opCreateTransformer({
-      ingredient: IngredientNameStub({ value: 'quest' }),
+      ingredient: 'quest',
       callIndex: CallIndexStub({ value: 1 }),
       index: RowIndexStub({ value: 0 }),
       ancestors: ['guild[0:0]'],

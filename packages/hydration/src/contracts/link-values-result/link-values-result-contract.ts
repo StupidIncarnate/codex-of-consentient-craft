@@ -13,11 +13,10 @@
  */
 import { z } from '#gateway/npm/zod';
 import { fieldValuesContract } from '../field-values/field-values-contract';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 
 export const linkValuesResultContract = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(true), values: fieldValuesContract }),
-  z.object({ ok: z.literal(false), missingParentName: ingredientNameContract }),
+  z.object({ ok: z.literal(false), missingParentName: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'LinkValuesResultMissingParentName'>() }),
 ]);
 
 export type LinkValuesResult = z.infer<typeof linkValuesResultContract>;

@@ -35,7 +35,6 @@ import type {
   AnyIngredient,
   IngredientConfigData,
 } from '../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
@@ -62,7 +61,7 @@ export const rowHandleChainTransformer = <
   ingredientConfig: IngredientConfigData;
   ref: string;
   ancestors: readonly string[];
-  ancestorNames: readonly IngredientName[];
+  ancestorNames: readonly string[];
   under?: Record<string, unknown>;
 }): Handle<R, I, Anc> => {
   const identity = ingredientHandleContract.parse({ ingredient: ingredientConfig.name, ref });

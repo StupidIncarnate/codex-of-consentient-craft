@@ -19,7 +19,6 @@
  * rowRefTransformer({ ancestors: ['guild[0:0]'], ingredient: 'quest', callIndex: 0, index: 2 });
  * // Returns the branded RowRef 'guild[0:0]/quest[0:2]'
  */
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import type { RowIndex } from '../../contracts/row-index/row-index-contract';
 import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
 
@@ -30,7 +29,7 @@ export const rowRefTransformer = ({
   index,
 }: {
   ancestors: readonly string[];
-  ingredient: IngredientName;
+  ingredient: string;
   callIndex: number;
   index: RowIndex;
 }): string => {

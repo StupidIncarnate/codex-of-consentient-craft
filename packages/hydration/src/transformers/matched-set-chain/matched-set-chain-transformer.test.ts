@@ -7,7 +7,6 @@ import {
 } from '../../../test/type-fixtures/dm-target';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
-import { IngredientNameStub } from '../../contracts/ingredient-name/ingredient-name.stub';
 
 type IngredientConfigData = ReturnType<typeof IngredientConfigStub>;
 type HydrationOp = ReturnType<typeof HydrationOpStub>;
@@ -16,7 +15,7 @@ describe('matchedSetChainTransformer', () => {
   it('VALID: {filter over operations}.remove() => returns one filter op wrapping one remove op targeting the derived matchedRef', () => {
     const matched = matchedSetChainTransformer<typeof operationIngredient>({
       ingredientConfig: operationIngredient as unknown as IngredientConfigData,
-      ingredient: IngredientNameStub({ value: 'operation' }),
+      ingredient: 'operation',
       scope: 'guild[0:0]/quest[0:0]',
       where: { role: 'riftcarver' },
       expect: 'one',
@@ -40,7 +39,7 @@ describe('matchedSetChainTransformer', () => {
   it('VALID: {filter over operations}.set({text: "noop"}) => returns one filter op wrapping one set op, defaulting expect to "some" with no scope key', () => {
     const matched = matchedSetChainTransformer<typeof operationIngredient>({
       ingredientConfig: operationIngredient as unknown as IngredientConfigData,
-      ingredient: IngredientNameStub({ value: 'operation' }),
+      ingredient: 'operation',
       where: { role: 'ward' },
     });
 
@@ -63,7 +62,7 @@ describe('matchedSetChainTransformer', () => {
   it('VALID: {an ingredient with an extra}.withNestedChain({depth: 2}) => builds one filter op wrapping one extra op', () => {
     const matched = matchedSetChainTransformer<typeof sessionIngredient>({
       ingredientConfig: sessionIngredient as unknown as IngredientConfigData,
-      ingredient: IngredientNameStub({ value: 'session' }),
+      ingredient: 'session',
       where: { guildId: 'guild-1' },
     });
 

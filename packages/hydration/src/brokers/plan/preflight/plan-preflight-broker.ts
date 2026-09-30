@@ -28,7 +28,6 @@ import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { SavedRecordName } from '../../../contracts/saved-record-name/saved-record-name-contract';
 import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-unavailable/hydration-route-unavailable-error';
 import { HydrationSavedFieldMissingError } from '../../../errors/hydration-saved-field-missing/hydration-saved-field-missing-error';
@@ -47,7 +46,7 @@ export const planPreflightBroker = ({
   ingredients: readonly IngredientConfigData[];
 }): RoutePlan => {
   const hasBaseUrl = target.baseUrl !== undefined;
-  const configByName = new Map<IngredientName, IngredientConfigData>(
+  const configByName = new Map<string, IngredientConfigData>(
     ingredients.map((config) => [config.name, config] as const),
   );
 
@@ -107,7 +106,7 @@ export const planPreflightBroker = ({
               : undefined;
 
     if (candidateValues !== undefined) {
-      const ingredientName: IngredientName =
+      const ingredientName: string =
         'ingredient' in op ? op.ingredient : rowRefIngredientTransformer({ rowRef: op.ref });
 
       Object.values(candidateValues).forEach((value) => {

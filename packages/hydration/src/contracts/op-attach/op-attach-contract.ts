@@ -18,13 +18,12 @@
  * // Returns an OpAttach
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 
 export const opAttachContract = z.object({
   op: z.literal('attach'),
-  ingredient: ingredientNameContract,
+  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'OpAttachIngredient'>(),
   ref: rowRefContract,
   ancestors: z.array(rowRefContract),
   where: fieldValuesContract,

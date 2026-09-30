@@ -14,7 +14,6 @@
  * // Returns HydrationCollectionData
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import type { FilterExpect } from '../filter-expect/filter-expect-contract';
 import type { FieldValuesFor } from '../field-values/field-values-contract';
 import type {
@@ -28,7 +27,7 @@ import type { Handle, Op, SavedOf } from '../ingredient-handle/ingredient-handle
 import type { Matched } from '../matched-set/matched-set-contract';
 
 export const hydrationCollectionContract = z.object({
-  ingredient: ingredientNameContract,
+  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'HydrationCollectionIngredient'>(),
 });
 
 export type HydrationCollectionData = z.infer<typeof hydrationCollectionContract>;

@@ -20,7 +20,6 @@ import type { PlanRunsResult } from '../../contracts/plan-runs-result/plan-runs-
 import type { HydrationPlan } from '../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
 import type { IngredientConfigData } from '../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 
 export const planRunsTransformer = ({
   plan,
@@ -29,7 +28,7 @@ export const planRunsTransformer = ({
   plan: HydrationPlan;
   ingredients: readonly IngredientConfigData[];
 }): PlanRunsResult => {
-  const configByName = new Map<IngredientName, IngredientConfigData>(
+  const configByName = new Map<string, IngredientConfigData>(
     ingredients.map((config) => [config.name, config] as const),
   );
 
@@ -37,8 +36,8 @@ export const planRunsTransformer = ({
   // own left-to-right order, and a `filter`'s nested ops are pushed (also reversed) the moment it
   // is popped, so they are visited before the rest of the stack rather than after it.
   const stack: HydrationOp[] = [...plan.ops].reverse();
-  const seen = new Set<IngredientName>();
-  const declaredInOrder: IngredientName[] = [];
+  const seen = new Set<string>();
+  const declaredInOrder: string[] = [];
 
   while (stack.length > 0) {
     const op = stack.pop();

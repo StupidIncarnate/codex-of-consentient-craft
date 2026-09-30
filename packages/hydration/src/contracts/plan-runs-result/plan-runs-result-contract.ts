@@ -11,11 +11,10 @@
  * // Returns PlanRunsResult
  */
 import { z } from '#gateway/npm/zod';
-import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 
 export const planRunsResultContract = z.discriminatedUnion('serverless', [
   z.object({ serverless: z.literal(true) }),
-  z.object({ serverless: z.literal(false), needsServerFor: ingredientNameContract }),
+  z.object({ serverless: z.literal(false), needsServerFor: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'PlanRunsResultNeedsServerFor'>() }),
 ]);
 
 export type PlanRunsResult = z.infer<typeof planRunsResultContract>;

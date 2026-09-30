@@ -14,7 +14,6 @@ import { rowRefIngredientTransformer } from '../../../transformers/row-ref-ingre
 import type { OpRemove } from '../../../contracts/op-remove/op-remove-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
-import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 export const opRemoveApplyLayerBroker = async ({
@@ -30,7 +29,7 @@ export const opRemoveApplyLayerBroker = async ({
   ingredients?: readonly IngredientConfigData[];
   state: HydrationRunState;
 }): Promise<HydrationRunState> => {
-  const configByName = new Map<IngredientName, IngredientConfigData>(
+  const configByName = new Map<string, IngredientConfigData>(
     (ingredients ?? [config]).map((candidate) => [candidate.name, candidate] as const),
   );
 

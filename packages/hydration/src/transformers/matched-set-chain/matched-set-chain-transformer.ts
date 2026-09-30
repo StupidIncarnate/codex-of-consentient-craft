@@ -22,7 +22,6 @@
  * // Returns a Matched<Operation> whose .remove() etc. each build one filter op
  */
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
-import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { matchedSetContract } from '../../contracts/matched-set/matched-set-contract';
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
@@ -46,7 +45,7 @@ export const matchedSetChainTransformer = <I>({
   expect: filterExpect,
 }: {
   ingredientConfig: IngredientConfigData;
-  ingredient: IngredientName;
+  ingredient: string;
   scope?: string;
   where: Record<string, unknown>;
   expect?: FilterExpect;
