@@ -31,7 +31,7 @@
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import { fieldNameContract, savedRecordNameContract } from '@dungeonmaster/hydration/contracts';
+import { fieldNameContract } from '@dungeonmaster/hydration/contracts';
 import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
 
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
@@ -43,7 +43,7 @@ import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/rec
 
 const { recipe } = recipesHydrationCreateBroker();
 
-const QUEST_SAVED_NAME = savedRecordNameContract.parse('quest');
+const QUEST_SAVED_NAME = 'quest';
 const QUEST_ID_FIELD = fieldNameContract.parse('id');
 const OPERATION_COUNT = 2;
 

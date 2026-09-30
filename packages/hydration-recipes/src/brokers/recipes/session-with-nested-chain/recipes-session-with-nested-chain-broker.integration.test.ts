@@ -1,6 +1,5 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { subagentQueryRouteBroker } from '../../subagent/query-route/subagent-query-route-broker';
@@ -18,8 +17,8 @@ type SubagentRecord = ReturnType<typeof SubagentRecordStub>;
 
 const { run } = dmRegistryBroker;
 
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
-const NESTED_NAME = SavedRecordNameStub({ value: 'nested' });
+const GUILD_NAME = 'guild';
+const NESTED_NAME = 'nested';
 
 describe('recipesSessionWithNestedChainBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {

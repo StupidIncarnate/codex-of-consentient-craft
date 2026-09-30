@@ -1,5 +1,4 @@
 import { getEnv, setEnv } from '#gateway/node/process';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -12,10 +11,10 @@ type Quest = ReturnType<typeof QuestStub>;
 
 const DUNGEONMASTER_HOME_ENV_VAR = 'DUNGEONMASTER_HOME';
 const UNUSED_HOME = '/tmp/recipes-seed-run-broker-unused';
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
-const QUEST1_NAME = SavedRecordNameStub({ value: 'quest1' });
-const QUEST2_NAME = SavedRecordNameStub({ value: 'quest2' });
-const QUEST3_NAME = SavedRecordNameStub({ value: 'quest3' });
+const GUILD_NAME = 'guild';
+const QUEST1_NAME = 'quest1';
+const QUEST2_NAME = 'quest2';
+const QUEST3_NAME = 'quest3';
 
 describe('recipesSeedRunBroker', () => {
   describe('an unknown recipe', () => {

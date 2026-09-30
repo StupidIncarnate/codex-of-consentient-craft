@@ -15,14 +15,13 @@
 import type { FieldName } from '../../contracts/field-name/field-name-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import type { SavedRef } from '../../contracts/saved-ref/saved-ref-contract';
-import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 
 export const savedRefResolveTransformer = ({
   ref,
   saved,
 }: {
   ref: SavedRef;
-  saved: Map<SavedRecordName, unknown>;
+  saved: Map<string, unknown>;
 }): FieldValues[FieldName] => {
   const record = saved.get(ref.name);
 

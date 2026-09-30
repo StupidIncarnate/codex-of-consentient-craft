@@ -27,7 +27,6 @@ import { matchedSetContract } from '../../contracts/matched-set/matched-set-cont
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
 import type { Op } from '../../contracts/ingredient-handle/ingredient-handle-contract';
 import type { IngredientConfigData } from '../../contracts/ingredient-config/ingredient-config-contract';
-import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import { matchedRefTransformer } from '../matched-ref/matched-ref-transformer';
 import { opSetTransformer } from '../op-set/op-set-transformer';
@@ -111,7 +110,7 @@ export const matchedSetChainTransformer = <I>({
         opFilterTransformer({
           ...filterArgs,
           ops: [
-            opSaveRecordTransformer({ ref: matchedRef, name: savedRecordNameContract.parse(name) }),
+            opSaveRecordTransformer({ ref: matchedRef, name: name }),
           ],
         }),
       ] as unknown as Op,

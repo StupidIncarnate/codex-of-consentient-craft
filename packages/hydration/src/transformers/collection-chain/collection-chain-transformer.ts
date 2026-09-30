@@ -50,7 +50,6 @@ import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-c
 import { rowIndexContract } from '../../contracts/row-index/row-index-contract';
 import { callIndexContract } from '../../contracts/call-index/call-index-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
-import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import { rowRefTransformer } from '../row-ref/row-ref-transformer';
 import { opCreateTransformer } from '../op-create/op-create-transformer';
@@ -163,7 +162,7 @@ export const collectionChainTransformer = <
           ) as unknown as Op,
         saveRecordAs: ({ name }: { name: string }): Op =>
           refs.map((ref) =>
-            opSaveRecordTransformer({ ref, name: savedRecordNameContract.parse(name) }),
+            opSaveRecordTransformer({ ref, name: name }),
           ) as unknown as Op,
         remove: (): Op => refs.map((ref) => opRemoveTransformer({ ref })) as unknown as Op,
         ...Object.fromEntries(extraEntries),

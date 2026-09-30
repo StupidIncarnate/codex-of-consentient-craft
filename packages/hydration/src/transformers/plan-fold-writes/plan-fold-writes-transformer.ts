@@ -28,7 +28,6 @@ import { opCreateContract } from '../../contracts/op-create/op-create-contract';
 import { opSetContract } from '../../contracts/op-set/op-set-contract';
 import type { OpSet } from '../../contracts/op-set/op-set-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
-import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { isSavedRefGuard } from '../../guards/is-saved-ref/is-saved-ref-guard';
 import { savedRefContract } from '../../contracts/saved-ref/saved-ref-contract';
@@ -40,8 +39,8 @@ export const planFoldWritesTransformer = ({ plan }: { plan: HydrationPlan }): Hy
   // this walk crosses, every name a `saveRecord` had already produced by that point — the
   // membership test a fold needs, with no numeric position to compare.
   const walkStack: HydrationOp[] = [...plan.ops].reverse();
-  const savedSoFar = new Set<SavedRecordName>();
-  const savedBeforeRef = new Map<string, ReadonlySet<SavedRecordName>>();
+  const savedSoFar = new Set<string>();
+  const savedBeforeRef = new Map<string, ReadonlySet<string>>();
 
   while (walkStack.length > 0) {
     const op = walkStack.pop();

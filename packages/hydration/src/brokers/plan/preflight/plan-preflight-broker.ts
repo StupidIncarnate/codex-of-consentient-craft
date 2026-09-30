@@ -28,7 +28,6 @@ import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
-import type { SavedRecordName } from '../../../contracts/saved-record-name/saved-record-name-contract';
 import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-unavailable/hydration-route-unavailable-error';
 import { HydrationSavedFieldMissingError } from '../../../errors/hydration-saved-field-missing/hydration-saved-field-missing-error';
 import { HydrationSavedRecordMissingError } from '../../../errors/hydration-saved-record-missing/hydration-saved-record-missing-error';
@@ -90,8 +89,8 @@ export const planPreflightBroker = ({
   // only ever runs once the name it depends on is already known, so the two stay in sync by
   // construction.
   const availableSavedRecordNames = planSavedNamesTransformer({ plan });
-  const savedSoFar = new Set<SavedRecordName>();
-  const savedRecordConfigs = new Map<SavedRecordName, IngredientConfigData>();
+  const savedSoFar = new Set<string>();
+  const savedRecordConfigs = new Map<string, IngredientConfigData>();
   const savedRefCheckStack: HydrationOp[] = [...plan.ops].reverse();
   for (let op = savedRefCheckStack.pop(); op !== undefined; op = savedRefCheckStack.pop()) {
     const candidateValues =

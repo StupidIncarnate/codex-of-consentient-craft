@@ -2,7 +2,6 @@ import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { liveQuestTargetHarness } from '../../../../test/harnesses/live-quest-target/live-quest-target.harness';
@@ -14,10 +13,10 @@ type Quest = ReturnType<typeof QuestStub>;
 
 const { run } = dmRegistryBroker;
 
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
-const QUEST1_NAME = SavedRecordNameStub({ value: 'quest1' });
-const QUEST2_NAME = SavedRecordNameStub({ value: 'quest2' });
-const QUEST3_NAME = SavedRecordNameStub({ value: 'quest3' });
+const GUILD_NAME = 'guild';
+const QUEST1_NAME = 'quest1';
+const QUEST2_NAME = 'quest2';
+const QUEST3_NAME = 'quest3';
 
 describe('recipesGuildMidExecutionBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {

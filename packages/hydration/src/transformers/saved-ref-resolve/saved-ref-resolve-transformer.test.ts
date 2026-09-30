@@ -1,11 +1,10 @@
 import { savedRefResolveTransformer } from './saved-ref-resolve-transformer';
 import { SavedRefStub } from '../../contracts/saved-ref/saved-ref.stub';
-import { SavedRecordNameStub } from '../../contracts/saved-record-name/saved-record-name.stub';
 
 describe('savedRefResolveTransformer', () => {
   describe('a ref naming a field', () => {
     it('VALID: {ref: {name: "origin", field: "sessionId"}, saved: {origin: {sessionId: "s1"}}} => returns "s1"', () => {
-      const savedName = SavedRecordNameStub({ value: 'origin' });
+      const savedName = 'origin';
       const ref = SavedRefStub({ name: 'origin', field: 'sessionId' });
 
       const result = savedRefResolveTransformer({
@@ -19,7 +18,7 @@ describe('savedRefResolveTransformer', () => {
 
   describe('a ref naming no field', () => {
     it('VALID: {ref: {name: "origin"}, saved: {origin: whole record}} => returns the whole record', () => {
-      const savedName = SavedRecordNameStub({ value: 'origin' });
+      const savedName = 'origin';
       const ref = SavedRefStub({ name: 'origin' });
 
       const result = savedRefResolveTransformer({

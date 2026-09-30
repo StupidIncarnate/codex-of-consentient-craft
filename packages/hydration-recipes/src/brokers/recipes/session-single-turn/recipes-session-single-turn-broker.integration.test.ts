@@ -1,5 +1,4 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
@@ -13,8 +12,8 @@ type SessionRecord = ReturnType<typeof SessionRecordStub>;
 
 const { run } = dmRegistryBroker;
 
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
-const SESSION_NAME = SavedRecordNameStub({ value: 'session' });
+const GUILD_NAME = 'guild';
+const SESSION_NAME = 'session';
 
 describe('recipesSessionSingleTurnBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {

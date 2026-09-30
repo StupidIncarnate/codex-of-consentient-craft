@@ -9,6 +9,7 @@
  */
 import type { OpSaveRecord } from '../../../contracts/op-save-record/op-save-record-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
+import { hydrationRunStateContract } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 export const opSaveRecordApplyLayerBroker = ({
   op,
@@ -17,6 +18,6 @@ export const opSaveRecordApplyLayerBroker = ({
   op: OpSaveRecord;
   state: HydrationRunState;
 }): HydrationRunState => {
-  state.saved.set(op.name, state.records.get(op.ref));
+  state.saved.set(hydrationRunStateContract.shape.saved.parse(hydrationRunStateContract.shape.saved.parse(hydrationRunStateContract.shape.saved.parse(op.name))), state.records.get(op.ref));
   return state;
 };

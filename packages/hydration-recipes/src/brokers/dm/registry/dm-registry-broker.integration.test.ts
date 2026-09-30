@@ -1,5 +1,4 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { guildQueryRouteBroker } from '../../guild/query-route/guild-query-route-broker';
@@ -15,9 +14,9 @@ type SessionRecord = ReturnType<typeof SessionRecordStub>;
 
 const { run } = dmRegistryBroker;
 
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
-const SESSION_NAME = SavedRecordNameStub({ value: 'session' });
-const NESTED_NAME = SavedRecordNameStub({ value: 'nested' });
+const GUILD_NAME = 'guild';
+const SESSION_NAME = 'session';
+const NESTED_NAME = 'nested';
 
 // DEF-78: every recipe's own `add()` starts its own `defaults(index)` at index 0, so seeding two
 // guild recipes (or two session recipes) into ONE target used to mint the identical literal path

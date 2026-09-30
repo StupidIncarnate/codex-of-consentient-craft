@@ -1,5 +1,4 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
@@ -9,7 +8,7 @@ type Guild = ReturnType<typeof GuildStub>;
 
 const { run } = dmRegistryBroker;
 
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
+const GUILD_NAME = 'guild';
 
 describe('recipesGuildEmptyBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {

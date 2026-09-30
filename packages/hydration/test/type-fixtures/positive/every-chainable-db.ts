@@ -19,7 +19,6 @@ import {
   postFieldsContract,
   commentIngredient,
 } from '../sql-target';
-import { SavedRecordNameStub } from '../../../src/contracts/saved-record-name/saved-record-name.stub';
 import { FieldNameStub } from '../../../src/contracts/field-name/field-name.stub';
 
 const blog = entryChainTransformer({
@@ -56,7 +55,7 @@ export const everyChainableDb = blog.users.add(2, (u, all) => [
   u[1].posts.add(1, (p) => [
     p[0].set({
       authorId: fromSavedRefTransformer({
-        name: SavedRecordNameStub({ value: 'author' }),
+        name: 'author',
         field: FieldNameStub({ value: 'id' }),
       }),
     }),

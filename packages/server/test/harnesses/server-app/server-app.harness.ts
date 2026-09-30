@@ -26,7 +26,6 @@ import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { z } from '#gateway/npm/zod';
 
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { Base64ImageData, FileName, Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { fileNameContract, pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
@@ -50,8 +49,8 @@ const { recipe } = recipesHydrationCreateBroker();
 // only as `dmRegistryBroker`, a `brokers/`-suffixed export, and has no `responders` subpath. A
 // file under `test/harnesses/` is not classified into any architecture folder type, so it is the
 // only place in this package that can import a broker on the recipe framework's behalf.
-const QUEST_SAVE_NAME = SavedRecordNameStub({ value: 'quest' });
-const GUILD_SAVE_NAME = SavedRecordNameStub({ value: 'guild' });
+const QUEST_SAVE_NAME = 'quest';
+const GUILD_SAVE_NAME = 'guild';
 
 // The directory a seeded symlink escapes INTO. Deliberately not `locationsStatics.quest.*`: the
 // whole point of the fixture is that this name is not one the confinement check recognises.

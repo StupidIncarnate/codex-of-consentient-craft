@@ -10,14 +10,13 @@
  */
 import { savedRefContract } from '../../contracts/saved-ref/saved-ref-contract';
 import type { SavedRef } from '../../contracts/saved-ref/saved-ref-contract';
-import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 import type { FieldName } from '../../contracts/field-name/field-name-contract';
 
 export const fromSavedRefTransformer = ({
   name,
   field,
 }: {
-  name: SavedRecordName;
+  name: string;
   field?: FieldName;
 }): SavedRef =>
   savedRefContract.parse({

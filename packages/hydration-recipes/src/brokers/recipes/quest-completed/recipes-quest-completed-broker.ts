@@ -42,7 +42,7 @@
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import { fieldNameContract, savedRecordNameContract } from '@dungeonmaster/hydration/contracts';
+import { fieldNameContract } from '@dungeonmaster/hydration/contracts';
 import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
 
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
@@ -57,8 +57,8 @@ const { recipe } = recipesHydrationCreateBroker();
 const SEEDED_WORK_ITEM_CREATED_AT = workItemAttachArgsContract.shape.createdAt.parse(
   '2024-01-01T00:00:00.000Z',
 );
-const CODEWEAVER_OPERATION_SAVED_NAME = savedRecordNameContract.parse('codeweaverOperation');
-const WARD_OPERATION_SAVED_NAME = savedRecordNameContract.parse('wardOperation');
+const CODEWEAVER_OPERATION_SAVED_NAME = 'codeweaverOperation';
+const WARD_OPERATION_SAVED_NAME = 'wardOperation';
 const OPERATION_ID_FIELD = fieldNameContract.parse('id');
 const OPERATION_COUNT = 2;
 

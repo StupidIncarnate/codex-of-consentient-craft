@@ -15,7 +15,6 @@
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import { savedRefContract } from '../../contracts/saved-ref/saved-ref-contract';
-import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { isSavedRefGuard } from '../../guards/is-saved-ref/is-saved-ref-guard';
 import { savedRefResolveTransformer } from '../saved-ref-resolve/saved-ref-resolve-transformer';
 
@@ -24,7 +23,7 @@ export const fieldValuesResolveTransformer = ({
   saved,
 }: {
   values: FieldValues;
-  saved: Map<SavedRecordName, unknown>;
+  saved: Map<string, unknown>;
 }): FieldValues => {
   const resolved: Record<string, unknown> = {};
 

@@ -8,7 +8,6 @@ import {
   operationIngredient,
 } from '../../../test/type-fixtures/dm-target';
 import { fromSavedRefTransformer } from '../from-saved-ref/from-saved-ref-transformer';
-import { SavedRecordNameStub } from '../../contracts/saved-record-name/saved-record-name.stub';
 import { FieldNameStub } from '../../contracts/field-name/field-name.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
 
@@ -72,7 +71,7 @@ describe('entryChainTransformer', () => {
       g[0].quests.add(3, (q, all) => [
         all.set({
           userRequest: fromSavedRefTransformer({
-            name: SavedRecordNameStub({ value: 'origin' }),
+            name: 'origin',
             field: FieldNameStub({ value: 'sessionId' }),
           }),
         }),

@@ -9,18 +9,17 @@
  */
 import type { HydrationPlan } from '../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
-import type { SavedRecordName } from '../../contracts/saved-record-name/saved-record-name-contract';
 
 export const planSavedNamesTransformer = ({
   plan,
 }: {
   plan: HydrationPlan;
-}): readonly SavedRecordName[] => {
+}): readonly string[] => {
   // Depth-first, declaration order: a LIFO stack seeded in reverse so `.pop()` yields the plan's
   // own left-to-right order, walking into a `filter`'s nested ops the moment it is popped — a
   // `saveRecordAs` nested inside a filter is still part of the tree this walk has to cross.
   const stack: HydrationOp[] = [...plan.ops].reverse();
-  const names: SavedRecordName[] = [];
+  const names: string[] = [];
 
   while (stack.length > 0) {
     const op = stack.pop();

@@ -36,7 +36,6 @@ import type {
   IngredientConfigData,
 } from '../../contracts/ingredient-config/ingredient-config-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
-import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import { opSetTransformer } from '../op-set/op-set-transformer';
 import { opSetRawTransformer } from '../op-set-raw/op-set-raw-transformer';
@@ -115,7 +114,7 @@ export const rowHandleChainTransformer = <
       [opSetRawTransformer({ ref, values: fieldValuesContract.parse(values) })] as unknown as Op,
     saveRecordAs: ({ name }: { name: string }): Op =>
       [
-        opSaveRecordTransformer({ ref, name: savedRecordNameContract.parse(name) }),
+        opSaveRecordTransformer({ ref, name: name }),
       ] as unknown as Op,
     remove: (): Op => [opRemoveTransformer({ ref })] as unknown as Op,
     ...Object.fromEntries(extraEntries),

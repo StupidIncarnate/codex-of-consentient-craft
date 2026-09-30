@@ -1,4 +1,3 @@
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -9,10 +8,10 @@ type Guild = ReturnType<typeof GuildStub>;
 type Quest = ReturnType<typeof QuestStub>;
 
 const UNUSED_HOME = '/tmp/recipes-flow-unused';
-const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
-const QUEST1_NAME = SavedRecordNameStub({ value: 'quest1' });
-const QUEST2_NAME = SavedRecordNameStub({ value: 'quest2' });
-const QUEST3_NAME = SavedRecordNameStub({ value: 'quest3' });
+const GUILD_NAME = 'guild';
+const QUEST1_NAME = 'quest1';
+const QUEST2_NAME = 'quest2';
+const QUEST3_NAME = 'quest3';
 
 describe('RecipesFlow', () => {
   describe('listing()', () => {

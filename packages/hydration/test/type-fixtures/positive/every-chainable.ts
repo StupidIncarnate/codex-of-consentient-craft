@@ -20,7 +20,6 @@ import {
   sessionIngredient,
   nestedChainArgsContract,
 } from '../dm-target';
-import { SavedRecordNameStub } from '../../../src/contracts/saved-record-name/saved-record-name.stub';
 import { FieldNameStub } from '../../../src/contracts/field-name/field-name.stub';
 
 const dm = entryChainTransformer({
@@ -47,7 +46,7 @@ export const everyChainable = dm.guilds.add(1, (g) => [
     all.set({
       // fromSaved — a cross-link to a row the tree cannot reach directly
       userRequest: fromSavedRefTransformer({
-        name: SavedRecordNameStub({ value: 'origin' }),
+        name: 'origin',
         field: FieldNameStub({ value: 'sessionId' }),
       }),
     }),
