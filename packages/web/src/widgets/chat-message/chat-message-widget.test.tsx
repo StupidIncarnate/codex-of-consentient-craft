@@ -10,7 +10,6 @@ import {
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import { ChatMessageWidget } from './chat-message-widget';
 import { ChatMessageWidgetProxy } from './chat-message-widget.proxy';
 
@@ -172,7 +171,7 @@ describe('ChatMessageWidget', () => {
           cacheReadInputTokens: 0,
         },
       });
-      const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k context' });
+      const tokenBadgeLabel = '2.1k context';
 
       mantineRenderMiddleware({
         ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,
@@ -204,7 +203,7 @@ describe('ChatMessageWidget', () => {
           cacheReadInputTokens: 0,
         },
       });
-      const tokenBadgeLabel = FormattedTokenLabelStub({ value: '2.1k' });
+      const tokenBadgeLabel = '2.1k';
 
       mantineRenderMiddleware({
         ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,

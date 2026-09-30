@@ -10,8 +10,6 @@
  */
 
 import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
-import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
-import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import type { MergedChatItem } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { tokenAnnotationContract } from '../../contracts/token-annotation/token-annotation-contract';
 import type { TokenAnnotation } from '../../contracts/token-annotation/token-annotation-contract';
@@ -66,7 +64,7 @@ export const computeTokenAnnotationsTransformer = ({
         }
       }
 
-      let resultTokenBadgeLabel: FormattedTokenLabel | null = null;
+      let resultTokenBadgeLabel: string | null = null;
 
       if (
         toolResult !== null &&
@@ -78,9 +76,7 @@ export const computeTokenAnnotationsTransformer = ({
         resultTokenBadgeLabel =
           Number(estimated) === 0
             ? null
-            : formattedTokenLabelContract.parse(
-                `~${formatContextTokensTransformer({ count: estimated })} est`,
-              );
+            : `~${formatContextTokensTransformer({ count: estimated })} est`;
       }
 
       return tokenAnnotationContract.parse({
@@ -110,9 +106,7 @@ export const computeTokenAnnotationsTransformer = ({
       const tokenBadgeLabel =
         contextDelta === null || Number(contextDelta) <= 0
           ? null
-          : formattedTokenLabelContract.parse(
-              `+${formatContextTokensTransformer({ count: Number(contextDelta) })} context`,
-            );
+          : `+${formatContextTokensTransformer({ count: Number(contextDelta) })} context`;
 
       if (source === 'subagent') {
         prevSubagentContext = totalContext;
@@ -141,9 +135,7 @@ export const computeTokenAnnotationsTransformer = ({
       const tokenBadgeLabel =
         Number(estimated) === 0
           ? null
-          : formattedTokenLabelContract.parse(
-              `~${formatContextTokensTransformer({ count: estimated })} est`,
-            );
+          : `~${formatContextTokensTransformer({ count: estimated })} est`;
 
       return tokenAnnotationContract.parse({
         tokenBadgeLabel,

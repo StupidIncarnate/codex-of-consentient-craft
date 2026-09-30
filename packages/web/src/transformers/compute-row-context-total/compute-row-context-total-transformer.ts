@@ -7,7 +7,6 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { computeEntryContextTransformer } from '../compute-entry-context/compute-entry-context-transformer';
 import { formatContextTokensTransformer } from '../format-context-tokens/format-context-tokens-transformer';
 
@@ -15,7 +14,7 @@ export const computeRowContextTotalTransformer = ({
   entries,
 }: {
   entries: ChatEntry[];
-}): FormattedTokenLabel | null => {
+}): string | null => {
   for (let i = entries.length - 1; i >= 0; i--) {
     const entry = entries[i];
     if (entry === undefined) continue;

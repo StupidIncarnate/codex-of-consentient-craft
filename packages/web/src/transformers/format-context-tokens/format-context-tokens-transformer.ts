@@ -6,15 +6,13 @@
  * // Returns '29.4k' as FormattedTokenLabel
  */
 
-import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
-import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { tokenFormatConfigStatics } from '../../statics/token-format-config/token-format-config-statics';
 
 export const formatContextTokensTransformer = ({
   count,
 }: {
   count: number;
-}): FormattedTokenLabel => {
+}): string => {
   const raw =
     count >= tokenFormatConfigStatics.abbreviationThreshold;
 
@@ -22,8 +20,8 @@ export const formatContextTokensTransformer = ({
     const abbreviated =
       count / tokenFormatConfigStatics.abbreviationDivisor;
 
-    return formattedTokenLabelContract.parse(`${abbreviated.toFixed(1)}k`);
+    return `${abbreviated.toFixed(1)}k`;
   }
 
-  return formattedTokenLabelContract.parse(String(count));
+  return String(count);
 };

@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
@@ -334,7 +333,7 @@ describe('ToolRowWidget', () => {
         <ToolRowWidget
           toolUse={toolUse as ToolUseEntry}
           toolResult={toolResult as ToolResultEntry}
-          resultTokenBadgeLabel={FormattedTokenLabelStub({ value: '~1.2k est' })}
+          resultTokenBadgeLabel={'~1.2k est'}
         />,
       );
 
@@ -947,7 +946,7 @@ describe('ToolRowWidget', () => {
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
             toolResult={toolResult as ToolResultEntry}
-            resultTokenBadgeLabel={FormattedTokenLabelStub({ value: '~808 est' })}
+            resultTokenBadgeLabel={'~808 est'}
           />
         ),
       });
@@ -969,7 +968,7 @@ describe('ToolRowWidget', () => {
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
             toolResult={toolResult as ToolResultEntry}
-            resultTokenBadgeLabel={FormattedTokenLabelStub({ value: '~808 est' })}
+            resultTokenBadgeLabel={'~808 est'}
           />
         ),
       });

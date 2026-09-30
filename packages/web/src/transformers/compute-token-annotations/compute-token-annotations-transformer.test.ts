@@ -13,7 +13,6 @@ import {
   MergedToolPairItemStub,
 } from '../../contracts/merged-chat-item/merged-chat-item.stub';
 import { TokenAnnotationStub } from '../../contracts/token-annotation/token-annotation.stub';
-import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 
 describe('computeTokenAnnotationsTransformer', () => {
@@ -96,7 +95,7 @@ describe('computeTokenAnnotationsTransformer', () => {
           source: 'session',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '+700 context' }),
+          tokenBadgeLabel: '+700 context',
           cumulativeContext: 1200,
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
@@ -196,7 +195,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
+          resultTokenBadgeLabel: '~100 est',
           cumulativeContext: null,
           contextDelta: null,
           source: 'session',
@@ -228,7 +227,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
+          resultTokenBadgeLabel: '~100 est',
           cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
@@ -265,7 +264,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
+          tokenBadgeLabel: '~100 est',
         }),
       ]);
     });
@@ -337,7 +336,7 @@ describe('computeTokenAnnotationsTransformer', () => {
           source: 'subagent',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '+700 context' }),
+          tokenBadgeLabel: '+700 context',
           cumulativeContext: 1200,
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
@@ -592,7 +591,7 @@ describe('computeTokenAnnotationsTransformer', () => {
           source: 'session',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '+100 context' }),
+          tokenBadgeLabel: '+100 context',
           cumulativeContext: 1300,
           contextDelta: ContextTokenDeltaStub({ value: 100 }),
           source: 'session',

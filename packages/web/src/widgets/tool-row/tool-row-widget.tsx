@@ -23,7 +23,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
-import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { offscreenPlaceholderStatics } from '../../statics/offscreen-placeholder/offscreen-placeholder-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
@@ -46,7 +45,7 @@ export interface ToolRowWidgetProps {
   // one assistant turn the delta is shared and can't be split per-tool. The result
   // estimate is per-tool and accurate enough for relative comparison.
   // See packages/web/CLAUDE.md - "Per-tool context numbers".
-  resultTokenBadgeLabel?: FormattedTokenLabel;
+  resultTokenBadgeLabel?: string;
   // Holds the row open for as long as it is true, not merely on the first render: the caller
   // raises it while this is the call in flight and drops it when the result lands.
   defaultExpanded?: boolean;

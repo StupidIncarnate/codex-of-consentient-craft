@@ -12,7 +12,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { markdownSourceContract } from '../../contracts/markdown-source/markdown-source-contract';
 import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
@@ -34,8 +33,8 @@ export interface ChatMessageWidgetProps {
   entry: ChatEntry;
   toolResult?: ToolResultEntry | null;
   isLoading?: boolean;
-  tokenBadgeLabel?: FormattedTokenLabel;
-  resultTokenBadgeLabel?: FormattedTokenLabel;
+  tokenBadgeLabel?: string;
+  resultTokenBadgeLabel?: string;
   roleLabel?: ExecutionRole;
   // Raw program output from a COMMAND work item, which is not agent-authored markdown and must not
   // be parsed as any. npm's `> pkg build` script echo renders as a BLOCKQUOTE otherwise, and a
