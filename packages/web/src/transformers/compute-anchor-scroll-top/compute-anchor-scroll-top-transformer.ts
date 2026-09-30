@@ -15,8 +15,6 @@
  */
 
 import type { ScrollOffsetPx } from '../../contracts/scroll-offset-px/scroll-offset-px-contract';
-import { scrollPositionPxContract } from '../../contracts/scroll-position-px/scroll-position-px-contract';
-import type { ScrollPositionPx } from '../../contracts/scroll-position-px/scroll-position-px-contract';
 
 export const computeAnchorScrollTopTransformer = ({
   currentScrollTop,
@@ -24,13 +22,13 @@ export const computeAnchorScrollTopTransformer = ({
   heldOffset,
   maxScrollTop,
 }: {
-  currentScrollTop: ScrollPositionPx;
+  currentScrollTop: number;
   anchorOffset: ScrollOffsetPx;
   heldOffset: ScrollOffsetPx;
-  maxScrollTop: ScrollPositionPx;
-}): ScrollPositionPx => {
+  maxScrollTop: number;
+}): number => {
   const target = Number(currentScrollTop) + (Number(anchorOffset) - Number(heldOffset));
   const ceiling = Math.max(Number(maxScrollTop), 0);
 
-  return scrollPositionPxContract.parse(Math.min(Math.max(target, 0), ceiling));
+  return Math.min(Math.max(target, 0), ceiling);
 };

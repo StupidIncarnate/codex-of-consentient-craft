@@ -6,7 +6,6 @@
  * // Returns { isCapturing: true } — user scrolled upward away from bottom
  */
 
-import type { ScrollPositionPx } from '../../contracts/scroll-position-px/scroll-position-px-contract';
 import type { ScrollThresholdPx } from '../../contracts/scroll-threshold-px/scroll-threshold-px-contract';
 
 export const computeScrollCaptureTransformer = ({
@@ -17,10 +16,10 @@ export const computeScrollCaptureTransformer = ({
   threshold,
   wasCapturing,
 }: {
-  currentTop: ScrollPositionPx;
-  lastTop: ScrollPositionPx;
-  scrollHeight: ScrollPositionPx;
-  clientHeight: ScrollPositionPx;
+  currentTop: number;
+  lastTop: number;
+  scrollHeight: number;
+  clientHeight: number;
   threshold: ScrollThresholdPx;
   wasCapturing: boolean;
 }): { isCapturing: boolean } => {
