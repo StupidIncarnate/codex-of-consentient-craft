@@ -27,6 +27,6 @@ export const folderConfigContract = z
     middleware: packageNameArrayContract,
     startup: packageNameArrayContract,
   })
-  .brand<'AllowedExternalImports'>();
+  .brand<'FolderConfig'>();
 
 export type AllowedExternalImports = z.infer<typeof folderConfigContract>;
