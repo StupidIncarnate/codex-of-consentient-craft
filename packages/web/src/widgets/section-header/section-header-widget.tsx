@@ -9,11 +9,10 @@
 import { Group, Text } from '#gateway/npm/mantine__core';
 
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
-import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface SectionHeaderWidgetProps {
-  label: SectionLabel;
+  label: string;
   count?: SectionCount;
 }
 

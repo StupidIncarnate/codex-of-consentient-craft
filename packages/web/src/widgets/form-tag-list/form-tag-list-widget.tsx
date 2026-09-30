@@ -8,7 +8,6 @@
 
 import { Group, Text } from '#gateway/npm/mantine__core';
 
-import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import type { TagItem } from '../../contracts/tag-item/tag-item-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -17,7 +16,7 @@ const BORDER_RADIUS = 2;
 const TAG_PADDING = '0 4px';
 
 export interface FormTagListWidgetProps {
-  label: SectionLabel;
+  label: string;
   items: TagItem[];
 }
 
