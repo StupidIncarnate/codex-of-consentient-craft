@@ -4,7 +4,6 @@ import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flo
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
-import { ContractCountStub } from '../../contracts/contract-count/contract-count.stub';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
@@ -19,7 +18,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -39,7 +38,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'branch-node' }),
         label: 'Branch',
         nodeType: 'decision',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -59,7 +58,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'fetch-node' }),
         label: 'Fetch Data',
         nodeType: 'action',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -77,7 +76,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'state-node' }),
         label: 'State Node',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -95,7 +94,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'end-node' }),
         label: 'End',
         nodeType: 'terminal',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -117,7 +116,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 3 }),
+        contractCount: 3,
       });
 
       mantineRenderMiddleware({
@@ -133,7 +132,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -264,7 +263,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -280,7 +279,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -299,7 +298,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
         questId: 'quest-a',
         flowId: 'login-flow',
       });
@@ -318,7 +317,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -335,7 +334,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
         questId: 'quest-a',
       });
 
@@ -354,7 +353,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
         commentCount: CommentCountStub({ value: 2 }),
       });
 
@@ -371,7 +370,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 3 }),
+        contractCount: 3,
         commentCount: CommentCountStub({ value: 2 }),
       });
 
@@ -389,7 +388,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
         commentCount: CommentCountStub({ value: 0 }),
       });
 
@@ -407,7 +406,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
         commentCount: CommentCountStub({ value: 2 }),
       });
 
@@ -426,7 +425,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        contractCount: ContractCountStub({ value: 0 }),
+        contractCount: 0,
         commentCount: CommentCountStub({ value: 2 }),
         questId: 'quest-a',
         flowId: 'login-flow',

@@ -26,7 +26,6 @@ import { ReactFlowWidget } from '../react-flow/react-flow-widget';
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentCountContract } from '../../contracts/comment-count/comment-count-contract';
 import type { CommentCount } from '../../contracts/comment-count/comment-count-contract';
-import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
@@ -305,9 +304,7 @@ export const ReactFlowDiagramWidget = ({
           }),
           // Badge counts the contracts anchored to this node — the same nodeId match the detail
           // panel uses. Contract arrays are small, so a per-node filter is fine.
-          contractCount: contractCountContract.parse(
-            contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
-          ),
+          contractCount: contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
           // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong
           // to those cards' own badges, so the badge here always agrees with the panel's list.
           commentCount: nodeCommentCounts.get(n.id) ?? zeroCommentCount,

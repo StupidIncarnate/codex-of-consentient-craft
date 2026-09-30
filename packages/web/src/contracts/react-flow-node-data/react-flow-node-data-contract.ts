@@ -11,7 +11,6 @@ import { z } from '#gateway/npm/zod';
 import { flowNodeTypeContract, questContract, flowNodeContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
-import { contractCountContract } from '../contract-count/contract-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const reactFlowNodeDataContract = z.object({
@@ -25,7 +24,7 @@ export const reactFlowNodeDataContract = z.object({
   // carries the kind resolved against the quest's packagesAffected, because nothing may colour off
   // a package name.
   packages: z.array(reactFlowPackageChipContract).min(1),
-  contractCount: contractCountContract,
+  contractCount: z.number().int().min(0).brand<'ReactFlowNodeDataContractCount'>(),
   // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below:
   // COMMENT_COUNT_BADGE reports the existing comment record and renders in every quest status,
   // including approved, complete and the read-only execution panel, while questId/flowId gate only
