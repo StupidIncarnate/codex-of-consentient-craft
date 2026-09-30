@@ -3,16 +3,16 @@ import { WorkItemIdStub } from './work-item-id.stub';
 
 describe('workItemIdContract', () => {
   describe('valid work item ids', () => {
-    it('VALID: {value: "work-item-0"} => parses successfully', () => {
-      const result = WorkItemIdStub({ value: 'work-item-0' });
+    it('VALID: {value: "f47ac10b-58cc-4372-a567-0e02b2c3d479"} => parses successfully', () => {
+      const result = WorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      expect(workItemIdContract.parse(result)).toBe('work-item-0');
+      expect(workItemIdContract.parse(result)).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
-    it('VALID: {value: "step-abc-123"} => parses successfully', () => {
-      const result = WorkItemIdStub({ value: 'step-abc-123' });
+    it('VALID: {value: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"} => parses successfully', () => {
+      const result = WorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
 
-      expect(workItemIdContract.parse(result)).toBe('step-abc-123');
+      expect(workItemIdContract.parse(result)).toBe('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d');
     });
   });
 
