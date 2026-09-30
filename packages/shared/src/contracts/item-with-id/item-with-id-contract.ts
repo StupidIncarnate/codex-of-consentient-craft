@@ -12,7 +12,7 @@ export const itemWithIdContract = z
   .object({
     id: z.unknown(),
     _delete: z.boolean().optional(),
-  })
+  }).brand<'ItemWithId'>()
   .loose();
 
 export type ItemWithId = z.infer<typeof itemWithIdContract>;

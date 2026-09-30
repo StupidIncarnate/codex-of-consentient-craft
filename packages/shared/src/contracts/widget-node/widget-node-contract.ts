@@ -32,7 +32,7 @@ const widgetNodeFields = z.object({
       },
       { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
     )
-    .brand<'WidgetNodeFieldsFilePath'>(),
+    .brand<'WidgetNodeFilePath'>(),
   bindingsAttached: z.array(z.string().brand<'WidgetNodeBindingsAttached'>()),
 });
 
