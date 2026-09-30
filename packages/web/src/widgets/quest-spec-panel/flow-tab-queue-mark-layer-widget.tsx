@@ -12,7 +12,7 @@
 
 import { IconMessageCircleFilled } from '#gateway/npm/tabler__icons-react';
 
-import type { FlowId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, Flow } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -37,7 +37,7 @@ const MARK_STYLE = {
 
 export interface FlowTabQueueMarkLayerWidgetProps {
   questId: Quest['id'];
-  flowId: FlowId;
+  flowId: Flow['id'];
 }
 
 export const FlowTabQueueMarkLayerWidget = ({

@@ -18,7 +18,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 const planPayloadContract = z
   .object({
@@ -79,7 +79,7 @@ const outcomePayloadContract = z
 const invalidationPayloadContract = z
   .object({
     kind: z.literal('invalidation'),
-    flowId: z.string().min(1).brand<'FlowId'>(),
+    flowId: flowContract.shape.id,
     reason: z
       .string()
       .min(1)

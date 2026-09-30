@@ -9,14 +9,14 @@
 import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '../comment-text/comment-text-contract';
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const questCommentContract = z.object({
   id: questCommentIdContract,
-  flowId: flowIdContract,
+  flowId: flowContract.shape.id,
   // Stays required even when observableId is set, so an observable comment is findable from its
   // parent node — observables render as their own always-visible boxes branching right of the node.
   nodeId: flowNodeContract.shape.id,

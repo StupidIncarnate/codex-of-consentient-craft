@@ -11,7 +11,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract, observableIdContract, outcomeTypeContract, questContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { observableIdContract, outcomeTypeContract, questContract, flowNodeContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
@@ -42,7 +42,7 @@ export const flowObservableNodeDataContract = z.object({
   // comment compose controls are allowed for this quest; their absence is what makes the card
   // render no comment button.
   questId: questContract.shape.id.optional(),
-  flowId: flowIdContract.optional(),
+  flowId: flowContract.shape.id.optional(),
 });
 
 export type FlowObservableNodeData = z.infer<typeof flowObservableNodeDataContract>;

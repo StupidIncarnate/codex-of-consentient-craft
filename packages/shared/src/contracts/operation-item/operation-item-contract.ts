@@ -23,9 +23,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const operationItemContract = z.object({
   id: z.uuid().brand<'OperationItemId'>(),
@@ -39,7 +39,7 @@ export const operationItemContract = z.object({
       'Orchestrator/Chaos-owned items (the plan item and the fixed verify tail) that cannot be deleted via modify-quest',
     ),
   flowIds: z
-    .array(flowIdContract)
+    .array(flowContract.shape.id)
     .default([])
     .describe(
       'The quest flows this item lands on, so a session knows where on the spine it is working. ' +

@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowEdgeIdContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -54,7 +54,7 @@ import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contra
 // contracts cell, belonging to a package that owns a contract by `source` and tags no node
 // anywhere. A non-nullable `flowId` drops the only session those contracts have.
 const questWorkScope = z.object({
-  flowId: flowIdContract.nullable(),
+  flowId: flowContract.shape.id.nullable(),
   packageNames: z.array(packageNameContract).default([]),
   operationItemId: operationItemContract.shape.id,
   operationItemText: operationItemContract.shape.text,
@@ -82,7 +82,7 @@ const questWorkUnit = z.object({
 // render is `questFlowSliceTransformer`'s foundation view — every contract that package owns and
 // which flows it tags nodes in. Without the null that session gets no render at all.
 const questWorkFlow = z.object({
-  flowId: flowIdContract.nullable(),
+  flowId: flowContract.shape.id.nullable(),
   rendered: contentTextContract,
 });
 

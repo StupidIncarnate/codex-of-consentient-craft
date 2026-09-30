@@ -34,17 +34,17 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const questSummaryObservableContract = z.object({
   id: qaChecklistItemContract.shape.id,
-  flowId: flowIdContract,
+  flowId: flowContract.shape.id,
   nodeId: flowNodeContract.shape.id,
   observableId: observableIdContract,
   addedBy: observableOriginContract.describe(

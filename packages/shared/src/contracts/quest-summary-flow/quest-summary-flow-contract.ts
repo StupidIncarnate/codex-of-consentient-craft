@@ -25,12 +25,11 @@
 import { z } from '#gateway/npm/zod';
 
 import { flowContract } from '../flow/flow-contract';
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowTypeContract } from '../flow-type/flow-type-contract';
 import { questSummaryTrackCountsContract } from '../quest-summary-track-counts/quest-summary-track-counts-contract';
 
 export const questSummaryFlowContract = z.object({
-  id: flowIdContract,
+  id: flowContract.shape.id,
   name: flowContract.shape.name,
   flowType: flowTypeContract,
   tracks: z

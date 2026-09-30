@@ -28,16 +28,16 @@ import { z } from '#gateway/npm/zod';
 
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
 import { qaOffMapFamilyContract } from '../qa-off-map-family/qa-off-map-family-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const qaChecklistItemContract = z.object({
   id: z.string().min(1).regex(new RegExp(`^${KEBAB_SEGMENT}:${KEBAB_SEGMENT}:${KEBAB_SEGMENT}$`, 'u')).brand<'QaChecklistItemId'>(),
-  flowId: flowIdContract,
+  flowId: flowContract.shape.id,
   kind: qaChecklistKindContract,
   label: z
     .string()

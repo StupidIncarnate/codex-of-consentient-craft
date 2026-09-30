@@ -31,20 +31,20 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowEdgeContract, flowEdgeIdContract, flowIdContract, flowNodeContract, flowObservableContract, observableIdContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import { flowEdgeContract, flowEdgeIdContract, flowNodeContract, flowObservableContract, observableIdContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('terminal'),
     id: qaChecklistItemContract.shape.id,
-    flowId: flowIdContract,
+    flowId: flowContract.shape.id,
     nodeId: flowNodeContract.shape.id,
     nodeLabel: flowNodeContract.shape.label,
   }),
   z.object({
     kind: z.literal('branch'),
     id: qaChecklistItemContract.shape.id,
-    flowId: flowIdContract,
+    flowId: flowContract.shape.id,
     edgeId: flowEdgeIdContract,
     edgeFrom: flowEdgeContract.shape.from,
     // REQUIRED here although `flowEdgeContract.label` is optional: a branch unit exists only for an
@@ -55,7 +55,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('observable'),
     id: qaChecklistItemContract.shape.id,
-    flowId: flowIdContract,
+    flowId: flowContract.shape.id,
     nodeId: flowNodeContract.shape.id,
     observableId: observableIdContract,
     observableType: flowObservableContract.shape.type,
@@ -69,7 +69,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('off-map'),
     id: qaChecklistItemContract.shape.id,
-    flowId: flowIdContract,
+    flowId: flowContract.shape.id,
     offMapFamily: qaOffMapFamilyContract,
   }),
 ]);

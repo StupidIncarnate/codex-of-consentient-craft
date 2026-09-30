@@ -41,7 +41,6 @@ import { designDecisionIdContract } from '../design-decision-id/design-decision-
 import { flowContract } from '../flow/flow-contract';
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
@@ -149,7 +148,7 @@ const fullFlow = flowContract.extend({
 const deletableFlowContract = z.union([
   fullFlow,
   fullFlow.partial().required({ id: true }),
-  z.object({ id: flowIdContract, _delete: deleteMarker }),
+  z.object({ id: flowContract.shape.id, _delete: deleteMarker }),
 ]);
 
 const fullDesignDecision = designDecisionContract.extend({ _delete: z.boolean().optional() });

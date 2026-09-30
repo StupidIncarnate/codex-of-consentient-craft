@@ -12,12 +12,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '../comment-text/comment-text-contract';
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const commentBatchEntryContract = z.object({
-  flowId: flowIdContract,
+  flowId: flowContract.shape.id,
   // Carried even for an observable comment, so the anchor resolves through its parent node.
   nodeId: flowNodeContract.shape.id,
   observableId: observableIdContract.optional(),

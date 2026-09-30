@@ -112,7 +112,6 @@ export * from './tooling-requirement-id/tooling-requirement-id-contract';
 
 export * from './design-decision-id/design-decision-id-contract';
 
-export * from './flow-id/flow-id-contract';
 
 export * from './flow-recipe-name/flow-recipe-name-contract';
 

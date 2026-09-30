@@ -16,14 +16,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
 import { flowRecipeContract } from '../flow-recipe/flow-recipe-contract';
 import { flowTypeContract } from '../flow-type/flow-type-contract';
 
 export const flowContract = z.object({
-  id: flowIdContract,
+  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'FlowId'>(),
   name: z.string().min(1).brand<'FlowName'>(),
   flowType: flowTypeContract,
   scope: z.string().brand<'FlowScope'>().optional(),

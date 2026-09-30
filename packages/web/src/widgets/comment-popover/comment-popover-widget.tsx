@@ -21,7 +21,7 @@ import {
   IconX,
 } from '#gateway/npm/tabler__icons-react';
 
-import type { FlowId, ObservableId, Quest, FlowNode } from '@dungeonmaster/shared/contracts';
+import type { ObservableId, Quest, FlowNode, Flow } from '@dungeonmaster/shared/contracts';
 import { commentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
@@ -51,7 +51,7 @@ const DELETE_TEST_ID = testIdContract.parse('COMMENT_DELETE_BUTTON');
 
 export interface CommentPopoverWidgetProps {
   questId: Quest['id'];
-  flowId: FlowId;
+  flowId: Flow['id'];
   nodeId: FlowNode['id'];
   observableId?: ObservableId;
 }

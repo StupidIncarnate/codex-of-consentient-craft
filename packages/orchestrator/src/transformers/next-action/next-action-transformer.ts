@@ -60,7 +60,7 @@
  * the minted step's `done` returns to the session that asked for it.
  */
 
-import type { FlowId, Quest, StepName, WorkItem, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, WorkItem, OperationItem, QaChecklistItem, Flow } from '@dungeonmaster/shared/contracts';
 import { stepNameContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -120,7 +120,7 @@ export const nextActionTransformer = ({
     Record<string, { families: Readonly<Record<string, { role: string } | undefined>> } | undefined>
   >;
   request?: { fromWorkItemId: WorkItem['id']; step: StepName; reason: string };
-  invalidatedFlowIds?: readonly FlowId[];
+  invalidatedFlowIds?: readonly Flow['id'][];
   declaredWord?: StepOutcome;
   hitWall?: boolean;
 }): NextAction => {

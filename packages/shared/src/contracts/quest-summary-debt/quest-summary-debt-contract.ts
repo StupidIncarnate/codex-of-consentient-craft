@@ -39,12 +39,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
 import { unitMarkContract } from '../unit-mark/unit-mark-contract';
 import { verificationTrackContract } from '../verification-track/verification-track-contract';
 import { workItemContract } from '../work-item/work-item-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const questSummaryDebtContract = z
   .object({
@@ -54,7 +54,7 @@ export const questSummaryDebtContract = z
       .brand<'QuestSummaryDebtId'>()
       .describe('`<unitId>:<track>` — the unit crossed with the track that has not proven it.'),
     unitId: qaChecklistItemContract.shape.id,
-    flowId: flowIdContract,
+    flowId: flowContract.shape.id,
     kind: qaChecklistKindContract,
     track: verificationTrackContract,
     // Narrowed off `unitMarkContract` rather than re-typed, so a mark added there arrives here as a

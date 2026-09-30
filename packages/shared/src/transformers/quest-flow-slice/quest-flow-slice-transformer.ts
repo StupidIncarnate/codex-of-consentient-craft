@@ -28,7 +28,6 @@
 
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import type { FlowId } from '../../contracts/flow-id/flow-id-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { Quest } from '../../contracts/quest/quest-contract';
 import { questFlowSliceLimitsStatics } from '../../statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
@@ -37,6 +36,7 @@ import { flowGraphToTextTransformer } from '../flow-graph-to-text/flow-graph-to-
 import { questContractPropertiesToTextTransformer } from '../quest-contract-properties-to-text/quest-contract-properties-to-text-transformer';
 import { questContractSourceOwnerTransformer } from '../quest-contract-source-owner/quest-contract-source-owner-transformer';
 import { questPackageEntriesToTextTransformer } from '../quest-package-entries-to-text/quest-package-entries-to-text-transformer';
+import type { Flow } from '../../contracts/flow/flow-contract';
 
 const SYM = textDisplaySymbolsStatics;
 const PROPERTY_START_DEPTH = 1;
@@ -52,7 +52,7 @@ export const questFlowSliceTransformer = ({
   // The flow to render whole. Omitted, the result is the foundation view — contracts plus which
   // flows the package tags nodes in — which is the only useful answer for an item that owns
   // contracts and tags no node anywhere.
-  flowId?: FlowId | undefined;
+  flowId?: Flow['id'] | undefined;
   // The package whose half of the flow is the reader's. Omitted, every node is theirs and every
   // observable renders verbatim — the flowrider / siegemaster / reviewer view.
   packageName?: PackageName | undefined;

@@ -9,14 +9,14 @@
  * renamed or deleted after the item was written, and that drift is exactly what the row should show.
  */
 
-import type { Flow, FlowId } from '@dungeonmaster/shared/contracts';
+import type { Flow } from '@dungeonmaster/shared/contracts';
 
 
 export const operationFlowLabelsTransformer = ({
   flowIds,
   flows,
 }: {
-  flowIds: readonly FlowId[];
+  flowIds: readonly Flow['id'][];
   flows: readonly Flow[];
 }): string[] => {
   const namesById = new Map(flows.map((flow) => [String(flow.id), String(flow.name)]));

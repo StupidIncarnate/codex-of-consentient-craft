@@ -63,12 +63,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { questNoteIdContract } from '../quest-note-id/quest-note-id-contract';
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';
 import { siegeInstanceIdContract } from '../siege-instance-id/siege-instance-id-contract';
 import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
 import { workItemContract } from '../work-item/work-item-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const questNoteContract = z.object({
   id: questNoteIdContract,
@@ -85,7 +85,7 @@ export const questNoteContract = z.object({
         "note records a person's judgment from the browser — nobody's work item. `.nullish()` " +
         'because this contract also parses `quest.json` straight off disk, not only a fresh write.',
     ),
-  flowId: flowIdContract
+  flowId: flowContract.shape.id
     .optional()
     .describe('Present when the note is scoped to one flow. Absent means quest-wide.'),
   unitId: z

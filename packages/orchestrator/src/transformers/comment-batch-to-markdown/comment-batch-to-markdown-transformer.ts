@@ -11,7 +11,7 @@
  * // escaped to '\---', so it cannot forge a block boundary and strand its tail without a context
  * // line. Every other '---' in the text is left byte-identical.
  */
-import type { Flow, FlowId, FlowNode, FlowObservable, ObservableId, QuestComment } from '@dungeonmaster/shared/contracts';
+import type { Flow, FlowNode, FlowObservable, ObservableId, QuestComment } from '@dungeonmaster/shared/contracts';
 
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
@@ -34,10 +34,10 @@ export const commentBatchToMarkdownTransformer = ({
   comments: QuestComment[];
   flows: Flow[];
 }): PromptText => {
-  const flowsById = new Map<FlowId, Flow>();
-  const nodesByFlowId = new Map<FlowId, Map<FlowNode['id'], FlowNode>>();
+  const flowsById = new Map<Flow['id'], Flow>();
+  const nodesByFlowId = new Map<Flow['id'], Map<FlowNode['id'], FlowNode>>();
   const observablesByFlowAndNodeId = new Map<
-    FlowId,
+    Flow['id'],
     Map<FlowNode['id'], Map<ObservableId, FlowObservable>>
   >();
 

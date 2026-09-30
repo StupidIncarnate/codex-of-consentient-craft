@@ -22,7 +22,7 @@
  */
 
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
-import type { FlowId, OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, PackageName, Quest, Flow } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import type { questFlowStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -144,7 +144,7 @@ export const relayTailFanOutTransformer = ({
     // operational flow has nothing repeatable for a suite to assert — but an operational flow is
     // still implementation work, and filtering here would delete an init/migration flow's whole
     // scope from the ledger with nothing failing to say so.
-    const flowsByPackage = new Map<unknown, FlowId[]>();
+    const flowsByPackage = new Map<unknown, Flow['id'][]>();
     const packageNamesByKey = new Map<unknown, PackageName>();
     for (const flow of quest.flows) {
       for (const node of flow.nodes) {

@@ -20,12 +20,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract } from '../flow-id/flow-id-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 import { qaWalkPathContract } from '../qa-walk-path/qa-walk-path-contract';
+import { flowContract } from '../flow/flow-contract';
 
 export const qaChecklistContract = z.object({
-  flowId: flowIdContract,
+  flowId: flowContract.shape.id,
   flowName: z.string().min(1).brand<'FlowName'>(),
   entryPoint: z.string().min(1).brand<'FlowEntryPoint'>(),
   paths: z
