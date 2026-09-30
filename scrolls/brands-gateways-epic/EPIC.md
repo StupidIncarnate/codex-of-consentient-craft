@@ -149,7 +149,15 @@ from checker types and can bake in a wrong type or drop a runtime check), then H
 Machine limits: 62G RAM, 12 cores. Fixer agents only edit; the operator runs `diag.cjs` and the tests centrally
 between rounds. The Workflow tool runs at most 10 agents at once per workflow.
 
-Done so far: prep c2cbc43d4, W1 `functionName` trial 8620299fe, H1 e1e08c3c3; segment A started 18:48.
+Done so far: prep c2cbc43d4, W1 `functionName` trial 8620299fe, H1 e1e08c3c3. Segment A (W1 104 brands, SD12,
+W3 18, W4 8, W2 2) ran 18:48 to 20:07, 135 commits ending ef67a7930, no failures. `diag.cjs` after A: 346 distinct
+errors in 200 files (web 101, orchestrator 63, mcp 52, ward 29, server 23, testing 19, siegelense 17, shared 16,
+the rest under 10), `tmp/bigbang/logs/diag-after-A.json`. Segment B (W5 trials) next.
+
+**Driver is resumable.** Segments B and C run through `bigbang/run-all.sh <A|B|C>` (run copy
+`tmp/bigbang/run-all.sh`). It back-fills a marker per step from commit subjects after c2cbc43d4 and skips done
+steps; it refuses to start while `packages/` is dirty. Launch detached: `setsid nohup bash tmp/bigbang/run-all.sh B
+> tmp/bigbang/logs/B-driver.out 2>&1 < /dev/null &`. Fixer agents get `bigbang/FIXER-BRIEF.md`.
 
 ### Handoff (2026-09-29, 17:10) — READ THIS FIRST
 
