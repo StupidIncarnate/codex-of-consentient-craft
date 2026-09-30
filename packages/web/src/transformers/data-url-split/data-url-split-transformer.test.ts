@@ -2,7 +2,6 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { dataUrlSplitTransformer } from './data-url-split-transformer';
 import { dataUrlSplitTransformerProxy } from './data-url-split-transformer.proxy';
-import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 
 describe('dataUrlSplitTransformer', () => {
   describe('media types', () => {
@@ -11,9 +10,7 @@ describe('dataUrlSplitTransformer', () => {
       (mediaType) => {
         dataUrlSplitTransformerProxy();
 
-        const dataUrl = ImageDataUrlStub({
-          value: `data:${mediaType};base64,iVBORw0KGgo=`,
-        });
+        const dataUrl = `data:${mediaType};base64,iVBORw0KGgo=`;
 
         const result = dataUrlSplitTransformer({ dataUrl });
 
@@ -26,9 +23,7 @@ describe('dataUrlSplitTransformer', () => {
     it('VALID: {payload with +, / and trailing =} => survives byte-for-byte', () => {
       dataUrlSplitTransformerProxy();
 
-      const dataUrl = ImageDataUrlStub({
-        value: 'data:image/png;base64,AB+c/D9+f/8A==',
-      });
+      const dataUrl = 'data:image/png;base64,AB+c/D9+f/8A==';
 
       const result = dataUrlSplitTransformer({ dataUrl });
 
@@ -43,9 +38,7 @@ describe('dataUrlSplitTransformer', () => {
       const overCeiling = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
-      const dataUrl = ImageDataUrlStub({
-        value: `data:image/png;base64,${overCeiling}`,
-      });
+      const dataUrl = `data:image/png;base64,${overCeiling}`;
 
       expect(() => dataUrlSplitTransformer({ dataUrl })).toThrow(
         `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,

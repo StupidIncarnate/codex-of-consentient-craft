@@ -42,7 +42,6 @@ import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/paste
 import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 import { composerSendPayloadContract } from '../../contracts/composer-send-payload/composer-send-payload-contract';
-import type { ImageDataUrl } from '../../contracts/image-data-url/image-data-url-contract';
 import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
 import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
@@ -134,7 +133,7 @@ export const ChatInputWidget = ({
   // driving SEND_BUTTON's `disabled` and the STOP/SEND swap — both are render concerns this ref does
   // not replace.
   const isSendingRef = useRef(false);
-  const [overlaySrc, setOverlaySrc] = useState<ImageDataUrl | null>(null);
+  const [overlaySrc, setOverlaySrc] = useState<string | null>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   // Settled-transaction state: locks the composer for the ONE POST an Enter/click issues, and
   // paints the byte-tracked bar while that POST is in flight. Neither survives past `.finally` —

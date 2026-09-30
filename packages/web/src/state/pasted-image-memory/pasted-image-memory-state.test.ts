@@ -1,6 +1,5 @@
 import { ChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
-import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { pastedImageMemoryState } from './pasted-image-memory-state';
 import { pastedImageMemoryStateProxy } from './pasted-image-memory-state.proxy';
 
@@ -10,8 +9,8 @@ describe('pastedImageMemoryState', () => {
       pastedImageMemoryStateProxy().setupEmpty();
       const { uuid } = ChatEntryStub();
       const dataUrls = [
-        ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' }),
-        ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' }),
+        'data:image/png;base64,AAAA',
+        'data:image/png;base64,BBBB',
       ];
 
       pastedImageMemoryState.remember({ uuid, dataUrls });
@@ -29,8 +28,8 @@ describe('pastedImageMemoryState', () => {
     it('VALID: {one uuid remembered twice} => the second remember replaces the first', () => {
       pastedImageMemoryStateProxy().setupEmpty();
       const { uuid } = ChatEntryStub();
-      const firstDataUrls = [ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' })];
-      const secondDataUrls = [ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' })];
+      const firstDataUrls = ['data:image/png;base64,AAAA'];
+      const secondDataUrls = ['data:image/png;base64,BBBB'];
 
       pastedImageMemoryState.remember({ uuid, dataUrls: firstDataUrls });
       pastedImageMemoryState.remember({ uuid, dataUrls: secondDataUrls });
@@ -46,12 +45,12 @@ describe('pastedImageMemoryState', () => {
       const { uuid: forgottenUuid } = ChatEntryStub({
         uuid: 'b0000000-0000-4000-8000-00000000000b',
       });
-      const keptDataUrls = [ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' })];
+      const keptDataUrls = ['data:image/png;base64,AAAA'];
 
       pastedImageMemoryState.remember({ uuid: keptUuid, dataUrls: keptDataUrls });
       pastedImageMemoryState.remember({
         uuid: forgottenUuid,
-        dataUrls: [ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' })],
+        dataUrls: ['data:image/png;base64,BBBB'],
       });
 
       pastedImageMemoryState.forget({ uuid: forgottenUuid });
@@ -69,11 +68,11 @@ describe('pastedImageMemoryState', () => {
 
       pastedImageMemoryState.remember({
         uuid: firstUuid,
-        dataUrls: [ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' })],
+        dataUrls: ['data:image/png;base64,AAAA'],
       });
       pastedImageMemoryState.remember({
         uuid: secondUuid,
-        dataUrls: [ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' })],
+        dataUrls: ['data:image/png;base64,BBBB'],
       });
 
       pastedImageMemoryState.clear();

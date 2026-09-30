@@ -16,7 +16,7 @@ describe('pastedImageDownscaleBroker', () => {
       );
       const attachmentId = AttachmentIdStub();
       const mediaType = 'image/png';
-      const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      const dataUrl = `data:image/png;base64,${overCeilingBase64}`;
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({ attachmentId, dataUrl, mediaType });
@@ -44,7 +44,7 @@ describe('pastedImageDownscaleBroker', () => {
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
-      const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      const dataUrl = `data:image/png;base64,${overCeilingBase64}`;
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
@@ -63,7 +63,7 @@ describe('pastedImageDownscaleBroker', () => {
 
       const attachmentId = AttachmentIdStub();
       const mediaType = 'image/png';
-      const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
+      const dataUrl = 'data:image/png;base64,AAAA';
       proxy.originalIs({ dataUrl, widthPx: 800, heightPx: 600 });
 
       const result = await pastedImageDownscaleBroker({ attachmentId, dataUrl, mediaType });
@@ -88,15 +88,13 @@ describe('pastedImageDownscaleBroker', () => {
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
-      const oversizedPngOutput = ImageDataUrlStub({
-        value: `data:image/png;base64,${overCeilingBase64}`,
-      });
-      const smallJpegOutput = ImageDataUrlStub({ value: 'data:image/jpeg;base64,AAAA' });
+      const oversizedPngOutput = `data:image/png;base64,${overCeilingBase64}`;
+      const smallJpegOutput = 'data:image/jpeg;base64,AAAA';
 
       proxy.reencodeYieldsInOrder({ dataUrls: [oversizedPngOutput, smallJpegOutput] });
 
       const attachmentId = AttachmentIdStub();
-      const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      const dataUrl = `data:image/png;base64,${overCeilingBase64}`;
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
@@ -136,20 +134,16 @@ describe('pastedImageDownscaleBroker', () => {
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
-      const oversizedPngOutput = ImageDataUrlStub({
-        value: `data:image/png;base64,${overCeilingBase64}`,
-      });
-      const oversizedJpegAtCap = ImageDataUrlStub({
-        value: `data:image/jpeg;base64,${overCeilingBase64}`,
-      });
-      const smallJpegAtHalf = ImageDataUrlStub({ value: 'data:image/jpeg;base64,AAAA' });
+      const oversizedPngOutput = `data:image/png;base64,${overCeilingBase64}`;
+      const oversizedJpegAtCap = `data:image/jpeg;base64,${overCeilingBase64}`;
+      const smallJpegAtHalf = 'data:image/jpeg;base64,AAAA';
 
       proxy.reencodeYieldsInOrder({
         dataUrls: [oversizedPngOutput, oversizedJpegAtCap, smallJpegAtHalf],
       });
 
       const attachmentId = AttachmentIdStub();
-      const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      const dataUrl = `data:image/png;base64,${overCeilingBase64}`;
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
@@ -196,22 +190,16 @@ describe('pastedImageDownscaleBroker', () => {
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
-      const overPng = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
-      const overJpegAtCap = ImageDataUrlStub({
-        value: `data:image/jpeg;base64,${overCeilingBase64}`,
-      });
-      const overJpegAtHalf = ImageDataUrlStub({
-        value: `data:image/jpeg;base64,${overCeilingBase64}`,
-      });
-      const overJpegAtFloor = ImageDataUrlStub({
-        value: `data:image/jpeg;base64,${overCeilingBase64}`,
-      });
+      const overPng = `data:image/png;base64,${overCeilingBase64}`;
+      const overJpegAtCap = `data:image/jpeg;base64,${overCeilingBase64}`;
+      const overJpegAtHalf = `data:image/jpeg;base64,${overCeilingBase64}`;
+      const overJpegAtFloor = `data:image/jpeg;base64,${overCeilingBase64}`;
 
       proxy.reencodeYieldsInOrder({
         dataUrls: [overPng, overJpegAtCap, overJpegAtHalf, overJpegAtFloor],
       });
 
-      const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      const dataUrl = `data:image/png;base64,${overCeilingBase64}`;
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       await expect(
@@ -254,14 +242,12 @@ describe('pastedImageDownscaleBroker', () => {
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
-      const oversizedPngOutput = ImageDataUrlStub({
-        value: `data:image/png;base64,${overCeilingBase64}`,
-      });
-      const smallJpegOutput = ImageDataUrlStub({ value: 'data:image/jpeg;base64,AAAA' });
+      const oversizedPngOutput = `data:image/png;base64,${overCeilingBase64}`;
+      const smallJpegOutput = 'data:image/jpeg;base64,AAAA';
 
       proxy.reencodeYieldsInOrder({ dataUrls: [oversizedPngOutput, smallJpegOutput] });
 
-      const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      const dataUrl = `data:image/png;base64,${overCeilingBase64}`;
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({

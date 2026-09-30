@@ -11,13 +11,12 @@ import { questFollowupBrokerProxy } from '../../brokers/quest/followup/quest-fol
 import { questFollowupStopBrokerProxy } from '../../brokers/quest/followup-stop/quest-followup-stop-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
-import type { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';
 import { pastedImageMemoryStateProxy } from '../../state/pasted-image-memory/pasted-image-memory-state.proxy';
 import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
 
 type ChatEntryUuid = ReturnType<typeof UserChatEntryStub>['uuid'];
-type ImageDataUrl = ReturnType<typeof ImageDataUrlStub>;
+type ImageDataUrl = string;
 
 export const useQuestChatBindingProxy = (): {
   setupConnectedChannel: () => void;

@@ -16,14 +16,13 @@ import { createImageBitmap } from '#gateway/browser/createImageBitmap';
 
 import { imageSizeContract } from '../../../contracts/image-size/image-size-contract';
 import type { ImageSize } from '../../../contracts/image-size/image-size-contract';
-import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 
 const BASE64_MARKER = ';base64,';
 
 export const imageMeasureBroker = async ({
   dataUrl,
 }: {
-  dataUrl: ImageDataUrl;
+  dataUrl: string;
 }): Promise<ImageSize> => {
   const markerIndex = dataUrl.indexOf(BASE64_MARKER);
   const base64 = dataUrl.slice(markerIndex + BASE64_MARKER.length);

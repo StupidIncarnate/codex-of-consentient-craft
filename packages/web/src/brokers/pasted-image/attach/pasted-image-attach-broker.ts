@@ -17,14 +17,13 @@ import type { PastedImageMediaType } from '@dungeonmaster/shared/contracts';
 
 import { pastedImageDownscaleBroker } from '../downscale/pasted-image-downscale-broker';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
-import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 
 export const pastedImageAttachBroker = async ({
   dataUrl,
   mediaType,
 }: {
-  dataUrl: ImageDataUrl;
+  dataUrl: string;
   mediaType: PastedImageMediaType;
 }): Promise<ComposerAttachment> => {
   // A fresh id every call, unconditionally — never keyed off the bytes. Two pastes of the identical

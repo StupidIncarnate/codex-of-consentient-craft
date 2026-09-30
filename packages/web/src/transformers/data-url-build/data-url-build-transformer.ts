@@ -10,8 +10,6 @@
 
 import type { PastedImageMediaType, Base64ImageData } from '@dungeonmaster/shared/contracts';
 
-import { imageDataUrlContract } from '../../contracts/image-data-url/image-data-url-contract';
-import type { ImageDataUrl } from '../../contracts/image-data-url/image-data-url-contract';
 
 export const dataUrlBuildTransformer = ({
   mediaType,
@@ -19,4 +17,4 @@ export const dataUrlBuildTransformer = ({
 }: {
   mediaType: PastedImageMediaType;
   dataBase64: Base64ImageData;
-}): ImageDataUrl => imageDataUrlContract.parse(`data:${mediaType};base64,${dataBase64}`);
+}): string => `data:${mediaType};base64,${dataBase64}`;

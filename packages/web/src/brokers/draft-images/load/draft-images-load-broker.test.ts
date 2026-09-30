@@ -27,12 +27,12 @@ describe('draftImagesLoadBroker', () => {
       });
       proxy.storeHolds({ drafts: [first, second] });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' }),
+        dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
         widthPx: 800,
         heightPx: 600,
       });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' }),
+        dataUrl: 'data:image/png;base64,QUFBQQ==',
         widthPx: 400,
         heightPx: 300,
       });
@@ -69,7 +69,7 @@ describe('draftImagesLoadBroker', () => {
       });
       proxy.storeHolds({ drafts: [draft] });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/jpeg;base64,iVBORw0KGgo=' }),
+        dataUrl: 'data:image/jpeg;base64,iVBORw0KGgo=',
         widthPx: 2000,
         heightPx: 1333,
       });
@@ -145,16 +145,16 @@ describe('draftImagesLoadBroker', () => {
       });
       proxy.storeHolds({ drafts: [good1, bad, good2] });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' }),
+        dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
         widthPx: 800,
         heightPx: 600,
       });
       proxy.measureFails({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUJDREVG' }),
+        dataUrl: 'data:image/png;base64,QUJDREVG',
         error: new Error('decode failed'),
       });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,YWJjZA==' }),
+        dataUrl: 'data:image/png;base64,YWJjZA==',
         widthPx: 400,
         heightPx: 300,
       });
@@ -211,7 +211,7 @@ describe('draftImagesLoadBroker', () => {
         ],
       });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' }),
+        dataUrl: 'data:image/png;base64,QUFBQQ==',
         widthPx: 400,
         heightPx: 300,
       });
@@ -263,12 +263,12 @@ describe('draftImagesLoadBroker', () => {
         heightPx: 300,
       });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' }),
+        dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
         widthPx: 800,
         heightPx: 600,
       });
       proxy.measures({
-        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' }),
+        dataUrl: 'data:image/png;base64,QUFBQQ==',
         widthPx: 400,
         heightPx: 300,
       });

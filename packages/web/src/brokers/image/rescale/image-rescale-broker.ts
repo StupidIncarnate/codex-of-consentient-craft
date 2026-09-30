@@ -22,8 +22,6 @@ import { Blob } from '#gateway/browser/Blob';
 import { createImageBitmap } from '#gateway/browser/createImageBitmap';
 import { canvasEncode } from '#gateway/browser/HTMLCanvasElement';
 
-import { imageDataUrlContract } from '../../../contracts/image-data-url/image-data-url-contract';
-import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 import type { ImageSize } from '../../../contracts/image-size/image-size-contract';
 
 const BASE64_MARKER = ';base64,';
@@ -34,11 +32,11 @@ export const imageRescaleBroker = async ({
   mediaType,
   quality,
 }: {
-  dataUrl: ImageDataUrl;
+  dataUrl: string;
   size: ImageSize;
   mediaType: PastedImageMediaType;
   quality: number;
-}): Promise<ImageDataUrl> => {
+}): Promise<string> => {
   const markerIndex = dataUrl.indexOf(BASE64_MARKER);
   const base64 = dataUrl.slice(markerIndex + BASE64_MARKER.length);
   const binary = atob(base64);
@@ -59,7 +57,7 @@ export const imageRescaleBroker = async ({
       quality,
     });
 
-    return imageDataUrlContract.parse(encoded);
+    return encoded;
   } finally {
     bitmap.close();
   }

@@ -3,10 +3,9 @@ import { canvasEncodeProxy } from '#gateway/browser/HTMLCanvasElement/canvas-enc
 import { createImageBitmapProxy } from '#gateway/browser/createImageBitmap/create-image-bitmap/create-image-bitmap.proxy';
 
 import { ImageSizeStub } from '../../../contracts/image-size/image-size.stub';
-import type { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { base64ByteLengthTransformer } from '../../../transformers/base64-byte-length/base64-byte-length-transformer';
 
-type ImageDataUrl = ReturnType<typeof ImageDataUrlStub>;
+type ImageDataUrl = string;
 type ImageSize = ReturnType<typeof ImageSizeStub>;
 
 const BASE64_MARKER = ';base64,';

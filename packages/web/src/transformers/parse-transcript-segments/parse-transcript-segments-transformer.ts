@@ -18,14 +18,13 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { transcriptSegmentContract } from '../../contracts/transcript-segment/transcript-segment-contract';
 import type { TranscriptSegment } from '../../contracts/transcript-segment/transcript-segment-contract';
-import type { ImageDataUrl } from '../../contracts/image-data-url/image-data-url-contract';
 
 export const parseTranscriptSegmentsTransformer = ({
   content,
   memoryImages,
 }: {
   content: string;
-  memoryImages?: readonly ImageDataUrl[];
+  memoryImages?: readonly string[];
 }): readonly TranscriptSegment[] => {
   const sentinelIndex = content.indexOf(pastedImageStatics.promptSentinel);
   const withoutTrailer = sentinelIndex === -1 ? content : content.slice(0, sentinelIndex).trimEnd();

@@ -99,7 +99,7 @@ describe('parseTranscriptSegmentsTransformer', () => {
   describe('mixed markdown token and bare placeholder in one message', () => {
     it("VALID: {content: a bare placeholder at ordinal 2, memoryImages carrying its bytes} => the bare placeholder resolves through memory, not through the token's own url", () => {
       const firstDataUrl = ImageDataUrlStub();
-      const secondDataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' });
+      const secondDataUrl = 'data:image/png;base64,BBBB';
 
       const result = parseTranscriptSegmentsTransformer({
         content: 'A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fa.png)B[Pasted Image 2]C',
@@ -111,7 +111,7 @@ describe('parseTranscriptSegmentsTransformer', () => {
 
     it('VALID: {content: an image token at ordinal 1, memoryImages present} => the token resolves through its own parentheses, not through memory', () => {
       const firstDataUrl = ImageDataUrlStub();
-      const secondDataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' });
+      const secondDataUrl = 'data:image/png;base64,BBBB';
 
       const result = parseTranscriptSegmentsTransformer({
         content: 'A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fa.png)B[Pasted Image 2]C',

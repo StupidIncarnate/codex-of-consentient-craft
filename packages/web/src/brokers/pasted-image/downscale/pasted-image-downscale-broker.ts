@@ -18,7 +18,6 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
-import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 import type { ImageSize } from '../../../contracts/image-size/image-size-contract';
 import { imageMeasureBroker } from '../../image/measure/image-measure-broker';
 import { imageRescaleBroker } from '../../image/rescale/image-rescale-broker';
@@ -50,7 +49,7 @@ export const pastedImageDownscaleBroker = async ({
   retry,
 }: {
   attachmentId: ComposerAttachment['attachmentId'];
-  dataUrl: ImageDataUrl;
+  dataUrl: string;
   mediaType: PastedImageMediaType;
   // Internal recursion state for the halving ladder (step 3+): the ORIGINAL measured size (so a
   // retry never re-measures) and the longest edge the next jpeg attempt targets. External callers

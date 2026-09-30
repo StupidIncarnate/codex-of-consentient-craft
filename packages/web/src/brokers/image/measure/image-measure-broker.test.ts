@@ -26,8 +26,8 @@ describe('imageMeasureBroker', () => {
 
     it('VALID: {two data urls of different byte lengths} => each is measured from its own decode', async () => {
       const proxy = imageMeasureBrokerProxy();
-      const eightBytes = ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' });
-      const fourBytes = ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' });
+      const eightBytes = 'data:image/png;base64,iVBORw0KGgo=';
+      const fourBytes = 'data:image/png;base64,QUFBQQ==';
       proxy.decodesTo({ dataUrl: eightBytes, widthPx: 800, heightPx: 600 });
       proxy.decodesTo({ dataUrl: fourBytes, widthPx: 40, heightPx: 30 });
 

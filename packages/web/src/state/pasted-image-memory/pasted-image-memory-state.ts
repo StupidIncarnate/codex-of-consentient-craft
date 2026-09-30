@@ -16,9 +16,8 @@
  */
 
 import type { ChatEntryUuid } from '@dungeonmaster/shared/contracts';
-import type { ImageDataUrl } from '../../contracts/image-data-url/image-data-url-contract';
 
-const state = new Map<ChatEntryUuid, readonly ImageDataUrl[]>();
+const state = new Map<ChatEntryUuid, readonly string[]>();
 
 export const pastedImageMemoryState = {
   remember: ({
@@ -26,12 +25,12 @@ export const pastedImageMemoryState = {
     dataUrls,
   }: {
     uuid: ChatEntryUuid;
-    dataUrls: readonly ImageDataUrl[];
+    dataUrls: readonly string[];
   }): void => {
     state.set(uuid, dataUrls);
   },
 
-  recall: ({ uuid }: { uuid: ChatEntryUuid }): readonly ImageDataUrl[] => state.get(uuid) ?? [],
+  recall: ({ uuid }: { uuid: ChatEntryUuid }): readonly string[] => state.get(uuid) ?? [],
 
   forget: ({ uuid }: { uuid: ChatEntryUuid }): void => {
     state.delete(uuid);

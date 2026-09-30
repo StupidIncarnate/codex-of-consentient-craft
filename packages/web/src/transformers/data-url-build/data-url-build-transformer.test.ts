@@ -5,7 +5,6 @@ import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-im
 import { dataUrlBuildTransformer } from './data-url-build-transformer';
 import { dataUrlBuildTransformerProxy } from './data-url-build-transformer.proxy';
 import { dataUrlSplitTransformer } from '../data-url-split/data-url-split-transformer';
-import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 
 describe('dataUrlBuildTransformer', () => {
   describe('media types', () => {
@@ -51,7 +50,7 @@ describe('dataUrlBuildTransformer', () => {
     it('VALID: {dataUrl} => build(split(dataUrl)) returns the same dataUrl', () => {
       dataUrlBuildTransformerProxy();
 
-      const dataUrl = ImageDataUrlStub({ value: 'data:image/gif;base64,AB+c/D9+f/8A==' });
+      const dataUrl = 'data:image/gif;base64,AB+c/D9+f/8A==';
 
       const result = dataUrlBuildTransformer(dataUrlSplitTransformer({ dataUrl }));
 

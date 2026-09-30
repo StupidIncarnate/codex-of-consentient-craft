@@ -10,7 +10,7 @@ describe('pastedImageAttachBroker', () => {
       const mintedId = '00000000-0000-4000-8000-000000000001';
       proxy.mintsIds({ ids: [mintedId] });
 
-      const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
+      const dataUrl = 'data:image/png;base64,AAAA';
       const mediaType = 'image/png';
       proxy.ladderYields({
         attachment: ComposerAttachmentStub({
@@ -42,7 +42,7 @@ describe('pastedImageAttachBroker', () => {
       const mintedId = '00000000-0000-4000-8000-000000000002';
       proxy.mintsIds({ ids: [mintedId] });
 
-      const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
+      const dataUrl = 'data:image/png;base64,AAAA';
       const mediaType = 'image/png';
       proxy.ladderYields({
         attachment: ComposerAttachmentStub({
@@ -67,7 +67,7 @@ describe('pastedImageAttachBroker', () => {
       const secondId = '00000000-0000-4000-8000-000000000004';
       proxy.mintsIds({ ids: [firstId, secondId] });
 
-      const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
+      const dataUrl = 'data:image/png;base64,AAAA';
       const mediaType = 'image/png';
       proxy.ladderYields({
         attachment: ComposerAttachmentStub({

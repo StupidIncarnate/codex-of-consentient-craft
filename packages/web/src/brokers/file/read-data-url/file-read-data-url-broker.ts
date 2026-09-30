@@ -10,10 +10,8 @@
 
 import { FileReader } from '#gateway/browser/FileReader';
 
-import { imageDataUrlContract } from '../../../contracts/image-data-url/image-data-url-contract';
-import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 
-export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<ImageDataUrl> => {
+export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<string> => {
   const result = await new Promise<InstanceType<typeof FileReader>['result']>((resolve, reject) => {
     const reader = new FileReader();
 
@@ -42,5 +40,5 @@ export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<I
   // Deliberate: this is what refuses a clipboard blob whose media type is not one of the four
   // allowed ones, at the moment the bytes are read, rather than letting an unsupported type travel
   // further into the composer.
-  return imageDataUrlContract.parse(result);
+  return result;
 };

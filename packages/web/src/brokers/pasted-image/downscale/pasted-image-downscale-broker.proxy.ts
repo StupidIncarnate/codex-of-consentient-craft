@@ -8,12 +8,11 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { imageMeasureBrokerProxy } from '../../image/measure/image-measure-broker.proxy';
 import { imageRescaleBrokerProxy } from '../../image/rescale/image-rescale-broker.proxy';
-import type { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { ImageSizeStub } from '../../../contracts/image-size/image-size.stub';
 
 type SizeLike = ReturnType<typeof ImageSizeStub>;
 type MediaTypeLike = ReturnType<typeof PastedImageMediaTypeStub>;
-type ImageDataUrl = ReturnType<typeof ImageDataUrlStub>;
+type ImageDataUrl = string;
 
 // A staged encode is addressed by the media type its own data url declares and the quality the
 // ladder asks that type for: png is lossless and asked at 1, jpeg at `jpegQuality`.

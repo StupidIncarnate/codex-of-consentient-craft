@@ -1,6 +1,5 @@
 import { draftImagesReadBrokerProxy } from '../read/draft-images-read-broker.proxy';
 import { imageMeasureBrokerProxy } from '../../image/measure/image-measure-broker.proxy';
-import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 import type { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 
 type PastedImageDraft = ReturnType<typeof PastedImageDraftStub>;
@@ -14,8 +13,8 @@ export const draftImagesLoadBrokerProxy = (): {
   storeHoldsRaw: (params: { records: readonly unknown[] }) => void;
   // A decode is addressed by the byte length of `dataUrl`'s payload, so two drafts in one test
   // whose payloads decode to the same length share one staging.
-  measures: (params: { dataUrl: ImageDataUrl; widthPx: number; heightPx: number }) => void;
-  measureFails: (params: { dataUrl: ImageDataUrl; error: Error }) => void;
+  measures: (params: { dataUrl: string; widthPx: number; heightPx: number }) => void;
+  measureFails: (params: { dataUrl: string; error: Error }) => void;
   storeUnavailable: (params: { error: Error }) => void;
 } => {
   const readProxy = draftImagesReadBrokerProxy();
