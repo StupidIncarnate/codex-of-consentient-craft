@@ -6,20 +6,12 @@
  * // Returns AnimationIntervalMs based on chat state (idle: 2000ms, thinking: 500ms, tool call: 300ms)
  */
 
-import { animationIntervalMsContract } from '../../contracts/animation-interval-ms/animation-interval-ms-contract';
-import type { AnimationIntervalMs } from '../../contracts/animation-interval-ms/animation-interval-ms-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 
-const IDLE_INTERVAL = animationIntervalMsContract.parse(
-  raccoonAnimationConfigStatics.idleIntervalMs,
-);
-const THINKING_INTERVAL = animationIntervalMsContract.parse(
-  raccoonAnimationConfigStatics.thinkingIntervalMs,
-);
-const TOOL_CALL_INTERVAL = animationIntervalMsContract.parse(
-  raccoonAnimationConfigStatics.toolCallIntervalMs,
-);
+const IDLE_INTERVAL = raccoonAnimationConfigStatics.idleIntervalMs;
+const THINKING_INTERVAL = raccoonAnimationConfigStatics.thinkingIntervalMs;
+const TOOL_CALL_INTERVAL = raccoonAnimationConfigStatics.toolCallIntervalMs;
 
 export const raccoonAnimationIntervalTransformer = ({
   isStreaming,
@@ -27,7 +19,7 @@ export const raccoonAnimationIntervalTransformer = ({
 }: {
   isStreaming: boolean;
   entries: ChatEntry[];
-}): AnimationIntervalMs => {
+}): number => {
   if (!isStreaming) return IDLE_INTERVAL;
 
   const lastEntry = entries.at(-1);
