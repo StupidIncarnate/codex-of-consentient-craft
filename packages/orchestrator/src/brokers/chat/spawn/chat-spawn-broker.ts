@@ -20,7 +20,7 @@ import {
   sessionIdContract,
   workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, ModifyQuestInput, ProcessId, QuestType, SessionId, WorkItemRole, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ModifyQuestInput, ProcessId, QuestType, SessionId, WorkItemRole, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -55,7 +55,7 @@ export const chatSpawnBroker = async ({
   setMetadata,
 }: {
   role: WorkItemRole;
-  guildId: GuildId;
+  guildId: Guild['id'];
   // Only read on the create path (no questId, no sessionId) — it decides which pipeline the new
   // quest follows, and therefore which intake seed item questUserAddBroker attaches.
   questType?: QuestType;

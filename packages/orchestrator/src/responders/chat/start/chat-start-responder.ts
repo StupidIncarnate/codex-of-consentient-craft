@@ -8,7 +8,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { getQuestInputContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, ProcessId, QuestType, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, QuestType, SessionId, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -28,7 +28,7 @@ export const ChatStartResponder = async ({
   existingQuestId,
   sessionId,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   message: string;
   // Which pipeline a NEWLY created quest follows — 'bug-hunt' spawns the BugHunt intake instead of
   // ChaosWhisperer. Ignored when resuming, where the existing quest's own type governs.

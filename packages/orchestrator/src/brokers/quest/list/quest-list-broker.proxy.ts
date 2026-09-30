@@ -2,12 +2,7 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { join } from '#gateway/node/path';
 
-import {
-  filePathContract,
-  type FilePath,
-  type FileName,
-  type GuildId,
-} from '@dungeonmaster/shared/contracts';
+import { filePathContract, type FilePath, type FileName } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -19,6 +14,7 @@ import {
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 import { questListBroker } from './quest-list-broker';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 registerModuleMock({ module: './quest-list-broker' });
 
@@ -30,8 +26,8 @@ export const questListBrokerProxy = (): {
   setupQuestDirectoriesFailure: (params: { error: Error }) => void;
   setupQuestFilePath: (params: { folderName: FileName; result: FilePath }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
-  setupDirectList: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
-  setupDirectListOnce: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
+  setupDirectList: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
+  setupDirectListOnce: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
   setupDirectListFailure: (params: { error: Error }) => void;
   getSkipReports: () => readonly unknown[];
 } => {
@@ -107,7 +103,7 @@ export const questListBrokerProxy = (): {
       guildId,
       quests,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       quests: readonly Quest[];
     }): void => {
       mocked.calledWith([{ guildId }]).resolves(quests as Quest[]);
@@ -120,7 +116,7 @@ export const questListBrokerProxy = (): {
       guildId,
       quests,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       quests: readonly Quest[];
     }): void => {
       mocked.onceFor([{ guildId }]).resolves(quests as Quest[]);

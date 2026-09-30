@@ -21,12 +21,12 @@
  */
 
 import { cwdResolveBroker, dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract, guildIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, GuildListItem } from '@dungeonmaster/shared/contracts';
+import { filePathContract, guildContract } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 
-export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: GuildId }> => {
+export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: Guild['id'] }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
   const homeRepoRoot = await cwdResolveBroker({
     startPath: filePathContract.parse(homePath),
@@ -61,5 +61,5 @@ export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: GuildId }
     );
   }
 
-  return { guildId: guildIdContract.parse(matched.id) };
+  return { guildId: guildContract.shape.id.parse(matched.id) };
 };

@@ -14,7 +14,7 @@ import * as path from '#gateway/node/path';
 
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import type { FilePath, GuildId, GuildName, GuildPath, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildName, GuildPath, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
@@ -75,9 +75,9 @@ export const orchestrationEnvironmentHarness = (): {
   makeAndChdir: (params: { dir: GuildPath }) => { restore: () => void };
   readConfigGuilds: (params: {
     tempDir: GuildPath;
-  }) => readonly { name: GuildName; path: GuildPath; guildId: GuildId; urlSlug: UrlSlug }[];
-  questsDirExists: (params: { tempDir: GuildPath; guildId: GuildId }) => boolean;
-  questFilePersisted: (params: { tempDir: GuildPath; guildId: GuildId; questId: Quest['id'] }) => {
+  }) => readonly { name: GuildName; path: GuildPath; guildId: Guild['id']; urlSlug: UrlSlug }[];
+  questsDirExists: (params: { tempDir: GuildPath; guildId: Guild['id'] }) => boolean;
+  questFilePersisted: (params: { tempDir: GuildPath; guildId: Guild['id']; questId: Quest['id'] }) => {
     exists: boolean;
     questIdInFile: boolean;
   };
@@ -207,10 +207,10 @@ export const orchestrationEnvironmentHarness = (): {
       tempDir,
     }: {
       tempDir: GuildPath;
-    }): readonly { name: GuildName; path: GuildPath; guildId: GuildId; urlSlug: UrlSlug }[] => {
+    }): readonly { name: GuildName; path: GuildPath; guildId: Guild['id']; urlSlug: UrlSlug }[] => {
       const raw = fs.readFileSync(path.join(tempDir, 'config.json'));
       const parsed = JSON.parse(raw) as {
-        guilds: { name: GuildName; path: GuildPath; id: GuildId; urlSlug: UrlSlug }[];
+        guilds: { name: GuildName; path: GuildPath; id: Guild['id']; urlSlug: UrlSlug }[];
       };
       return parsed.guilds.map((guild) => ({
         name: guild.name,
@@ -219,7 +219,7 @@ export const orchestrationEnvironmentHarness = (): {
         urlSlug: guild.urlSlug,
       }));
     },
-    questsDirExists: ({ tempDir, guildId }: { tempDir: GuildPath; guildId: GuildId }): boolean =>
+    questsDirExists: ({ tempDir, guildId }: { tempDir: GuildPath; guildId: Guild['id'] }): boolean =>
       fs.existsSync(path.join(tempDir, 'guilds', guildId, 'quests')),
     questFilePersisted: ({
       tempDir,
@@ -227,7 +227,7 @@ export const orchestrationEnvironmentHarness = (): {
       questId,
     }: {
       tempDir: GuildPath;
-      guildId: GuildId;
+      guildId: Guild['id'];
       questId: Quest['id'];
     }): { exists: boolean; questIdInFile: boolean } => {
       const questFilePath = path.join(tempDir, 'guilds', guildId, 'quests', questId, 'quest.json');

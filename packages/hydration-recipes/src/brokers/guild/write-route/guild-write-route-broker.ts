@@ -50,7 +50,7 @@
  * // Returns a Guild carrying exactly that id
  */
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildDirectoryEnsureBroker } from '../directory-ensure/guild-directory-ensure-broker';
@@ -72,7 +72,7 @@ export const guildWriteRouteBroker = async ({
 
   await guildDirectoryEnsureBroker({ target, path });
 
-  const id = guildIdContract.optional().parse(fields.id);
+  const id = guildContract.shape.id.optional().parse(fields.id);
 
   return id === undefined
     ? guildAddBroker({ name: parsedFields.name, path, home: target.home })

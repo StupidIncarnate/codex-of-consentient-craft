@@ -9,14 +9,14 @@ import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
 
-import type { GuildId, SessionListItem } from '@dungeonmaster/shared/contracts';
+import type { SessionListItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildSessionListBroker } from '../../brokers/guild/session-list/guild-session-list-broker';
 
 export const useSessionListBinding = ({
   guildId,
 }: {
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
 }): {
   data: SessionListItem[];
   loading: boolean;

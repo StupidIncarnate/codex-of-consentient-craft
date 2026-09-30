@@ -1,13 +1,7 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type {
-  FileName,
-  FilePath,
-  GuildConfig,
-  GuildId,
-  QuestSource,
-} from '@dungeonmaster/shared/contracts';
+import type { FileName, FilePath, GuildConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -51,7 +45,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   const deleteProxy = questDeleteBrokerProxy();
 
   const homePathRef: { value: FilePath } = { value: filePathContract.parse('/unset') };
-  const guildIdRef: { value: GuildId } = { value: GuildIdStub() };
+  const guildIdRef: { value: Guild['id'] } = { value: GuildIdStub() };
 
   const mocked = registerMock({ fn: smoketestClearPriorQuestsBroker });
 

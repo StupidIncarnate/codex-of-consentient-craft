@@ -12,13 +12,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type {
-  ChatEntry,
-  ChatEntryUuid,
-  GuildId,
-  ProcessId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ChatEntryUuid, ProcessId, SessionId, Guild } from '@dungeonmaster/shared/contracts';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { filter } from '#gateway/npm/rxjs__operators';
@@ -30,7 +24,7 @@ export const useSessionReplayBinding = ({
   guildId,
 }: {
   sessionId: SessionId | null;
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
 }): {
   entries: ChatEntry[];
   isLoading: boolean;
@@ -50,7 +44,7 @@ export const useSessionReplayBinding = ({
   );
 
   const sessionIdRef = useRef<SessionId | null>(sessionId);
-  const guildIdRef = useRef<GuildId | null>(guildId);
+  const guildIdRef = useRef<Guild['id'] | null>(guildId);
   const replayProcessIdRef = useRef<ProcessId | null>(replayProcessId);
   const receivedEntriesRef = useRef(false);
   sessionIdRef.current = sessionId;

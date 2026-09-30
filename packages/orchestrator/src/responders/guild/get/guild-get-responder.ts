@@ -6,9 +6,9 @@
  * // Returns the Guild matching the given ID
  */
 
-import type { Guild, GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 
-export const GuildGetResponder = async ({ guildId }: { guildId: GuildId }): Promise<Guild> =>
+export const GuildGetResponder = async ({ guildId }: { guildId: Guild['id'] }): Promise<Guild> =>
   guildGetBroker({ guildId });

@@ -6,10 +6,11 @@
  * // Returns validated ListQuestsInput with guildId
  */
 import { z } from '#gateway/npm/zod';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const listQuestsInputContract = z
   .object({
-    guildId: z.uuid().describe('The guild ID to list quests for').brand<'GuildId'>(),
+    guildId: guildContract.shape.id,
   })
   .strict()
   .brand<'ListQuestsInput'>();

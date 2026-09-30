@@ -7,11 +7,11 @@
  * // Returns { id: GuildId }
  */
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const guildCreateResultContract = z.object({
-  id: guildIdContract,
+  id: guildContract.shape.id,
 });
 
 export type GuildCreateResult = z.infer<typeof guildCreateResultContract>;

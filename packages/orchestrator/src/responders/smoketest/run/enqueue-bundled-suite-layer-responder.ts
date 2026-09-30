@@ -7,7 +7,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import type { GuildId, QuestQueueEntry, QuestSource, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
+import type { QuestQueueEntry, QuestSource, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { processIdContract, questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -32,7 +32,7 @@ export const EnqueueBundledSuiteLayerResponder = async ({
 }: {
   suite: 'mcp' | 'signals';
   questSource: QuestSource;
-  guildId: GuildId;
+  guildId: Guild['id'];
   guildSlug: UrlSlug;
 }): Promise<{ questId: Quest['id']; guildSlug: UrlSlug } | null> => {
   const cases =

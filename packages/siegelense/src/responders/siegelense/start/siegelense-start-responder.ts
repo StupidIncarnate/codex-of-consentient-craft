@@ -40,7 +40,7 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import type { GuildId, TimeoutMs, Quest } from '@dungeonmaster/shared/contracts';
+import type { TimeoutMs, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
@@ -63,7 +63,7 @@ export const SiegelenseStartResponder = async ({
 }: {
   specName: SpecName;
   questId: Quest['id'] | null;
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
   seed: RecipeName | null;
   // `| undefined`, not bare `?:`, because this is called with a whole `StartArgs` object —
   // `startArgsContract`'s own `.optional()` field infers as `TimeoutMs | undefined`, and
@@ -72,7 +72,7 @@ export const SiegelenseStartResponder = async ({
   idleTimeoutMs?: TimeoutMs | undefined;
   isJson?: boolean | undefined;
 }): Promise<void> => {
-  const resolvedGuildId: GuildId | null =
+  const resolvedGuildId: Guild['id'] | null =
     guildId !== null || questId === null ? guildId : await questOwningGuildFindBroker({ questId });
 
   if (seed !== null) {

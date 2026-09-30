@@ -12,14 +12,14 @@ import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
 
-import type { GuildId, QuestListItem, SkippedQuestFile } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questListBroker } from '../../brokers/quest/list/quest-list-broker';
 
 export const useQuestsBinding = ({
   guildId,
 }: {
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
 }): {
   data: QuestListItem[];
   skipped: SkippedQuestFile[];

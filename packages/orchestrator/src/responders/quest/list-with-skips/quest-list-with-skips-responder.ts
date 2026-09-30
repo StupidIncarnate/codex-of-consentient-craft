@@ -7,7 +7,7 @@
  */
 
 import { questListResultContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestListResult, SkippedQuestFile } from '@dungeonmaster/shared/contracts';
+import type { QuestListResult, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questsToListItemsTransformer } from '../../../transformers/quests-to-list-items/quests-to-list-items-transformer';
@@ -15,7 +15,7 @@ import { questsToListItemsTransformer } from '../../../transformers/quests-to-li
 export const QuestListWithSkipsResponder = async ({
   guildId,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
 }): Promise<QuestListResult> => {
   const skipped: SkippedQuestFile[] = [];
 

@@ -31,11 +31,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import {
-  absoluteFilePathContract,
-  guildContract,
-  guildIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, guildContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import { ensureDir } from '#gateway/node/fs__promises';
@@ -74,7 +70,7 @@ export const guildAddBroker = async ({
       ? (await dungeonmasterHomeEnsureBroker()).guildsPath
       : join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
 
-  const guildId = guildIdContract.parse(id ?? randomUUID());
+  const guildId = guildContract.shape.id.parse(id ?? randomUUID());
 
   const guildDir = join(guildsPath, guildId);
   const questsDir = join(guildDir, dungeonmasterHomeStatics.paths.questsDir);

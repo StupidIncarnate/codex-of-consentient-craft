@@ -7,7 +7,7 @@
  */
 
 import { absoluteFilePathContract, fileContentsContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { SessionId, Guild } from '@dungeonmaster/shared/contracts';
 import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { glob } from '#gateway/npm/glob';
@@ -26,7 +26,7 @@ export const sessionListBroker = async ({
   getCache,
   setCache,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   getCache: (params: {
     sessionId: SessionId;
     mtimeMs: number;

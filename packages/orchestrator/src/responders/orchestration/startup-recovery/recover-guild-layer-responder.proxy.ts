@@ -12,7 +12,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
-import type { AbsoluteFilePath, GuildId, GuildPath, ProcessId, QuestBranchName } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildPath, ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -72,12 +72,12 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const RecoverGuildLayerResponderProxy = (): {
   setupGuildWithQuests: (params: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     guildPath: GuildPath;
     quests: Quest[];
   }) => void;
   setupGuildWithExistingProcess: (params: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     guildPath: GuildPath;
     quests: Quest[];
     existingProcessQuestId: Quest['id'];
@@ -158,7 +158,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     );
   };
 
-  const stageOrphanResetChain = ({ guildId, quest }: { guildId: GuildId; quest: Quest }): void => {
+  const stageOrphanResetChain = ({ guildId, quest }: { guildId: Guild['id']; quest: Quest }): void => {
     const questPath = FilePathStub({
       value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
     });
@@ -179,7 +179,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       guildPath,
       quests,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       guildPath: GuildPath;
       quests: Quest[];
     }): void => {
@@ -266,7 +266,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       quests,
       existingProcessQuestId,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       guildPath: GuildPath;
       quests: Quest[];
       existingProcessQuestId: Quest['id'];

@@ -192,7 +192,6 @@ export * from './ws-message/ws-message-contract';
 export * from './url-slug/url-slug-contract';
 
 // Guild Contracts
-export * from './guild-id/guild-id-contract';
 
 export * from './guild-name/guild-name-contract';
 

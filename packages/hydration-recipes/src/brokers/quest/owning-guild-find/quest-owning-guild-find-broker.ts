@@ -11,13 +11,13 @@
  * // Returns the GuildId of the guild whose quest list contains this questId; throws if none does
  */
 import { guildListBroker, questListBroker } from '@dungeonmaster/orchestrator/brokers';
-import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 export const questOwningGuildFindBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<GuildId> => {
+}): Promise<Guild['id']> => {
   const guilds = await guildListBroker();
 
   const perGuildQuests = await Promise.all(

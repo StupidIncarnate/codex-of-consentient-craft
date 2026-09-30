@@ -1,4 +1,4 @@
-import type { GuildConfig, GuildId } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { guildRemoveBrokerProxy } from '../../../brokers/guild/remove/guild-remove-broker.proxy';
@@ -12,7 +12,7 @@ type Quest = ReturnType<typeof QuestStub>;
 export const GuildRemoveResponderProxy = (): {
   callResponder: typeof GuildRemoveResponder;
   setupConfig: (params: { config: GuildConfig }) => void;
-  setupQuestList: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
+  setupQuestList: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
 } => {
   const brokerProxy = guildRemoveBrokerProxy();
   const processesProxy = orchestrationProcessesStateProxy();
@@ -28,7 +28,7 @@ export const GuildRemoveResponderProxy = (): {
       brokerProxy.setupConfig({ config });
     },
 
-    setupQuestList: ({ guildId, quests }: { guildId: GuildId; quests: readonly Quest[] }): void => {
+    setupQuestList: ({ guildId, quests }: { guildId: Guild['id']; quests: readonly Quest[] }): void => {
       listProxy.setupDirectList({ guildId, quests });
     },
   };

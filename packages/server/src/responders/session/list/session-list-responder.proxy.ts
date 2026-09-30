@@ -1,7 +1,6 @@
 import { sessionListBrokerProxy } from '../../../brokers/session/list/session-list-broker.proxy';
 import { sessionSummaryCacheStateProxy } from '../../../state/session-summary-cache/session-summary-cache-state.proxy';
 import { SessionListResponder } from './session-list-responder';
-import type { GuildId } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 
@@ -14,9 +13,9 @@ export const SessionListResponderProxy = (): {
   setupGlobFiles: (params: { files: string[] }) => void;
   setupFileStat: (params: { birthtime: Date; mtimeMs: number }) => void;
   setupFileContent: (params: { content: string }) => void;
-  setupQuests: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
+  setupQuests: (params: { guildId: Guild['id']; quests: QuestListItem[] }) => void;
   setupGuildError: () => void;
-  setupGuildNotFound: (params: { guildId: GuildId }) => void;
+  setupGuildNotFound: (params: { guildId: Guild['id'] }) => void;
   callResponder: typeof SessionListResponder;
 } => {
   const brokerProxy = sessionListBrokerProxy();
@@ -38,13 +37,13 @@ export const SessionListResponderProxy = (): {
     setupFileContent: ({ content }: { content: string }): void => {
       brokerProxy.setupFileContent({ content });
     },
-    setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
+    setupQuests: ({ guildId, quests }: { guildId: Guild['id']; quests: QuestListItem[] }): void => {
       brokerProxy.setupQuests({ guildId, quests });
     },
     setupGuildError: (): void => {
       brokerProxy.setupGuild({ guild: {} as never });
     },
-    setupGuildNotFound: ({ guildId }: { guildId: GuildId }): void => {
+    setupGuildNotFound: ({ guildId }: { guildId: Guild['id'] }): void => {
       brokerProxy.setupGuildNotFound({ guildId });
     },
     callResponder: SessionListResponder,

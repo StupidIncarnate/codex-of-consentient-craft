@@ -31,7 +31,7 @@
  * // Returns StartArgs whose `seed` names the recipe to run once the lane is up
  */
 
-import { guildIdContract, timeoutMsContract, questContract } from '@dungeonmaster/shared/contracts';
+import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-contract';
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
@@ -125,7 +125,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
         ? null
         : flagContractParseTransformer({
             flag: GUILD_FLAG,
-            parse: () => guildIdContract.parse(guildValue),
+            parse: () => guildContract.shape.id.parse(guildValue),
           }),
     // `null` rather than omitted, unlike --idle-timeout-ms below: an absent --seed is a decision
     // the parser MAKES (this instance seeds nothing), not a key whose absence changes a default.

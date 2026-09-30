@@ -6,7 +6,7 @@
  * // Returns {quests: QuestListItem[], skipped: SkippedQuestFile[]}
  */
 import { questListResultContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestListResult } from '@dungeonmaster/shared/contracts';
+import type { QuestListResult, Guild } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -15,7 +15,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questListBroker = async ({
   guildId,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
 }): Promise<QuestListResult> => {
   const url = `${webConfigStatics.api.routes.quests}?guildId=${encodeURIComponent(guildId)}`;
   const response = await fetchJson({ url });

@@ -8,7 +8,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { isFsError } from '#gateway/node/fs';
-import type { GuildId, ProcessId, Quest, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Quest, SessionId, Guild } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
@@ -23,7 +23,7 @@ export const ChatReplayResponder = async ({
   chatProcessId: clientChatProcessId,
 }: {
   sessionId: SessionId;
-  guildId: GuildId;
+  guildId: Guild['id'];
   chatProcessId?: ProcessId;
 }): Promise<void> => {
   const chatProcessId = clientChatProcessId ?? processIdContract.parse(`replay-${randomUUID()}`);

@@ -18,7 +18,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { addQuestInputContract, fileContentsContract, operationItemContract, questContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestSource, QuestStatus, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
+import type { QuestSource, QuestStatus, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -48,7 +48,7 @@ export const questHydrateBroker = async ({
   updatedAt,
 }: {
   blueprint: QuestBlueprint;
-  guildId: GuildId;
+  guildId: Guild['id'];
   questSource?: QuestSource;
   createdAt?: IsoTimestamp;
   updatedAt?: IsoTimestamp;

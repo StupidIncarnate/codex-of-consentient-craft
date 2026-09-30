@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, GuildId, GuildName, GuildPath, ProcessId, QuestStatus, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, GuildName, GuildPath, ProcessId, QuestStatus, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -98,24 +98,24 @@ export const StartOrchestratorProxy = (): {
   listGuildsReturns: (params: { guilds: GuildListItem[] }) => void;
   listGuildsThrows: (params: { error: Error }) => void;
   getGuildReturns: (params: { guild: Guild }) => void;
-  getGuildThrows: (params: { guildId: GuildId; error: Error }) => void;
+  getGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   addGuildReturns: (params: { name: GuildName; path: GuildPath; guild: Guild }) => void;
   addGuildThrows: (params: { name: GuildName; path: GuildPath; error: Error }) => void;
-  updateGuildReturns: (params: { guildId: GuildId; guild: Guild }) => void;
-  updateGuildThrows: (params: { guildId: GuildId; error: Error }) => void;
-  removeGuildResolves: (params: { guildId: GuildId }) => void;
-  removeGuildThrows: (params: { guildId: GuildId; error: Error }) => void;
+  updateGuildReturns: (params: { guildId: Guild['id']; guild: Guild }) => void;
+  updateGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
+  removeGuildResolves: (params: { guildId: Guild['id'] }) => void;
+  removeGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   browseDirectoriesReturns: (params: { path?: GuildPath; entries: DirectoryEntry[] }) => void;
   browseDirectoriesThrows: (params: { path?: GuildPath; error: Error }) => void;
   // Quest read methods — QuestFlow, via quest-*-broker.
-  listQuestsReturns: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
-  listQuestsThrows: (params: { guildId: GuildId; error: Error }) => void;
+  listQuestsReturns: (params: { guildId: Guild['id']; quests: QuestListItem[] }) => void;
+  listQuestsThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   listQuestsWithSkipsReturns: (params: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     quests: QuestListItem[];
     skipped: SkippedQuestFile[];
   }) => void;
-  listQuestsWithSkipsThrows: (params: { guildId: GuildId; error: Error }) => void;
+  listQuestsWithSkipsThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   loadQuestReturns: (params: { questId: Quest['id']; quest: Quest }) => void;
   loadQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // ONE-SHOT staging, consumed in REGISTRATION order — lets a test hand two SUCCESSIVE calls for
@@ -187,8 +187,8 @@ export const StartOrchestratorProxy = (): {
   abandonQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   deleteQuestReturns: (params: { questId: Quest['id']; deleted: boolean }) => void;
   deleteQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
-  addQuestReturns: (params: { guildId: GuildId; result: AddQuestResult }) => void;
-  addQuestThrows: (params: { guildId: GuildId; error: Error }) => void;
+  addQuestReturns: (params: { guildId: Guild['id']; result: AddQuestResult }) => void;
+  addQuestThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   modifyQuestReturns: (params: { questId?: string; result: ModifyQuestResult }) => void;
   modifyQuestThrows: (params: { questId?: string; error: Error }) => void;
   // Every call StartOrchestrator.modifyQuest received, first-arg only — mirrors mergeQuestGetCalls.
@@ -202,11 +202,11 @@ export const StartOrchestratorProxy = (): {
   createWorktreeGetCalls: () => readonly unknown[];
   // Chat methods — ChatStartFlow / ClarifyAnswerFlow / CommentBatchFlow / ChatReplayFlow.
   startChatReturns: (params: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     chatProcessId: ProcessId;
     questId?: Quest['id'];
   }) => void;
-  startChatThrows: (params: { guildId: GuildId; error: Error }) => void;
+  startChatThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   // Every call StartOrchestrator.startChat received, first-arg only — mirrors
   // playDispatchGetCalls. A caller composing this proxy that needs one field off a specific call
   // (by guildId, the most recent message, a minted questId) filters/reads this array itself rather
@@ -410,7 +410,7 @@ export const StartOrchestratorProxy = (): {
     getGuildReturns: ({ guild }: { guild: Guild }): void => {
       getGuildHandle.calledWith([{ guildId: guild.id }]).resolves(guild);
     },
-    getGuildThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    getGuildThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       getGuildHandle.calledWith([{ guildId }]).rejects(error);
     },
     addGuildReturns: ({
@@ -435,17 +435,17 @@ export const StartOrchestratorProxy = (): {
     }): void => {
       addGuildHandle.calledWith([{ name, path }]).rejects(error);
     },
-    updateGuildReturns: ({ guildId, guild }: { guildId: GuildId; guild: Guild }): void => {
+    updateGuildReturns: ({ guildId, guild }: { guildId: Guild['id']; guild: Guild }): void => {
       updateGuildHandle.calledWith([{ guildId }]).resolves(guild);
     },
-    updateGuildThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    updateGuildThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       updateGuildHandle.calledWith([{ guildId }]).rejects(error);
     },
     // removeGuild discards its resolved value — only the throw path is observable.
-    removeGuildResolves: ({ guildId }: { guildId: GuildId }): void => {
+    removeGuildResolves: ({ guildId }: { guildId: Guild['id'] }): void => {
       removeGuildHandle.calledWith([{ guildId }]).resolves(undefined);
     },
-    removeGuildThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    removeGuildThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       removeGuildHandle.calledWith([{ guildId }]).rejects(error);
     },
     browseDirectoriesReturns: ({
@@ -464,12 +464,12 @@ export const StartOrchestratorProxy = (): {
       guildId,
       quests,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       quests: QuestListItem[];
     }): void => {
       listQuestsHandle.calledWith([{ guildId }]).resolves(quests);
     },
-    listQuestsThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    listQuestsThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       listQuestsHandle.calledWith([{ guildId }]).rejects(error);
     },
     listQuestsWithSkipsReturns: ({
@@ -477,13 +477,13 @@ export const StartOrchestratorProxy = (): {
       quests,
       skipped,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       quests: QuestListItem[];
       skipped: SkippedQuestFile[];
     }): void => {
       listQuestsWithSkipsHandle.calledWith([{ guildId }]).resolves({ quests, skipped });
     },
-    listQuestsWithSkipsThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    listQuestsWithSkipsThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       listQuestsWithSkipsHandle.calledWith([{ guildId }]).rejects(error);
     },
     loadQuestReturns: ({ questId, quest }: { questId: Quest['id']; quest: Quest }): void => {
@@ -667,10 +667,10 @@ export const StartOrchestratorProxy = (): {
     deleteQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       deleteQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    addQuestReturns: ({ guildId, result }: { guildId: GuildId; result: AddQuestResult }): void => {
+    addQuestReturns: ({ guildId, result }: { guildId: Guild['id']; result: AddQuestResult }): void => {
       addQuestHandle.calledWith([{ guildId }]).resolves(result);
     },
-    addQuestThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    addQuestThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       addQuestHandle.calledWith([{ guildId }]).rejects(error);
     },
     // questId is optional: a caller that discards the result and has no questId at proxy-build
@@ -711,7 +711,7 @@ export const StartOrchestratorProxy = (): {
       chatProcessId,
       questId,
     }: {
-      guildId: GuildId;
+      guildId: Guild['id'];
       chatProcessId: ProcessId;
       questId?: Quest['id'];
     }): void => {
@@ -719,7 +719,7 @@ export const StartOrchestratorProxy = (): {
         .calledWith([{ guildId }])
         .resolves({ chatProcessId, ...(questId === undefined ? {} : { questId }) });
     },
-    startChatThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+    startChatThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       startChatHandle.calledWith([{ guildId }]).rejects(error);
     },
     // Unaddressed on purpose, mirroring playDispatchGetCalls: a caller needing one field off a

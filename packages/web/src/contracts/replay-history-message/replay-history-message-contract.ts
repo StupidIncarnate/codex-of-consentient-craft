@@ -8,16 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  guildIdContract,
-  processIdContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { processIdContract, sessionIdContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const replayHistoryMessageContract = z.object({
   type: z.literal('replay-history'),
   sessionId: sessionIdContract,
-  guildId: guildIdContract,
+  guildId: guildContract.shape.id,
   chatProcessId: processIdContract,
 });
 

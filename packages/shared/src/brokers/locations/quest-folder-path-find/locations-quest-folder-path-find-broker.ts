@@ -12,14 +12,14 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { GuildId } from '../../../contracts/guild-id/guild-id-contract';
 import type { Quest } from '../../../contracts/quest/quest-contract';
+import type { Guild } from '../../../contracts/guild/guild-contract';
 
 export const locationsQuestFolderPathFindBroker = ({
   guildId,
   questId,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   questId: Quest['id'];
 }): AbsoluteFilePath => {
   const guildQuestsPath = locationsGuildQuestsPathFindBroker({ guildId });

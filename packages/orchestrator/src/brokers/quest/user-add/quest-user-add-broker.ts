@@ -18,7 +18,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { addQuestResultContract, workItemContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { AddQuestInput, AddQuestResult, GuildId, SessionId, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, AddQuestResult, SessionId, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questCreateBroker } from '../create/quest-create-broker';
@@ -30,7 +30,7 @@ export const questUserAddBroker = async ({
   sessionId,
 }: {
   input: AddQuestInput;
-  guildId: GuildId;
+  guildId: Guild['id'];
   questId?: Quest['id'];
   sessionId?: SessionId;
 }): Promise<AddQuestResult> => {

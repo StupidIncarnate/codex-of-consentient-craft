@@ -32,7 +32,7 @@
  */
 
 import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestType, SessionId, WorkItemRole, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { QuestType, SessionId, WorkItemRole, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -48,7 +48,7 @@ export const resolveChatQuestLayerBroker = async ({
   message,
 }: {
   role: WorkItemRole;
-  guildId: GuildId;
+  guildId: Guild['id'];
   questType?: QuestType;
   questId?: Quest['id'];
   // The create-surface route's pre-picked id — see the file header for why this cannot reuse

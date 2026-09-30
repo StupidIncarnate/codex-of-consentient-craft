@@ -29,13 +29,7 @@
  * readable, while a caller building a response needs the full skip set on every call.
  */
 
-import type {
-  ErrorMessage,
-  FilePath,
-  GuildId,
-  Quest,
-  SkippedQuestFile,
-} from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, FilePath, Quest, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
 import {
   errorMessageContract,
   fileNameContract,
@@ -57,7 +51,7 @@ export const questListBroker = async ({
   guildId,
   onSkipped,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   onSkipped?: (params: { skipped: SkippedQuestFile }) => void;
 }): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });

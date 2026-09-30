@@ -14,7 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type { AbsoluteFilePath, FileContents, GuildId, GuildPath, FilePath, RepoRelativePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents, GuildPath, FilePath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -151,7 +151,7 @@ export const orchestrationQuestHarness = (): {
   // Reads the quest back off real disk — for asserting what a prior seed or a real broker
   // call actually persisted.
   reload: (params: { questId: Quest['id'] }) => Promise<Quest>;
-  removeGuild: (params: { guildId: GuildId }) => Promise<void>;
+  removeGuild: (params: { guildId: Guild['id'] }) => Promise<void>;
   // Points CLAUDE_CLI_PATH at the real (working) fake-Claude-CLI binary and FAKE_CLAUDE_QUEUE_DIR
   // at a fresh, empty temp dir, so a caller that reaches a real spawn (chatSpawnBroker →
   // agentLaunchBroker → agent-spawn-stream-json-broker) exercises a genuine OS process
@@ -169,7 +169,7 @@ export const orchestrationQuestHarness = (): {
     timeoutMs: number;
   }) => Promise<unknown>;
 } => {
-  const createdGuildIds: GuildId[] = [];
+  const createdGuildIds: Guild['id'][] = [];
 
   // Seeds a quest directly to `in_progress` with the supplied operations ledger + linked work
   // items by writing the quest JSON to disk. It bypasses QuestModifyResponder so the lifecycle
@@ -469,7 +469,7 @@ export const orchestrationQuestHarness = (): {
     reload: loadByQuestId,
     configureFakeClaudeCli,
     waitForClaudeInvocation,
-    removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> => {
+    removeGuild: async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
       await GuildRemoveResponder({ guildId });
     },
   };

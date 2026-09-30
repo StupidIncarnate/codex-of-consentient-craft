@@ -9,13 +9,13 @@
 
 import { UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { GuildId, GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, Guild } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface GuildRowLayerWidgetProps {
   guild: GuildListItem;
-  selectedGuildId: GuildId | null;
-  onSelect: (params: { id: GuildId }) => void;
+  selectedGuildId: Guild['id'] | null;
+  onSelect: (params: { id: Guild['id'] }) => void;
 }
 
 const ITEM_FONT_SIZE = 12;

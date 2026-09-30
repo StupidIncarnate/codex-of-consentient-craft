@@ -1,5 +1,5 @@
 import { absoluteFilePathContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -28,10 +28,10 @@ export const sessionListBrokerProxy = (): {
   setupFileContent: (params: { content: string }) => void;
   setupFileContentError: (params: { error: Error }) => void;
   setupFileStatError: (params: { error: Error }) => void;
-  setupQuests: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
+  setupQuests: (params: { guildId: Guild['id']; quests: QuestListItem[] }) => void;
   setupLoadQuest: (params: { quest: Quest }) => void;
   setupLoadQuestError: (params: { questId: Quest['id']; error: Error }) => void;
-  setupGuildNotFound: (params: { guildId: GuildId }) => void;
+  setupGuildNotFound: (params: { guildId: Guild['id'] }) => void;
 } => {
   const orchestrator = StartOrchestratorProxy();
   const homedirHandle = registerMock({ fn: homedir });
@@ -140,7 +140,7 @@ export const sessionListBrokerProxy = (): {
         error: Object.assign(error, { code: error.message.split(':')[0] ?? 'UNKNOWN' }),
       });
     },
-    setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
+    setupQuests: ({ guildId, quests }: { guildId: Guild['id']; quests: QuestListItem[] }): void => {
       orchestrator.listQuestsReturns({ guildId, quests });
       // The broker calls loadQuest for EVERY listed quest with `.catch(() => null)` chained on the
       // call, so an unstaged loadQuest would throw before that `.catch` attaches. Each listed quest
@@ -159,7 +159,7 @@ export const sessionListBrokerProxy = (): {
     setupLoadQuestError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
-    setupGuildNotFound: ({ guildId }: { guildId: GuildId }): void => {
+    setupGuildNotFound: ({ guildId }: { guildId: Guild['id'] }): void => {
       orchestrator.getGuildThrows({ guildId, error: new Error(`Guild not found: ${guildId}`) });
     },
   };

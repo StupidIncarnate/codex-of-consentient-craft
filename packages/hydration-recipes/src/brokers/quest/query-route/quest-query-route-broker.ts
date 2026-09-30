@@ -18,7 +18,7 @@
  * // Returns only the matching quest
  */
 import { questListBroker } from '@dungeonmaster/orchestrator/brokers';
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -31,7 +31,7 @@ export const questQueryRouteBroker = async ({
   where: Record<string, unknown>;
 }): Promise<Quest[]> => {
   const { guildId, ...rest } = where;
-  const quests = await questListBroker({ guildId: guildIdContract.parse(guildId) });
+  const quests = await questListBroker({ guildId: guildContract.shape.id.parse(guildId) });
 
   return quests.filter((quest) => matchesWhereClauseGuard({ record: quest, where: rest }));
 };

@@ -1,4 +1,4 @@
-import type { WardResult, AbsoluteFilePath, FileContents, FilePath, GuildId, OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { WardResult, AbsoluteFilePath, FileContents, FilePath, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -92,12 +92,12 @@ export const ServerInitResponderProxy = (): {
   setupFindQuestPathSuccess: (params: {
     questId: Quest['id'];
     questPath: AbsoluteFilePath;
-    guildId: GuildId;
+    guildId: Guild['id'];
   }) => void;
   setupWardDetailSuccess: (params: {
     questId: Quest['id'];
     questPath: AbsoluteFilePath;
-    guildId: GuildId;
+    guildId: Guild['id'];
     wardResultId: WardResult['id'];
     wardResultsPath: FilePath;
     detailFilePath: FilePath;
@@ -258,7 +258,7 @@ export const ServerInitResponderProxy = (): {
     }: {
       questId: Quest['id'];
       questPath: AbsoluteFilePath;
-      guildId: GuildId;
+      guildId: Guild['id'];
     }): void => {
       findQuestPathProxy.setupResolves({ questId, questPath, guildId });
     },
@@ -273,7 +273,7 @@ export const ServerInitResponderProxy = (): {
     }: {
       questId: Quest['id'];
       questPath: AbsoluteFilePath;
-      guildId: GuildId;
+      guildId: Guild['id'];
       wardResultId: WardResult['id'];
       wardResultsPath: FilePath;
       detailFilePath: FilePath;

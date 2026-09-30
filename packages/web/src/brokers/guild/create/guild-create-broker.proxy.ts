@@ -9,21 +9,21 @@
  * await guildCreateBroker({ name: 'My Guild', path: '/home/user/my-guild' });
  */
 
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildCreateBrokerProxy = (): {
-  setupCreate: (params: { id: GuildId }) => void;
+  setupCreate: (params: { id: Guild['id'] }) => void;
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
   const jsonFetchProxy = fetchJsonProxy();
 
   return {
-    setupCreate: ({ id }: { id: GuildId }): void => {
+    setupCreate: ({ id }: { id: Guild['id'] }): void => {
       jsonFetchProxy.setupSuccess({
         method: 'post',
         url: webConfigStatics.api.routes.guilds,

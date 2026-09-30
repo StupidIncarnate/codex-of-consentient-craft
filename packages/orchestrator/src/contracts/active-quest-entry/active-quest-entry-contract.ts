@@ -12,11 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { guildIdContract, questContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
+import { questContract, urlSlugContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const activeQuestEntryContract = z.object({
   quest: questContract,
-  guildId: guildIdContract,
+  guildId: guildContract.shape.id,
   guildSlug: urlSlugContract,
 });
 

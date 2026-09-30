@@ -16,7 +16,7 @@
 
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
@@ -37,14 +37,14 @@ type RecipeListingEntry = ReturnType<typeof RecipeListingEntryStub>;
 export const SiegelenseStartResponderProxy = (): {
   stageManifest: (params: { manifest: InstanceManifest }) => void;
   stageError: (params: { error: Error; specName: SpecName }) => void;
-  stageQuestResolvesToGuild: (params: { questId: Quest['id']; guildId: GuildId }) => void;
+  stageQuestResolvesToGuild: (params: { questId: Quest['id']; guildId: Guild['id'] }) => void;
   stageQuestUnresolvable: (params: { questId: Quest['id']; error: Error }) => void;
   stageRecipeListing: (params: { entries: readonly RecipeListingEntry[] }) => void;
   getStdoutWrites: () => unknown[];
   getStartCallsMatching: (params: {
     specName: SpecName;
     questId: Quest['id'] | null;
-    guildId: GuildId | null;
+    guildId: Guild['id'] | null;
     seed: RecipeName | null;
   }) => unknown[][];
   getOwningGuildFindCallsMatching: (params: { questId: Quest['id'] }) => unknown[][];
@@ -76,7 +76,7 @@ export const SiegelenseStartResponderProxy = (): {
       guildId,
     }: {
       questId: Quest['id'];
-      guildId: GuildId;
+      guildId: Guild['id'];
     }): void => {
       owningGuildFindHandle.calledWith([{ questId }]).resolves(guildId);
     },
@@ -99,7 +99,7 @@ export const SiegelenseStartResponderProxy = (): {
     }: {
       specName: SpecName;
       questId: Quest['id'] | null;
-      guildId: GuildId | null;
+      guildId: Guild['id'] | null;
       seed: RecipeName | null;
     }): unknown[][] => instanceStartHandle.callsMatching([{ specName, questId, guildId, seed }]),
 

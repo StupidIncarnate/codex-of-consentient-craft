@@ -13,7 +13,7 @@
  * warpgate.seedWarpgateQuest({ questId, questFolder, questFilePath, status: 'merging', warpgateStatus: 'in_progress' });
  * warpgate.seedFollowupTurns({ sessionId, turns: [{ role: 'user', text: 'hi' }, { role: 'assistant', text: 'hello' }] });
  */
-import type { Guild, FilePath, GuildId, Quest, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Guild, FilePath, Quest, UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
@@ -40,13 +40,13 @@ export const warpgateHarness = ({
   guildPath: Guild['path'];
 }): {
   setup: (params: { guildName: Guild['name']; title: string }) => Promise<{
-    guildId: GuildId;
+    guildId: Guild['id'];
     urlSlug: UrlSlug;
     questId: Quest['id'];
     questFolder: Quest['folder'];
     questFilePath: FilePath;
   }>;
-  createQuestInGuild: (params: { guildId: GuildId; title: string }) => Promise<{
+  createQuestInGuild: (params: { guildId: Guild['id']; title: string }) => Promise<{
     questId: Quest['id'];
     questFolder: Quest['folder'];
     questFilePath: FilePath;
@@ -76,7 +76,7 @@ export const warpgateHarness = ({
     guildName: Guild['name'];
     title: string;
   }): Promise<{
-    guildId: GuildId;
+    guildId: Guild['id'];
     urlSlug: UrlSlug;
     questId: Quest['id'];
     questFolder: Quest['folder'];
@@ -108,7 +108,7 @@ export const warpgateHarness = ({
     guildId,
     title,
   }: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     title: string;
   }): Promise<{
     questId: Quest['id'];

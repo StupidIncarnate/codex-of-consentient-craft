@@ -13,7 +13,7 @@ import { Link, useNavigate } from '#gateway/npm/react-router-dom';
 
 import { Box, Center, Group, Text } from '#gateway/npm/mantine__core';
 
-import type { GuildId, GuildName, GuildPath, SessionId, Quest } from '@dungeonmaster/shared/contracts';
+import type { GuildName, GuildPath, SessionId, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { notifications } from '#gateway/npm/mantine__notifications';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
@@ -35,9 +35,9 @@ const GUILD_STORAGE_KEY = 'dungeonmaster-last-guild';
 export const HomeContentWidget = (): React.JSX.Element => {
   const navigate = useNavigate();
   const [internalView, setInternalView] = useState<InternalView>('main');
-  const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(() => {
+  const [selectedGuildId, setSelectedGuildId] = useState<Guild['id'] | null>(() => {
     const stored = readItem({ key: GUILD_STORAGE_KEY });
-    return stored ? (stored as GuildId) : null;
+    return stored ? (stored as Guild['id']) : null;
   });
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>('quests-only' as SessionFilter);
@@ -129,7 +129,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
             <GuildListWidget
               guilds={guilds}
               selectedGuildId={selectedGuildId}
-              onSelect={({ id }: { id: GuildId }) => {
+              onSelect={({ id }: { id: Guild['id'] }) => {
                 setSelectedGuildId(id);
               }}
               onAdd={() => {

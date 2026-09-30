@@ -1,4 +1,4 @@
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
@@ -10,7 +10,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const OrchestrationDeleteResponderProxy = (): {
   callResponder: typeof OrchestrationDeleteResponder;
-  setupQuestFound: (params: { quest: Quest; guildId: GuildId }) => void;
+  setupQuestFound: (params: { quest: Quest; guildId: Guild['id'] }) => void;
   setupQuestNotFound: () => void;
 } => {
   const getProxy = questGetBrokerProxy();
@@ -19,7 +19,7 @@ export const OrchestrationDeleteResponderProxy = (): {
   return {
     callResponder: OrchestrationDeleteResponder,
 
-    setupQuestFound: ({ quest, guildId }: { quest: Quest; guildId: GuildId }): void => {
+    setupQuestFound: ({ quest, guildId }: { quest: Quest; guildId: Guild['id'] }): void => {
       getProxy.setupQuestFound({ quest });
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const questFolderPath = FilePathStub({

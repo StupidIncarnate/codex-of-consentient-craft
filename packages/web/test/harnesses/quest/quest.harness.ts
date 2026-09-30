@@ -13,7 +13,7 @@ import { basename, dirname, join } from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
-import { guildIdContract, filePathContract, questContract, type Quest, type GuildId, type FilePath, type WorkItemRole } from '@dungeonmaster/shared/contracts';
+import { filePathContract, questContract, type Quest, type FilePath, type WorkItemRole, guildContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -358,7 +358,7 @@ export const questHarness = ({
     success: boolean;
   }> => {
     const plan = recipe({ name: 'seed-quest', description: 'seed one quest via api route' }, () => [
-      dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
+      dmRegistryBroker.quests.under({ guildId: guildContract.shape.id.parse(guildId) }).add(1, (q) => [
         q[0].set({
           title: questContract.shape.title.parse(title),
           userRequest: questContract.shape.userRequest.parse(userRequest),
@@ -395,7 +395,7 @@ export const questHarness = ({
     const plan = recipe(
       { name: 'seed-quest-write', description: 'seed one quest via write route' },
       () => [
-        dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
+        dmRegistryBroker.quests.under({ guildId: guildContract.shape.id.parse(guildId) }).add(1, (q) => [
           q[0].set({
             title: questContract.shape.title.parse(title),
             userRequest: questContract.shape.userRequest.parse(userRequest),
@@ -751,7 +751,7 @@ export const questHarness = ({
     // never reports it fired is worse than an unconverted method, because a spec passes on the
     // fallback path while asserting nothing about the real write route.
     const inferredGuildId = guildId ?? basename(dirname(dirname(dirname(questFilePath))));
-    const parsedGuildId = guildIdContract.safeParse(inferredGuildId);
+    const parsedGuildId = guildContract.shape.id.safeParse(inferredGuildId);
     if (!parsedGuildId.success) {
       throw new Error(
         `questHarness.writeQuestFile: could not write quest "${questId}" — guild id ` +
@@ -971,18 +971,18 @@ export const questHarness = ({
   // hydration-recipes' own `questOwningGuildFindBroker` exists to close — internal to that
   // package, unreachable from here). This mirrors that broker's own algorithm — scan every guild's
   // quest list for the id — over the one surface this harness can reach: the real HTTP API.
-  const resolveQuestOwningGuildId = async ({ questId }: { questId: Quest['id'] }): Promise<GuildId> => {
+  const resolveQuestOwningGuildId = async ({ questId }: { questId: Quest['id'] }): Promise<Guild['id']> => {
     const guildsResponse = await request.get('/api/guilds');
     const guildsBody = (await guildsResponse.json()) as ApiListRecord[];
     const guilds = Array.isArray(guildsBody) ? guildsBody : [];
 
-    const owningGuildId = await guilds.reduce<Promise<GuildId | undefined>>(
+    const owningGuildId = await guilds.reduce<Promise<Guild['id'] | undefined>>(
       async (previous, guild) => {
         const found = await previous;
         if (found !== undefined) {
           return found;
         }
-        const candidateGuildId = guildIdContract.parse(String(guild.id));
+        const candidateGuildId = guildContract.shape.id.parse(String(guild.id));
         const questsResponse = await request.get(`/api/quests?guildId=${candidateGuildId}`);
         const questsBody = (await questsResponse.json()) as Record<PropertyKey, unknown>;
         const questsRaw = questsBody.quests;

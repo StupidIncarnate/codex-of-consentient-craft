@@ -7,12 +7,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const questUserAddBodyContract = z.object({
   title: z.string().min(1).brand<'QuestTitle'>(),
   userRequest: z.string().min(1).brand<'UserRequest'>(),
-  guildId: guildIdContract,
+  guildId: guildContract.shape.id,
 });
 
 export type QuestUserAddBody = z.infer<typeof questUserAddBodyContract>;

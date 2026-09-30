@@ -39,7 +39,7 @@ import {
   fileNameContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ArrayIndex, ChatEntry, GuildId, SessionId, StreamJsonLine, Quest } from '@dungeonmaster/shared/contracts';
+import type { ArrayIndex, ChatEntry, SessionId, StreamJsonLine, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -69,7 +69,7 @@ export const chatHistoryReplayBroker = async ({
   onEntries,
 }: {
   sessionId: SessionId;
-  guildId: GuildId;
+  guildId: Guild['id'];
   // When set, the JSONL directory is resolved through the quest rather than by walking up from the
   // guild path — and resolved FOR THIS SESSION, since `sessionId` rides along to
   // questCwdResolveBroker. That ordering is the whole point: a carved quest's intake conversation

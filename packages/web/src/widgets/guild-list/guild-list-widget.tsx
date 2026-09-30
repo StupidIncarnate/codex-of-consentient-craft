@@ -8,8 +8,7 @@
 
 import { Group, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { GuildId } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, Guild } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { GuildRowLayerWidget } from './guild-row-layer-widget';
@@ -19,8 +18,8 @@ import type { ButtonVariant } from '../../contracts/button-variant/button-varian
 
 export interface GuildListWidgetProps {
   guilds: readonly GuildListItem[];
-  selectedGuildId: GuildId | null;
-  onSelect: (params: { id: GuildId }) => void;
+  selectedGuildId: Guild['id'] | null;
+  onSelect: (params: { id: Guild['id'] }) => void;
   onAdd: () => void;
 }
 

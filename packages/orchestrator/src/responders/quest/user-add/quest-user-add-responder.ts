@@ -6,11 +6,10 @@
  * // Returns AddQuestResult with success status and quest details
  */
 
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { AddQuestResult, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questUserAddBroker } from '../../../brokers/quest/user-add/quest-user-add-broker';
 import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { AddQuestResult } from '@dungeonmaster/shared/contracts';
 
 export const QuestUserAddResponder = async ({
   title,
@@ -19,7 +18,7 @@ export const QuestUserAddResponder = async ({
 }: {
   title: string;
   userRequest: string;
-  guildId: GuildId;
+  guildId: Guild['id'];
 }): Promise<AddQuestResult> => {
   const input = addQuestInputContract.parse({ title, userRequest });
   const result = await questUserAddBroker({ input, guildId });

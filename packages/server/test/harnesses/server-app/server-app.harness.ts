@@ -29,7 +29,7 @@ import { z } from '#gateway/npm/zod';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { Base64ImageData, FileName, FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
-import { fileNameContract, guildIdContract, pastedImageUploadContract, questContract } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -317,7 +317,7 @@ export const serverAppHarness = (): {
     });
     const plan = recipe({ name: 'seed-quest-fields', description: 'one seeded quest' }, () => [
       dmRegistryBroker.quests
-        .under({ guildId: guildIdContract.parse(guildId) })
+        .under({ guildId: guildContract.shape.id.parse(guildId) })
         .add(1, (q) => [q[0].setRaw(fields), q[0].saveRecordAs({ name: QUEST_SAVE_NAME })]),
     ])();
     const result = await dmRegistryBroker.run(plan, target);

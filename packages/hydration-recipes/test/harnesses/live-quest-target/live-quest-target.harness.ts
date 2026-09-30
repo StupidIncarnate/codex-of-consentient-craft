@@ -59,8 +59,8 @@ import {
   questGetBroker,
   questModifyBroker,
 } from '@dungeonmaster/orchestrator/brokers';
-import { absoluteFilePathContract, getQuestInputContract, guildIdContract, guildNameContract, guildPathContract, modifyQuestInputContract, operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, getQuestInputContract, guildNameContract, guildPathContract, modifyQuestInputContract, operationItemContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
@@ -126,7 +126,7 @@ export const liveQuestTargetHarness = ({
       // field on the record — `quest-fields-contract.ts`'s own header) so a later `/start` rewrite
       // through `questWriteRouteBroker`, which REQUIRES `guildId`, cannot recover it by spreading a
       // reloaded `Quest`. Recorded here at create time instead, scoped to this one `target()` call.
-      const questGuildIds = new Map<Quest['id'], GuildId>();
+      const questGuildIds = new Map<Quest['id'], Guild['id']>();
 
       return DmTargetStub({
         home,
@@ -161,7 +161,7 @@ export const liveQuestTargetHarness = ({
                 ...(simulateRelaySeed ? { operations: [intakeOperation] } : {}),
               },
             });
-            questGuildIds.set(quest.id, guildIdContract.parse(fields.guildId));
+            questGuildIds.set(quest.id, guildContract.shape.id.parse(fields.guildId));
             const filePath = [
               home,
               dungeonmasterHomeStatics.paths.guildsDir,

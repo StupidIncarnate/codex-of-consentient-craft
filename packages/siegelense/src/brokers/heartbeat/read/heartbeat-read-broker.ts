@@ -15,7 +15,7 @@
 import { join } from '#gateway/node/path';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
@@ -28,7 +28,7 @@ export const heartbeatReadBroker = async ({
   guildId,
 }: {
   instanceId: InstanceId;
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
 }): Promise<InstanceHeartbeat | null> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
   const heartbeatPath = absoluteFilePathContract.parse(

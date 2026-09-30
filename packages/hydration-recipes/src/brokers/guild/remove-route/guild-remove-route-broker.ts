@@ -19,7 +19,7 @@
  * // quest files on disk are preserved
  */
 import { guildRemoveBroker } from '@dungeonmaster/orchestrator/brokers';
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
 import { dmHttpResponseUnwrapTransformer } from '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer';
@@ -32,7 +32,7 @@ export const guildRemoveRouteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<unknown> => {
-  const guildId = guildIdContract.parse(record.id);
+  const guildId = guildContract.shape.id.parse(record.id);
 
   if (target.baseUrl === undefined) {
     return guildRemoveBroker({ guildId });

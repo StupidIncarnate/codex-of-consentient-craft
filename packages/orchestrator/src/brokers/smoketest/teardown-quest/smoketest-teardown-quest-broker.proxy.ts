@@ -4,7 +4,7 @@ import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import type { AbsoluteFilePath, FilePath, GuildId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 
@@ -13,7 +13,7 @@ type Quest = ReturnType<typeof QuestStub>;
 export const smoketestTeardownQuestBrokerProxy = (): {
   setupQuestFound: (params: {
     questPath: AbsoluteFilePath;
-    guildId: GuildId;
+    guildId: Guild['id'];
     questId: Quest['id'];
   }) => void;
   setupQuestNotFound: () => void;
@@ -31,7 +31,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
       questId,
     }: {
       questPath: AbsoluteFilePath;
-      guildId: GuildId;
+      guildId: Guild['id'];
       questId: Quest['id'];
     }): void => {
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });

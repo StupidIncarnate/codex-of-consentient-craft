@@ -7,12 +7,12 @@
  * const guild = await guilds.createGuild({ name: 'Test', path: '/tmp/test' });
  * const guildId = guilds.extractGuildId({ guild });
  */
-import type { Guild, GuildId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Guild, UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { dmTargetHarness } from '../dm-target/dm-target.harness';
@@ -40,7 +40,7 @@ export const guildHarness = ({
   // sends `DELETE /api/guilds/:guildId` over HTTP whenever the target carries a `baseUrl` — see
   // that route's own header for the full resolution.
   deleteGuild: (params: { guildId: Guild['id'] }) => Promise<void>;
-  extractGuildId: (params: { guild: GuildRecord }) => GuildId;
+  extractGuildId: (params: { guild: GuildRecord }) => Guild['id'];
   extractUrlSlug: (params: { guild: GuildRecord }) => UrlSlug;
 } => {
   const resolvedBaseUrl =
@@ -98,9 +98,9 @@ export const guildHarness = ({
   // GuildFields key — the same shape questHarness.patchQuestStatus uses for a quest's `id`.
   const deleteGuild = async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
     type GuildFilterWhere = Parameters<typeof dmRegistryBroker.guilds.filter>[0]['where'] & {
-      id?: GuildId;
+      id?: Guild['id'];
     };
-    const filterWhere: GuildFilterWhere = { id: guildIdContract.parse(guildId) };
+    const filterWhere: GuildFilterWhere = { id: guildContract.shape.id.parse(guildId) };
 
     const plan = recipe(
       { name: 'delete-guild', description: 'removes one guild via dmRegistryBroker' },
@@ -110,8 +110,8 @@ export const guildHarness = ({
     await dmRegistryBroker.run(plan, dmTarget.apiTarget());
   };
 
-  const extractGuildId = ({ guild }: { guild: GuildRecord }): GuildId =>
-    String(guild.id) as GuildId;
+  const extractGuildId = ({ guild }: { guild: GuildRecord }): Guild['id'] =>
+    String(guild.id) as Guild['id'];
 
   const extractUrlSlug = ({ guild }: { guild: GuildRecord }): UrlSlug =>
     String(guild.urlSlug) as UrlSlug;

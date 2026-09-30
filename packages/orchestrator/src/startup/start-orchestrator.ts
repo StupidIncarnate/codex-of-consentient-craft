@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildId, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
@@ -66,7 +66,7 @@ export const StartOrchestrator = {
   // Guild methods
   listGuilds: async (): Promise<GuildListItem[]> => GuildFlow.list(),
 
-  getGuild: async ({ guildId }: { guildId: GuildId }): Promise<Guild> => GuildFlow.get({ guildId }),
+  getGuild: async ({ guildId }: { guildId: Guild['id'] }): Promise<Guild> => GuildFlow.get({ guildId }),
 
   addGuild: async ({ name, path }: { name: GuildName; path: GuildPath }): Promise<Guild> =>
     GuildFlow.add({ name, path }),
@@ -76,7 +76,7 @@ export const StartOrchestrator = {
     name,
     path,
   }: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     name?: GuildName;
     path?: GuildPath;
   }): Promise<Guild> =>
@@ -86,19 +86,19 @@ export const StartOrchestrator = {
       ...(path !== undefined && { path }),
     }),
 
-  removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> =>
+  removeGuild: async ({ guildId }: { guildId: Guild['id'] }): Promise<void> =>
     GuildFlow.remove({ guildId }),
 
   browseDirectories: ({ path }: { path?: GuildPath }): DirectoryEntry[] =>
     DirectoryFlow({ ...(path !== undefined && { path }) }),
 
   // Quest methods
-  listQuests: async ({ guildId }: { guildId: GuildId }): Promise<QuestListItem[]> =>
+  listQuests: async ({ guildId }: { guildId: Guild['id'] }): Promise<QuestListItem[]> =>
     QuestFlow.list({ guildId }),
 
   // Same enumeration as listQuests, but it also hands back the quest files it could not load so
   // the caller can report the omission instead of silently serving a short list.
-  listQuestsWithSkips: async ({ guildId }: { guildId: GuildId }): Promise<QuestListResult> =>
+  listQuestsWithSkips: async ({ guildId }: { guildId: Guild['id'] }): Promise<QuestListResult> =>
     QuestFlow.listWithSkips({ guildId }),
 
   loadQuest: async ({ questId }: { questId: Quest['id'] }): Promise<Quest> =>
@@ -128,7 +128,7 @@ export const StartOrchestrator = {
     guildId,
   }: {
     questId: Quest['id'];
-    guildId: GuildId;
+    guildId: Guild['id'];
   }): Promise<{ deleted: boolean }> => OrchestrationFlow.delete({ questId, guildId }),
 
   getQuestStatus: ({ processId }: { processId: ProcessId }): OrchestrationStatus =>
@@ -141,7 +141,7 @@ export const StartOrchestrator = {
   }: {
     title: string;
     userRequest: string;
-    guildId: GuildId;
+    guildId: Guild['id'];
   }): Promise<AddQuestResult> => QuestFlow.add({ title, userRequest, guildId }),
 
   getQuest: async ({
@@ -249,7 +249,7 @@ export const StartOrchestrator = {
     existingQuestId,
     sessionId,
   }: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     message: string;
     questType?: QuestType;
     // A pre-minted id from the create-surface chat route — see chat-start-responder.ts for why the
@@ -278,7 +278,7 @@ export const StartOrchestrator = {
     answers,
     questions,
   }: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     sessionId: SessionId;
     questId: Quest['id'];
     answers: { header: string; label: string }[];
@@ -292,7 +292,7 @@ export const StartOrchestrator = {
     questId,
     comments,
   }: {
-    guildId: GuildId;
+    guildId: Guild['id'];
     sessionId: SessionId;
     questId: Quest['id'];
     comments: CommentBatchEntry[];
@@ -312,7 +312,7 @@ export const StartOrchestrator = {
     chatProcessId,
   }: {
     sessionId: SessionId;
-    guildId: GuildId;
+    guildId: Guild['id'];
     chatProcessId?: ProcessId;
   }): Promise<void> =>
     ChatReplayFlow({
@@ -330,7 +330,7 @@ export const StartOrchestrator = {
     message,
   }: {
     questId: Quest['id'];
-    guildId: GuildId;
+    guildId: Guild['id'];
     message: string;
   }): Promise<{ chatProcessId: ProcessId }> => FollowupChatStartFlow({ questId, guildId, message }),
 

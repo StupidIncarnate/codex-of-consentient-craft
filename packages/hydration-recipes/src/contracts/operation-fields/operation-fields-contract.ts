@@ -19,10 +19,10 @@
  */
 import type { z } from '#gateway/npm/zod';
 
-import { guildIdContract, operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const operationFieldsContract = operationItemContract
   .omit({ id: true })
-  .extend({ questId: questContract.shape.id, guildId: guildIdContract });
+  .extend({ questId: questContract.shape.id, guildId: guildContract.shape.id });
 
 export type OperationFields = z.infer<typeof operationFieldsContract>;

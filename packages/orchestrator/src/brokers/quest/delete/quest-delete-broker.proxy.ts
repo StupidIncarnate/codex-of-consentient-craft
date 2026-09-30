@@ -4,7 +4,7 @@ import { join } from '#gateway/node/path';
 import type { FsError } from '#gateway/node/fs';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import type { FilePath, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -13,7 +13,7 @@ import { questOutboxAppendBrokerProxy } from '../outbox-append/quest-outbox-appe
 export const questDeleteBrokerProxy = (): {
   setupQuestFolderPath: (params: {
     homePath: FilePath;
-    guildId: GuildId;
+    guildId: Guild['id'];
     questId: Quest['id'];
     questFolderPath: FilePath;
   }) => void;
@@ -44,7 +44,7 @@ export const questDeleteBrokerProxy = (): {
       questFolderPath,
     }: {
       homePath: FilePath;
-      guildId: GuildId;
+      guildId: Guild['id'];
       questId: Quest['id'];
       questFolderPath: FilePath;
     }): void => {

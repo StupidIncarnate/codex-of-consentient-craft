@@ -10,7 +10,7 @@
  */
 
 import { processIdContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, PastedImageUpload, ProcessId, QuestType, UserInput, Quest } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, ProcessId, QuestType, UserInput, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -27,7 +27,7 @@ export const questNewBroker = async ({
   images,
   onProgress,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   message: UserInput;
   // Which pipeline the new quest follows. Omitted defaults to feature server-side; 'bug-hunt'
   // spawns the BugHunt intake instead of ChaosWhisperer.

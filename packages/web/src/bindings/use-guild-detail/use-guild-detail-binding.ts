@@ -9,14 +9,14 @@ import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
 
-import type { Guild, GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildDetailBroker } from '../../brokers/guild/detail/guild-detail-broker';
 
 export const useGuildDetailBinding = ({
   guildId,
 }: {
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
 }): {
   data: Guild | null;
   loading: boolean;

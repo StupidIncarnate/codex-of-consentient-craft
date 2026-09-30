@@ -1,4 +1,4 @@
-import type { WorkItem, GuildId } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 import { questListBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/list/quest-list-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
@@ -15,7 +15,7 @@ export const ReconcileWatchersLayerResponderProxy = (): {
     throws: (params: { error: Error }) => void;
   };
   questsProxy: {
-    returns: (params: { guildId: GuildId; quests: Quest[] }) => void;
+    returns: (params: { guildId: Guild['id']; quests: Quest[] }) => void;
     throws: (params: { error: Error }) => void;
   };
   startWatcherProxy: {
@@ -53,7 +53,7 @@ export const ReconcileWatchersLayerResponderProxy = (): {
       },
     },
     questsProxy: {
-      returns: ({ guildId, quests }: { guildId: GuildId; quests: Quest[] }): void => {
+      returns: ({ guildId, quests }: { guildId: Guild['id']; quests: Quest[] }): void => {
         questListProxy.setupDirectList({ guildId, quests });
       },
       // No caller currently exercises this path with a specific guildId — questListBrokerProxy's

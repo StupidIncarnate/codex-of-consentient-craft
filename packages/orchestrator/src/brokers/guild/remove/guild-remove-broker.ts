@@ -7,13 +7,13 @@
  * // Throws if guild not found
  */
 
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
-export const guildRemoveBroker = async ({ guildId }: { guildId: GuildId }): Promise<void> => {
+export const guildRemoveBroker = async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
   const config = await guildConfigReadBroker();
 
   const exists = config.guilds.some((g) => g.id === guildId);

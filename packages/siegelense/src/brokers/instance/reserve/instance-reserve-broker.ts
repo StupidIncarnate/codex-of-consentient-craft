@@ -32,7 +32,7 @@ import { now } from '#gateway/node/Date';
 import { cwd, pid } from '#gateway/node/process';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { freePortPair } from '#gateway/node/net';
-import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
@@ -58,7 +58,7 @@ export const instanceReserveBroker = async ({
   specName: SpecName;
   specHash: SpecHash;
   questId: Quest['id'] | null;
-  guildId: GuildId | null;
+  guildId: Guild['id'] | null;
 }): Promise<RegistryEntry> => {
   // randomUUID() dashes stripped — the whole hex payload, comfortably above
   // instanceIdContract's 4-char minimum, with no length arithmetic to hold a magic number.

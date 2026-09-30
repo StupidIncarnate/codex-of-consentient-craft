@@ -8,7 +8,7 @@
  * // Returns readonly RecipeCatalogEntry[]
  */
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 import {
   hydrationRunResultContract,
   planMakesEntryContract,
@@ -275,7 +275,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       inputKeys: [recipeInputKeyContract.parse('guild')],
     }),
     execute: async ({ params, target }) => {
-      const parsedGuild = guildIdContract.safeParse(params?.guild);
+      const parsedGuild = guildContract.shape.id.safeParse(params?.guild);
       if (!parsedGuild.success) {
         throw new Error(
           `recipesSeedRunBroker: recipe 'session-with-nested-subagent' refused params — ${parsedGuild.error.message} — this recipe takes: guild`,

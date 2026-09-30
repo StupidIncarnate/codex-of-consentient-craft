@@ -14,8 +14,8 @@
  * question the caller answers, not a verdict that the quest does not exist.
  */
 
-import { guildIdContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FileName, FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileName, FilePath, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { readFile } from '#gateway/node/fs__promises';
 
@@ -35,7 +35,7 @@ export const matchCandidatesLayerBroker = async ({
     guildDirName: FileName;
   }[];
   questId: Quest['id'];
-}): Promise<{ questPath: AbsoluteFilePath; guildId: GuildId } | null> => {
+}): Promise<{ questPath: AbsoluteFilePath; guildId: Guild['id'] } | null> => {
   const results = await Promise.all(
     candidates.map(async (candidate) => {
       try {
@@ -46,7 +46,7 @@ export const matchCandidatesLayerBroker = async ({
         if (identity.success && identity.data.id === questId) {
           return {
             questPath: candidate.questFolderPath as AbsoluteFilePath,
-            guildId: guildIdContract.parse(candidate.guildDirName),
+            guildId: guildContract.shape.id.parse(candidate.guildDirName),
           };
         }
 

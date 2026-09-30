@@ -10,10 +10,10 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const questAdvancesOneStepInputsContract = z.object({
-  guildId: guildIdContract,
+  guildId: guildContract.shape.id,
 });
 
 export type QuestAdvancesOneStepInputs = z.infer<typeof questAdvancesOneStepInputsContract>;

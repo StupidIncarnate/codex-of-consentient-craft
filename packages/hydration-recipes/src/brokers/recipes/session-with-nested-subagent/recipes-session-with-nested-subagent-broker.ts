@@ -30,7 +30,7 @@
  */
 
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
 import {
@@ -55,7 +55,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
   guild,
 }: {
   context: RecipeContext;
-  guild: GuildId;
+  guild: Guild['id'];
 }): Promise<HydrationRunResult> => {
   const guildsUrl = contentTextContract.parse(
     `${context.apiBaseUrl}${recipeHttpStatics.routes.guilds}`,

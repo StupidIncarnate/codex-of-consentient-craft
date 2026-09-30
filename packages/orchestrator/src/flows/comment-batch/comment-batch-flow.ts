@@ -9,7 +9,7 @@
  * // waiting for a reload — Claude's --resume stream never echoes the prompt back.
  */
 
-import type { CommentBatchEntry, GuildId, ProcessId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
+import type { CommentBatchEntry, ProcessId, SessionId, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
@@ -22,7 +22,7 @@ export const CommentBatchFlow = async ({
   questId,
   comments,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   sessionId: SessionId;
   questId: Quest['id'];
   comments: CommentBatchEntry[];

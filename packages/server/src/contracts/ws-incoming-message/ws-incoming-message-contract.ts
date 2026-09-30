@@ -7,13 +7,13 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { guildIdContract, processIdContract, sessionIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, sessionIdContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const wsIncomingMessageContract = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('replay-history'),
     sessionId: sessionIdContract,
-    guildId: guildIdContract,
+    guildId: guildContract.shape.id,
     chatProcessId: processIdContract,
   }),
   z.object({

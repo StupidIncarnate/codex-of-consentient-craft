@@ -5,7 +5,7 @@ import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { fileNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import type { AbsoluteFilePath, FileContents, FileName, FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents, FileName, FilePath, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -228,7 +228,7 @@ export const questFindQuestPathBrokerProxy = (): {
   // wired below, right where this file's own real, relatively-imported broker is wired too.
   setupQuestPath: (params: {
     questId: Quest['id'];
-    guildId: GuildId;
+    guildId: Guild['id'];
     questPath: AbsoluteFilePath;
     // A real process has one home. Omit this to get a per-questId fixture home this scenario
     // invents for itself; pass the SAME homeDir a sibling proxy composed in the same test staged
@@ -243,7 +243,7 @@ export const questFindQuestPathBrokerProxy = (): {
   setupResolves: (params: {
     questId: Quest['id'];
     questPath: AbsoluteFilePath;
-    guildId: GuildId;
+    guildId: Guild['id'];
   }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
@@ -297,7 +297,7 @@ export const questFindQuestPathBrokerProxy = (): {
     }: {
       questId: Quest['id'];
       questPath: AbsoluteFilePath;
-      guildId: GuildId;
+      guildId: Guild['id'];
     }): void => {
       findMock.calledWith([{ questId }]).resolves({ questPath, guildId });
     },
@@ -459,7 +459,7 @@ export const questFindQuestPathBrokerProxy = (): {
       homeDir: givenHomeDir,
     }: {
       questId: Quest['id'];
-      guildId: GuildId;
+      guildId: Guild['id'];
       questPath: AbsoluteFilePath;
       homeDir?: string;
     }): void => {

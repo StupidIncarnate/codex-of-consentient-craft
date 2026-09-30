@@ -6,7 +6,7 @@
  * // Returns QuestListItem[] with id, title, status, stepProgress — sorted by updatedAt ?? createdAt descending
  */
 
-import type { GuildId, QuestListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questsToListItemsTransformer } from '../../../transformers/quests-to-list-items/quests-to-list-items-transformer';
@@ -14,7 +14,7 @@ import { questsToListItemsTransformer } from '../../../transformers/quests-to-li
 export const QuestListResponder = async ({
   guildId,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
 }): Promise<QuestListItem[]> => {
   const quests = await questListBroker({ guildId });
   return questsToListItemsTransformer({ quests });

@@ -12,7 +12,7 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { errorMessageContract, getQuestInputContract, workItemContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, ModifyQuestInput, ProcessId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, ProcessId, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -25,7 +25,7 @@ export const FollowupChatStartResponder = async ({
   questId,
   message,
 }: {
-  guildId: GuildId;
+  guildId: Guild['id'];
   questId: Quest['id'];
   message: string;
 }): Promise<{ chatProcessId: ProcessId }> => {
