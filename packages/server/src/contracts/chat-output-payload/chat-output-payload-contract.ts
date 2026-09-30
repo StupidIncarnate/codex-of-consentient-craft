@@ -11,7 +11,7 @@ import { questContract, workItemContract } from '@dungeonmaster/shared/contracts
 
 export const chatOutputRoutingContract = z
   .object({
-    slotIndex: z.number().int().nonnegative().brand<'SlotIndexField'>().optional(),
+    slotIndex: z.number().int().nonnegative().brand<'ChatOutputRoutingSlotIndex'>().optional(),
     questId: questContract.shape.id.optional(),
     workItemId: workItemContract.shape.id.optional(),
     chatProcessId: z.string().min(1).brand<'ChatOutputRoutingChatProcessId'>().optional(),

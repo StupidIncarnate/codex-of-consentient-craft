@@ -19,13 +19,13 @@ import { z } from '#gateway/npm/zod';
 
 export const devLogEventPayloadContract = z
   .object({
-    chatProcessId: z.string().min(1).brand<'DevLogProcessId'>().nullish(),
-    processId: z.string().min(1).brand<'DevLogProcessId'>().nullish(),
-    questId: z.string().min(1).brand<'DevLogQuestId'>().nullish(),
-    sessionId: z.string().min(1).brand<'DevLogSessionId'>().nullish(),
-    phase: z.string().min(1).brand<'DevLogPhase'>().nullish(),
-    slotIndex: z.number().int().nonnegative().brand<'DevLogSlotIndex'>().nullish(),
-    role: z.string().min(1).brand<'DevLogRole'>().nullish(),
+    chatProcessId: z.string().min(1).brand<'DevLogEventPayloadChatProcessId'>().nullish(),
+    processId: z.string().min(1).brand<'DevLogEventPayloadProcessId'>().nullish(),
+    questId: z.string().min(1).brand<'DevLogEventPayloadQuestId'>().nullish(),
+    sessionId: z.string().min(1).brand<'DevLogEventPayloadSessionId'>().nullish(),
+    phase: z.string().min(1).brand<'DevLogEventPayloadPhase'>().nullish(),
+    slotIndex: z.number().int().nonnegative().brand<'DevLogEventPayloadSlotIndex'>().nullish(),
+    role: z.string().min(1).brand<'DevLogEventPayloadRole'>().nullish(),
     questions: z.array(z.unknown()).nullish(),
     entries: z.array(z.unknown()).nullish(),
   })

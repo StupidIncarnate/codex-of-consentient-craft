@@ -15,24 +15,24 @@ export const wsIncomingMessageContract = z.discriminatedUnion('type', [
     sessionId: sessionContract.shape.id,
     guildId: guildContract.shape.id,
     chatProcessId: z.string().min(1).brand<'WsIncomingMessageChatProcessId'>(),
-  }),
+  }).brand<'WsIncomingMessage'>(),
   z.object({
     type: z.literal('ward-detail-request'),
     questId: questContract.shape.id,
-    wardResultId: z.string().min(1).brand<'WardResultIdRaw'>(),
-  }),
+    wardResultId: z.string().min(1).brand<'WsIncomingMessageWardResultId'>(),
+  }).brand<'WsIncomingMessage'>(),
   z.object({
     type: z.literal('subscribe-quest'),
     questId: questContract.shape.id,
-  }),
+  }).brand<'WsIncomingMessage'>(),
   z.object({
     type: z.literal('unsubscribe-quest'),
     questId: questContract.shape.id,
-  }),
+  }).brand<'WsIncomingMessage'>(),
   z.object({
     type: z.literal('replay-quest-history'),
     questId: questContract.shape.id,
-  }),
+  }).brand<'WsIncomingMessage'>(),
 ]);
 
 export type WsIncomingMessage = z.infer<typeof wsIncomingMessageContract>;

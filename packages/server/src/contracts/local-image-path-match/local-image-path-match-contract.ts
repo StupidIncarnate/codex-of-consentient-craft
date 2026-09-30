@@ -25,7 +25,7 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 export const localImagePathMatchContract = z.object({
   path: absoluteFilePathContract,
-  matchedText: z.string().min(1).brand<'LocalImagePathMatchedText'>(),
+  matchedText: z.string().min(1).brand<'LocalImagePathMatchMatchedText'>(),
   ordinal: z.number().int().positive().brand<'LocalImagePathMatchOrdinal'>(),
 }).brand<'LocalImagePathMatch'>();
 

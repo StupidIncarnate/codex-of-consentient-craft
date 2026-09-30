@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const responderResultContract = z.object({
-  status: z.number().int().brand<'HttpStatusCode'>(),
+  status: z.number().int().brand<'ResponderResultStatus'>(),
   data: z.unknown(),
 }).brand<'ResponderResult'>();
 

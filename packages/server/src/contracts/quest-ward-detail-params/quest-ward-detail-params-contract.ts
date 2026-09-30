@@ -13,7 +13,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const questWardDetailParamsContract = z.object({
   questId: questContract.shape.id,
-  wardResultId: z.uuid().brand<'WardResultId'>(),
+  wardResultId: z.uuid().brand<'QuestWardDetailParamsWardResultId'>(),
 }).brand<'QuestWardDetailParams'>();
 
 export type QuestWardDetailParams = z.infer<typeof questWardDetailParamsContract>;

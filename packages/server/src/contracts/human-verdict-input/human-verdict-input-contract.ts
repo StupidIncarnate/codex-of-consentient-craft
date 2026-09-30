@@ -17,13 +17,13 @@ export const humanVerdictInputContract = z
     unitId: z
       .string()
       .min(1)
-      .brand<'HumanVerdictUnitId'>()
+      .brand<'HumanVerdictInputUnitId'>()
       .describe('The verifyByHuman observable id the person judged'),
     outcome: z.enum(['met', 'not-met']).describe("The person's outcome on the named criterion"),
     reason: z
       .string()
       .min(1)
-      .brand<'HumanVerdictReason'>()
+      .brand<'HumanVerdictInputReason'>()
       .describe('Why — becomes the note detail'),
   })
   .strict().brand<'HumanVerdictInput'>();

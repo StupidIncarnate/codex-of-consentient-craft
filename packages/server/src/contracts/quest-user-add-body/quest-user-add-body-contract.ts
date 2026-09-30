@@ -11,7 +11,7 @@ import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const questUserAddBodyContract = z.object({
   title: z.string().min(1).brand<'QuestUserAddBodyTitle'>(),
-  userRequest: z.string().min(1).brand<'UserRequest'>(),
+  userRequest: z.string().min(1).brand<'QuestUserAddBodyUserRequest'>(),
   guildId: guildContract.shape.id,
 }).brand<'QuestUserAddBody'>();
 

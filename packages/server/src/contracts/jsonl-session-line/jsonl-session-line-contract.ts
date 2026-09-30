@@ -10,14 +10,14 @@ import { z } from '#gateway/npm/zod';
 
 export const jsonlSessionLineContract = z
   .object({
-    type: z.string().min(1).brand<'JsonlLineType'>().optional(),
-    summary: z.string().min(1).brand<'JsonlLineSummary'>().optional(),
-    slug: z.string().min(1).brand<'JsonlLineSlug'>().optional(),
+    type: z.string().min(1).brand<'JsonlSessionLineType'>().optional(),
+    summary: z.string().min(1).brand<'JsonlSessionLineSummary'>().optional(),
+    slug: z.string().min(1).brand<'JsonlSessionLineSlug'>().optional(),
     isMeta: z.boolean().optional(),
     message: z
       .object({
-        content: z.string().min(1).brand<'JsonlMessageContent'>().optional(),
-      })
+        content: z.string().min(1).brand<'JsonlSessionLineMessageContent'>().optional(),
+      }).brand<'JsonlSessionLineMessage'>()
       .loose()
       .optional(),
   })

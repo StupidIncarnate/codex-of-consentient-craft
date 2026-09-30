@@ -10,15 +10,15 @@ import { z } from '#gateway/npm/zod';
 
 export const devLogToolInputContract = z
   .object({
-    file_path: z.string().min(1).brand<'DevLogFilePath'>().optional(),
-    command: z.string().min(1).brand<'DevLogCommand'>().optional(),
-    pattern: z.string().min(1).brand<'DevLogPattern'>().optional(),
-    description: z.string().min(1).brand<'DevLogDescription'>().optional(),
-    subject: z.string().min(1).brand<'DevLogSubject'>().optional(),
-    taskId: z.string().min(1).brand<'DevLogTaskId'>().optional(),
-    status: z.string().min(1).brand<'DevLogToolStatus'>().optional(),
-    questId: z.string().min(1).brand<'DevLogToolQuestId'>().optional(),
-    guildId: z.string().min(1).brand<'DevLogToolGuildId'>().optional(),
+    file_path: z.string().min(1).brand<'DevLogToolInputFilePath'>().optional(),
+    command: z.string().min(1).brand<'DevLogToolInputCommand'>().optional(),
+    pattern: z.string().min(1).brand<'DevLogToolInputPattern'>().optional(),
+    description: z.string().min(1).brand<'DevLogToolInputDescription'>().optional(),
+    subject: z.string().min(1).brand<'DevLogToolInputSubject'>().optional(),
+    taskId: z.string().min(1).brand<'DevLogToolInputTaskId'>().optional(),
+    status: z.string().min(1).brand<'DevLogToolInputStatus'>().optional(),
+    questId: z.string().min(1).brand<'DevLogToolInputQuestId'>().optional(),
+    guildId: z.string().min(1).brand<'DevLogToolInputGuildId'>().optional(),
   })
   .loose().brand<'DevLogToolInput'>();
 
