@@ -1,31 +1,26 @@
 import { gatewayBarrelImportPathTransformer } from './gateway-barrel-import-path-transformer';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 
 describe('gatewayBarrelImportPathTransformer', () => {
   it('VALID: {a node gateway barrel} => the #gateway import path', () => {
-    const file = CensusPathStub({
-      value: 'packages/@gateway/node/src/fs__promises/fs__promises.ts',
-    });
+    const file = 'packages/@gateway/node/src/fs__promises/fs__promises.ts';
 
     expect(gatewayBarrelImportPathTransformer({ file })).toBe('#gateway/node/fs__promises');
   });
 
   it('VALID: {an npm gateway barrel} => the #gateway import path', () => {
-    const file = CensusPathStub({ value: 'packages/@gateway/npm/src/glob/glob.ts' });
+    const file = 'packages/@gateway/npm/src/glob/glob.ts';
 
     expect(gatewayBarrelImportPathTransformer({ file })).toBe('#gateway/npm/glob');
   });
 
   it('EMPTY: {a wrapper file inside the module folder} => null', () => {
-    const file = CensusPathStub({
-      value: 'packages/@gateway/node/src/fs__promises/read-file/read-file.ts',
-    });
+    const file = 'packages/@gateway/node/src/fs__promises/read-file/read-file.ts';
 
     expect(gatewayBarrelImportPathTransformer({ file })).toBe(null);
   });
 
   it('EMPTY: {a file outside the gateway} => null', () => {
-    const file = CensusPathStub({ value: 'packages/a/src/glob/glob.ts' });
+    const file = 'packages/a/src/glob/glob.ts';
 
     expect(gatewayBarrelImportPathTransformer({ file })).toBe(null);
   });

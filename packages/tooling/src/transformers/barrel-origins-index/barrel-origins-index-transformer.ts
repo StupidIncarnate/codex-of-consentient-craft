@@ -10,7 +10,6 @@
  */
 import { importTargetResolveTransformer } from '../import-target-resolve/import-target-resolve-transformer';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 import type { CensusPackage } from '../../contracts/census-package/census-package-contract';
 import type { ExportName } from '../../contracts/export-name/export-name-contract';
 import type { SourceFacts } from '../../contracts/source-facts/source-facts-contract';
@@ -22,14 +21,14 @@ export const barrelOriginsIndexTransformer = ({
   packages,
   depth = 0,
 }: {
-  file: CensusPath;
-  factsByFile: ReadonlyMap<CensusPath, SourceFacts>;
-  knownFiles: ReadonlySet<CensusPath>;
+  file: string;
+  factsByFile: ReadonlyMap<string, SourceFacts>;
+  knownFiles: ReadonlySet<string>;
   packages: readonly CensusPackage[];
   depth?: number;
-}): ReadonlyMap<ExportName, CensusPath> => {
+}): ReadonlyMap<ExportName, string> => {
   const facts = factsByFile.get(file);
-  const index = new Map<ExportName, CensusPath>();
+  const index = new Map<ExportName, string>();
 
   if (facts === undefined || depth > censusLayoutStatics.barrelDepthLimit) {
     return index;
@@ -55,7 +54,7 @@ export const barrelOriginsIndexTransformer = ({
             packages,
             depth: depth + 1,
           })
-        : new Map<ExportName, CensusPath>();
+        : new Map<ExportName, string>();
     const names = reExport.isStar
       ? [...(targetFacts?.exportNames ?? []), ...nested.keys()]
       : reExport.names;

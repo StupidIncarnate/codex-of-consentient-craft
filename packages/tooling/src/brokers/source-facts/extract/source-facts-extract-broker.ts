@@ -13,14 +13,13 @@ import { sourceFactsContract } from '../../../contracts/source-facts/source-fact
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
 import { sourceFactsExtractStatementsLayerBroker } from './source-facts-extract-statements-layer-broker';
 import { sourceFactsExtractStagingLayerBroker } from './source-facts-extract-staging-layer-broker';
-import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
 
 export const sourceFactsExtractBroker = ({
   file,
   text,
 }: {
-  file: CensusPath;
+  file: string;
   text: string;
 }): SourceFacts => {
   const sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);

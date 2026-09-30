@@ -11,7 +11,6 @@
 import { barrelOriginsIndexTransformer } from '../../../transformers/barrel-origins-index/barrel-origins-index-transformer';
 import { importTargetResolveTransformer } from '../../../transformers/import-target-resolve/import-target-resolve-transformer';
 import type { CensusFileKind } from '../../../contracts/census-file-kind/census-file-kind-contract';
-import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import type { CensusSourceEntry } from '../../../contracts/census-source-entry/census-source-entry-contract';
 import type { ExportName } from '../../../contracts/export-name/export-name-contract';
@@ -26,13 +25,13 @@ export const adapterCensusBuildImportersLayerBroker = ({
   adapterFiles,
 }: {
   sources: readonly CensusSourceEntry[];
-  factsByFile: ReadonlyMap<CensusPath, SourceFacts>;
-  kindByFile: ReadonlyMap<CensusPath, CensusFileKind>;
-  knownFiles: ReadonlySet<CensusPath>;
+  factsByFile: ReadonlyMap<string, SourceFacts>;
+  kindByFile: ReadonlyMap<string, CensusFileKind>;
+  knownFiles: ReadonlySet<string>;
   layout: CensusRepoLayout;
-  adapterFiles: ReadonlySet<CensusPath>;
-}): ReadonlyMap<CensusPath, readonly CensusPath[]> => {
-  const barrelIndexes = new Map<CensusPath, ReadonlyMap<ExportName, CensusPath>>();
+  adapterFiles: ReadonlySet<string>;
+}): ReadonlyMap<string, readonly string[]> => {
+  const barrelIndexes = new Map<string, ReadonlyMap<ExportName, string>>();
   for (const { file } of sources) {
     if (kindByFile.get(file) === 'barrel' && (factsByFile.get(file)?.reExports.length ?? 0) > 0) {
       barrelIndexes.set(
@@ -42,7 +41,7 @@ export const adapterCensusBuildImportersLayerBroker = ({
     }
   }
 
-  const importers = new Map<CensusPath, Set<CensusPath>>();
+  const importers = new Map<string, Set<string>>();
   for (const { file } of sources) {
     const kind = kindByFile.get(file);
     if (kind === 'barrel' || kind === undefined) {
@@ -66,7 +65,7 @@ export const adapterCensusBuildImportersLayerBroker = ({
 
       for (const origin of origins) {
         if (origin !== file && (adapterFiles.has(origin) || kindByFile.get(origin) === 'proxy')) {
-          importers.set(origin, (importers.get(origin) ?? new Set<CensusPath>()).add(file));
+          importers.set(origin, (importers.get(origin) ?? new Set<string>()).add(file));
         }
       }
     }

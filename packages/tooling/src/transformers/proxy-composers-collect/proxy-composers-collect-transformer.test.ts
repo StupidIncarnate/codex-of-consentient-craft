@@ -1,11 +1,10 @@
 import { proxyComposersCollectTransformer } from './proxy-composers-collect-transformer';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 
 describe('proxyComposersCollectTransformer', () => {
-  const leaf = CensusPathStub({ value: 'packages/a/src/leaf.proxy.ts' });
-  const middle = CensusPathStub({ value: 'packages/a/src/middle.proxy.ts' });
-  const top = CensusPathStub({ value: 'packages/a/src/top.proxy.ts' });
-  const other = CensusPathStub({ value: 'packages/a/src/other.proxy.ts' });
+  const leaf = 'packages/a/src/leaf.proxy.ts';
+  const middle = 'packages/a/src/middle.proxy.ts';
+  const top = 'packages/a/src/top.proxy.ts';
+  const other = 'packages/a/src/other.proxy.ts';
 
   it('VALID: {a chain leaf <- middle <- top} => middle and top, sorted', () => {
     const result = proxyComposersCollectTransformer({

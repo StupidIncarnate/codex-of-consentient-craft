@@ -1,11 +1,10 @@
 import { adapterAnalysisAnalyzeBroker } from './adapter-analysis-analyze-broker';
 import { adapterAnalysisAnalyzeBrokerProxy } from './adapter-analysis-analyze-broker.proxy';
-import { CensusPathStub } from '../../../contracts/census-path/census-path.stub';
 
 const analyze = ({ text }: { text: string }): ReturnType<typeof adapterAnalysisAnalyzeBroker> => {
   adapterAnalysisAnalyzeBrokerProxy();
   return adapterAnalysisAnalyzeBroker({
-    file: CensusPathStub({ value: 'packages/a/src/adapters/x/x-adapter.ts' }),
+    file: 'packages/a/src/adapters/x/x-adapter.ts',
     text: text,
     workspaceScope: '@acme',
     workspacePackageNames: ['plain-workspace'],

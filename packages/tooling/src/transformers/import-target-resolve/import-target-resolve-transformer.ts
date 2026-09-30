@@ -11,7 +11,6 @@
  */
 import { censusPathNormalizeTransformer } from '../census-path-normalize/census-path-normalize-transformer';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 import type { CensusPackage } from '../../contracts/census-package/census-package-contract';
 
 export const importTargetResolveTransformer = ({
@@ -20,11 +19,11 @@ export const importTargetResolveTransformer = ({
   knownFiles,
   packages,
 }: {
-  fromFile: CensusPath;
+  fromFile: string;
   specifier: string;
-  knownFiles: ReadonlySet<CensusPath>;
+  knownFiles: ReadonlySet<string>;
   packages: readonly CensusPackage[];
-}): CensusPath | null => {
+}): string | null => {
   const owner = specifier.startsWith('.')
     ? null
     : ([...packages]

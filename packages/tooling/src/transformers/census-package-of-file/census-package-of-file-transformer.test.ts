@@ -1,5 +1,4 @@
 import { censusPackageOfFileTransformer } from './census-package-of-file-transformer';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 import { CensusPackageStub } from '../../contracts/census-package/census-package.stub';
 
 describe('censusPackageOfFileTransformer', () => {
@@ -11,7 +10,7 @@ describe('censusPackageOfFileTransformer', () => {
 
   it('VALID: {a file under a package dir} => that package', () => {
     const result = censusPackageOfFileTransformer({
-      file: CensusPathStub({ value: 'packages/api/src/x.ts' }),
+      file: 'packages/api/src/x.ts',
       packages: [api, node],
     });
 
@@ -20,7 +19,7 @@ describe('censusPackageOfFileTransformer', () => {
 
   it('VALID: {a gateway file} => the gateway package', () => {
     const result = censusPackageOfFileTransformer({
-      file: CensusPathStub({ value: 'packages/@gateway/node/src/fs/fs.ts' }),
+      file: 'packages/@gateway/node/src/fs/fs.ts',
       packages: [api, node],
     });
 
@@ -34,7 +33,7 @@ describe('censusPackageOfFileTransformer', () => {
     });
 
     const result = censusPackageOfFileTransformer({
-      file: CensusPathStub({ value: 'packages/api/inner/src/x.ts' }),
+      file: 'packages/api/inner/src/x.ts',
       packages: [api, inner],
     });
 
@@ -43,7 +42,7 @@ describe('censusPackageOfFileTransformer', () => {
 
   it('EMPTY: {a file no package owns} => null', () => {
     const result = censusPackageOfFileTransformer({
-      file: CensusPathStub({ value: 'scripts/x.ts' }),
+      file: 'scripts/x.ts',
       packages: [api, node],
     });
 
@@ -52,7 +51,7 @@ describe('censusPackageOfFileTransformer', () => {
 
   it('EDGE: {a dir that only shares a name prefix} => null', () => {
     const result = censusPackageOfFileTransformer({
-      file: CensusPathStub({ value: 'packages/api-extra/src/x.ts' }),
+      file: 'packages/api-extra/src/x.ts',
       packages: [api],
     });
 

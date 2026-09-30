@@ -8,16 +8,15 @@
  * proxyComposersCollectTransformer({ proxyFile, composersByProxy });
  * // Returns the sorted CensusPath list of every proxy that imports it, transitively
  */
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 
 export const proxyComposersCollectTransformer = ({
   proxyFile,
   composersByProxy,
 }: {
-  proxyFile: CensusPath;
-  composersByProxy: ReadonlyMap<CensusPath, readonly CensusPath[]>;
-}): CensusPath[] => {
-  const seen = new Set<CensusPath>();
+  proxyFile: string;
+  composersByProxy: ReadonlyMap<string, readonly string[]>;
+}): string[] => {
+  const seen = new Set<string>();
   const pending = [...(composersByProxy.get(proxyFile) ?? [])];
 
   while (pending.length > 0) {

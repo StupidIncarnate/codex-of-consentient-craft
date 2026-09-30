@@ -6,10 +6,9 @@
  * // Returns: CensusSourceEntry
  */
 import { z } from '#gateway/npm/zod';
-import { censusPathContract } from '../census-path/census-path-contract';
 
 export const censusSourceEntryContract = z.object({
-  file: censusPathContract,
+  file: z.string().min(1).brand<'CensusSourceEntryFile'>(),
   text: z.string().brand<'CensusSourceEntryText'>(),
 });
 

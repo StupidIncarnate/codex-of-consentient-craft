@@ -4,17 +4,13 @@ import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 describe('isAdapterEntryFileGuard', () => {
   describe('adapter entry files', () => {
     it('VALID: {a .ts adapter under src/adapters} => true', () => {
-      const file = CensusPathStub({
-        value: 'packages/a/src/adapters/fs/read-file/fs-read-file-adapter.ts',
-      });
+      const file = 'packages/a/src/adapters/fs/read-file/fs-read-file-adapter.ts';
 
       expect(isAdapterEntryFileGuard({ file })).toBe(true);
     });
 
     it('VALID: {a .tsx adapter under src/adapters} => true', () => {
-      const file = CensusPathStub({
-        value: 'packages/a/src/adapters/dom/render/dom-render-adapter.tsx',
-      });
+      const file = 'packages/a/src/adapters/dom/render/dom-render-adapter.tsx';
 
       expect(isAdapterEntryFileGuard({ file })).toBe(true);
     });

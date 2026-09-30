@@ -7,14 +7,13 @@
  * censusPackageOfFileTransformer({ file, packages });
  * // Returns the CensusPackage for packages/siegelense/... or null when no package owns the file
  */
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 import type { CensusPackage } from '../../contracts/census-package/census-package-contract';
 
 export const censusPackageOfFileTransformer = ({
   file,
   packages,
 }: {
-  file: CensusPath;
+  file: string;
   packages: readonly CensusPackage[];
 }): CensusPackage | null =>
   [...packages]

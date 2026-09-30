@@ -12,7 +12,6 @@ import { adapterAnalysisAnalyzeBroker } from '../../adapter-analysis/analyze/ada
 import { gatewayBarrelImportPathTransformer } from '../../../transformers/gateway-barrel-import-path/gateway-barrel-import-path-transformer';
 import { gatewayModuleDirTransformer } from '../../../transformers/gateway-module-dir/gateway-module-dir-transformer';
 import { importTargetResolveTransformer } from '../../../transformers/import-target-resolve/import-target-resolve-transformer';
-import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import type { CensusSourceEntry } from '../../../contracts/census-source-entry/census-source-entry-contract';
 import { gatewayImplementationContract } from '../../../contracts/gateway-implementation/gateway-implementation-contract';
@@ -27,9 +26,9 @@ export const adapterCensusBuildGatewayLayerBroker = ({
   layout,
 }: {
   sources: readonly CensusSourceEntry[];
-  factsByFile: ReadonlyMap<CensusPath, SourceFacts>;
-  textByFile: ReadonlyMap<CensusPath, string>;
-  knownFiles: ReadonlySet<CensusPath>;
+  factsByFile: ReadonlyMap<string, SourceFacts>;
+  textByFile: ReadonlyMap<string, string>;
+  knownFiles: ReadonlySet<string>;
   layout: CensusRepoLayout;
 }): GatewayImplementation[] => {
   const implementations: GatewayImplementation[] = [];

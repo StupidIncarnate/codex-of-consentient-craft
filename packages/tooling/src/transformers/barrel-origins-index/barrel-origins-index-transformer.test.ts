@@ -1,5 +1,4 @@
 import { barrelOriginsIndexTransformer } from './barrel-origins-index-transformer';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 import { CensusPackageStub } from '../../contracts/census-package/census-package.stub';
 import { SourceFactsStub } from '../../contracts/source-facts/source-facts.stub';
 import { ExportNameStub } from '../../contracts/export-name/export-name.stub';
@@ -7,9 +6,9 @@ import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-spe
 
 describe('barrelOriginsIndexTransformer', () => {
   const packages = [CensusPackageStub({ name: '@acme/api', dir: 'packages/api' })];
-  const barrel = CensusPathStub({ value: 'packages/api/adapters.ts' });
-  const readAdapter = CensusPathStub({ value: 'packages/api/src/adapters/a/a-adapter.ts' });
-  const writeAdapter = CensusPathStub({ value: 'packages/api/src/adapters/b/b-adapter.ts' });
+  const barrel = 'packages/api/adapters.ts';
+  const readAdapter = 'packages/api/src/adapters/a/a-adapter.ts';
+  const writeAdapter = 'packages/api/src/adapters/b/b-adapter.ts';
 
   it('VALID: {a barrel of export * lines} => each name maps to the file that defines it', () => {
     const factsByFile = new Map([
@@ -82,7 +81,7 @@ describe('barrelOriginsIndexTransformer', () => {
   });
 
   it('VALID: {a barrel that re-exports another barrel} => names map through to the origin', () => {
-    const inner = CensusPathStub({ value: 'packages/api/src/adapters/index.ts' });
+    const inner = 'packages/api/src/adapters/index.ts';
     const factsByFile = new Map([
       [
         barrel,

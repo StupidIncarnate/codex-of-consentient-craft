@@ -14,7 +14,6 @@ import { adapterAnalysisAnalyzeCallsLayerBroker } from './adapter-analysis-analy
 import { adapterAnalysisAnalyzeScopeLayerBroker } from './adapter-analysis-analyze-scope-layer-broker';
 import { adapterAnalysisAnalyzeStructureLayerBroker } from './adapter-analysis-analyze-structure-layer-broker';
 import type { AdapterAnalysis } from '../../../contracts/adapter-analysis/adapter-analysis-contract';
-import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 
 export const adapterAnalysisAnalyzeBroker = ({
   file,
@@ -22,7 +21,7 @@ export const adapterAnalysisAnalyzeBroker = ({
   workspaceScope,
   workspacePackageNames,
 }: {
-  file: CensusPath;
+  file: string;
   text: string;
   workspaceScope: string | null;
   workspacePackageNames: readonly string[];

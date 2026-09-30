@@ -1,6 +1,5 @@
 import { sourceFactsExtractBroker } from './source-facts-extract-broker';
 import { sourceFactsExtractBrokerProxy } from './source-facts-extract-broker.proxy';
-import { CensusPathStub } from '../../../contracts/census-path/census-path.stub';
 
 describe('sourceFactsExtractBroker', () => {
   describe('a caller', () => {
@@ -8,7 +7,7 @@ describe('sourceFactsExtractBroker', () => {
       sourceFactsExtractBrokerProxy();
 
       const result = sourceFactsExtractBroker({
-        file: CensusPathStub({ value: 'packages/a/src/brokers/x/x-broker.ts' }),
+        file: 'packages/a/src/brokers/x/x-broker.ts',
         text: [
             "import { fsReadFileAdapter } from '../../adapters/fs/read-file/fs-read-file-adapter';",
             "import type { Thing } from '../../contracts/thing/thing-contract';",
@@ -37,7 +36,7 @@ describe('sourceFactsExtractBroker', () => {
       sourceFactsExtractBrokerProxy();
 
       const result = sourceFactsExtractBroker({
-        file: CensusPathStub({ value: 'packages/a/adapters.ts' }),
+        file: 'packages/a/adapters.ts',
         text: [
             "export * from './src/adapters/a/a-adapter';",
             "export { bAdapter } from './src/adapters/b/b-adapter';",
@@ -62,7 +61,7 @@ describe('sourceFactsExtractBroker', () => {
       sourceFactsExtractBrokerProxy();
 
       const result = sourceFactsExtractBroker({
-        file: CensusPathStub({ value: 'packages/a/src/adapters/x/x-adapter.proxy.ts' }),
+        file: 'packages/a/src/adapters/x/x-adapter.proxy.ts',
         text: [
             "import { registerMock } from '@acme/testing/register-mock';",
             'export const xAdapterProxy = () => {',
@@ -88,7 +87,7 @@ describe('sourceFactsExtractBroker', () => {
       sourceFactsExtractBrokerProxy();
 
       const result = sourceFactsExtractBroker({
-        file: CensusPathStub({ value: 'packages/a/src/empty.ts' }),
+        file: 'packages/a/src/empty.ts',
         text: '',
       });
 

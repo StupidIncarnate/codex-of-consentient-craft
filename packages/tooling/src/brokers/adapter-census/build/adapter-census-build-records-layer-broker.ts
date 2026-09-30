@@ -17,10 +17,10 @@ import { proxySiblingFileTransformer } from '../../../transformers/proxy-sibling
 import type { AdapterCaller } from '../../../contracts/adapter-caller/adapter-caller-contract';
 import type { AdapterRecord } from '../../../contracts/adapter-record/adapter-record-contract';
 import type { CensusFileKind } from '../../../contracts/census-file-kind/census-file-kind-contract';
-import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import type { GatewayImplementation } from '../../../contracts/gateway-implementation/gateway-implementation-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
+import { adapterCallerContract } from '../../../contracts/adapter-caller/adapter-caller-contract';
 
 export const adapterCensusBuildRecordsLayerBroker = ({
   adapterFiles,
@@ -32,16 +32,16 @@ export const adapterCensusBuildRecordsLayerBroker = ({
   implementations,
   layout,
 }: {
-  adapterFiles: readonly CensusPath[];
-  importers: ReadonlyMap<CensusPath, readonly CensusPath[]>;
-  kindByFile: ReadonlyMap<CensusPath, CensusFileKind>;
-  factsByFile: ReadonlyMap<CensusPath, SourceFacts>;
-  textByFile: ReadonlyMap<CensusPath, string>;
-  knownFiles: ReadonlySet<CensusPath>;
+  adapterFiles: readonly string[];
+  importers: ReadonlyMap<string, readonly string[]>;
+  kindByFile: ReadonlyMap<string, CensusFileKind>;
+  factsByFile: ReadonlyMap<string, SourceFacts>;
+  textByFile: ReadonlyMap<string, string>;
+  knownFiles: ReadonlySet<string>;
   implementations: readonly GatewayImplementation[];
   layout: CensusRepoLayout;
 }): AdapterRecord[] => {
-  const composersByProxy = new Map<CensusPath, CensusPath[]>();
+  const composersByProxy = new Map<string, string[]>();
   for (const [target, files] of importers) {
     if (kindByFile.get(target) === 'proxy') {
       composersByProxy.set(
@@ -79,14 +79,14 @@ export const adapterCensusBuildRecordsLayerBroker = ({
           proxyFile === null
             ? []
             : proxyComposersCollectTransformer({ proxyFile, composersByProxy });
-        return {
+        return adapterCallerContract.parse({
           file: caller,
           proxyFile,
           composedBy,
           catchAll: (proxyFile === null ? [] : [proxyFile, ...composedBy])
             .map((proxy) => ({ file: proxy, sites: factsByFile.get(proxy)?.catchAllSites ?? [] }))
             .filter((entry) => entry.sites.length > 0),
-        };
+        });
       });
 
     const adapterProxyFile = proxySiblingFileTransformer({ file });

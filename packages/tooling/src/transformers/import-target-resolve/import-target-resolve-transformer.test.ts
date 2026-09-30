@@ -1,5 +1,4 @@
 import { importTargetResolveTransformer } from './import-target-resolve-transformer';
-import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 import { CensusPackageStub } from '../../contracts/census-package/census-package.stub';
 
 describe('importTargetResolveTransformer', () => {
@@ -10,10 +9,10 @@ describe('importTargetResolveTransformer', () => {
 
   describe('relative specifiers', () => {
     it('VALID: {specifier: "../x/x-adapter"} => the sibling file with .ts appended', () => {
-      const adapter = CensusPathStub({ value: 'packages/api/src/adapters/x/x-adapter.ts' });
+      const adapter = 'packages/api/src/adapters/x/x-adapter.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/api/src/brokers/y/y-broker.ts' }),
+        fromFile: 'packages/api/src/brokers/y/y-broker.ts',
         specifier: '../../adapters/x/x-adapter',
         knownFiles: new Set([adapter]),
         packages,
@@ -23,10 +22,10 @@ describe('importTargetResolveTransformer', () => {
     });
 
     it('VALID: {specifier: "./x-adapter.js"} => a .js specifier resolves to the .ts file', () => {
-      const adapter = CensusPathStub({ value: 'packages/api/src/adapters/x/x-adapter.ts' });
+      const adapter = 'packages/api/src/adapters/x/x-adapter.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/api/src/adapters/x/x-layer-adapter.ts' }),
+        fromFile: 'packages/api/src/adapters/x/x-layer-adapter.ts',
         specifier: './x-adapter.js',
         knownFiles: new Set([adapter]),
         packages,
@@ -36,10 +35,10 @@ describe('importTargetResolveTransformer', () => {
     });
 
     it('VALID: {specifier: "./folder"} => a folder resolves to its index file', () => {
-      const index = CensusPathStub({ value: 'packages/api/src/folder/index.ts' });
+      const index = 'packages/api/src/folder/index.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/api/src/main.ts' }),
+        fromFile: 'packages/api/src/main.ts',
         specifier: './folder',
         knownFiles: new Set([index]),
         packages,
@@ -50,7 +49,7 @@ describe('importTargetResolveTransformer', () => {
 
     it('EMPTY: {specifier: "./missing"} => null when no such file is known', () => {
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/api/src/main.ts' }),
+        fromFile: 'packages/api/src/main.ts',
         specifier: './missing',
         knownFiles: new Set(),
         packages,
@@ -62,10 +61,10 @@ describe('importTargetResolveTransformer', () => {
 
   describe('workspace package specifiers', () => {
     it('VALID: {specifier: "@acme/api/adapters"} => the package-root barrel', () => {
-      const barrel = CensusPathStub({ value: 'packages/api/adapters.ts' });
+      const barrel = 'packages/api/adapters.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/web/src/main.ts' }),
+        fromFile: 'packages/web/src/main.ts',
         specifier: '@acme/api/adapters',
         knownFiles: new Set([barrel]),
         packages,
@@ -75,10 +74,10 @@ describe('importTargetResolveTransformer', () => {
     });
 
     it('VALID: {specifier: "@acme/api/startup/start-x.proxy"} => the file under src', () => {
-      const proxy = CensusPathStub({ value: 'packages/api/src/startup/start-x.proxy.ts' });
+      const proxy = 'packages/api/src/startup/start-x.proxy.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/web/src/main.ts' }),
+        fromFile: 'packages/web/src/main.ts',
         specifier: '@acme/api/startup/start-x.proxy',
         knownFiles: new Set([proxy]),
         packages,
@@ -88,10 +87,10 @@ describe('importTargetResolveTransformer', () => {
     });
 
     it('VALID: {specifier: "@acme/api-extra/adapters"} => the longest package name wins', () => {
-      const barrel = CensusPathStub({ value: 'packages/api-extra/adapters.ts' });
+      const barrel = 'packages/api-extra/adapters.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/web/src/main.ts' }),
+        fromFile: 'packages/web/src/main.ts',
         specifier: '@acme/api-extra/adapters',
         knownFiles: new Set([barrel]),
         packages,
@@ -101,10 +100,10 @@ describe('importTargetResolveTransformer', () => {
     });
 
     it('VALID: {specifier: "@acme/api"} => the package main entry', () => {
-      const main = CensusPathStub({ value: 'packages/api/src/index.ts' });
+      const main = 'packages/api/src/index.ts';
 
       const result = importTargetResolveTransformer({
-        fromFile: CensusPathStub({ value: 'packages/web/src/main.ts' }),
+        fromFile: 'packages/web/src/main.ts',
         specifier: '@acme/api',
         knownFiles: new Set([main]),
         packages,
@@ -119,9 +118,9 @@ describe('importTargetResolveTransformer', () => {
       'EMPTY: {specifier: %s} => null',
       (specifier) => {
         const result = importTargetResolveTransformer({
-          fromFile: CensusPathStub({ value: 'packages/api/src/main.ts' }),
+          fromFile: 'packages/api/src/main.ts',
           specifier,
-          knownFiles: new Set([CensusPathStub({ value: 'packages/api/adapters.ts' })]),
+          knownFiles: new Set(['packages/api/adapters.ts']),
           packages,
         });
 

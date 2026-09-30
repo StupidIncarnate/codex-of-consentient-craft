@@ -8,13 +8,12 @@
  * // Returns: AdapterCaller
  */
 import { z } from '#gateway/npm/zod';
-import { censusPathContract } from '../census-path/census-path-contract';
 import { proxyCatchAllContract } from '../proxy-catch-all/proxy-catch-all-contract';
 
 export const adapterCallerContract = z.object({
-  file: censusPathContract,
-  proxyFile: censusPathContract.nullable(),
-  composedBy: z.array(censusPathContract),
+  file: z.string().min(1).brand<'AdapterCallerFile'>(),
+  proxyFile: z.string().min(1).brand<'AdapterCallerProxyFile'>().nullable(),
+  composedBy: z.array(z.string().min(1).brand<'AdapterCallerComposedBy'>()),
   catchAll: z.array(proxyCatchAllContract),
 });
 

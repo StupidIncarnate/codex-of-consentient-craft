@@ -7,8 +7,6 @@
  * proxySiblingFileTransformer({ file: censusPath });
  * // Returns 'packages/a/src/x/x-broker.proxy.ts' for packages/a/src/x/x-broker.ts
  */
-import { censusPathContract } from '../../contracts/census-path/census-path-contract';
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 
-export const proxySiblingFileTransformer = ({ file }: { file: CensusPath }): CensusPath =>
-  censusPathContract.parse(file.replace(/\.(tsx?)$/u, '.proxy.$1'));
+export const proxySiblingFileTransformer = ({ file }: { file: string }): string =>
+  file.replace(/\.(tsx?)$/u, '.proxy.$1');

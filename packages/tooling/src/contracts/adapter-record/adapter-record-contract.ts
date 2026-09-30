@@ -7,7 +7,6 @@
  * // Returns: AdapterRecord
  */
 import { z } from '#gateway/npm/zod';
-import { censusPathContract } from '../census-path/census-path-contract';
 import { exportNameContract } from '../export-name/export-name-contract';
 import { adapterLogicReasonContract } from '../adapter-logic-reason/adapter-logic-reason-contract';
 import { outsideCallContract } from '../outside-call/outside-call-contract';
@@ -16,20 +15,20 @@ import { adapterCallerContract } from '../adapter-caller/adapter-caller-contract
 import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract';
 
 export const adapterRecordContract = z.object({
-  file: censusPathContract,
+  file: z.string().min(1).brand<'AdapterRecordFile'>(),
   exportNames: z.array(exportNameContract),
   shape: z.enum(['pass-through', 'logic']),
   reasons: z.array(adapterLogicReasonContract),
   outsideCalls: z.array(outsideCallContract),
   gateway: z.array(gatewayExportContract),
   productionCallers: z.array(adapterCallerContract),
-  testFiles: z.array(censusPathContract),
-  proxyFiles: z.array(censusPathContract),
+  testFiles: z.array(z.string().min(1).brand<'AdapterRecordTestFiles'>()),
+  proxyFiles: z.array(z.string().min(1).brand<'AdapterRecordProxyFiles'>()),
   adapterProxy: z
     .object({
-      file: censusPathContract,
+      file: z.string().min(1).brand<'AdapterRecordAdapterProxyFile'>(),
       catchAll: z.array(catchAllSiteContract),
-      composedBy: z.array(censusPathContract),
+      composedBy: z.array(z.string().min(1).brand<'AdapterRecordAdapterProxyComposedBy'>()),
     })
     .nullable(),
 });

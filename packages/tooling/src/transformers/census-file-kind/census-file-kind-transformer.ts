@@ -9,9 +9,8 @@
  */
 import { censusFileKindContract } from '../../contracts/census-file-kind/census-file-kind-contract';
 import type { CensusFileKind } from '../../contracts/census-file-kind/census-file-kind-contract';
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 
-export const censusFileKindTransformer = ({ file }: { file: CensusPath }): CensusFileKind => {
+export const censusFileKindTransformer = ({ file }: { file: string }): CensusFileKind => {
   if (/\.stub\.tsx?$/u.test(file)) {
     return censusFileKindContract.parse('stub');
   }

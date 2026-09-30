@@ -7,10 +7,8 @@
  * censusPathNormalizeTransformer({ path: 'packages/a/src/x/../y/./z.ts' });
  * // Returns 'packages/a/src/y/z.ts' as a branded CensusPath
  */
-import { censusPathContract } from '../../contracts/census-path/census-path-contract';
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 
-export const censusPathNormalizeTransformer = ({ path }: { path: string }): CensusPath => {
+export const censusPathNormalizeTransformer = ({ path }: { path: string }): string => {
   const parts = path.split('/');
   const kept = parts.slice(0, 0);
 
@@ -22,5 +20,5 @@ export const censusPathNormalizeTransformer = ({ path }: { path: string }): Cens
     }
   }
 
-  return censusPathContract.parse(kept.join('/'));
+  return kept.join('/');
 };

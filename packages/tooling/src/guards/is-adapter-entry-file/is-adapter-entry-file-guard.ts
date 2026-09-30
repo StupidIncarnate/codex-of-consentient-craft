@@ -7,10 +7,9 @@
  * isAdapterEntryFileGuard({ file: censusPath });
  * // Returns true for packages/x/src/adapters/fs/read-file/fs-read-file-adapter.ts
  */
-import type { CensusPath } from '../../contracts/census-path/census-path-contract';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
 
-export const isAdapterEntryFileGuard = ({ file }: { file?: CensusPath }): boolean => {
+export const isAdapterEntryFileGuard = ({ file }: { file?: string }): boolean => {
   if (file === undefined) {
     return false;
   }
