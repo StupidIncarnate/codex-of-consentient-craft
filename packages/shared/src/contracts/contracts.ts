@@ -142,7 +142,6 @@ export * from './orchestration-slot/orchestration-slot-contract';
 export * from './orchestration-status/orchestration-status-contract';
 
 // Contract Metadata Contracts
-export * from './contract-name/contract-name-contract';
 
 export * from './quest-contract-kind/quest-contract-kind-contract';
 

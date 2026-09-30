@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import { ContractNameStub } from '@dungeonmaster/shared/contracts/contract-name/contract-name.stub';
 import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
@@ -1412,7 +1411,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="complete"
-            inputContracts={[ContractNameStub({ value: 'LoginCredentials' })]}
+            inputContracts={['LoginCredentials']}
           />
         ),
       });
@@ -1434,8 +1433,8 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="complete"
             outputContracts={[
-              ContractNameStub({ value: 'AuthToken' }),
-              ContractNameStub({ value: 'UserProfile' }),
+              'AuthToken',
+              'UserProfile',
             ]}
           />
         ),

@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contractNameContract } from '../contract-name/contract-name-contract';
 import { questContractKindContract } from '../quest-contract-kind/quest-contract-kind-contract';
 import { questContractPropertyContract } from '../quest-contract-property/quest-contract-property-contract';
 import { questContractStatusContract } from '../quest-contract-status/quest-contract-status-contract';
@@ -16,7 +15,7 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const questContractEntryContract = z.object({
   id: questContractEntryId.describe('Unique identifier for this contract entry'),
-  name: contractNameContract.describe(
+  name: z.string().min(1).brand<'QuestContractEntryName'>().describe( 'Name of a quest-level contract entry. Used to reference contracts from step inputContracts/outputContracts', ).brand<'QuestContractEntryName'>().describe(
     'Contract name referenced by steps in inputContracts/outputContracts (e.g., "LoginCredentials", "AuthLoginEndpoint")',
   ),
   kind: questContractKindContract.describe(

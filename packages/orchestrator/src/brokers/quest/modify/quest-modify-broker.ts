@@ -149,10 +149,10 @@ export const questModifyBroker = async ({
         }
 
         if (validated.contracts) {
-          quest.contracts = questContractEntryContract.shape.source.parse(questContractEntryContract.shape.source.parse(questContractEntryContract.shape.source.parse(questArrayUpsertTransformer({
+          quest.contracts = questContractEntryContract.shape.name.parse(questContractEntryContract.shape.name.parse(questContractEntryContract.shape.name.parse(questContractEntryContract.shape.source.parse(questContractEntryContract.shape.source.parse(questContractEntryContract.shape.source.parse(questArrayUpsertTransformer({
             existing: quest.contracts,
             updates: validated.contracts as typeof quest.contracts,
-          }))));
+          })))))));
         }
 
         if (validated.packagesAffected !== undefined) {

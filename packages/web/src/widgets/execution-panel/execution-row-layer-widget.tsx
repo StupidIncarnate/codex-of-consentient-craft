@@ -17,7 +17,7 @@
 import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { ContractName, RiftcarverResult, WardResult, WorkItem, ChatEntry, CssPixels, Quest } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResult, WardResult, WorkItem, ChatEntry, CssPixels, Quest } from '@dungeonmaster/shared/contracts';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -73,8 +73,8 @@ export interface ExecutionRowLayerWidgetProps {
   // The panel's shared 60-second tick supplies this; it is the end point a RUNNING item's figure
   // measures to, and a finished item ignores it.
   now?: string;
-  inputContracts?: ContractName[];
-  outputContracts?: ContractName[];
+  inputContracts?: string[];
+  outputContracts?: string[];
   wardResults?: WardResult[];
   riftcarverResults?: RiftcarverResult[];
   questId?: Quest['id'];
