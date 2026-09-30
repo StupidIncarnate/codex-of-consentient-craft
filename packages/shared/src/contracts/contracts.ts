@@ -141,7 +141,6 @@ export * from './flow-node/flow-node-contract';
 
 export * from './flow-edge-ref/flow-edge-ref-contract';
 
-export * from './flow-edge-id/flow-edge-id-contract';
 
 export * from './flow-edge/flow-edge-contract';
 

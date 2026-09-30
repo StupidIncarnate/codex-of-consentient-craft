@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowEdgeIdContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -68,7 +68,7 @@ const questWorkUnit = z.object({
   text: qaChecklistItemContract.shape.label,
   surface: qaChecklistItemContract.shape.checkSurface,
   nodeId: flowNodeContract.shape.id.nullable(),
-  edgeId: flowEdgeIdContract.nullable(),
+  edgeId: flowEdgeContract.shape.id.nullable(),
   observableType: outcomeTypeContract.nullable(),
   verifyByReading: z.boolean().default(false),
   mark: unitMarkContract.nullable(),

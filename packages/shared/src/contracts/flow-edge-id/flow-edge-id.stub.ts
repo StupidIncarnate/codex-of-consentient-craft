@@ -1,6 +1,6 @@
-import { flowEdgeIdContract } from './flow-edge-id-contract';
-import type { FlowEdgeId } from './flow-edge-id-contract';
+import type { FlowEdge } from '../flow-edge/flow-edge-contract';
+import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 
 export const FlowEdgeIdStub = (
   { value }: { value: string } = { value: 'login-to-dashboard' },
-): FlowEdgeId => flowEdgeIdContract.parse(value);
+): FlowEdge['id'] => flowEdgeContract.shape.id.parse(value);

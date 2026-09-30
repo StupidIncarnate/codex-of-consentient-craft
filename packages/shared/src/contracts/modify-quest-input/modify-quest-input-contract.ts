@@ -39,7 +39,6 @@ import { z } from '#gateway/npm/zod';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
-import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
@@ -134,7 +133,7 @@ const fullFlowEdge = flowEdgeContract.extend({
 const deletableEdgeContract = z.union([
   fullFlowEdge,
   fullFlowEdge.partial().required({ id: true }),
-  z.object({ id: flowEdgeIdContract, _delete: deleteMarker }),
+  z.object({ id: flowEdgeContract.shape.id, _delete: deleteMarker }),
 ]);
 
 const fullFlow = flowContract.extend({

@@ -31,7 +31,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowEdgeContract, flowEdgeIdContract, flowNodeContract, flowObservableContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
+import { flowEdgeContract, flowNodeContract, flowObservableContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
@@ -45,7 +45,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     kind: z.literal('branch'),
     id: qaChecklistItemContract.shape.id,
     flowId: flowContract.shape.id,
-    edgeId: flowEdgeIdContract,
+    edgeId: flowEdgeContract.shape.id,
     edgeFrom: flowEdgeContract.shape.from,
     // REQUIRED here although `flowEdgeContract.label` is optional: a branch unit exists only for an
     // edge that carries a non-empty label, so an absent one is an enumeration bug, not a shape.

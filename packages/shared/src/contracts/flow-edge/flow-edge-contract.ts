@@ -8,11 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowEdgeRefContract } from '../flow-edge-ref/flow-edge-ref-contract';
 
 export const flowEdgeContract = z.object({
-  id: flowEdgeIdContract,
+  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'FlowEdgeId'>(),
   from: flowEdgeRefContract,
   to: flowEdgeRefContract,
   label: z.string().brand<'FlowEdgeLabel'>().optional(),
