@@ -11,14 +11,13 @@
 
 import { countDeltaContract } from '../../contracts/count-delta/count-delta-contract';
 import type { CountDelta } from '../../contracts/count-delta/count-delta-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 
 export const countDeltaRenderTransformer = ({
   before,
   after,
 }: {
-  before: ReadingCount;
-  after: ReadingCount;
+  before: number;
+  after: number;
 }): CountDelta => {
   const delta = after - before;
   const sign = delta >= 0 ? '+' : '';

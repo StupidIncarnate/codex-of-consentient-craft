@@ -3,7 +3,6 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/proces
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
@@ -74,7 +73,7 @@ describe('SiegelenseDriverResponder', () => {
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
 
       expect(proxy.getBootLockReleaseCallArgs()).toStrictEqual({ instanceId });
-      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(ReadingCountStub({ value: 0 }));
+      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(0);
       expect(proxy.getServeCallArgs()).toBe(undefined);
     });
 
@@ -156,7 +155,7 @@ describe('SiegelenseDriverResponder', () => {
       );
 
       expect(proxy.getServeCallArgs()).toBe(undefined);
-      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(ReadingCountStub({ value: 0 }));
+      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(0);
     });
   });
 });

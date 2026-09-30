@@ -20,15 +20,14 @@ import { z } from '#gateway/npm/zod';
 
 import { loadAverageContract } from '../load-average/load-average-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const machineReadingContract = z.object({
   freeMemMB: megabytesContract,
   totalMemMB: megabytesContract,
   freeDiskMB: megabytesContract.nullable(),
-  cores: readingCountContract,
+  cores: z.number().int().nonnegative().brand<'MachineReadingCores'>(),
   loadAvg: loadAverageContract,
-  oomKillsSinceBoot: readingCountContract.nullable(),
+  oomKillsSinceBoot: z.number().int().nonnegative().brand<'MachineReadingOomKillsSinceBoot'>().nullable(),
   lastOomAt: z.string().brand<'MachineReadingLastOomAt'>().nullable(),
 });
 

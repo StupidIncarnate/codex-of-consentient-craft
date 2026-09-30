@@ -65,8 +65,6 @@ import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
 import { snapshotBoundaryContract } from '../../../contracts/snapshot-boundary/snapshot-boundary-contract';
@@ -112,14 +110,14 @@ export const runExecuteBroker = async ({
   steps: readonly Step[];
   stopOn: StopOn;
   flushCursor: () => {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   };
   advanceFlushCursor: (params: {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   }) => void;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;
@@ -156,9 +154,9 @@ export const runExecuteBroker = async ({
   // never moves it.
   const cursorState: {
     flushedThrough: {
-      consoleLines: ReadingCount;
-      networkLines: ReadingCount;
-      websocketLines: ReadingCount;
+      consoleLines: number;
+      networkLines: number;
+      websocketLines: number;
     };
   } = { flushedThrough: flushCursor() };
 
@@ -188,9 +186,9 @@ export const runExecuteBroker = async ({
     // reading `cursorState` again after an `await` on the SAME turn is what `require-atomic-updates`
     // flags, so the update happens on this turn instead, with no await between the read and the write.
     cursorState.flushedThrough = {
-      consoleLines: readingCountContract.parse(browserWindowStart.consoleLines),
-      networkLines: readingCountContract.parse(browserWindowStart.networkLines),
-      websocketLines: readingCountContract.parse(browserWindowStart.websocketLines),
+      consoleLines: browserWindowStart.consoleLines,
+      networkLines: browserWindowStart.networkLines,
+      websocketLines: browserWindowStart.websocketLines,
     };
     advanceFlushCursor(cursorState.flushedThrough);
 
@@ -302,9 +300,9 @@ export const runExecuteBroker = async ({
       // Advanced before the writes settle — see the identical comment on the between-runs tail
       // flush above for why.
       cursorState.flushedThrough = {
-        consoleLines: readingCountContract.parse(afterStepLengths.consoleLines),
-        networkLines: readingCountContract.parse(afterStepLengths.networkLines),
-        websocketLines: readingCountContract.parse(afterStepLengths.websocketLines),
+        consoleLines: afterStepLengths.consoleLines,
+        networkLines: afterStepLengths.networkLines,
+        websocketLines: afterStepLengths.websocketLines,
       };
       advanceFlushCursor(cursorState.flushedThrough);
 

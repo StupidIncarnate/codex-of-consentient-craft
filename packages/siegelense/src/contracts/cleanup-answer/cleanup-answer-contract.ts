@@ -27,7 +27,6 @@ import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { leftAloneContract } from '../left-alone/left-alone-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
 
 export const cleanupAnswerContract = z
@@ -37,7 +36,7 @@ export const cleanupAnswerContract = z
     lockReleased: z.boolean(),
     assetsAged: z
       .object({
-        instances: readingCountContract,
+        instances: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedInstances'>(),
         freedMB: megabytesContract,
       })
       .strict(),

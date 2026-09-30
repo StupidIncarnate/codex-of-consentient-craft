@@ -56,7 +56,6 @@ import { runResultContract } from '../../../contracts/run-result/run-result-cont
 import { countDeltaRenderTransformer } from '../../../transformers/count-delta-render/count-delta-render-transformer';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
@@ -273,8 +272,8 @@ export const compareReadBroker = async ({
     },
     network: {
       errors: countDeltaRenderTransformer({
-        before: readingCountContract.parse(networkFailureRowsA.length),
-        after: readingCountContract.parse(networkFailureRowsB.length),
+        before: networkFailureRowsA.length,
+        after: networkFailureRowsB.length,
       }),
       new: newLinesLayerBroker({ linesA: networkFailureRowsA, linesB: networkFailureRowsB }),
     },

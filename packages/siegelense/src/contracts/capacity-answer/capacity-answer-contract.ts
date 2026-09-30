@@ -27,12 +27,11 @@ import { z } from '#gateway/npm/zod';
 
 import { capacityMeasuredContract } from '../capacity-measured/capacity-measured-contract';
 import { capacityProfileContract } from '../capacity-profile/capacity-profile-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const capacityAnswerContract = z
   .object({
-    suggested: readingCountContract,
-    ceiling: readingCountContract,
+    suggested: z.number().int().nonnegative().brand<'CapacityAnswerSuggested'>(),
+    ceiling: z.number().int().nonnegative().brand<'CapacityAnswerCeiling'>(),
     why: z.string().brand<'CapacityAnswerWhy'>(),
     measured: capacityMeasuredContract,
     profile: capacityProfileContract.nullable(),

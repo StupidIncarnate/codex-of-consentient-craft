@@ -4,7 +4,6 @@ import { CompareQueryStub } from '../../../contracts/compare-query/compare-query
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { RunIndexStub } from '../../../contracts/run-index/run-index.stub';
@@ -54,10 +53,10 @@ describe('compareReadBroker', () => {
           runId: runA,
           index: RunIndexStub({
             console: {
-              errors: ReadingCountStub({ value: 0 }),
-              warnings: ReadingCountStub({ value: 0 }),
+              errors: 0,
+              warnings: 0,
             },
-            server: { errors: ReadingCountStub({ value: 0 }) },
+            server: { errors: 0 },
           }),
           shots: [],
         }),
@@ -70,10 +69,10 @@ describe('compareReadBroker', () => {
           runId: runB,
           index: RunIndexStub({
             console: {
-              errors: ReadingCountStub({ value: 2 }),
-              warnings: ReadingCountStub({ value: 0 }),
+              errors: 2,
+              warnings: 0,
             },
-            server: { errors: ReadingCountStub({ value: 0 }) },
+            server: { errors: 0 },
           }),
           shots: [],
         }),
@@ -206,10 +205,10 @@ describe('compareReadBroker', () => {
           runId,
           index: RunIndexStub({
             console: {
-              errors: ReadingCountStub({ value: 3 }),
-              warnings: ReadingCountStub({ value: 1 }),
+              errors: 3,
+              warnings: 1,
             },
-            server: { errors: ReadingCountStub({ value: 2 }) },
+            server: { errors: 2 },
           }),
           shots: [ShotListingStub({ path: shotPath })],
         }),
@@ -512,10 +511,10 @@ describe('compareReadBroker', () => {
           runId: runA,
           index: RunIndexStub({
             console: {
-              errors: ReadingCountStub({ value: 0 }),
-              warnings: ReadingCountStub({ value: 0 }),
+              errors: 0,
+              warnings: 0,
             },
-            server: { errors: ReadingCountStub({ value: 0 }) },
+            server: { errors: 0 },
           }),
           shots: [],
         }),
@@ -528,10 +527,10 @@ describe('compareReadBroker', () => {
           runId: runB,
           index: RunIndexStub({
             console: {
-              errors: ReadingCountStub({ value: 0 }),
-              warnings: ReadingCountStub({ value: 0 }),
+              errors: 0,
+              warnings: 0,
             },
-            server: { errors: ReadingCountStub({ value: 0 }) },
+            server: { errors: 0 },
           }),
           shots: [],
         }),

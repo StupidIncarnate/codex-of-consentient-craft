@@ -21,14 +21,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const capacityMeasuredContract = z
   .object({
     freeMemMB: megabytesContract,
-    cores: readingCountContract,
+    cores: z.number().int().nonnegative().brand<'CapacityMeasuredCores'>(),
     loadAvg1: z.number().nonnegative().brand<'LoadAverageOne'>(),
-    siegeInstances: readingCountContract,
+    siegeInstances: z.number().int().nonnegative().brand<'CapacityMeasuredSiegeInstances'>(),
     diskFreeMB: megabytesContract.nullable(),
   })
   .strict();

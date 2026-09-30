@@ -1,7 +1,6 @@
 
 import { DomRectStub } from '../../contracts/dom-rect/dom-rect.stub';
 import { RawDomReadingStub } from '../../contracts/raw-dom-reading/raw-dom-reading.stub';
-import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { domReadTransformer } from './dom-read-transformer';
 
 describe('domReadTransformer', () => {
@@ -89,7 +88,7 @@ describe('domReadTransformer', () => {
       const domRead = domReadTransformer();
 
       const raw = RawDomReadingStub({
-        count: ReadingCountStub({ value: 42 }),
+        count: 42,
         nodes: [],
       });
 
@@ -136,13 +135,13 @@ describe('domReadTransformer', () => {
       const domRead = domReadTransformer();
 
       const raw = RawDomReadingStub({
-        count: ReadingCountStub({ value: 58 }),
+        count: 58,
         nodes: [
           {
             tagName: 'div',
             testId: null,
             className: null,
-            childCount: ReadingCountStub({ value: 0 }),
+            childCount: 0,
             display: 'block',
             visibility: 'visible',
             opacity: '1',

@@ -36,7 +36,6 @@ import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-
 import { capacitySuggestionContract } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
 
 // A group whose every run was killed inside the settle window falls back to that group's peak, and
@@ -55,9 +54,9 @@ export const capacitySuggestTransformer = ({
 }: {
   profile: CapacityProfile | null;
   freeMemMB: Megabytes;
-  siegeInstances: ReadingCount;
-  reservedInstances: ReadingCount;
-  cores: ReadingCount;
+  siegeInstances: number;
+  reservedInstances: number;
+  cores: number;
   loadAvg1: CapacityMeasured['loadAvg1'];
 }): CapacitySuggestion => {
   const { ceiling } = capacityStatics.policy;

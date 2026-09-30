@@ -42,7 +42,6 @@ import { keyListingContract } from '../../contracts/key-listing/key-listing-cont
 import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
 import { keyRowContract } from '../../contracts/key-row/key-row-contract';
 import { rawKeyReadingContract } from '../../contracts/raw-key-reading/raw-key-reading-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import type { Selector } from '../../contracts/selector/selector-contract';
 import { keyStatics } from '../../statics/key/key-statics';
 import { refStatics } from '../../statics/ref/ref-statics';
@@ -275,7 +274,7 @@ const READ_SOURCE_BODY = `(params) => {
 
 export const keyReadTransformer = (): {
   readSource: (params: { within: Selector | null }) => string;
-  highestRefOf: (params: { raw: unknown }) => ReadingCount;
+  highestRefOf: (params: { raw: unknown }) => number;
   toListing: (params: { raw: unknown; within: Selector | null }) => KeyListing;
 } => ({
   readSource: ({ within }: { within: Selector | null }): string => {
@@ -298,7 +297,7 @@ export const keyReadTransformer = (): {
     return `(${READ_SOURCE_BODY})(${params})`;
   },
 
-  highestRefOf: ({ raw }: { raw: unknown }): ReadingCount =>
+  highestRefOf: ({ raw }: { raw: unknown }): number =>
     rawKeyReadingContract.parse(raw).highestRef,
 
   toListing: ({ raw, within }: { raw: unknown; within: Selector | null }): KeyListing => {

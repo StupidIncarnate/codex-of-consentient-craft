@@ -49,14 +49,13 @@ import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
 import { registryUpdateBrokerProxy } from '../../../brokers/registry/update/registry-update-broker.proxy';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { Registry } from '../../../contracts/registry/registry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 import { DriverServeLayerResponderProxy } from './driver-serve-layer-responder.proxy';
 
-type ReadingCount = ReturnType<typeof ReadingCountStub>;
+type ReadingCount = number;
 
 const SHARED_PATH_VALUE = '/tmp/dm-siege-sockets/inst-driver-test.sock';
 // Mirrors osTmpdirAdapterProxy's own default, composed transitively via
@@ -227,7 +226,7 @@ export const SiegelenseDriverResponderProxy = (): {
     },
 
     getRegistryUpdateCallCount: (): ReadingCount =>
-      ReadingCountStub({ value: registryUpdateHandle.callsMatching([]).length }),
+      registryUpdateHandle.callsMatching([]).length,
 
     stagePid: ({ pid }: { pid: number }): void => {
       pidProxy.setupPid({ pid });

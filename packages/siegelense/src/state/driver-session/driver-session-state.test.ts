@@ -2,7 +2,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { LaneSessionStub } from '../../contracts/lane-session/lane-session.stub';
-import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { driverStatics } from '../../statics/driver/driver-statics';
 import { driverSessionState } from './driver-session-state';
 import { driverSessionStateProxy } from './driver-session-state.proxy';
@@ -120,9 +119,9 @@ describe('driverSessionState', () => {
       proxy.setupEmpty();
 
       driverSessionState.advanceFlushCursor({
-        consoleLines: ReadingCountStub({ value: 3 }),
-        networkLines: ReadingCountStub({ value: 5 }),
-        websocketLines: ReadingCountStub({ value: 2 }),
+        consoleLines: 3,
+        networkLines: 5,
+        websocketLines: 2,
       });
 
       expect(driverSessionState.flushCursor()).toStrictEqual({
@@ -136,15 +135,15 @@ describe('driverSessionState', () => {
       const proxy = driverSessionStateProxy();
       proxy.setupEmpty();
       driverSessionState.advanceFlushCursor({
-        consoleLines: ReadingCountStub({ value: 3 }),
-        networkLines: ReadingCountStub({ value: 5 }),
-        websocketLines: ReadingCountStub({ value: 2 }),
+        consoleLines: 3,
+        networkLines: 5,
+        websocketLines: 2,
       });
 
       driverSessionState.advanceFlushCursor({
-        consoleLines: ReadingCountStub({ value: 7 }),
-        networkLines: ReadingCountStub({ value: 5 }),
-        websocketLines: ReadingCountStub({ value: 4 }),
+        consoleLines: 7,
+        networkLines: 5,
+        websocketLines: 4,
       });
 
       expect(driverSessionState.flushCursor()).toStrictEqual({
@@ -200,9 +199,9 @@ describe('driverSessionState', () => {
       const proxy = driverSessionStateProxy();
       proxy.setupEmpty();
       driverSessionState.advanceFlushCursor({
-        consoleLines: ReadingCountStub({ value: 3 }),
-        networkLines: ReadingCountStub({ value: 5 }),
-        websocketLines: ReadingCountStub({ value: 2 }),
+        consoleLines: 3,
+        networkLines: 5,
+        websocketLines: 2,
       });
       driverSessionState.setLastShotPath({
         path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png',

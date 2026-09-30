@@ -21,11 +21,10 @@ import { browserSessionLaunchBrokerProxy } from '../../browser-session/launch/br
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
-type ReadingCount = ReturnType<typeof ReadingCountStub>;
+type ReadingCount = number;
 
 // A deadline-exceeded case is staged with two clock readings: the FIRST call answers
 // `lane-boot-broker`'s own `Date.now() + spec.bootTimeoutMs` deadline computation, and every call
@@ -228,7 +227,7 @@ export const laneBootBrokerProxy = (): {
         .map((call) => call[0]),
 
     getBrowserLaunchCallCount: (): ReadingCount =>
-      ReadingCountStub({ value: browserProxy.getLaunchCalls().length }),
+      browserProxy.getLaunchCalls().length,
 
     getInheritedEnvSnapshot: (): Record<PropertyKey, string> =>
       Object.fromEntries(

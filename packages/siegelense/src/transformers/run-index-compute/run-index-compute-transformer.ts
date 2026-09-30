@@ -27,7 +27,6 @@
  */
 
 
-import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import { runIndexContract } from '../../contracts/run-index/run-index-contract';
 import type { RunIndex } from '../../contracts/run-index/run-index-contract';
 import { isNetworkLineNon2xxGuard } from '../../guards/is-network-line-non2xx/is-network-line-non2xx-guard';
@@ -64,13 +63,13 @@ export const runIndexComputeTransformer = ({
 
   return runIndexContract.parse({
     console: {
-      errors: readingCountContract.parse(consoleErrors),
-      warnings: readingCountContract.parse(consoleWarnings),
+      errors: consoleErrors,
+      warnings: consoleWarnings,
     },
-    server: { errors: readingCountContract.parse(serverErrors) },
+    server: { errors: serverErrors },
     network: {
-      exchanges: readingCountContract.parse(networkLines.length),
-      non2xx: readingCountContract.parse(networkNon2xx),
+      exchanges: networkLines.length,
+      non2xx: networkNon2xx,
     },
   });
 };

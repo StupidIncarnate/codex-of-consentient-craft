@@ -19,7 +19,6 @@ import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const capacityProfileContract = z
@@ -28,7 +27,7 @@ export const capacityProfileContract = z
     poolSize: profilePoolSizeContract,
     steadyMB: megabytesContract,
     peakMB: megabytesContract,
-    fromRuns: readingCountContract,
+    fromRuns: z.number().int().nonnegative().brand<'CapacityProfileFromRuns'>(),
   })
   .strict();
 

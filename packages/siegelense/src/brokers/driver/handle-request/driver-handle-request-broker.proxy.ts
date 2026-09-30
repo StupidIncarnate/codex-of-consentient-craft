@@ -18,7 +18,6 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { instanceReleaseBrokerProxy } from '../../instance/release/instance-release-broker.proxy';
@@ -36,14 +35,14 @@ export const driverHandleRequestBrokerProxy = (): {
   decodeRunResult: (params: { payload: string }) => ReturnType<typeof RunResultStub>;
   decodeKillResult: (params: { payload: string }) => ReturnType<typeof KillResultStub>;
   flushCursor: () => {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   };
   advanceFlushCursor: (params: {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   }) => void;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;

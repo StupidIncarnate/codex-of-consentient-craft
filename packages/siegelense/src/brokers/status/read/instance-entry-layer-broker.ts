@@ -42,7 +42,6 @@ import type { InstanceStatus } from '../../../contracts/instance-status/instance
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import { lastStepReadingContract } from '../../../contracts/last-step-reading/last-step-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import { elapsedRenderTransformer } from '../../../transformers/elapsed-render/elapsed-render-transformer';
@@ -67,7 +66,7 @@ export const instanceEntryLayerBroker = async ({
   state: InstanceState;
   named: boolean;
   nowMs: number;
-  oomKillsSinceBoot: ReadingCount | null;
+  oomKillsSinceBoot: number | null;
 }): Promise<InstanceStatus> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({
     instanceId: entry.id,

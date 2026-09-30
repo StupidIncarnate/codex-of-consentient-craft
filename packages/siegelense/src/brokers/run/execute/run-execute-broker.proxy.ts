@@ -8,8 +8,6 @@ import type { Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { bufferAppendBrokerProxy } from '../../buffer/append/buffer-append-broker.proxy';
 import { snapshotCaptureBroker } from '../../snapshot/capture/snapshot-capture-broker';
@@ -93,15 +91,15 @@ export const runExecuteBrokerProxy = (): {
   dispatchedSteps: () => readonly unknown[];
   laneFailingOnPath: (params: { failingPath: string; error: Error }) => {
     lane: LaneSession;
-    gotoCallCount: () => ReadingCount;
+    gotoCallCount: () => number;
   };
   laneHangingOnWaitFor: (params: { error: Error }) => {
     lane: LaneSession;
-    gotoCallCount: () => ReadingCount;
+    gotoCallCount: () => number;
   };
   laneWithBrowserHistory: (params: {
-    consoleStart: ReadingCount;
-    networkStart: ReadingCount;
+    consoleStart: number;
+    networkStart: number;
     newConsoleLines: readonly string[];
     newNetworkLines: readonly string[];
   }) => LaneSession;
@@ -117,28 +115,28 @@ export const runExecuteBrokerProxy = (): {
   headlessLane: () => LaneSession;
   laneRecordingTranscriptGrowth: (params: { transcriptPath: string }) => {
     lane: LaneSession;
-    snapshotsAtEachStep: () => readonly ReadingCount[];
+    snapshotsAtEachStep: () => readonly number[];
   };
   transcriptWrites: (params: { transcriptPath: string }) => readonly unknown[];
   storedReturnWrite: (params: { storedReturnPath: string }) => unknown;
   flushCursor: () => {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   };
   advanceFlushCursor: (params: {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   }) => void;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;
   writtenBufferEntriesFor: (params: { kind: BufferKind }) => unknown[];
-  bufferAppendCallCountFor: (params: { kind: BufferKind }) => ReturnType<typeof ReadingCountStub>;
+  bufferAppendCallCountFor: (params: { kind: BufferKind }) => number;
   capturedSnapshotCalls: () => unknown[];
   laneRecordingSnapshotGrowth: () => {
     lane: LaneSession;
-    snapshotCountAtEachStep: () => readonly ReadingCount[];
+    snapshotCountAtEachStep: () => readonly number[];
   };
   failSnapshotCapture: (params: { error: Error }) => void;
   getStderrText: () => string;
@@ -200,15 +198,15 @@ export const runExecuteBrokerProxy = (): {
   // way down, exactly as it does in production.
   const cursorState: {
     current: {
-      consoleLines: ReadingCount;
-      networkLines: ReadingCount;
-      websocketLines: ReadingCount;
+      consoleLines: number;
+      networkLines: number;
+      websocketLines: number;
     };
   } = {
     current: {
-      consoleLines: ReadingCountStub({ value: 0 }),
-      networkLines: ReadingCountStub({ value: 0 }),
-      websocketLines: ReadingCountStub({ value: 0 }),
+      consoleLines: 0,
+      networkLines: 0,
+      websocketLines: 0,
     },
   };
 
@@ -324,7 +322,7 @@ export const runExecuteBrokerProxy = (): {
     }: {
       failingPath: string;
       error: Error;
-    }): { lane: LaneSession; gotoCallCount: () => ReadingCount } => {
+    }): { lane: LaneSession; gotoCallCount: () => number } => {
       const gotoMock = jest
         .fn()
         .mockImplementation(async ({ url }: { url: string }) =>
@@ -336,7 +334,7 @@ export const runExecuteBrokerProxy = (): {
       });
       return {
         lane,
-        gotoCallCount: (): ReadingCount => ReadingCountStub({ value: gotoMock.mock.calls.length }),
+        gotoCallCount: (): number => gotoMock.mock.calls.length,
       };
     },
 
@@ -344,7 +342,7 @@ export const runExecuteBrokerProxy = (): {
       error,
     }: {
       error: Error;
-    }): { lane: LaneSession; gotoCallCount: () => ReadingCount } => {
+    }): { lane: LaneSession; gotoCallCount: () => number } => {
       const gotoMock = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
         evidencePath: EVIDENCE_PATH,
@@ -357,7 +355,7 @@ export const runExecuteBrokerProxy = (): {
       });
       return {
         lane,
-        gotoCallCount: (): ReadingCount => ReadingCountStub({ value: gotoMock.mock.calls.length }),
+        gotoCallCount: (): number => gotoMock.mock.calls.length,
       };
     },
 
@@ -367,8 +365,8 @@ export const runExecuteBrokerProxy = (): {
       newConsoleLines,
       newNetworkLines,
     }: {
-      consoleStart: ReadingCount;
-      networkStart: ReadingCount;
+      consoleStart: number;
+      networkStart: number;
       newConsoleLines: readonly string[];
       newNetworkLines: readonly string[];
     }): LaneSession =>
@@ -491,13 +489,11 @@ export const runExecuteBrokerProxy = (): {
       transcriptPath,
     }: {
       transcriptPath: string;
-    }): { lane: LaneSession; snapshotsAtEachStep: () => readonly ReadingCount[] } => {
-      const snapshots: ReadingCount[] = [];
+    }): { lane: LaneSession; snapshotsAtEachStep: () => readonly number[] } => {
+      const snapshots: number[] = [];
       const gotoMock = jest.fn().mockImplementation(async () => {
         snapshots.push(
-          ReadingCountStub({
-            value: transcriptProxy.appendedLinesFor({ transcriptPath }).length,
-          }),
+          transcriptProxy.appendedLinesFor({ transcriptPath }).length,
         );
         return Promise.resolve(undefined);
       });
@@ -505,7 +501,7 @@ export const runExecuteBrokerProxy = (): {
         evidencePath: EVIDENCE_PATH,
         browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
       });
-      return { lane, snapshotsAtEachStep: (): readonly ReadingCount[] => snapshots };
+      return { lane, snapshotsAtEachStep: (): readonly number[] => snapshots };
     },
 
     transcriptWrites: ({
@@ -518,15 +514,15 @@ export const runExecuteBrokerProxy = (): {
       returnWriteProxy.writtenFor({ storedReturnPath }),
 
     flushCursor: (): {
-      consoleLines: ReadingCount;
-      networkLines: ReadingCount;
-      websocketLines: ReadingCount;
+      consoleLines: number;
+      networkLines: number;
+      websocketLines: number;
     } => cursorState.current,
 
     advanceFlushCursor: (next: {
-      consoleLines: ReadingCount;
-      networkLines: ReadingCount;
-      websocketLines: ReadingCount;
+      consoleLines: number;
+      networkLines: number;
+      websocketLines: number;
     }): void => {
       cursorState.current = next;
     },
@@ -542,10 +538,8 @@ export const runExecuteBrokerProxy = (): {
       kind,
     }: {
       kind: BufferKind;
-    }): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({
-        value: bufferAppendProxy.appendCallsFor({ bufferPath: bufferPaths[kind] }).length,
-      }),
+    }): number =>
+      bufferAppendProxy.appendCallsFor({ bufferPath: bufferPaths[kind] }).length,
 
     // The WHOLE argument object of every automatic capture this run made, in order — so a test
     // asserts the home, the name and the manual flag together rather than picking one field out.
@@ -556,18 +550,18 @@ export const runExecuteBrokerProxy = (): {
     // to prove the start half lands before the first step rather than merely being first in the list.
     laneRecordingSnapshotGrowth: (): {
       lane: LaneSession;
-      snapshotCountAtEachStep: () => readonly ReadingCount[];
+      snapshotCountAtEachStep: () => readonly number[];
     } => {
-      const counts: ReadingCount[] = [];
+      const counts: number[] = [];
       const gotoMock = jest.fn().mockImplementation(async () => {
-        counts.push(ReadingCountStub({ value: snapshotCaptureHandle.callsMatching([]).length }));
+        counts.push(snapshotCaptureHandle.callsMatching([]).length);
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
         evidencePath: EVIDENCE_PATH,
         browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
       });
-      return { lane, snapshotCountAtEachStep: (): readonly ReadingCount[] => counts };
+      return { lane, snapshotCountAtEachStep: (): readonly number[] => counts };
     },
 
     // Overrides the constructor's answer, since a later registration at the same specificity

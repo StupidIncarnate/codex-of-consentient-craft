@@ -19,19 +19,18 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const runIndexContract = z.object({
   console: z.object({
-    errors: readingCountContract,
-    warnings: readingCountContract,
+    errors: z.number().int().nonnegative().brand<'RunIndexConsoleErrors'>(),
+    warnings: z.number().int().nonnegative().brand<'RunIndexConsoleWarnings'>(),
   }),
   server: z.object({
-    errors: readingCountContract,
+    errors: z.number().int().nonnegative().brand<'RunIndexServerErrors'>(),
   }),
   network: z.object({
-    exchanges: readingCountContract,
-    non2xx: readingCountContract,
+    exchanges: z.number().int().nonnegative().brand<'RunIndexNetworkExchanges'>(),
+    non2xx: z.number().int().nonnegative().brand<'RunIndexNetworkNon2xx'>(),
   }),
 });
 

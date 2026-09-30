@@ -34,7 +34,6 @@ import { instanceStateContract } from '../instance-state/instance-state-contract
 import { lastStepReadingContract } from '../last-step-reading/last-step-reading-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { orphanReadingContract } from '../orphan-reading/orphan-reading-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const instanceStatusContract = z.object({
@@ -43,7 +42,7 @@ export const instanceStatusContract = z.object({
   specName: specNameContract,
   uptime: elapsedTextContract.nullable(),
   lastBeat: elapsedTextContract.nullable(),
-  runs: readingCountContract,
+  runs: z.number().int().nonnegative().brand<'InstanceStatusRuns'>(),
   rssMB: megabytesContract.nullable(),
   rssAtLastBeat: megabytesContract.nullable(),
   lastStep: lastStepReadingContract.nullable(),

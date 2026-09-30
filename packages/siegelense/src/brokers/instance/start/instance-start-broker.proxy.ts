@@ -39,7 +39,6 @@ import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-pol
 import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
-import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -155,7 +154,7 @@ export const instanceStartBrokerProxy = (): {
   }) => void;
   getKillConnectionCountFor: (params: {
     instanceId: InstanceId;
-  }) => ReturnType<typeof ReadingCountStub>;
+  }) => number;
   stageShutdownReasonWriteSucceeds: (params: { evidencePath: string }) => void;
   getWrittenShutdownReason: (params: { evidencePath: string }) => unknown;
 } => {
@@ -603,7 +602,7 @@ export const instanceStartBrokerProxy = (): {
       instanceId,
     }: {
       instanceId: InstanceId;
-    }): ReturnType<typeof ReadingCountStub> =>
+    }): number =>
       killProxy.getConnectionCountFor({
         socketPath: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
       }),

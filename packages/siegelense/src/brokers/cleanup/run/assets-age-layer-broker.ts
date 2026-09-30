@@ -20,8 +20,6 @@ import { megabytesContract } from '../../../contracts/megabytes/megabytes-contra
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import { pruneQueryContract } from '../../../contracts/prune-query/prune-query-contract';
 import type { PruneRefusal } from '../../../contracts/prune-refusal/prune-refusal-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { pruneStatics } from '../../../statics/prune/prune-statics';
 import { pruneOlderThanParseTransformer } from '../../../transformers/prune-older-than-parse/prune-older-than-parse-transformer';
@@ -46,7 +44,7 @@ export const assetsAgeLayerBroker = async ({
   entries: readonly RegistryEntry[];
   nowMs: number;
 }): Promise<{
-  instances: ReadingCount;
+  instances: number;
   freedMB: Megabytes;
   refusals: readonly PruneRefusal[];
   gaps: readonly CitationGap[];
@@ -99,7 +97,7 @@ export const assetsAgeLayerBroker = async ({
   }
 
   return {
-    instances: readingCountContract.parse(touched),
+    instances: touched,
     freedMB: megabytesContract.parse(Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte)),
     refusals,
     gaps: [...gapsByKind.values()],

@@ -1,7 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 import { DomRectStub } from '../dom-rect/dom-rect.stub';
-import { ReadingCountStub } from '../reading-count/reading-count.stub';
 import { domNodeContract } from './dom-node-contract';
 import type { DomNode } from './dom-node-contract';
 
@@ -10,7 +9,7 @@ export const DomNodeStub = ({ ...props }: StubArgument<DomNode> = {}): DomNode =
     tagName: 'button',
     testId: 'SUBMIT_BTN',
     className: 'btn primary',
-    childCount: ReadingCountStub({ value: 0 }),
+    childCount: 0,
     display: 'inline-block',
     visibility: 'visible',
     opacity: '1',

@@ -17,7 +17,6 @@ import { processKillGroupBrokerProxy } from '../../process/kill-group/process-ki
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
-import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -74,7 +73,7 @@ export const instanceKillBrokerProxy = (): {
   getReleasedRegistry: () => unknown;
   getConnectionCountFor: (params: {
     socketPath: string;
-  }) => ReturnType<typeof ReadingCountStub>;
+  }) => number;
 } => {
   const registryProxy = registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -275,6 +274,6 @@ export const instanceKillBrokerProxy = (): {
       socketPath,
     }: {
       socketPath: string;
-    }): ReturnType<typeof ReadingCountStub> => socketProxy.getConnectionCountFor({ socketPath }),
+    }): number => socketProxy.getConnectionCountFor({ socketPath }),
   };
 };

@@ -1,7 +1,6 @@
 
 import { HealthVerdictStub } from '../health-verdict/health-verdict.stub';
 import { HexColourStub } from '../hex-colour/hex-colour.stub';
-import { ReadingCountStub } from '../reading-count/reading-count.stub';
 import { healthReadingContract } from './health-reading-contract';
 import { HealthReadingStub } from './health-reading.stub';
 
@@ -18,10 +17,10 @@ describe('healthReadingContract', () => {
     it('VALID: {degraded with errors} => parses a degraded reading with console and server errors', () => {
       const fixture = HealthReadingStub({
         verdict: HealthVerdictStub({ value: 'DEGRADED' }),
-        consoleErrors: ReadingCountStub({ value: 1 }),
+        consoleErrors: 1,
         firstConsoleError: 'Cannot read properties of null',
-        network5xxCount: ReadingCountStub({ value: 0 }),
-        serverErrors: ReadingCountStub({ value: 2 }),
+        network5xxCount: 0,
+        serverErrors: 2,
         firstServerError: 'Internal server exception',
         rendered: 'DEGRADED  root present · not blank · console: 1 error "Cannot read properties of null" · no 5xx · server log: 2 errors',
       });

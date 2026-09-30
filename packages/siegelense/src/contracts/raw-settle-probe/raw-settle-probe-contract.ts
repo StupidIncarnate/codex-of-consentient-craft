@@ -12,12 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const rawSettleProbeContract = z.object({
   nowMs: z.number().int().nonnegative().brand<'RawSettleProbeNowMs'>(),
   lastMutationAtMs: z.number().int().nonnegative().brand<'RawSettleProbeLastMutationAtMs'>().nullable(),
-  runningAnimations: readingCountContract,
+  runningAnimations: z.number().int().nonnegative().brand<'RawSettleProbeRunningAnimations'>(),
 });
 
 export type RawSettleProbe = z.infer<typeof rawSettleProbeContract>;

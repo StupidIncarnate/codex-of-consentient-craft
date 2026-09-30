@@ -4,7 +4,6 @@ import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/ins
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceStatusStub } from '../../../contracts/instance-status/instance-status.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
@@ -339,7 +338,7 @@ describe('instanceEntryLayerBroker', () => {
         state: 'dead',
         named: true,
         nowMs,
-        oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
+        oomKillsSinceBoot: 1,
       });
 
       expect(result).toStrictEqual(
@@ -442,7 +441,7 @@ describe('instanceEntryLayerBroker', () => {
         state: 'dead',
         named: true,
         nowMs,
-        oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
+        oomKillsSinceBoot: 2,
       });
 
       expect(result).toStrictEqual(
@@ -529,7 +528,7 @@ describe('instanceEntryLayerBroker', () => {
         state: 'dead',
         named: true,
         nowMs: 1_700_001_000_000,
-        oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+        oomKillsSinceBoot: 0,
       });
 
       expect(result).toStrictEqual(

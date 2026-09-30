@@ -2,11 +2,10 @@ import { unixSocketRequestProxy } from '#gateway/node/net/unix-socket-request/un
 import { UnixSocketRecordedErrorStub } from '#gateway/node/net/unix-socket-recorded-error/unix-socket-recorded-error.stub';
 
 import type { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 
 type DriverResponse = ReturnType<typeof DriverResponseStub>;
 type ContentText = string;
-type ReadingCount = ReturnType<typeof ReadingCountStub>;
+type ReadingCount = number;
 
 // Every stage is addressed by the test's own socketPath — the exact path `unixSocketRequest`
 // connects to — so two instances' sockets stage apart.
@@ -75,6 +74,6 @@ export const driverSocketRequestBrokerProxy = (): {
         .map((requestLine) => requestLine),
 
     getConnectionCountFor: ({ socketPath }: { socketPath: string }): ReadingCount =>
-      ReadingCountStub({ value: socketProxy.getConnectionCountFor({ socketPath }) }),
+      socketProxy.getConnectionCountFor({ socketPath }),
   };
 };

@@ -15,7 +15,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { clearTimeoutProxy } from '#gateway/node/clearTimeout/clear-timeout/clear-timeout.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { driverSessionState } from '../../../state/driver-session/driver-session-state';
 import { driverSessionStateProxy } from '../../../state/driver-session/driver-session-state.proxy';
@@ -27,7 +26,7 @@ export const DriverIdleWaitLayerResponderProxy = (): {
   touch: (params: { nowMs: number }) => void;
   stageNow: (params: { ms: number }) => void;
   stageSleepNeverFires: (params: { ms: TimeoutMs }) => void;
-  getSleepCallCount: (params: { ms: TimeoutMs }) => ReturnType<typeof ReadingCountStub>;
+  getSleepCallCount: (params: { ms: TimeoutMs }) => number;
 } => {
   const sessionProxy = driverSessionStateProxy();
   sessionProxy.setupEmpty();
@@ -70,7 +69,7 @@ export const DriverIdleWaitLayerResponderProxy = (): {
       timeoutProxy.setupNeverFires({ ms });
     },
 
-    getSleepCallCount: ({ ms }: { ms: TimeoutMs }): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({ value: timeoutProxy.getCallsFor({ ms }).length }),
+    getSleepCallCount: ({ ms }: { ms: TimeoutMs }): number =>
+      timeoutProxy.getCallsFor({ ms }).length,
   };
 };

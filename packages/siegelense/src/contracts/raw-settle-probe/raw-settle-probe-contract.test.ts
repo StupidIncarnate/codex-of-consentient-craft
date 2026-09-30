@@ -1,4 +1,3 @@
-import { ReadingCountStub } from '../reading-count/reading-count.stub';
 import { rawSettleProbeContract } from './raw-settle-probe-contract';
 import { RawSettleProbeStub } from './raw-settle-probe.stub';
 
@@ -15,7 +14,7 @@ describe('rawSettleProbeContract', () => {
     expect(
       RawSettleProbeStub({
         lastMutationAtMs: 1_699_999_999_900,
-        runningAnimations: ReadingCountStub({ value: 2 }),
+        runningAnimations: 2,
       }),
     ).toStrictEqual({
       nowMs: 1_700_000_000_000,

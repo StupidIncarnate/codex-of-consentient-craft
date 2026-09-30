@@ -5,7 +5,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import type { StepExpectationStub } from '../../../contracts/step-expectation/step-expectation.stub';
@@ -618,8 +617,8 @@ describe('runExecuteBroker', () => {
       const runId = RunIdStub({ value: 'run_2' });
       proxy.stagePaths({ runId });
       const lane = proxy.laneWithBrowserHistory({
-        consoleStart: ReadingCountStub({ value: 10 }),
-        networkStart: ReadingCountStub({ value: 3 }),
+        consoleStart: 10,
+        networkStart: 3,
         newConsoleLines: [
           JSON.stringify({
               at: 1,
@@ -759,7 +758,7 @@ describe('runExecuteBroker', () => {
       });
 
       expect(proxy.bufferAppendCallCountFor({ kind: 'console' })).toStrictEqual(
-        ReadingCountStub({ value: 0 }),
+        0,
       );
     });
   });

@@ -35,7 +35,6 @@ import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { refContract } from '../ref/ref-contract';
 
 export const keyRowContract = z.object({
@@ -50,7 +49,7 @@ export const keyRowContract = z.object({
   value: z.string().brand<'KeyRowValue'>().nullable(),
   placeholder: z.string().brand<'KeyRowPlaceholder'>().nullable(),
   attrs: z.array(attrPairContract).readonly(),
-  attrsDropped: readingCountContract,
+  attrsDropped: z.number().int().nonnegative().brand<'KeyRowAttrsDropped'>(),
   flags: z.array(elementFlagContract).readonly(),
   flagDetail: z.record(z.string().brand<'ElementFlagName'>(), z.string().brand<'KeyRowFlagDetail'>()).readonly(),
 });

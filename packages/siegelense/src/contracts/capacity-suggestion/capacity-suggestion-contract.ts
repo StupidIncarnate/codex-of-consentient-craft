@@ -23,15 +23,14 @@
 import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const capacitySuggestionContract = z
   .object({
-    suggested: readingCountContract,
-    ceiling: readingCountContract,
-    memoryAllows: readingCountContract,
-    cpuAllows: readingCountContract,
-    ceilingLeft: readingCountContract,
+    suggested: z.number().int().nonnegative().brand<'CapacitySuggestionSuggested'>(),
+    ceiling: z.number().int().nonnegative().brand<'CapacitySuggestionCeiling'>(),
+    memoryAllows: z.number().int().nonnegative().brand<'CapacitySuggestionMemoryAllows'>(),
+    cpuAllows: z.number().int().nonnegative().brand<'CapacitySuggestionCpuAllows'>(),
+    ceilingLeft: z.number().int().nonnegative().brand<'CapacitySuggestionCeilingLeft'>(),
     availableMB: megabytesContract,
   })
   .strict();

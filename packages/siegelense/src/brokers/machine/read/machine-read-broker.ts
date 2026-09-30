@@ -23,7 +23,6 @@ import { loadAverageContract } from '../../../contracts/load-average/load-averag
 import { machineReadingContract } from '../../../contracts/machine-reading/machine-reading-contract';
 import type { MachineReading } from '../../../contracts/machine-reading/machine-reading-contract';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 import { machineOomCountBroker } from '../oom-count/machine-oom-count-broker';
 
@@ -31,7 +30,7 @@ export const machineReadBroker = async (): Promise<MachineReading> => {
   const { bytesPerMegabyte } = machineStatics.units;
   const freeMemMB = megabytesContract.parse(Math.floor(freemem() / bytesPerMegabyte));
   const totalMemMB = megabytesContract.parse(Math.floor(totalmem() / bytesPerMegabyte));
-  const cores = readingCountContract.parse(cpus().length);
+  const cores = cpus().length;
   const loadAvg = loadAverageContract.parse(loadavg());
 
   const { homePath } = dungeonmasterHomeFindBroker();

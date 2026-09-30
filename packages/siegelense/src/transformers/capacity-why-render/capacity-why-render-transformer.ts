@@ -41,7 +41,6 @@ import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
 import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../contracts/spec-name/spec-name-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
 
@@ -62,10 +61,10 @@ export const capacityWhyRenderTransformer = ({
   profile: CapacityProfile | null;
   suggestion: CapacitySuggestion;
   freeMemMB: Megabytes;
-  siegeInstances: ReadingCount;
-  reservedInstances: ReadingCount;
+  siegeInstances: number;
+  reservedInstances: number;
   requestedPoolSize: ProfilePoolSize | null;
-  cores: ReadingCount;
+  cores: number;
   loadAvg1: CapacityMeasured['loadAvg1'];
 }): string => {
   const { headroomMB } = capacityStatics.memory;

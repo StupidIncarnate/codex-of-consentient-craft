@@ -24,7 +24,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const settleReadingContract = z
   .object({
@@ -35,7 +34,7 @@ export const settleReadingContract = z
     waitedMs: z.number().int().nonnegative().brand<'WaitedMs'>(),
     unsettled: z.array(z.enum(['network', 'dom', 'animation']).brand<'SettleSignal'>()).readonly(),
     // In-flight requests that were NOT discounted as pollers, at the moment the wait ended.
-    pendingRequests: readingCountContract,
+    pendingRequests: z.number().int().nonnegative().brand<'SettleReadingPendingRequests'>(),
     pollersDiscounted: z.array(z.string().brand<'SettleReadingPollersDiscounted'>()).readonly(),
   })
   .strict();

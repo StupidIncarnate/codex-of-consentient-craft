@@ -37,7 +37,6 @@ import type { CapacityAnswer } from '../../../contracts/capacity-answer/capacity
 import { capacityMeasuredContract } from '../../../contracts/capacity-measured/capacity-measured-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
@@ -76,10 +75,8 @@ export const capacityReadBroker = async ({
       !isStaleRegistryEntryGuard({ entry, nowMs }) &&
       !isStaleReservationRegistryEntryGuard({ entry, nowMs }),
   );
-  const siegeInstances = readingCountContract.parse(liveEntries.length);
-  const reservedInstances = readingCountContract.parse(
-    liveEntries.filter((entry) => isReservedRegistryEntryGuard({ entry })).length,
-  );
+  const siegeInstances = liveEntries.length;
+  const reservedInstances = liveEntries.filter((entry) => isReservedRegistryEntryGuard({ entry })).length;
 
   const loadAvg1 = capacityMeasuredContract.shape.loadAvg1.parse(
     machine.loadAvg[LOAD_AVERAGE_ONE_MINUTE],

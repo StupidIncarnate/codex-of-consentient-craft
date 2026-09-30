@@ -23,7 +23,6 @@ import { z } from '#gateway/npm/zod';
 import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { instanceStateContract } from '../instance-state/instance-state-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
 import { runResultContract } from '../run-result/run-result-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
@@ -38,8 +37,8 @@ export const resultsAnswerContract = z.object({
   verb: stepVerbContract.nullable(),
   prunedAtMs: z.number().int().nonnegative().brand<'ResultsAnswerPrunedAtMs'>().nullable(),
   prunedByRule: z.string().brand<'ResultsAnswerPrunedByRule'>().nullable(),
-  matched: readingCountContract,
-  returned: readingCountContract,
+  matched: z.number().int().nonnegative().brand<'ResultsAnswerMatched'>(),
+  returned: z.number().int().nonnegative().brand<'ResultsAnswerReturned'>(),
   truncated: z.boolean(),
   rows: z.array(z.string().brand<'ResultsAnswerRows'>()).readonly(),
   storedReturn: runResultContract.nullable(),

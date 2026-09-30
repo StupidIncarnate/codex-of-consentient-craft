@@ -35,7 +35,6 @@
  */
 
 
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resultKindContract } from '../../../contracts/result-kind/result-kind-contract';
 import { resultsAnswerContract } from '../../../contracts/results-answer/results-answer-contract';
 import type { ResultsAnswer } from '../../../contracts/results-answer/results-answer-contract';
@@ -177,8 +176,8 @@ export const resultsReadBroker = async ({
       verb: null,
       prunedAtMs: null,
       prunedByRule: null,
-      matched: readingCountContract.parse(matchedRows.length),
-      returned: readingCountContract.parse(capped.length),
+      matched: matchedRows.length,
+      returned: capped.length,
       truncated: matchedRows.length > capped.length,
       rows: projectedRows,
       storedReturn: null,
@@ -238,8 +237,8 @@ export const resultsReadBroker = async ({
         verb: null,
         prunedAtMs: null,
         prunedByRule: null,
-        matched: readingCountContract.parse(rows.length),
-        returned: readingCountContract.parse(capped.length),
+        matched: rows.length,
+        returned: capped.length,
         truncated: rows.length > capped.length,
         rows: projectedRows,
         storedReturn,
@@ -267,8 +266,8 @@ export const resultsReadBroker = async ({
       verb: null,
       prunedAtMs: null,
       prunedByRule: null,
-      matched: readingCountContract.parse(rows.length),
-      returned: readingCountContract.parse(capped.length),
+      matched: rows.length,
+      returned: capped.length,
       truncated: rows.length > capped.length,
       rows: projectedRows,
       storedReturn: null,
@@ -312,8 +311,8 @@ export const resultsReadBroker = async ({
       verb,
       prunedAtMs: null,
       prunedByRule: null,
-      matched: readingCountContract.parse(rows.length),
-      returned: readingCountContract.parse(capped.length),
+      matched: rows.length,
+      returned: capped.length,
       truncated: rows.length > capped.length,
       rows: projectedRows,
       storedReturn: null,
@@ -352,8 +351,8 @@ export const resultsReadBroker = async ({
       verb: null,
       prunedAtMs: null,
       prunedByRule: null,
-      matched: readingCountContract.parse(rows.length),
-      returned: readingCountContract.parse(capped.length),
+      matched: rows.length,
+      returned: capped.length,
       truncated: rows.length > capped.length,
       rows: projectedRows,
       storedReturn: null,

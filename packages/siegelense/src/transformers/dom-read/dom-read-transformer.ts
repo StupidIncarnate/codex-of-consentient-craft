@@ -18,7 +18,6 @@ import { domReadingContract } from '../../contracts/dom-reading/dom-reading-cont
 import type { DomReading } from '../../contracts/dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../../contracts/dom-text-mode/dom-text-mode-contract';
 import { rawDomReadingContract } from '../../contracts/raw-dom-reading/raw-dom-reading-contract';
-import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import { domStatics } from '../../statics/dom/dom-statics';
 
 export const domReadTransformer = (): {
@@ -93,7 +92,7 @@ export const domReadTransformer = (): {
       return domReadingContract.parse({ count });
     }
 
-    const showing = readingCountContract.parse(parsedRaw.nodes.length);
+    const showing = parsedRaw.nodes.length;
     const capped = count > showing;
     const note = capped
       ? `count: ${String(count)}, showing ${String(showing)}, capped. Narrow this.`

@@ -110,7 +110,6 @@ import type { InstanceManifest } from '../../../contracts/instance-manifest/inst
 import type { LaneProcessName } from '../../../contracts/lane-process-name/lane-process-name-contract';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
@@ -151,14 +150,12 @@ export const instanceStartBroker = async ({
   // time that a second `now()` call would buy nothing but an extra call for a composing test's
   // mock queue to account for.
   const nowMsForStaleness = now();
-  const aheadOfMe = readingCountContract.parse(
-    registryBeforeReserve.instances.filter(
+  const aheadOfMe = registryBeforeReserve.instances.filter(
       (candidate) =>
         candidate.state === 'alive' &&
         isReservedRegistryEntryGuard({ entry: candidate }) &&
         !isStaleReservationRegistryEntryGuard({ entry: candidate, nowMs: nowMsForStaleness }),
-    ).length,
-  );
+    ).length;
 
   // Opportunistic reap: any instance whose heartbeat has gone cold is presumed dead (spec line
   // 1673) — there is no other recovery path, so a caught-but-unreported reap is indistinguishable

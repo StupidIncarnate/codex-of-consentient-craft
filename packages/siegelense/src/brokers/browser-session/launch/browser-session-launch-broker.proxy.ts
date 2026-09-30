@@ -15,7 +15,6 @@ import { chromiumProxy } from '#gateway/npm/playwright__test/chromium/chromium.p
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { keyPressTransformer } from '../../../transformers/key-press/key-press-transformer';
 import { rootCheckTransformer } from '../../../transformers/root-check/root-check-transformer';
 import { pastePayloadLayerBrokerProxy } from './paste-payload-layer-broker.proxy';
@@ -23,7 +22,7 @@ import { refRegistryLayerBroker } from './ref-registry-layer-broker';
 import { refRegistryLayerBrokerProxy } from './ref-registry-layer-broker.proxy';
 import { settleWaitLayerBrokerProxy } from './settle-wait-layer-broker.proxy';
 
-type ReadingCount = ReturnType<typeof ReadingCountStub>;
+type ReadingCount = number;
 
 const FIXED_EPOCH_MS = 1_700_000_000_000;
 
@@ -246,9 +245,7 @@ export const browserSessionLaunchBrokerProxy = (): {
     getStorageReadPrefixes: (): readonly unknown[] =>
       playwrightProxy.getEvaluateCallsFor({ source: isStorageRead }).map((call) => call[1]),
     getClearStorageCallCount: (): ReadingCount =>
-      ReadingCountStub({
-        value: playwrightProxy.getEvaluateCallsFor({ source: isStorageClear }).length,
-      }),
+      playwrightProxy.getEvaluateCallsFor({ source: isStorageClear }).length,
     getClipboardWrites: (): readonly unknown[] =>
       playwrightProxy.getEvaluateCallsFor({ source: isClipboardWrite }).map((call) => call[1]),
 

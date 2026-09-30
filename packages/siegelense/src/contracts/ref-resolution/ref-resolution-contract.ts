@@ -20,12 +20,11 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const refResolutionContract = z.object({
   state: z.enum(['live', 'stale', 'unknown']).brand<'RefResolutionState'>(),
   boundary: z.string().brand<'RefResolutionBoundary'>().nullable(),
-  highestMinted: readingCountContract,
+  highestMinted: z.number().int().nonnegative().brand<'RefResolutionHighestMinted'>(),
 });
 
 export type RefResolution = z.infer<typeof refResolutionContract>;

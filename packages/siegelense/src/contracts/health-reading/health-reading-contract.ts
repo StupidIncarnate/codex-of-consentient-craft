@@ -23,7 +23,6 @@ import { z } from '#gateway/npm/zod';
 
 import { healthVerdictContract } from '../health-verdict/health-verdict-contract';
 import { hexColourContract } from '../hex-colour/hex-colour-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const healthReadingContract = z
   .object({
@@ -31,11 +30,11 @@ export const healthReadingContract = z
     rootPresent: z.boolean(),
     blank: z.boolean(),
     blankColour: hexColourContract.nullable(),
-    consoleErrors: readingCountContract,
+    consoleErrors: z.number().int().nonnegative().brand<'HealthReadingConsoleErrors'>(),
     firstConsoleError: z.string().brand<'HealthReadingFirstConsoleError'>().nullable(),
-    network5xxCount: readingCountContract,
+    network5xxCount: z.number().int().nonnegative().brand<'HealthReadingNetwork5xxCount'>(),
     first5xx: z.string().brand<'HealthReadingFirst5xx'>().nullable(),
-    serverErrors: readingCountContract,
+    serverErrors: z.number().int().nonnegative().brand<'HealthReadingServerErrors'>(),
     firstServerError: z.string().brand<'HealthReadingFirstServerError'>().nullable(),
     rendered: z.string().brand<'HealthReadingRendered'>(),
   })

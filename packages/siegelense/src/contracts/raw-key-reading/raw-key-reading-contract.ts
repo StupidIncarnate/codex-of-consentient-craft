@@ -28,7 +28,6 @@ import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { refContract } from '../ref/ref-contract';
 
 export const rawKeyReadingContract = z.object({
@@ -51,9 +50,9 @@ export const rawKeyReadingContract = z.object({
       }),
     )
     .readonly(),
-  highestRef: readingCountContract,
+  highestRef: z.number().int().nonnegative().brand<'RawKeyReadingHighestRef'>(),
   skipped: z
-    .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: readingCountContract }))
+    .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: z.number().int().nonnegative().brand<'RawKeyReadingSkippedCount'>() }))
     .readonly(),
 });
 

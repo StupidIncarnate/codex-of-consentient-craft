@@ -10,7 +10,6 @@ import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-ali
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
@@ -55,13 +54,13 @@ export const laneTeardownBrokerProxy = (): {
   const stagedFds: FileDescriptor[] = [];
   // How many staged fds had been closed at the moment each kill signal landed — every entry must
   // be 0 for the teardown's kill-then-close order to hold.
-  const closedCountAtEachSignal: ReturnType<typeof ReadingCountStub>[] = [];
+  const closedCountAtEachSignal: number[] = [];
   const readClosedFds = (): unknown[] =>
     closeFdProxy
       .calls({ fd: (value: unknown): boolean => stagedFds.some((fd) => fd === value) })
       .map((call) => call[0]);
   const recordSignal = (): void => {
-    closedCountAtEachSignal.push(ReadingCountStub({ value: readClosedFds().length }));
+    closedCountAtEachSignal.push(readClosedFds().length);
   };
 
   return {

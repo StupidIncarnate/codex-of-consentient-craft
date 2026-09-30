@@ -16,11 +16,9 @@
 import { join } from '#gateway/node/path';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 
-export const machineOomCountBroker = async (): Promise<ReadingCount | null> => {
+export const machineOomCountBroker = async (): Promise<number | null> => {
   const vmstatPath = join(machineStatics.procfs.root, machineStatics.procfs.vmstat);
 
   const content = await readFileIfExists(vmstatPath);
@@ -38,5 +36,5 @@ export const machineOomCountBroker = async (): Promise<ReadingCount | null> => {
     return null;
   }
 
-  return readingCountContract.parse(Number(oomKillLine[1]));
+  return Number(oomKillLine[1]);
 };

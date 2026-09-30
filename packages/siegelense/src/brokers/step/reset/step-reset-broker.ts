@@ -40,7 +40,6 @@
 import { recipeNameContract } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { ResetLevel } from '../../../contracts/reset-level/reset-level-contract';
 import { resetReadingContract } from '../../../contracts/reset-reading/reset-reading-contract';
 import type { ResetUndid } from '../../../contracts/reset-undid/reset-undid-contract';
@@ -53,6 +52,7 @@ import { snapshotIndexReadBroker } from '../../snapshot/index-read/snapshot-inde
 import { snapshotResolveBroker } from '../../snapshot/resolve/snapshot-resolve-broker';
 import { resetClearStorageLayerBroker } from './reset-clear-storage-layer-broker';
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
+import { resetUndidContract } from '../../../contracts/reset-undid/reset-undid-contract';
 
 export const stepResetBroker = async ({
   lane,
@@ -65,12 +65,12 @@ export const stepResetBroker = async ({
   to: SnapshotName | null;
   reseed: string | null;
 }): Promise<string> => {
-  const zeroUndid: ResetUndid = {
-    files: readingCountContract.parse(0),
-    added: readingCountContract.parse(0),
-    modified: readingCountContract.parse(0),
-    removed: readingCountContract.parse(0),
-  };
+  const zeroUndid: ResetUndid = resetUndidContract.parse({
+    files: 0,
+    added: 0,
+    modified: 0,
+    removed: 0,
+  });
 
   const notCleared: readonly string[] =
     level === 'page'

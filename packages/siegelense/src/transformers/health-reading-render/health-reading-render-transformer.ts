@@ -25,7 +25,6 @@ import { healthReadingContract } from '../../contracts/health-reading/health-rea
 import type { HealthReading } from '../../contracts/health-reading/health-reading-contract';
 import { healthVerdictContract } from '../../contracts/health-verdict/health-verdict-contract';
 import type { HexColour } from '../../contracts/hex-colour/hex-colour-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import { healthStatics } from '../../statics/health/health-statics';
 
 export const healthReadingRenderTransformer = ({
@@ -42,11 +41,11 @@ export const healthReadingRenderTransformer = ({
   rootPresent: boolean;
   blank: boolean;
   blankColour: HexColour | null;
-  consoleErrors: ReadingCount;
+  consoleErrors: number;
   firstConsoleError: string | null;
-  network5xxCount: ReadingCount;
+  network5xxCount: number;
   first5xx: string | null;
-  serverErrors: ReadingCount;
+  serverErrors: number;
   firstServerError: string | null;
 }): HealthReading => {
   const isDown = !rootPresent || blank;

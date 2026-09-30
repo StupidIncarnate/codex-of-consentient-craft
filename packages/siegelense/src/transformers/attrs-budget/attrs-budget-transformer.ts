@@ -29,15 +29,13 @@
 
 import { attrPairContract } from '../../contracts/attr-pair/attr-pair-contract';
 import type { AttrPair } from '../../contracts/attr-pair/attr-pair-contract';
-import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import { keyStatics } from '../../statics/key/key-statics';
 
 export const attrsBudgetTransformer = ({
   attributes,
 }: {
   attributes: readonly AttrPair[];
-}): { kept: readonly AttrPair[]; dropped: ReadingCount } => {
+}): { kept: readonly AttrPair[]; dropped: number } => {
   const runtimeIdPattern = new RegExp(
     keyStatics.attrs.runtimeIdPattern.source,
     keyStatics.attrs.runtimeIdPattern.flags,
@@ -73,8 +71,6 @@ export const attrsBudgetTransformer = ({
 
   return {
     kept: candidates.slice(0, keyStatics.limits.attrsPerRow),
-    dropped: readingCountContract.parse(
-      Math.max(candidates.length - keyStatics.limits.attrsPerRow, 0),
-    ),
+    dropped: Math.max(candidates.length - keyStatics.limits.attrsPerRow, 0),
   };
 };

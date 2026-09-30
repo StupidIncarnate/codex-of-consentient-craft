@@ -1,7 +1,6 @@
 import { CapacityMeasuredStub } from '../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-profile.stub';
 import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
-import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 
 import { capacitySuggestTransformer } from './capacity-suggest-transformer';
 
@@ -18,8 +17,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         freeMemMB: MegabytesStub({ value: 5320 }),
-        siegeInstances: ReadingCountStub({ value: 1 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 1,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -40,8 +39,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 3112 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -60,8 +59,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 3111 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -80,8 +79,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 6712 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -102,8 +101,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 64_000 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -122,8 +121,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 64_000 }),
-        siegeInstances: ReadingCountStub({ value: 3 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 3,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -142,8 +141,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 64_000 }),
-        siegeInstances: ReadingCountStub({ value: 5 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 5,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -164,8 +163,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 8000 }),
-        siegeInstances: ReadingCountStub({ value: 1 }),
-        reservedInstances: ReadingCountStub({ value: 1 }),
+        siegeInstances: 1,
+        reservedInstances: 1,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -184,8 +183,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 3000 }),
-        siegeInstances: ReadingCountStub({ value: 2 }),
-        reservedInstances: ReadingCountStub({ value: 2 }),
+        siegeInstances: 2,
+        reservedInstances: 2,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -206,8 +205,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: null,
         freeMemMB: MegabytesStub({ value: 5320 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -226,8 +225,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: null,
         freeMemMB: MegabytesStub({ value: 100 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -246,8 +245,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: null,
         freeMemMB: MegabytesStub({ value: 64_000 }),
-        siegeInstances: ReadingCountStub({ value: 3 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 3,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -268,8 +267,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 0, peakMB: 0 }),
         freeMemMB: MegabytesStub({ value: 514 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores: ROOMY_CORES,
         loadAvg1: ROOMY_LOAD1,
       });
@@ -292,8 +291,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 64_000 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores,
         loadAvg1,
       });
@@ -314,8 +313,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 64_000 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores,
         loadAvg1,
       });
@@ -336,8 +335,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
         freeMemMB: MegabytesStub({ value: 3112 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores,
         loadAvg1,
       });
@@ -358,8 +357,8 @@ describe('capacitySuggestTransformer', () => {
       const result = capacitySuggestTransformer({
         profile: null,
         freeMemMB: MegabytesStub({ value: 5320 }),
-        siegeInstances: ReadingCountStub({ value: 0 }),
-        reservedInstances: ReadingCountStub({ value: 0 }),
+        siegeInstances: 0,
+        reservedInstances: 0,
         cores,
         loadAvg1,
       });

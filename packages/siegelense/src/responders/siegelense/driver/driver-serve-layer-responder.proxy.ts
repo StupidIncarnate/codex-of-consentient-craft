@@ -43,7 +43,6 @@ import { shutdownReasonWriteBrokerProxy } from '../../../brokers/shutdown-reason
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { driverSessionStateProxy } from '../../../state/driver-session/driver-session-state.proxy';
@@ -69,12 +68,12 @@ export const DriverServeLayerResponderProxy = (): {
   };
   stageHandleRequestResponds: (params: { response: DriverResponse }) => void;
   stageHandleRequestFails: (params: { error: Error }) => void;
-  getHandleRequestCallCount: () => ReturnType<typeof ReadingCountStub>;
+  getHandleRequestCallCount: () => number;
   getSocketDirCreateCalls: () => readonly unknown[][];
   stageIdleWaitResolves: (params: { killed: boolean }) => void;
-  getLaneTeardownCallCount: () => ReturnType<typeof ReadingCountStub>;
-  getInstanceReleaseCallCount: () => ReturnType<typeof ReadingCountStub>;
-  getSocketCloseCallCount: () => ReturnType<typeof ReadingCountStub>;
+  getLaneTeardownCallCount: () => number;
+  getInstanceReleaseCallCount: () => number;
+  getSocketCloseCallCount: () => number;
   getShutdownReasonWriteCallArgs: () => unknown;
   fireHeartbeatTick: () => void;
   stageHeartbeatTickFails: (params: { error: Error }) => void;
@@ -169,8 +168,8 @@ export const DriverServeLayerResponderProxy = (): {
       handleRequestHandle.calledWith([INSTANCE_ADDRESS]).rejects(error);
     },
 
-    getHandleRequestCallCount: (): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({ value: handleRequestHandle.callsMatching([INSTANCE_ADDRESS]).length }),
+    getHandleRequestCallCount: (): number =>
+      handleRequestHandle.callsMatching([INSTANCE_ADDRESS]).length,
 
     getSocketDirCreateCalls: (): readonly unknown[][] =>
       socketProxy.getMkdirCallsFor({ socketPath: SOCKET_PATH_VALUE }),
@@ -179,14 +178,14 @@ export const DriverServeLayerResponderProxy = (): {
       idleWaitHandle.calledWith([KILL_SIGNAL_ADDRESS]).resolves(killed);
     },
 
-    getLaneTeardownCallCount: (): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({ value: laneTeardownHandle.callsMatching([INSTANCE_ADDRESS]).length }),
+    getLaneTeardownCallCount: (): number =>
+      laneTeardownHandle.callsMatching([INSTANCE_ADDRESS]).length,
 
-    getInstanceReleaseCallCount: (): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({ value: instanceReleaseHandle.callsMatching([INSTANCE_ADDRESS]).length }),
+    getInstanceReleaseCallCount: (): number =>
+      instanceReleaseHandle.callsMatching([INSTANCE_ADDRESS]).length,
 
-    getSocketCloseCallCount: (): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({ value: socketProxy.getCloseCountFor({ socketPath: SOCKET_PATH_VALUE }) }),
+    getSocketCloseCallCount: (): number =>
+      socketProxy.getCloseCountFor({ socketPath: SOCKET_PATH_VALUE }),
 
     getShutdownReasonWriteCallArgs: (): unknown => {
       const argsList = shutdownReasonWriteHandle

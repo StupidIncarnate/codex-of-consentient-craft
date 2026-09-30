@@ -28,7 +28,6 @@ import { driverResponseContract } from '../../../contracts/driver-response/drive
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
 import type { RunRequest } from '../../../contracts/run-request/run-request-contract';
 import { instanceReleaseBroker } from '../../instance/release/instance-release-broker';
@@ -52,14 +51,14 @@ export const driverHandleRequestBroker = async ({
   lane: LaneSession;
   mintRunId: () => SiegeRun['id'];
   flushCursor: () => {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   };
   advanceFlushCursor: (params: {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   }) => void;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;

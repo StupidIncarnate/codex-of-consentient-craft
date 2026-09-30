@@ -42,7 +42,6 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
@@ -67,7 +66,7 @@ export const instanceManifestContract = z.object({
   }),
   seeded: seedResultContract.nullable(),
   queuedMs: z.number().int().nonnegative().brand<'InstanceManifestQueuedMs'>(),
-  aheadOfMe: readingCountContract,
+  aheadOfMe: z.number().int().nonnegative().brand<'InstanceManifestAheadOfMe'>(),
   bootMs: z.number().int().nonnegative().brand<'InstanceManifestBootMs'>(),
 });
 

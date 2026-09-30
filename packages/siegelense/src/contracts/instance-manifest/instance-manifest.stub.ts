@@ -1,7 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
-import { ReadingCountStub } from '../reading-count/reading-count.stub';
 import { RepoLocalPathStub } from '../repo-local-path/repo-local-path.stub';
 import { SpecNameStub } from '../spec-name/spec-name.stub';
 import { instanceManifestContract } from './instance-manifest-contract';
@@ -28,7 +27,7 @@ export const InstanceManifestStub = ({
     },
     seeded: null,
     queuedMs: 34_000,
-    aheadOfMe: ReadingCountStub({ value: 2 }),
+    aheadOfMe: 2,
     bootMs: 21_000,
     ...props,
   });

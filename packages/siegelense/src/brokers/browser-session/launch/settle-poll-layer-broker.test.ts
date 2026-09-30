@@ -1,5 +1,4 @@
 
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { settlePollLayerBroker } from './settle-poll-layer-broker';
 import { settlePollLayerBrokerProxy } from './settle-poll-layer-broker.proxy';
 
@@ -21,7 +20,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 102,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -53,7 +52,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 102,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -82,7 +81,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 102,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -112,7 +111,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 102,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -137,7 +136,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 6,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 1 }),
+          pendingRequests: 1,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -168,7 +167,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 102,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: activityAtMs,
           pollersDiscounted: [],
         }),
@@ -200,7 +199,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 12,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -230,7 +229,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 12,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -253,7 +252,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 1,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 0 }),
+          pendingRequests: 0,
           lastActivityAtMs: null,
           pollersDiscounted: [],
         }),
@@ -283,7 +282,7 @@ describe('settlePollLayerBroker', () => {
         startedAtMs: Date.now(),
         attemptsLeft: 4,
         networkSnapshot: () => ({
-          pendingRequests: ReadingCountStub({ value: 2 }),
+          pendingRequests: 2,
           lastActivityAtMs: null,
           pollersDiscounted: ['GET http://localhost:3737/api/quests'],
         }),
@@ -318,7 +317,7 @@ describe('settlePollLayerBroker', () => {
           startedAtMs: Date.now(),
           attemptsLeft: 102,
           networkSnapshot: () => ({
-            pendingRequests: ReadingCountStub({ value: 0 }),
+            pendingRequests: 0,
             lastActivityAtMs: null,
             pollersDiscounted: [],
           }),

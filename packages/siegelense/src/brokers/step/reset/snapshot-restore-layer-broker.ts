@@ -26,7 +26,6 @@ import type { RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fileStatContract } from '../../../contracts/file-stat/file-stat-contract';
 import type { FileStat } from '../../../contracts/file-stat/file-stat-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resetUndidContract } from '../../../contracts/reset-undid/reset-undid-contract';
 import type { ResetUndid } from '../../../contracts/reset-undid/reset-undid-contract';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
@@ -170,9 +169,9 @@ export const snapshotRestoreLayerBroker = async ({
   const totalFiles = addedCount + modifiedCount + removedCount;
 
   return resetUndidContract.parse({
-    files: readingCountContract.parse(totalFiles),
-    added: readingCountContract.parse(addedCount),
-    modified: readingCountContract.parse(modifiedCount),
-    removed: readingCountContract.parse(removedCount),
+    files: totalFiles,
+    added: addedCount,
+    modified: modifiedCount,
+    removed: removedCount,
   });
 };

@@ -32,16 +32,15 @@ import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const specProfileContract = z.object({
   specName: specNameContract,
-  processes: readingCountContract,
+  processes: z.number().int().nonnegative().brand<'SpecProfileProcesses'>(),
   hash: specHashContract,
   measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),
-  fromRuns: readingCountContract,
+  fromRuns: z.number().int().nonnegative().brand<'SpecProfileFromRuns'>(),
   bootMs: z.number().int().nonnegative().brand<'SpecProfileBootMs'>().nullable(),
   samples: z
     .array(
@@ -49,7 +48,7 @@ export const specProfileContract = z.object({
         poolSize: profilePoolSizeContract,
         steadyMB: megabytesContract,
         peakMB: megabytesContract,
-        runs: readingCountContract,
+        runs: z.number().int().nonnegative().brand<'SpecProfileSamplesRuns'>(),
       }),
     )
     .readonly(),

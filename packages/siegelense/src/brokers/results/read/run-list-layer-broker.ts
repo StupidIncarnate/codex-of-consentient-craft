@@ -21,14 +21,13 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists } from '#gateway/node/fs__promises';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runEvidenceComputeTransformer } from '../../../transformers/run-evidence-compute/run-evidence-compute-transformer';
 
 export const runListLayerBroker = async ({
   evidencePath,
 }: {
   evidencePath: string;
-}): Promise<{ runCount: ReadingCount; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean }> => {
+}): Promise<{ runCount: number; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean }> => {
   const runsDir = join(evidencePath, locationsStatics.siegelense.runsDir);
 
   const entries = (await readdirIfExists(runsDir)) ?? [];

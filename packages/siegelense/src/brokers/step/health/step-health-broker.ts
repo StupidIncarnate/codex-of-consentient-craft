@@ -20,7 +20,6 @@ import type { BrowserSession } from '../../../contracts/browser-session/browser-
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { HexColour } from '../../../contracts/hex-colour/hex-colour-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { healthReadingRenderTransformer } from '../../../transformers/health-reading-render/health-reading-render-transformer';
 import { shotBlankReadBroker } from '../../shot/blank-read/shot-blank-read-broker';
@@ -66,7 +65,7 @@ export const stepHealthBroker = async ({
   const consoleFromIndex = browserWindowStart === null ? 0 : browserWindowStart.consoleLines;
   const consoleLines = session.readConsoleSince({ fromIndex: consoleFromIndex });
   const errorConsoleLines = consoleLines.filter((line) => CONSOLE_ERROR_PATTERN.test(line));
-  const consoleErrors = readingCountContract.parse(errorConsoleLines.length);
+  const consoleErrors = errorConsoleLines.length;
 
   let firstConsoleError: string | null = null;
   const [firstConsoleLine] = errorConsoleLines;
@@ -116,11 +115,11 @@ export const stepHealthBroker = async ({
       }
     }
   }
-  const network5xxCount = readingCountContract.parse(network5xxCountValue);
+  const network5xxCount = network5xxCountValue;
 
   const serverLines = lane.readServerLogSince({ fromByte: 0 });
   const errorServerLines = serverLines.filter((line) => SERVER_ERROR_PATTERN.test(line));
-  const serverErrors = readingCountContract.parse(errorServerLines.length);
+  const serverErrors = errorServerLines.length;
 
   let firstServerError: string | null = null;
   const [firstServerLine] = errorServerLines;

@@ -8,13 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const resetUndidContract = z.object({
-  files: readingCountContract,
-  added: readingCountContract,
-  modified: readingCountContract,
-  removed: readingCountContract,
+  files: z.number().int().nonnegative().brand<'ResetUndidFiles'>(),
+  added: z.number().int().nonnegative().brand<'ResetUndidAdded'>(),
+  modified: z.number().int().nonnegative().brand<'ResetUndidModified'>(),
+  removed: z.number().int().nonnegative().brand<'ResetUndidRemoved'>(),
 });
 
 export type ResetUndid = z.infer<typeof resetUndidContract>;

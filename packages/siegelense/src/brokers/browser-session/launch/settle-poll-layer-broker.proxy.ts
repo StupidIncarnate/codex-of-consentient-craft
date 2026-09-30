@@ -9,11 +9,10 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { RawSettleProbeStub } from '../../../contracts/raw-settle-probe/raw-settle-probe.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 
 type EpochMs = number;
 type ContentText = string;
-type ReadingCount = ReturnType<typeof ReadingCountStub>;
+type ReadingCount = number;
 type RawSettleProbe = ReturnType<typeof RawSettleProbeStub>;
 
 const START_EPOCH_MS = 1_700_000_000_000;
@@ -50,10 +49,10 @@ export const settlePollLayerBrokerProxy = (): {
 } => {
   const clock = { nowMs: START_EPOCH_MS };
   const state = {
-    probeCount: ReadingCountStub({ value: 0 }),
+    probeCount: 0,
     mutatingForMs: 0,
     lastMutationAtMs: null as EpochMs | null,
-    runningAnimations: ReadingCountStub({ value: 0 }),
+    runningAnimations: 0,
     rejectMessage: null as ContentText | null,
     tick: null as (() => void) | null,
     probeSources: [] as ContentText[],
@@ -72,7 +71,7 @@ export const settlePollLayerBrokerProxy = (): {
   } => ({
     evaluate: async ({ source }: { source: ContentText }): Promise<RawSettleProbe> => {
       state.probeSources.push(source);
-      state.probeCount = ReadingCountStub({ value: state.probeCount + 1 });
+      state.probeCount = (state.probeCount + 1);
       if (state.rejectMessage !== null) {
         return Promise.reject(new Error(state.rejectMessage));
       }
@@ -114,7 +113,7 @@ export const settlePollLayerBrokerProxy = (): {
     // One finite animation that never finishes: the signal that can never go quiet, so the wait has
     // to report the ceiling rather than hang.
     pageAnimatingForever: () => {
-      state.runningAnimations = ReadingCountStub({ value: 1 });
+      state.runningAnimations = 1;
       return build();
     },
 

@@ -14,12 +14,11 @@ import { z } from '#gateway/npm/zod';
 
 
 import { domNodeContract } from '../dom-node/dom-node-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const domReadingContract = z
   .object({
-    count: readingCountContract,
-    showing: readingCountContract.optional(),
+    count: z.number().int().nonnegative().brand<'DomReadingCount'>(),
+    showing: z.number().int().nonnegative().brand<'DomReadingShowing'>().optional(),
     capped: z.boolean().optional(),
     note: z.string().brand<'DomReadingNote'>().nullable().optional(),
     nodes: z.array(domNodeContract).readonly().optional(),

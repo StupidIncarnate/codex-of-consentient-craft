@@ -54,8 +54,6 @@
  */
 
 
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
 import { settleRequestShapeTransformer } from '../../../transformers/settle-request-shape/settle-request-shape-transformer';
 import { settlePollLayerBroker } from './settle-poll-layer-broker';
@@ -142,8 +140,8 @@ export const settleWaitLayerBroker = ({
   // How many times each shape has STARTED over the whole life of the session. The repeat count is
   // what classifies a poller, and it has to outlive one `waitForSettle` call — a page polling every
   // two seconds would never cross a threshold reset per wait.
-  const startCounts = new Map<string, ReadingCount>();
-  const pendingByShape = new Map<string, ReadingCount>();
+  const startCounts = new Map<string, number>();
+  const pendingByShape = new Map<string, number>();
   // A HOLDER whose field mutates rather than a reassigned `let`, matching `mintState` in
   // `browser-session-launch-broker.ts`, so a read before an await and a write after it never give
   // `require-atomic-updates` cause to flag it.
@@ -160,14 +158,14 @@ export const settleWaitLayerBroker = ({
         return shape;
       }
 
-      const seen = readingCountContract.parse((startCounts.get(shape) ?? 0) + 1);
+      const seen = ((startCounts.get(shape) ?? 0) + 1);
       startCounts.set(shape, seen);
 
       if (seen >= pollerRepeatThreshold) {
         return shape;
       }
 
-      pendingByShape.set(shape, readingCountContract.parse((pendingByShape.get(shape) ?? 0) + 1));
+      pendingByShape.set(shape, ((pendingByShape.get(shape) ?? 0) + 1));
       networkState.lastActivityAtMs = Date.now();
       return shape;
     },
@@ -178,7 +176,7 @@ export const settleWaitLayerBroker = ({
       const shape = settleRequestShapeTransformer({ method, url });
       const pending = pendingByShape.get(shape) ?? 0;
       if (pending > 0) {
-        pendingByShape.set(shape, readingCountContract.parse(pending - 1));
+        pendingByShape.set(shape, (pending - 1));
         networkState.lastActivityAtMs = Date.now();
       }
       return shape;
@@ -202,9 +200,7 @@ export const settleWaitLayerBroker = ({
           Math.ceil(ceilingMs / Math.max(1, pollMs)) + POLL_ATTEMPT_HEADROOM,
         ),
         networkSnapshot: () => ({
-          pendingRequests: readingCountContract.parse(
-            Array.from(pendingByShape.values()).reduce((total, count) => total + count, 0),
-          ),
+          pendingRequests: Array.from(pendingByShape.values()).reduce((total, count) => total + count, 0),
           lastActivityAtMs: networkState.lastActivityAtMs,
           pollersDiscounted: Array.from(startCounts.entries())
             .filter(([, count]) => count >= pollerRepeatThreshold)

@@ -26,7 +26,6 @@
 
 
 import { rawSettleProbeContract } from '../../../contracts/raw-settle-probe/raw-settle-probe-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { settleReadingContract } from '../../../contracts/settle-reading/settle-reading-contract';
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
 
@@ -50,7 +49,7 @@ export const settlePollLayerBroker = async ({
   startedAtMs: number;
   attemptsLeft: number;
   networkSnapshot: () => {
-    pendingRequests: ReadingCount;
+    pendingRequests: number;
     lastActivityAtMs: number | null;
     pollersDiscounted: readonly string[];
   };

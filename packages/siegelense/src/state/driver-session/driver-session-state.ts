@@ -37,8 +37,6 @@ import { timeoutMsContract, siegeRunContract } from '@dungeonmaster/shared/contr
 import type { TimeoutMs, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSession } from '../../contracts/lane-session/lane-session-contract';
-import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
-import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import { driverStatics } from '../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -46,9 +44,9 @@ let currentLane: LaneSession | null = null;
 let runCounter = 0;
 let lastActivityAtMs: number = 0;
 let idleTimeoutMsValue: TimeoutMs = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
-let flushCursorConsoleLines: ReadingCount = readingCountContract.parse(0);
-let flushCursorNetworkLines: ReadingCount = readingCountContract.parse(0);
-let flushCursorWebsocketLines: ReadingCount = readingCountContract.parse(0);
+let flushCursorConsoleLines: number = 0;
+let flushCursorNetworkLines: number = 0;
+let flushCursorWebsocketLines: number = 0;
 let lastShotPathValue: string | null = null;
 
 export const driverSessionState = {
@@ -74,9 +72,9 @@ export const driverSessionState = {
   lastActivityMs: (): number => lastActivityAtMs,
 
   flushCursor: (): {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   } => ({
     consoleLines: flushCursorConsoleLines,
     networkLines: flushCursorNetworkLines,
@@ -88,9 +86,9 @@ export const driverSessionState = {
     networkLines,
     websocketLines,
   }: {
-    consoleLines: ReadingCount;
-    networkLines: ReadingCount;
-    websocketLines: ReadingCount;
+    consoleLines: number;
+    networkLines: number;
+    websocketLines: number;
   }): void => {
     flushCursorConsoleLines = consoleLines;
     flushCursorNetworkLines = networkLines;
@@ -108,9 +106,9 @@ export const driverSessionState = {
     runCounter = 0;
     lastActivityAtMs = 0;
     idleTimeoutMsValue = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
-    flushCursorConsoleLines = readingCountContract.parse(0);
-    flushCursorNetworkLines = readingCountContract.parse(0);
-    flushCursorWebsocketLines = readingCountContract.parse(0);
+    flushCursorConsoleLines = 0;
+    flushCursorNetworkLines = 0;
+    flushCursorWebsocketLines = 0;
     lastShotPathValue = null;
   },
 } as const;

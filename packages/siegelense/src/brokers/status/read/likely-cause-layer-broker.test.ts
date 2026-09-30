@@ -1,7 +1,6 @@
 
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
@@ -16,7 +15,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'dead',
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 2980 }),
-        oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
+        oomKillsSinceBoot: 2,
         shutdownReason: null,
         soloProfile: null,
       });
@@ -52,7 +51,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'killed',
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 1200 }),
-        oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+        oomKillsSinceBoot: 0,
         shutdownReason: null,
         soloProfile: null,
       });
@@ -71,7 +70,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'dead',
         specName: SpecNameStub({ value: 'stack' }),
         rssAtLastBeat: MegabytesStub({ value: 609 }),
-        oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+        oomKillsSinceBoot: 0,
         shutdownReason: null,
         soloProfile: CapacityProfileStub({
           spec: 'stack',
@@ -94,7 +93,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'dead',
         specName: SpecNameStub({ value: 'stack' }),
         rssAtLastBeat: MegabytesStub({ value: 2900 }),
-        oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
+        oomKillsSinceBoot: 1,
         shutdownReason: null,
         soloProfile: CapacityProfileStub({
           spec: 'stack',
@@ -119,7 +118,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'dead',
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 622 }),
-        oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
+        oomKillsSinceBoot: 1,
         shutdownReason: 'reaped by idle timeout after 900s with no run received',
         soloProfile: null,
       });
@@ -149,7 +148,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'dead',
         specName: SpecNameStub({ value: 'stack' }),
         rssAtLastBeat: MegabytesStub({ value: 609 }),
-        oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+        oomKillsSinceBoot: 0,
         shutdownReason: 'reaped by cleanup after its heartbeat went stale',
         soloProfile: CapacityProfileStub({
           spec: 'stack',
@@ -172,7 +171,7 @@ describe('likelyCauseLayerBroker', () => {
         state: 'alive',
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
-        oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
+        oomKillsSinceBoot: 2,
         shutdownReason: null,
         soloProfile: null,
       });

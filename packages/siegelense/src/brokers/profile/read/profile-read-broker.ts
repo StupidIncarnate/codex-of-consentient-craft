@@ -31,7 +31,6 @@ import { profileBootContract } from '../../../contracts/profile-boot/profile-boo
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
 import { profileObservationContract } from '../../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../../contracts/profile-observation/profile-observation-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { specProfileContract } from '../../../contracts/spec-profile/spec-profile-contract';
 import type { SpecProfile } from '../../../contracts/spec-profile/spec-profile-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
@@ -109,9 +108,7 @@ export const profileReadBroker = async ({
 
   return specProfileContract.parse({
     specName,
-    processes: readingCountContract.parse(
-      spec.processes.length + (spec.browser ? BROWSER_PROCESS_COUNT : 0),
-    ),
+    processes: (spec.processes.length + (spec.browser ? BROWSER_PROCESS_COUNT : 0)),
     hash: specHash,
     measuredAt:
       measuredAtMs === null
@@ -119,7 +116,7 @@ export const profileReadBroker = async ({
         : profileMeasuredDateRenderTransformer({
             measuredAtMs: measuredAtMs,
           }),
-    fromRuns: readingCountContract.parse(observations.length),
+    fromRuns: observations.length,
     bootMs: bootMs === null ? null : bootMs,
     samples: profileSamplesGroupTransformer({ observations }),
   });

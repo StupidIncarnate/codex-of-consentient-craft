@@ -1,6 +1,5 @@
 
 import { DomNodeStub } from '../dom-node/dom-node.stub';
-import { ReadingCountStub } from '../reading-count/reading-count.stub';
 import { domReadingContract } from './dom-reading-contract';
 import { DomReadingStub } from './dom-reading.stub';
 
@@ -40,7 +39,7 @@ describe('domReadingContract', () => {
 
   it('VALID: {pure count reading} => parses reading with only count', () => {
     const reading = DomReadingStub({
-      count: ReadingCountStub({ value: 42 }),
+      count: 42,
       showing: undefined,
       capped: undefined,
       note: undefined,
@@ -56,8 +55,8 @@ describe('domReadingContract', () => {
 
   it('VALID: {capped reading with note} => parses reading with capped: true and warning note', () => {
     const reading = DomReadingStub({
-      count: ReadingCountStub({ value: 58 }),
-      showing: ReadingCountStub({ value: 10 }),
+      count: 58,
+      showing: 10,
       capped: true,
       note: 'count: 58, showing 10, capped. Narrow this.',
       nodes: [DomNodeStub()],

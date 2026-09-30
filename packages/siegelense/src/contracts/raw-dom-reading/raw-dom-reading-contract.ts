@@ -13,17 +13,16 @@ import { z } from '#gateway/npm/zod';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { domRectContract } from '../dom-rect/dom-rect-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const rawDomReadingContract = z.object({
-  count: readingCountContract,
+  count: z.number().int().nonnegative().brand<'RawDomReadingCount'>(),
   nodes: z
     .array(
       z.object({
         tagName: z.string().brand<'RawDomReadingNodesTagName'>(),
         testId: z.string().brand<'RawDomReadingNodesTestId'>().nullable(),
         className: z.string().brand<'RawDomReadingNodesClassName'>().nullable(),
-        childCount: readingCountContract,
+        childCount: z.number().int().nonnegative().brand<'RawDomReadingNodesChildCount'>(),
         display: z.string().brand<'RawDomReadingNodesDisplay'>(),
         visibility: z.string().brand<'RawDomReadingNodesVisibility'>(),
         opacity: z.string().brand<'RawDomReadingNodesOpacity'>(),

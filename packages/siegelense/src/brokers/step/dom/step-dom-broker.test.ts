@@ -1,5 +1,4 @@
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { stepDomBroker } from './step-dom-broker';
 import { stepDomBrokerProxy } from './step-dom-broker.proxy';
 
@@ -28,8 +27,8 @@ describe('stepDomBroker', () => {
     it('EMPTY: {session answers count: 0, note: null} => fills note naming the target rather than leaving it null', async () => {
       const proxy = stepDomBrokerProxy();
       const reading = DomReadingStub({
-        count: ReadingCountStub({ value: 0 }),
-        showing: ReadingCountStub({ value: 0 }),
+        count: 0,
+        showing: 0,
         capped: false,
         note: null,
         nodes: [],

@@ -36,7 +36,6 @@ import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/c
 
 import { countDeltaContract } from '../count-delta/count-delta-contract';
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
-import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const compareAnswerContract = z
   .object({
@@ -65,7 +64,7 @@ export const compareAnswerContract = z
     consoleErrorDelta: z.number().int().brand<'ConsoleErrorDelta'>().optional(),
     serverErrorDelta: z.number().int().brand<'ServerErrorDelta'>().optional(),
     networkNon2xxDelta: z.number().int().brand<'NetworkNon2xxDelta'>().optional(),
-    pixelDiffCount: readingCountContract.optional(),
+    pixelDiffCount: z.number().int().nonnegative().brand<'CompareAnswerPixelDiffCount'>().optional(),
   })
   .strict();
 
