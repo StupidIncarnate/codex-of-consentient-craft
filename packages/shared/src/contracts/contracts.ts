@@ -355,7 +355,6 @@ export * from './unit-observation/unit-observation-contract';
 // Quest Note Contracts (the durable side channel on quest.planningNotes.questNotes — open
 // questions, tooling failures, out-of-scope observations, walk resets and walked-path records,
 // none of which close a unit)
-export * from './quest-note-id/quest-note-id-contract';
 
 export * from './siege-instance-id/siege-instance-id-contract';
 

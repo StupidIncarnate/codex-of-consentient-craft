@@ -9,7 +9,7 @@
  * // Returns: QuestWorkRecordResult
  */
 
-import { questNoteIdContract, stepNameContract, flowContract } from '@dungeonmaster/shared/contracts';
+import { stepNameContract, flowContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
@@ -26,7 +26,7 @@ export const questWorkRecordResultContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('invalidation'),
     flowId: flowContract.shape.id,
-    noteId: questNoteIdContract,
+    noteId: questNoteContract.shape.id,
     clearedCount: z.number().int().nonnegative().brand<'ClearedCount'>(),
   }),
   z.object({
