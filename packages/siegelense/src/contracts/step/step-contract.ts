@@ -41,7 +41,6 @@ import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
 import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-contract';
-import { refContract } from '../ref/ref-contract';
 import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
 import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
@@ -97,7 +96,7 @@ export const stepContract = z
         step: z.literal('click'),
         target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
-        ref: refContract.nullable().default(null),
+        ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
@@ -110,7 +109,7 @@ export const stepContract = z
         step: z.literal('type'),
         target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
-        ref: refContract.nullable().default(null),
+        ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
         value: z.string().brand<'StepValue'>(),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
@@ -169,7 +168,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('box'),
-        ref: refContract,
+        ref: z.number().int().positive().brand<'StepRef'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
@@ -303,7 +302,7 @@ export const stepContract = z
         step: z.literal('paste'),
         target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
-        ref: refContract.nullable().default(null),
+        ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
         filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
         value: z.string().brand<'StepValue'>().nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),

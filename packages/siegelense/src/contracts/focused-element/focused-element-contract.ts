@@ -17,7 +17,6 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { refContract } from '../ref/ref-contract';
 
 export const focusedElementContract = z
   .object({
@@ -26,7 +25,7 @@ export const focusedElementContract = z
     role: z.string().brand<'FocusedElementRole'>().nullable(),
     domId: z.string().brand<'FocusedElementDomId'>().nullable(),
     text: z.string().brand<'FocusedElementText'>().nullable(),
-    ref: refContract.nullable(),
+    ref: z.number().int().positive().brand<'FocusedElementRef'>().nullable(),
   })
   .strict();
 

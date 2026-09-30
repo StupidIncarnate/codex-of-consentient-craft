@@ -2,7 +2,6 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 import { HttpMethodStub } from '../http-method/http-method.stub';
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
-import { RefStub } from '../ref/ref.stub';
 import { ResetLevelStub } from '../reset-level/reset-level.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
@@ -65,7 +64,7 @@ const STEP_DEFAULTS = {
   },
   box: {
     step: 'box',
-    ref: RefStub({ value: 26 }),
+    ref: 26,
     node: null,
     expect: StepExpectationStub(),
   },

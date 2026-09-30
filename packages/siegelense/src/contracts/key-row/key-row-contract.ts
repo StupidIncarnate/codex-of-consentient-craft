@@ -34,10 +34,9 @@ import { z } from '#gateway/npm/zod';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
-import { refContract } from '../ref/ref-contract';
 
 export const keyRowContract = z.object({
-  ref: refContract,
+  ref: z.number().int().positive().brand<'KeyRowRef'>(),
   depth: z.number().int().nonnegative().brand<'KeyRowDepth'>(),
   testId: z.string().brand<'KeyRowTestId'>().nullable(),
   tag: z.string().brand<'KeyRowTag'>(),

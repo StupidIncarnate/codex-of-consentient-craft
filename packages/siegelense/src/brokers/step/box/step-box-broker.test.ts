@@ -1,5 +1,4 @@
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
-import { RefStub } from '../../../contracts/ref/ref.stub';
 import { stepBoxBroker } from './step-box-broker';
 import { stepBoxBrokerProxy } from './step-box-broker.proxy';
 
@@ -7,7 +6,7 @@ describe('stepBoxBroker', () => {
   it('VALID: {session, ref} => reads box geometry and returns rendered JSON', async () => {
     const proxy = stepBoxBrokerProxy();
     const reading = BoxReadingStub({
-      ref: RefStub({ value: 26 }),
+      ref: 26,
       x: 607,
       y: 472,
       width: 66,

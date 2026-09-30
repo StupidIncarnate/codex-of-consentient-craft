@@ -29,11 +29,10 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { refContract } from '../ref/ref-contract';
 
 export const stepCandidateContract = z.object({
   index: z.number().int().nonnegative().brand<'StepCandidateIndex'>(),
-  ref: refContract.nullable().default(null),
+  ref: z.number().int().positive().brand<'StepCandidateRef'>().nullable().default(null),
   within: z.string().min(1).brand<'StepCandidateWithin'>().nullable(),
   text: z.string().brand<'StepCandidateText'>(),
   rect: z.string().brand<'StepCandidateRect'>(),

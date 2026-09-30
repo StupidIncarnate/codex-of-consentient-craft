@@ -1,5 +1,4 @@
 
-import { RefStub } from '../../../contracts/ref/ref.stub';
 import { browserSessionLaunchBroker } from './browser-session-launch-broker';
 
 const EVIDENCE_PATH = '/tmp/siegelense-integration';
@@ -46,7 +45,7 @@ const COLUMNS_URL = `data:text/html,${encodeURIComponent(COLUMNS_PAGE)}`;
 // A single-element unwrap with no conditional in it: the reduce takes the last match, and the
 // seed is a ref that exists but is the WRONG element, so an empty filter fails the assertion
 // rather than silently skipping the click.
-const FALLBACK_REF = RefStub({ value: 1 });
+const FALLBACK_REF = 1;
 
 describe('browserSessionLaunchBroker against a real Chromium', () => {
   describe('the addressing dead end', () => {

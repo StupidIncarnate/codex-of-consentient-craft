@@ -27,15 +27,14 @@ import { z } from '#gateway/npm/zod';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
-import { refContract } from '../ref/ref-contract';
 
 export const rawKeyReadingContract = z.object({
   rows: z
     .array(
       z.object({
-        ref: refContract,
+        ref: z.number().int().positive().brand<'RawKeyReadingRowsRef'>(),
         depth: z.number().int().nonnegative().brand<'RawKeyReadingRowsDepth'>(),
-        parentRef: refContract.nullable(),
+        parentRef: z.number().int().positive().brand<'RawKeyReadingRowsParentRef'>().nullable(),
         testId: z.string().brand<'RawKeyReadingRowsTestId'>().nullable(),
         tag: z.string().brand<'RawKeyReadingRowsTag'>(),
         role: z.string().brand<'RawKeyReadingRowsRole'>().nullable(),
