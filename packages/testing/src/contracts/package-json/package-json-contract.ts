@@ -8,13 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { scriptNameContract } from '../script-name/script-name-contract';
 
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>(),
     version: z.string().brand<'PackageVersion'>(),
-    scripts: z.record(scriptNameContract, z.string().brand<'ScriptCommand'>()),
+    scripts: z.record(z.string().brand<'PackageJsonScripts'>(), z.string().brand<'ScriptCommand'>()),
     devDependencies: z
       .record(z.string().brand<'PackageJsonDevDependencies'>(), z.string().brand<'DependencyVersion'>())
       .optional(),

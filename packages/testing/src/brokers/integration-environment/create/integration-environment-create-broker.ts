@@ -41,7 +41,6 @@ import { integrationEnvironmentStatics } from '../../../statics/integration-envi
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
-import { scriptNameContract } from '../../../contracts/script-name/script-name-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
@@ -127,7 +126,7 @@ export const integrationEnvironmentCreateBroker = ({
       }
 
       const packageJson = packageJsonContract.parse(JSON.parse(readFileSync(packageJsonPath)));
-      return Boolean(packageJson.scripts[scriptNameContract.parse(String(command))]);
+      return Boolean(packageJson.scripts[String(command)]);
     },
 
     fileExists: ({ fileName }: { fileName: FileName }): boolean =>
