@@ -12,13 +12,11 @@
 
 import { stderr } from '#gateway/node/process';
 import type { SetupServer } from '#gateway/npm/msw__node';
-import { mswRequestIdContract } from '../../../contracts/msw-request-id/msw-request-id-contract';
 import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 import { networkLogEntryContract } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import { networkLogStatics } from '../../../statics/network-log/network-log-statics';
 import { mswResponseToNetworkEntryTransformer } from '../../../transformers/msw-response-to-network-entry/msw-response-to-network-entry-transformer';
 import type { NetworkLogEntry } from '../../../contracts/network-log-entry/network-log-entry-contract';
-import type { MswRequestId } from '../../../contracts/msw-request-id/msw-request-id-contract';
 import type { PendingRequest } from '../../../contracts/pending-request/pending-request-contract';
 
 export const networkRecordCaptureBroker = ({
@@ -33,14 +31,14 @@ export const networkRecordCaptureBroker = ({
   getEntries: () => NetworkLogEntry[];
 } => {
   const entries: NetworkLogEntry[] = [];
-  const pendingRequests = new Map<MswRequestId, PendingRequest>();
+  const pendingRequests = new Map<string, PendingRequest>();
   const pendingBodies: Promise<void>[] = [];
 
   return {
     start: (): void => {
       server.events.on('request:start', ({ request, requestId }) => {
         const clonedRequest = request.clone();
-        const parsedRequestId = mswRequestIdContract.parse(requestId);
+        const parsedRequestId = requestId;
 
         pendingRequests.set(parsedRequestId, {
           method: networkLogEntryContract.shape.method.parse(request.method),
@@ -66,7 +64,7 @@ export const networkRecordCaptureBroker = ({
       });
 
       server.events.on('response:mocked', ({ response, requestId }) => {
-        const parsedRequestId = mswRequestIdContract.parse(requestId);
+        const parsedRequestId = requestId;
         const pending = pendingRequests.get(parsedRequestId);
         if (!pending) {
           return;
@@ -95,7 +93,7 @@ export const networkRecordCaptureBroker = ({
       });
 
       server.events.on('response:bypass', ({ response, requestId }) => {
-        const parsedRequestId = mswRequestIdContract.parse(requestId);
+        const parsedRequestId = requestId;
         const pending = pendingRequests.get(parsedRequestId);
         if (!pending) {
           return;
