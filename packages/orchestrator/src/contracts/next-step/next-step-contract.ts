@@ -17,7 +17,7 @@ export const nextStepContract = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('spawn-agents'),
     agents: z.array(spawnInstructionContract),
-  }),
+  }).brand<'NextStep'>(),
   // A DETERMINISTIC step, dispatched by HANDLER rather than by the work item's role — every
   // family carrying a command role (`ward`, `riftcarver`) now runs it through a step of its own
   // (`wardFull`'s `gate`, `riftcarver`'s `carve`), so this is the only member a command
@@ -26,7 +26,7 @@ export const nextStepContract = z.discriminatedUnion('type', [
   runStepContract,
   z.object({
     type: z.literal('idle'),
-  }),
+  }).brand<'NextStep'>(),
 ]);
 
 export type NextStep = z.infer<typeof nextStepContract>;

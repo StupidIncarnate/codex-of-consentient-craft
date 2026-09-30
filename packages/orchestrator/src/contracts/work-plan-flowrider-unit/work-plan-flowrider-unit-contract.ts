@@ -43,16 +43,16 @@ export const workPlanFlowriderUnitContract = z.object({
     target: z.enum(['observable', 'node', 'edge']),
     nodeId: flowNodeContract.shape.id.optional(),
     edgeId: flowEdgeContract.shape.id.optional(),
-  }),
+  }).brand<'WorkPlanFlowriderUnitObservableTarget'>(),
   assert: z
     .string()
     .min(1)
-    .brand<'PieceUnitAssert'>()
+    .brand<'WorkPlanFlowriderUnitAssert'>()
     .describe('What the spec reads, and off which surface.'),
   failsIf: z
     .string()
     .min(1)
-    .brand<'PieceUnitFailsIf'>()
+    .brand<'WorkPlanFlowriderUnitFailsIf'>()
     .describe('The wrong value that turns that assertion red.'),
 }).brand<'WorkPlanFlowriderUnit'>();
 

@@ -16,19 +16,19 @@ import { z } from '#gateway/npm/zod';
 
 const _contentItem = z
   .object({
-    type: z.string().brand<'StreamContentItemType'>().optional(),
-    text: z.string().brand<'StreamContentText'>().optional(),
-    thinking: z.string().brand<'StreamContentThinking'>().optional(),
-    signature: z.string().brand<'StreamContentSignature'>().optional(),
-    id: z.string().brand<'StreamContentId'>().optional(),
-    name: z.string().brand<'StreamContentName'>().optional(),
+    type: z.string().brand<'ContentItemType'>().optional(),
+    text: z.string().brand<'ContentItemText'>().optional(),
+    thinking: z.string().brand<'ContentItemThinking'>().optional(),
+    signature: z.string().brand<'ContentItemSignature'>().optional(),
+    id: z.string().brand<'ContentItemId'>().optional(),
+    name: z.string().brand<'ContentItemName'>().optional(),
     input: z.unknown().optional(),
-    toolUseId: z.string().brand<'StreamContentToolUseId'>().optional(),
+    toolUseId: z.string().brand<'ContentItemToolUseId'>().optional(),
     content: z.unknown().optional(),
     isError: z.boolean().optional(),
-    source: z.string().brand<'StreamContentSource'>().optional(),
-    agentId: z.string().brand<'StreamContentAgentId'>().optional(),
-  })
+    source: z.string().brand<'ContentItemSource'>().optional(),
+    agentId: z.string().brand<'ContentItemAgentId'>().optional(),
+  }).brand<'ContentItem'>()
   .loose();
 
 // Optional fields use `.nullish()` (= nullable + optional) because Claude CLI emits
@@ -36,40 +36,40 @@ const _contentItem = z
 // completes — `.optional()` alone rejects null and silently drops every assistant line.
 const message = z
   .object({
-    role: z.string().brand<'StreamMessageRole'>().nullish(),
+    role: z.string().brand<'MessageRole'>().nullish(),
     content: z.unknown().nullish(),
     usage: z.unknown().nullish(),
-    stopReason: z.string().brand<'StreamMessageStopReason'>().nullish(),
-    model: z.string().brand<'StreamMessageModel'>().nullish(),
-  })
+    stopReason: z.string().brand<'MessageStopReason'>().nullish(),
+    model: z.string().brand<'MessageModel'>().nullish(),
+  }).brand<'Message'>()
   .loose();
 
 const taskNotification = z
   .object({
-    taskId: z.string().brand<'StreamTaskNotificationTaskId'>().optional(),
-    status: z.string().brand<'StreamTaskNotificationStatus'>().optional(),
-    summary: z.string().brand<'StreamTaskNotificationSummary'>().optional(),
-    result: z.string().brand<'StreamTaskNotificationResult'>().optional(),
+    taskId: z.string().brand<'TaskNotificationTaskId'>().optional(),
+    status: z.string().brand<'TaskNotificationStatus'>().optional(),
+    summary: z.string().brand<'TaskNotificationSummary'>().optional(),
+    result: z.string().brand<'TaskNotificationResult'>().optional(),
     totalTokens: z
       .union([
-        z.string().brand<'StreamTaskNotificationTotalTokensRaw'>(),
-        z.number().brand<'StreamTaskNotificationTotalTokens'>(),
+        z.string().brand<'TaskNotificationTotalTokens'>(),
+        z.number().brand<'TaskNotificationTotalTokens'>(),
       ])
       .optional(),
     toolUses: z
       .union([
-        z.string().brand<'StreamTaskNotificationToolUsesRaw'>(),
-        z.number().brand<'StreamTaskNotificationToolUses'>(),
+        z.string().brand<'TaskNotificationToolUses'>(),
+        z.number().brand<'TaskNotificationToolUses'>(),
       ])
       .optional(),
     durationMs: z
       .union([
-        z.string().brand<'StreamTaskNotificationDurationMsRaw'>(),
-        z.number().brand<'StreamTaskNotificationDurationMs'>(),
+        z.string().brand<'TaskNotificationDurationMs'>(),
+        z.number().brand<'TaskNotificationDurationMs'>(),
       ])
       .optional(),
-    toolUseId: z.string().brand<'StreamTaskNotificationToolUseId'>().optional(),
-  })
+    toolUseId: z.string().brand<'TaskNotificationToolUseId'>().optional(),
+  }).brand<'TaskNotification'>()
   .loose();
 
 // Claude CLI emits `toolUseResult` in three distinct shapes — Task / sub-agent object form
@@ -82,8 +82,8 @@ const toolUseResult = z.union([
       agentId: z.unknown().optional(),
       // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
       // sub-agent run. An async launch's result object carries no such field.
-      totalDurationMs: z.number().brand<'NormalizedToolUseResultTotalDurationMs'>().nullish(),
-    })
+      totalDurationMs: z.number().brand<'ToolUseResultTotalDurationMs'>().nullish(),
+    }).brand<'ToolUseResult'>()
     .loose(),
   z.array(z.unknown()),
   z.string().brand<'NormalizedToolUseResultErrorMessage'>(),

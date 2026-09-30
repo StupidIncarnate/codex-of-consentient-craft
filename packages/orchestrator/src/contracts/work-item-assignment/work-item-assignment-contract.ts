@@ -19,7 +19,7 @@ export const workItemAssignmentContract = z.object({
   // payload rather than an assertion about one key of it.
   // `.default([])` so a payload carrying no `units` key parses and contributes nothing, rather than
   // throwing and sending the caller down its absent-payload branch.
-  units: z.array(z.object({ unitId: qaChecklistItemContract.shape.id }).loose()).default([]),
+  units: z.array(z.object({ unitId: qaChecklistItemContract.shape.id }).brand<'WorkItemAssignmentUnits'>().loose()).default([]),
 }).brand<'WorkItemAssignment'>();
 
 export type WorkItemAssignment = z.infer<typeof workItemAssignmentContract>;

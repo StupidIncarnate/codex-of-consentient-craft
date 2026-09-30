@@ -54,7 +54,7 @@ const questWorkScope = z.object({
   packageNames: z.array(z.string().min(1).brand<'QuestWorkScopePackageNames'>()).default([]),
   operationItemId: operationItemContract.shape.id,
   operationItemText: operationItemContract.shape.text,
-});
+}).brand<'QuestWorkScope'>();
 
 // `unitObservationFieldsContract`, not `unitObservationContract` — the latter ends in a
 // `.superRefine`, and a `ZodEffects` in zod 3 carries no `.shape`.
@@ -72,7 +72,7 @@ const questWorkUnit = z.object({
   toSettle: unitObservationFieldsContract.shape.toSettle.unwrap().nullable(),
   markedBy: workItemContract.shape.id.nullable(),
   markedAt: unitObservationFieldsContract.shape.at.nullable(),
-});
+}).brand<'QuestWorkUnit'>();
 
 // `flowId` is nullable for the one flow-less scope there is: the codeweaver contracts cell, whose
 // render is `questFlowSliceTransformer`'s foundation view — every contract that package owns and
@@ -80,7 +80,7 @@ const questWorkUnit = z.object({
 const questWorkFlow = z.object({
   flowId: flowContract.shape.id.nullable(),
   rendered: z.string().brand<'QuestWorkFlowRendered'>(),
-});
+}).brand<'QuestWorkFlow'>();
 
 const questWorkPiece = z.object({
   pieceId: pieceIdContract,
@@ -90,7 +90,7 @@ const questWorkPiece = z.object({
   baselineFor: pieceIdContract.nullable(),
   contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
   payload: z.record(z.string().brand<'QuestWorkPiecePayloadKey'>(), z.unknown()),
-});
+}).brand<'QuestWorkPiece'>();
 
 // A seed with no proving run is a path no walk may be sent down — an unproven recipe does not fail
 // loudly, it manufactures a defect that does not exist. Serve the `null` rather than omitting the
@@ -98,7 +98,7 @@ const questWorkPiece = z.object({
 const questWorkRecipe = z.object({
   name: flowRecipeContract.shape.id,
   provenRunId: siegeRunContract.shape.id.nullable(),
-});
+}).brand<'QuestWorkRecipe'>();
 
 // `scope` is read off the commit BODY's structured `work items: <ids>` line and is `null` when the
 // body carries none. Parsing a prose subject is a guess, and a wrong guess mislabels which pass
@@ -106,10 +106,10 @@ const questWorkRecipe = z.object({
 // rolling out.
 const questWorkCommit = z.object({
   sha: z.string().regex(/^[0-9a-f]{7,40}$/u).brand<'QuestWorkCommitSha'>(),
-  scope: z.string().min(1).brand<'CommitScope'>().nullable(),
-  subject: z.string().min(1).brand<'CommitSubject'>(),
+  scope: z.string().min(1).brand<'QuestWorkCommitScope'>().nullable(),
+  subject: z.string().min(1).brand<'QuestWorkCommitSubject'>(),
   paths: z.array(repoRelativePathContract).default([]),
-});
+}).brand<'QuestWorkCommit'>();
 
 // `.unwrap().nullable()` rather than re-declaring the branch types — the pattern
 // `gitWorkingTreeFilesBroker` already uses on this same contract.
@@ -117,7 +117,7 @@ const questWorkGit = z.object({
   baseBranch: questContract.shape.baseBranch.unwrap().nullable(),
   worktreePath: questContract.shape.worktreePath.unwrap().nullable(),
   baseRef: questContract.shape.baseRef.unwrap().nullable(),
-});
+}).brand<'QuestWorkGit'>();
 
 // A repair builds `--only <checks>` from `failingCheckTypes`. Handed files alone it guesses the
 // check set, and a guess that omits the failing check reports green over the red it was sent to fix.
@@ -133,7 +133,7 @@ const questWorkWard = z.object({
   blobPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardBlobPath'>(),
   failingCheckTypes: z.array(z.string().min(1).brand<'QuestWorkWardFailingCheckTypes'>()).default([]),
   failingPaths: z.array(z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardFailingPaths'>()).default([]),
-});
+}).brand<'QuestWorkWard'>();
 
 // An attack is an ABSENCE claim, and an absence is only evidence against a known-good reading taken
 // first — so an antagonist is served the happy walk's own run, resolved from its piece's
@@ -143,12 +143,12 @@ const questWorkBaseline = z.object({
   workItemId: workItemContract.shape.id,
   instanceId: siegeInstanceContract.shape.id,
   runId: siegeRunContract.shape.id,
-});
+}).brand<'QuestWorkBaseline'>();
 
 const questWorkTruncation = z.object({
   section: z.enum(['flows', 'committedPaths', 'sessionNotes', 'walkPaths']),
-  dropped: z.number().int().nonnegative().brand<'DroppedCount'>(),
-});
+  dropped: z.number().int().nonnegative().brand<'QuestWorkTruncationDropped'>(),
+}).brand<'QuestWorkTruncation'>();
 
 export const questWorkViewContract = z.object({
   questId: questContract.shape.id,

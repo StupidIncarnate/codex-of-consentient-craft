@@ -25,7 +25,7 @@ import { workPlanValidationCheckStatics } from '../../statics/work-plan-validati
 export const workPlanValidationFailureContract = z.object({
   pieceId: pieceIdContract,
   check: z.number().int().min(1).max(workPlanValidationCheckStatics.limits.max).brand<'WorkPlanValidationFailureCheck'>(),
-  message: z.string().min(1).brand<'WorkPlanValidationMessage'>(),
+  message: z.string().min(1).brand<'WorkPlanValidationFailureMessage'>(),
 }).brand<'WorkPlanValidationFailure'>();
 
 export type WorkPlanValidationFailure = z.infer<typeof workPlanValidationFailureContract>;

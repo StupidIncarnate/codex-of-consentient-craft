@@ -12,11 +12,11 @@ import { z } from '#gateway/npm/zod';
 
 export const spawnOptionsSnapshotContract = z
   .object({
-    cwd: z.string().brand<'SpawnOptionsCwd'>().optional(),
+    cwd: z.string().brand<'SpawnOptionsSnapshotCwd'>().optional(),
     env: z
-      .record(z.string().brand<'SpawnOptionsSnapshotEnv'>(), z.string().brand<'SpawnOptionsEnvValue'>())
+      .record(z.string().brand<'SpawnOptionsSnapshotEnvKey'>(), z.string().brand<'SpawnOptionsSnapshotEnv'>())
       .optional(),
-    stdio: z.array(z.string().brand<'SpawnOptionsStdioMode'>()).optional(),
+    stdio: z.array(z.string().brand<'SpawnOptionsSnapshotStdio'>()).optional(),
   })
   .loose().brand<'SpawnOptionsSnapshot'>();
 

@@ -27,16 +27,16 @@ import { absoluteFilePathContract, siegeInstanceContract } from '@dungeonmaster/
 const laneManifestLogEntry = z.object({
   path: absoluteFilePathContract,
   linkPresent: z.boolean(),
-});
+}).brand<'LaneManifestLogEntry'>();
 
 export const laneManifestReadingContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
-  baseUrl: z.string().min(1).brand<'InstanceBaseUrl'>().nullable(),
+  baseUrl: z.string().min(1).brand<'LaneManifestReadingBaseUrl'>().nullable(),
   // `instanceStartBroker` never sets this field on its returned manifest today, so it arrives as
   // `undefined` rather than an explicit `null` — `.optional()`, not `.nullable()`.
-  apiUrl: z.string().min(1).brand<'InstanceApiUrl'>().optional(),
+  apiUrl: z.string().min(1).brand<'LaneManifestReadingApiUrl'>().optional(),
   home: absoluteFilePathContract,
-  logs: z.object({ api: laneManifestLogEntry, web: laneManifestLogEntry }),
+  logs: z.object({ api: laneManifestLogEntry, web: laneManifestLogEntry }).brand<'LaneManifestReadingLogs'>(),
 }).brand<'LaneManifestReading'>();
 
 export type LaneManifestReading = z.infer<typeof laneManifestReadingContract>;

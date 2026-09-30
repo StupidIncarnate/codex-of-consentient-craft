@@ -26,8 +26,8 @@ export const cleanupCliAnswerContract = z.object({
   portsReleased: z.array(z.unknown()),
   lockReleased: z.boolean(),
   assetsAged: z.object({
-    instances: z.number().int().nonnegative().brand<'CleanupAgedInstanceCount'>(),
-  }),
+    instances: z.number().int().nonnegative().brand<'CleanupCliAnswerAssetsAgedInstances'>(),
+  }).brand<'CleanupCliAnswerAssetsAged'>(),
 }).brand<'CleanupCliAnswer'>();
 
 export type CleanupCliAnswer = z.infer<typeof cleanupCliAnswerContract>;

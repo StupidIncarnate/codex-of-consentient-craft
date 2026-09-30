@@ -46,41 +46,41 @@ const planEnvelopeFieldsContract = workPlanFieldsContract
     writtenBy: true,
     writtenAt: true,
   })
-  .strict();
+  .strict().brand<'PlanEnvelopeFields'>();
 
 // Same reasoning as `planEnvelopeFieldsContract` above — `.strict()` is what turns a
 // caller-supplied `at` into a refusal instead of a silent strip.
-const observationFieldsContract = unitObservationFieldsContract.omit({ at: true }).strict();
+const observationFieldsContract = unitObservationFieldsContract.omit({ at: true }).strict().brand<'ObservationFields'>();
 
 const planPayloadContract = z
   .object({
     kind: z.literal('plan'),
     plan: planEnvelopeFieldsContract,
   })
-  .strict();
+  .strict().brand<'PlanPayload'>();
 
 const observationsPayloadContract = z
   .object({
     kind: z.literal('observations'),
     observations: z.array(observationFieldsContract).min(1),
   })
-  .strict();
+  .strict().brand<'ObservationsPayload'>();
 
 const amendmentPayloadContract = z
   .object({
     kind: z.literal('amendment'),
-    reason: z.string().min(1).brand<'AmendmentReason'>(),
+    reason: z.string().min(1).brand<'AmendmentPayloadReason'>(),
     plan: planEnvelopeFieldsContract,
   })
-  .strict();
+  .strict().brand<'AmendmentPayload'>();
 
 const outcomePayloadContract = z
   .object({
     kind: z.literal('outcome'),
     word: stepOutcomeContract,
-    reason: z.string().min(1).brand<'OutcomeReason'>(),
+    reason: z.string().min(1).brand<'OutcomePayloadReason'>(),
   })
-  .strict();
+  .strict().brand<'OutcomePayload'>();
 
 const invalidationPayloadContract = z
   .object({
@@ -88,15 +88,15 @@ const invalidationPayloadContract = z
     flowId: flowContract.shape.id,
     reason: questNoteContract.shape.detail,
   })
-  .strict();
+  .strict().brand<'InvalidationPayload'>();
 
 const requestPayloadContract = z
   .object({
     kind: z.literal('request'),
     step: z.string().min(1).brand<'RequestPayloadStep'>(),
-    reason: z.string().min(1).brand<'RequestReason'>(),
+    reason: z.string().min(1).brand<'RequestPayloadReason'>(),
   })
-  .strict();
+  .strict().brand<'RequestPayload'>();
 
 export const questWorkInputContract = z
   .object({

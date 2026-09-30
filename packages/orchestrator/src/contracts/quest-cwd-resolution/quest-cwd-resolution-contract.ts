@@ -26,19 +26,19 @@ export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('session'),
     cwd: repoRootCwdContract,
-  }),
+  }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('worktree'),
     cwd: repoRootCwdContract,
-  }),
+  }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('repo-root'),
     cwd: repoRootCwdContract,
-  }),
+  }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('missing-worktree'),
     worktreePath: absoluteFilePathContract,
-  }),
+  }).brand<'QuestCwdResolution'>(),
 ]);
 
 export type QuestCwdResolution = z.infer<typeof questCwdResolutionContract>;

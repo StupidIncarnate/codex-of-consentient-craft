@@ -31,10 +31,10 @@ export const unitMarkChurnEntryContract = z.object({
   // already uses rather than imported. A zod brand is structural on the literal, so a
   // re-declaration under the same literal is assignable both ways, and a typo in one is a nominal
   // type nothing satisfies — it fails at the first assignment rather than silently here.
-  evidence: z.string().min(1).brand<'MarkEvidence'>().nullable(),
+  evidence: z.string().min(1).brand<'UnitMarkChurnEntryEvidence'>().nullable(),
   // `toSettle` rides on the entry because a `cant-meet` without its instruction renders as a dead
   // end with no owner, and this walk is the surface a human reads it off.
-  toSettle: z.string().min(1).brand<'ToSettleInstruction'>().nullish(),
+  toSettle: z.string().min(1).brand<'UnitMarkChurnEntryToSettle'>().nullish(),
   at: z.iso.datetime().brand<'UnitMarkChurnEntryAt'>(),
 }).brand<'UnitMarkChurnEntry'>();
 

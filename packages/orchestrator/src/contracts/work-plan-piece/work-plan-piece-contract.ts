@@ -58,7 +58,7 @@ export const workPlanPieceContract = z.object({
   pieceName: z
     .string()
     .min(1)
-    .brand<'PieceName'>()
+    .brand<'WorkPlanPiecePieceName'>()
     .describe(
       'A short human name for this piece, in the planner’s own words — what a reader calls it, ' +
         'never what it proves or which files it touches. Renders on the execution panel as ' +
@@ -82,9 +82,9 @@ export const workPlanPieceContract = z.object({
   context: z
     .string()
     .min(1)
-    .brand<'PieceContext'>()
+    .brand<'WorkPlanPieceContext'>()
     .describe('What a session needs to know before it starts, in the planner’s own words.'),
-  notes: z.array(z.string().min(1).brand<'PieceNote'>()).default([]),
+  notes: z.array(z.string().min(1).brand<'WorkPlanPieceNotes'>()).default([]),
   payload: z.unknown(),
 }).brand<'WorkPlanPiece'>();
 

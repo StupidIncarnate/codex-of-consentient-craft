@@ -28,19 +28,19 @@ import { workPlanFileEntryContract } from '../work-plan-file-entry/work-plan-fil
 export const workPlanPayloadCodeweaverContract = z.object({
   files: z.array(workPlanFileEntryContract).default([]),
   facts: z
-    .array(z.string().min(1).brand<'PieceFact'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverFacts'>())
     .default([])
     .describe('What is already true in this tree that a sub-agent would otherwise re-derive.'),
   fences: z
-    .array(z.string().min(1).brand<'PieceFence'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverFences'>())
     .default([])
     .describe('The rules this piece must stay inside.'),
   traps: z
-    .array(z.string().min(1).brand<'PieceTrap'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverTraps'>())
     .default([])
     .describe('The mistakes this piece is known to invite, stated before they are made.'),
   doNotTouch: z
-    .array(z.string().min(1).brand<'PieceDoNotTouch'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverDoNotTouch'>())
     .default([])
     .describe('What belongs to another piece or another mechanism entirely.'),
   units: z.array(workPlanCodeweaverUnitContract).default([]),

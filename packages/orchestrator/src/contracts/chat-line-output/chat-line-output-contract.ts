@@ -14,7 +14,7 @@ import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 const chatLineEntriesContract = z.object({
   type: z.literal('entries'),
   entries: z.array(chatEntryContract),
-});
+}).brand<'ChatLineEntries'>();
 
 // Emitted when the processor learns the "real" internal agentId Claude CLI assigned to a
 // sub-agent — via `tool_use_result.agentId` on the parent stream's user tool_result line.
@@ -25,7 +25,7 @@ const chatLineAgentDetectedContract = z.object({
   type: z.literal('agent-detected'),
   toolUseId: toolUseIdContract,
   agentId: agentContract.shape.id,
-});
+}).brand<'ChatLineAgentDetected'>();
 
 export const chatLineOutputContract = z.discriminatedUnion('type', [
   chatLineEntriesContract,

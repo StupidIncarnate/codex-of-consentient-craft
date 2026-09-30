@@ -25,8 +25,8 @@ export const usageLineShapeContract = z.object({
       cache_creation_input_tokens: rawTokenCountContract.nullish(),
       cache_read_input_tokens: rawTokenCountContract.nullish(),
       output_tokens: rawTokenCountContract.nullish(),
-    }),
-  }),
+    }).brand<'UsageLineShapeMessageUsage'>(),
+  }).brand<'UsageLineShapeMessage'>(),
 }).brand<'UsageLineShape'>();
 
 export type UsageLineShape = z.infer<typeof usageLineShapeContract>;

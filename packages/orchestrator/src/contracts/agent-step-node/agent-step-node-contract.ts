@@ -36,7 +36,7 @@ export const agentStepNodeContract = z
     role: z.enum(['planner', 'worker', 'reviewer']),
     kind: z.enum(['prompt', 'deterministic']),
     handler: stepHandlerNameContract.optional(),
-    args: z.array(z.string().brand<'StepHandlerArg'>()).optional(),
+    args: z.array(z.string().brand<'AgentStepNodeArgs'>()).optional(),
     prompt: z.string().min(1).brand<'AgentStepNodePrompt'>().optional(),
     model: claudeModelContract.optional(),
   })

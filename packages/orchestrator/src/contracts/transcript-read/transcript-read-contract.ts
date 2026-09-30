@@ -14,7 +14,7 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 export const transcriptReadContract = z.object({
   path: absoluteFilePathContract,
-  fromByte: z.number().int().min(0).brand<'ByteSize'>(),
+  fromByte: z.number().int().min(0).brand<'TranscriptReadFromByte'>(),
 }).brand<'TranscriptRead'>();
 
 export type TranscriptRead = z.infer<typeof transcriptReadContract>;

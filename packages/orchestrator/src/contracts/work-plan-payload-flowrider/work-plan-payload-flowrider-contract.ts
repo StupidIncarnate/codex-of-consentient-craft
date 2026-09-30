@@ -38,7 +38,7 @@ export const workPlanPayloadFlowriderContract = z.object({
   mode: z
     .enum(['new', 'extend'])
     .describe('Whether this piece writes a fresh spec file or extends one that already exists.'),
-  harnesses: z.array(workPlanFileEntryContract.omit({ proves: true })).default([]),
+  harnesses: z.array(workPlanFileEntryContract.omit({ proves: true }).brand<'WorkPlanPayloadFlowriderHarnesses'>()).default([]),
   walk: z.object({
     shape: z
       .enum(['journey', 'matrix'])
@@ -50,22 +50,22 @@ export const workPlanPayloadFlowriderContract = z.object({
       .boolean()
       .default(false)
       .describe('True when the enumeration was cut short, so a reader knows the list is partial.'),
-  }),
+  }).brand<'WorkPlanPayloadFlowriderWalk'>(),
   units: z.array(workPlanFlowriderUnitContract).min(1),
   facts: z
-    .array(z.string().min(1).brand<'PieceFact'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadFlowriderFacts'>())
     .default([])
     .describe('What is already true in this tree that a sub-agent would otherwise re-derive.'),
   fences: z
-    .array(z.string().min(1).brand<'PieceFence'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadFlowriderFences'>())
     .default([])
     .describe('The rules this piece must stay inside.'),
   traps: z
-    .array(z.string().min(1).brand<'PieceTrap'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadFlowriderTraps'>())
     .default([])
     .describe('The mistakes this piece is known to invite, stated before they are made.'),
   doNotTouch: z
-    .array(z.string().min(1).brand<'PieceDoNotTouch'>())
+    .array(z.string().min(1).brand<'WorkPlanPayloadFlowriderDoNotTouch'>())
     .default([])
     .describe('What belongs to another piece or another mechanism entirely.'),
 }).brand<'WorkPlanPayloadFlowrider'>();

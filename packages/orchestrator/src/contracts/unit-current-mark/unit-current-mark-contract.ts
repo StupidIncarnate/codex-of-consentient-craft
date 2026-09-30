@@ -27,8 +27,8 @@ export const unitCurrentMarkContract = z.object({
   // already uses rather than imported. A zod brand is structural on the literal, so a re-declaration
   // under the same literal is assignable both ways, and a typo in one is a nominal type nothing
   // satisfies — it fails at the first assignment rather than silently here.
-  evidence: z.string().min(1).brand<'MarkEvidence'>(),
-  toSettle: z.string().min(1).brand<'ToSettleInstruction'>().optional(),
+  evidence: z.string().min(1).brand<'UnitCurrentMarkEvidence'>(),
+  toSettle: z.string().min(1).brand<'UnitCurrentMarkToSettle'>().optional(),
   workItemId: workItemContract.shape.id,
   // `.optional()` — a chat-role work item runs no step of a family graph and carries none.
   step: z.string().min(1).brand<'UnitCurrentMarkStep'>().optional(),

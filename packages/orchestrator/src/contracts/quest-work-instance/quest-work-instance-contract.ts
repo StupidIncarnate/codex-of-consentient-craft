@@ -28,10 +28,10 @@ import { absoluteFilePathContract, siegeInstanceContract, relativeFilePathContra
 
 export const questWorkInstanceContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
-  baseUrl: z.string().min(1).brand<'InstanceBaseUrl'>().nullable(),
-  apiUrl: z.string().min(1).brand<'InstanceApiUrl'>().nullable(),
+  baseUrl: z.string().min(1).brand<'QuestWorkInstanceBaseUrl'>().nullable(),
+  apiUrl: z.string().min(1).brand<'QuestWorkInstanceApiUrl'>().nullable(),
   home: absoluteFilePathContract,
-  logs: z.object({ api: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkInstanceLogsApi'>(), web: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkInstanceLogsWeb'>() }),
+  logs: z.object({ api: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkInstanceLogsApi'>(), web: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkInstanceLogsWeb'>() }).brand<'QuestWorkInstanceLogs'>(),
 }).brand<'QuestWorkInstance'>();
 
 export type QuestWorkInstance = z.infer<typeof questWorkInstanceContract>;

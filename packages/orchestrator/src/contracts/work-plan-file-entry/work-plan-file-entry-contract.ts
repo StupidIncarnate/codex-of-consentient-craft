@@ -32,14 +32,14 @@ export const workPlanFileEntryContract = z.object({
   in: z
     .string()
     .min(1)
-    .brand<'PieceTypeSketch'>()
+    .brand<'WorkPlanFileEntryIn'>()
     .describe(
       'What this file takes, as a free-form sketch — e.g. `{ path: string; ordinal: number }`.',
     ),
   out: z
     .string()
     .min(1)
-    .brand<'PieceTypeSketch'>()
+    .brand<'WorkPlanFileEntryOut'>()
     .describe('What this file gives back, as a free-form sketch.'),
   proves: z
     .array(qaChecklistItemContract.shape.id)

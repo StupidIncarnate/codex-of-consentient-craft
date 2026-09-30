@@ -40,7 +40,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     flowId: flowContract.shape.id,
     nodeId: flowNodeContract.shape.id,
     nodeLabel: flowNodeContract.shape.label,
-  }),
+  }).brand<'QaVerificationUnit'>(),
   z.object({
     kind: z.literal('branch'),
     id: qaChecklistItemContract.shape.id,
@@ -49,9 +49,9 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     edgeFrom: flowEdgeContract.shape.from,
     // REQUIRED here although `flowEdgeContract.label` is optional: a branch unit exists only for an
     // edge that carries a non-empty label, so an absent one is an enumeration bug, not a shape.
-    edgeLabel: z.string().min(1).brand<'FlowEdgeLabel'>(),
+    edgeLabel: z.string().min(1).brand<'QaVerificationUnitEdgeLabel'>(),
     edgeTo: flowEdgeContract.shape.to,
-  }),
+  }).brand<'QaVerificationUnit'>(),
   z.object({
     kind: z.literal('observable'),
     id: qaChecklistItemContract.shape.id,
@@ -65,13 +65,13 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     verifyByReading: flowObservableContract.shape.verifyByReading,
     verifyByHuman: flowObservableContract.shape.verifyByHuman,
     addedBy: observableOriginContract,
-  }),
+  }).brand<'QaVerificationUnit'>(),
   z.object({
     kind: z.literal('off-map'),
     id: qaChecklistItemContract.shape.id,
     flowId: flowContract.shape.id,
     offMapFamily: qaOffMapFamilyContract,
-  }),
+  }).brand<'QaVerificationUnit'>(),
 ]);
 
 export type QaVerificationUnit = z.infer<typeof qaVerificationUnitContract>;

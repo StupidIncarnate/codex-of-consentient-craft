@@ -17,7 +17,7 @@ import {
 const questStatusAssertionContract = z.object({
   kind: z.literal('quest-status'),
   expected: questStatusContract,
-});
+}).brand<'QuestStatusAssertion'>();
 
 const workItemStatusHistogramAssertionContract = z.object({
   kind: z.literal('work-item-status-histogram'),
@@ -25,19 +25,19 @@ const workItemStatusHistogramAssertionContract = z.object({
   // status required), and a real histogram asserts only the statuses it cares about.
   expected: z.partialRecord(
     workItemStatusContract,
-    z.number().int().nonnegative().brand<'WorkItemStatusCount'>(),
+    z.number().int().nonnegative().brand<'WorkItemStatusHistogramAssertionExpected'>(),
   ),
-});
+}).brand<'WorkItemStatusHistogramAssertion'>();
 
 const workItemRoleCountAssertionContract = z.object({
   kind: z.literal('work-item-role-count'),
   role: workItemRoleContract,
-  minCount: z.number().int().nonnegative().brand<'WorkItemRoleMinCount'>(),
-});
+  minCount: z.number().int().nonnegative().brand<'WorkItemRoleCountAssertionMinCount'>(),
+}).brand<'WorkItemRoleCountAssertion'>();
 
 const workItemSignalMatchAssertionContract = z.object({
   kind: z.literal('work-item-signal-match'),
-});
+}).brand<'WorkItemSignalMatchAssertion'>();
 
 export const smoketestAssertionContract = z.discriminatedUnion('kind', [
   questStatusAssertionContract,

@@ -13,20 +13,20 @@ import { z } from '#gateway/npm/zod';
 
 export const normalizedStreamLineContentItemContract = z
   .object({
-    type: z.string().brand<'StreamContentItemType'>().optional(),
-    text: z.string().brand<'StreamContentText'>().optional(),
-    thinking: z.string().brand<'StreamContentThinking'>().optional(),
-    signature: z.string().brand<'StreamContentSignature'>().optional(),
-    id: z.string().brand<'StreamContentId'>().optional(),
-    name: z.string().brand<'StreamContentName'>().optional(),
+    type: z.string().brand<'NormalizedStreamLineContentItemType'>().optional(),
+    text: z.string().brand<'NormalizedStreamLineContentItemText'>().optional(),
+    thinking: z.string().brand<'NormalizedStreamLineContentItemThinking'>().optional(),
+    signature: z.string().brand<'NormalizedStreamLineContentItemSignature'>().optional(),
+    id: z.string().brand<'NormalizedStreamLineContentItemId'>().optional(),
+    name: z.string().brand<'NormalizedStreamLineContentItemName'>().optional(),
     input: z.unknown().optional(),
-    toolUseId: z.string().brand<'StreamContentToolUseId'>().optional(),
-    toolName: z.string().brand<'StreamContentToolName'>().optional(),
-    title: z.string().brand<'StreamContentTitle'>().optional(),
+    toolUseId: z.string().brand<'NormalizedStreamLineContentItemToolUseId'>().optional(),
+    toolName: z.string().brand<'NormalizedStreamLineContentItemToolName'>().optional(),
+    title: z.string().brand<'NormalizedStreamLineContentItemTitle'>().optional(),
     content: z.unknown().optional(),
     isError: z.boolean().optional(),
-    source: z.string().brand<'StreamContentSource'>().optional(),
-    agentId: z.string().brand<'StreamContentAgentId'>().optional(),
+    source: z.string().brand<'NormalizedStreamLineContentItemSource'>().optional(),
+    agentId: z.string().brand<'NormalizedStreamLineContentItemAgentId'>().optional(),
   })
   .loose().brand<'NormalizedStreamLineContentItem'>();
 

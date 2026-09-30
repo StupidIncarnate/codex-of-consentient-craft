@@ -41,17 +41,17 @@ export const workPlanCodeweaverUnitContract = z.object({
   text: z
     .string()
     .min(1)
-    .brand<'PieceUnitText'>()
+    .brand<'WorkPlanCodeweaverUnitText'>()
     .describe('Verbatim from the spec, never a paraphrase.'),
   assert: z
     .string()
     .min(1)
-    .brand<'PieceUnitAssert'>()
+    .brand<'WorkPlanCodeweaverUnitAssert'>()
     .describe('What the test reads, and off which surface.'),
   failsIf: z
     .string()
     .min(1)
-    .brand<'PieceUnitFailsIf'>()
+    .brand<'WorkPlanCodeweaverUnitFailsIf'>()
     .describe('The wrong value that turns that assertion red.'),
 }).brand<'WorkPlanCodeweaverUnit'>();
 

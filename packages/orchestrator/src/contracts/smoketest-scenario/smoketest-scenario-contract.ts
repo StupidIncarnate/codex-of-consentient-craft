@@ -31,7 +31,7 @@ const smoketestPromptNames = Object.keys(smoketestPromptsStatics) as [
 const smoketestPromptNameContract = z.enum(smoketestPromptNames);
 
 export const smoketestScenarioContract = z.object({
-  caseId: z.string().min(1).brand<'SmoketestCaseId'>(),
+  caseId: z.string().min(1).brand<'SmoketestScenarioCaseId'>(),
   name: z.string().min(1).brand<'SmoketestScenarioName'>(),
   blueprint: questBlueprintContract,
   // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every

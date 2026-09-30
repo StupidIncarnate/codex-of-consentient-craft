@@ -14,12 +14,12 @@ import { networkPortContract } from '@dungeonmaster/shared/contracts';
 const portFreeCheckContract = z.object({
   kind: z.literal('port-free'),
   port: networkPortContract,
-});
+}).brand<'PortFreeCheck'>();
 
 const processGoneCheckContract = z.object({
   kind: z.literal('process-gone'),
   pid: z.number().int().positive().brand<'ProcessGoneCheckPid'>(),
-});
+}).brand<'ProcessGoneCheck'>();
 
 export const smoketestTeardownCheckContract = z.discriminatedUnion('kind', [
   portFreeCheckContract,
