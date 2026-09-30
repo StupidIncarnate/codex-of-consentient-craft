@@ -71,8 +71,8 @@ ${layerDiagram}
 | constants/, config/, enums/ | statics/ | Every immutable value is a static |
 | formatters/, mappers/, converters/ | transformers/ | Every A-to-B data change is a transformer |
 | core/, services/, repositories/ | brokers/ | Every business operation is a broker |
-| lib/ | adapters/ | Only adapters wrap an npm package |
-| utils/, helpers/ | adapters/, guards/ or transformers/ | Split by what it does: wraps a package, returns a boolean, or reshapes data |
+| lib/ | brokers/, or \`#gateway\` for an outside package | An outside package is reached only through the gateway: \`#gateway/<folder>/<subpath>\` |
+| utils/, helpers/ | guards/ or transformers/ | Split by what it does: returns a boolean, or reshapes data |
 | common/, shared/ | Distribute by function | A catch-all folder has no rule to enforce |
 
 \`@types/\` is the one exception, allowed at package root only:
@@ -91,13 +91,19 @@ package-root/
 Only **entry files** cross a domain folder boundary. An entry file's name is its folder path plus the folder suffix and nothing else — \`[folder-path]-[folder-suffix].ts\`.
 
 - \`brokers/user/fetch/user-fetch-broker.ts\` ✅ name is the folder path
-- \`adapters/axios/get/axios-get-adapter.ts\` ✅ name is the folder path
+- \`brokers/quest/load/quest-load-broker.ts\` ✅ name is the folder path
 - \`contracts/user/user-contract.ts\` ✅ name is the folder path
 - \`brokers/user/fetch/validate-helper.ts\` ❌ extra word "validate"
 - \`brokers/user/fetch/validate-layer-broker.ts\` ❌ extra words "validate-layer"
 - \`widgets/user-card/avatar-layer-widget.tsx\` ❌ extra words "avatar-layer"
 
 Inside one domain folder every file may import every other, helpers and layers included. Across folders, only the ✅ rows are reachable at all.
+
+## Outside Packages: the Gateway
+
+An outside package is reached only through the gateway: \`#gateway/<folder>/<subpath>\`, where \`<folder>\` is \`npm\`, \`node\`, \`browser\` or \`bin\`. Every folder type imports outside things through it, types included, and nothing imports a raw package.
+
+A wrapper is one folder per subpath under \`packages/@gateway/<folder>/src/<subpath>/\`, holding the wrapper file plus its \`.proxy.ts\` and \`.stub.ts\`. A consumer repo's \`npm\` and \`bin\` wrappers start empty; the \`consumerGatewayWrapper\` session snippet says how to add the first one.
 
 ## Cross-Package Public API
 
@@ -114,9 +120,9 @@ A stub sits beside its contract and a proxy beside the file it mocks. No barrel 
 Import by a **folder-type subpath** (\`@scope/pkg/contracts\`) or from the **main barrel** (\`@scope/pkg\`). Cross-package imports obey the SAME folder rules as local cross-folder imports — the **folder type**, not the package name, decides what is allowed:
 
 - Subpath import → classified by the subpath segment (\`@scope/pkg/contracts\` is a \`contracts\` import).
-- Main-barrel import → classified by each imported name's suffix (\`…Contract\` → contracts, \`…Broker\` → brokers, \`…Guard\` → guards, \`…Adapter\` → adapters, \`…Widget\` → widgets, …).
+- Main-barrel import → classified by each imported name's suffix (\`…Contract\` → contracts, \`…Broker\` → brokers, \`…Guard\` → guards, \`…Widget\` → widgets, …).
 
-A \`brokers/\` file may import another package's \`contracts\`/\`adapters\`/\`brokers\` but not its \`flows\`/\`responders\`/\`widgets\`; a \`contracts/\` file may import only \`contracts\`/\`statics\`/\`errors\`; another package's \`flows/\` is importable only from a \`flows/\` file. \`adapters/\` (which alone allow \`node_modules\`) are the sanctioned boundary for anything else.
+A \`brokers/\` file may import another package's \`contracts\`/\`brokers\` but not its \`flows\`/\`responders\`/\`widgets\`; a \`contracts/\` file may import only \`contracts\`/\`statics\`/\`errors\`; another package's \`flows/\` is importable only from a \`flows/\` file. Anything outside the workspace comes through \`#gateway\`.
 
 ### Starting a new package
 
@@ -173,8 +179,6 @@ widgets/chat-message/
 - ✅ Parent imports its layers by relative path (\`./image-content-layer-widget\`)
 - ✅ Layers import each other the same way
 - ❌ No file outside the folder imports a layer — not another domain, not a sibling action in the same domain
-
-**In \`adapters/\` only:** the npm-package call stays in the parent. Layers translate shapes the parent already fetched, so the adapter's proxy keeps mocking exactly one boundary.
 
 **When to create layer:**
 - Parent exceeds 300 lines
@@ -236,7 +240,7 @@ Filenames are kebab-case. One file exports one thing, as a \`const\` arrow funct
 
 \`\`\`typescript
 // user-fetch-broker.ts
-export const userFetchBroker = async ({userId}: {userId: UserId}): Promise<User> => { /* … */ };
+export const userFetchBroker = async ({userId}: {userId: User['id']}): Promise<User> => { /* … */ };
 
 // userFetchBroker.ts               ❌ camelCase
 // format_date_transformer.ts       ❌ snake_case
@@ -247,7 +251,7 @@ export default function userFetchBroker() {}  // ❌ default export
 export default class User {}                  // ❌ default export
 \`\`\`
 
-Error classes are the one \`export class\` exception. A default export is allowed only where a system genuinely REQUIRES one, never where it merely prefers one. Types supporting the file's one export may sit beside it; a second broker may not.
+Error classes are the one \`export class\` exception. A default export is allowed only where a system genuinely REQUIRES one, never where it merely prefers one. An object type that leaves a function is a contract in \`contracts/\`. A type used only inside one function body stays inline.
 
 Type exports have their own syntax, and the modern-looking one is banned:
 
@@ -261,24 +265,28 @@ export {type User} from './user-contract';        // ❌ inline form, banned her
 
 A function takes ONE object argument, destructured, with the type written inline. The exception is an external API that dictates its own signature.
 
-\`ban-primitives\` is asymmetric on purpose: an input MAY take a raw \`string\`, a return MUST be branded.
+Every object contract, and every string and number field in it, is branded. A loose parameter, return or local is plain: a scalar read from a loose source is returned plain, and a value that came from a contract keeps its brand. A parameter holding another object's id takes that owner's field type (\`User['id']\`), and \`enforce-owner-field-reuse\` checks it in every folder but \`errors/\`. Every other parameter may be a plain \`string\`.
 
 \`\`\`typescript
-export const updateUser = ({user, companyId}: {user: User; companyId: CompanyId}): Promise<User> => { /* … */ };
+export const updateUser = ({user, companyId}: {user: User; companyId: Company['id']}): Promise<User> => { /* … */ };
 
 export const updateUser = (user: User, companyId: CompanyId) => {};    // ❌ positional
 export const updateUser = ({user}: UpdateUserParams) => {};            // ❌ named type, not inline
-export const badFunction = ({userId}: {userId: string}) => {};         // ❌ no return type, so nothing is branded
+export const noReturnType = ({user}: {user: User}) => {};               // ❌ no return type
+export const fetchUser = ({userId}: {userId: string}): Promise<User> => { /* … */ };  // ❌ userId is an owner's id: type it User['id']
 \`\`\`
 
 Pass whole objects rather than picking fields off them — that is what keeps the branded relationships intact. Where you genuinely need one identifier, take it as \`User['id']\`.
 
-Passing a branded value into another domain means re-parsing it, because \`StepId\` and \`DagNodeId\` are both branded strings and deliberately NOT assignable to each other:
+Branded ids of different owners are deliberately NOT assignable to each other. A field that holds another object's id reuses that id's schema, and parsing one id into another brand is never the answer:
 
 \`\`\`typescript
-const dagNodeId = dagNodeIdContract.parse(stepId);         // ✅ re-brands through validation
-const dagNodeId = stepId as unknown as DagNodeId;          // ❌ the assertion is the bug
+questId: questContract.shape.id,                           // ✅ the field reuses the owner's schema
+const workItemId = workItemContract.shape.id.parse(questId);  // ❌ one id parsed into another brand
+const workItemId = questId as unknown as WorkItemId;         // ❌ the assertion is the bug
 \`\`\`
+
+**Return what your calls told you.** \`void\` only when every call you discard returned \`void\`. \`{ success: true }\` counts as \`void\`. \`enforce-folder-return-types\` rejects a \`void\` return, or a return type that can hold one value only, when the function discards a call that returned something real.
 
 ### File header
 
@@ -286,14 +294,13 @@ Every implementation file opens with this block, ABOVE the imports — not attac
 
 \`\`\`typescript
 /**
- * PURPOSE: Accepts a path already known to live inside the repo. Reach for this over
- * pathSegmentContract when the value must reject an absolute prefix, and over
- * absoluteFilePathContract when the value is persisted to a quest file that has to stay
- * portable across machines.
+ * PURPOSE: The likely remainder of a quest's execution, continued forward from the work already
+ * minted. Reach for this over questSummaryContract when the question is what happens next, not what
+ * happened.
  *
  * USAGE:
- * repoRelativePathContract.parse('packages/shared/src/x.ts');
- * // Returns a branded RepoRelativePath
+ * questProjectionContract.parse({questId: 'add-auth', scopes: [], totalPlannedSteps: 0, completedSteps: 0});
+ * // Returns a QuestProjection
  *
  * WHEN-TO-USE and WHEN-NOT-TO-USE are optional.
  */
@@ -317,13 +324,15 @@ Anything derivable from the file below will drift, so it goes in neither PURPOSE
 //    Parameters and return type, both already in the signature
 \`\`\`
 
-The repo's own worst case is \`file-path-contract.ts\`, whose header reads "Zod schema for validating any file path (absolute or relative)". That restates the chain below it AND gets it wrong — the relative branch demands a \`./\` or \`../\` prefix, so a bare \`packages/shared/src/x.ts\` is rejected, which its own test pins. It spends its only line on what the chain already says and none on the question a reader arrives with.
+The worst header restates the chain below it AND gets a detail wrong, so it spends its only line on what the code already says and none on the question a reader arrives with.
 
 **PURPOSE must exist before the file does, and must be rewritten once the file is real.** The pre-edit lint hook refuses a write without it, so the header you first submit is necessarily written against a plan rather than an implementation — which is the drift this rule exists to catch. Treat that first one as a placeholder. Before you leave the file, read the body you actually wrote and REWRITE the header to describe it.
 
 The two lines that go stale hardest are the ones worth re-reading: a PURPOSE naming a sibling the file no longer competes with, and a USAGE whose call no longer typechecks.
 
 ### Types
+
+An object contract and every string and number field in it carry a brand, \`.brand<'QuestId'>()\` on \`questContract\`'s \`id\`. A field that holds another object's field reuses that schema (\`questId: questContract.shape.id\`) rather than minting a second brand.
 
 Never suppress a type error — \`@ts-ignore\` and \`@ts-expect-error\` are banned outright, and the fix is the contract the value actually needed. Every exported function declares its return type. Anything arriving from outside the process is \`unknown\` until a contract parses it.
 
@@ -333,11 +342,11 @@ const userId = user.id;                      // ✅ inferred, already branded
 const data: any = response.data;             // ❌ loses everything
 
 const config = {apiUrl, port} satisfies Partial<Config>;  // ✅ validates shape, keeps literals
-const data = JSON.parse(response) as ApiResponse;         // ✅ you know what the compiler cannot
+const data = apiResponseContract.parse(JSON.parse(response));  // ✅ a contract parses outside data
 const broken = {} as ComplexType;                         // ❌ hides every missing property
 \`\`\`
 
-\`as\` is for information the compiler lacks, never for silencing it.
+\`as\` is for information the compiler lacks, never for silencing it and never for parsing outside data.
 
 ### Control flow
 
@@ -345,11 +354,10 @@ Use \`async\`/\`await\`, and \`Promise.all\` whenever the calls do not depend on
 
 Indeterminate loops are recursion with an early return — walking up a directory tree, resolving a config. \`while (true)\` is banned. Ordinary \`for\`, \`.map\`, \`.filter\` over a known collection are fine.
 
-Reach for a \`Map\` or \`Set\` before a nested \`.find\` inside a \`.filter\`; dataset sizes here are unknown. An index map still holds a branded value:
+Reach for a \`Map\` or \`Set\` before a nested \`.find\` inside a \`.filter\`; dataset sizes here are unknown. A local holding a plain number stays plain:
 
 \`\`\`typescript
-const indexMap = new Map<ChatEntry, ArrayIndex>();  // ✅
-const indexMap = new Map<ChatEntry, number>();      // ❌ raw number trips ban-primitives
+const indexMap = new Map<ChatEntry, number>();  // ✅
 \`\`\`
 
 ### Errors
@@ -390,7 +398,7 @@ When the current design needs rationale, state that rationale in present tense (
 
 ### Testing Architecture
 
-Mocks go at I/O boundaries and nowhere else. An adapter mocks its own npm package, a global mock covers non-determinism like \`Date.now\`, and every broker, guard, transformer and widget runs real. The \`.proxy.ts\` beside each file does that setup and exposes scenario methods rather than raw mocks.
+Mocks go at I/O boundaries and nowhere else. The proxy of the file that calls a gateway wrapper composes that wrapper's proxy, imported from its own file. MSW answers HTTP and WebSocket. A global mock covers non-determinism like \`Date.now\`, and every broker, guard, transformer and widget runs real. The \`.proxy.ts\` beside each file does that setup and exposes scenario methods rather than raw mocks.
 
 **Get full testing guidance:** Use \`get-testing-patterns\` tool for complete philosophy, proxy patterns, and assertion rules.
 
