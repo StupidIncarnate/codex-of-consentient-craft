@@ -129,13 +129,13 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:03, machine clock)
+### Now (updated at every event; last 2026-09-30 12:04, machine clock)
 
-| Running (1, in merge worktree W, sonnet) | Owns |
+| Running | Where |
 |---|---|
-| merge r3: server and siegelense | master's `quest-start-body` contract on `#gateway/npm/zod` and branded, its zod 4 message; request-log harness off the `process` global; siegelense phantom `stderrProxy` |
+| operator: second whole-tree ward, all five checks including e2e | merge worktree W |
 
-**Just landed:** merge r3 web (gate 1790794958353-0e93): DEF-148's not-found flow and page on gateway imports, its test passes. Also merge r3 hydration-recipes (gate 1790794932742-3664): master's recipe `toolUseId`s parse through `toolUseContract.shape.id`; the remove-route test asserts `void` (the broker's return since B18); DEF-113/114 passes; web typecheck clean (1790794987677-5f6c).
+**Just landed:** merge r3 server and siegelense (gate 1790795010886-7542, integration 1790795063933-5150): master's `quest-start-body` on `#gateway/npm/zod` with a `QuestStartBodyPlay` leaf brand and its zod 4 message; the request-log harness on `#gateway/node/process`; siegelense's phantom `stderrProxy` gone. All round-3 reds are fixed. Also merge r3 web (gate 1790794958353-0e93): DEF-148's not-found flow and page on gateway imports, its test passes. Also merge r3 hydration-recipes (gate 1790794932742-3664): master's recipe `toolUseId`s parse through `toolUseContract.shape.id`; the remove-route test asserts `void` (the broker's return since B18); DEF-113/114 passes; web typecheck clean (1790794987677-5f6c).
 
 **Whole-tree ward in W (run 1790794045495-a0d6, lint/typecheck/unit/integration, 770 s):** 11,503 of 11,511 lint files,
 typecheck red only in hydration-recipes' `toolUseId` (seen through server and web too), unit 4,174 of 4,176,
