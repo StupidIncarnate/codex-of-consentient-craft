@@ -1,4 +1,3 @@
-import { CliArgStub } from '../cli-arg/cli-arg.stub';
 import { ScanConfigStub } from './scan-config.stub';
 import { scanConfigContract } from './scan-config-contract';
 
@@ -14,7 +13,7 @@ describe('scanConfigContract', () => {
     });
 
     it('VALID: {paths} => returns the paths beside the rule', () => {
-      const result = ScanConfigStub({ paths: [CliArgStub({ value: 'packages/ward' })] });
+      const result = ScanConfigStub({ paths: ['packages/ward'] });
 
       expect(result).toStrictEqual({
         rule: '@dungeonmaster/ban-workspace-export-mocks',

@@ -22,7 +22,6 @@ import type { ProjectFolder } from '../../../contracts/project-folder/project-fo
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
-import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
@@ -65,7 +64,7 @@ export const multiPackageLayerBroker = async ({
       ? projectFolders.filter((folder) =>
           config.passthrough?.some((arg) =>
             hasPassthroughMatchGuard({
-              passthroughArg: cliArgContract.parse(arg),
+              passthroughArg: arg,
               projectFolder: folder,
               rootPath,
             }),
@@ -115,12 +114,12 @@ export const multiPackageLayerBroker = async ({
         const matchingArgs = config.passthrough
           .filter((arg) =>
             hasPassthroughMatchGuard({
-              passthroughArg: cliArgContract.parse(arg),
+              passthroughArg: arg,
               projectFolder: folder,
               rootPath,
             }),
           )
-          .map((arg) => cliArgContract.parse(arg.slice(prefix.length)))
+          .map((arg) => arg.slice(prefix.length))
           .filter((arg) => String(arg).length > 0);
 
         if (matchingArgs.length > 0) {

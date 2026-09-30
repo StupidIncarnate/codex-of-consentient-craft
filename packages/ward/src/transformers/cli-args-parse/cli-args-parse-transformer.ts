@@ -16,7 +16,6 @@
  * // Returns: WardConfig { only: ['lint', 'typecheck'] }
  */
 
-import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
 import {
   wardConfigContract,
   type WardConfig,
@@ -28,7 +27,7 @@ const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--committed', '--uncommit
 
 const USAGE = `Usage: npm run ward -- [--only <check-types>] [-- <files>]\n       npm run ward -- [--only <check-types>] --onlyTests <regex> -- <files>\n       npm run ward -- --committed\n       npm run ward -- --uncommitted\n       npm run ward -- --committed --uncommitted`;
 
-export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfig => {
+export const cliArgsParseTransformer = ({ args }: { args: string[] }): WardConfig => {
   const parsed: Partial<WardConfig> = {};
 
   // A LOCAL BOOLEAN, NEVER A WardConfig FIELD. It answers one question — may `--onlyTests` stand

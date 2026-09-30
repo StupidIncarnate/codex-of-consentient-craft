@@ -10,12 +10,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { cliArgContract } from '../cli-arg/cli-arg-contract';
 import { scanRuleNameContract } from '../scan-rule-name/scan-rule-name-contract';
 
 export const scanConfigContract = z.object({
   rule: scanRuleNameContract,
-  paths: z.array(cliArgContract),
+  paths: z.array(z.string().brand<'ScanConfigPaths'>()),
 });
 
 export type ScanConfig = z.infer<typeof scanConfigContract>;

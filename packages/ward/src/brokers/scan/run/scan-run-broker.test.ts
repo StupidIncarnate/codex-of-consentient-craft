@@ -1,5 +1,4 @@
 
-import { CliArgStub } from '../../../contracts/cli-arg/cli-arg.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ScanConfigStub } from '../../../contracts/scan-config/scan-config.stub';
 import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
@@ -89,7 +88,7 @@ describe('scanRunBroker', () => {
       const result = await scanRunBroker({
         config: ScanConfigStub({
           rule,
-          paths: [CliArgStub({ value: 'packages/ward/src/a.ts' })],
+          paths: ['packages/ward/src/a.ts'],
         }),
         rootPath,
       });

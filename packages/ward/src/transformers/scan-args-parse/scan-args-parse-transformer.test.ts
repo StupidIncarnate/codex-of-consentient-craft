@@ -1,11 +1,10 @@
-import { CliArgStub } from '../../contracts/cli-arg/cli-arg.stub';
 import { scanArgsParseTransformer } from './scan-args-parse-transformer';
 
 describe('scanArgsParseTransformer', () => {
   describe('valid input', () => {
     it('VALID: {rule only} => returns the rule with no paths', () => {
       const result = scanArgsParseTransformer({
-        args: [CliArgStub({ value: '@dungeonmaster/ban-primitives' })],
+        args: ['@dungeonmaster/ban-primitives'],
       });
 
       expect(result).toStrictEqual({ rule: '@dungeonmaster/ban-primitives', paths: [] });
@@ -14,10 +13,10 @@ describe('scanArgsParseTransformer', () => {
     it('VALID: {rule, --, two paths} => returns both paths in order', () => {
       const result = scanArgsParseTransformer({
         args: [
-          CliArgStub({ value: 'no-console' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward' }),
-          CliArgStub({ value: 'packages/hooks/src/a.ts' }),
+          'no-console',
+          '--',
+          'packages/ward',
+          'packages/hooks/src/a.ts',
         ],
       });
 
@@ -29,7 +28,7 @@ describe('scanArgsParseTransformer', () => {
 
     it('EDGE: {rule, bare --} => returns no paths', () => {
       const result = scanArgsParseTransformer({
-        args: [CliArgStub({ value: 'no-console' }), CliArgStub({ value: '--' })],
+        args: ['no-console', '--'],
       });
 
       expect(result).toStrictEqual({ rule: 'no-console', paths: [] });
@@ -44,7 +43,7 @@ describe('scanArgsParseTransformer', () => {
     });
 
     it('INVALID: {first arg is a flag} => throws the usage line', () => {
-      expect(() => scanArgsParseTransformer({ args: [CliArgStub({ value: '--only' })] })).toThrow(
+      expect(() => scanArgsParseTransformer({ args: ['--only'] })).toThrow(
         /^scan needs a rule name first\./u,
       );
     });
@@ -52,7 +51,7 @@ describe('scanArgsParseTransformer', () => {
     it('INVALID: {second word before --} => throws naming the stray argument', () => {
       expect(() =>
         scanArgsParseTransformer({
-          args: [CliArgStub({ value: 'no-console' }), CliArgStub({ value: 'extra' })],
+          args: ['no-console', 'extra'],
         }),
       ).toThrow(
         /^scan takes one rule; unexpected argument\(s\): extra\nUsage: npm run ward -- scan <rule> \[-- <files or packages>\]$/u,
@@ -63,9 +62,9 @@ describe('scanArgsParseTransformer', () => {
       expect(() =>
         scanArgsParseTransformer({
           args: [
-            CliArgStub({ value: 'no-console' }),
-            CliArgStub({ value: '--' }),
-            CliArgStub({ value: '--fix' }),
+            'no-console',
+            '--',
+            '--fix',
           ],
         }),
       ).toThrow(

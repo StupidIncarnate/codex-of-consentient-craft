@@ -11,7 +11,6 @@
 import { setExitCode, stderr, stdout } from '#gateway/node/process';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
-import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
 import { scanArgsParseTransformer } from '../../../transformers/scan-args-parse/scan-args-parse-transformer';
 import { scanRunBroker } from '../../../brokers/scan/run/scan-run-broker';
 
@@ -27,7 +26,7 @@ export const WardScanResponder = async ({
 }): Promise<void> => {
   try {
     const config = scanArgsParseTransformer({
-      args: args.slice(FIRST_POSITIONAL_INDEX).map((arg) => cliArgContract.parse(arg)),
+      args: args.slice(FIRST_POSITIONAL_INDEX).map((arg) => arg),
     });
     const report = await scanRunBroker({ config, rootPath });
     stdout.write(`${JSON.stringify(report, null, JSON_INDENT)}\n`);

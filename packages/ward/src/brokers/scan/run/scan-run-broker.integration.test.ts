@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { scanFixtureHarness } from '../../../../test/harnesses/scan-fixture/scan-fixture.harness';
-import { CliArgStub } from '../../../contracts/cli-arg/cli-arg.stub';
 import { ScanConfigStub } from '../../../contracts/scan-config/scan-config.stub';
 import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanRunBroker } from './scan-run-broker';
@@ -65,7 +64,7 @@ describe('scanRunBroker (integration)', () => {
     const result = await scanRunBroker({
       config: ScanConfigStub({
         rule: ScanRuleNameStub({ value: 'no-debugger' }),
-        paths: [CliArgStub({ value: 'packages/app/src/b.js' })],
+        paths: ['packages/app/src/b.js'],
       }),
       rootPath: testbed.guildPath,
     });

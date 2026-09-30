@@ -9,7 +9,6 @@
  */
 
 
-import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import {
   scanFolderTargetsContract,
@@ -25,7 +24,7 @@ export const scanFolderTargetsTransformer = ({
   projectFolder,
   rootPath,
 }: {
-  paths: CliArg[];
+  paths: string[];
   projectFolder: ProjectFolder;
   rootPath: string;
 }): ScanFolderTargets => {

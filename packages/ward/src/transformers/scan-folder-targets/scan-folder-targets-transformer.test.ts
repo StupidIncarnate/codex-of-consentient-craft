@@ -1,5 +1,4 @@
 
-import { CliArgStub } from '../../contracts/cli-arg/cli-arg.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 import { scanFolderTargetsTransformer } from './scan-folder-targets-transformer';
 
@@ -15,7 +14,7 @@ describe('scanFolderTargetsTransformer', () => {
 
   it('VALID: {the package folder itself} => scans the whole package', () => {
     const result = scanFolderTargetsTransformer({
-      paths: [CliArgStub({ value: 'packages/ward' })],
+      paths: ['packages/ward'],
       projectFolder,
       rootPath,
     });
@@ -25,7 +24,7 @@ describe('scanFolderTargetsTransformer', () => {
 
   it('VALID: {package folder with ./ prefix and trailing slash} => scans the whole package', () => {
     const result = scanFolderTargetsTransformer({
-      paths: [CliArgStub({ value: './packages/ward/' })],
+      paths: ['./packages/ward/'],
       projectFolder,
       rootPath,
     });
@@ -35,7 +34,7 @@ describe('scanFolderTargetsTransformer', () => {
 
   it('VALID: {absolute package folder} => scans the whole package', () => {
     const result = scanFolderTargetsTransformer({
-      paths: [CliArgStub({ value: '/repo/packages/ward' })],
+      paths: ['/repo/packages/ward'],
       projectFolder,
       rootPath,
     });
@@ -46,9 +45,9 @@ describe('scanFolderTargetsTransformer', () => {
   it('VALID: {two files in the package, one in another} => targets the two, relative to the package', () => {
     const result = scanFolderTargetsTransformer({
       paths: [
-        CliArgStub({ value: 'packages/ward/src/a.ts' }),
-        CliArgStub({ value: 'packages/hooks/src/b.ts' }),
-        CliArgStub({ value: '/repo/packages/ward/src/c.ts' }),
+        'packages/ward/src/a.ts',
+        'packages/hooks/src/b.ts',
+        '/repo/packages/ward/src/c.ts',
       ],
       projectFolder,
       rootPath,
@@ -60,8 +59,8 @@ describe('scanFolderTargetsTransformer', () => {
   it('VALID: {the folder and a file inside it} => the folder wins and scans the whole package', () => {
     const result = scanFolderTargetsTransformer({
       paths: [
-        CliArgStub({ value: 'packages/ward/src/a.ts' }),
-        CliArgStub({ value: 'packages/ward' }),
+        'packages/ward/src/a.ts',
+        'packages/ward',
       ],
       projectFolder,
       rootPath,
@@ -73,8 +72,8 @@ describe('scanFolderTargetsTransformer', () => {
   it('EDGE: {paths only in other packages, one sharing a name prefix} => out of scope', () => {
     const result = scanFolderTargetsTransformer({
       paths: [
-        CliArgStub({ value: 'packages/hooks/src/b.ts' }),
-        CliArgStub({ value: 'packages/ward-extra/src/c.ts' }),
+        'packages/hooks/src/b.ts',
+        'packages/ward-extra/src/c.ts',
       ],
       projectFolder,
       rootPath,

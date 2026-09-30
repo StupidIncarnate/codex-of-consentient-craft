@@ -1,4 +1,3 @@
-import { CliArgStub } from '../../contracts/cli-arg/cli-arg.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 import { hasPassthroughMatchGuard } from './has-passthrough-match-guard';
 
@@ -7,7 +6,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('VALID: {passthrough matches package prefix} => returns true', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'packages/hooks/src/foo.test.ts' });
+      const passthroughArg = 'packages/hooks/src/foo.test.ts';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -17,9 +16,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('VALID: {deeply nested passthrough path} => returns true', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/ward' });
-      const passthroughArg = CliArgStub({
-        value: 'packages/ward/src/guards/deep/nested/file.test.ts',
-      });
+      const passthroughArg = 'packages/ward/src/guards/deep/nested/file.test.ts';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -31,7 +28,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('INVALID: {passthrough for different package} => returns false', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'packages/ward/src/foo.test.ts' });
+      const passthroughArg = 'packages/ward/src/foo.test.ts';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -41,7 +38,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('INVALID: {similar prefix but different package} => returns false', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'packages/hooks-extra/src/foo.test.ts' });
+      const passthroughArg = 'packages/hooks-extra/src/foo.test.ts';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -51,7 +48,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('INVALID: {root-level file with no packages prefix} => returns false', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'eslint.config.js' });
+      const passthroughArg = 'eslint.config.js';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -61,7 +58,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('INVALID: {passthrough is partial package name} => returns false', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'packages/hook' });
+      const passthroughArg = 'packages/hook';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -73,7 +70,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('VALID: {passthrough IS the package folder without trailing slash} => returns true', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'packages/hooks' });
+      const passthroughArg = 'packages/hooks';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -83,7 +80,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('VALID: {passthrough IS the package folder with trailing slash} => returns true', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: 'packages/hooks/' });
+      const passthroughArg = 'packages/hooks/';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 
@@ -95,7 +92,7 @@ describe('hasPassthroughMatchGuard', () => {
     it('EMPTY: {passthroughArg is empty string} => returns false', () => {
       const rootPath = '/home/user/project';
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
-      const passthroughArg = CliArgStub({ value: '' });
+      const passthroughArg = '';
 
       const result = hasPassthroughMatchGuard({ passthroughArg, projectFolder, rootPath });
 

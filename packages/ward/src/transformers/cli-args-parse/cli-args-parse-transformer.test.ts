@@ -1,4 +1,3 @@
-import { CliArgStub } from '../../contracts/cli-arg/cli-arg.stub';
 
 import { cliArgsParseTransformer } from './cli-args-parse-transformer';
 import { cliArgsParseTransformerProxy } from './cli-args-parse-transformer.proxy';
@@ -19,7 +18,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint' })],
+        args: ['--only', 'lint'],
       });
 
       expect(result).toStrictEqual({ only: ['lint'] });
@@ -29,7 +28,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint,typecheck' })],
+        args: ['--only', 'lint,typecheck'],
       });
 
       expect(result).toStrictEqual({ only: ['lint', 'typecheck'] });
@@ -40,10 +39,10 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'lint' }),
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'typecheck' }),
+          '--only',
+          'lint',
+          '--only',
+          'typecheck',
         ],
       });
 
@@ -56,7 +55,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test' })],
+        args: ['--only', 'test'],
       });
 
       expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e'] });
@@ -66,7 +65,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,lint' })],
+        args: ['--only', 'test,lint'],
       });
 
       expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e', 'lint'] });
@@ -76,7 +75,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'test,e2e' })],
+        args: ['--only', 'test,e2e'],
       });
 
       expect(result).toStrictEqual({ only: ['unit', 'integration', 'e2e'] });
@@ -86,7 +85,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'unit' })],
+        args: ['--only', 'unit'],
       });
 
       expect(result).toStrictEqual({ only: ['unit'] });
@@ -96,7 +95,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'integration' })],
+        args: ['--only', 'integration'],
       });
 
       expect(result).toStrictEqual({ only: ['integration'] });
@@ -109,10 +108,10 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'my test' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+          '--onlyTests',
+          'my test',
+          '--',
+          'packages/ward/src/index.test.ts',
         ],
       });
 
@@ -127,10 +126,10 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'foo|bar|baz' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+          '--onlyTests',
+          'foo|bar|baz',
+          '--',
+          'packages/ward/src/index.test.ts',
         ],
       });
 
@@ -145,12 +144,12 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'unit' }),
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'my test' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+          '--only',
+          'unit',
+          '--onlyTests',
+          'my test',
+          '--',
+          'packages/ward/src/index.test.ts',
         ],
       });
 
@@ -165,7 +164,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--onlyTests' })],
+        args: ['--onlyTests'],
       });
 
       expect(result).toStrictEqual({});
@@ -178,7 +177,7 @@ describe('cliArgsParseTransformer', () => {
 
       expect(() =>
         cliArgsParseTransformer({
-          args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+          args: ['--onlyTests', 'my test'],
         }),
       ).toThrow(/^--onlyTests requires a file scope: add -- <files>$/mu);
     });
@@ -189,10 +188,10 @@ describe('cliArgsParseTransformer', () => {
       expect(() =>
         cliArgsParseTransformer({
           args: [
-            CliArgStub({ value: '--only' }),
-            CliArgStub({ value: 'unit' }),
-            CliArgStub({ value: '--onlyTests' }),
-            CliArgStub({ value: 'my test' }),
+            '--only',
+            'unit',
+            '--onlyTests',
+            'my test',
           ],
         }),
       ).toThrow(/^--onlyTests requires a file scope: add -- <files>$/mu);
@@ -204,9 +203,9 @@ describe('cliArgsParseTransformer', () => {
       expect(() =>
         cliArgsParseTransformer({
           args: [
-            CliArgStub({ value: '--onlyTests' }),
-            CliArgStub({ value: 'my test' }),
-            CliArgStub({ value: '--' }),
+            '--onlyTests',
+            'my test',
+            '--',
           ],
         }),
       ).toThrow(/^--onlyTests requires a file scope: add -- <files>$/mu);
@@ -217,7 +216,7 @@ describe('cliArgsParseTransformer', () => {
 
       expect(() =>
         cliArgsParseTransformer({
-          args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+          args: ['--onlyTests', 'my test'],
         }),
       ).toThrow(
         /^ {2}npm run ward -- --only unit --onlyTests "my test" -- packages\/ward\/src\/foo\.test\.ts$/mu,
@@ -229,10 +228,10 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'my test' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+          '--onlyTests',
+          'my test',
+          '--',
+          'packages/ward/src/index.test.ts',
         ],
       });
 
@@ -249,11 +248,11 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'unit' }),
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'my test' }),
-          CliArgStub({ value: '--parentScoped' }),
+          '--only',
+          'unit',
+          '--onlyTests',
+          'my test',
+          '--parentScoped',
         ],
       });
 
@@ -264,7 +263,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--parentScoped' })],
+        args: ['--parentScoped'],
       });
 
       expect(result).toStrictEqual({});
@@ -275,11 +274,11 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'my test' }),
-          CliArgStub({ value: '--parentScoped' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'src/index.test.ts' }),
+          '--onlyTests',
+          'my test',
+          '--parentScoped',
+          '--',
+          'src/index.test.ts',
         ],
       });
 
@@ -295,10 +294,10 @@ describe('cliArgsParseTransformer', () => {
       expect(() =>
         cliArgsParseTransformer({
           args: [
-            CliArgStub({ value: '--uncommitted' }),
-            CliArgStub({ value: '--onlyTests' }),
-            CliArgStub({ value: 'my test' }),
-            CliArgStub({ value: '--parentScoped' }),
+            '--uncommitted',
+            '--onlyTests',
+            'my test',
+            '--parentScoped',
           ],
         }),
       ).toThrow(/^--uncommitted cannot be combined with: --onlyTests$/mu);
@@ -310,7 +309,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--committed' })],
+        args: ['--committed'],
       });
 
       expect(result).toStrictEqual({ committed: true });
@@ -322,7 +321,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--uncommitted' })],
+        args: ['--uncommitted'],
       });
 
       expect(result).toStrictEqual({ uncommitted: true });
@@ -332,7 +331,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--uncommitted' }), CliArgStub({ value: '--uncommitted' })],
+        args: ['--uncommitted', '--uncommitted'],
       });
 
       expect(result).toStrictEqual({ uncommitted: true });
@@ -342,7 +341,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--uncommitted' }), CliArgStub({ value: '--' })],
+        args: ['--uncommitted', '--'],
       });
 
       expect(result).toStrictEqual({ uncommitted: true });
@@ -357,9 +356,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: scopeFlag }),
-              CliArgStub({ value: '--only' }),
-              CliArgStub({ value: 'lint' }),
+              scopeFlag,
+              '--only',
+              'lint',
             ],
           }),
         ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: --only$`, 'mu'));
@@ -371,9 +370,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: '--only' }),
-              CliArgStub({ value: 'lint' }),
-              CliArgStub({ value: scopeFlag }),
+              '--only',
+              'lint',
+              scopeFlag,
             ],
           }),
         ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: --only$`, 'mu'));
@@ -385,9 +384,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: scopeFlag }),
-              CliArgStub({ value: '--onlyTests' }),
-              CliArgStub({ value: 'my test' }),
+              scopeFlag,
+              '--onlyTests',
+              'my test',
             ],
           }),
         ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: --onlyTests$`, 'mu'));
@@ -399,9 +398,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: scopeFlag }),
-              CliArgStub({ value: '--' }),
-              CliArgStub({ value: 'packages/ward/src/index.ts' }),
+              scopeFlag,
+              '--',
+              'packages/ward/src/index.ts',
             ],
           }),
         ).toThrow(new RegExp(`^${scopeFlag} cannot be combined with: -- <files>$`, 'mu'));
@@ -413,13 +412,13 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: scopeFlag }),
-              CliArgStub({ value: '--only' }),
-              CliArgStub({ value: 'lint' }),
-              CliArgStub({ value: '--onlyTests' }),
-              CliArgStub({ value: 'x' }),
-              CliArgStub({ value: '--' }),
-              CliArgStub({ value: 'packages/ward/src/index.ts' }),
+              scopeFlag,
+              '--only',
+              'lint',
+              '--onlyTests',
+              'x',
+              '--',
+              'packages/ward/src/index.ts',
             ],
           }),
         ).toThrow(
@@ -436,9 +435,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: scopeFlag }),
-              CliArgStub({ value: '--only' }),
-              CliArgStub({ value: 'lint' }),
+              scopeFlag,
+              '--only',
+              'lint',
             ],
           }),
         ).toThrow(new RegExp(`^ {2}npm run ward -- ${scopeFlag}$`, 'mu'));
@@ -454,7 +453,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--committed' }), CliArgStub({ value: '--uncommitted' })],
+        args: ['--committed', '--uncommitted'],
       });
 
       expect(result).toStrictEqual({ committed: true, uncommitted: true });
@@ -464,7 +463,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--uncommitted' }), CliArgStub({ value: '--committed' })],
+        args: ['--uncommitted', '--committed'],
       });
 
       expect(result).toStrictEqual({ committed: true, uncommitted: true });
@@ -476,10 +475,10 @@ describe('cliArgsParseTransformer', () => {
       expect(() =>
         cliArgsParseTransformer({
           args: [
-            CliArgStub({ value: '--committed' }),
-            CliArgStub({ value: '--uncommitted' }),
-            CliArgStub({ value: '--only' }),
-            CliArgStub({ value: 'lint' }),
+            '--committed',
+            '--uncommitted',
+            '--only',
+            'lint',
           ],
         }),
       ).toThrow(/^--committed --uncommitted cannot be combined with: --only$/mu);
@@ -492,8 +491,8 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+          '--',
+          'packages/ward/src/index.test.ts',
         ],
       });
 
@@ -507,11 +506,11 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'unit' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/a.test.ts' }),
-          CliArgStub({ value: 'packages/ward/src/b.test.ts' }),
+          '--only',
+          'unit',
+          '--',
+          'packages/ward/src/a.test.ts',
+          'packages/ward/src/b.test.ts',
         ],
       });
 
@@ -525,7 +524,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--' })],
+        args: ['--'],
       });
 
       expect(result).toStrictEqual({});
@@ -539,11 +538,11 @@ describe('cliArgsParseTransformer', () => {
       expect(() =>
         cliArgsParseTransformer({
           args: [
-            CliArgStub({ value: '--only' }),
-            CliArgStub({ value: 'test' }),
-            CliArgStub({ value: '--' }),
-            CliArgStub({ value: '--only' }),
-            CliArgStub({ value: 'lint' }),
+            '--only',
+            'test',
+            '--',
+            '--only',
+            'lint',
           ],
         }),
       ).toThrow(/Flags after "--" are not forwarded/u);
@@ -556,12 +555,12 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'validates input' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/hooks/src/foo.test.ts' }),
+          '--only',
+          'test',
+          '--onlyTests',
+          'validates input',
+          '--',
+          'packages/hooks/src/foo.test.ts',
         ],
       });
 
@@ -579,10 +578,10 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
+          '--only',
+          'test',
+          '--only',
+          'test',
         ],
       });
 
@@ -594,10 +593,10 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'unit' }),
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
+          '--only',
+          'unit',
+          '--only',
+          'test',
         ],
       });
 
@@ -611,7 +610,7 @@ describe('cliArgsParseTransformer', () => {
 
       expect(() =>
         cliArgsParseTransformer({
-          args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'badvalue' })],
+          args: ['--only', 'badvalue'],
         }),
       ).toThrow(/Invalid option/u);
     });
@@ -620,7 +619,7 @@ describe('cliArgsParseTransformer', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--only' })],
+        args: ['--only'],
       });
 
       expect(result).toStrictEqual({});
@@ -663,7 +662,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: flag })],
+            args: [flag],
           }),
         ).toThrow(/Unknown flag/u);
       });
@@ -700,7 +699,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: flag })],
+            args: [flag],
           }),
         ).toThrow(/Unknown flag/u);
       });
@@ -738,7 +737,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: flag })],
+            args: [flag],
           }),
         ).toThrow(/Unknown flag/u);
       });
@@ -771,7 +770,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: flag })],
+            args: [flag],
           }),
         ).toThrow(/Unknown flag/u);
       });
@@ -811,7 +810,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: flag })],
+            args: [flag],
           }),
         ).toThrow(/Unknown flag/u);
       });
@@ -829,7 +828,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: arg })],
+            args: [arg],
           }),
         ).toThrow(/Unexpected positional argument/u);
       });
@@ -841,7 +840,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: '--coverage' })],
+            args: ['--coverage'],
           }),
         ).toThrow(/--coverage/u);
       });
@@ -851,7 +850,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: '--watch' })],
+            args: ['--watch'],
           }),
         ).toThrow(/Usage:/u);
       });
@@ -861,7 +860,7 @@ describe('cliArgsParseTransformer', () => {
 
         expect(() =>
           cliArgsParseTransformer({
-            args: [CliArgStub({ value: 'file.test.ts' })],
+            args: ['file.test.ts'],
           }),
         ).toThrow(/after "--" separator/u);
       });
@@ -872,9 +871,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: '--only' }),
-              CliArgStub({ value: 'unit' }),
-              CliArgStub({ value: '--bail' }),
+              '--only',
+              'unit',
+              '--bail',
             ],
           }),
         ).toThrow(/Unknown flag: --bail/u);
@@ -888,9 +887,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: '--' }),
-              CliArgStub({ value: '--watch' }),
-              CliArgStub({ value: '--bail' }),
+              '--',
+              '--watch',
+              '--bail',
             ],
           }),
         ).toThrow(/Flags after "--" are not forwarded.*--watch.*--bail/su);
@@ -902,9 +901,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: '--' }),
-              CliArgStub({ value: 'path/to/file.test.ts' }),
-              CliArgStub({ value: '--verbose' }),
+              '--',
+              'path/to/file.test.ts',
+              '--verbose',
             ],
           }),
         ).toThrow(/Flags after "--" are not forwarded.*--verbose/su);
@@ -916,9 +915,9 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: '--' }),
-              CliArgStub({ value: '-t' }),
-              CliArgStub({ value: 'my test name' }),
+              '--',
+              '-t',
+              'my test name',
             ],
           }),
         ).toThrow(/Flags after "--" are not forwarded.*-t/su);
@@ -930,10 +929,10 @@ describe('cliArgsParseTransformer', () => {
         expect(() =>
           cliArgsParseTransformer({
             args: [
-              CliArgStub({ value: '--only' }),
-              CliArgStub({ value: 'unit' }),
-              CliArgStub({ value: '--' }),
-              CliArgStub({ value: '--coverage' }),
+              '--only',
+              'unit',
+              '--',
+              '--coverage',
             ],
           }),
         ).toThrow(/Ward does not support passing flags to Jest/u);
@@ -947,12 +946,12 @@ describe('cliArgsParseTransformer', () => {
 
       const result = cliArgsParseTransformer({
         args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'lint' }),
-          CliArgStub({ value: '--onlyTests' }),
-          CliArgStub({ value: 'my test' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: 'packages/ward/src/index.test.ts' }),
+          '--only',
+          'lint',
+          '--onlyTests',
+          'my test',
+          '--',
+          'packages/ward/src/index.test.ts',
         ],
       });
 

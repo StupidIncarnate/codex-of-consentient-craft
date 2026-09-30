@@ -6,7 +6,6 @@
  * // Returns true if the passthrough arg starts with the package's relative path prefix
  */
 
-import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import { isPathUnderDirectoryGuard } from '../is-path-under-directory/is-path-under-directory-guard';
 
@@ -15,7 +14,7 @@ export const hasPassthroughMatchGuard = ({
   projectFolder,
   rootPath,
 }: {
-  passthroughArg?: CliArg;
+  passthroughArg?: string;
   projectFolder?: ProjectFolder;
   rootPath?: string;
 }): boolean => {

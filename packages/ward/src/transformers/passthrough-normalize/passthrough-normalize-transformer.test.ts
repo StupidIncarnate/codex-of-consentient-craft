@@ -1,5 +1,4 @@
 import { hasPassthroughMatchGuard } from '../../guards/has-passthrough-match/has-passthrough-match-guard';
-import { CliArgStub } from '../../contracts/cli-arg/cli-arg.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 import { WardConfigStub } from '../../contracts/ward-config/ward-config.stub';
 import { passthroughNormalizeTransformer } from './passthrough-normalize-transformer';
@@ -61,14 +60,14 @@ describe('passthroughNormalizeTransformer', () => {
       const { passthrough } = WardConfigStub({ passthrough: ['./packages/hooks/src/foo.ts'] });
 
       const beforeMatch = hasPassthroughMatchGuard({
-        passthroughArg: CliArgStub({ value: String(passthrough?.[0]) }),
+        passthroughArg: String(passthrough?.[0]),
         projectFolder,
         rootPath,
       });
 
       const normalized = passthroughNormalizeTransformer({ passthrough, rootPath });
       const afterMatch = hasPassthroughMatchGuard({
-        passthroughArg: CliArgStub({ value: String(normalized?.[0]) }),
+        passthroughArg: String(normalized?.[0]),
         projectFolder,
         rootPath,
       });
@@ -85,14 +84,14 @@ describe('passthroughNormalizeTransformer', () => {
       });
 
       const beforeMatch = hasPassthroughMatchGuard({
-        passthroughArg: CliArgStub({ value: String(passthrough?.[0]) }),
+        passthroughArg: String(passthrough?.[0]),
         projectFolder,
         rootPath,
       });
 
       const normalized = passthroughNormalizeTransformer({ passthrough, rootPath });
       const afterMatch = hasPassthroughMatchGuard({
-        passthroughArg: CliArgStub({ value: String(normalized?.[0]) }),
+        passthroughArg: String(normalized?.[0]),
         projectFolder,
         rootPath,
       });

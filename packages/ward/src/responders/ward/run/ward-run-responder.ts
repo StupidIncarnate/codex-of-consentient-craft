@@ -7,7 +7,6 @@
  */
 
 
-import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
 import { cliArgsParseTransformer } from '../../../transformers/cli-args-parse/cli-args-parse-transformer';
 import { commandRunBroker } from '../../../brokers/command/run/command-run-broker';
 
@@ -20,7 +19,7 @@ export const WardRunResponder = async ({
   args: readonly string[];
   rootPath: string;
 }): Promise<void> => {
-  const cliArgs = args.slice(FIRST_POSITIONAL_INDEX).map((arg) => cliArgContract.parse(arg));
+  const cliArgs = args.slice(FIRST_POSITIONAL_INDEX).map((arg) => arg);
   const config = cliArgsParseTransformer({ args: cliArgs });
   await commandRunBroker({ config, rootPath });
 };

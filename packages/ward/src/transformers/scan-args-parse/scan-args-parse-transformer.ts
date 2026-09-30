@@ -8,7 +8,6 @@
  * // Returns: ScanConfig { rule: 'no-console', paths: ['packages/ward'] }
  */
 
-import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
 import {
   scanConfigContract,
   type ScanConfig,
@@ -18,7 +17,7 @@ const SEPARATOR = '--';
 
 const USAGE = 'Usage: npm run ward -- scan <rule> [-- <files or packages>]';
 
-export const scanArgsParseTransformer = ({ args }: { args: CliArg[] }): ScanConfig => {
+export const scanArgsParseTransformer = ({ args }: { args: string[] }): ScanConfig => {
   const [rule, ...rest] = args.map(String);
 
   if (rule === undefined || rule.startsWith('-')) {
