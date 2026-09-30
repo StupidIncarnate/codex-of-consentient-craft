@@ -99,7 +99,6 @@ export * from './left-alone/left-alone-contract';
 
 export * from './reaped-instance/reaped-instance-contract';
 
-export * from './file-size-bytes/file-size-bytes-contract';
 
 export * from './file-stat/file-stat-contract';
 

@@ -6,7 +6,6 @@ import type { FileName } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
-import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 
 export const snapshotRestoreLayerBrokerProxy = (): {
   setupDirectories: (params: {
@@ -15,7 +14,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   setupFileStats: (params: {
     stats: readonly {
       filePath: string;
-      sizeBytes: FileSizeBytes;
+      sizeBytes: number;
       modifiedAtMs: number;
     }[];
   }) => void;

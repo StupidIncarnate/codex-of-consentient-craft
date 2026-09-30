@@ -27,7 +27,6 @@
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
-import { fileSizeBytesContract } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import { pruneAnswerContract } from '../../../contracts/prune-answer/prune-answer-contract';
 import type { PruneAnswer } from '../../../contracts/prune-answer/prune-answer-contract';
@@ -116,7 +115,7 @@ export const pruneRunBroker = async ({
 
   return pruneAnswerContract.parse({
     freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
-    freedBytes: fileSizeBytesContract.parse(freedBytes),
+    freedBytes: freedBytes,
     removed,
     refused,
     unresolved: [...gapsByKind.values()],

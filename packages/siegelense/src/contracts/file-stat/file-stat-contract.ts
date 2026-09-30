@@ -11,10 +11,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';
 
 export const fileStatContract = z.object({
-  sizeBytes: fileSizeBytesContract,
+  sizeBytes: z.number().int().nonnegative().brand<'FileStatSizeBytes'>(),
   modifiedAtMs: z.number().int().nonnegative().brand<'FileStatModifiedAtMs'>(),
 });
 

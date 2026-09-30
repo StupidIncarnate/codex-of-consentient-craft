@@ -22,13 +22,12 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';
 import { pruneAssetKindContract } from '../prune-asset-kind/prune-asset-kind-contract';
 
 export const pruneAssetContract = z.object({
   path: absoluteFilePathContract,
   kind: pruneAssetKindContract,
-  sizeBytes: fileSizeBytesContract,
+  sizeBytes: z.number().int().nonnegative().brand<'PruneAssetSizeBytes'>(),
   modifiedAtMs: z.number().int().nonnegative().brand<'PruneAssetModifiedAtMs'>(),
 });
 

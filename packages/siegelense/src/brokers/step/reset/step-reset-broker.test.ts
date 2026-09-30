@@ -1,7 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
-import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { stepResetBroker } from './step-reset-broker';
@@ -87,12 +86,12 @@ describe('stepResetBroker', () => {
         stats: [
           {
             filePath: homeFile,
-            sizeBytes: FileSizeBytesStub({ value: 100 }),
+            sizeBytes: 100,
             modifiedAtMs: 1000,
           },
           {
             filePath: payloadFile,
-            sizeBytes: FileSizeBytesStub({ value: 100 }),
+            sizeBytes: 100,
             modifiedAtMs: 1000,
           },
         ],
@@ -287,7 +286,7 @@ describe('stepResetBroker', () => {
         stats: [
           {
             filePath: seededFilePath,
-            sizeBytes: FileSizeBytesStub({ value: 42 }),
+            sizeBytes: 42,
             modifiedAtMs: 1700000000000,
           },
         ],

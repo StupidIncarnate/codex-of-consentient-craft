@@ -1,7 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
-import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
 
@@ -26,7 +25,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const fileName = 'config.json';
     const filePathHome = `${String(homePath)}/${String(fileName)}`;
     const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
-    const sizeBytes = FileSizeBytesStub({ value: 256 });
+    const sizeBytes = 256;
     const modifiedAtMs = 1700000000000;
 
     proxy.setupDirectories({
@@ -67,7 +66,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const fileName = 'seeded.json';
     const filePathHome = `${String(homePath)}/${String(fileName)}`;
     const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
-    const sizeBytes = FileSizeBytesStub({ value: 64 });
+    const sizeBytes = 64;
     const content = '{"seeded":true}';
 
     proxy.setupDirectories({
@@ -115,7 +114,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const fileName = 'seeded.json';
     const filePathHome = `${String(homePath)}/${String(fileName)}`;
     const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
-    const sizeBytes = FileSizeBytesStub({ value: 15 });
+    const sizeBytes = 15;
 
     proxy.setupDirectories({
       dirs: [
@@ -161,7 +160,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const existingFileName = 'base.txt';
     const existingFilePathHome = `${String(homePath)}/${String(existingFileName)}`;
     const existingFilePathPayload = `${String(payloadPath)}/${String(existingFileName)}`;
-    const sizeBytes = FileSizeBytesStub({ value: 100 });
+    const sizeBytes = 100;
     const modifiedAtMs = 1700000000000;
 
     proxy.setupDirectories({
@@ -230,17 +229,17 @@ describe('snapshotRestoreLayerBroker', () => {
       stats: [
         {
           filePath: modifiedHome,
-          sizeBytes: FileSizeBytesStub({ value: 50 }),
+          sizeBytes: 50,
           modifiedAtMs: 1700000000000,
         },
         {
           filePath: modifiedPayload,
-          sizeBytes: FileSizeBytesStub({ value: 100 }),
+          sizeBytes: 100,
           modifiedAtMs: 1700000000000,
         },
         {
           filePath: removedPayload,
-          sizeBytes: FileSizeBytesStub({ value: 200 }),
+          sizeBytes: 200,
           modifiedAtMs: 1700000000000,
         },
       ],
@@ -266,7 +265,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const fileName = 'app.ts';
     const homeFilePath = `${String(homePath)}/${String(fileName)}`;
     const payloadFilePath = `${String(payloadPath)}/${String(fileName)}`;
-    const sizeBytes = FileSizeBytesStub({ value: 500 });
+    const sizeBytes = 500;
     const modifiedAtMs = 1700000000000;
 
     proxy.setupDirectories({
@@ -321,7 +320,7 @@ describe('snapshotRestoreLayerBroker', () => {
       stats: [
         {
           filePath: `${String(payloadPath)}/${String(firstName)}`,
-          sizeBytes: FileSizeBytesStub({ value: 100 }),
+          sizeBytes: 100,
           modifiedAtMs: 1700000000000,
         },
       ],

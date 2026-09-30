@@ -26,7 +26,6 @@
 import { unlink } from '#gateway/node/fs__promises';
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
-import { fileSizeBytesContract } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 import type { PruneQuery } from '../../../contracts/prune-query/prune-query-contract';
 import { pruneRefusalContract } from '../../../contracts/prune-refusal/prune-refusal-contract';
 import type { PruneRefusal } from '../../../contracts/prune-refusal/prune-refusal-contract';
@@ -126,7 +125,7 @@ export const pruneInstanceReclaimBroker = async ({
     removal: pruneRemovalContract.parse({
       id: entry.id,
       kind: query.kind,
-      freedBytes: fileSizeBytesContract.parse(freedBytes),
+      freedBytes: freedBytes,
       freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
       // A row reads `pruned` only when its tree is genuinely gone. A `--kind` selector leaves the
       // rest of the evidence on disk, and a row tombstoned over it would make `results` answer
