@@ -25,8 +25,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
-import type { RemovedCount } from '../../contracts/removed-count/removed-count-contract';
-import { removedCountContract } from '../../contracts/removed-count/removed-count-contract';
 
 type ChangeHandler = () => void;
 
@@ -68,7 +66,7 @@ export const questExecutionQueueState = {
     state.handlers.delete(handler);
   },
 
-  clearBySource: ({ questSource }: { questSource: QuestSource }): RemovedCount => {
+  clearBySource: ({ questSource }: { questSource: QuestSource }): number => {
     const before = state.entries.length;
     state.entries = state.entries.filter((entry) => entry.questSource !== questSource);
     const removed = before - state.entries.length;
@@ -77,7 +75,7 @@ export const questExecutionQueueState = {
         handler();
       }
     }
-    return removedCountContract.parse(removed);
+    return removed;
   },
 
   setHeadError: ({ message }: { message: string }): void => {
@@ -116,7 +114,7 @@ export const questExecutionQueueState = {
     }
   },
 
-  removeByQuestId: ({ questId }: { questId: QuestId }): RemovedCount => {
+  removeByQuestId: ({ questId }: { questId: QuestId }): number => {
     const before = state.entries.length;
     state.entries = state.entries.filter((entry) => entry.questId !== questId);
     const removed = before - state.entries.length;
@@ -125,10 +123,10 @@ export const questExecutionQueueState = {
         handler();
       }
     }
-    return removedCountContract.parse(removed);
+    return removed;
   },
 
-  removeByGuildId: ({ guildId }: { guildId: QuestQueueEntry['guildId'] }): RemovedCount => {
+  removeByGuildId: ({ guildId }: { guildId: QuestQueueEntry['guildId'] }): number => {
     const before = state.entries.length;
     state.entries = state.entries.filter((entry) => entry.guildId !== guildId);
     const removed = before - state.entries.length;
@@ -137,7 +135,7 @@ export const questExecutionQueueState = {
         handler();
       }
     }
-    return removedCountContract.parse(removed);
+    return removed;
   },
 
   updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }): boolean => {
