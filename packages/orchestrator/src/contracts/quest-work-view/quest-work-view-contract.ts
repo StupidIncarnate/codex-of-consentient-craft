@@ -41,7 +41,6 @@
 import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-import { commitShaContract } from '../commit-sha/commit-sha-contract';
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
 import { recipeIdContract } from '../recipe-id/recipe-id-contract';
 import { wardCheckTypeContract } from '../ward-check-type/ward-check-type-contract';
@@ -108,7 +107,7 @@ const questWorkRecipe = z.object({
 // produced a file — both grammars sit on one branch while the deterministic `commit` handler is
 // rolling out.
 const questWorkCommit = z.object({
-  sha: commitShaContract,
+  sha: z.string().regex(/^[0-9a-f]{7,40}$/u).brand<'QuestWorkCommitSha'>(),
   scope: z.string().min(1).brand<'CommitScope'>().nullable(),
   subject: z.string().min(1).brand<'CommitSubject'>(),
   paths: z.array(repoRelativePathContract).default([]),
