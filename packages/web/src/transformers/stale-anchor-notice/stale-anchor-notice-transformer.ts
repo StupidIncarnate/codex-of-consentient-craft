@@ -10,14 +10,12 @@
  */
 
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
-import { notificationMessageContract } from '../../contracts/notification-message/notification-message-contract';
-import type { NotificationMessage } from '../../contracts/notification-message/notification-message-contract';
 
 export const staleAnchorNoticeTransformer = ({
   staleAnchors,
 }: {
   staleAnchors: readonly CommentAnchor[];
-}): NotificationMessage => {
+}): string => {
   const count = staleAnchors.length;
   const isSingular = count === 1;
   const commentWord = isSingular ? 'comment' : 'comments';
@@ -31,7 +29,5 @@ export const staleAnchorNoticeTransformer = ({
     )
     .join(', ');
 
-  return notificationMessageContract.parse(
-    `Dropped ${String(count)} queued ${commentWord} — ${boxWord} ${existWord} on the quest: ${labels}`,
-  );
+  return `Dropped ${String(count)} queued ${commentWord} — ${boxWord} ${existWord} on the quest: ${labels}`;
 };
