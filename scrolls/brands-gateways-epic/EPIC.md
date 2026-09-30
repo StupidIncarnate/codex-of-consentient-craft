@@ -129,16 +129,15 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 11:40)
+### Now (updated at every event; last 2026-09-30 11:45)
 
 | Running | Where | What |
 |---|---|---|
 | plain-brand residue script (opus) | merge worktree W | `merge-master/plain-brand-residue.cjs`: rewrites master's uses of brands W1 made plain (`ContentText`, `AbsoluteFilePath`, `EpochMs`, ...); about 250 of W's 700 type errors |
-| Z02-B follow-up (opus) | W | `searchStrategy` snippet still names adapters |
 
 **Just landed:** Z02-B in W (uncommitted there, lands with the merge): the session snippet teaches per-file test imports,
 `#gateway`, branded returns with owner-field parameters (concession 29); `modifyingCodeGuidance` 2037 of 2048 bytes;
-the `consumerGatewayWrapper` snippet the merge script dropped is restored (gate 1790792705267-e87d, 1790792720226-814a).
+the `consumerGatewayWrapper` snippet the merge script dropped is restored (gate 1790792705267-e87d, 1790792720226-814a). The `searchStrategy` snippet names widgets and bindings, not adapters (1551 bytes, gate 1790792760432-a2c3).
 
 **Next:** once the residue script reports: re-run `diag.cjs` on W, then up to 8 hand-batch agents per folder, each
 owning its files' type errors, the lost-ours review and unmapped adapter calls. Then lint, unit, integration and e2e
