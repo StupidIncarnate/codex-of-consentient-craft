@@ -8,7 +8,6 @@
 
 import { Group, Text } from '#gateway/npm/mantine__core';
 
-import type { TagItem } from '../../contracts/tag-item/tag-item-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const TAG_FONT_SIZE = 10;
@@ -17,7 +16,7 @@ const TAG_PADDING = '0 4px';
 
 export interface FormTagListWidgetProps {
   label: string;
-  items: TagItem[];
+  items: string[];
 }
 
 export const FormTagListWidget = ({ label, items }: FormTagListWidgetProps): React.JSX.Element => {

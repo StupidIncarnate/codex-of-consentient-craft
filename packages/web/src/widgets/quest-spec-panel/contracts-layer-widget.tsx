@@ -11,7 +11,6 @@ import { Box, Group, Text } from '#gateway/npm/mantine__core';
 import type { ToolingRequirement } from '@dungeonmaster/shared/contracts';
 
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
-import type { TagItem } from '../../contracts/tag-item/tag-item-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormTagListWidget } from '../form-tag-list/form-tag-list-widget';
 import { PlanSectionWidget } from '../plan-section/plan-section-widget';
@@ -62,7 +61,7 @@ export const ContractsLayerWidget = ({ tooling }: ContractsLayerWidgetProps): Re
           </Group>
           <FormTagListWidget
             label={OBSERVABLES_TAG_LABEL}
-            items={tool.requiredByObservables as unknown as TagItem[]}
+            items={tool.requiredByObservables as unknown as string[]}
           />
         </Box>
       )}

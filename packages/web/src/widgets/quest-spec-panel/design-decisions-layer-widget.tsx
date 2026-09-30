@@ -11,7 +11,6 @@ import { Box, Text } from '#gateway/npm/mantine__core';
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
 
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
-import type { TagItem } from '../../contracts/tag-item/tag-item-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormTagListWidget } from '../form-tag-list/form-tag-list-widget';
 import { PlanSectionWidget } from '../plan-section/plan-section-widget';
@@ -54,7 +53,7 @@ export const DesignDecisionsLayerWidget = ({
           </Text>
           <FormTagListWidget
             label={NODES_TAG_LABEL}
-            items={decision.relatedNodeIds as unknown as TagItem[]}
+            items={decision.relatedNodeIds as unknown as string[]}
           />
         </Box>
       )}
