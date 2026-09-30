@@ -2,13 +2,12 @@ import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { typescriptParseBrokerProxy } from '../../typescript/parse/typescript-parse-broker.proxy';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
-import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 
 export const duplicateDetectionDetectBrokerProxy = (): {
   setupFiles: (params: {
     pattern: string;
     cwd?: string;
-    files: readonly { filePath: string; sourceCode: SourceCode }[];
+    files: readonly { filePath: string; sourceCode: string }[];
   }) => void;
 } => {
   const globHandle = globProxy();
@@ -23,7 +22,7 @@ export const duplicateDetectionDetectBrokerProxy = (): {
     }: {
       pattern: string;
       cwd?: string;
-      files: readonly { filePath: string; sourceCode: SourceCode }[];
+      files: readonly { filePath: string; sourceCode: string }[];
     }): void => {
       const filePaths = files.map(({ filePath }) => filePath);
       globHandle.returns({

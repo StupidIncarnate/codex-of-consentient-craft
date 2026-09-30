@@ -8,7 +8,6 @@
  * // Returns: ReadonlyMap<LiteralValue, readonly LiteralOccurrence[]> (map of literal values to their occurrences)
  */
 import * as ts from '#gateway/npm/typescript';
-import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
 import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import { literalOccurrenceContract } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
@@ -19,7 +18,7 @@ export const typescriptParseBroker = ({
   filePath,
   minLength = 3,
 }: {
-  sourceCode: SourceCode;
+  sourceCode: string;
   filePath: string;
   minLength?: number;
 }): ReadonlyMap<LiteralValue, readonly LiteralOccurrence[]> => {

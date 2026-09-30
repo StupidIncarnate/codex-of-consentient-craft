@@ -1,6 +1,5 @@
 import { duplicateDetectionDetectBrokerProxy } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker.proxy';
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
-import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
@@ -11,7 +10,7 @@ const DEFAULT_CWD = '/tooling/default-cwd';
 export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   callResponder: typeof PrimitiveDuplicateDetectionRunResponder;
   setupNoDuplicates: (params?: { pattern?: string }) => void;
-  setupWithSourceCode: (params: { sourceCode: SourceCode; pattern?: string }) => void;
+  setupWithSourceCode: (params: { sourceCode: string; pattern?: string }) => void;
   getStdoutOutput: () => readonly unknown[];
   getDefaultCwd: () => string;
 } => {
@@ -32,7 +31,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
       sourceCode,
       pattern = '**/*.ts',
     }: {
-      sourceCode: SourceCode;
+      sourceCode: string;
       pattern?: string;
     }): void => {
       cwdStage.setupCwd({ value: String(DEFAULT_CWD) });

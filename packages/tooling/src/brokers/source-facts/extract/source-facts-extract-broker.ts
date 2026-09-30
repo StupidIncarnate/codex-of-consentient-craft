@@ -14,7 +14,6 @@ import { censusLayoutStatics } from '../../../statics/census-layout/census-layou
 import { sourceFactsExtractStatementsLayerBroker } from './source-facts-extract-statements-layer-broker';
 import { sourceFactsExtractStagingLayerBroker } from './source-facts-extract-staging-layer-broker';
 import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
-import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
 
 export const sourceFactsExtractBroker = ({
@@ -22,7 +21,7 @@ export const sourceFactsExtractBroker = ({
   text,
 }: {
   file: CensusPath;
-  text: SourceCode;
+  text: string;
 }): SourceFacts => {
   const sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
   const stagesMocks = [

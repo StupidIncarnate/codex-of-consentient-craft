@@ -12,7 +12,6 @@ import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshol
 import { glob } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
 import { typescriptParseBroker } from '../../typescript/parse/typescript-parse-broker';
-import { sourceCodeContract } from '../../../contracts/source-code/source-code-contract';
 import { duplicateLiteralReportContract } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import { literalTypeContract } from '../../../contracts/literal-type/literal-type-contract';
 import { duplicateDetectionStatics } from '../../../statics/duplicate-detection/duplicate-detection-statics';
@@ -48,7 +47,7 @@ export const duplicateDetectionDetectBroker = async ({
   const fileResults = await Promise.all(
     filePaths.map(async (filePath) => {
       const rawSourceCode = await readFile(filePath);
-      const sourceCode = sourceCodeContract.parse(rawSourceCode);
+      const sourceCode = rawSourceCode;
       const fileLiterals = typescriptParseBroker({
         sourceCode,
         filePath,

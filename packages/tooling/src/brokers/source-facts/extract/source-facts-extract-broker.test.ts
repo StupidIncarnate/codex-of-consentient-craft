@@ -1,7 +1,6 @@
 import { sourceFactsExtractBroker } from './source-facts-extract-broker';
 import { sourceFactsExtractBrokerProxy } from './source-facts-extract-broker.proxy';
 import { CensusPathStub } from '../../../contracts/census-path/census-path.stub';
-import { SourceCodeStub } from '../../../contracts/source-code/source-code.stub';
 
 describe('sourceFactsExtractBroker', () => {
   describe('a caller', () => {
@@ -10,14 +9,12 @@ describe('sourceFactsExtractBroker', () => {
 
       const result = sourceFactsExtractBroker({
         file: CensusPathStub({ value: 'packages/a/src/brokers/x/x-broker.ts' }),
-        text: SourceCodeStub({
-          value: [
+        text: [
             "import { fsReadFileAdapter } from '../../adapters/fs/read-file/fs-read-file-adapter';",
             "import type { Thing } from '../../contracts/thing/thing-contract';",
             "import * as ts from '#gateway/npm/typescript';",
             'export const xBroker = async (): Promise<void> => { await fsReadFileAdapter(); };',
           ].join('\n'),
-        }),
       });
 
       expect(result).toStrictEqual({
@@ -41,13 +38,11 @@ describe('sourceFactsExtractBroker', () => {
 
       const result = sourceFactsExtractBroker({
         file: CensusPathStub({ value: 'packages/a/adapters.ts' }),
-        text: SourceCodeStub({
-          value: [
+        text: [
             "export * from './src/adapters/a/a-adapter';",
             "export { bAdapter } from './src/adapters/b/b-adapter';",
             "export type { CType } from './src/adapters/c/c-adapter';",
           ].join('\n'),
-        }),
       });
 
       expect(result).toStrictEqual({
@@ -68,8 +63,7 @@ describe('sourceFactsExtractBroker', () => {
 
       const result = sourceFactsExtractBroker({
         file: CensusPathStub({ value: 'packages/a/src/adapters/x/x-adapter.proxy.ts' }),
-        text: SourceCodeStub({
-          value: [
+        text: [
             "import { registerMock } from '@acme/testing/register-mock';",
             'export const xAdapterProxy = () => {',
             '  const handle = registerMock({ fn: run });',
@@ -79,7 +73,6 @@ describe('sourceFactsExtractBroker', () => {
             '  return handle.callsMatching([]);',
             '};',
           ].join('\n'),
-        }),
       });
 
       expect(result.catchAllSites).toStrictEqual([
@@ -96,7 +89,7 @@ describe('sourceFactsExtractBroker', () => {
 
       const result = sourceFactsExtractBroker({
         file: CensusPathStub({ value: 'packages/a/src/empty.ts' }),
-        text: SourceCodeStub({ value: '' }),
+        text: '',
       });
 
       expect(result).toStrictEqual({

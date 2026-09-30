@@ -20,7 +20,6 @@ import type { CensusFileKind } from '../../../contracts/census-file-kind/census-
 import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import type { GatewayImplementation } from '../../../contracts/gateway-implementation/gateway-implementation-contract';
-import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
 
 export const adapterCensusBuildRecordsLayerBroker = ({
@@ -37,7 +36,7 @@ export const adapterCensusBuildRecordsLayerBroker = ({
   importers: ReadonlyMap<CensusPath, readonly CensusPath[]>;
   kindByFile: ReadonlyMap<CensusPath, CensusFileKind>;
   factsByFile: ReadonlyMap<CensusPath, SourceFacts>;
-  textByFile: ReadonlyMap<CensusPath, SourceCode>;
+  textByFile: ReadonlyMap<CensusPath, string>;
   knownFiles: ReadonlySet<CensusPath>;
   implementations: readonly GatewayImplementation[];
   layout: CensusRepoLayout;

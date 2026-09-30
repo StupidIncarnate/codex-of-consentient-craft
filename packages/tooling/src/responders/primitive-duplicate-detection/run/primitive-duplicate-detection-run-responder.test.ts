@@ -1,6 +1,5 @@
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
 import { PrimitiveDuplicateDetectionRunResponderProxy } from './primitive-duplicate-detection-run-responder.proxy';
-import { SourceCodeStub } from '../../../contracts/source-code/source-code.stub';
 
 describe('PrimitiveDuplicateDetectionRunResponder', () => {
   describe('default args (no flags)', () => {
@@ -92,9 +91,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
     it('VALID: {source with string literal repeated 3 times} => outputs formatted STRING duplicate report', async () => {
       const proxy = PrimitiveDuplicateDetectionRunResponderProxy();
       proxy.setupWithSourceCode({
-        sourceCode: SourceCodeStub({
-          value: 'const a = "hello-world";\nconst b = "hello-world";\nconst c = "hello-world";',
-        }),
+        sourceCode: 'const a = "hello-world";\nconst b = "hello-world";\nconst c = "hello-world";',
       });
 
       await PrimitiveDuplicateDetectionRunResponder({ args: [] });
@@ -112,9 +109,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
     it('VALID: {source with regex literal repeated 3 times} => outputs REGEX prefix in report', async () => {
       const proxy = PrimitiveDuplicateDetectionRunResponderProxy();
       proxy.setupWithSourceCode({
-        sourceCode: SourceCodeStub({
-          value: 'const a = /foo-bar/;\nconst b = /foo-bar/;\nconst c = /foo-bar/;',
-        }),
+        sourceCode: 'const a = /foo-bar/;\nconst b = /foo-bar/;\nconst c = /foo-bar/;',
       });
 
       await PrimitiveDuplicateDetectionRunResponder({ args: [] });

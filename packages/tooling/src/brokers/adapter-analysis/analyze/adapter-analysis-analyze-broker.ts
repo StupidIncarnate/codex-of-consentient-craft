@@ -15,7 +15,6 @@ import { adapterAnalysisAnalyzeScopeLayerBroker } from './adapter-analysis-analy
 import { adapterAnalysisAnalyzeStructureLayerBroker } from './adapter-analysis-analyze-structure-layer-broker';
 import type { AdapterAnalysis } from '../../../contracts/adapter-analysis/adapter-analysis-contract';
 import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
-import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 
 export const adapterAnalysisAnalyzeBroker = ({
   file,
@@ -24,7 +23,7 @@ export const adapterAnalysisAnalyzeBroker = ({
   workspacePackageNames,
 }: {
   file: CensusPath;
-  text: SourceCode;
+  text: string;
   workspaceScope: string | null;
   workspacePackageNames: readonly string[];
 }): AdapterAnalysis => {
