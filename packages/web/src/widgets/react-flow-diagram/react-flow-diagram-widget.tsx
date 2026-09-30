@@ -41,8 +41,6 @@ import type { CommentCount } from '../../contracts/comment-count/comment-count-c
 import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
-import { flowLayoutSignatureContract } from '../../contracts/flow-layout-signature/flow-layout-signature-contract';
-import type { FlowLayoutSignature } from '../../contracts/flow-layout-signature/flow-layout-signature-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { iconButtonSizeContract } from '../../contracts/icon-button-size/icon-button-size-contract';
@@ -152,7 +150,7 @@ export const ReactFlowDiagramWidget = ({
   // Content-identity of the flow the in-flight layout pass was started for. The `flow` PROP is a
   // fresh object on every quest refresh, so keying the pass on reference would re-run ELK several
   // times a second on a spec nobody touched.
-  const laidOutSignature = useRef<FlowLayoutSignature | null>(null);
+  const laidOutSignature = useRef<string | null>(null);
   const diagramRef = useRef<HTMLDivElement>(null);
 
   const clickNativeControl = useCallback((controlClass: string): void => {
@@ -165,7 +163,7 @@ export const ReactFlowDiagramWidget = ({
     // canvas paints the laid-out snapshot: an edit that did not bump this would never reach the
     // screen. ELK on a spec-sized graph is single-digit ms, so re-laying out for a renamed label
     // costs less than the bookkeeping to decide it did not need to.
-    const signature = flowLayoutSignatureContract.parse(JSON.stringify(flow));
+    const signature = JSON.stringify(flow);
     if (laidOutSignature.current === signature) return;
     laidOutSignature.current = signature;
 
