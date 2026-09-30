@@ -487,18 +487,29 @@ const gateEdits = ({ service, live, file, text, cands, render, ignore }) => {
   const setText = (t) => live.set(file, { v: (live.get(file)?.v ?? 0) + 1, text: t });
   const diag = () =>
     [...service.getSyntacticDiagnostics(file), ...service.getSemanticDiagnostics(file)].map((d) => ({
-      key: `${d.code}:${d.file ? d.file.getLineAndCharacterOfPosition(d.start).line : -1}:${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`,
+      // No line in the key: in a file that is already red, an edit that shifts lines would otherwise make every
+      // old diagnostic look new and restore every edit. The baseline is a count per code and message instead.
+      key: `${d.code}:${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`,
       start: d.start ?? 0,
       end: (d.start ?? 0) + (d.length ?? 0),
       code: d.code,
     }));
-  const fresh = (d) => !base.has(d.key) && !(ignore && ignore(d));
-  const base = new Set(diag().map((d) => d.key));
+  const base = new Map();
+  for (const d of diag()) base.set(d.key, (base.get(d.key) ?? 0) + 1);
+  const freshOf = (list) => {
+    const left = new Map(base);
+    return list.filter((d) => {
+      if (ignore && ignore(d)) return false;
+      const n = left.get(d.key) ?? 0;
+      if (n > 0) { left.set(d.key, n - 1); return false; }
+      return true;
+    });
+  };
   let accepted = [...cands];
   for (let guard = 0; guard < 60 && accepted.length; guard++) {
     const out = render(accepted);
     setText(out);
-    const added = diag().filter(fresh);
+    const added = freshOf(diag());
     if (!added.length) break;
     // Map a position in the edited text back to the original by replaying the edits' length deltas.
     const sorted = [...accepted].sort((a, b) => a.start - b.start);
@@ -522,7 +533,7 @@ const gateEdits = ({ service, live, file, text, cands, render, ignore }) => {
   }
   if (accepted.length) {
     setText(render(accepted));
-    if (diag().some(fresh)) accepted = [];
+    if (freshOf(diag()).length) accepted = [];
   }
   setText(text);
   return accepted;

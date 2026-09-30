@@ -49,6 +49,9 @@ const all = [];
 for (const w of ws) if (!w.isGateway) for (const d of ['src', 'test', 'e2e']) for (const f of lib.walk(path.join(w.dir, d))) all.push(f);
 const wordRe = new RegExp(`\\b(${brandName}|${typeName}|${stubName})\\b`, 'u');
 const users = all.filter((f) => f !== contractFile && f !== stubFile && f !== testFile && wordRe.test(fs.readFileSync(f, 'utf8')));
+// the brand's own package first, so a caller's gate already sees the retyped signatures it calls
+const ownDir = lib.workspaceOf(contractFile, ws).dir + path.sep;
+users.sort((a, b) => (b.startsWith(ownDir) ? 1 : 0) - (a.startsWith(ownDir) ? 1 : 0));
 
 const declaringFileOf = (f, sf, name) => {
   for (const st of sf.statements) {
@@ -180,6 +183,7 @@ console.log('removed files', removed.map(rel), 'barrel lines edited in', barrelE
 console.log(JSON.stringify(stats));
 
 // ---- whole-repo check: packages with edited or dependent files ----
+if (!process.argv.includes('--no-check')) {
 const keyOf = (d) => `${d.code}:${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`;
 const touchedPkgs = new Set([...overlay.keys()].map((f) => lib.workspaceOf(f, ws).name));
 const target = ws.filter((w) => !w.isGateway && (touchedPkgs.has(w.name) || Object.keys({ ...w.packageJson.dependencies, ...w.packageJson.devDependencies }).some((d) => touchedPkgs.has(d))));
@@ -203,5 +207,15 @@ for (const w of target) {
 console.log(JSON.stringify({ packagesChecked: target.map((w) => w.short), filesChecked: checked, filesWithNewDiagnostics: bad.length, newDiagnostics: newD }));
 console.log(Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 8));
 bad.slice(0, 10).forEach((b) => console.log(b.join('\n   ')));
+}
 const out = arg('sample-out');
 if (out) for (const [f, t] of overlay) { if (t === null) continue; const d = path.join(ROOT, out, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, t); }
+if (process.argv.includes('apply')) {
+  for (const [f, t] of overlay) {
+    if (t !== null) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); continue; }
+    const mv = path.join(ROOT, 'tmp', 'deletions', 'W1', rel(f));
+    fs.mkdirSync(path.dirname(mv), { recursive: true });
+    if (fs.existsSync(f)) fs.renameSync(f, mv);
+  }
+  console.log(`applied ${overlay.size} files`);
+}

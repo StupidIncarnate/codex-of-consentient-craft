@@ -74,7 +74,7 @@ for (const w of pkgs) {
   if (!fs.existsSync(path.join(w.dir, 'tsconfig.json'))) continue;
   const { service } = lib.makeLanguageService(w.dir);
   for (const j of jobs) {
-    if (j.refused) continue;
+    if (j.refused || !service.getProgram().getSourceFile(j.abs)) continue;
     const locs = service.findRenameLocations(j.abs, j.pos, false, false, { providePrefixAndSuffixTextForRename: false }) ?? [];
     for (const l of locs) {
       const f = path.resolve(l.fileName);

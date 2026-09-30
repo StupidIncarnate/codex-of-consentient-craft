@@ -1,0 +1,17 @@
+[
+ {
+  "file": "packages/ward/src/contracts/ward-result/ward-result-contract.ts",
+  "from": "wardResultContract",
+  "to": "wardRunResultContract"
+ },
+ {
+  "file": "packages/ward/src/contracts/ward-result/ward-result-contract.ts",
+  "from": "WardResult",
+  "to": "WardRunResult"
+ },
+ {
+  "file": "packages/ward/src/contracts/ward-result/ward-result.stub.ts",
+  "from": "WardResultStub",
+  "to": "WardRunResultStub"
+ }
+]

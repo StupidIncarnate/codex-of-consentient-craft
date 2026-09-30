@@ -154,10 +154,12 @@ const specFor = (fromFile, targetFile, name) => {
     if (!r.startsWith('.')) r = `./${r}`;
     return r;
   }
-  const s = `${wt.name}/contracts`;
-  const r = resolver(s, fromFile);
-  const d = r && lib.findDeclaringFile(r, name, resolver);
-  return d && sameFile(d.file, targetFile) ? s : null;
+  for (const s of [`${wt.name}/contracts`, `${wt.name}/${path.relative(path.join(wt.dir, 'src'), targetFile).replace(/\.tsx?$/u, '').split(path.sep).join('/')}`]) {
+    const r = resolver(s, fromFile);
+    const d = r && lib.findDeclaringFile(r, name, resolver);
+    if (d && sameFile(d.file, targetFile)) return s;
+  }
+  return null;
 };
 const typeOnlyNames = (sf) => {
   const s = new Set();
@@ -341,3 +343,8 @@ console.log('RESULT', JSON.stringify(result));
 console.log('leftovers file', rel(lf), fs.statSync(lf).size, 'bytes; standing', standing.length, '; partial', leftovers.partial.length, '; incomplete', leftovers.incomplete.length, '; ambiguous', leftovers.ambiguous.length, '; noImport', leftovers.noImport.length, '; rewritten files', rewritten.size);
 const sampleOut = arg('sample-out');
 if (sampleOut) for (const [f, t] of overlay) { if (t === null) continue; const d = path.join(ROOT, sampleOut, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, t); }
+if (process.argv.includes('apply')) {
+  let written = 0;
+  for (const [f, t] of overlay) if (t !== null) { fs.writeFileSync(f, t); written++; }
+  console.log(`applied ${written} files`);
+}

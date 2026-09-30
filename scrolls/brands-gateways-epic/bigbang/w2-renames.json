@@ -1,0 +1,112 @@
+[
+ {
+  "file": "packages/config/src/contracts/folder-config/folder-config-contract.ts",
+  "from": "folderConfigContract",
+  "to": "allowedExternalImportsContract"
+ },
+ {
+  "file": "packages/config/src/contracts/folder-config/folder-config.stub.ts",
+  "from": "FolderConfigStub",
+  "to": "AllowedExternalImportsStub"
+ },
+ {
+  "file": "packages/mcp/src/contracts/get-quest-input/get-quest-input-contract.ts",
+  "from": "getQuestInputContract",
+  "to": "mcpGetQuestInputContract"
+ },
+ {
+  "file": "packages/mcp/src/contracts/get-quest-input/get-quest-input.stub.ts",
+  "from": "GetQuestInputStub",
+  "to": "McpGetQuestInputStub"
+ },
+ {
+  "file": "packages/mcp/src/contracts/quest-work-input/quest-work-input-contract.ts",
+  "from": "questWorkInputContract",
+  "to": "mcpQuestWorkInputContract"
+ },
+ {
+  "file": "packages/mcp/src/contracts/quest-work-input/quest-work-input-contract.ts",
+  "from": "QuestWorkInput",
+  "to": "McpQuestWorkInput"
+ },
+ {
+  "file": "packages/mcp/src/contracts/quest-work-input/quest-work-input.stub.ts",
+  "from": "QuestWorkInputStub",
+  "to": "McpQuestWorkInputStub"
+ },
+ {
+  "file": "packages/server/src/contracts/chat-output-payload/chat-output-payload-contract.ts",
+  "from": "chatOutputPayloadContract",
+  "to": "chatOutputRoutingContract"
+ },
+ {
+  "file": "packages/server/src/contracts/chat-output-payload/chat-output-payload-contract.ts",
+  "from": "ChatOutputPayload",
+  "to": "ChatOutputRouting"
+ },
+ {
+  "file": "packages/server/src/contracts/chat-output-payload/chat-output-payload.stub.ts",
+  "from": "ChatOutputPayloadStub",
+  "to": "ChatOutputRoutingStub"
+ },
+ {
+  "file": "packages/server/src/contracts/comment-batch-response/comment-batch-response-contract.ts",
+  "from": "commentBatchResponseContract",
+  "to": "commentBatchDeliveredContract"
+ },
+ {
+  "file": "packages/server/src/contracts/comment-batch-response/comment-batch-response-contract.ts",
+  "from": "CommentBatchResponse",
+  "to": "CommentBatchDelivered"
+ },
+ {
+  "file": "packages/server/src/contracts/comment-batch-response/comment-batch-response.stub.ts",
+  "from": "CommentBatchResponseStub",
+  "to": "CommentBatchDeliveredStub"
+ },
+ {
+  "file": "packages/orchestrator/src/contracts/cleanup-answer/cleanup-answer-contract.ts",
+  "from": "cleanupAnswerContract",
+  "to": "cleanupCliAnswerContract"
+ },
+ {
+  "file": "packages/orchestrator/src/contracts/cleanup-answer/cleanup-answer-contract.ts",
+  "from": "CleanupAnswer",
+  "to": "CleanupCliAnswer"
+ },
+ {
+  "file": "packages/orchestrator/src/contracts/cleanup-answer/cleanup-answer.stub.ts",
+  "from": "CleanupAnswerStub",
+  "to": "CleanupCliAnswerStub"
+ },
+ {
+  "file": "packages/hooks/src/contracts/tool-response/tool-response-contract.ts",
+  "from": "toolResponseContract",
+  "to": "hookToolResponseContract"
+ },
+ {
+  "file": "packages/hooks/src/contracts/tool-response/tool-response-contract.ts",
+  "from": "ToolResponse",
+  "to": "HookToolResponse"
+ },
+ {
+  "file": "packages/hooks/src/contracts/tool-response/tool-response.stub.ts",
+  "from": "ToolResponseStub",
+  "to": "HookToolResponseStub"
+ },
+ {
+  "file": "packages/hydration-recipes/src/contracts/transcript-line/transcript-line-contract.ts",
+  "from": "transcriptLineContract",
+  "to": "recipeTranscriptLineContract"
+ },
+ {
+  "file": "packages/hydration-recipes/src/contracts/transcript-line/transcript-line-contract.ts",
+  "from": "TranscriptLine",
+  "to": "RecipeTranscriptLine"
+ },
+ {
+  "file": "packages/hydration-recipes/src/contracts/transcript-line/transcript-line.stub.ts",
+  "from": "TranscriptLineStub",
+  "to": "RecipeTranscriptLineStub"
+ }
+]

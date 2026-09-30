@@ -196,6 +196,10 @@ if (blocking.length) {
     fs.writeFileSync(dest, t);
   }
 } else if (APPLY) {
-  for (const f of losing) fs.rmSync(f);
+  for (const f of losing) {
+    const mv = path.join(ROOT, 'tmp', 'deletions', 'W2', path.relative(ROOT, f));
+    fs.mkdirSync(path.dirname(mv), { recursive: true });
+    fs.renameSync(f, mv);
+  }
   for (const [f, t] of writes) fs.writeFileSync(f, t);
 }

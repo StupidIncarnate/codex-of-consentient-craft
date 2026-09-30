@@ -1,0 +1,19 @@
+# W3: b15-id-brands --brand args, one run per line. PieceId is held (its owner lives in orchestrator and shared reads it).
+QuestId
+QuestWorkItemId
+GuildId
+FlowNodeId
+OperationItemId
+QaChecklistItemId
+FlowId
+ObservableId
+BlightChecklistItemId
+DesignDecisionId
+FlowEdgeId
+FlowRecipeName
+OperationPlanId
+OperationPlanPieceId
+QuestCommentId
+QuestContractEntryId
+QuestNoteId
+ToolingRequirementId

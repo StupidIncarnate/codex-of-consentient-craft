@@ -253,7 +253,7 @@ const stubFor = (s, p, base, cname, cfile, refsAll) => {
   else if (one && ts.isTypeReferenceNode(one) && /^(Set|ReadonlySet)$/u.test(one.typeName.getText(s.sf))) body = 'new Set()';
   else if (one && ts.isTypeReferenceNode(one) && one.typeName.getText(s.sf) === 'Record') body = '{}';
   else body = sample(one ?? sp.rest[0]);
-  const specFor = (r) => (r.pkg === s.pkg ? relSpec(cfile, r.file.replace(/-contract\.ts$/u, '.stub')) : `${r.pkg}/contracts`);
+  const specFor = (r) => (r.pkg === s.pkg ? relSpec(cfile, r.file.replace(/-contract\.ts$/u, '.stub')) : `${r.pkg}/${path.relative(path.join(S.ws.find((w) => w.name === r.pkg).dir, 'src'), r.file).replace(/-contract\.ts$/u, '.stub').split(path.sep).join('/')}`);
   const bySpec = new Map();
   for (const r of refsAll) if (new RegExp(`\\b${r.type}Stub\\b`, 'u').test(body)) (bySpec.get(specFor(r)) ?? bySpec.set(specFor(r), []).get(specFor(r))).push(`${r.type}Stub`);
   const withProps = (b) => (/^\{\s*\}$/u.test(b) ? '{ ...props }' : b.replace(/\s*\}$/u, ', ...props }'));

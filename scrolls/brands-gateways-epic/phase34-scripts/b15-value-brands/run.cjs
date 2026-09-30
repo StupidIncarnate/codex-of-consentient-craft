@@ -340,7 +340,7 @@ const specFor = (fromFile, targetFile, name) => {
     if (!r.startsWith('.')) r = `./${r}`;
     return r;
   }
-  for (const s of [`${wt.name}/contracts`]) {
+  for (const s of [`${wt.name}/contracts`, `${wt.name}/${path.relative(path.join(wt.dir, 'src'), targetFile).replace(/\.tsx?$/u, '').split(path.sep).join('/')}`]) {
     const r = resolver(s, fromFile);
     const d = r && lib.findDeclaringFile(r, name, resolver);
     if (d && sameFile(d.file, targetFile)) return s;
@@ -526,3 +526,12 @@ console.log('RESULT', JSON.stringify(result));
 console.log('leftovers file', rel(lf), fs.statSync(lf).size, 'bytes; standing diagnostics', standing.length, '; remaining refs', leftovers.remainingRefs.length, '; field-not-in-object', leftovers.fieldNotInObject.length);
 const sampleOut = arg('sample-out');
 if (sampleOut) for (const [f, t] of overlay) { if (t === null) continue; const d = path.join(ROOT, sampleOut, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, t); }
+if (process.argv.includes('apply')) {
+  for (const [f, t] of overlay) {
+    if (t !== null) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); continue; }
+    const mv = path.join(ROOT, 'tmp', 'deletions', 'W5', rel(f));
+    fs.mkdirSync(path.dirname(mv), { recursive: true });
+    if (fs.existsSync(f)) fs.renameSync(f, mv);
+  }
+  console.log(`applied ${overlay.size} files`);
+}

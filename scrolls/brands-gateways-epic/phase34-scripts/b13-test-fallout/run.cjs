@@ -56,7 +56,7 @@ const specFor = (stub, fromFile, fromPkg) => {
     return r.split(path.sep).join('/');
   }
   if (!reach(fromPkg).has(stub.pkg.name)) return null;
-  return barrelHas(stub.pkg, stub.name) ? `${stub.pkg.name}/contracts` : null;
+  return `${stub.pkg.name}/${path.relative(path.join(stub.pkg.dir, 'src'), stub.file).replace(/\.tsx?$/u, '').split(path.sep).join('/')}`;
 };
 
 const key = (d) => `${d.code}:${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`;
@@ -230,4 +230,9 @@ if (so) {
   const files = new Set([...retypeOverlay.keys(), ...touched]);
   for (const f of files) { const d = path.join(ROOT, so, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, currentText(f)); }
   console.log(`sample-out: ${files.size} files (${retypeOverlay.size} from the retype, ${touched.size} edited by the script) in ${so}`);
+}
+if (process.argv.includes('apply')) {
+  const files = new Set([...retypeOverlay.keys(), ...touched]);
+  for (const f of files) fs.writeFileSync(f, currentText(f));
+  console.log(`applied ${files.size} files`);
 }

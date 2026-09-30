@@ -615,7 +615,7 @@ if (flag('apply') || process.argv.includes('apply')) {
   for (const [f, t] of overlay) {
     const dest = path.join(to, rel(f));
     if (t === null) {
-      const mv = path.join(to, 'tmp', 'deletions', 'W3', rel(f));
+      const mv = path.join(to, 'tmp', 'deletions', process.env.CHUNK ?? 'W3', rel(f));
       fs.mkdirSync(path.dirname(mv), { recursive: true });
       if (fs.existsSync(dest)) fs.renameSync(dest, mv);
       else if (fs.existsSync(f)) fs.copyFileSync(f, mv);
