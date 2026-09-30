@@ -37,13 +37,13 @@ export const dungeonmasterConfigContract = z
       .object({
         overrides: z
           .record(
-            z.string().brand<'DungeonmasterConfigArchitectureOverrides'>(),
-            z.object({ add: z.array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>()).optional() }),
+            z.string().brand<'DungeonmasterConfigArchitectureOverridesKey'>(),
+            z.object({ add: z.array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>()).optional() }).brand<'DungeonmasterConfigArchitectureOverrides'>(),
           )
           .optional(),
         allowedRootFiles: z.array(z.string().brand<'DungeonmasterConfigArchitectureAllowedRootFiles'>()).optional(),
-        booleanFunctionPrefixes: z.array(z.string().brand<'FunctionPrefix'>()).optional(),
-      })
+        booleanFunctionPrefixes: z.array(z.string().brand<'DungeonmasterConfigArchitectureBooleanFunctionPrefixes'>()).optional(),
+      }).brand<'DungeonmasterConfigArchitecture'>()
       .optional(),
     orchestration: z
       .object({
@@ -53,14 +53,14 @@ export const dungeonmasterConfigContract = z
           .min(configDefaultsStatics.orchestration.slotCount.min)
           .max(configDefaultsStatics.orchestration.slotCount.max)
           .default(configDefaultsStatics.orchestration.slotCount.default)
-          .brand<'SlotCount'>(),
+          .brand<'DungeonmasterConfigOrchestrationSlotCount'>(),
         timeoutMs: z
           .number()
           .int()
           .min(configDefaultsStatics.orchestration.timeoutMs.min)
           .default(configDefaultsStatics.orchestration.timeoutMs.default)
           .brand<'DungeonmasterConfigOrchestrationTimeoutMs'>(),
-      })
+      }).brand<'DungeonmasterConfigOrchestration'>()
       .optional(),
     ward: z
       .object({
@@ -70,23 +70,23 @@ export const dungeonmasterConfigContract = z
           .min(configDefaultsStatics.ward.concurrency.min)
           .max(configDefaultsStatics.ward.concurrency.max)
           .default(configDefaultsStatics.ward.concurrency.default)
-          .brand<'WardConcurrency'>(),
-      })
+          .brand<'DungeonmasterConfigWardConcurrency'>(),
+      }).brand<'DungeonmasterConfigWard'>()
       .optional(),
     dungeonmaster: z
       .object({
         port: networkPortContract.optional(),
-      })
+      }).brand<'DungeonmasterConfigDungeonmaster'>()
       .optional(),
     devServer: z
       .object({
-        devCommand: z.string().min(1).brand<'DevCommand'>(),
+        devCommand: z.string().min(1).brand<'DungeonmasterConfigDevServerDevCommand'>(),
         port: z
           .number()
           .int()
           .min(configDefaultsStatics.devServer.port.min)
           .max(configDefaultsStatics.devServer.port.max)
-          .brand<'DevServerPort'>(),
+          .brand<'DungeonmasterConfigDevServerPort'>(),
         // The port a BROWSER loads the app from, when that is not `port`. A project whose dev
         // command starts an API and a bundler serves the API on `port` and the app somewhere else —
         // this repo's vite binds `portResolveBroker() + 1` and proxies `/api` and `/ws` back — so
@@ -97,31 +97,31 @@ export const dungeonmasterConfigContract = z
           .int()
           .min(configDefaultsStatics.devServer.port.min)
           .max(configDefaultsStatics.devServer.port.max)
-          .brand<'DevServerWebPort'>()
+          .brand<'DungeonmasterConfigDevServerWebPort'>()
           .optional(),
         buildCommand: z
           .string()
           .min(1)
           .default(configDefaultsStatics.devServer.buildCommand)
-          .brand<'BuildCommand'>(),
+          .brand<'DungeonmasterConfigDevServerBuildCommand'>(),
         readinessPath: z
           .string()
           .default(configDefaultsStatics.devServer.readinessPath)
-          .brand<'ReadinessPath'>(),
+          .brand<'DungeonmasterConfigDevServerReadinessPath'>(),
         readinessTimeoutMs: z
           .number()
           .int()
           .min(configDefaultsStatics.devServer.readinessTimeoutMs.min)
           .default(configDefaultsStatics.devServer.readinessTimeoutMs.default)
-          .brand<'ReadinessTimeoutMs'>(),
+          .brand<'DungeonmasterConfigDevServerReadinessTimeoutMs'>(),
         // Boots a consumer's own app for siegelense/Playwright, the way THAT repo's own e2e setup
         // boots it — not dungeonmaster's own server. Absent means no e2e lane is configured yet.
         e2e: z
           .object({
             processes: z.array(devServerE2eProcessContract).min(1),
-          })
+          }).brand<'DungeonmasterConfigDevServerE2e'>()
           .optional(),
-      })
+      }).brand<'DungeonmasterConfigDevServer'>()
       .optional(),
     gateway: gatewayLintConfigContract.optional(),
   })
