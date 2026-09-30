@@ -44,6 +44,6 @@ export const getQuestInputContract = sharedGetQuestInputContract
       });
     }
   })
-  .brand<'McpGetQuestInput'>();
+  .brand<'GetQuestInput'>();
 
 export type GetQuestInput = z.infer<typeof getQuestInputContract>;
