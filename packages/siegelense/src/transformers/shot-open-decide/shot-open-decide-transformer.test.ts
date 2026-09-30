@@ -1,5 +1,4 @@
 
-import { PixelChangeStub } from '../../contracts/pixel-change/pixel-change.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
 import { ShotOpenReasonStub } from '../../contracts/shot-open-reason/shot-open-reason.stub';
 
@@ -24,7 +23,7 @@ const rawShot = ({
     open,
     why: why === null ? null : ShotOpenReasonStub({ value: why }),
     blank,
-    pixelChange: pixelChange === null ? null : PixelChangeStub({ value: pixelChange }),
+    pixelChange: pixelChange === null ? null : pixelChange,
   });
 
 describe('shotOpenDecideTransformer', () => {

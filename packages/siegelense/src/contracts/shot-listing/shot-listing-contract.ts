@@ -26,7 +26,6 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { hexColourContract } from '../hex-colour/hex-colour-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
-import { pixelChangeContract } from '../pixel-change/pixel-change-contract';
 import { shotOpenReasonContract } from '../shot-open-reason/shot-open-reason-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -36,7 +35,7 @@ export const shotListingContract = z.object({
   open: z.boolean(),
   why: shotOpenReasonContract.nullable(),
   node: nodeLabelContract.nullable(),
-  pixelChange: pixelChangeContract.nullable(),
+  pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'ShotListingPixelChange'>().nullable(),
   blank: z.boolean().nullable(),
   blankColour: hexColourContract.nullable(),
 });

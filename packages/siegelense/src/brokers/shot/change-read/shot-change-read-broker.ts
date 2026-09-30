@@ -20,8 +20,6 @@ import { readFileBytes } from '#gateway/node/fs__promises';
 import pixelmatch from '#gateway/npm/pixelmatch';
 import { decodePng } from '#gateway/npm/pngjs';
 
-import { pixelChangeContract } from '../../../contracts/pixel-change/pixel-change-contract';
-import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';
 import { Buffer } from '#gateway/node/buffer';
 
@@ -33,7 +31,7 @@ export const shotChangeReadBroker = async ({
 }: {
   previousPath: string | null;
   currentPath: string;
-}): Promise<PixelChange | null> => {
+}): Promise<string | null> => {
   if (previousPath === null) {
     return null;
   }
@@ -47,7 +45,7 @@ export const shotChangeReadBroker = async ({
   const currentFrame = decodePng({ bytes: Buffer.from(currentBytes) });
 
   if (previousFrame.width !== currentFrame.width || previousFrame.height !== currentFrame.height) {
-    return pixelChangeContract.parse('100%');
+    return '100%';
   }
 
   const totalPixels = previousFrame.width * previousFrame.height;
@@ -64,5 +62,5 @@ export const shotChangeReadBroker = async ({
   );
   const percent = Math.round((diffCount / totalPixels) * PERCENT_MULTIPLIER);
 
-  return pixelChangeContract.parse(`${String(percent)}%`);
+  return `${String(percent)}%`;
 };

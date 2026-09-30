@@ -42,7 +42,6 @@ export * from './blank-reading/blank-reading-contract';
 
 export * from './hex-colour/hex-colour-contract';
 
-export * from './pixel-change/pixel-change-contract';
 
 export * from './server-log-window/server-log-window-contract';
 

@@ -72,7 +72,6 @@ import type { BlankReading } from '../../../src/contracts/blank-reading/blank-re
 import type { CleanupAnswer } from '../../../src/contracts/cleanup-answer/cleanup-answer-contract';
 import type { CompareAnswer } from '../../../src/contracts/compare-answer/compare-answer-contract';
 import type { CompareQuery } from '../../../src/contracts/compare-query/compare-query-contract';
-import type { PixelChange } from '../../../src/contracts/pixel-change/pixel-change-contract';
 import type { Registry } from '../../../src/contracts/registry/registry-contract';
 import type { ResultsAnswer } from '../../../src/contracts/results-answer/results-answer-contract';
 import type { ResultsQuery } from '../../../src/contracts/results-query/results-query-contract';
@@ -187,7 +186,7 @@ export const evidenceTreeHarness = (): {
   measureChange: (params: {
     previousPath: string | null;
     currentPath: string;
-  }) => Promise<PixelChange | null>;
+  }) => Promise<string | null>;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | null = null;
   let originalHome: ReturnType<typeof getEnv>;
@@ -668,6 +667,6 @@ export const evidenceTreeHarness = (): {
     }: {
       previousPath: string | null;
       currentPath: string;
-    }): Promise<PixelChange | null> => shotChangeReadBroker({ previousPath, currentPath }),
+    }): Promise<string | null> => shotChangeReadBroker({ previousPath, currentPath }),
   };
 };

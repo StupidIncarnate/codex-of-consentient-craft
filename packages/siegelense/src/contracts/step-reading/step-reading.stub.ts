@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { PixelChangeStub } from '../pixel-change/pixel-change.stub';
 import { ServerLogWindowStub } from '../server-log-window/server-log-window.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepVerbStub } from '../step-verb/step-verb.stub';
@@ -16,7 +15,7 @@ export const StepReadingStub = ({ ...props }: StubArgument<StepReading> = {}): S
     expected: StepExpectationStub(),
     reading: 'clicked [data-testid="GUILD_ADD"]',
     shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step2.png',
-    pixelChange: PixelChangeStub(),
+    pixelChange: '38%',
     blank: false,
     blankColour: null,
     serverWindow: ServerLogWindowStub(),

@@ -65,7 +65,6 @@ import type { ElementDelta } from '../../../contracts/element-delta/element-delt
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
-import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
@@ -152,7 +151,7 @@ export const stepDispatchBroker = async ({
     }
 
     let blankReading: BlankReading | null = null;
-    let pixelChange: PixelChange | null = null;
+    let pixelChange: string | null = null;
     if (shotPath !== null) {
       const [measuredBlank, measuredChange] = await Promise.all([
         shotBlankReadBroker({ shotPath }),
@@ -233,7 +232,7 @@ export const stepDispatchBroker = async ({
         // `null` and is logged rather than thrown: it must never replace the step's own real error,
         // the same rule the capture above already follows.
         let blankReading: BlankReading | null = null;
-        let pixelChange: PixelChange | null = null;
+        let pixelChange: string | null = null;
         if (captured) {
           try {
             const [measuredBlank, measuredChange] = await Promise.all([
@@ -301,7 +300,7 @@ export const stepDispatchBroker = async ({
     }
 
     let blankReading: BlankReading | null = null;
-    let pixelChange: PixelChange | null = null;
+    let pixelChange: string | null = null;
     if (shotPath !== null) {
       const [measuredBlank, measuredChange] = await Promise.all([
         shotBlankReadBroker({ shotPath }),

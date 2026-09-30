@@ -43,7 +43,6 @@ import { elementDeltaContract } from '../element-delta/element-delta-contract';
 import { hexColourContract } from '../hex-colour/hex-colour-contract';
 import { keyListingContract } from '../key-listing/key-listing-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
-import { pixelChangeContract } from '../pixel-change/pixel-change-contract';
 import { serverLogWindowContract } from '../server-log-window/server-log-window-contract';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
@@ -57,7 +56,7 @@ export const stepReadingContract = z.object({
   expected: stepExpectationContract,
   reading: z.string().brand<'StepReadingReading'>(),
   shot: absoluteFilePathContract.nullable(),
-  pixelChange: pixelChangeContract.nullable(),
+  pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'StepReadingPixelChange'>().nullable(),
   blank: z.boolean().nullable(),
   blankColour: hexColourContract.nullable(),
   previousReading: keyListingContract.nullable().default(null),
