@@ -40,7 +40,6 @@ export * from './run-result/run-result-contract';
 
 export * from './blank-reading/blank-reading-contract';
 
-export * from './hex-colour/hex-colour-contract';
 
 
 export * from './server-log-window/server-log-window-contract';

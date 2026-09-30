@@ -18,7 +18,6 @@ import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
-import type { HexColour } from '../../../contracts/hex-colour/hex-colour-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { healthReadingRenderTransformer } from '../../../transformers/health-reading-render/health-reading-render-transformer';
@@ -53,7 +52,7 @@ export const stepHealthBroker = async ({
   }
 
   let blank = false;
-  let blankColour: HexColour | null = null;
+  let blankColour: string | null = null;
   if (shotPath !== null) {
     const { blank: readingBlank, colour: readingColour } = await shotBlankReadBroker({ shotPath });
     blank = readingBlank;

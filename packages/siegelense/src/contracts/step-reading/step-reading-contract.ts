@@ -40,7 +40,6 @@ import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
-import { hexColourContract } from '../hex-colour/hex-colour-contract';
 import { keyListingContract } from '../key-listing/key-listing-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
 import { serverLogWindowContract } from '../server-log-window/server-log-window-contract';
@@ -58,7 +57,7 @@ export const stepReadingContract = z.object({
   shot: absoluteFilePathContract.nullable(),
   pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'StepReadingPixelChange'>().nullable(),
   blank: z.boolean().nullable(),
-  blankColour: hexColourContract.nullable(),
+  blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'StepReadingBlankColour'>().nullable(),
   previousReading: keyListingContract.nullable().default(null),
   delta: elementDeltaContract.nullable().default(null),
   serverWindow: serverLogWindowContract,

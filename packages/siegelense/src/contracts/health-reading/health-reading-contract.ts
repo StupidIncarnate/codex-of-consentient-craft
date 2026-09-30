@@ -22,14 +22,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { healthVerdictContract } from '../health-verdict/health-verdict-contract';
-import { hexColourContract } from '../hex-colour/hex-colour-contract';
 
 export const healthReadingContract = z
   .object({
     verdict: healthVerdictContract,
     rootPresent: z.boolean(),
     blank: z.boolean(),
-    blankColour: hexColourContract.nullable(),
+    blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'HealthReadingBlankColour'>().nullable(),
     consoleErrors: z.number().int().nonnegative().brand<'HealthReadingConsoleErrors'>(),
     firstConsoleError: z.string().brand<'HealthReadingFirstConsoleError'>().nullable(),
     network5xxCount: z.number().int().nonnegative().brand<'HealthReadingNetwork5xxCount'>(),

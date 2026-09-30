@@ -15,11 +15,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { hexColourContract } from '../hex-colour/hex-colour-contract';
 
 export const blankReadingContract = z.object({
   blank: z.boolean(),
-  colour: hexColourContract.nullable(),
+  colour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'BlankReadingColour'>().nullable(),
 });
 
 export type BlankReading = z.infer<typeof blankReadingContract>;

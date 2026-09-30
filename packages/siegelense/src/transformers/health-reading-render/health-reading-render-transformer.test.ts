@@ -1,6 +1,5 @@
 
 import { HealthReadingStub } from '../../contracts/health-reading/health-reading.stub';
-import { HexColourStub } from '../../contracts/hex-colour/hex-colour.stub';
 import { healthReadingRenderTransformer } from './health-reading-render-transformer';
 
 describe('healthReadingRenderTransformer', () => {
@@ -248,7 +247,7 @@ describe('healthReadingRenderTransformer', () => {
     const reading = healthReadingRenderTransformer({
       rootPresent: true,
       blank: true,
-      blankColour: HexColourStub({ value: '#0d0907' }),
+      blankColour: '#0d0907',
       consoleErrors: 0,
       firstConsoleError: null,
       network5xxCount: 0,
@@ -262,7 +261,7 @@ describe('healthReadingRenderTransformer', () => {
         verdict: 'DOWN',
         rootPresent: true,
         blank: true,
-        blankColour: HexColourStub({ value: '#0d0907' }),
+        blankColour: '#0d0907',
         consoleErrors: 0,
         firstConsoleError: null,
         network5xxCount: 0,

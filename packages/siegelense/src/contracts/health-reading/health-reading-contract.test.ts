@@ -1,6 +1,5 @@
 
 import { HealthVerdictStub } from '../health-verdict/health-verdict.stub';
-import { HexColourStub } from '../hex-colour/hex-colour.stub';
 import { healthReadingContract } from './health-reading-contract';
 import { HealthReadingStub } from './health-reading.stub';
 
@@ -35,7 +34,7 @@ describe('healthReadingContract', () => {
         verdict: HealthVerdictStub({ value: 'DOWN' }),
         rootPresent: false,
         blank: true,
-        blankColour: HexColourStub({ value: '#0d0907' }),
+        blankColour: '#0d0907',
         rendered: 'DOWN      root absent · page blank (#0d0907) · console clean · no 5xx · server log clean',
       });
 

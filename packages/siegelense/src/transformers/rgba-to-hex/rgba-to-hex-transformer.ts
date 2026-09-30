@@ -14,8 +14,6 @@
  * // Returns '#0d0907' as branded HexColour
  */
 
-import { hexColourContract } from '../../contracts/hex-colour/hex-colour-contract';
-import type { HexColour } from '../../contracts/hex-colour/hex-colour-contract';
 import type { ColourChannel } from '../../contracts/colour-channel/colour-channel-contract';
 
 const HEX_RADIX = 16;
@@ -29,8 +27,8 @@ export const rgbaToHexTransformer = ({
   red: ColourChannel;
   green: ColourChannel;
   blue: ColourChannel;
-}): HexColour => {
+}): string => {
   const hexValue = `#${red.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_CHANNEL, '0')}${green.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_CHANNEL, '0')}${blue.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_CHANNEL, '0')}`;
 
-  return hexColourContract.parse(hexValue);
+  return hexValue;
 };

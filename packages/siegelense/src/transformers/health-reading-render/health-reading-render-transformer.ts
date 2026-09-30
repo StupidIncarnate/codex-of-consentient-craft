@@ -24,7 +24,6 @@
 import { healthReadingContract } from '../../contracts/health-reading/health-reading-contract';
 import type { HealthReading } from '../../contracts/health-reading/health-reading-contract';
 import { healthVerdictContract } from '../../contracts/health-verdict/health-verdict-contract';
-import type { HexColour } from '../../contracts/hex-colour/hex-colour-contract';
 import { healthStatics } from '../../statics/health/health-statics';
 
 export const healthReadingRenderTransformer = ({
@@ -40,7 +39,7 @@ export const healthReadingRenderTransformer = ({
 }: {
   rootPresent: boolean;
   blank: boolean;
-  blankColour: HexColour | null;
+  blankColour: string | null;
   consoleErrors: number;
   firstConsoleError: string | null;
   network5xxCount: number;
