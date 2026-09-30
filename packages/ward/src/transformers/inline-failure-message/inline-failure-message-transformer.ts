@@ -25,12 +25,12 @@
  * spend the budget on runner internals and the third one's diff is what gets trimmed away.
  */
 
-import type { RunId } from '../../contracts/run-id/run-id-contract';
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import {
   testFailureContract,
   type TestFailure,
 } from '../../contracts/test-failure/test-failure-contract';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 
 const DEPENDENCY_STACK_FRAME = /^\s*at .*[/\\]node_modules[/\\]/u;
 
@@ -42,7 +42,7 @@ export const inlineFailureMessageTransformer = ({
 }: {
   message: TestFailure['message'];
   maxLines: number;
-  runId: RunId;
+  runId: WardResult['runId'];
   displayPath: ErrorEntry['filePath'];
 }): TestFailure['message'] => {
   const lines = String(message)

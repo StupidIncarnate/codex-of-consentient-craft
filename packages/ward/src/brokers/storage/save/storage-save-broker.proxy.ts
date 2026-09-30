@@ -3,19 +3,19 @@ import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const storageSaveBrokerProxy = (): {
-  setupSuccess: (params: { rootPath: AbsoluteFilePath; runId: RunId }) => void;
+  setupSuccess: (params: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }) => void;
   setupMkdirFail: (params: { rootPath: AbsoluteFilePath }) => void;
-  setupWriteFail: (params: { rootPath: AbsoluteFilePath; runId: RunId }) => void;
-  getWrittenContent: (params: { rootPath: AbsoluteFilePath; runId: RunId }) => unknown;
+  setupWriteFail: (params: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }) => void;
+  getWrittenContent: (params: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }) => unknown;
 } => {
   const mkdirProxy = ensureDirProxy();
   const writeProxy = writeFileProxy();
 
   return {
-    setupSuccess: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: RunId }): void => {
+    setupSuccess: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }): void => {
       mkdirProxy.succeeds({ path: `${rootPath}/.ward` });
       writeProxy.succeeds({ path: `${rootPath}/.ward/run-${runId}.json` });
     },
@@ -23,7 +23,7 @@ export const storageSaveBrokerProxy = (): {
       const path = `${rootPath}/.ward`;
       mkdirProxy.rejects({ path, error: FsErrorStub({ code: 'EACCES', path, syscall: 'mkdir' }) });
     },
-    setupWriteFail: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: RunId }): void => {
+    setupWriteFail: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }): void => {
       const path = `${rootPath}/.ward/run-${runId}.json`;
       mkdirProxy.succeeds({ path: `${rootPath}/.ward` });
       writeProxy.rejects({ path, error: FsErrorStub({ code: 'ENOSPC', path, syscall: 'write' }) });
@@ -33,7 +33,7 @@ export const storageSaveBrokerProxy = (): {
       runId,
     }: {
       rootPath: AbsoluteFilePath;
-      runId: RunId;
+      runId: WardResult['runId'];
     }): unknown => writeProxy.writtenContentsFor({ path: `${rootPath}/.ward/run-${runId}.json` }),
   };
 };

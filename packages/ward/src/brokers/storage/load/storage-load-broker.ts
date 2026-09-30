@@ -13,7 +13,6 @@ import {
   wardResultContract,
   type WardResult,
 } from '../../../contracts/ward-result/ward-result-contract';
-import { runIdContract, type RunId } from '../../../contracts/run-id/run-id-contract';
 
 const RUN_FILE_PREFIX = 'run-';
 const RUN_FILE_SUFFIX = '.json';
@@ -23,7 +22,7 @@ export const storageLoadBroker = async ({
   runId,
 }: {
   rootPath: AbsoluteFilePath;
-  runId?: RunId;
+  runId?: WardResult['runId'];
 }): Promise<WardResult | null> => {
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
 
@@ -49,7 +48,7 @@ export const storageLoadBroker = async ({
       .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
       .filter(
         (entry) =>
-          runIdContract.safeParse(entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length))
+          wardResultContract.shape.runId.safeParse(entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length))
             .success,
       )
       .sort();

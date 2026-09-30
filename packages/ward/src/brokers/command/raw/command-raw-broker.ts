@@ -9,9 +9,9 @@
 import { stderr, stdout } from '#gateway/node/process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const commandRawBroker = async ({
   rootPath,
@@ -19,7 +19,7 @@ export const commandRawBroker = async ({
   checkType,
 }: {
   rootPath: AbsoluteFilePath;
-  runId: RunId;
+  runId: WardResult['runId'];
   checkType: CheckType;
 }): Promise<void> => {
   const wardResult = await storageLoadBroker({ rootPath, runId });

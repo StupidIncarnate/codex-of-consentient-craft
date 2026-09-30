@@ -9,16 +9,16 @@
 import { stderr, stdout } from '#gateway/node/process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { resultToListTransformer } from '../../../transformers/result-to-list/result-to-list-transformer';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const commandListBroker = async ({
   rootPath,
   runId,
 }: {
   rootPath: AbsoluteFilePath;
-  runId?: RunId;
+  runId?: WardResult['runId'];
 }): Promise<void> => {
   const loadArgs = runId ? { rootPath, runId } : { rootPath };
   const wardResult = await storageLoadBroker(loadArgs);

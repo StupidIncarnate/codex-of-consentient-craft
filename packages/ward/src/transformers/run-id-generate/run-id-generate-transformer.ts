@@ -6,14 +6,15 @@
  * // Returns RunId like '1739625600000-a3f1'
  */
 
-import { runIdContract, type RunId } from '../../contracts/run-id/run-id-contract';
 import { hexFormatStatics } from '../../statics/hex-format/hex-format-statics';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import { wardResultContract } from '../../contracts/ward-result/ward-result-contract';
 
-export const runIdGenerateTransformer = (): RunId => {
+export const runIdGenerateTransformer = (): WardResult['runId'] => {
   const timestamp = Date.now();
   const hex = Math.random()
     .toString(hexFormatStatics.radix)
     .slice(hexFormatStatics.sliceStart, hexFormatStatics.sliceEnd);
 
-  return runIdContract.parse(`${timestamp}-${hex}`);
+  return wardResultContract.shape.runId.parse(`${timestamp}-${hex}`);
 };

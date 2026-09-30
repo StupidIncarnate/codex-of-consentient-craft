@@ -6,7 +6,7 @@
  * // Returns true if value matches RunId pattern, false otherwise
  */
 
-import { runIdContract } from '../../contracts/run-id/run-id-contract';
+import { wardResultContract } from '../../contracts/ward-result/ward-result-contract';
 
 export const isRunIdGuard = ({ value }: { value?: unknown }): boolean =>
-  runIdContract.safeParse(value).success;
+  wardResultContract.shape.runId.safeParse(value).success;

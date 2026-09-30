@@ -9,12 +9,12 @@
 import { stderr, stdout } from '#gateway/node/process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { ErrorEntry } from '../../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../../contracts/test-failure/test-failure-contract';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { resultToDetailTransformer } from '../../../transformers/result-to-detail/result-to-detail-transformer';
 import { resultToDetailJsonTransformer } from '../../../transformers/result-to-detail-json/result-to-detail-json-transformer';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const commandDetailBroker = async ({
   rootPath,
@@ -23,7 +23,7 @@ export const commandDetailBroker = async ({
   json,
 }: {
   rootPath: AbsoluteFilePath;
-  runId: RunId;
+  runId: WardResult['runId'];
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
   json?: boolean;
 }): Promise<void> => {
