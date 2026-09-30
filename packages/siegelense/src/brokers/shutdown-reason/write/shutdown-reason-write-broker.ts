@@ -19,7 +19,7 @@
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { writeFile } from '#gateway/node/fs__promises';
+import { writeFileAtomic } from '#gateway/node/fs__promises';
 import { shutdownReasonContract } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 import type { ShutdownReason } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 
@@ -39,7 +39,9 @@ export const shutdownReasonWriteBroker = async ({
 
   const contents = `${JSON.stringify(marker)}\n`;
 
-  await writeFile(markerPath, contents);
+  // Atomic, not a plain `writeFile`: a plain write truncates the file before the bytes land, and
+  // `shutdownReasonReadBroker` running in that window parses an empty string and throws.
+  await writeFileAtomic(markerPath, contents);
 
   return marker;
 };

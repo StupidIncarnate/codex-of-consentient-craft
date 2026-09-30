@@ -1,6 +1,6 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 
-const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
+const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/src/statics/statics.ts';
 
 // The broker asks about EVERY ancestor of cwd, so a composing proxy that wants "not reachable" has
 // to answer for every one of them — this proxy's own existsSyncProxy() sets no catch-all, but

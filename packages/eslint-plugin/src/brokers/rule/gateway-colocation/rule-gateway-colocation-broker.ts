@@ -38,9 +38,10 @@
  * // re-exporting, as passThroughNotPureReexport
  * // Flags packages/@gateway/bin/src/git/git-run/git-run.ts if it declares `class X extends Error`
  * // itself, as errorClassOutsideErrorFile
- * // With options: [{requireStub: true}], also flags a subpath barrel whose folder tree has no
- * // .stub.ts anywhere under it, as missingStub — off by default (G18 turns it on repo-wide once
- * // every subpath actually has one; see gateway-subpath-has-stub-layer-broker.ts)
+ * // With options: [{requireStub: true}], also flags a subpath barrel as missingStub when its folder
+ * // tree holds a wrapper file (a single-dot .ts other than the barrel) and no .stub.ts anywhere
+ * // under it — a barrel-only subpath needs no stub; off by default (see
+ * // gateway-subpath-has-stub-layer-broker.ts and gateway-subpath-has-wrapper-layer-broker.ts)
  * // Flags a barrel missing a re-export for an existing wrapper export as barrelMissingReexport, one
  * // re-exporting a name no wrapper carries any more as barrelStaleReexport, one reaching into a
  * // sibling subpath as reexportOutsideOwnSubpath, and one re-exporting a .proxy.ts/.stub.ts as
@@ -57,6 +58,7 @@ import { removeFileExtensionTransformer } from '../../../transformers/remove-fil
 import { kebabToPascalCaseTransformer } from '../../../transformers/kebab-to-pascal-case/kebab-to-pascal-case-transformer';
 import { gatewayPureReexportStatementTypesStatics } from '../../../statics/gateway-pure-reexport-statement-types/gateway-pure-reexport-statement-types-statics';
 import { gatewaySubpathHasStubLayerBroker } from './gateway-subpath-has-stub-layer-broker';
+import { gatewaySubpathHasWrapperLayerBroker } from './gateway-subpath-has-wrapper-layer-broker';
 import { barrelNamedReexportsLayerBroker } from './barrel-named-reexports-layer-broker';
 import { barrelSingleHomeLayerBroker } from './barrel-single-home-layer-broker';
 import { barrelNoTestSupportReexportLayerBroker } from './barrel-no-test-support-reexport-layer-broker';
@@ -89,7 +91,7 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
       passThroughNotPureReexport:
         'Subpath barrel "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a/a\'", "export type", or "export = x"). Found a non-export statement — move that behavior into a wrapper folder beside the barrel.',
       missingStub:
-        'Gateway subpath "{{subpathName}}" needs at least one .stub.ts file somewhere under its folder (see #gateway/node/fs/is-fs-error/fs-error.stub.ts for the pattern).',
+        'Gateway subpath "{{subpathName}}" holds a wrapper file, so it needs at least one .stub.ts file somewhere under its folder (see #gateway/node/fs/is-fs-error/fs-error.stub.ts for the pattern).',
       errorFileMultipleExports:
         'Gateway error file "{{fileName}}" may hold only imports plus exactly one exported class extending Error. Move any other export into its own wrapper file.',
       errorFileNotErrorClass:
@@ -114,7 +116,7 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
           requireStub: {
             type: 'boolean',
             description:
-              'When true, every subpath barrel must have at least one .stub.ts file somewhere under its folder. Off by default until every subpath has one (G18).',
+              'When true, a subpath whose folder holds a wrapper file (a single-dot .ts other than its barrel) must have at least one .stub.ts file somewhere under its folder. A barrel-only subpath needs none. Off by default.',
           },
         },
         additionalProperties: false,
@@ -369,6 +371,10 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
 
         if (
           requireStub &&
+          gatewaySubpathHasWrapperLayerBroker({
+            subpathDirectory: directory,
+            barrelFileName: fileBaseName,
+          }) &&
           !gatewaySubpathHasStubLayerBroker({
             subpathDirectory: directory,
           })

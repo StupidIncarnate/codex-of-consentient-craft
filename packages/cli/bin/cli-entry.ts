@@ -6,6 +6,7 @@
  * USAGE:
  * node cli-entry.js init                                  // Runs install across all packages
  * node cli-entry.js create-package --name foo --type library  // Scaffolds a new workspace package
+ * node cli-entry.js gateway-sync                          // Fills packages/@gateway/npm/src for every dependency
  * node cli-entry.js                                       // Launches HTTP server and opens browser
  */
 

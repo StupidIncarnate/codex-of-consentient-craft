@@ -17,6 +17,7 @@ beforeEach(() => {
       '/repo/packages/@gateway/node/src/fs/fs.test.ts',
       '/repo/packages/@gateway/node/src/fs/fs.proxy.ts',
       '/repo/packages/@gateway/npm/src/react/react.test.ts',
+      '/repo/packages/@gateway/npm/src/left-pad/left-pad.test.ts',
       '/repo/packages/@gateway/node/src/module/module.test.ts',
       '/repo/packages/@gateway/node/src/child_process/run/run.integration.test.ts',
       '/repo/packages/@gateway/node/src/child_process/run/run.proxy.ts',
@@ -115,6 +116,15 @@ beforeEach(() => {
   proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
     path: '/repo/packages/@gateway/node/src/perf_hooks/',
     entries: [],
+  });
+
+  // A barrel-only subpath: the barrel and its test, no wrapper file, no stub.
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    path: '/repo/packages/@gateway/npm/src/left-pad/',
+    entries: [
+      { name: 'left-pad.ts', kind: 'file' },
+      { name: 'left-pad.test.ts', kind: 'file' },
+    ],
   });
 
   // dns/ has one wrapper folder, for the barrelMissingReexport case.
@@ -235,6 +245,12 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
       options: [{ requireStub: true }],
     },
+    // --- requireStub true: a barrel-only subpath (barrel + test, no wrapper file) needs no stub ---
+    {
+      code: "export * from 'left-pad';",
+      filename: '/repo/packages/@gateway/npm/src/left-pad/left-pad.ts',
+      options: [{ requireStub: true }],
+    },
     // --- requireStub true: a consumer's EMPTY npm/bin gateway has only the scaffolded placeholder,
     // never a subpath barrel (its parent folder is "src", not the file's own folder name), so
     // missingStub never fires against it — there is no subpath here to require a stub for ---
@@ -306,7 +322,7 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       filename: '/repo/packages/@gateway/node/src/module/module.ts',
       errors: [{ messageId: 'passThroughNotPureReexport' }],
     },
-    // --- requireStub true: a subpath whose directory tree has no .stub.ts anywhere is flagged ---
+    // --- requireStub true: a subpath holding a wrapper file and no .stub.ts anywhere is flagged ---
     {
       code: "export * from 'os';\nexport { homedir } from './homedir/homedir';",
       filename: '/repo/packages/@gateway/node/src/os/os.ts',

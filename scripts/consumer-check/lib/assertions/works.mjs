@@ -2,8 +2,8 @@
  * Proves the freshly-init-ed consumer actually WORKS — typecheck, lint (including a plain pass on
  * the copied `@gateway/node`, F1), `create-package`'s own scope detection and scaffolded jest config
  * (F5, F6 — plain passing assertions now that both are fixed; no patching), the copied gateways' own
- * tests, the I/O trap, a mocked gateway-proxy test, the consumer's own build, the pre-edit hook, and
- * idempotent re-init — every check here shells out to the consumer's OWN installed binaries
+ * tests, the I/O trap, a mocked gateway-proxy test, the consumer's own build, the pre-edit hook,
+ * gateway-sync after an agent's `npm install <pkg>` (`gateway-sync.mjs`), and idempotent re-init — every check here shells out to the consumer's OWN installed binaries
  * (`node_modules/.bin/*`), never this checkout's compiled output.
  */
 
@@ -12,6 +12,7 @@ import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
 import { npmInstall } from '../fixture.mjs';
+import { checkHandEditKept, handEditGeneratedWrapper, runAgentInstallAssertions } from './gateway-sync.mjs';
 import {
   LIB_PACKAGE_NAME,
   WEB_PACKAGE_NAME,
@@ -515,6 +516,9 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope
     scope,
   });
   await installScaffoldedPackages({ report, consumerRoot });
+  // Before every typecheck/lint/build/ward step below: it writes a `lib` broker importing the
+  // `#gateway/npm/left-pad` barrel the post-bash hook's gateway-sync generates, so those steps grade it.
+  await runAgentInstallAssertions({ report, consumerRoot });
 
   assertScopeDetection({ report, consumerRoot, gt });
   assertJestConfigBase({ report, consumerRoot });
@@ -549,7 +553,11 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope
   await assertContractCheckTest({ report, consumerRoot });
   await assertWardCleanFixture({ report, consumerRoot });
   await assertPreEditHook({ report, consumerRoot, lintViolationFile });
+  const handEdited = await handEditGeneratedWrapper({ report, consumerRoot });
   await assertIdempotentReinit({ report, consumerRoot });
+  if (handEdited !== null) {
+    checkHandEditKept({ report, consumerRoot, edited: handEdited, after: 'a second dungeonmaster init' });
+  }
 
   return { lintViolationFile, ioTrapTestFile };
 };

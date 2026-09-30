@@ -11,6 +11,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
+import { checkRootPostinstall } from './gateway-sync.mjs';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -52,7 +53,7 @@ const checkClaudeSettingsHooks = ({ report, consumerRoot, gt }) => {
       .map((hook) => hook.command)
       .sort();
 
-  for (const hookName of ['PreToolUse', 'SessionStart', 'SubagentStart', 'SubagentStop', 'WorktreeCreate']) {
+  for (const hookName of ['PreToolUse', 'PostToolUse', 'SessionStart', 'SubagentStart', 'SubagentStop', 'WorktreeCreate']) {
     const actual = hookCommandSet(settings.hooks?.[hookName]);
     const expected = hookCommandSet(expectedHooks[hookName]);
     report.check(
@@ -401,6 +402,7 @@ export const runWriteAssertions = ({ report, consumerRoot, gt, mode }) => {
   });
   checkClaudeSettingsHooks({ report, consumerRoot, gt });
   checkDevDependencies({ report, consumerRoot, gt, mode });
+  checkRootPostinstall({ report, consumerRoot, gt });
   checkJestConfigBaseMsw({ report, consumerRoot, mode });
   checkRootTsconfig({ report, consumerRoot });
   checkEslintConfig({ report, consumerRoot });

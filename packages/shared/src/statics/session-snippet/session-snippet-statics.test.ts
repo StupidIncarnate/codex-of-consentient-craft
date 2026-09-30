@@ -533,27 +533,42 @@ describe('sessionSnippetStatics', () => {
     });
   });
 
-  // A CONSUMER'S npm/bin GATEWAY PACKAGES START EMPTY, AND NOTHING ELSE TOLD A SESSION WHAT TO DO
-  // ABOUT IT. Without this snippet, an agent working in a consumer repo has no rule pointing it at
-  // node/browser's copied-in source as the live worked example, no rule saying dungeonmaster's own
-  // installed npm/bin packages ship real `src` to copy from, and no rule against importing
+  // A CONSUMER'S npm GATEWAY FILLS ITSELF AND ITS bin GATEWAY STARTS EMPTY. Without this snippet an
+  // agent in a consumer repo hand-writes a wrapper the sync already generated, never learns that
+  // `dungeonmaster gateway-sync` exists or that a passthrough needs no stub, has no rule pointing it
+  // at node/browser's copied-in source as the worked example, and nothing stops it importing
   // dungeonmaster's own gateway instead of the consumer's local copy.
-  it('VALID: consumerGatewayWrapper snippet => names the empty placeholder, the local worked example, and the never-import rule', () => {
+  it('VALID: consumerGatewayWrapper snippet => names what fills the npm gateway, the stub rule, the empty bin placeholder, the local worked example, and the never-import rule', () => {
     expect({
       scopedToConsumerRepo: sessionSnippetStatics.consumerGatewayWrapper.includes(
         'Applies in a consumer repo `dungeonmaster init` has touched',
       ),
-      startsEmpty: sessionSnippetStatics.consumerGatewayWrapper.includes(
-        'start EMPTY, holding only a placeholder `src/index.d.ts`',
+      namesEveryTrigger: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        '`dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` entry a folder there',
+      ),
+      namesBothFolderSources: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        "dungeonmaster's own wrapper when it ships one, otherwise a one-line passthrough barrel plus its test",
+      ),
+      neverOverwrites: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'An existing folder is never overwritten',
+      ),
+      namesTheCommand: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        '`dungeonmaster gateway-sync` runs the same sync by hand.',
+      ),
+      stubRule: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'A barrel-only subpath needs no stub. Add a `.stub.ts` once you add a wrapper file.',
+      ),
+      binStartsEmpty: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        '`packages/@gateway/bin/` starts EMPTY, holding only a placeholder `src/index.d.ts`',
       ),
       nodeAndBrowserAreTheLocalExample: sessionSnippetStatics.consumerGatewayWrapper.includes(
-        '`packages/@gateway/node/` and `packages/@gateway/browser/` do not',
+        "`packages/@gateway/node/` and `packages/@gateway/browser/` hold dungeonmaster's real source",
       ),
       ownWrappersShipSrc: sessionSnippetStatics.consumerGatewayWrapper.includes(
         'read `node_modules/@dungeonmaster/npm/src` and `node_modules/@dungeonmaster/bin/src`',
       ),
       deletesThePlaceholder: sessionSnippetStatics.consumerGatewayWrapper.includes(
-        'Delete the placeholder `src/index.d.ts` once the first real subpath exists.',
+        'delete the placeholder once the first real subpath exists.',
       ),
       neverImportsOwnGateway: sessionSnippetStatics.consumerGatewayWrapper.includes(
         "**Never import dungeonmaster's own gateway.**",
@@ -561,14 +576,23 @@ describe('sessionSnippetStatics', () => {
       pointsAtTheRefusal: sessionSnippetStatics.consumerGatewayWrapper.includes(
         '`dungeonmaster create-package` refuses a name scoped `@gateway`',
       ),
+      saysNpmStartsEmpty: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'npm/` and `packages/@gateway/bin/` start EMPTY',
+      ),
     }).toStrictEqual({
       scopedToConsumerRepo: true,
-      startsEmpty: true,
+      namesEveryTrigger: true,
+      namesBothFolderSources: true,
+      neverOverwrites: true,
+      namesTheCommand: true,
+      stubRule: true,
+      binStartsEmpty: true,
       nodeAndBrowserAreTheLocalExample: true,
       ownWrappersShipSrc: true,
       deletesThePlaceholder: true,
       neverImportsOwnGateway: true,
       pointsAtTheRefusal: true,
+      saysNpmStartsEmpty: false,
     });
   });
 });

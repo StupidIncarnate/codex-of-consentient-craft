@@ -17,7 +17,7 @@ import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
+import { writeFileAtomicProxy } from '#gateway/node/fs__promises/write-file-atomic/write-file-atomic.proxy';
 
 export const shutdownReasonWriteBrokerProxy = (): {
   setupWriteSucceeds: (params: { evidencePath: string; nowMs: number }) => void;
@@ -26,7 +26,7 @@ export const shutdownReasonWriteBrokerProxy = (): {
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  const writeProxy = writeFileProxy();
+  const writeProxy = writeFileAtomicProxy();
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -43,8 +43,11 @@ export const shutdownReasonWriteBrokerProxy = (): {
     },
 
     getWrittenMarkerContent: ({ evidencePath }: { evidencePath: string }): unknown =>
-      writeProxy.writtenContentsFor({
-        path: `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`,
-      }),
+      writeProxy
+        .getCallsFor({
+          seam: 'writeFile',
+          path: `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`,
+        })
+        .at(-1)?.[1],
   };
 };

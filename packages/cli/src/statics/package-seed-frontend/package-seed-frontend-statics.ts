@@ -95,9 +95,10 @@ describe('__PASCAL__PanelWidget', () => {
       fileName: 'widgets.ts',
       exportPaths: ['./__NAME__-panel/__NAME__-panel-widget'],
     },
-    // `ink` is declared, never imported: a consumer's `@gateway/npm` starts empty, so a seed that
-    // imported it through `#gateway/npm/ink` would fail lint and typecheck until someone wrote that
-    // wrapper. The detector reads the declared dependency beside the widgets folder.
+    // `ink` is declared, never imported: `#gateway/npm/ink` exists only once the npm-gateway sync
+    // runs after this scaffold (the next `npm install`), so a seed importing it would fail lint and
+    // typecheck on a fresh scaffold. The detector reads the declared dependency beside the widgets
+    // folder.
     dependencies: {
       '__SCOPE__/node': '*',
       ink: '^5.0.0',
@@ -120,9 +121,10 @@ describe('__PASCAL__PanelWidget', () => {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
         contents: `/**
  * PURPOSE: Starting point for this package's ink UI, exported by the src/widgets/widgets.ts barrel. It
- * returns a bare fragment because ink's \`Text\` is an npm value and a consumer's \`@gateway/npm\`
- * starts empty: write \`packages/@gateway/npm/src/ink/ink.ts\`, then wrap this content in
- * \`<Text>\` imported from \`#gateway/npm/ink\`. The package already declares \`ink\`.
+ * returns a bare fragment because ink's \`Text\` is an npm value: once \`npm install\` has run,
+ * \`dungeonmaster gateway-sync\` has given the declared \`ink\` dependency its
+ * \`packages/@gateway/npm/src/ink/\` folder, so wrap this content in \`<Text>\` imported from
+ * \`#gateway/npm/ink\`.
  *
  * USAGE:
  * <__PASCAL__PanelWidget />

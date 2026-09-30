@@ -284,11 +284,11 @@ It boots a throwaway instance, drives it with a batch of steps, and reads back r
 
 Applies in a consumer repo `dungeonmaster init` has touched — this monorepo's own four gateway packages already hold every wrapper, so nothing here is empty to fill in.
 
-A consumer's `packages/@gateway/npm/` and `packages/@gateway/bin/` start EMPTY, holding only a placeholder `src/index.d.ts`. `packages/@gateway/node/` and `packages/@gateway/browser/` do not — `init` copies their real source in, so those are a live, local worked example for the layout every gateway subpath uses: one folder per wrapper, holding the wrapper file plus its `.proxy.ts` and `.stub.ts`.
+**`packages/@gateway/npm/src/` fills itself.** `dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` entry a folder there: dungeonmaster's own wrapper when it ships one, otherwise a one-line passthrough barrel plus its test. An existing folder is never overwritten, so edit a generated one freely. `dungeonmaster gateway-sync` runs the same sync by hand.
 
-To wrap a first npm package or program, write it directly under `packages/@gateway/npm/src/<subpath>/` or `packages/@gateway/bin/src/<subpath>/`, copying that same shape. For dungeonmaster's OWN npm/bin wrappers as a second worked example, read `node_modules/@dungeonmaster/npm/src` and `node_modules/@dungeonmaster/bin/src` — both ship real source, not `dist` only.
+A barrel-only subpath needs no stub. Add a `.stub.ts` once you add a wrapper file. `packages/@gateway/node/` and `packages/@gateway/browser/` hold dungeonmaster's real source — a live, local worked example for the layout every gateway subpath uses: one folder per wrapper, holding the wrapper file plus its `.proxy.ts` and `.stub.ts`. For dungeonmaster's OWN npm/bin wrappers as a second worked example, read `node_modules/@dungeonmaster/npm/src` and `node_modules/@dungeonmaster/bin/src` — both ship real source, not `dist` only.
 
-Delete the placeholder `src/index.d.ts` once the first real subpath exists.
+`packages/@gateway/bin/` starts EMPTY, holding only a placeholder `src/index.d.ts`. Write a program's wrapper under `packages/@gateway/bin/src/<subpath>/` by hand, and delete the placeholder once the first real subpath exists.
 
 **Never import dungeonmaster's own gateway.** A wrapper imports only the consumer's own copy — never `@dungeonmaster/{npm,node,browser,bin}` from `node_modules`. Read the installed package only to copy a shape from.
 

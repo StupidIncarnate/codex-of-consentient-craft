@@ -3,9 +3,7 @@
  *
  * USAGE:
  * const hooks = dungeonmasterHooksCreatorTransformer();
- * // Returns: { PreToolUse: [...], SessionStart: [...], WorktreeCreate: [...] }
- *
- * CONTRACTS: Output: { PreToolUseHook[], SessionStart: SessionStartHook[], WorktreeCreate: WorktreeCreateHook[] }
+ * // Returns: { PreToolUse: [...], PostToolUse: [...], SessionStart: [...], SubagentStart: [...], SubagentStop: [...], WorktreeCreate: [...] }
  */
 
 import { claudeSettingsContract } from '../../contracts/claude-settings/claude-settings-contract';
@@ -16,6 +14,7 @@ import type {
   WorktreeCreateHook,
 } from '../../contracts/claude-settings/claude-settings-contract';
 import { mcpCallerContextStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
+import { gatewaySyncHookStatics } from '../../statics/gateway-sync-hook/gateway-sync-hook-statics';
 
 export const dungeonmasterHooksCreatorTransformer = (): {
   PreToolUse: PreToolUseHook[];
@@ -54,6 +53,16 @@ export const dungeonmasterHooksCreatorTransformer = (): {
         {
           matcher: 'AskUserQuestion',
           hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+        },
+        {
+          matcher: gatewaySyncHookStatics.hook.matcher,
+          hooks: [
+            {
+              type: 'command',
+              command: gatewaySyncHookStatics.hook.bin,
+              timeout: gatewaySyncHookStatics.hook.settingsTimeoutSeconds,
+            },
+          ],
         },
       ],
       SessionStart: [

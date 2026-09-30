@@ -98,6 +98,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
       devDependencies: {
         '@types/node': '^24.0.15',
         typescript: '^5.8.3',
+        'jest-environment-jsdom': '^30.0.0',
       },
       publishConfig: { access: 'public' },
     });
@@ -226,6 +227,26 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
 
 module.exports = {
   ...base,
+};
+`,
+    );
+  });
+
+  it('VALID: {folder: "npm"} => jest.config.js adds the jsdom polyfill to the base setupFiles', () => {
+    const files = gatewayPackageScaffoldFilesTransformer({
+      scope: '@acme',
+      folder: 'npm',
+    });
+
+    expect(String(fileNamed({ files, relativePath: 'jest.config.js' })?.contents)).toBe(
+      `// A copied wrapper's test can switch itself to jsdom with an \`@jest-environment jsdom\` docblock
+// (react-dom__client's root stub test does); the polyfill supplies the globals jsdom lacks. A
+// node-environment test already has them, and the polyfill's own guards make it a no-op there.
+const base = require('@dungeonmaster/testing/jest-config-base');
+
+module.exports = {
+  ...base,
+  setupFiles: [...(base.setupFiles ?? []), '@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
     );

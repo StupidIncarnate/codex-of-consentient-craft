@@ -29,7 +29,8 @@
     "version-packages": "changeset version",
     "release": "npm run build:clean && npm run check:published && npm run check:consumer && changeset publish",
     "claude": "claude",
-    "claude:version": "claude --version"
+    "claude:version": "claude --version",
+    "postinstall": "if command -v dungeonmaster >/dev/null 2>&1; then dungeonmaster gateway-sync; fi"
   },
   "repository": {
     "type": "git",

@@ -27,7 +27,13 @@ export const makeWorkDir = ({ prefix }) => mkdtempSync(join(tmpdir(), `${prefix}
  * satisfy each package's OWN `@dungeonmaster/*` dependencies from this same local set instead of
  * reaching for the registry.
  */
-export const writeRootPackageJson = ({ dir, name, tarballs, extraDevDependencies = {} }) => {
+export const writeRootPackageJson = ({
+  dir,
+  name,
+  tarballs,
+  extraDependencies = {},
+  extraDevDependencies = {},
+}) => {
   mkdirSync(dir, { recursive: true });
   mkdirSync(join(dir, 'packages'), { recursive: true });
   const dependencies = {};
@@ -39,7 +45,7 @@ export const writeRootPackageJson = ({ dir, name, tarballs, extraDevDependencies
     version: '0.0.0',
     private: true,
     workspaces: ['packages/*'],
-    dependencies,
+    dependencies: { ...dependencies, ...extraDependencies },
     devDependencies: { ...extraDevDependencies },
   };
   writeFileSync(join(dir, 'package.json'), `${JSON.stringify(packageJson, null, 2)}\n`);

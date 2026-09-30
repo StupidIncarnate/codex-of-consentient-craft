@@ -1,3 +1,4 @@
+import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { StartInstall } from './start-install';
 import { scaffoldedTemplateTypecheckHarness } from '../../test/harnesses/scaffolded-template-typecheck/scaffolded-template-typecheck.harness';
@@ -15,6 +16,10 @@ import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-cont
 const REPO_NODE_MODULES = `${__dirname}/../../../../node_modules`;
 
 describe('StartInstall', () => {
+  // A `dependencies` entry makes init's npm-gateway sync record it in the gateway package and run
+  // `npm install --ignore-scripts`; the fake keeps that off the network.
+  const npmFake = npmCommandFakeHarness();
+
   describe('wiring to install flow', () => {
     it('VALID: {context} => delegates to flow and returns install result with devDependencies added', async () => {
       const testbed = installTestbedCreateBroker({
@@ -44,7 +49,7 @@ describe('StartInstall', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
@@ -56,6 +61,7 @@ describe('StartInstall', () => {
 
   describe('scaffolded playwright.config.ts reads devServer.e2e.processes', () => {
     it('VALID: {e2e-eligible target, devServer.e2e.processes with an api and a web entry} => the written config maps each into webServer with tokens substituted', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'playwright-e2e-happy',
       });
@@ -159,6 +165,7 @@ describe('StartInstall', () => {
     }, 30_000);
 
     it('ERROR: {e2e-eligible target, devServer.e2e.processes still the unedited seeded placeholder} => the written config refuses to load, naming the field to edit', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'playwright-e2e-placeholder',
       });
@@ -219,6 +226,7 @@ describe('StartInstall', () => {
     }, 30_000);
 
     it('ERROR: {e2e-eligible target, .dungeonmaster.json has no devServer.e2e} => the written config refuses to load, naming the field to edit', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'playwright-e2e-missing-config',
       });
@@ -265,6 +273,7 @@ describe('StartInstall', () => {
     }, 30_000);
 
     it('ERROR: {e2e-eligible target, a process command uses {apiWorkspace}} => the written config refuses to load, naming the unresolvable token', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'playwright-e2e-unresolvable-token',
       });
@@ -324,6 +333,7 @@ describe('StartInstall', () => {
     }, 30_000);
 
     it('ERROR: {e2e-eligible target, a process portRole is neither api nor web} => the written config refuses to load, naming the process', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'playwright-e2e-bad-port-role',
       });
