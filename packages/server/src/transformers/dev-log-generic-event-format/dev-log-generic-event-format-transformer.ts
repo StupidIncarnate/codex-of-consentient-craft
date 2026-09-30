@@ -7,10 +7,6 @@
  */
 
 import { devLogEventPayloadContract } from '../../contracts/dev-log-event-payload/dev-log-event-payload-contract';
-import {
-  devLogLineContract,
-  type DevLogLine,
-} from '../../contracts/dev-log-line/dev-log-line-contract';
 import { devLogProcLabelTransformer } from '../dev-log-proc-label/dev-log-proc-label-transformer';
 import { devLogShortIdTransformer } from '../dev-log-short-id/dev-log-short-id-transformer';
 
@@ -18,7 +14,7 @@ export const devLogGenericEventFormatTransformer = ({
   payload,
 }: {
   payload: Record<PropertyKey, unknown>;
-}): DevLogLine => {
+}): string => {
   const procLabel = devLogProcLabelTransformer({ payload });
   const parsed = devLogEventPayloadContract.parse(payload);
 
@@ -51,7 +47,5 @@ export const devLogGenericEventFormatTransformer = ({
     ? `  questions:${parsed.questions.length}`
     : '';
 
-  return devLogLineContract.parse(
-    `${procLabel}${questPart}${sessionPart}${chatPart}${phasePart}${slotPart}${rolePart}${questionsPart}`.trim(),
-  );
+  return `${procLabel}${questPart}${sessionPart}${chatPart}${phasePart}${slotPart}${rolePart}${questionsPart}`.trim();
 };

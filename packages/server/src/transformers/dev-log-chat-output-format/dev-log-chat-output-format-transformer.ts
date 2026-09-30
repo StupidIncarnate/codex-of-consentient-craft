@@ -9,10 +9,6 @@
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { devLogEventPayloadContract } from '../../contracts/dev-log-event-payload/dev-log-event-payload-contract';
-import {
-  devLogLineContract,
-  type DevLogLine,
-} from '../../contracts/dev-log-line/dev-log-line-contract';
 import { devLogChatEntrySummaryTransformer } from '../dev-log-chat-entry-summary/dev-log-chat-entry-summary-transformer';
 import { devLogProcLabelTransformer } from '../dev-log-proc-label/dev-log-proc-label-transformer';
 
@@ -20,7 +16,7 @@ export const devLogChatOutputFormatTransformer = ({
   payload,
 }: {
   payload: Record<PropertyKey, unknown>;
-}): DevLogLine => {
+}): string => {
   const procLabel = devLogProcLabelTransformer({ payload });
   const parsed = devLogEventPayloadContract.parse(payload);
 
@@ -34,17 +30,15 @@ export const devLogChatOutputFormatTransformer = ({
 
   const { entries } = parsed;
   if (!Array.isArray(entries) || entries.length === 0) {
-    return devLogLineContract.parse(`${procLabel}  ${rolePart}${slotPart}(no entries)`.trim());
+    return `${procLabel}  ${rolePart}${slotPart}(no entries)`.trim();
   }
 
-  const parts: DevLogLine[] = [];
+  const parts: string[] = [];
   for (const candidate of entries) {
     const parseResult = chatEntryContract.safeParse(candidate);
     if (parseResult.success) {
       parts.push(devLogChatEntrySummaryTransformer({ entry: parseResult.data }));
     }
   }
-  return devLogLineContract.parse(
-    `${procLabel}  ${rolePart}${slotPart}${parts.join(' | ')}`.trim(),
-  );
+  return `${procLabel}  ${rolePart}${slotPart}${parts.join(' | ')}`.trim();
 };

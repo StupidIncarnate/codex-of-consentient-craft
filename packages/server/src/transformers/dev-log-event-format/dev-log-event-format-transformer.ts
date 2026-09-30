@@ -8,10 +8,6 @@
 
 import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
 
-import {
-  devLogLineContract,
-  type DevLogLine,
-} from '../../contracts/dev-log-line/dev-log-line-contract';
 import { devLogEventIconsStatics } from '../../statics/dev-log-event-icons/dev-log-event-icons-statics';
 import { devLogChatOutputFormatTransformer } from '../dev-log-chat-output-format/dev-log-chat-output-format-transformer';
 import { devLogGenericEventFormatTransformer } from '../dev-log-generic-event-format/dev-log-generic-event-format-transformer';
@@ -22,7 +18,7 @@ export const devLogEventFormatTransformer = ({
 }: {
   type: OrchestrationEventType;
   payload: Record<PropertyKey, unknown>;
-}): DevLogLine => {
+}): string => {
   const iconValue =
     devLogEventIconsStatics.icons[type as keyof typeof devLogEventIconsStatics.icons];
   const icon = typeof iconValue === 'string' ? iconValue : '· ';
@@ -32,5 +28,5 @@ export const devLogEventFormatTransformer = ({
       ? devLogChatOutputFormatTransformer({ payload })
       : devLogGenericEventFormatTransformer({ payload });
 
-  return devLogLineContract.parse(`${icon} ${type}  ${body}`.trim());
+  return `${icon} ${type}  ${body}`.trim();
 };

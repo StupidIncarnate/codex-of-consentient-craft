@@ -7,17 +7,13 @@
  */
 
 import { devLogEventPayloadContract } from '../../contracts/dev-log-event-payload/dev-log-event-payload-contract';
-import {
-  devLogLineContract,
-  type DevLogLine,
-} from '../../contracts/dev-log-line/dev-log-line-contract';
 import { devLogShortIdTransformer } from '../dev-log-short-id/dev-log-short-id-transformer';
 
 export const devLogProcLabelTransformer = ({
   payload,
 }: {
   payload: Record<PropertyKey, unknown>;
-}): DevLogLine => {
+}): string => {
   const parsed = devLogEventPayloadContract.parse(payload);
 
   // `?? undefined` folds the explicit null an event uses for "never captured" into the same
@@ -27,10 +23,10 @@ export const devLogProcLabelTransformer = ({
   const processId = parsed.processId ?? undefined;
 
   if (chatProcessId !== undefined) {
-    return devLogLineContract.parse(`proc:${devLogShortIdTransformer({ id: chatProcessId })}`);
+    return `proc:${devLogShortIdTransformer({ id: chatProcessId })}`;
   }
   if (processId !== undefined) {
-    return devLogLineContract.parse(`proc:${devLogShortIdTransformer({ id: processId })}`);
+    return `proc:${devLogShortIdTransformer({ id: processId })}`;
   }
-  return devLogLineContract.parse('');
+  return '';
 };

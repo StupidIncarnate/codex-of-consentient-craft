@@ -7,10 +7,6 @@
  */
 
 import { devLogToolInputContract } from '../../contracts/dev-log-tool-input/dev-log-tool-input-contract';
-import {
-  devLogLineContract,
-  type DevLogLine,
-} from '../../contracts/dev-log-line/dev-log-line-contract';
 import { devLogShortIdTransformer } from '../dev-log-short-id/dev-log-short-id-transformer';
 
 const TOOL_CMD_PREVIEW_LENGTH = 60;
@@ -23,54 +19,44 @@ export const devLogToolInputFormatTransformer = ({
 }: {
   toolName: string;
   input: Record<PropertyKey, unknown>;
-}): DevLogLine => {
+}): string => {
   const parsed = devLogToolInputContract.parse(input);
   if (toolName === 'Read' || toolName === 'Write' || toolName === 'Edit') {
     const fp = parsed.file_path;
-    if (fp === undefined) return devLogLineContract.parse('');
+    if (fp === undefined) return '';
     const parts = fp.split('/');
-    return devLogLineContract.parse(
-      parts.length <= PATH_TAIL_SEGMENTS ? fp : `.../${parts.slice(-PATH_TAIL_SEGMENTS).join('/')}`,
-    );
+    return (parts.length <= PATH_TAIL_SEGMENTS ? fp : `.../${parts.slice(-PATH_TAIL_SEGMENTS).join('/')}`);
   }
   if (toolName === 'Bash') {
     const cmd = parsed.command;
-    if (cmd === undefined) return devLogLineContract.parse('');
-    return devLogLineContract.parse(
-      cmd.length > TOOL_CMD_PREVIEW_LENGTH
+    if (cmd === undefined) return '';
+    return (cmd.length > TOOL_CMD_PREVIEW_LENGTH
         ? `"${cmd.slice(0, TOOL_CMD_PREVIEW_LENGTH)}..."`
-        : `"${cmd}"`,
-    );
+        : `"${cmd}"`);
   }
   if (toolName === 'Grep') {
-    return devLogLineContract.parse(
-      parsed.pattern === undefined ? '' : `pattern:"${parsed.pattern}"`,
-    );
+    return (parsed.pattern === undefined ? '' : `pattern:"${parsed.pattern}"`);
   }
   if (toolName === 'Glob') {
-    return devLogLineContract.parse(parsed.pattern === undefined ? '' : `"${parsed.pattern}"`);
+    return (parsed.pattern === undefined ? '' : `"${parsed.pattern}"`);
   }
   if (toolName === 'Agent') {
-    return devLogLineContract.parse(
-      parsed.description === undefined ? '' : `"${parsed.description}"`,
-    );
+    return (parsed.description === undefined ? '' : `"${parsed.description}"`);
   }
   if (toolName === 'TaskCreate') {
-    return devLogLineContract.parse(
-      parsed.subject === undefined ? '' : `"${parsed.subject.slice(0, TEXT_PREVIEW_LENGTH)}"`,
-    );
+    return (parsed.subject === undefined ? '' : `"${parsed.subject.slice(0, TEXT_PREVIEW_LENGTH)}"`);
   }
   if (toolName === 'TaskUpdate') {
-    return devLogLineContract.parse(`task:${String(parsed.taskId)}  ${String(parsed.status)}`);
+    return `task:${String(parsed.taskId)}  ${String(parsed.status)}`;
   }
   if (toolName.startsWith('mcp__dungeonmaster__')) {
     if (parsed.questId !== undefined) {
-      return devLogLineContract.parse(`quest:${devLogShortIdTransformer({ id: parsed.questId })}`);
+      return `quest:${devLogShortIdTransformer({ id: parsed.questId })}`;
     }
     if (parsed.guildId !== undefined) {
-      return devLogLineContract.parse(`guild:${devLogShortIdTransformer({ id: parsed.guildId })}`);
+      return `guild:${devLogShortIdTransformer({ id: parsed.guildId })}`;
     }
-    return devLogLineContract.parse('');
+    return '';
   }
-  return devLogLineContract.parse('');
+  return '';
 };
