@@ -23,7 +23,6 @@ import type { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/ques
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
@@ -411,7 +410,7 @@ export const orchestrationQuestHarness = (): {
       userRequest?: string;
     }) => {
       const guild = await GuildAddResponder({
-        name: GuildNameStub({ value: 'Integ Test Guild' }),
+        name: 'Integ Test Guild',
         path: testbed.guildPath,
       });
 

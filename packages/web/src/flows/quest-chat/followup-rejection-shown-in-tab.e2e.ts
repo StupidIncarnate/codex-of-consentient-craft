@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
@@ -98,7 +97,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
     }) => {
       const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
       const { questId, questFilePath } = await followup.seedAndOpen({
-        guildName: GuildNameStub({ value: `Followup Rejection ${status} Guild` }),
+        guildName: `Followup Rejection ${status} Guild`,
         status: OPENED_AT_STATUS,
       });
 
@@ -139,7 +138,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
     const { questFilePath } = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Followup Rejection Hostile Guild' }),
+      guildName: 'Followup Rejection Hostile Guild',
       status: OPENED_AT_STATUS,
     });
 
@@ -183,7 +182,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
     });
 
     const { questId } = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Followup Rejection Accepted Guild' }),
+      guildName: 'Followup Rejection Accepted Guild',
       status: OPENED_AT_STATUS,
     });
 

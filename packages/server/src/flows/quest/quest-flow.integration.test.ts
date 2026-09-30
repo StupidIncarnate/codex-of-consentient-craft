@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
@@ -828,7 +827,7 @@ describe('QuestFlow', () => {
         // any path that reaches a resume) needs it in config.json.
         const seeded = await harness.seedGuildAndQuestFields({
           dungeonmasterHome,
-          guildName: GuildNameStub({ value: 'Stale Anchor Guild' }),
+          guildName: 'Stale Anchor Guild',
           guildPath: dungeonmasterHome,
           fields: {
             status: 'flows_approved',
@@ -995,7 +994,7 @@ describe('QuestFlow', () => {
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6001-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
         dungeonmasterHome,
-        guildName: GuildNameStub({ value: 'Chat Images Guild — Two Distinct' }),
+        guildName: 'Chat Images Guild — Two Distinct',
         guildPath: dungeonmasterHome,
         fields: {
           workItems: [
@@ -1054,7 +1053,7 @@ describe('QuestFlow', () => {
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6002-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
         dungeonmasterHome,
-        guildName: GuildNameStub({ value: 'Chat Images Guild — Cap' }),
+        guildName: 'Chat Images Guild — Cap',
         guildPath: dungeonmasterHome,
         fields: {
           workItems: [
@@ -1115,7 +1114,7 @@ describe('QuestFlow', () => {
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6003-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
         dungeonmasterHome,
-        guildName: GuildNameStub({ value: 'Chat Images Guild — Dir Created' }),
+        guildName: 'Chat Images Guild — Dir Created',
         guildPath: dungeonmasterHome,
         fields: {
           workItems: [
@@ -1159,7 +1158,7 @@ describe('QuestFlow', () => {
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6004-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
         dungeonmasterHome,
-        guildName: GuildNameStub({ value: 'Chat Images Guild — Not Recreated' }),
+        guildName: 'Chat Images Guild — Not Recreated',
         guildPath: dungeonmasterHome,
         fields: {
           workItems: [
@@ -1219,7 +1218,7 @@ describe('QuestFlow', () => {
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6005-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
         dungeonmasterHome,
-        guildName: GuildNameStub({ value: 'Chat Images Guild — Identical' }),
+        guildName: 'Chat Images Guild — Identical',
         guildPath: dungeonmasterHome,
         fields: {
           workItems: [
@@ -1286,7 +1285,7 @@ describe('QuestFlow', () => {
         const sessionId = SessionIdStub({ value: 'bbbbbbbb-6006-4222-8222-444444444444' });
         const seeded = await harness.seedGuildAndQuestFields({
           dungeonmasterHome,
-          guildName: GuildNameStub({ value: 'Chat Images Guild — Hostile' }),
+          guildName: 'Chat Images Guild — Hostile',
           guildPath: dungeonmasterHome,
           fields: {
             workItems: [
@@ -1340,7 +1339,7 @@ describe('QuestFlow', () => {
       // single-quest GET path used elsewhere in this file) needs to discover it below.
       const seeded = await harness.seedGuildAndQuestFields({
         dungeonmasterHome,
-        guildName: GuildNameStub({ value: 'Chat Images Guild — No Session' }),
+        guildName: 'Chat Images Guild — No Session',
         guildPath: dungeonmasterHome,
         fields: {
           workItems: [

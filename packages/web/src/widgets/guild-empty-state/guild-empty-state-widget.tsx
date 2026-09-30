@@ -10,8 +10,6 @@ import { useState } from '#gateway/npm/react';
 
 import { Group, Stack, Text, TextInput } from '#gateway/npm/mantine__core';
 
-import type { GuildName } from '@dungeonmaster/shared/contracts';
-import { guildNameContract } from '@dungeonmaster/shared/contracts';
 
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
@@ -29,7 +27,7 @@ const browseLabel = buttonLabelContract.parse('BROWSE');
 const ghostVariant = buttonVariantContract.parse('ghost');
 
 export interface GuildEmptyStateWidgetProps {
-  onAddGuild: ({ name, path }: { name: GuildName; path: string }) => void;
+  onAddGuild: ({ name, path }: { name: string; path: string }) => void;
   onCancel?: (() => void) | undefined;
 }
 
@@ -101,7 +99,7 @@ export const GuildEmptyStateWidget = ({
             label={createLabel}
             onClick={() => {
               onAddGuild({
-                name: guildNameContract.parse(name),
+                name: name,
                 path: path,
               });
             }}

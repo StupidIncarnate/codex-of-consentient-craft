@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -34,7 +33,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Alignment Guild' }),
+      guildName: 'Bubble Alignment Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -54,7 +53,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Open Fill Guild' }),
+      guildName: 'Bubble Open Fill Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -78,7 +77,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Cancel Guild' }),
+      guildName: 'Bubble Cancel Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -103,7 +102,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Queue Guild' }),
+      guildName: 'Bubble Queue Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -129,7 +128,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Observable Guild' }),
+      guildName: 'Bubble Observable Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -153,7 +152,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Reload Guild' }),
+      guildName: 'Bubble Reload Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -185,7 +184,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Delete Guild' }),
+      guildName: 'Bubble Delete Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -217,7 +216,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Clear Guild' }),
+      guildName: 'Bubble Clear Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -247,7 +246,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Tab Mark Guild' }),
+      guildName: 'Bubble Tab Mark Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -286,7 +285,7 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Bubble Tab Mark Clear Guild' }),
+      guildName: 'Bubble Tab Mark Clear Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });

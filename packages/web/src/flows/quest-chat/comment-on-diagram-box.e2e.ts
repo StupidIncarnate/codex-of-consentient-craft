@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -42,7 +41,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Boxes Guild' }),
+      guildName: 'Comment Boxes Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -64,7 +63,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Approved Guild' }),
+      guildName: 'Comment Approved Guild',
       status: APPROVED,
       withSession: true,
     });
@@ -84,7 +83,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Sessionless Guild' }),
+      guildName: 'Comment Sessionless Guild',
       status: REVIEW_FLOWS,
       withSession: false,
       preQueuedText: 'queued while the session still existed',
@@ -114,7 +113,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Popover Guild' }),
+      guildName: 'Comment Popover Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -141,7 +140,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Card Click Guild' }),
+      guildName: 'Comment Card Click Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -163,7 +162,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Drag Guild' }),
+      guildName: 'Comment Drag Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -179,7 +178,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Newline Guild' }),
+      guildName: 'Comment Newline Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -202,7 +201,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Whitespace Guild' }),
+      guildName: 'Comment Whitespace Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -224,7 +223,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Queue Node Guild' }),
+      guildName: 'Comment Queue Node Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -255,7 +254,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Long Token Guild' }),
+      guildName: 'Comment Long Token Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -279,7 +278,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Queue Observable Guild' }),
+      guildName: 'Comment Queue Observable Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -309,7 +308,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Cancel Close Guild' }),
+      guildName: 'Comment Cancel Close Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -331,7 +330,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Cancel Restore Guild' }),
+      guildName: 'Comment Cancel Restore Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -371,7 +370,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Edit Requeue Guild' }),
+      guildName: 'Comment Edit Requeue Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -406,7 +405,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Delete Guild' }),
+      guildName: 'Comment Delete Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -436,7 +435,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Multi Box Guild' }),
+      guildName: 'Comment Multi Box Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -503,7 +502,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Newline Queue Guild' }),
+      guildName: 'Comment Newline Queue Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -533,7 +532,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Markup Queue Guild' }),
+      guildName: 'Comment Markup Queue Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -565,7 +564,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Oversized Guild' }),
+      guildName: 'Comment Oversized Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -595,7 +594,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment JSON Hostile Guild' }),
+      guildName: 'Comment JSON Hostile Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -625,7 +624,7 @@ test.describe('Leave a Comment on a Diagram Box', () => {
   }) => {
     const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await comments.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Comment Duplicate Text Guild' }),
+      guildName: 'Comment Duplicate Text Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });

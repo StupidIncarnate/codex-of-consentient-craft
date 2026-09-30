@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -22,7 +21,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Terminal Guild' }),
+      guildName: 'Composer Delete Terminal Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -53,7 +52,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Both Keys Guild' }),
+      guildName: 'Composer Delete Both Keys Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -95,7 +94,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Click Opens Overlay Guild' }),
+      guildName: 'Composer Delete Click Opens Overlay Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -119,7 +118,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete One Keystroke Guild' }),
+      guildName: 'Composer Delete One Keystroke Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -146,7 +145,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Text Survives Guild' }),
+      guildName: 'Composer Delete Text Survives Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -174,7 +173,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Draft Empty Guild' }),
+      guildName: 'Composer Delete Draft Empty Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -207,7 +206,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Keeps Remaining Guild' }),
+      guildName: 'Composer Delete Keeps Remaining Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -246,7 +245,7 @@ test.describe('Composer paste — delete a thumbnail, and open the overlay from 
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Delete Click Correct Image Guild' }),
+      guildName: 'Composer Delete Click Correct Image Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();

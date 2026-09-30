@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
@@ -53,7 +52,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Concurrent Distinct Items Guild' }),
+      name: 'Concurrent Distinct Items Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -105,7 +104,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Concurrent Same Item Guild' }),
+      name: 'Concurrent Same Item Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -163,7 +162,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Concurrent Preserves Earlier Guild' }),
+      name: 'Concurrent Preserves Earlier Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -236,7 +235,7 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Cross Writer Race Guild' }),
+      name: 'Cross Writer Race Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -312,7 +311,7 @@ describe('questModifyBroker vs the dedicated pause pipeline (integration — rea
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Bare Pause Guild' }),
+      name: 'Bare Pause Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);

@@ -8,9 +8,7 @@
  * WHEN-TO-USE: Auto-deriving a guild name from a repo root folder when registering a new guild
  */
 
-import { guildNameContract } from '../../contracts/guild-name/guild-name-contract';
 import { guildNameSmallWordsStatics } from '../../statics/guild-name-small-words/guild-name-small-words-statics';
-import type { GuildName } from '../../contracts/guild-name/guild-name-contract';
 
 const CAMEL_CASE_BOUNDARY_PATTERN = /([a-z0-9])([A-Z])/gu;
 const WORD_SEPARATOR_PATTERN = /[-_. ]+/u;
@@ -19,7 +17,7 @@ export const folderNameToGuildNameTransformer = ({
   folderName,
 }: {
   folderName: string;
-}): GuildName => {
+}): string => {
   const words = folderName
     .replace(CAMEL_CASE_BOUNDARY_PATTERN, '$1 $2')
     .split(WORD_SEPARATOR_PATTERN)
@@ -35,5 +33,5 @@ export const folderNameToGuildNameTransformer = ({
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   });
 
-  return guildNameContract.parse(titleCased.join(' '));
+  return titleCased.join(' ');
 };

@@ -1,6 +1,5 @@
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
@@ -18,7 +17,7 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const newName = GuildNameStub({ value: 'New Name' });
+      const newName = 'New Name';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild] }),
@@ -70,7 +69,7 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/old-path',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const newName = GuildNameStub({ value: 'New Name' });
+      const newName = 'New Name';
       const newPath = '/home/user/new-path';
 
       proxy.setupConfig({
@@ -102,7 +101,7 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/second',
         createdAt: '2024-02-20T12:00:00.000Z',
       });
-      const newName = GuildNameStub({ value: 'Updated Second' });
+      const newName = 'Updated Second';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild1, guild2] }),
@@ -124,7 +123,7 @@ describe('guildUpdateBroker', () => {
     it('ERROR: {guildId not in config} => throws guild not found', async () => {
       const proxy = guildUpdateBrokerProxy();
       const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
-      const newName = GuildNameStub({ value: 'New Name' });
+      const newName = 'New Name';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [] }),

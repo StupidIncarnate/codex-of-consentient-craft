@@ -10,15 +10,13 @@ import { useState } from '#gateway/npm/react';
 
 import { Button, Group, Modal, Stack, TextInput } from '#gateway/npm/mantine__core';
 
-import type { GuildName } from '@dungeonmaster/shared/contracts';
-import { guildNameContract } from '@dungeonmaster/shared/contracts';
 
 import { DirectoryBrowserModalWidget } from '../directory-browser-modal/directory-browser-modal-widget';
 
 export interface GuildAddModalWidgetProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (params: { name: GuildName; path: string }) => void;
+  onSubmit: (params: { name: string; path: string }) => void;
 }
 
 export const GuildAddModalWidget = ({
@@ -90,7 +88,7 @@ export const GuildAddModalWidget = ({
               onClick={() => {
                 if (!name.trim() || !path.trim()) return;
                 onSubmit({
-                  name: guildNameContract.parse(name.trim()),
+                  name: name.trim(),
                   path: path.trim(),
                 });
                 setName('');

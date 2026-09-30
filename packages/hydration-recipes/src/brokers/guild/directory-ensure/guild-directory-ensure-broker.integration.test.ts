@@ -1,5 +1,4 @@
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 
 import { guildDirectoryEnsureBroker } from './guild-directory-ensure-broker';
 import { guildQueryRouteBroker } from '../query-route/guild-query-route-broker';
@@ -19,7 +18,7 @@ describe('guild directory ensure — the directory it creates lands inside the t
 
     await guildDirectoryEnsureBroker({ target, path: guildPath });
     const registered = await guildAddBroker({
-      name: GuildNameStub({ value: 'Guild 1' }),
+      name: 'Guild 1',
       path: guildPath,
       home: target.home,
     });
@@ -42,7 +41,7 @@ describe('guild directory ensure — the directory it creates lands inside the t
     const guildPath = `${target.home}/guilds-under-test/guild-1`;
 
     const registered = await guildAddBroker({
-      name: GuildNameStub({ value: 'Guild 1' }),
+      name: 'Guild 1',
       path: guildPath,
       home: target.home,
     });

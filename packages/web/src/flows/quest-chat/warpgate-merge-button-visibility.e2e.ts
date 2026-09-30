@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -43,7 +42,7 @@ test.describe('Warpgate merge button visibility', () => {
       const warpgate = warpgateHarness({ request, guildPath: GUILD_PATH });
       const nav = navigationHarness({ page });
       const { urlSlug, questId, questFolder, questFilePath } = await warpgate.setup({
-        guildName: GuildNameStub({ value: `Merge Button ${status} Guild` }),
+        guildName: `Merge Button ${status} Guild`,
         title,
       });
 
@@ -83,7 +82,7 @@ test.describe('Warpgate merge button visibility', () => {
     const warpgate = warpgateHarness({ request, guildPath: GUILD_PATH });
     const nav = navigationHarness({ page });
     const { urlSlug, questId, questFolder, questFilePath } = await warpgate.setup({
-      guildName: GuildNameStub({ value: 'Merged Guild' }),
+      guildName: 'Merged Guild',
       title: MARKUP_SHAPED_TITLE,
     });
 
@@ -137,7 +136,7 @@ test.describe('Warpgate merge button visibility', () => {
     // createGuild against this same GUILD_PATH answers an error body with no id and the quest
     // create that follows it fails contract validation instead.
     const completeSetup = await warpgate.setup({
-      guildName: GuildNameStub({ value: 'Banner Guild' }),
+      guildName: 'Banner Guild',
       title: 'Banner Complete Quest',
     });
     await warpgate.seedWarpgateQuest({

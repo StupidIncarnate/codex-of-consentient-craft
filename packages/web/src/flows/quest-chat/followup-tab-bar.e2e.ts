@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -48,7 +47,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Tab Bar Baseline Guild' }), status: 'blocked' });
+    await followup.seedAndOpen({ guildName: 'Tab Bar Baseline Guild', status: 'blocked' });
 
     const order = await followup.tabOrder();
 
@@ -65,7 +64,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Tab Bar Appear Guild' }), status: 'blocked' });
+    await followup.seedAndOpen({ guildName: 'Tab Bar Appear Guild', status: 'blocked' });
 
     await followup.pressFollowup();
 
@@ -106,7 +105,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     request,
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
-    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Tab Bar Second Press Guild' }), status: 'blocked' });
+    await followup.seedAndOpen({ guildName: 'Tab Bar Second Press Guild', status: 'blocked' });
 
     const sessionId = SessionIdStub({ value: 'e2e-followup-tabbar-session-0000000000a1' });
     claudeMock.queueResponse({
@@ -212,7 +211,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
     await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Tab Bar Second Button Press Guild' }),
+      guildName: 'Tab Bar Second Button Press Guild',
       status: 'blocked',
     });
 
@@ -260,7 +259,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
     const quests = questHarness({ request });
     const { questId } = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Tab Bar Status Survival Guild' }),
+      guildName: 'Tab Bar Status Survival Guild',
       status: 'blocked',
     });
 

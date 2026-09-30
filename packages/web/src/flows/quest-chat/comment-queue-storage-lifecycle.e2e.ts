@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -53,7 +52,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Reload Survival Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Reload Survival Guild' });
     await lifecycle.openQuest({ which: 'first' });
 
     await lifecycle.queueCommentOn({
@@ -104,7 +103,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Fresh Entry Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Fresh Entry Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -134,7 +133,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Mixed Age Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Mixed Age Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -177,7 +176,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Emptied Key Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Emptied Key Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -206,7 +205,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Other Quest Intact Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Other Quest Intact Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -256,7 +255,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Cross Quest Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Cross Quest Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -310,7 +309,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Abandoned Review Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Abandoned Review Guild' });
     await lifecycle.openQuest({ which: 'second' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -348,7 +347,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Double Purge Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Double Purge Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',
@@ -383,7 +382,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
       guildPath: GUILD_PATH,
       sessions,
     });
-    await lifecycle.seedTwoQuests({ guildName: GuildNameStub({ value: 'Window Sentinel Guild' }) });
+    await lifecycle.seedTwoQuests({ guildName: 'Window Sentinel Guild' });
     await lifecycle.openQuest({ which: 'first' });
     await lifecycle.writeQueue({
       which: 'first',

@@ -1,13 +1,12 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { GuildName } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildAddResponder } from './guild-add-responder';
 
 type Guild = ReturnType<typeof GuildStub>;
 
 export const GuildAddResponderProxy = (): {
-  setupAddGuild: (params: { name: GuildName; path: string; guild: Guild }) => void;
-  setupAddGuildError: (params: { name: GuildName; path: string; message: string }) => void;
+  setupAddGuild: (params: { name: string; path: string; guild: Guild }) => void;
+  setupAddGuildError: (params: { name: string; path: string; message: string }) => void;
   callResponder: typeof GuildAddResponder;
 } => {
   const orchestrator = StartOrchestratorProxy();
@@ -18,7 +17,7 @@ export const GuildAddResponderProxy = (): {
       path,
       guild,
     }: {
-      name: GuildName;
+      name: string;
       path: string;
       guild: Guild;
     }): void => {
@@ -29,7 +28,7 @@ export const GuildAddResponderProxy = (): {
       path,
       message,
     }: {
-      name: GuildName;
+      name: string;
       path: string;
       message: string;
     }): void => {

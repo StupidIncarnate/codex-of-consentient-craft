@@ -30,7 +30,6 @@ import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-re
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { Base64ImageData, FileName, Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { fileNameContract, pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -511,7 +510,7 @@ export const serverAppHarness = (): {
     path: string;
   }): ReturnType<typeof StartOrchestrator.addGuild> =>
     StartOrchestrator.addGuild({
-      name: GuildNameStub({ value: name }),
+      name: name,
       path: path,
     });
 

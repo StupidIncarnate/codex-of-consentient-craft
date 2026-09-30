@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -38,7 +37,7 @@ test.describe('Composer paste — multiple images', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Multi Ready Guild' }),
+      guildName: 'Composer Multi Ready Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -93,7 +92,7 @@ test.describe('Composer paste — multiple images', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Multi Keep Places Guild' }),
+      guildName: 'Composer Multi Keep Places Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -132,7 +131,7 @@ test.describe('Composer paste — multiple images', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Multi Same Clipboard Count Guild' }),
+      guildName: 'Composer Multi Same Clipboard Count Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -156,7 +155,7 @@ test.describe('Composer paste — multiple images', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Multi Same Clipboard Ids Guild' }),
+      guildName: 'Composer Multi Same Clipboard Ids Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -185,7 +184,7 @@ test.describe('Composer paste — multiple images', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Multi Same Clipboard Bytes Guild' }),
+      guildName: 'Composer Multi Same Clipboard Bytes Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -214,7 +213,7 @@ test.describe('Composer paste — multiple images', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Multi Same Clipboard Numbered Guild' }),
+      guildName: 'Composer Multi Same Clipboard Numbered Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();

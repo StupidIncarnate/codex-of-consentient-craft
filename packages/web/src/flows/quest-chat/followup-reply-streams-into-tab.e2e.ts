@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
@@ -122,7 +121,7 @@ test.describe('FOLLOW-UP reply streams into the tab', () => {
       });
 
       await followup.seedAndOpen({
-        guildName: GuildNameStub({ value: `Followup Streaming ${status} Guild` }),
+        guildName: `Followup Streaming ${status} Guild`,
         status,
         workItems: [
           { id: priorWorkItemId, role: 'codeweaver', status: 'complete' },

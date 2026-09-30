@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -47,7 +46,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Legacy Comments Guild' }),
+      guildName: 'Legacy Comments Guild',
       status: REVIEW_FLOWS,
       withSession: true,
       withComments: false,
@@ -68,7 +67,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Badge Guild' }),
+      guildName: 'Badge Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -94,7 +93,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Per Assertion Badge Guild' }),
+      guildName: 'Per Assertion Badge Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -128,7 +127,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Approved Badge Guild' }),
+      guildName: 'Approved Badge Guild',
       status: APPROVED,
       withSession: true,
     });
@@ -148,7 +147,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Sessionless Badge Guild' }),
+      guildName: 'Sessionless Badge Guild',
       status: REVIEW_FLOWS,
       withSession: false,
     });
@@ -166,7 +165,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Newest First Guild' }),
+      guildName: 'Newest First Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -200,7 +199,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Scrambled Order Guild' }),
+      guildName: 'Scrambled Order Guild',
       status: REVIEW_FLOWS,
       withSession: true,
       withScrambledOrder: true,
@@ -228,7 +227,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Cross Flow Guild' }),
+      guildName: 'Cross Flow Guild',
       status: REVIEW_FLOWS,
       withSession: true,
       withSecondFlow: true,
@@ -262,7 +261,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Long Token Guild' }),
+      guildName: 'Long Token Guild',
       status: REVIEW_FLOWS,
       withSession: true,
       withLongToken: true,
@@ -293,7 +292,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Assertion Panel Guild' }),
+      guildName: 'Assertion Panel Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -320,7 +319,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'No Comments Section Guild' }),
+      guildName: 'No Comments Section Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -340,7 +339,7 @@ test.describe('View Persisted Comments on a Quest', () => {
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await view.seedAndOpenSpecPanel({
-      guildName: GuildNameStub({ value: 'Empty Panel Guild' }),
+      guildName: 'Empty Panel Guild',
       status: REVIEW_FLOWS,
       withSession: true,
     });
@@ -359,7 +358,7 @@ test.describe('View Persisted Comments on a Quest', () => {
     request,
   }) => {
     const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await view.seedAndOpenReadOnlySpecTab({ guildName: GuildNameStub({ value: 'Read Only Comments Guild' }) });
+    await view.seedAndOpenReadOnlySpecTab({ guildName: 'Read Only Comments Guild' });
 
     // readOnly drops the action bar — proof this is the read-only render, not the live panel.
     await expect(page.getByTestId('ACTION_BAR')).toHaveCount(0);

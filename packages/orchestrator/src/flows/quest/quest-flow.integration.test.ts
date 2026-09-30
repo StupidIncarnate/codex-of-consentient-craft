@@ -7,7 +7,6 @@ import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edg
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
@@ -1596,7 +1595,7 @@ describe('QuestFlow', () => {
 
       // Pre-register a guild whose path equals the repo root.
       const existing = await GuildAddResponder({
-        name: GuildNameStub({ value: 'Existing Covering Guild' }),
+        name: 'Existing Covering Guild',
         path: repoRoot,
       });
 
@@ -1641,7 +1640,7 @@ describe('QuestFlow', () => {
       await envHarness.writeRepoRootMarker({ repoRoot });
 
       const ancestor = await GuildAddResponder({
-        name: GuildNameStub({ value: 'Ancestor Guild' }),
+        name: 'Ancestor Guild',
         path: repoRoot,
       });
 

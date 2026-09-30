@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -31,7 +30,7 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-approved-modal-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: GuildNameStub({ value: 'Approved Modal Guild' }),
+      guildName: 'Approved Modal Guild',
       sessionId,
       status: 'review_observables',
     });
@@ -62,7 +61,7 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-begin-quest-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: GuildNameStub({ value: 'Begin Quest Guild' }),
+      guildName: 'Begin Quest Guild',
       sessionId,
       status: 'review_observables',
     });
@@ -103,7 +102,7 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-keep-chatting-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: GuildNameStub({ value: 'Keep Chatting Guild' }),
+      guildName: 'Keep Chatting Guild',
       sessionId,
       status: 'review_observables',
     });
@@ -148,7 +147,7 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-no-modal-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: GuildNameStub({ value: 'No Modal Guild' }),
+      guildName: 'No Modal Guild',
       sessionId,
       status: 'review_flows',
     });
@@ -174,7 +173,7 @@ test.describe('Quest Approved Modal', () => {
     const sessionId = `e2e-execution-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
-      guildName: GuildNameStub({ value: 'Execution View Guild' }),
+      guildName: 'Execution View Guild',
       sessionId,
       status: 'review_observables',
     });

@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
@@ -19,7 +18,7 @@ describe('questHydrateBroker', () => {
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Hydrate Test Guild' }),
+      name: 'Hydrate Test Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub({ targetStatus: 'explore_flows' });
@@ -51,7 +50,7 @@ describe('questHydrateBroker', () => {
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Quest Source Guild' }),
+      name: 'Quest Source Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub({ targetStatus: 'explore_flows' });
@@ -77,7 +76,7 @@ describe('questHydrateBroker', () => {
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'No Quest Source Guild' }),
+      name: 'No Quest Source Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub({ targetStatus: 'explore_flows' });
@@ -104,7 +103,7 @@ describe('questHydrateBroker', () => {
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Smoketest Minimal Guild' }),
+      name: 'Smoketest Minimal Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -155,7 +154,7 @@ describe('questHydrateBroker', () => {
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Verify Tail Guild' }),
+      name: 'Verify Tail Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -204,7 +203,7 @@ describe('questHydrateBroker', () => {
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Fixed Work Item Id Guild' }),
+      name: 'Fixed Work Item Id Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub({
@@ -236,7 +235,7 @@ describe('questHydrateBroker', () => {
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Mints Work Item Id Guild' }),
+      name: 'Mints Work Item Id Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -281,7 +280,7 @@ describe('questHydrateBroker', () => {
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Fixed Clocks Guild' }),
+      name: 'Fixed Clocks Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -322,7 +321,7 @@ describe('questHydrateBroker', () => {
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Mints Clocks Guild' }),
+      name: 'Mints Clocks Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);

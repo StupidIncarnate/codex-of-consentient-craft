@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
@@ -16,7 +15,7 @@ describe('GuildFlow', () => {
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
-      const name = GuildNameStub({ value: 'My Test App' });
+      const name = 'My Test App';
       const path = '/home/user/my-test-app';
 
       const result = await GuildFlow.add({ name, path });
@@ -39,7 +38,7 @@ describe('GuildFlow', () => {
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
-      const name = GuildNameStub({ value: 'Findable Guild' });
+      const name = 'Findable Guild';
       const path = '/home/user/findable-guild';
 
       const added = await GuildFlow.add({ name, path });
@@ -79,7 +78,7 @@ describe('GuildFlow', () => {
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
-      const name = GuildNameStub({ value: 'Listed Guild' });
+      const name = 'Listed Guild';
       const path = '/home/user/listed-guild';
 
       const added = await GuildFlow.add({ name, path });
@@ -109,11 +108,11 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const first = await GuildFlow.add({
-        name: GuildNameStub({ value: 'First Guild' }),
+        name: 'First Guild',
         path: '/home/user/first-guild',
       });
       const second = await GuildFlow.add({
-        name: GuildNameStub({ value: 'Second Guild' }),
+        name: 'Second Guild',
         path: '/home/user/second-guild',
       });
 
@@ -151,11 +150,11 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const added = await GuildFlow.add({
-        name: GuildNameStub({ value: 'Original Name' }),
+        name: 'Original Name',
         path: '/home/user/original-path',
       });
       const guildId = GuildIdStub({ value: added.id });
-      const newName = GuildNameStub({ value: 'Updated Name' });
+      const newName = 'Updated Name';
 
       const result = await GuildFlow.update({ guildId, name: newName });
 
@@ -178,7 +177,7 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const added = await GuildFlow.add({
-        name: GuildNameStub({ value: 'Guild With Path' }),
+        name: 'Guild With Path',
         path: '/home/user/old-path',
       });
       const guildId = GuildIdStub({ value: added.id });
@@ -205,7 +204,7 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const added = await GuildFlow.add({
-        name: GuildNameStub({ value: 'To Be Removed' }),
+        name: 'To Be Removed',
         path: '/home/user/to-be-removed',
       });
       const guildId = GuildIdStub({ value: added.id });
@@ -227,11 +226,11 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const first = await GuildFlow.add({
-        name: GuildNameStub({ value: 'First' }),
+        name: 'First',
         path: '/home/user/first',
       });
       const second = await GuildFlow.add({
-        name: GuildNameStub({ value: 'Second' }),
+        name: 'Second',
         path: '/home/user/second',
       });
 
@@ -315,12 +314,12 @@ describe('GuildFlow', () => {
       const path = '/home/user/duplicate-path';
 
       await GuildFlow.add({
-        name: GuildNameStub({ value: 'First Guild' }),
+        name: 'First Guild',
         path,
       });
 
       const errorMessage = await GuildFlow.add({
-        name: GuildNameStub({ value: 'Second Guild' }),
+        name: 'Second Guild',
         path,
       }).catch((thrown: unknown) => (thrown as Error).message);
 

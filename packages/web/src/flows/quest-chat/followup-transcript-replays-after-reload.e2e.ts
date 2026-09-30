@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
@@ -68,7 +67,7 @@ test.describe('FOLLOW-UP transcript replays after a reload', () => {
     });
 
     const { questId } = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Followup Replay Guild' }),
+      guildName: 'Followup Replay Guild',
       status: 'complete',
       workItems: [
         { id: PRIOR_WORK_ITEM_ID, role: 'codeweaver', status: 'complete' },

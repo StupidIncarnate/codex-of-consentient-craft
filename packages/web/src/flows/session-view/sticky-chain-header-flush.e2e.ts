@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -27,7 +26,7 @@ test.describe('A chain header on the chat surface pins flush with the top of the
   }) => {
     const sticky = stickyHeaderHarness({ page, request, guildPath: GUILD_PATH, sessions });
 
-    await sticky.seedChatPanelChain({ guildName: GuildNameStub({ value: 'Sticky Chat Guild' }) });
+    await sticky.seedChatPanelChain({ guildName: 'Sticky Chat Guild' });
     await sticky.scrollTranscriptToFoot();
 
     // The regression this owns: a sticky child pins to its scrollport's CONTENT edge, so any

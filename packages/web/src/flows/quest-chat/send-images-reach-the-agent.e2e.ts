@@ -1,5 +1,4 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -700,7 +699,7 @@ test.describe('Composer send — images reach the agent', () => {
     // trailer identity pipeline as a resumed main chat message (chatPromptBuildTransformer's
     // `if (sessionId)` branch), matching every other test in this file.
     const seeded = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Reach Agent Followup Guild' }),
+      guildName: 'Reach Agent Followup Guild',
       status: 'blocked',
       workItems: [
         {
@@ -790,7 +789,7 @@ test.describe('Composer send — images reach the agent', () => {
     // the followup route spawns with `--resume <sessionId>`, matching every other follow-up test
     // in this file.
     const seeded = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Reach Agent Followup Body Guild' }),
+      guildName: 'Reach Agent Followup Body Guild',
       status: 'blocked',
       workItems: [
         {

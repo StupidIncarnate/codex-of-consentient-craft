@@ -14,7 +14,7 @@ import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
 export const testGuildContract = z.object({
   guildPath: z.string().brand<'TestGuildGuildPath'>(),
-  guildName: z.string().brand<'GuildName'>(),
+  guildName: z.string().brand<'TestGuildGuildName'>(),
   rootDir: z.string().brand<'RootDir'>(),
 });
 

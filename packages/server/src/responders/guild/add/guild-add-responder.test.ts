@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
 
@@ -6,7 +5,7 @@ describe('GuildAddResponder', () => {
   describe('successful creation', () => {
     it('VALID: {name, path} => returns 201 with guild', async () => {
       const proxy = GuildAddResponderProxy();
-      const name = GuildNameStub({ value: 'Test Guild' });
+      const name = 'Test Guild';
       const path = '/tmp/test';
       const guild = GuildStub({ name, path });
       proxy.setupAddGuild({ name, path, guild });
@@ -69,7 +68,7 @@ describe('GuildAddResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = GuildAddResponderProxy();
-      const name = GuildNameStub({ value: 'Test' });
+      const name = 'Test';
       const path = '/tmp/test';
       proxy.setupAddGuildError({ name, path, message: 'Disk unavailable' });
 
@@ -83,7 +82,7 @@ describe('GuildAddResponder', () => {
 
     it('ERROR: {path already registered to another guild} => returns 409 with error message', async () => {
       const proxy = GuildAddResponderProxy();
-      const name = GuildNameStub({ value: 'Test' });
+      const name = 'Test';
       const path = '/tmp/test';
       proxy.setupAddGuildError({
         name,

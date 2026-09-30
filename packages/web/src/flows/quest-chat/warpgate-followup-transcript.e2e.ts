@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -38,7 +37,7 @@ test.describe('FOLLOW-UP tab transcript survives being stopped for a merge', () 
     const warpgate = warpgateHarness({ request, guildPath: GUILD_PATH });
     const nav = navigationHarness({ page });
     const { urlSlug, questId, questFolder, questFilePath } = await warpgate.setup({
-      guildName: GuildNameStub({ value: 'Followup Survives Stop Guild' }),
+      guildName: 'Followup Survives Stop Guild',
       title: 'Followup Survives Stop Quest',
     });
 

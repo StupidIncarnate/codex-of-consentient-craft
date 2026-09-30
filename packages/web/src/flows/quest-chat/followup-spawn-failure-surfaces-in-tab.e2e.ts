@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
@@ -74,7 +73,7 @@ test.describe('FOLLOW-UP spawn failure surfaces in the tab', () => {
   }) => {
     const first = followupHarness({ page, request, guildPath: GUILD_PATH_FIRST });
     const firstQuest = await first.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Spawn Failure Alpha Guild' }),
+      guildName: 'Spawn Failure Alpha Guild',
       status: 'blocked',
       worktreePath: FIRST_MISSING_WORKTREE,
     });
@@ -94,7 +93,7 @@ test.describe('FOLLOW-UP spawn failure surfaces in the tab', () => {
 
     const second = followupHarness({ page, request, guildPath: GUILD_PATH_SECOND });
     const secondQuest = await second.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Spawn Failure Beta Guild' }),
+      guildName: 'Spawn Failure Beta Guild',
       status: 'complete',
       worktreePath: SECOND_MISSING_WORKTREE,
     });
@@ -119,7 +118,7 @@ test.describe('FOLLOW-UP spawn failure surfaces in the tab', () => {
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH_FIRST });
     const { questId } = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Spawn Failure Hostile Guild' }),
+      guildName: 'Spawn Failure Hostile Guild',
       status: 'merged',
       worktreePath: FIRST_MISSING_WORKTREE,
     });
@@ -162,7 +161,7 @@ test.describe('FOLLOW-UP spawn failure surfaces in the tab', () => {
     // No worktreePath at all, so questCwdResolveBroker takes its repo-root branch and resolves the
     // guild path's own fixture checkout — a real, reachable directory, which is what makes this the
     // contrast case rather than a second failure with a different message.
-    await followup.seedAndOpen({ guildName: GuildNameStub({ value: 'Spawn Success Guild' }), status: 'blocked' });
+    await followup.seedAndOpen({ guildName: 'Spawn Success Guild', status: 'blocked' });
 
     await followup.pressFollowup();
     await followup.sendFollowupMessage({ text: ACCEPTED_QUESTION });

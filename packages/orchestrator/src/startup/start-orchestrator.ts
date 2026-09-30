@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
 
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
@@ -67,7 +67,7 @@ export const StartOrchestrator = {
 
   getGuild: async ({ guildId }: { guildId: Guild['id'] }): Promise<Guild> => GuildFlow.get({ guildId }),
 
-  addGuild: async ({ name, path }: { name: GuildName; path: string }): Promise<Guild> =>
+  addGuild: async ({ name, path }: { name: string; path: string }): Promise<Guild> =>
     GuildFlow.add({ name, path }),
 
   updateGuild: async ({
@@ -76,7 +76,7 @@ export const StartOrchestrator = {
     path,
   }: {
     guildId: Guild['id'];
-    name?: GuildName;
+    name?: string;
     path?: string;
   }): Promise<Guild> =>
     GuildFlow.update({

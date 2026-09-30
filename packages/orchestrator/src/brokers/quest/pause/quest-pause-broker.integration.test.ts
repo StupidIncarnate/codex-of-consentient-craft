@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
@@ -58,7 +57,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Pause Double Submit Guild' }),
+      name: 'Pause Double Submit Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -134,7 +133,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
     });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Pause Resume Restamp Guild' }),
+      name: 'Pause Resume Restamp Guild',
       path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);

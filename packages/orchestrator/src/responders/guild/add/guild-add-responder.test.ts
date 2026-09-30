@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
@@ -17,7 +16,7 @@ describe('GuildAddResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        name: GuildNameStub({ value: 'My Guild' }),
+        name: 'My Guild',
         path: '/home/user/my-project',
       });
 

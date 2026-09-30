@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -58,7 +57,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Size Ok Guild' }),
+      guildName: 'Composer Insert Size Ok Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -90,7 +89,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Size Over Guild' }),
+      guildName: 'Composer Insert Size Over Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -140,7 +139,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Thumbnail Bounded Guild' }),
+      guildName: 'Composer Insert Thumbnail Bounded Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -174,7 +173,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Caret Guild' }),
+      guildName: 'Composer Insert Caret Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -207,7 +206,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert No Remove Control Guild' }),
+      guildName: 'Composer Insert No Remove Control Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -232,7 +231,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Caret After Guild' }),
+      guildName: 'Composer Insert Caret After Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -259,7 +258,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert No Space Needed Guild' }),
+      guildName: 'Composer Insert No Space Needed Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -286,7 +285,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Space Before Guild' }),
+      guildName: 'Composer Insert Space Before Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -313,7 +312,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Space After Guild' }),
+      guildName: 'Composer Insert Space After Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -350,7 +349,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Mid Word Guild' }),
+      guildName: 'Composer Insert Mid Word Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -387,7 +386,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Trailing Space Type Guild' }),
+      guildName: 'Composer Insert Trailing Space Type Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();
@@ -410,7 +409,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     const composer = composerPasteHarness({ page });
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Composer Insert Adjacent Guild' }),
+      guildName: 'Composer Insert Adjacent Guild',
       guildPath: GUILD_PATH,
     });
     await composer.focusComposer();

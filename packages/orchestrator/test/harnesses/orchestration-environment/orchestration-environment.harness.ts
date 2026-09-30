@@ -12,8 +12,7 @@ import * as fs from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import type { GuildName, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
@@ -74,7 +73,7 @@ export const orchestrationEnvironmentHarness = (): {
   makeAndChdir: (params: { dir: string }) => { restore: () => void };
   readConfigGuilds: (params: {
     tempDir: string;
-  }) => readonly { name: GuildName; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[];
+  }) => readonly { name: string; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[];
   questsDirExists: (params: { tempDir: string; guildId: Guild['id'] }) => boolean;
   questFilePersisted: (params: { tempDir: string; guildId: Guild['id']; questId: Quest['id'] }) => {
     exists: boolean;
@@ -206,10 +205,10 @@ export const orchestrationEnvironmentHarness = (): {
       tempDir,
     }: {
       tempDir: string;
-    }): readonly { name: GuildName; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[] => {
+    }): readonly { name: string; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[] => {
       const raw = fs.readFileSync(path.join(tempDir, 'config.json'));
       const parsed = JSON.parse(raw) as {
-        guilds: { name: GuildName; path: string; id: Guild['id']; urlSlug: UrlSlug }[];
+        guilds: { name: string; path: string; id: Guild['id']; urlSlug: UrlSlug }[];
       };
       return parsed.guilds.map((guild) => ({
         name: guild.name,
@@ -247,7 +246,7 @@ export const orchestrationEnvironmentHarness = (): {
       fs.writeFileSync(path.join(tempDir, '.dungeonmaster.json'), '{}');
       const guildPath = tempDir;
       await guildAddBroker({
-        name: GuildNameStub({ value: 'codex' }),
+        name: 'codex',
         path: guildPath,
       });
       return { guildPath };

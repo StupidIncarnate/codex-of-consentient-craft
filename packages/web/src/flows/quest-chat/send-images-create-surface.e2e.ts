@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
@@ -38,7 +37,7 @@ test.describe('Composer send — the create surface takes the image path', () =>
 
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Create Surface Image Path Guild' }),
+      guildName: 'Create Surface Image Path Guild',
       guildPath: GUILD_PATH,
     });
 
@@ -86,7 +85,7 @@ test.describe('Composer send — the create surface takes the image path', () =>
 
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Create Surface Body Shape Guild' }),
+      guildName: 'Create Surface Body Shape Guild',
       guildPath: GUILD_PATH,
     });
 
@@ -133,7 +132,7 @@ test.describe('Composer send — the create surface takes the image path', () =>
 
     await composer.openComposerPage({
       request,
-      guildName: GuildNameStub({ value: 'Create Surface Same Shape Guild' }),
+      guildName: 'Create Surface Same Shape Guild',
       guildPath: GUILD_PATH,
     });
 

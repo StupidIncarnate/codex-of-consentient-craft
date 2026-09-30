@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -28,7 +27,7 @@ test.describe('A background sub-agent renders where it was launched, not at the 
   }) => {
     const launches = subagentLaunchOrderHarness({ page, request, guildPath: GUILD_PATH, sessions });
 
-    await launches.seedBackgroundLaunchQuest({ guildName: GuildNameStub({ value: 'Background Launch Order Guild' }) });
+    await launches.seedBackgroundLaunchQuest({ guildName: 'Background Launch Order Guild' });
     await launches.revealParentChainEntries();
 
     expect(await launches.paintedOrderInParentChainIs({ order: EXPECTED_ORDER })).toBe(true);

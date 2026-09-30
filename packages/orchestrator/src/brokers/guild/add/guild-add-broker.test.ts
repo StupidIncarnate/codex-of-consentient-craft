@@ -1,5 +1,4 @@
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
@@ -10,7 +9,7 @@ describe('guildAddBroker', () => {
   describe('successful add', () => {
     it('VALID: {name, path, empty config} => returns new guild with generated id and createdAt', async () => {
       const proxy = guildAddBrokerProxy();
-      const name = GuildNameStub({ value: 'My App' });
+      const name = 'My App';
       const path = '/home/user/my-app';
       const homePath = '/home/user/.dungeonmaster';
       const guildsPath = '/home/user/.dungeonmaster/guilds';
@@ -39,7 +38,7 @@ describe('guildAddBroker', () => {
 
     it('VALID: {name, path, config with existing guilds} => returns new guild alongside existing', async () => {
       const proxy = guildAddBrokerProxy();
-      const name = GuildNameStub({ value: 'Second App' });
+      const name = 'Second App';
       const path = '/home/user/second-app';
       const homePath = '/home/user/.dungeonmaster';
       const guildsPath = '/home/user/.dungeonmaster/guilds';
@@ -76,7 +75,7 @@ describe('guildAddBroker', () => {
   describe('duplicate path', () => {
     it('ERROR: {path already exists in config} => throws duplicate path error', async () => {
       const proxy = guildAddBrokerProxy();
-      const name = GuildNameStub({ value: 'Duplicate App' });
+      const name = 'Duplicate App';
       const path = '/home/user/my-app';
 
       const existingGuild = GuildStub({
@@ -96,7 +95,7 @@ describe('guildAddBroker', () => {
 
     it('ERROR: {path already exists in config} => throws a GuildPathTakenError instance', async () => {
       const proxy = guildAddBrokerProxy();
-      const name = GuildNameStub({ value: 'Duplicate App' });
+      const name = 'Duplicate App';
       const path = '/home/user/my-app';
 
       const existingGuild = GuildStub({
@@ -116,7 +115,7 @@ describe('guildAddBroker', () => {
   describe('caller-supplied id', () => {
     it('VALID: {name, path, id} => returns guild carrying exactly the supplied id', async () => {
       const proxy = guildAddBrokerProxy();
-      const name = GuildNameStub({ value: 'Pinned App' });
+      const name = 'Pinned App';
       const path = '/home/user/pinned-app';
       const suppliedId = '38c6cbd2-8bf1-6507-8d07-0980dd1fb595';
       const homePath = '/home/user/.dungeonmaster';
@@ -146,7 +145,7 @@ describe('guildAddBroker', () => {
 
     it("INVALID: {id: 'not-a-uuid'} => throws guildIdContract's own validation error", async () => {
       const proxy = guildAddBrokerProxy();
-      const name = GuildNameStub({ value: 'Bad Id App' });
+      const name = 'Bad Id App';
       const path = '/home/user/bad-id-app';
       const homePath = '/home/user/.dungeonmaster';
       const guildsPath = '/home/user/.dungeonmaster/guilds';
@@ -176,7 +175,7 @@ describe('guildAddBroker', () => {
       });
 
       await guildAddBroker({
-        name: GuildNameStub({ value: 'Targeted App' }),
+        name: 'Targeted App',
         path: '/tmp/dm-home-target/targeted-app',
         home: '/tmp/dm-home-target',
       });
@@ -195,7 +194,7 @@ describe('guildAddBroker', () => {
       });
 
       await guildAddBroker({
-        name: GuildNameStub({ value: 'Targeted App' }),
+        name: 'Targeted App',
         path: '/tmp/dm-home-target/targeted-app',
         home: '/tmp/dm-home-target',
       });
@@ -212,7 +211,7 @@ describe('guildAddBroker', () => {
       });
 
       const result = await guildAddBroker({
-        name: GuildNameStub({ value: 'Targeted App' }),
+        name: 'Targeted App',
         path: '/tmp/dm-home-target/targeted-app',
         home: '/tmp/dm-home-target',
       });
@@ -232,7 +231,7 @@ describe('guildAddBroker', () => {
 
       await expect(
         guildAddBroker({
-          name: GuildNameStub({ value: 'Relative Home App' }),
+          name: 'Relative Home App',
           path: '/tmp/dm-home-target/relative-home-app',
           home: 'relative/dm-home',
         }),
@@ -250,7 +249,7 @@ describe('guildAddBroker', () => {
 
       await expect(
         guildAddBroker({
-          name: GuildNameStub({ value: 'Parent Relative Home App' }),
+          name: 'Parent Relative Home App',
           path: '/tmp/dm-home-target/parent-relative-home-app',
           home: '../dm-home',
         }),
@@ -279,7 +278,7 @@ describe('guildAddBroker', () => {
       });
 
       await guildAddBroker({
-        name: GuildNameStub({ value: 'Default Home App' }),
+        name: 'Default Home App',
         path: '/home/user/default-home-app',
       });
 
@@ -303,7 +302,7 @@ describe('guildAddBroker', () => {
       });
 
       await guildAddBroker({
-        name: GuildNameStub({ value: 'Default Home App' }),
+        name: 'Default Home App',
         path: '/home/user/default-home-app',
       });
 
@@ -330,7 +329,7 @@ describe('guildAddBroker', () => {
       proxy.stageGeneratedId({ id: firstId });
 
       const firstResult = await guildAddBroker({
-        name: GuildNameStub({ value: 'App One' }),
+        name: 'App One',
         path: '/home/user/app-one',
       });
 
@@ -345,7 +344,7 @@ describe('guildAddBroker', () => {
       proxy.stageGeneratedId({ id: secondId });
 
       const secondResult = await guildAddBroker({
-        name: GuildNameStub({ value: 'App Two' }),
+        name: 'App Two',
         path: '/home/user/app-two',
       });
 

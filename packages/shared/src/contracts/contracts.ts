@@ -170,7 +170,6 @@ export * from './url-slug/url-slug-contract';
 
 // Guild Contracts
 
-export * from './guild-name/guild-name-contract';
 
 
 export * from './guild/guild-contract';

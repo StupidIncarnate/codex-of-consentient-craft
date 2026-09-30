@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -28,7 +27,7 @@ test.describe('Warpgate row and MERGING header', () => {
     const warpgate = warpgateHarness({ request, guildPath: GUILD_PATH });
     const nav = navigationHarness({ page });
     const { urlSlug, questId, questFolder, questFilePath } = await warpgate.setup({
-      guildName: GuildNameStub({ value: 'Warpgate Row Guild' }),
+      guildName: 'Warpgate Row Guild',
       title: HOSTILE_UNBROKEN_TITLE,
     });
 

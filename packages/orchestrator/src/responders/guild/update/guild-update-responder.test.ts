@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
@@ -17,7 +16,7 @@ describe('GuildUpdateResponder', () => {
 
       const result = await proxy.callResponder({
         guildId,
-        name: GuildNameStub({ value: 'Updated Name' }),
+        name: 'Updated Name',
       });
 
       expect(result.id).toBe(guildId);

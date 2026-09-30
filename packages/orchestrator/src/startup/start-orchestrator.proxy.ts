@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, GuildName, ProcessId, QuestStatus, SmoketestSuite, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, ProcessId, QuestStatus, SmoketestSuite, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -99,8 +99,8 @@ export const StartOrchestratorProxy = (): {
   listGuildsThrows: (params: { error: Error }) => void;
   getGuildReturns: (params: { guild: Guild }) => void;
   getGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
-  addGuildReturns: (params: { name: GuildName; path: string; guild: Guild }) => void;
-  addGuildThrows: (params: { name: GuildName; path: string; error: Error }) => void;
+  addGuildReturns: (params: { name: string; path: string; guild: Guild }) => void;
+  addGuildThrows: (params: { name: string; path: string; error: Error }) => void;
   updateGuildReturns: (params: { guildId: Guild['id']; guild: Guild }) => void;
   updateGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   removeGuildResolves: (params: { guildId: Guild['id'] }) => void;
@@ -418,7 +418,7 @@ export const StartOrchestratorProxy = (): {
       path,
       guild,
     }: {
-      name: GuildName;
+      name: string;
       path: string;
       guild: Guild;
     }): void => {
@@ -429,7 +429,7 @@ export const StartOrchestratorProxy = (): {
       path,
       error,
     }: {
-      name: GuildName;
+      name: string;
       path: string;
       error: Error;
     }): void => {

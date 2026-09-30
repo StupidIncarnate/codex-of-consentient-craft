@@ -1,4 +1,3 @@
-import { GuildNameStub } from '../../contracts/guild-name/guild-name.stub';
 import { QuestTitleStub } from '../../contracts/quest-title/quest-title.stub';
 
 import { nameToUrlSlugTransformer } from './name-to-url-slug-transformer';
@@ -6,7 +5,7 @@ import { nameToUrlSlugTransformer } from './name-to-url-slug-transformer';
 describe('nameToUrlSlugTransformer', () => {
   describe('basic conversions', () => {
     it('VALID: simple name => returns lowercase slug', () => {
-      const name = GuildNameStub({ value: 'MyGuild' });
+      const name = 'MyGuild';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -14,7 +13,7 @@ describe('nameToUrlSlugTransformer', () => {
     });
 
     it('VALID: name with spaces => returns hyphenated slug', () => {
-      const name = GuildNameStub({ value: 'My Cool Guild' });
+      const name = 'My Cool Guild';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -22,7 +21,7 @@ describe('nameToUrlSlugTransformer', () => {
     });
 
     it('VALID: name with mixed case => returns lowercase slug', () => {
-      const name = GuildNameStub({ value: 'The BEST Guild' });
+      const name = 'The BEST Guild';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -32,7 +31,7 @@ describe('nameToUrlSlugTransformer', () => {
 
   describe('special characters', () => {
     it('VALID: name with special chars => replaces with hyphens', () => {
-      const name = GuildNameStub({ value: 'My @App! v2.0' });
+      const name = 'My @App! v2.0';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -40,7 +39,7 @@ describe('nameToUrlSlugTransformer', () => {
     });
 
     it('VALID: name with multiple consecutive special chars => collapses to single hyphen', () => {
-      const name = GuildNameStub({ value: 'My --- Guild' });
+      const name = 'My --- Guild';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -48,7 +47,7 @@ describe('nameToUrlSlugTransformer', () => {
     });
 
     it('VALID: name with leading special chars => trims leading hyphens', () => {
-      const name = GuildNameStub({ value: '  My Guild' });
+      const name = '  My Guild';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -56,7 +55,7 @@ describe('nameToUrlSlugTransformer', () => {
     });
 
     it('VALID: name with trailing special chars => trims trailing hyphens', () => {
-      const name = GuildNameStub({ value: 'My Guild!!' });
+      const name = 'My Guild!!';
 
       const result = nameToUrlSlugTransformer({ name });
 
@@ -66,7 +65,7 @@ describe('nameToUrlSlugTransformer', () => {
 
   describe('already valid', () => {
     it('VALID: already kebab-case => returns unchanged', () => {
-      const name = GuildNameStub({ value: 'my-guild' });
+      const name = 'my-guild';
 
       const result = nameToUrlSlugTransformer({ name });
 

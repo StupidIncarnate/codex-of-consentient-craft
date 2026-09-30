@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -35,7 +34,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Package Chip Guild' }) });
+    await diagram.seedAndOpen({ guildName: 'Package Chip Guild' });
 
     const openPageCard = page
       .getByTestId('FLOW_NODE')
@@ -56,7 +55,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Glue Chip Guild' }) });
+    await diagram.seedAndOpen({ guildName: 'Glue Chip Guild' });
 
     const glueCard = page
       .getByTestId('FLOW_NODE')
@@ -77,7 +76,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Chip Kind Guild' }) });
+    await diagram.seedAndOpen({ guildName: 'Chip Kind Guild' });
 
     const glueCard = page
       .getByTestId('FLOW_NODE')
@@ -102,7 +101,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Assertion Package Guild' }) });
+    await diagram.seedAndOpen({ guildName: 'Assertion Package Guild' });
 
     const uiAssertion = page
       .getByTestId('FLOW_OBSERVABLE_NODE')
@@ -130,7 +129,7 @@ test.describe('Flow Node Packages', () => {
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: GuildNameStub({ value: 'Chip Overlap Guild' }) });
+    await diagram.seedAndOpen({ guildName: 'Chip Overlap Guild' });
 
     expect(await diagram.noCardOverlapsAnother()).toBe(true);
     // The flow-card-only check too, so a regression that only pushes cards into the assertion

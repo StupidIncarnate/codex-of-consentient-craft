@@ -1,5 +1,4 @@
 import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/brokers/guild/add/guild-add-broker.proxy';
-import { guildNameContract } from '@dungeonmaster/shared/contracts';
 
 import { guildDirectoryEnsureBrokerProxy } from '../directory-ensure/guild-directory-ensure-broker.proxy';
 import { guildUniquePathResolveBrokerProxy } from '../unique-path-resolve/guild-unique-path-resolve-broker.proxy';
@@ -64,7 +63,7 @@ export const guildWriteRouteBrokerProxy = (): {
       directoryProxy.setupDirectoryCreation({ path });
       uniquePathProxy.setupFree({ absolutePaths: [path] });
       addGuildProxy.setupResolves({
-        input: { name: guildNameContract.parse(name), path: path, home },
+        input: { name: name, path: path, home },
         guild,
       });
     },
@@ -87,7 +86,7 @@ export const guildWriteRouteBrokerProxy = (): {
       uniquePathProxy.setupFree({ absolutePaths: [path] });
       addGuildProxy.setupResolves({
         input: {
-          name: guildNameContract.parse(name),
+          name: name,
           path: path,
           home,
           id,

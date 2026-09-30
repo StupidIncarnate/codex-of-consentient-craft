@@ -1,4 +1,3 @@
-import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -62,7 +61,7 @@ test.describe('Composer send — images and a rejected send', () => {
     await send.recordComposerSendStates();
 
     const seeded = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Send Images Rejection Draft Guild' }),
+      guildName: 'Send Images Rejection Draft Guild',
       status: 'blocked',
     });
     const questId = String(seeded.questId);
@@ -161,7 +160,7 @@ test.describe('Composer send — images and a rejected send', () => {
     const composer = composerPasteHarness({ page, surface: 'followup' });
 
     const seeded = await followup.seedAndOpen({
-      guildName: GuildNameStub({ value: 'Send Images Rejection No Draft Guild' }),
+      guildName: 'Send Images Rejection No Draft Guild',
       status: 'blocked',
     });
     const questId = String(seeded.questId);
