@@ -1,6 +1,5 @@
 import { portResolveBroker } from './port-resolve-broker';
 import { portResolveBrokerProxy } from './port-resolve-broker.proxy';
-import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
 
 describe('portResolveBroker', () => {
   describe('DUNGEONMASTER_PORT env var', () => {
@@ -15,7 +14,7 @@ describe('portResolveBroker', () => {
 
       proxy.clearEnvPort();
 
-      expect(result).toBe(NetworkPortStub({ value: 5000 }));
+      expect(result).toBe(5000);
     });
 
     it('VALID: env: "not-a-number", config has 4800 => falls through to config', () => {
@@ -29,7 +28,7 @@ describe('portResolveBroker', () => {
 
       proxy.clearEnvPort();
 
-      expect(result).toBe(NetworkPortStub({ value: 4800 }));
+      expect(result).toBe(4800);
     });
 
     it('VALID: env: "", config has 4800 => falls through to config', () => {
@@ -43,7 +42,7 @@ describe('portResolveBroker', () => {
 
       proxy.clearEnvPort();
 
-      expect(result).toBe(NetworkPortStub({ value: 4800 }));
+      expect(result).toBe(4800);
     });
   });
 
@@ -57,7 +56,7 @@ describe('portResolveBroker', () => {
         startDir: '/project',
       });
 
-      expect(result).toBe(NetworkPortStub({ value: 4800 }));
+      expect(result).toBe(4800);
     });
   });
 
@@ -71,7 +70,7 @@ describe('portResolveBroker', () => {
         startDir: '/no-config',
       });
 
-      expect(result).toBe(NetworkPortStub({ value: 3737 }));
+      expect(result).toBe(3737);
     });
   });
 });

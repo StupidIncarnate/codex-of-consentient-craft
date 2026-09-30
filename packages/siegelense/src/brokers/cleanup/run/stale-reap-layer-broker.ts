@@ -22,7 +22,6 @@
  * // Returns { reaped: ReapedInstance, portsReleased: readonly NetworkPort[] }
  */
 
-import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { reapedInstanceContract } from '../../../contracts/reaped-instance/reaped-instance-contract';
 import type { ReapedInstance } from '../../../contracts/reaped-instance/reaped-instance-contract';
@@ -36,7 +35,7 @@ export const staleReapLayerBroker = async ({
 }: {
   entry: RegistryEntry;
   nowMs: number;
-}): Promise<{ reaped: ReapedInstance; portsReleased: readonly NetworkPort[] }> => {
+}): Promise<{ reaped: ReapedInstance; portsReleased: readonly number[] }> => {
   const staleSinceMs = entry.lastBeatMs ?? entry.reservedAtMs;
 
   const killResult = await instanceKillBroker({

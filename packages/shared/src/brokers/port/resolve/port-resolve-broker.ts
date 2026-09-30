@@ -10,10 +10,6 @@
  */
 
 import { cwd, getEnv } from '#gateway/node/process';
-import {
-  networkPortContract,
-  type NetworkPort,
-} from '../../../contracts/network-port/network-port-contract';
 import { environmentStatics } from '../../../statics/environment/environment-statics';
 import { portConfigWalkBroker } from '../config-walk/port-config-walk-broker';
 
@@ -21,12 +17,12 @@ export const portResolveBroker = ({
   startDir,
 }: {
   startDir?: string;
-} = {}): NetworkPort => {
+} = {}): number => {
   const envPort = getEnv('DUNGEONMASTER_PORT');
   if (envPort !== undefined && envPort !== '') {
     const parsed = Number(envPort);
     if (Number.isFinite(parsed) && parsed > 0) {
-      return networkPortContract.parse(parsed);
+      return parsed;
     }
   }
 
@@ -36,5 +32,5 @@ export const portResolveBroker = ({
     return configPort;
   }
 
-  return networkPortContract.parse(environmentStatics.defaultPort);
+  return environmentStatics.defaultPort;
 };

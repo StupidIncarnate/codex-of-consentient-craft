@@ -24,7 +24,7 @@ import { kill, setEnv, stderr } from '#gateway/node/process';
 import { join, resolve as resolvePath } from '#gateway/node/path';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import type { NetworkPort, ProcessId, TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -103,7 +103,7 @@ export const driverFleetHarness = (): {
   registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
   pingSocket: (params: { instanceId: SiegeInstance['id'] }) => Promise<boolean>;
   isGroupAlive: (params: { pgid: number }) => boolean;
-  isPortFree: (params: { port: NetworkPort }) => Promise<boolean>;
+  isPortFree: (params: { port: number }) => Promise<boolean>;
   heartbeatPgids: (params: { instanceId: SiegeInstance['id'] }) => readonly number[];
   heartbeatExists: (params: { instanceId: SiegeInstance['id'] }) => boolean;
   waitForHeartbeatPgids: (params: {
@@ -229,7 +229,7 @@ export const driverFleetHarness = (): {
   const isGroupAlive = ({ pgid }: { pgid: number }): boolean =>
     processIsAliveBroker({ pgid });
 
-  const isPortFree = async ({ port }: { port: NetworkPort }): Promise<boolean> =>
+  const isPortFree = async ({ port }: { port: number }): Promise<boolean> =>
     probePortFree({ port });
 
   const heartbeatPgids = ({

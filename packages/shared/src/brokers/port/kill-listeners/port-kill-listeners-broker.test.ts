@@ -1,4 +1,3 @@
-import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
 
 import { portKillListenersBroker } from './port-kill-listeners-broker';
 import { portKillListenersBrokerProxy } from './port-kill-listeners-broker.proxy';
@@ -7,7 +6,7 @@ describe('portKillListenersBroker', () => {
   describe('processes found on the port', () => {
     it('VALID: {port with two pids listening} => kills each pid and returns its own result', async () => {
       const proxy = portKillListenersBrokerProxy();
-      const port = NetworkPortStub({ value: 49555 });
+      const port = 49555;
       proxy.setupListeners({ port, pids: [12345, 67890] });
       proxy.setupKillResult({ pid: 12345, exitCode: 0, output: '' });
       proxy.setupKillResult({
@@ -34,7 +33,7 @@ describe('portKillListenersBroker', () => {
   describe('no processes on the port', () => {
     it('EMPTY: {port with no listeners} => returns an empty array', async () => {
       const proxy = portKillListenersBrokerProxy();
-      const port = NetworkPortStub({ value: 49555 });
+      const port = 49555;
       proxy.setupNoneListening({ port });
 
       const result = await portKillListenersBroker({ port });

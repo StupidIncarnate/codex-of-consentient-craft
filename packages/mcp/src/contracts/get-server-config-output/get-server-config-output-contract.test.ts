@@ -1,4 +1,3 @@
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 
 import { getServerConfigOutputContract } from './get-server-config-output-contract';
 import { GetServerConfigOutputStub } from './get-server-config-output.stub';
@@ -14,7 +13,7 @@ describe('getServerConfigOutputContract', () => {
   });
 
   it('VALID: {custom baseUrl + port} => parses successfully', () => {
-    const port = NetworkPortStub({ value: 4242 });
+    const port = 4242;
 
     const result = getServerConfigOutputContract.parse({
       baseUrl: 'http://127.0.0.1:4242',
@@ -31,7 +30,7 @@ describe('getServerConfigOutputContract', () => {
     expect(() =>
       getServerConfigOutputContract.parse({
         baseUrl: 'not a url',
-        port: NetworkPortStub({ value: 3737 }),
+        port: 3737,
       }),
     ).toThrow(/Invalid URL/u);
   });
@@ -47,7 +46,7 @@ describe('getServerConfigOutputContract', () => {
 
   it('INVALID: {missing baseUrl} => throws Required', () => {
     expect(() =>
-      getServerConfigOutputContract.parse({ port: NetworkPortStub({ value: 3737 }) }),
+      getServerConfigOutputContract.parse({ port: 3737 }),
     ).toThrow(/received undefined/u);
   });
 
@@ -61,7 +60,7 @@ describe('getServerConfigOutputContract', () => {
     expect(() =>
       getServerConfigOutputContract.parse({
         baseUrl: 'http://localhost:3737',
-        port: NetworkPortStub({ value: 3737 }),
+        port: 3737,
         extra: 'no',
       }),
     ).toThrow(/Unrecognized key/u);

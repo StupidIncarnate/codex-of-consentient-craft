@@ -8,7 +8,6 @@
 
 import { readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
-import type { NetworkPort } from '../../../contracts/network-port/network-port-contract';
 import { projectConfigContract } from '../../../contracts/project-config/project-config-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
@@ -16,7 +15,7 @@ export const portConfigWalkBroker = ({
   dir,
 }: {
   dir: string;
-}): NetworkPort | undefined => {
+}): number | undefined => {
   const configPath = join(dir, dungeonmasterHomeStatics.paths.projectConfigFile);
   try {
     const contents = readFileSync(configPath);

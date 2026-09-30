@@ -14,23 +14,21 @@ import { freePortPair, isPortFree } from '#gateway/node/net';
 import { cwd as getCwd } from '#gateway/node/process';
 import { setTimeout as delay } from '#gateway/node/setTimeout';
 
-import type { NetworkPort } from '../../../src/contracts/network-port/network-port-contract';
-import { NetworkPortStub } from '../../../src/contracts/network-port/network-port.stub';
 
 const POLL_MS = 50;
 const MAX_ATTEMPTS = parseInt('200', 10);
 
 export const portListenerHarness = (): {
-  freePort: () => Promise<NetworkPort>;
-  start: () => Promise<NetworkPort>;
-  waitForPortState: (params: { port: NetworkPort; free: boolean }) => Promise<boolean>;
+  freePort: () => Promise<number>;
+  start: () => Promise<number>;
+  waitForPortState: (params: { port: number; free: boolean }) => Promise<boolean>;
 } => {
   const waitForPortState = async ({
     port,
     free,
     attemptsLeft = MAX_ATTEMPTS,
   }: {
-    port: NetworkPort;
+    port: number;
     free: boolean;
     attemptsLeft?: typeof MAX_ATTEMPTS;
   }): Promise<boolean> => {
@@ -46,15 +44,15 @@ export const portListenerHarness = (): {
     return waitForPortState({ port, free, attemptsLeft: attemptsLeft - 1 });
   };
 
-  const freePort = async (): Promise<NetworkPort> => {
+  const freePort = async (): Promise<number> => {
     const { firstPort } = await freePortPair();
-    return NetworkPortStub({ value: firstPort });
+    return firstPort;
   };
 
   return {
     freePort,
     waitForPortState: async ({ port, free }) => waitForPortState({ port, free }),
-    start: async (): Promise<NetworkPort> => {
+    start: async (): Promise<number> => {
       const port = await freePort();
       spawnLongLived({
         command: 'node',

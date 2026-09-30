@@ -6,7 +6,6 @@ import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
@@ -31,7 +30,7 @@ export const instanceReserveBrokerProxy = (): {
   // every scenario stages exactly that many pairs; a scenario needing fewer real candidates
   // repeats its last (uncontested) pair for the remainder.
   setupPortCandidates: (params: {
-    pairs: readonly { api: NetworkPort; web: NetworkPort }[];
+    pairs: readonly { api: number; web: number }[];
   }) => void;
   setupCwd: (params: { value: string }) => void;
   setupBranch: (params: { branch: string | null }) => void;
@@ -98,7 +97,7 @@ export const instanceReserveBrokerProxy = (): {
     setupPortCandidates: ({
       pairs,
     }: {
-      pairs: readonly { api: NetworkPort; web: NetworkPort }[];
+      pairs: readonly { api: number; web: number }[];
     }): void => {
       portPairProxy.returnsSequence({
         pairs: pairs.map(({ api, web }) => ({ server: api, web })),

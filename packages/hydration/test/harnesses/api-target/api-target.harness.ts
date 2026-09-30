@@ -15,8 +15,6 @@
  */
 import { createServer } from '#gateway/node/http';
 import type { Server } from '#gateway/node/http';
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
-import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 import { HydrationTargetStub } from '../../../src/contracts/hydration-target/hydration-target.stub';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
 
@@ -34,8 +32,8 @@ interface ApiTargetHarness {
 
 export const apiTargetHarness = (): ApiTargetHarness => {
   let server: Server | null = null;
-  let listeningPort: NetworkPort | null = null;
-  let closedPort: NetworkPort | null = null;
+  let listeningPort: number | null = null;
+  let closedPort: number | null = null;
   let nextStatus = DEFAULT_STATUS;
   let nextBody = DEFAULT_BODY;
 
@@ -58,7 +56,7 @@ export const apiTargetHarness = (): ApiTargetHarness => {
           const address = created.address();
           listeningPort =
             typeof address === 'object' && address !== null
-              ? NetworkPortStub({ value: address.port })
+              ? address.port
               : null;
 
           // A second server, opened then immediately closed, hands back a port the OS just proved
@@ -72,7 +70,7 @@ export const apiTargetHarness = (): ApiTargetHarness => {
             const throwawayAddress = throwaway.address();
             closedPort =
               typeof throwawayAddress === 'object' && throwawayAddress !== null
-                ? NetworkPortStub({ value: throwawayAddress.port })
+                ? throwawayAddress.port
                 : null;
             throwaway.close(() => {
               resolve();

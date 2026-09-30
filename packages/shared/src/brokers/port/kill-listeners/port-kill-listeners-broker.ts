@@ -13,7 +13,6 @@
 import { killPid } from '#gateway/bin/kill';
 import { listeningPids } from '#gateway/bin/lsof';
 
-import type { NetworkPort } from '../../../contracts/network-port/network-port-contract';
 import {
   portKillListenerResultContract,
   type PortKillListenerResult,
@@ -22,7 +21,7 @@ import {
 export const portKillListenersBroker = async ({
   port,
 }: {
-  port: NetworkPort;
+  port: number;
 }): Promise<PortKillListenerResult[]> => {
   const pids = await listeningPids({ port });
 

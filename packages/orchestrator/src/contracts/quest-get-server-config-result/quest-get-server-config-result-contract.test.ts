@@ -1,4 +1,3 @@
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 
 import { questGetServerConfigResultContract } from './quest-get-server-config-result-contract';
 import { QuestGetServerConfigResultStub } from './quest-get-server-config-result.stub';
@@ -17,7 +16,7 @@ describe('questGetServerConfigResultContract', () => {
     it('VALID: {custom baseUrl + port} => parses successfully', () => {
       const result = questGetServerConfigResultContract.parse({
         baseUrl: 'http://127.0.0.1:4750',
-        port: NetworkPortStub({ value: 4750 }),
+        port: 4750,
       });
 
       expect(result).toStrictEqual({
@@ -32,7 +31,7 @@ describe('questGetServerConfigResultContract', () => {
       expect(() =>
         questGetServerConfigResultContract.parse({
           baseUrl: 'not a url',
-          port: NetworkPortStub({ value: 3737 }),
+          port: 3737,
         }),
       ).toThrow(/url/iu);
     });
@@ -49,7 +48,7 @@ describe('questGetServerConfigResultContract', () => {
     it('INVALID: {missing baseUrl} => throws Required', () => {
       expect(() =>
         questGetServerConfigResultContract.parse({
-          port: NetworkPortStub({ value: 3737 }),
+          port: 3737,
         }),
       ).toThrow(/received undefined/u);
     });

@@ -1,4 +1,3 @@
-import { NetworkPortStub } from '../network-port/network-port.stub';
 import { projectConfigContract } from './project-config-contract';
 import { ProjectConfigStub } from './project-config.stub';
 
@@ -11,7 +10,7 @@ describe('projectConfigContract', () => {
     });
 
     it('VALID: dungeonmaster with port => parses successfully', () => {
-      const port = NetworkPortStub({ value: 3737 });
+      const port = 3737;
       const config = ProjectConfigStub({ dungeonmaster: { port } });
 
       const result = projectConfigContract.parse(config);

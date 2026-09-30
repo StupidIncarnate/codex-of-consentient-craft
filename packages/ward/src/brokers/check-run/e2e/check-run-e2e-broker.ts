@@ -16,7 +16,6 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -206,8 +205,8 @@ export const checkRunE2eBroker = async ({
   });
 
   await Promise.all([
-    portKillListenersBroker({ port: networkPortContract.parse(serverPort) }),
-    portKillListenersBroker({ port: networkPortContract.parse(webPort) }),
+    portKillListenersBroker({ port: serverPort }),
+    portKillListenersBroker({ port: webPort }),
   ]);
 
   const exitCode = result.exitCode;
@@ -263,7 +262,7 @@ export const checkRunE2eBroker = async ({
   // nothing is normal in most packages — and cleanup placed at the end of the function would leak
   // a full cache on every one of those runs. It also has to be after the port kill above, since
   // the process that wrote the directory is still holding a port until then.
-  await e2eArtifactsRemoveBroker({ packageRoot, port: networkPortContract.parse(serverPort) });
+  await e2eArtifactsRemoveBroker({ packageRoot, port: serverPort });
 
   const processedFiles: string[] = [];
   const lineFiles =

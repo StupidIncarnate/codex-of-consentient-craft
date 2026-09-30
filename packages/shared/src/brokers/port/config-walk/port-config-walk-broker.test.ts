@@ -1,6 +1,5 @@
 import { portConfigWalkBroker } from './port-config-walk-broker';
 import { portConfigWalkBrokerProxy } from './port-config-walk-broker.proxy';
-import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
 
 describe('portConfigWalkBroker', () => {
   describe('config found in starting dir', () => {
@@ -12,7 +11,7 @@ describe('portConfigWalkBroker', () => {
         dir: '/project',
       });
 
-      expect(result).toBe(NetworkPortStub({ value: 4800 }));
+      expect(result).toBe(4800);
     });
   });
 
@@ -29,7 +28,7 @@ describe('portConfigWalkBroker', () => {
         dir: '/project/packages/web',
       });
 
-      expect(result).toBe(NetworkPortStub({ value: 4750 }));
+      expect(result).toBe(4750);
     });
   });
 

@@ -10,7 +10,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -251,8 +250,8 @@ export const instanceStartBrokerProxy = (): {
   // only need to differ from each other, never match a real free port.
   reserveProxy.setupPortCandidates({
     pairs: Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, () => ({
-      api: NetworkPortStub({ value: FIRST_PORT_VALUE }),
-      web: NetworkPortStub({ value: SECOND_PORT_VALUE }),
+      api: FIRST_PORT_VALUE,
+      web: SECOND_PORT_VALUE,
     })),
   });
 

@@ -28,7 +28,6 @@
 
 import { listeningPids } from '#gateway/bin/lsof';
 import { readdirIfExists, rm, statIfExists } from '#gateway/node/fs__promises';
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { isPortSuffixedArtifactGuard } from '../../../guards/is-port-suffixed-artifact/is-port-suffixed-artifact-guard';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
@@ -71,9 +70,7 @@ export const e2eArtifactsPruneBroker = async ({
             }
 
             if (artifact.portKeyed) {
-              const port = networkPortContract.parse(
-                Number(name.slice(artifact.prefix.length, name.length - artifact.suffix.length)),
-              );
+              const port = Number(name.slice(artifact.prefix.length, name.length - artifact.suffix.length));
 
               if ((await listeningPids({ port })).length > 0) {
                 return;

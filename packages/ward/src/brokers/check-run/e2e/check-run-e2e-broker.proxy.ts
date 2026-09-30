@@ -6,7 +6,6 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.proxy';
@@ -102,8 +101,8 @@ export const checkRunE2eBrokerProxy = (): {
     // body outright, so the playwright `run.setupSuccess` staged elsewhere in this file (mocking
     // `spawn`, one level below `run`, and relying on `run`'s real body to reach it) never fires once
     // this constructs. There is no address-level fix; the two mock levels cannot coexist.
-    portKillProxy.setupNoneListening({ port: networkPortContract.parse(STAGED_SERVER_PORT) });
-    portKillProxy.setupNoneListening({ port: networkPortContract.parse(STAGED_WEB_PORT) });
+    portKillProxy.setupNoneListening({ port: STAGED_SERVER_PORT });
+    portKillProxy.setupNoneListening({ port: STAGED_WEB_PORT });
   };
 
   const stageCacheRemoval = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {

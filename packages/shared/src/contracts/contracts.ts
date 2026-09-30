@@ -50,7 +50,6 @@ export * from './exec-result/exec-result-contract';
 // Port Kill Listener Result Contracts
 export * from './port-kill-listener-result/port-kill-listener-result-contract';
 
-export * from './network-port/network-port-contract';
 
 // Quest Contracts
 export * from './quest-title/quest-title-contract';
