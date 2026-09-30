@@ -6,7 +6,6 @@
  * // Returns true if folder location is valid, false if validation failed (error reported)
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
@@ -29,7 +28,7 @@ export const validateFolderLocationLayerBroker = ({
 }): boolean => {
   if (firstFolder in forbiddenFolderStatics.mappings) {
     const suggestion = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: forbiddenFolderNameContract.parse(firstFolder),
+      forbiddenFolder: firstFolder,
     });
     context.report({
       node,

@@ -1,10 +1,9 @@
-import { ForbiddenFolderNameStub } from '../../contracts/forbidden-folder-name/forbidden-folder-name.stub';
 import { forbiddenFolderSuggestionTransformer } from './forbidden-folder-suggestion-transformer';
 
 describe('forbiddenFolderSuggestionTransformer', () => {
   it('VALID: {forbiddenFolder: "utils"} => returns "guards or transformers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'utils' }),
+      forbiddenFolder: 'utils',
     });
 
     expect(result).toBe('guards or transformers');
@@ -12,7 +11,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "lib"} => returns "brokers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'lib' }),
+      forbiddenFolder: 'lib',
     });
 
     expect(result).toBe('brokers');
@@ -20,7 +19,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "helpers"} => returns "guards or transformers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'helpers' }),
+      forbiddenFolder: 'helpers',
     });
 
     expect(result).toBe('guards or transformers');
@@ -28,7 +27,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "services"} => returns "brokers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'services' }),
+      forbiddenFolder: 'services',
     });
 
     expect(result).toBe('brokers');
@@ -36,7 +35,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "types"} => returns "contracts"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'types' }),
+      forbiddenFolder: 'types',
     });
 
     expect(result).toBe('contracts');
@@ -44,7 +43,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "constants"} => returns "statics"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'constants' }),
+      forbiddenFolder: 'constants',
     });
 
     expect(result).toBe('statics');
@@ -52,7 +51,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "formatters"} => returns "transformers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'formatters' }),
+      forbiddenFolder: 'formatters',
     });
 
     expect(result).toBe('transformers');
@@ -60,7 +59,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('VALID: {forbiddenFolder: "common"} => returns "distribute by function"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'common' }),
+      forbiddenFolder: 'common',
     });
 
     expect(result).toBe('distribute by function');
@@ -68,7 +67,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('EDGE: {forbiddenFolder: "unknown-folder"} => returns "contracts"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: 'unknown-folder' }),
+      forbiddenFolder: 'unknown-folder',
     });
 
     expect(result).toBe('contracts');
@@ -76,7 +75,7 @@ describe('forbiddenFolderSuggestionTransformer', () => {
 
   it('EDGE: {forbiddenFolder: ""} => returns "contracts"', () => {
     const result = forbiddenFolderSuggestionTransformer({
-      forbiddenFolder: ForbiddenFolderNameStub({ value: '' }),
+      forbiddenFolder: '',
     });
 
     expect(result).toBe('contracts');
