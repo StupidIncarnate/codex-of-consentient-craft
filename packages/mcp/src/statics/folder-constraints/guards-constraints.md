@@ -27,7 +27,7 @@ Guards MUST be pure functions:
 - ✅ Return boolean based only on input parameters
 - ✅ No external API calls, database queries, file I/O
 - ✅ No side effects (mutations, logging, state changes)
-- ❌ Cannot call adapters or brokers
+- ❌ Cannot call brokers or gateway wrappers
 - ❌ Cannot modify input parameters
 - ✅ MUST return `boolean` or type predicate (`x is T`) — enforced by `@dungeonmaster/enforce-folder-return-types`
 - ❌ Cannot return `Promise<boolean>`, `void`, `string`, or any other type
@@ -39,14 +39,14 @@ All parameters MUST be optional (enforced by `@dungeonmaster/enforce-optional-gu
 ```typescript
 export const hasPermissionGuard = ({user, permission}: {
     user?: User;        // Optional with ?
-    permission?: Permission;  // Optional with ?
+    permission?: string;  // Optional with ?; loose text is a plain parameter
 }): boolean => {
     // MUST validate existence first
     if (!user || !permission) {
         return false;
     }
     // Safe to use after validation
-    return user.permissions.includes(permission);
+    return user.permissions.some((held) => held === permission);
 };
 ```
 
@@ -83,16 +83,15 @@ folderConfigs: typeof folderConfigStatics;  // Entire object, not flexible
  */
 // guards/has-permission/has-permission-guard.ts
 import type {User} from '../../contracts/user/user-contract';
-import type {Permission} from '../../contracts/permission/permission-contract';
 
 export const hasPermissionGuard = ({user, permission}: {
     user?: User;
-    permission?: Permission;
+    permission?: string;
 }): boolean => {
     if (!user || !permission) {
         return false;
     }
-    return user.permissions.includes(permission);
+    return user.permissions.some((held) => held === permission);
 };
 
 /**
@@ -150,17 +149,15 @@ data.
 ```typescript
 // guards/has-edit-permission/has-edit-permission-guard.proxy.ts
 import {UserStub} from '../../contracts/user/user.stub';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
 
 type User = ReturnType<typeof UserStub>;
-type UserId = ReturnType<typeof UserIdStub>;
 
 export const hasEditPermissionGuardProxy = () => {
     // NO mocking of guard - guard runs real in tests
 
     return {
         // Semantic helper for "own profile" path
-        setupForOwnProfileEdit: ({userId}: { userId: UserId }): User => {
+        setupForOwnProfileEdit: ({userId}: { userId: User['id'] }): User => {
             return UserStub({id: userId, isAdmin: false});
         },
 
@@ -170,9 +167,8 @@ export const hasEditPermissionGuardProxy = () => {
         },
 
         // Semantic helper for "no permission" path
-        setupForNoEdit: ({userId}: { userId: UserId }): User => {
-            const differentId = UserIdStub({value: `different-from-${userId}`});
-            return UserStub({id: differentId, isAdmin: false});
+        setupForNoEdit: ({userId}: { userId: User['id'] }): User => {
+            return UserStub({id: `different-from-${userId}`, isAdmin: false});
         }
     };
 };
@@ -186,7 +182,7 @@ it('VALID: {admin viewing profile} => shows edit button', () => {
     const widgetProxy = userProfileWidgetProxy();
     const guardProxy = hasEditPermissionGuardProxy();
 
-    const userId = UserIdStub({value: 'user-123'});
+    const userId = UserStub({id: 'user-123'}).id;
     const admin = guardProxy.setupForAdminEdit(); // Semantic!
 
     widgetProxy.setupProfile({userId, currentUser: admin});
@@ -209,32 +205,25 @@ it('VALID: {admin viewing profile} => shows edit button', () => {
 // guards/has-permission/has-permission-guard.test.ts
 import {hasPermissionGuard} from './has-permission-guard';
 import {UserStub} from '../../contracts/user/user.stub';
-import {PermissionStub} from '../../contracts/permission/permission.stub';
-
-type User = ReturnType<typeof UserStub>;
-type Permission = ReturnType<typeof PermissionStub>;
 
 describe('hasPermissionGuard', () => {
     describe('valid permissions', () => {
         it('VALID: {user with permission} => returns true', () => {
-            const permission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
-                permissions: [permission],
+                permissions: ['admin:delete'],
             });
 
-            const result = hasPermissionGuard({user, permission});
+            const result = hasPermissionGuard({user, permission: 'admin:delete'});
 
             expect(result).toBe(true);
         });
 
         it('VALID: {user with multiple permissions, checking one} => returns true', () => {
-            const readPermission = PermissionStub({value: 'admin:read'});
-            const deletePermission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
-                permissions: [readPermission, deletePermission],
+                permissions: ['admin:read', 'admin:delete'],
             });
 
-            const result = hasPermissionGuard({user, permission: deletePermission});
+            const result = hasPermissionGuard({user, permission: 'admin:delete'});
 
             expect(result).toBe(true);
         });
@@ -242,24 +231,21 @@ describe('hasPermissionGuard', () => {
 
     describe('invalid permissions', () => {
         it('INVALID: {user without permission} => returns false', () => {
-            const readPermission = PermissionStub({value: 'admin:read'});
-            const deletePermission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
-                permissions: [readPermission],
+                permissions: ['admin:read'],
             });
 
-            const result = hasPermissionGuard({user, permission: deletePermission});
+            const result = hasPermissionGuard({user, permission: 'admin:delete'});
 
             expect(result).toBe(false);
         });
 
         it('INVALID: {user with empty permissions} => returns false', () => {
-            const permission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
                 permissions: [],
             });
 
-            const result = hasPermissionGuard({user, permission});
+            const result = hasPermissionGuard({user, permission: 'admin:delete'});
 
             expect(result).toBe(false);
         });
@@ -267,16 +253,14 @@ describe('hasPermissionGuard', () => {
 
     describe('empty inputs', () => {
         it('EMPTY: {user: undefined} => returns false', () => {
-            const permission = PermissionStub({value: 'admin:delete'});
-
-            const result = hasPermissionGuard({permission});
+            const result = hasPermissionGuard({permission: 'admin:delete'});
 
             expect(result).toBe(false);
         });
 
         it('EMPTY: {permission: undefined} => returns false', () => {
             const user = UserStub({
-                permissions: [PermissionStub({value: 'admin:read'})],
+                permissions: ['admin:read'],
             });
 
             const result = hasPermissionGuard({user});

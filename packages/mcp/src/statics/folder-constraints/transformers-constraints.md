@@ -28,21 +28,29 @@ Transformers MUST be pure functions:
 - ✅ Return transformed data based only on input parameters
 - ✅ No external API calls, database queries, file I/O
 - ✅ No side effects (mutations, logging, state changes)
-- ❌ Cannot call adapters or brokers
+- ❌ Cannot call brokers or gateway wrappers
 - ❌ Cannot modify input parameters
 
-**OUTPUT VALIDATION:**
+**OUTPUT TYPES:**
 
-All transformers MUST validate output using contracts:
+A transformer that returns one of our objects builds it through the object's contract parse. Loose text and numbers are
+returned plain. A return typed as an owner's field (`FileMetadata['path']`) parses through the owner's field schema.
 
 ```typescript
-export const formatDateTransformer = ({date}: { date: Date }): DateString => {
-    const formatted = date.toISOString().split('T')[0];
-    return dateStringContract.parse(formatted);  // ✅ Validates output
-};
+// ✅ One of our objects: built through the object's contract
+export const userToDtoTransformer = ({user}: { user: User }): UserDto =>
+    userDtoContract.parse({id: user.id, name: user.name, email: user.email});
 
-// ❌ WRONG: Returning raw string
-return formatted;  // Type error - not branded
+// ✅ Loose text: returned plain
+export const formatDateTransformer = ({date}: { date: Date }): string =>
+    date.toISOString().slice(0, 10);
+
+// ✅ An owner's field: parsed through the owner's field schema
+export const pathToBasenameTransformer = ({filepath}: { filepath: string }): FileMetadata['path'] =>
+    fileMetadataContract.shape.path.parse(filepath.split('/').pop() ?? filepath);
+
+// ❌ WRONG: Returning a bare object where a contract object is declared
+return {id: user.id, name: user.name, email: user.email};  // Type error - not branded
 ```
 
 **VARIANTS VS OPTIONS (CRITICAL SECURITY RULE):**
@@ -118,16 +126,10 @@ folderConfigs: typeof folderConfigStatics
  *
  * USAGE:
  * formatDateTransformer({date: new Date('2024-01-15')});
- * // Returns '2024-01-15' as branded DateString
+ * // Returns '2024-01-15' as plain text
  */
 // transformers/format-date/format-date-transformer.ts
-import {dateStringContract} from '../../contracts/date-string/date-string-contract';
-import type {DateString} from '../../contracts/date-string/date-string-contract';
-
-export const formatDateTransformer = ({date}: { date: Date }): DateString => {
-    const formatted = date.toISOString().split('T')[0];
-    return dateStringContract.parse(formatted);
-};
+export const formatDateTransformer = ({date}: { date: Date }): string => date.toISOString().slice(0, 10);
 
 /**
  * PURPOSE: Transforms a folder type and config into human-readable purpose description
@@ -139,7 +141,6 @@ export const formatDateTransformer = ({date}: { date: Date }): DateString => {
 // Using Record pattern with statics
 import {folderConfigStatics} from '../../statics/folder-config/folder-config-statics';
 import type {FolderType} from '../../contracts/folder-type/folder-type-contract';
-import type {ContentText} from '../../contracts/content-text/content-text-contract';
 
 export const folderPurposeTransformer = ({
                                              folderType,
@@ -147,9 +148,9 @@ export const folderPurposeTransformer = ({
                                          }: {
     folderType: FolderType;
     folderConfigs: Record<string, (typeof folderConfigStatics)[keyof typeof folderConfigStatics]>;
-}): ContentText => {
+}): string => {
     const config = folderConfigs[folderType];
-    return contentTextContract.parse(config.purpose);
+    return config.purpose;
 };
 ```
 
@@ -184,9 +185,6 @@ export const formatDateTransformerProxy = (): Record<PropertyKey, never> => ({})
 ```typescript
 // transformers/format-date/format-date-transformer.test.ts
 import {formatDateTransformer} from './format-date-transformer';
-import {DateStringStub} from '../../contracts/date-string/date-string.stub';
-
-type DateString = ReturnType<typeof DateStringStub>;
 
 describe('formatDateTransformer', () => {
     describe('valid dates', () => {
