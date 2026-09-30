@@ -12,7 +12,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
 
 import {
@@ -32,8 +31,8 @@ import {
   type ResolveSpecifierCache,
 } from './walk-gateway-crossings-layer-broker';
 
-const FRONTEND_REACT_TYPE = packageTypeContract.parse('frontend-react');
-const LIBRARY_TYPE = packageTypeContract.parse('library');
+const FRONTEND_REACT_TYPE = 'frontend-react';
+const LIBRARY_TYPE = 'library';
 
 export const platformCrossingCheckBroker = async ({
   rootPath,

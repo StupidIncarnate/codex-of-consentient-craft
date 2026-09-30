@@ -67,8 +67,6 @@ import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entr
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
-import { snapshotBoundaryContract } from '../../../contracts/snapshot-boundary/snapshot-boundary-contract';
-import { runStatusContract } from '../../../contracts/run-status/run-status-contract';
 import type { RunStatus } from '../../../contracts/run-status/run-status-contract';
 import { shotListingContract } from '../../../contracts/shot-listing/shot-listing-contract';
 import type { ShotListing } from '../../../contracts/shot-listing/shot-listing-contract';
@@ -208,7 +206,7 @@ export const runExecuteBroker = async ({
     homePath: lane.homePath,
     name: snapshotAutoNameTransformer({
       runId,
-      boundary: snapshotBoundaryContract.parse('start'),
+      boundary: 'start',
     }),
     manual: false,
   }).catch((error: unknown) => {
@@ -314,7 +312,7 @@ export const runExecuteBroker = async ({
   // run N finished" returns to. Same swallow-and-log rule as the start half above.
   await snapshotCaptureBroker({
     homePath: lane.homePath,
-    name: snapshotAutoNameTransformer({ runId, boundary: snapshotBoundaryContract.parse('end') }),
+    name: snapshotAutoNameTransformer({ runId, boundary: 'end' }),
     manual: false,
   }).catch((error: unknown) => {
     stderr.write(`[run-execute] end snapshot failed for ${runId}: ${String(error)}\n`);
@@ -358,8 +356,8 @@ export const runExecuteBroker = async ({
 
   const status: RunStatus =
     firstStop === null
-      ? runStatusContract.parse('done')
-      : runStatusContract.parse(firstStop.timedOut ? 'timeout' : 'failed');
+      ? 'done'
+      : firstStop.timedOut ? 'timeout' : 'failed';
 
   // First step's own start to last step's own end — real wall clock, off the SAME
   // `startedAtMs`/`endedAtMs` pair `stepDispatchBroker` already stamps onto every reading, never a

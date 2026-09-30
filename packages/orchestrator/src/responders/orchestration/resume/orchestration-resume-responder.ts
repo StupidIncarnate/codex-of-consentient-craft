@@ -53,7 +53,6 @@ import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { worktreeEnsureQuestBranchBroker } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
-import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
@@ -119,7 +118,7 @@ export const OrchestrationResumeResponder = async ({
   await worktreeEnsureQuestBranchBroker({
     quest,
     cwdResolution,
-    trigger: questResumeTriggerContract.parse('orchestration-resume'),
+    trigger: 'orchestration-resume',
   });
 
   // A block is not a pause, so it leaves no `pausedAtStatus` snapshot — execution is the only

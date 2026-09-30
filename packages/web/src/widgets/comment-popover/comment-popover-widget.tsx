@@ -25,7 +25,6 @@ import type { Quest, FlowNode, Flow, FlowObservable } from '@dungeonmaster/share
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
-import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
 import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -33,8 +32,8 @@ import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
 const { colors } = emberDepthsThemeStatics;
 const DROPDOWN_WIDTH = 260;
-const PRIMARY_VARIANT = buttonVariantContract.parse('primary');
-const DANGER_VARIANT = buttonVariantContract.parse('danger');
+const PRIMARY_VARIANT = 'primary';
+const DANGER_VARIANT = 'danger';
 const BUBBLE_LABEL = buttonLabelContract.parse('Comment on this box');
 const BUBBLE_TEST_ID = 'COMMENT_BUTTON';
 const BUBBLE_ROW_TEST_ID = 'COMMENT_BUTTON_ROW';

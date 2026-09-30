@@ -22,7 +22,7 @@ export const foldOutcomesTransformer = ({
   outcomes: readonly StepOutcome[];
 }): StepOutcome => {
   if (outcomes.length === 0) {
-    return stepOutcomeContract.parse('empty');
+    return 'empty';
   }
 
   // `stepOutcomeContract.options` IS the precedence order — the first one present in `outcomes`

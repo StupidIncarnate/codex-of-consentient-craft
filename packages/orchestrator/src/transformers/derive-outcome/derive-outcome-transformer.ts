@@ -34,7 +34,7 @@ export const deriveOutcomeTransformer = ({
   hitWall: boolean;
 }): StepOutcome => {
   if (hitWall) {
-    return stepOutcomeContract.parse('wall');
+    return 'wall';
   }
 
   if (assignedUnitIds.length === 0) {
@@ -61,7 +61,7 @@ export const deriveOutcomeTransformer = ({
     return mark === undefined || mark === 'unmet';
   });
 
-  const derived = stepOutcomeContract.parse(contradicting.length === 0 ? 'done' : 'unmet');
+  const derived = contradicting.length === 0 ? 'done' : 'unmet';
 
   if (declaredWord !== undefined) {
     throw new Error(

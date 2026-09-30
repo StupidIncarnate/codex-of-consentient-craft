@@ -14,7 +14,6 @@
  */
 
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';
-import { packageTypeContract } from '../../contracts/package-type/package-type-contract';
 import type { PackageType } from '../../contracts/package-type/package-type-contract';
 import { hasInkDependencyGuard } from '../../guards/has-ink-dependency/has-ink-dependency-guard';
 import { hasWidgetsFolderGuard } from '../../guards/has-widgets-folder/has-widgets-folder-guard';
@@ -35,11 +34,11 @@ export const packageBrowserTypeTransformer = ({
   // carrying both renders through ink, and react is then a dependency of the ink renderer rather
   // than the surface a Playwright run drives.
   if (hasInkDependencyGuard(packageJson === undefined ? {} : { packageJson })) {
-    return packageTypeContract.parse('frontend-ink');
+    return 'frontend-ink';
   }
 
   if (reactInDepsGuard(packageJson === undefined ? {} : { packageJson })) {
-    return packageTypeContract.parse('frontend-react');
+    return 'frontend-react';
   }
 
   return undefined;

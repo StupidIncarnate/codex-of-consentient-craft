@@ -22,7 +22,6 @@
 
 import { instanceStateResolveResultContract } from '../../../contracts/instance-state-resolve-result/instance-state-resolve-result-contract';
 import type { InstanceStateResolveResult } from '../../../contracts/instance-state-resolve-result/instance-state-resolve-result-contract';
-import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -39,28 +38,28 @@ export const instanceStateResolveBroker = async ({
 
   if (entry === null) {
     return instanceStateResolveResultContract.parse({
-      state: instanceStateContract.parse('unknown'),
+      state: 'unknown',
       entry: null,
     });
   }
 
   if (entry.state === 'pruned') {
     return instanceStateResolveResultContract.parse({
-      state: instanceStateContract.parse('pruned'),
+      state: 'pruned',
       entry,
     });
   }
 
   if (entry.state === 'killed') {
     return instanceStateResolveResultContract.parse({
-      state: instanceStateContract.parse('killed'),
+      state: 'killed',
       entry,
     });
   }
 
   if (entry.state === 'unusable') {
     return instanceStateResolveResultContract.parse({
-      state: instanceStateContract.parse('unusable'),
+      state: 'unusable',
       entry,
     });
   }
@@ -72,7 +71,7 @@ export const instanceStateResolveBroker = async ({
       nowMs - entry.reservedAtMs > instanceLifecycleStatics.reservation.staleAfterMs);
 
   return instanceStateResolveResultContract.parse({
-    state: instanceStateContract.parse(isStale ? 'dead' : 'alive'),
+    state: isStale ? 'dead' : 'alive',
     entry,
   });
 };

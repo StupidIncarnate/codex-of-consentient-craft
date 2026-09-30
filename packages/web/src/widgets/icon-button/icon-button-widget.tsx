@@ -15,13 +15,12 @@ import type { TablerIcon } from '#gateway/npm/tabler__icons-react';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
-import { iconButtonSizeContract } from '../../contracts/icon-button-size/icon-button-size-contract';
 import type { IconButtonSize } from '../../contracts/icon-button-size/icon-button-size-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
 
 const { colors } = emberDepthsThemeStatics;
-const DEFAULT_SIZE = iconButtonSizeContract.parse(iconButtonStatics.sizes.small);
+const DEFAULT_SIZE = iconButtonStatics.sizes.small;
 const DISABLED_OPACITY = 0.4;
 
 export interface IconButtonWidgetProps {

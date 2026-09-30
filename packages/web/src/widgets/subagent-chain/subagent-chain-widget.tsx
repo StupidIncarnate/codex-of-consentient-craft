@@ -24,7 +24,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
-import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
@@ -226,7 +225,7 @@ export const SubagentChainWidget = ({
                   onToggle={(): void => {
                     setReaderToggled(!showAllEarlier);
                   }}
-                  testId={toggleTestIdContract.parse('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE')}
+                  testId={'SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE'}
                 />
               ) : null;
 

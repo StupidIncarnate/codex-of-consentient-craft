@@ -23,7 +23,6 @@
  * // Returns 'wall' — the permission denial overrides typecheck's own 'repairable' class
  */
 
-import { stepOutcomeContract } from '../../contracts/step-outcome/step-outcome-contract';
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
 import { isPermissionDeniedErrorGuard } from '../../guards/is-permission-denied-error/is-permission-denied-error-guard';
 import { worktreePrepareStepStatics } from '../../statics/worktree-prepare-step/worktree-prepare-step-statics';
@@ -38,10 +37,10 @@ export const riftcarverFailureClassifyTransformer = ({
   error?: unknown;
 }): StepOutcome => {
   if (isPermissionDeniedErrorGuard({ error })) {
-    return stepOutcomeContract.parse('wall');
+    return 'wall';
   }
 
   const classification = CLASSIFICATION_BY_STEP.get(failedStep);
 
-  return stepOutcomeContract.parse(classification === 'repairable' ? 'unmet' : 'wall');
+  return classification === 'repairable' ? 'unmet' : 'wall';
 };

@@ -22,7 +22,6 @@
 
 import { healthReadingContract } from '../../contracts/health-reading/health-reading-contract';
 import type { HealthReading } from '../../contracts/health-reading/health-reading-contract';
-import { healthVerdictContract } from '../../contracts/health-verdict/health-verdict-contract';
 import { healthStatics } from '../../statics/health/health-statics';
 
 export const healthReadingRenderTransformer = ({
@@ -88,7 +87,7 @@ export const healthReadingRenderTransformer = ({
   const renderedText = `${verdict.padEnd(healthStatics.formatting.verdictPaddedLength, ' ')}${segments.join(healthStatics.formatting.separator)}`;
 
   return healthReadingContract.parse({
-    verdict: healthVerdictContract.parse(verdict),
+    verdict: verdict,
     rootPresent,
     blank,
     blankColour,

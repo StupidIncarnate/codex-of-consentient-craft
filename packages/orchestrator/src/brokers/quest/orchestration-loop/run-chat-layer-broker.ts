@@ -15,7 +15,6 @@ import {
 import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
-import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
@@ -53,7 +52,7 @@ export const runChatLayerBroker = async ({
 
   const model = roleToModelTransformer({ role: workItem.role });
 
-  const processIdPrefix = processIdPrefixContract.parse('chat');
+  const processIdPrefix = 'chat';
 
   try {
     const resolution = await questCwdResolveBroker({ questId });

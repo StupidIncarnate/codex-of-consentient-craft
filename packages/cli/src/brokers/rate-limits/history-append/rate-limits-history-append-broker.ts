@@ -10,10 +10,7 @@
 
 import { dirname } from '#gateway/node/path';
 import { appendFile, ensureDir } from '#gateway/node/fs__promises';
-import {
-  rateLimitsHistoryLineContract,
-  type RateLimitsHistoryLine,
-} from '@dungeonmaster/shared/contracts';
+import { type RateLimitsHistoryLine } from '@dungeonmaster/shared/contracts';
 import { locationsRateLimitsHistoryPathFindBroker } from '@dungeonmaster/shared/brokers';
 
 export const rateLimitsHistoryAppendBroker = async ({
@@ -26,7 +23,7 @@ export const rateLimitsHistoryAppendBroker = async ({
 
   await ensureDir(homeDir);
 
-  const contents = `${JSON.stringify(rateLimitsHistoryLineContract.parse(line))}\n`;
+  const contents = `${JSON.stringify(line)}\n`;
   await appendFile(historyPath, contents);
 
   return { appended: true };

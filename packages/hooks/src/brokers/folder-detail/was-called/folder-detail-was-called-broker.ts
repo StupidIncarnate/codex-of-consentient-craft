@@ -13,7 +13,6 @@ import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 import { readFile } from '#gateway/node/fs__promises';
 import { transcriptLineContract } from '../../../contracts/transcript-line/transcript-line-contract';
-import { folderDetailCallLookupContract } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
 import type { FolderDetailCallLookup } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
 
 // The bare name also matches the namespaced tool name, which is what the prefilter needs — a line
@@ -31,7 +30,7 @@ export const folderDetailWasCalledBroker = async ({
   const transcript = await readFile(transcriptFilePath).catch((): null => null);
 
   if (transcript === null) {
-    return folderDetailCallLookupContract.parse('undetermined');
+    return 'undetermined';
   }
 
   const lines = transcript.split('\n').filter((line) => line.trim() !== '');
@@ -43,7 +42,7 @@ export const folderDetailWasCalledBroker = async ({
   const anyLineParsed = lines.some((line) => safeJsonParseTransformer({ value: line }).ok);
 
   if (!anyLineParsed) {
-    return folderDetailCallLookupContract.parse('undetermined');
+    return 'undetermined';
   }
 
   const called = lines
@@ -72,5 +71,5 @@ export const folderDetailWasCalledBroker = async ({
       );
     });
 
-  return folderDetailCallLookupContract.parse(called ? 'called' : 'not-called');
+  return called ? 'called' : 'not-called';
 };

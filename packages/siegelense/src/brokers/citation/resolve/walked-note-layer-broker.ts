@@ -21,12 +21,11 @@ import type { Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
 import { citationStatics } from '../../../statics/citation/citation-statics';
 
-const WALKED_KIND = citationKindContract.parse('walked-note');
+const WALKED_KIND = 'walked-note';
 
 export const walkedNoteLayerBroker = ({
   instanceId,

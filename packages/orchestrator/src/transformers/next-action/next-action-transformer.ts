@@ -73,7 +73,6 @@ import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
 import { nextActionContract } from '../../contracts/next-action/next-action-contract';
 import type { NextAction } from '../../contracts/next-action/next-action-contract';
-import { stepOutcomeContract } from '../../contracts/step-outcome/step-outcome-contract';
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
 import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
 import type { WorkPlanPiece } from '../../contracts/work-plan-piece/work-plan-piece-contract';
@@ -401,7 +400,7 @@ export const nextActionTransformer = ({
   // --- QUESTION 4: otherwise, follow the step's own route for the outcome it folded to.
   const outcome =
     hitWall === true
-      ? stepOutcomeContract.parse('wall')
+      ? 'wall'
       : foldOutcomesTransformer({
           outcomes: terminalStepItems.map((item) =>
             item.assignedUnitIds.length === 0
@@ -410,11 +409,9 @@ export const nextActionTransformer = ({
                   observations: item.observations,
                   declaredWord:
                     declaredWord ??
-                    stepOutcomeContract.parse(
-                      node.role === 'planner' && (plan === null || plan.batches.length === 0)
+                    (node.role === 'planner' && (plan === null || plan.batches.length === 0)
                         ? 'empty'
-                        : 'done',
-                    ),
+                        : 'done'),
                   hitWall: false,
                 })
               : deriveOutcomeTransformer({

@@ -31,7 +31,6 @@ import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { worktreeEnsureQuestBranchBroker } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
-import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import {
@@ -116,7 +115,7 @@ export const RecoverGuildLayerResponder = async ({
           await worktreeEnsureQuestBranchBroker({
             quest,
             cwdResolution: resolution,
-            trigger: questResumeTriggerContract.parse('recover-guild-layer-responder'),
+            trigger: 'recover-guild-layer-responder',
           });
 
           return quest;

@@ -30,9 +30,7 @@
  * // Returns a StatusAnswer with at most one entry, fully populated
  */
 
-import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
-import { monitoredMetricContract } from '../../../contracts/monitored-metric/monitored-metric-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { statusAnswerContract } from '../../../contracts/status-answer/status-answer-contract';
 import type { StatusAnswer } from '../../../contracts/status-answer/status-answer-contract';
@@ -108,7 +106,7 @@ export const statusReadBroker = async ({
   const queriedInstanceState: InstanceState | null =
     instanceId === null
       ? null
-      : (entryStatePairs[0]?.state ?? instanceStateContract.parse('unknown'));
+      : (entryStatePairs[0]?.state ?? 'unknown');
 
   const machine = await machineReadBroker();
 
@@ -125,7 +123,7 @@ export const statusReadBroker = async ({
   );
 
   return statusAnswerContract.parse({
-    monitored: machineStatics.monitored.map((metric) => monitoredMetricContract.parse(metric)),
+    monitored: machineStatics.monitored.map((metric) => metric),
     machine,
     instances,
     queriedInstanceState,

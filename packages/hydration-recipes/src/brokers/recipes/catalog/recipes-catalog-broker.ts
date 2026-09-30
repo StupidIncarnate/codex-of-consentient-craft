@@ -308,7 +308,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
         }),
         guild: parsedGuild.data,
       });
-      return hydrationRunResultContract.parse(result);
+      return result;
     },
   },
 ];

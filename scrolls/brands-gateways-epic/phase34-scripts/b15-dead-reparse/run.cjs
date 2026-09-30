@@ -720,6 +720,10 @@ if (sampleOut) for (const [f, t] of overlay) {
   fs.mkdirSync(nodePath.dirname(d), { recursive: true });
   fs.writeFileSync(d, t);
 }
+if (args.includes('apply')) {
+  for (const [f, t] of overlay) fs.writeFileSync(f, t);
+  console.log(`applied ${overlay.size} files`);
+}
 if (keptOut) {
   const rows = kept.map((k) => [k.file + ':' + k.line, k.contract, k.reason, k.detail, k.arg].join('\t'));
   fs.mkdirSync(nodePath.dirname(nodePath.resolve(ROOT, keptOut)), { recursive: true });

@@ -10,7 +10,6 @@
  * // Returns { outsideCalls, reasons }
  */
 import * as ts from '#gateway/npm/typescript';
-import { adapterLogicReasonContract } from '../../../contracts/adapter-logic-reason/adapter-logic-reason-contract';
 import { censusLanguageGlobalsStatics } from '../../../statics/census-language-globals/census-language-globals-statics';
 import { importOriginClassifyTransformer } from '../../../transformers/import-origin-classify/import-origin-classify-transformer';
 import type { AdapterLogicReason } from '../../../contracts/adapter-logic-reason/adapter-logic-reason-contract';
@@ -64,14 +63,12 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
     }
     if (!ts.isIdentifier(root)) {
       reasons.add(
-        adapterLogicReasonContract.parse(
-          props.length > 0 ? 'method-on-held-value' : 'calls-held-value',
-        ),
+        props.length > 0 ? 'method-on-held-value' : 'calls-held-value',
       );
       continue;
     }
     if (chained) {
-      reasons.add(adapterLogicReasonContract.parse('chained-call'));
+      reasons.add('chained-call');
       continue;
     }
 
@@ -89,9 +86,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       if (origin === 'repo') {
         if (lastProp !== 'parse' && lastProp !== 'safeParse') {
           reasons.add(
-            adapterLogicReasonContract.parse(
-              rootName.endsWith('Adapter') ? 'calls-adapter' : 'calls-repo-code',
-            ),
+            rootName.endsWith('Adapter') ? 'calls-adapter' : 'calls-repo-code',
           );
         }
       } else {
@@ -105,13 +100,11 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       }
     } else if (declared.has(rootName)) {
       reasons.add(
-        adapterLogicReasonContract.parse(
-          props.length > 0 ? 'method-on-held-value' : 'calls-held-value',
-        ),
+        props.length > 0 ? 'method-on-held-value' : 'calls-held-value',
       );
     } else if (censusLanguageGlobalsStatics.names.some((name) => name === rootName)) {
       if (rootName === 'Promise' && ts.isNewExpression(node)) {
-        reasons.add(adapterLogicReasonContract.parse('promise-construction'));
+        reasons.add('promise-construction');
       }
     } else {
       outsideCalls.push(

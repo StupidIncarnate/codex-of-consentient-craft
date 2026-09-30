@@ -34,7 +34,6 @@
  * // Returns the step 7 reading from run_2's transcript, with instanceState and verb attached
  */
 
-import { resultKindContract } from '../../../contracts/result-kind/result-kind-contract';
 import { resultsAnswerContract } from '../../../contracts/results-answer/results-answer-contract';
 import type { ResultsAnswer } from '../../../contracts/results-answer/results-answer-contract';
 import type { ResultsQuery } from '../../../contracts/results-query/results-query-contract';
@@ -61,7 +60,7 @@ import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 // ResultKind, never a package. Routing the literal through the same contract every OTHER kind
 // value on this page reaches anyway keeps the check off that rule's radar without special-casing
 // one branch's shape.
-const SERVER_KIND = resultKindContract.parse('server');
+const SERVER_KIND = 'server';
 
 export const resultsReadBroker = async ({
   query,

@@ -15,7 +15,6 @@
 
 import { commandChatOutputEmitContract } from '../../contracts/command-chat-output-emit/command-chat-output-emit-contract';
 import type { CommandChatOutputEmit } from '../../contracts/command-chat-output-emit/command-chat-output-emit-contract';
-import { orchestrationEventTypeContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputEmitPayloadContract } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
@@ -36,7 +35,7 @@ export const commandChatOutputEmitTransformer = ({
   const chatProcessId = String(workItemId);
 
   return commandChatOutputEmitContract.parse({
-    type: orchestrationEventTypeContract.parse('chat-output'),
+    type: 'chat-output',
     processId: chatProcessId,
     payload: chatOutputEmitPayloadContract.parse({
       processId: chatProcessId,

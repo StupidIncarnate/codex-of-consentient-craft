@@ -24,7 +24,6 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 
-import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -103,7 +102,7 @@ export const questMonitorJsonlWatcherBroker = ({
           return resolveAncestorWorkItemId({ agentId: parentReal });
         };
 
-  const sessionSource = chatLineSourceContract.parse('session');
+  const sessionSource = 'session';
 
   const subagentHandles = new Map<Agent['id'], TailFileHandle>();
 

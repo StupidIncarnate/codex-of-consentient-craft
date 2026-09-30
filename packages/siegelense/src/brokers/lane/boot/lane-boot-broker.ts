@@ -39,7 +39,6 @@ import { join } from '#gateway/node/path';
 import { cwd, envSnapshot } from '#gateway/node/process';
 import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
@@ -102,13 +101,13 @@ export const laneBootBroker = async ({
     isLaneSpecTokenReferencedGuard({ spec, token: '{apiWorkspace}' })
       ? laneWorkspaceResolveBroker({
           repoRoot: spawnCwd,
-          packageType: packageTypeContract.parse('http-backend'),
+          packageType: 'http-backend',
         })
       : Promise.resolve(undefined),
     isLaneSpecTokenReferencedGuard({ spec, token: '{webWorkspace}' })
       ? laneWorkspaceResolveBroker({
           repoRoot: spawnCwd,
-          packageType: packageTypeContract.parse('frontend-react'),
+          packageType: 'frontend-react',
         })
       : Promise.resolve(undefined),
   ]);

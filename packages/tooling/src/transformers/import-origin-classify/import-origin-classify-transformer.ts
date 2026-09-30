@@ -8,7 +8,6 @@
  * importOriginClassifyTransformer({ specifier: 'fs/promises', workspaceScope: '@acme', workspacePackageNames: [] });
  * // Returns 'outside'
  */
-import { importOriginContract } from '../../contracts/import-origin/import-origin-contract';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
 import type { ImportOrigin } from '../../contracts/import-origin/import-origin-contract';
 
@@ -22,7 +21,7 @@ export const importOriginClassifyTransformer = ({
   workspacePackageNames: readonly string[];
 }): ImportOrigin => {
   if (specifier.startsWith(`${censusLayoutStatics.gatewayImportPrefix}/`)) {
-    return importOriginContract.parse('gateway');
+    return 'gateway';
   }
   const isRepo =
     specifier.startsWith('.') ||
@@ -30,5 +29,5 @@ export const importOriginClassifyTransformer = ({
     (workspaceScope !== null && specifier.startsWith(`${workspaceScope}/`)) ||
     workspacePackageNames.some((name) => specifier === name || specifier.startsWith(`${name}/`));
 
-  return importOriginContract.parse(isRepo ? 'repo' : 'outside');
+  return isRepo ? 'repo' : 'outside';
 };

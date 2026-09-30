@@ -8,7 +8,6 @@
  * routeSelectTransformer({ routes: HydrationRoutesStub({ write: fn }), hasBaseUrl: false });
  * // Returns 'write'
  */
-import { hydrationRouteContract } from '../../contracts/hydration-route/hydration-route-contract';
 import type { HydrationRoute } from '../../contracts/hydration-route/hydration-route-contract';
 import type { HydrationRoutes } from '../../contracts/hydration-routes/hydration-routes-contract';
 
@@ -20,10 +19,10 @@ export const routeSelectTransformer = ({
   hasBaseUrl: boolean;
 }): HydrationRoute | null => {
   if (hasBaseUrl && routes.api !== undefined) {
-    return hydrationRouteContract.parse('api');
+    return 'api';
   }
   if (routes.write !== undefined) {
-    return hydrationRouteContract.parse('write');
+    return 'write';
   }
   return null;
 };

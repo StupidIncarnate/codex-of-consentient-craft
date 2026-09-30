@@ -29,7 +29,6 @@ import type {
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -62,7 +61,7 @@ import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer
 // The FOLLOW-UP tab's ChatPanelWidget always carries the tavernkeeper's own conversation — it is
 // the one role isPostQuestChatWorkItemRoleGuard admits — so the label is a constant, not derived
 // per-render from a work item.
-const FOLLOWUP_ROLE_LABEL = executionRoleContract.parse('tavernkeeper');
+const FOLLOWUP_ROLE_LABEL = 'tavernkeeper';
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;

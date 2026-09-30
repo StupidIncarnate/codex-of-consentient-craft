@@ -7,27 +7,26 @@
  * censusFileKindTransformer({ file: censusPath });
  * // Returns 'proxy' for packages/a/src/x/x-broker.proxy.ts
  */
-import { censusFileKindContract } from '../../contracts/census-file-kind/census-file-kind-contract';
 import type { CensusFileKind } from '../../contracts/census-file-kind/census-file-kind-contract';
 
 export const censusFileKindTransformer = ({ file }: { file: string }): CensusFileKind => {
   if (/\.stub\.tsx?$/u.test(file)) {
-    return censusFileKindContract.parse('stub');
+    return 'stub';
   }
   if (/\.proxy\.tsx?$/u.test(file)) {
-    return censusFileKindContract.parse('proxy');
+    return 'proxy';
   }
   if (/\.(?:test|integration\.test|e2e)\.tsx?$/u.test(file)) {
-    return censusFileKindContract.parse('test');
+    return 'test';
   }
   if (/\.harness\.tsx?$/u.test(file) || file.includes('/test/harnesses/')) {
-    return censusFileKindContract.parse('harness');
+    return 'harness';
   }
   if (/^packages\/(?:@[^/]+\/)?[^/]+\/[^/]+\.tsx?$/u.test(file)) {
-    return censusFileKindContract.parse('barrel');
+    return 'barrel';
   }
   if (/\/(?:src|bin)\//u.test(file)) {
-    return censusFileKindContract.parse('production');
+    return 'production';
   }
-  return censusFileKindContract.parse('other');
+  return 'other';
 };

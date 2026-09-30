@@ -13,11 +13,7 @@ import { followupChatStartResultContract } from '../../../contracts/followup-cha
 import type { FollowupChatStartResult } from '../../../contracts/followup-chat-start-result/followup-chat-start-result-contract';
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  getQuestInputContract,
-  workItemContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -98,7 +94,7 @@ export const FollowupChatStartResponder = async ({
 
   try {
     const spawnResult = await chatSpawnBroker({
-      role: workItemRoleContract.parse('tavernkeeper'),
+      role: 'tavernkeeper',
       guildId,
       questId,
       message,

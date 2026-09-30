@@ -16,7 +16,6 @@
  * // Returns null
  */
 
-import { pruneAssetKindContract } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import type { PruneAssetKind } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { pruneStatics } from '../../statics/prune/prune-statics';
@@ -29,11 +28,11 @@ export const pruneAssetClassifyTransformer = ({
   const name = fileName;
 
   if (name.endsWith(pruneStatics.assets.videoExtension)) {
-    return pruneAssetKindContract.parse('video');
+    return 'video';
   }
 
   if (name.endsWith(evidenceFileStatics.extensions.shot)) {
-    return pruneAssetKindContract.parse('shot');
+    return 'shot';
   }
 
   if (
@@ -44,7 +43,7 @@ export const pruneAssetClassifyTransformer = ({
     // never a Claude-style session transcript — those live under `.claude/projects/`, which this
     // package does not list. Classifying the pair as `log` (the instance's own record, alongside
     // the process logs) keeps `--kind transcript` from taking the evidence `results` still needs.
-    return pruneAssetKindContract.parse('log');
+    return 'log';
   }
 
   return null;

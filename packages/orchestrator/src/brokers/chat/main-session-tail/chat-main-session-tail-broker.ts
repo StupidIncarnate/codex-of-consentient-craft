@@ -32,7 +32,6 @@ import type { ChatEntry, Session } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
-import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 
 export const chatMainSessionTailBroker = ({
   sessionId,
@@ -56,7 +55,7 @@ export const chatMainSessionTailBroker = ({
     sessionId,
   });
 
-  const sessionSource = chatLineSourceContract.parse('session');
+  const sessionSource = 'session';
 
   const handle = tailFile({
     path: jsonlPath,

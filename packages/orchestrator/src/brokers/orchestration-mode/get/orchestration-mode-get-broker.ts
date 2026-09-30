@@ -10,7 +10,6 @@
  */
 
 import { ConfigNotFoundError, configResolveBroker } from '@dungeonmaster/config';
-import { orchestrationModeContract } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -30,7 +29,7 @@ export const orchestrationModeGetBroker = async (): Promise<OrchestrationMode> =
     return config.orchestrationMode;
   } catch (error: unknown) {
     if (error instanceof ConfigNotFoundError) {
-      return orchestrationModeContract.parse('claude');
+      return 'claude';
     }
     throw error;
   }

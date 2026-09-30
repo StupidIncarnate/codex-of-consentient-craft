@@ -27,7 +27,6 @@
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
-import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import { pruneAnswerContract } from '../../../contracts/prune-answer/prune-answer-contract';
 import type { PruneAnswer } from '../../../contracts/prune-answer/prune-answer-contract';
 import type { PruneQuery } from '../../../contracts/prune-query/prune-query-contract';
@@ -40,7 +39,7 @@ import { registryUpdateBroker } from '../../registry/update/registry-update-brok
 import { pruneInstanceReclaimBroker } from '../instance-reclaim/prune-instance-reclaim-broker';
 import { registryContract } from '../../../contracts/registry/registry-contract';
 
-const PRUNED_STATE = instanceStateContract.parse('pruned');
+const PRUNED_STATE = 'pruned';
 
 export const pruneRunBroker = async ({
   query,

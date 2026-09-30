@@ -20,7 +20,6 @@ import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
-import { pruneAssetKindContract } from '../../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { pruneAssetClassifyTransformer } from '../../../transformers/prune-asset-classify/prune-asset-classify-transformer';
@@ -36,7 +35,7 @@ const RUN_FILE_SUFFIX = new RegExp(
   'u',
 );
 
-const LOG_KIND = pruneAssetKindContract.parse('log');
+const LOG_KIND = 'log';
 
 export const pruneAssetsListBroker = async ({
   entry,

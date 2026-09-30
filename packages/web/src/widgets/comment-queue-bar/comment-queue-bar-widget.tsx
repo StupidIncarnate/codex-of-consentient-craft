@@ -31,15 +31,14 @@ import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comm
 import { notifications } from '#gateway/npm/mantine__notifications';
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
-import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { staleAnchorNoticeTransformer } from '../../transformers/stale-anchor-notice/stale-anchor-notice-transformer';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
 const { colors } = emberDepthsThemeStatics;
 const CONTAINER_STYLE = { padding: 12, flexShrink: 0 };
-const PRIMARY_VARIANT = buttonVariantContract.parse('primary');
-const DANGER_VARIANT = buttonVariantContract.parse('danger');
+const PRIMARY_VARIANT = 'primary';
+const DANGER_VARIANT = 'danger';
 const CLEAR_LABEL = buttonLabelContract.parse('Clear queued comments');
 const CLEAR_TEST_ID = 'COMMENT_CLEAR_BUTTON';
 const SEND_LABEL = buttonLabelContract.parse('Send queued comments');

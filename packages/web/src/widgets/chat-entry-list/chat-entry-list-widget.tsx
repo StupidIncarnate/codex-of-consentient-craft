@@ -23,7 +23,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
 import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
 import { collectPairTailEntriesTransformer } from '../../transformers/collect-pair-tail-entries/collect-pair-tail-entries-transformer';
@@ -278,7 +277,7 @@ export const ChatEntryListWidget = ({
         onToggle={(): void => {
           setReaderToggled(!showAllEarlier);
         }}
-        testId={toggleTestIdContract.parse('CHAT_LIST_SHOW_EARLIER_TOGGLE')}
+        testId={'CHAT_LIST_SHOW_EARLIER_TOGGLE'}
       />
     ) : null;
 

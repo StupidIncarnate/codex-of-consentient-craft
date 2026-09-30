@@ -26,11 +26,11 @@ export const taskPromptsFromContentTransformer = ({
 }): TaskPromptsFromContent => {
   const lineParse = normalizedStreamLineContract.safeParse(entry);
   if (!lineParse.success) {
-    return taskPromptsFromContentContract.parse([]);
+    return [];
   }
   const content = lineParse.data.message?.content;
   if (!Array.isArray(content)) {
-    return taskPromptsFromContentContract.parse([]);
+    return [];
   }
 
   const prompts: { toolUseId: ToolUseId; prompt: TaskAgentToolInput['prompt'] }[] = [];

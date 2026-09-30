@@ -12,7 +12,6 @@ import { glob } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
 import { typescriptParseBroker } from '../../typescript/parse/typescript-parse-broker';
 import { duplicateLiteralReportContract } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
-import { literalTypeContract } from '../../../contracts/literal-type/literal-type-contract';
 import { duplicateDetectionStatics } from '../../../statics/duplicate-detection/duplicate-detection-statics';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import { isRegexLiteralGuard } from '../../../guards/is-regex-literal/is-regex-literal-guard';
@@ -75,7 +74,7 @@ export const duplicateDetectionDetectBroker = async ({
     if (occurrences.length >= actualThreshold) {
       // Determine type based on content
       const isRegex = isRegexLiteralGuard({ value: literalValue });
-      const type = literalTypeContract.parse(isRegex ? 'regex' : 'string');
+      const type = isRegex ? 'regex' : 'string';
 
       duplicates.push(
         duplicateLiteralReportContract.parse({

@@ -31,5 +31,5 @@ export const questClarifyBroker = async ({
     body: { answers, questions },
   });
 
-  return questClarifyResultContract.parse(questClarifyResultContract.parse(response));
+  return questClarifyResultContract.parse(response);
 };

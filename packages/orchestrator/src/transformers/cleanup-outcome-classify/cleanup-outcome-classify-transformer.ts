@@ -12,7 +12,6 @@
  * // Returns 'done'
  */
 
-import { stepOutcomeContract } from '../../contracts/step-outcome/step-outcome-contract';
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
 import type { CleanupCliAnswer } from '../../contracts/cleanup-answer/cleanup-answer-contract';
 
@@ -27,5 +26,5 @@ export const cleanupOutcomeClassifyTransformer = ({
     answer.lockReleased ||
     answer.assetsAged.instances > 0;
 
-  return stepOutcomeContract.parse(touchedSomething ? 'done' : 'empty');
+  return touchedSomething ? 'done' : 'empty';
 };

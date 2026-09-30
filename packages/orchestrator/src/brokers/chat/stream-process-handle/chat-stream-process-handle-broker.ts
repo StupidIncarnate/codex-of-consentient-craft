@@ -30,7 +30,6 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
-import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
@@ -72,7 +71,7 @@ export const chatStreamProcessHandleBroker = ({
   const processor = chatLineProcessTransformer({
     serverBaseUrl: questGetServerConfigBroker().baseUrl,
   });
-  const sessionSource = chatLineSourceContract.parse('session');
+  const sessionSource = 'session';
   // Memoized once any line carrying it (typically system/init) is seen. The processor's
   // `agent-detected` handler below requires a sessionId to resolve the sub-agent JSONL
   // path before starting `chatSubagentTailBroker`; if the broker fires before init is

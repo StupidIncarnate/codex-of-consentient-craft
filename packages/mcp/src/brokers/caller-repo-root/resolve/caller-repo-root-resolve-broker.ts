@@ -30,7 +30,6 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { cwd } from '#gateway/node/process';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
-import { callerRepoRootSourceContract } from '../../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
 export const callerRepoRootResolveBroker = async ({
@@ -48,7 +47,7 @@ export const callerRepoRootResolveBroker = async ({
       });
       return callerRepoRootResolveResultContract.parse({
         repoRoot,
-        source: callerRepoRootSourceContract.parse('caller-cwd'),
+        source: 'caller-cwd',
         configFound: true,
       });
     } catch (error) {
@@ -57,7 +56,7 @@ export const callerRepoRootResolveBroker = async ({
       }
       return callerRepoRootResolveResultContract.parse({
         repoRoot: caller.cwd,
-        source: callerRepoRootSourceContract.parse('caller-cwd'),
+        source: 'caller-cwd',
         configFound: false,
       });
     }
@@ -68,7 +67,7 @@ export const callerRepoRootResolveBroker = async ({
     const repoRoot = await cwdResolveBroker({ startPath: serverCwd, kind: 'repo-root' });
     return callerRepoRootResolveResultContract.parse({
       repoRoot,
-      source: callerRepoRootSourceContract.parse('server-cwd-fallback'),
+      source: 'server-cwd-fallback',
       configFound: true,
     });
   } catch (error) {
@@ -77,7 +76,7 @@ export const callerRepoRootResolveBroker = async ({
     }
     return callerRepoRootResolveResultContract.parse({
       repoRoot: serverCwd,
-      source: callerRepoRootSourceContract.parse('server-cwd-fallback'),
+      source: 'server-cwd-fallback',
       configFound: false,
     });
   }

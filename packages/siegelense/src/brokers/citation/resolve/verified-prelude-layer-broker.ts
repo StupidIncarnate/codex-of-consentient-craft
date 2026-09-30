@@ -20,13 +20,12 @@ import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readFile, readdirIfExists } from '#gateway/node/fs__promises';
 import { isNativeError } from '#gateway/node/util__types';
-import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
 import { citationStatics } from '../../../statics/citation/citation-statics';
 import { locationsCitationQuestPlansPathFindBroker } from '../../locations/citation-quest-plans-path-find/locations-citation-quest-plans-path-find-broker';
 
-const PRELUDE_KIND = citationKindContract.parse('verified-prelude');
+const PRELUDE_KIND = 'verified-prelude';
 
 export const verifiedPreludeLayerBroker = async ({
   instanceId,

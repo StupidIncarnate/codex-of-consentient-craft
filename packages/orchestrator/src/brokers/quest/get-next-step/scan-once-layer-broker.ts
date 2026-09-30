@@ -11,7 +11,6 @@ import { isAnyAgentRunningQuestStatusGuard } from '@dungeonmaster/shared/guards'
 
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
-import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { laneProvisionBatchBroker } from '../../lane/provision-batch/lane-provision-batch-broker';
 import { worktreeEnsureQuestBranchBroker } from '../../worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
 import { questActiveQuestsBroker } from '../active-quests/quest-active-quests-broker';
@@ -190,7 +189,7 @@ export const scanOnceLayerBroker = async ({
     await worktreeEnsureQuestBranchBroker({
       quest,
       cwdResolution,
-      trigger: questResumeTriggerContract.parse('dispatch-scan'),
+      trigger: 'dispatch-scan',
     });
   }
 

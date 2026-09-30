@@ -10,7 +10,6 @@
 import { smoketestRunResultContract } from '../../../contracts/smoketest-run-result/smoketest-run-result-contract';
 import type { SmoketestRunResult } from '../../../contracts/smoketest-run-result/smoketest-run-result-contract';
 import { randomUUID } from '#gateway/node/crypto';
-import { questSourceContract } from '@dungeonmaster/shared/contracts';
 import type { SmoketestCaseResult, SmoketestSuite, Quest } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -52,7 +51,7 @@ export const SmoketestRunResponder = async ({
     const enqueued: { questId: Quest['id']; guildSlug: string }[] = [];
 
     if (suite === 'mcp' || suite === 'all') {
-      const questSource = questSourceContract.parse('smoketest-mcp');
+      const questSource = 'smoketest-mcp';
       await smoketestClearPriorQuestsBroker({ questSource });
       const bundled = await EnqueueBundledSuiteLayerResponder({
         suite: 'mcp',
@@ -66,7 +65,7 @@ export const SmoketestRunResponder = async ({
     }
 
     if (suite === 'signals' || suite === 'all') {
-      const questSource = questSourceContract.parse('smoketest-signals');
+      const questSource = 'smoketest-signals';
       await smoketestClearPriorQuestsBroker({ questSource });
       const bundled = await EnqueueBundledSuiteLayerResponder({
         suite: 'signals',
@@ -80,7 +79,7 @@ export const SmoketestRunResponder = async ({
     }
 
     if (suite === 'orchestration' || suite === 'all') {
-      const questSource = questSourceContract.parse('smoketest-orchestration');
+      const questSource = 'smoketest-orchestration';
       await smoketestClearPriorQuestsBroker({ questSource });
 
       const orchRecords = await smoketestCaseCatalogStatics.orchestration.reduce<

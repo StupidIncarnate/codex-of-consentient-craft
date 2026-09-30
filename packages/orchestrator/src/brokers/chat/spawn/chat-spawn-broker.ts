@@ -31,7 +31,6 @@ import {
   locationsQuestImagesPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
@@ -159,7 +158,7 @@ export const chatSpawnBroker = async ({
   const launchResult = agentLaunchBroker({
     questId: resolvedQuestId,
     questWorkItemId: chatWorkItemId,
-    processIdPrefix: processIdPrefixContract.parse('chat'),
+    processIdPrefix: 'chat',
     prompt,
     cwd: repoRootCwd,
     model: roleToModelTransformer({ role }),

@@ -9,7 +9,6 @@
  */
 
 import type { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { packageTypeContract } from '../../../contracts/package-type/package-type-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
 import { hasHonoOrExpressDependencyGuard } from '../../../guards/has-hono-or-express-dependency/has-hono-or-express-dependency-guard';
@@ -51,14 +50,14 @@ export const detectPackageTypeLayerBroker = ({
     flowCreatesHonoOrExpressAppGuard(flowFileContent === undefined ? {} : { flowFileContent }) ||
     (hasFlowsDir && hasHonoOrExpressDependencyGuard({ packageJson }))
   ) {
-    return packageTypeContract.parse('http-backend');
+    return 'http-backend';
   }
 
   if (
     (hasFlowsDir && hasModelcontextprotocolDependencyGuard({ packageJson })) ||
     flowReturnsToolRegistrationGuard(flowFileContent === undefined ? {} : { flowFileContent })
   ) {
-    return packageTypeContract.parse('mcp-server');
+    return 'mcp-server';
   }
 
   // Third and fourth in the priority order, but the rules themselves live in
@@ -74,18 +73,18 @@ export const detectPackageTypeLayerBroker = ({
   }
 
   if (hasResponderHook && binEntryCount >= projectMapStatics.hookHandlersMinBinCount) {
-    return packageTypeContract.parse('hook-handlers');
+    return 'hook-handlers';
   }
 
   if (hasBrokersRule && hasResponderCreate && exportsHasDot && binEntryCount === 0) {
-    return packageTypeContract.parse('eslint-plugin');
+    return 'eslint-plugin';
   }
 
   if (
     binEntryCount >= 1 &&
     startupReferencesArgvGuard(startupFileContent === undefined ? {} : { startupFileContent })
   ) {
-    return packageTypeContract.parse('cli-tool');
+    return 'cli-tool';
   }
 
   if (
@@ -96,8 +95,8 @@ export const detectPackageTypeLayerBroker = ({
       startupFileContent === undefined ? {} : { startupFileContent },
     )
   ) {
-    return packageTypeContract.parse('programmatic-service');
+    return 'programmatic-service';
   }
 
-  return packageTypeContract.parse('library');
+  return 'library';
 };

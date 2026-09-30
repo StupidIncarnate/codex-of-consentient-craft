@@ -21,7 +21,6 @@ import type { TailFileHandle } from '#gateway/node/fs';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
-import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { Quest, WorkItem, Agent, Session } from '@dungeonmaster/shared/contracts';
 
 export const startSubagentTailLayerBroker = ({
@@ -69,7 +68,7 @@ export const startSubagentTailLayerBroker = ({
   const subagentJsonlPath = `${stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute })}/subagents/agent-${String(
     agentId,
   )}.jsonl`;
-  const subagentSource = chatLineSourceContract.parse('subagent');
+  const subagentSource = 'subagent';
 
   const handle = tailFile({
     path: subagentJsonlPath,

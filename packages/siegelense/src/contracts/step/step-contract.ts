@@ -111,7 +111,7 @@ export const stepContract = z
           ),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -125,7 +125,7 @@ export const stepContract = z
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -139,7 +139,7 @@ export const stepContract = z
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -154,7 +154,7 @@ export const stepContract = z
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -176,7 +176,7 @@ export const stepContract = z
           }),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -187,7 +187,7 @@ export const stepContract = z
         source: z.string().brand<'StepSource'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -204,7 +204,7 @@ export const stepContract = z
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -215,7 +215,7 @@ export const stepContract = z
         ref: z.number().int().positive().brand<'StepRef'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -228,7 +228,7 @@ export const stepContract = z
         text: domTextModeContract.nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -251,7 +251,7 @@ export const stepContract = z
         as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -307,7 +307,7 @@ export const stepContract = z
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -318,7 +318,7 @@ export const stepContract = z
         press: z.string().brand<'StepPress'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -328,7 +328,7 @@ export const stepContract = z
         step: z.literal('health'),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -340,7 +340,7 @@ export const stepContract = z
         height: z.number().int().positive().brand<'StepHeight'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -348,13 +348,13 @@ export const stepContract = z
     z
       .object({
         step: z.literal('request'),
-        method: httpMethodContract.default(httpMethodContract.parse('GET')),
+        method: httpMethodContract.default('GET'),
         path: z.string().brand<'StepPath'>(),
         body: z.json().optional(),
         headers: z.record(z.string(), z.string().brand<'StepHeaders'>()).optional(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -365,7 +365,7 @@ export const stepContract = z
         source: z.string().brand<'StepSource'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -385,7 +385,7 @@ export const stepContract = z
           .brand<'StepPath'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -398,7 +398,7 @@ export const stepContract = z
         prefix: z.string().default(storageStatics.defaults.prefix).brand<'StepPrefix'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -414,7 +414,7 @@ export const stepContract = z
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -438,7 +438,7 @@ export const stepContract = z
           .brand<'StepEveryMs'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -449,7 +449,7 @@ export const stepContract = z
         action: videoActionContract,
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -465,7 +465,7 @@ export const stepContract = z
           .brand<'StepAs'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()
@@ -473,7 +473,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('reset'),
-        level: resetLevelContract.default(resetLevelContract.parse('state')),
+        level: resetLevelContract.default('state'),
         to: z
           .string()
           .min(1)
@@ -485,7 +485,7 @@ export const stepContract = z
         reseed: z.string().brand<'StepReseed'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
-          stepExpectationContract.parse(stepStatics.defaults.expect),
+          stepStatics.defaults.expect,
         ),
       })
       .strict()

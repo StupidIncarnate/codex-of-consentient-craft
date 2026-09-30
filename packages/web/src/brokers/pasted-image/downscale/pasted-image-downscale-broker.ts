@@ -12,7 +12,6 @@
  * // Returns: ComposerAttachment, unchanged if dataUrl already fits under the byte ceiling
  */
 
-import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import type { PastedImageMediaType } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
@@ -33,8 +32,8 @@ const PNG_ENCODE_QUALITY = 1;
 // pastedImageStatics' thresholds, just the arithmetic that walks toward them.
 const HALVING_DIVISOR = 2;
 
-const PNG_MEDIA_TYPE = pastedImageMediaTypeContract.parse('image/png');
-const JPEG_MEDIA_TYPE = pastedImageMediaTypeContract.parse('image/jpeg');
+const PNG_MEDIA_TYPE = 'image/png';
+const JPEG_MEDIA_TYPE = 'image/jpeg';
 
 // dataUrlSplitTransformer re-validates through pastedImageUploadContract, which itself refuses a
 // payload over the byte ceiling — exactly the candidates this ladder has to be ABLE to inspect

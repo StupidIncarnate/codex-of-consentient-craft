@@ -25,7 +25,6 @@
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { citationGapContract } from '../../../contracts/citation-gap/citation-gap-contract';
-import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationResolutionContract } from '../../../contracts/citation-resolution/citation-resolution-contract';
 import type { CitationResolution } from '../../../contracts/citation-resolution/citation-resolution-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -39,7 +38,7 @@ import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 // quest-owned instance, and `prune`/`cleanup` carry it into their own answers, so a caller reading
 // `refused: []` also reads which question was never put.
 const OPEN_ISSUE_GAP = citationGapContract.parse({
-  kind: citationKindContract.parse('open-issue'),
+  kind: 'open-issue',
   why:
     'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
     "a typed instanceId/runId — a workItem's own observation carries neither field and " +
@@ -48,7 +47,7 @@ const OPEN_ISSUE_GAP = citationGapContract.parse({
 });
 
 const NO_PRELUDE_GAP = citationGapContract.parse({
-  kind: citationKindContract.parse('verified-prelude'),
+  kind: 'verified-prelude',
   why:
     'not checked: the quest records no worktree, so there is no .quest-plans directory to read ' +
     'preludes out of.',

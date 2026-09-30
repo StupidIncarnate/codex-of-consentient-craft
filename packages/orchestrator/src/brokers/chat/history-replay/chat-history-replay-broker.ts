@@ -41,7 +41,6 @@ import {
 } from '@dungeonmaster/shared/transformers';
 
 import { chatReplayJsonlReadBroker } from '../replay-jsonl-read/chat-replay-jsonl-read-broker';
-import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { normalizedStreamLineContentItemContract } from '../../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
@@ -160,8 +159,8 @@ export const chatHistoryReplayBroker = async ({
   const processor = chatLineProcessTransformer({
     serverBaseUrl: questGetServerConfigBroker().baseUrl,
   });
-  const sessionSource = chatLineSourceContract.parse('session');
-  const subagentSource = chatLineSourceContract.parse('subagent');
+  const sessionSource = 'session';
+  const subagentSource = 'subagent';
 
   const taggedLines: {
     parsed: unknown;
