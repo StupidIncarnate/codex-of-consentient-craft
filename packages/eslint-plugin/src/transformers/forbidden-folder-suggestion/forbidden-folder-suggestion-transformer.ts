@@ -10,17 +10,15 @@
  */
 import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 
-import type { FolderSuggestion } from '../../contracts/folder-suggestion/folder-suggestion-contract';
-import { folderSuggestionContract } from '../../contracts/folder-suggestion/folder-suggestion-contract';
 import { forbiddenFolderStatics } from '../../statics/forbidden-folder/forbidden-folder-statics';
 
 export const forbiddenFolderSuggestionTransformer = ({
   forbiddenFolder,
 }: {
   forbiddenFolder: string;
-}): FolderSuggestion => {
+}): string => {
   if (isKeyOfGuard(forbiddenFolder, forbiddenFolderStatics.mappings)) {
-    return folderSuggestionContract.parse(forbiddenFolderStatics.mappings[forbiddenFolder]);
+    return forbiddenFolderStatics.mappings[forbiddenFolder];
   }
-  return folderSuggestionContract.parse('contracts');
+  return 'contracts';
 };
