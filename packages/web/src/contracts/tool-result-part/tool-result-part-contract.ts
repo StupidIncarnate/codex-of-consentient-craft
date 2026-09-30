@@ -13,14 +13,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { markdownSourceContract } from '../markdown-source/markdown-source-contract';
 import { toolResultKeyContract } from '../tool-result-key/tool-result-key-contract';
 
 export const toolResultPartContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('markdown'),
     label: toolResultKeyContract.optional(),
-    source: markdownSourceContract,
+    source: z.string().brand<'ToolResultPartSource'>(),
   }),
   z.object({
     kind: z.literal('text'),

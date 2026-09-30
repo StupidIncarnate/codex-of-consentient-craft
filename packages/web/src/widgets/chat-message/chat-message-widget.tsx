@@ -12,7 +12,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import { markdownSourceContract } from '../../contracts/markdown-source/markdown-source-contract';
 import { toolResultDisplayContentContract } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
@@ -292,7 +291,7 @@ export const ChatMessageWidget = ({
             {entry.content}
           </Text>
         ) : (
-          <MarkdownTextWidget content={markdownSourceContract.parse(entry.content)} />
+          <MarkdownTextWidget content={entry.content} />
         )}
         {tokenBadgeElement}
       </Box>

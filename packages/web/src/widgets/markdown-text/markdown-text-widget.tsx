@@ -11,12 +11,11 @@
 
 import { Box } from '#gateway/npm/mantine__core';
 
-import type { MarkdownSource } from '../../contracts/markdown-source/markdown-source-contract';
 import { parseMarkdownBlocksTransformer } from '../../transformers/parse-markdown-blocks/parse-markdown-blocks-transformer';
 import { MarkdownBlockLayerWidget } from './markdown-block-layer-widget';
 
 export interface MarkdownTextWidgetProps {
-  content: MarkdownSource;
+  content: string;
   // Raise for text whose newlines are structure rather than wrapping — tool output, where one
   // logical item is one line and its continuations are indented beneath it. Agent prose leaves it
   // down, so a hard-wrapped message still reflows to the panel instead of breaking at its author's

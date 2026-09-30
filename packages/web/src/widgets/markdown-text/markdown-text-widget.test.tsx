@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { MarkdownSourceStub } from '../../contracts/markdown-source/markdown-source.stub';
 import { MarkdownTextWidget } from './markdown-text-widget';
 import { MarkdownTextWidgetProxy } from './markdown-text-widget.proxy';
 
@@ -11,7 +10,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownTextWidget content={MarkdownSourceStub({ value: 'Gate 4 complete.' })} />,
+        ui: <MarkdownTextWidget content={'Gate 4 complete.'} />,
       });
 
       expect(
@@ -23,7 +22,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownTextWidget content={MarkdownSourceStub({ value: '' })} />,
+        ui: <MarkdownTextWidget content={''} />,
       });
 
       expect(screen.getByTestId('MARKDOWN_TEXT').textContent).toBe('');
@@ -37,7 +36,7 @@ describe('MarkdownTextWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
-            content={MarkdownSourceStub({ value: 'both import `navigationHarness` now' })}
+            content={'both import `navigationHarness` now'}
           />
         ),
       });
@@ -51,7 +50,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownTextWidget content={MarkdownSourceStub({ value: 'this is **important**' })} />,
+        ui: <MarkdownTextWidget content={'this is **important**'} />,
       });
 
       expect(
@@ -65,7 +64,7 @@ describe('MarkdownTextWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
-            content={MarkdownSourceStub({ value: 'the `nav` const is **shared**' })}
+            content={'the `nav` const is **shared**'}
           />
         ),
       });
@@ -81,10 +80,7 @@ describe('MarkdownTextWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
-            content={MarkdownSourceStub({
-              value:
-                '## Gate 5\n\nAll claims verified.\n\n- first\n- second\n\n```sh\nnpm run ward\n```',
-            })}
+            content={'## Gate 5\n\nAll claims verified.\n\n- first\n- second\n\n```sh\nnpm run ward\n```'}
           />
         ),
       });
@@ -108,7 +104,7 @@ describe('MarkdownTextWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
-            content={MarkdownSourceStub({ value: '# Title\n\nProse.\n\n## Section' })}
+            content={'# Title\n\nProse.\n\n## Section'}
           />
         ),
       });
@@ -124,7 +120,7 @@ describe('MarkdownTextWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
-            content={MarkdownSourceStub({ value: '```\n# not a heading\n```' })}
+            content={'```\n# not a heading\n```'}
           />
         ),
       });
