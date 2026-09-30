@@ -10,8 +10,8 @@ The driver keeps this file current. `README.md` says how.
 | Next case | The user reviews the `Claude: … 09-28, Human: ???` results from SL-096 on. Then `02-hydration-and-recipes.md`, using the "What to check on every case" table in `01-siegelense.md` |
 | Held back, not skipped | SL-083 to SL-087 (`until` cases): the user ruled out timeout-based cases until DEF-117, DEF-118, DEF-120 and DEF-135 land. Re-run them then. SL-175 (needs a video aged 2 to 7 days) and SL-178 (needs a quest note citing an instance) need setups not made yet. SL-036 and SL-037 wait on DEF-59 |
 | How to run cases | `npm run siegelense -- <call>` from the repo root (sets `DUNGEONMASTER_HOME` to `<repo>/.dungeonmaster`). Web cases are checked against the real DOM in Chrome (README) |
-| Rebuild owed | No. `siegelense` and `cli` were built on 2026-09-28 after DEF-99 |
-| Dispatch | None this session: the user asked the driver only to walk and record. DEF-102 to DEF-159 are queued |
+| Rebuild owed | No. The whole repo was built on 2026-09-29 after merge `76cf9af8c`; every later merge changed tests only |
+| Dispatch | 2026-09-29: the orchestrator dispatched DEF-101 to DEF-167 in worktrees and merged each into `master`. Rows fixed that day read `fixed, not built` or `fixed` and wait for the user's review. The last full ward (run `1790726979118-47a0`) passed every check and exited 1 only on DEF-168's slow files |
 
 ## Feature progress
 
