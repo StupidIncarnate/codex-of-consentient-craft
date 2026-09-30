@@ -19,7 +19,6 @@
  * // Returns the opening ProfileObservation — one bucket, peak set, no steady beat yet
  */
 
-import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
 import { profileObservationContract } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
@@ -39,7 +38,7 @@ export const profileObservationMergeTransformer = ({
   instanceId: SiegeInstance['id'];
   specHash: SpecHash;
   poolSize: ProfilePoolSize;
-  rssMB: Megabytes;
+  rssMB: number;
   beatAtMs: number;
 }): ProfileObservation => {
   const firstBeatAtMs = observation === null ? beatAtMs : observation.firstBeatAtMs;

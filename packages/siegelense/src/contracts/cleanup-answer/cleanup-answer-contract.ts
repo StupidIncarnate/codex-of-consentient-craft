@@ -26,7 +26,6 @@ import { z } from '#gateway/npm/zod';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { leftAloneContract } from '../left-alone/left-alone-contract';
-import { megabytesContract } from '../megabytes/megabytes-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
 
 export const cleanupAnswerContract = z
@@ -37,7 +36,7 @@ export const cleanupAnswerContract = z
     assetsAged: z
       .object({
         instances: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedInstances'>(),
-        freedMB: megabytesContract,
+        freedMB: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedFreedMB'>(),
       })
       .strict(),
     leftAlone: z.array(leftAloneContract).readonly(),

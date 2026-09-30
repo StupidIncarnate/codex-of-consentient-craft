@@ -30,7 +30,6 @@ import { ensureDir, readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 
-import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import { profileObservationContract } from '../../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../../contracts/profile-observation/profile-observation-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
@@ -52,7 +51,7 @@ export const profileSampleRecordBroker = async ({
 }: {
   instanceId: SiegeInstance['id'];
   specName: string;
-  rssMB: Megabytes | null;
+  rssMB: number | null;
   beatAtMs: number;
 }): Promise<ProfileObservation | null> => {
   if (rssMB === null) {

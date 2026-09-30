@@ -27,7 +27,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
@@ -41,8 +40,8 @@ export const profileObservationContract = z.object({
     .array(
       z.object({
         poolSize: profilePoolSizeContract,
-        peakMB: megabytesContract,
-        steadySumMB: megabytesContract,
+        peakMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsPeakMB'>(),
+        steadySumMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsSteadySumMB'>(),
         steadyBeats: z.number().int().nonnegative().brand<'ProfileObservationPoolsSteadyBeats'>(),
       }),
     )

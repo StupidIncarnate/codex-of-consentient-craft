@@ -1,6 +1,5 @@
 import { CapacityMeasuredStub } from '../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-profile.stub';
-import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
 
 import { capacitySuggestTransformer } from './capacity-suggest-transformer';
 
@@ -16,7 +15,7 @@ describe('capacitySuggestTransformer', () => {
     it('VALID: {free 5320MB, peak 2600, steady 1800, 1 instance up} => suggested 2 against a ceiling of 3', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
-        freeMemMB: MegabytesStub({ value: 5320 }),
+        freeMemMB: 5320,
         siegeInstances: 1,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -38,7 +37,7 @@ describe('capacitySuggestTransformer', () => {
     it('VALID: {available exactly peak} => memoryAllows 1, the one instance at its own peak', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 3112 }),
+        freeMemMB: 3112,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -58,7 +57,7 @@ describe('capacitySuggestTransformer', () => {
     it('EDGE: {available one MB under peak} => memoryAllows 0, the machine plainly cannot hold another', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 3111 }),
+        freeMemMB: 3111,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -78,7 +77,7 @@ describe('capacitySuggestTransformer', () => {
     it('VALID: {available peak + 2 x steady} => memoryAllows 3, never the 2 that peak x N would give', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 6712 }),
+        freeMemMB: 6712,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -100,7 +99,7 @@ describe('capacitySuggestTransformer', () => {
     it('VALID: {plenty of memory, empty fleet} => suggested clamped to the ceiling of 3', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 64_000 }),
+        freeMemMB: 64_000,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -120,7 +119,7 @@ describe('capacitySuggestTransformer', () => {
     it('EDGE: {3 instances already up} => suggested 0 from the ceiling while memory still allows 34', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 64_000 }),
+        freeMemMB: 64_000,
         siegeInstances: 3,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -140,7 +139,7 @@ describe('capacitySuggestTransformer', () => {
     it('EDGE: {5 instances already up, past the ceiling} => ceilingLeft floors at 0, never negative', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 64_000 }),
+        freeMemMB: 64_000,
         siegeInstances: 5,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -162,7 +161,7 @@ describe('capacitySuggestTransformer', () => {
     it("VALID: {1 reservation} => its peak is debited, so suggested drops below the same machine's idle answer", () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 8000 }),
+        freeMemMB: 8000,
         siegeInstances: 1,
         reservedInstances: 1,
         cores: ROOMY_CORES,
@@ -182,7 +181,7 @@ describe('capacitySuggestTransformer', () => {
     it('EDGE: {2 reservations against thin memory} => availableMB floors at 0 rather than going negative', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 3000 }),
+        freeMemMB: 3000,
         siegeInstances: 2,
         reservedInstances: 2,
         cores: ROOMY_CORES,
@@ -204,7 +203,7 @@ describe('capacitySuggestTransformer', () => {
     it('EMPTY: {profile: null, empty fleet} => suggested 2, the pair that profiles itself', () => {
       const result = capacitySuggestTransformer({
         profile: null,
-        freeMemMB: MegabytesStub({ value: 5320 }),
+        freeMemMB: 5320,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -224,7 +223,7 @@ describe('capacitySuggestTransformer', () => {
     it('EMPTY: {profile: null, thin memory} => memoryAllows stays 2, so nothing refuses on an absence', () => {
       const result = capacitySuggestTransformer({
         profile: null,
-        freeMemMB: MegabytesStub({ value: 100 }),
+        freeMemMB: 100,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -244,7 +243,7 @@ describe('capacitySuggestTransformer', () => {
     it('EDGE: {profile: null, ceiling already full} => suggested 0, the one way the default refuses', () => {
       const result = capacitySuggestTransformer({
         profile: null,
-        freeMemMB: MegabytesStub({ value: 64_000 }),
+        freeMemMB: 64_000,
         siegeInstances: 3,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -266,7 +265,7 @@ describe('capacitySuggestTransformer', () => {
     it('EDGE: {steadyMB: 0, peakMB: 0} => divides by one megabyte rather than yielding Infinity', () => {
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 0, peakMB: 0 }),
-        freeMemMB: MegabytesStub({ value: 514 }),
+        freeMemMB: 514,
         siegeInstances: 0,
         reservedInstances: 0,
         cores: ROOMY_CORES,
@@ -290,7 +289,7 @@ describe('capacitySuggestTransformer', () => {
 
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 64_000 }),
+        freeMemMB: 64_000,
         siegeInstances: 0,
         reservedInstances: 0,
         cores,
@@ -312,7 +311,7 @@ describe('capacitySuggestTransformer', () => {
 
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 64_000 }),
+        freeMemMB: 64_000,
         siegeInstances: 0,
         reservedInstances: 0,
         cores,
@@ -334,7 +333,7 @@ describe('capacitySuggestTransformer', () => {
 
       const result = capacitySuggestTransformer({
         profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
-        freeMemMB: MegabytesStub({ value: 3112 }),
+        freeMemMB: 3112,
         siegeInstances: 0,
         reservedInstances: 0,
         cores,
@@ -356,7 +355,7 @@ describe('capacitySuggestTransformer', () => {
 
       const result = capacitySuggestTransformer({
         profile: null,
-        freeMemMB: MegabytesStub({ value: 5320 }),
+        freeMemMB: 5320,
         siegeInstances: 0,
         reservedInstances: 0,
         cores,

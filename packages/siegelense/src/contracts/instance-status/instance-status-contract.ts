@@ -32,7 +32,6 @@ import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
 import { instanceEvidenceListingContract } from '../instance-evidence-listing/instance-evidence-listing-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { lastStepReadingContract } from '../last-step-reading/last-step-reading-contract';
-import { megabytesContract } from '../megabytes/megabytes-contract';
 import { orphanReadingContract } from '../orphan-reading/orphan-reading-contract';
 
 export const instanceStatusContract = z.object({
@@ -42,8 +41,8 @@ export const instanceStatusContract = z.object({
   uptime: elapsedTextContract.nullable(),
   lastBeat: elapsedTextContract.nullable(),
   runs: z.number().int().nonnegative().brand<'InstanceStatusRuns'>(),
-  rssMB: megabytesContract.nullable(),
-  rssAtLastBeat: megabytesContract.nullable(),
+  rssMB: z.number().int().nonnegative().brand<'InstanceStatusRssMB'>().nullable(),
+  rssAtLastBeat: z.number().int().nonnegative().brand<'InstanceStatusRssAtLastBeat'>().nullable(),
   lastStep: lastStepReadingContract.nullable(),
   orphans: z.array(orphanReadingContract).readonly(),
   evidence: instanceEvidenceListingContract.nullable(),

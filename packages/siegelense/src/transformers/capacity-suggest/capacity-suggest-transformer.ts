@@ -35,7 +35,6 @@ import type { CapacityMeasured } from '../../contracts/capacity-measured/capacit
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import { capacitySuggestionContract } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
-import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
 
 // A group whose every run was killed inside the settle window falls back to that group's peak, and
@@ -53,7 +52,7 @@ export const capacitySuggestTransformer = ({
   loadAvg1,
 }: {
   profile: CapacityProfile | null;
-  freeMemMB: Megabytes;
+  freeMemMB: number;
   siegeInstances: number;
   reservedInstances: number;
   cores: number;

@@ -1,5 +1,4 @@
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
-import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
 import { ProfileObservationStub } from '../../contracts/profile-observation/profile-observation.stub';
 import { ProfilePoolSizeStub } from '../../contracts/profile-pool-size/profile-pool-size.stub';
 import { SpecHashStub } from '../../contracts/spec-hash/spec-hash.stub';
@@ -19,7 +18,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
-        rssMB: MegabytesStub({ value: 2600 }),
+        rssMB: 2600,
         beatAtMs: FIRST_BEAT_MS,
       });
 
@@ -48,7 +47,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
-        rssMB: MegabytesStub({ value: 2900 }),
+        rssMB: 2900,
         beatAtMs: (FIRST_BEAT_MS + 1000),
       });
 
@@ -75,7 +74,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
-        rssMB: MegabytesStub({ value: 1800 }),
+        rssMB: 1800,
         beatAtMs: (FIRST_BEAT_MS + 1000),
       });
 
@@ -100,7 +99,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
-        rssMB: MegabytesStub({ value: 1800 }),
+        rssMB: 1800,
         beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
       });
 
@@ -123,7 +122,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
-        rssMB: MegabytesStub({ value: 1900 }),
+        rssMB: 1900,
         beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000),
       });
 
@@ -148,7 +147,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 3 }),
-        rssMB: MegabytesStub({ value: 1920 }),
+        rssMB: 1920,
         beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000),
       });
 
@@ -175,7 +174,7 @@ describe('profileObservationMergeTransformer', () => {
         instanceId: INSTANCE_ID,
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
-        rssMB: MegabytesStub({ value: 1850 }),
+        rssMB: 1850,
         beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 9000),
       });
 

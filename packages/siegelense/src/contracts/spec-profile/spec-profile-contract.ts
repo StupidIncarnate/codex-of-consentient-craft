@@ -30,7 +30,6 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
 
@@ -45,8 +44,8 @@ export const specProfileContract = z.object({
     .array(
       z.object({
         poolSize: profilePoolSizeContract,
-        steadyMB: megabytesContract,
-        peakMB: megabytesContract,
+        steadyMB: z.number().int().nonnegative().brand<'SpecProfileSamplesSteadyMB'>(),
+        peakMB: z.number().int().nonnegative().brand<'SpecProfileSamplesPeakMB'>(),
         runs: z.number().int().nonnegative().brand<'SpecProfileSamplesRuns'>(),
       }),
     )

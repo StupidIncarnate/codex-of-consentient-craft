@@ -80,7 +80,6 @@ export * from './load-average/load-average-contract';
 
 export * from './machine-reading/machine-reading-contract';
 
-export * from './megabytes/megabytes-contract';
 
 export * from './monitored-metric/monitored-metric-contract';
 

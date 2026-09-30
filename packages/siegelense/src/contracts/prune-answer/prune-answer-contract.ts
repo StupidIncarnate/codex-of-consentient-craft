@@ -23,13 +23,12 @@ import { z } from '#gateway/npm/zod';
 
 import { citationGapContract } from '../citation-gap/citation-gap-contract';
 import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';
-import { megabytesContract } from '../megabytes/megabytes-contract';
 import { pruneRefusalContract } from '../prune-refusal/prune-refusal-contract';
 import { pruneRemovalContract } from '../prune-removal/prune-removal-contract';
 
 export const pruneAnswerContract = z
   .object({
-    freedMB: megabytesContract,
+    freedMB: z.number().int().nonnegative().brand<'PruneAnswerFreedMB'>(),
     freedBytes: fileSizeBytesContract,
     removed: z.array(pruneRemovalContract).readonly(),
     refused: z.array(pruneRefusalContract).readonly(),

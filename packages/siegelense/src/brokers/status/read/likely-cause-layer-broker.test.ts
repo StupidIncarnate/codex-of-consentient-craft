@@ -1,6 +1,5 @@
 
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
-import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
@@ -13,7 +12,7 @@ describe('likelyCauseLayerBroker', () => {
       const result = likelyCauseLayerBroker({
         state: 'dead',
         specName: 'dungeonmaster-stack',
-        rssAtLastBeat: MegabytesStub({ value: 2980 }),
+        rssAtLastBeat: 2980,
         oomKillsSinceBoot: 2,
         shutdownReason: null,
         soloProfile: null,
@@ -49,7 +48,7 @@ describe('likelyCauseLayerBroker', () => {
       const result = likelyCauseLayerBroker({
         state: 'killed',
         specName: 'dungeonmaster-stack',
-        rssAtLastBeat: MegabytesStub({ value: 1200 }),
+        rssAtLastBeat: 1200,
         oomKillsSinceBoot: 0,
         shutdownReason: null,
         soloProfile: null,
@@ -68,7 +67,7 @@ describe('likelyCauseLayerBroker', () => {
       const result = likelyCauseLayerBroker({
         state: 'dead',
         specName: 'stack',
-        rssAtLastBeat: MegabytesStub({ value: 609 }),
+        rssAtLastBeat: 609,
         oomKillsSinceBoot: 0,
         shutdownReason: null,
         soloProfile: CapacityProfileStub({
@@ -91,7 +90,7 @@ describe('likelyCauseLayerBroker', () => {
       const result = likelyCauseLayerBroker({
         state: 'dead',
         specName: 'stack',
-        rssAtLastBeat: MegabytesStub({ value: 2900 }),
+        rssAtLastBeat: 2900,
         oomKillsSinceBoot: 1,
         shutdownReason: null,
         soloProfile: CapacityProfileStub({
@@ -116,7 +115,7 @@ describe('likelyCauseLayerBroker', () => {
       const result = likelyCauseLayerBroker({
         state: 'dead',
         specName: 'dungeonmaster-stack',
-        rssAtLastBeat: MegabytesStub({ value: 622 }),
+        rssAtLastBeat: 622,
         oomKillsSinceBoot: 1,
         shutdownReason: 'reaped by idle timeout after 900s with no run received',
         soloProfile: null,
@@ -146,7 +145,7 @@ describe('likelyCauseLayerBroker', () => {
       const result = likelyCauseLayerBroker({
         state: 'dead',
         specName: 'stack',
-        rssAtLastBeat: MegabytesStub({ value: 609 }),
+        rssAtLastBeat: 609,
         oomKillsSinceBoot: 0,
         shutdownReason: 'reaped by cleanup after its heartbeat went stale',
         soloProfile: CapacityProfileStub({

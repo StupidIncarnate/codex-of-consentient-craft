@@ -1,6 +1,5 @@
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { profileStatics } from '../../../statics/profile/profile-statics';
@@ -55,7 +54,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
-        rssMB: MegabytesStub({ value: 2600 }),
+        rssMB: 2600,
         beatAtMs: FIRST_BEAT_MS,
       });
 
@@ -100,7 +99,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
-        rssMB: MegabytesStub({ value: 2810 }),
+        rssMB: 2810,
         beatAtMs: FIRST_BEAT_MS,
       });
 
@@ -138,7 +137,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
-        rssMB: MegabytesStub({ value: 2600 }),
+        rssMB: 2600,
         beatAtMs: FIRST_BEAT_MS,
       });
 
@@ -178,7 +177,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
-        rssMB: MegabytesStub({ value: 1800 }),
+        rssMB: 1800,
         beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
       });
 
@@ -213,7 +212,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
-        rssMB: MegabytesStub({ value: 1800 }),
+        rssMB: 1800,
         beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
       });
 

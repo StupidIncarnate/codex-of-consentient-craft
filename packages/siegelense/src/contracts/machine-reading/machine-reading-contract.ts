@@ -19,12 +19,11 @@ import { z } from '#gateway/npm/zod';
 
 
 import { loadAverageContract } from '../load-average/load-average-contract';
-import { megabytesContract } from '../megabytes/megabytes-contract';
 
 export const machineReadingContract = z.object({
-  freeMemMB: megabytesContract,
-  totalMemMB: megabytesContract,
-  freeDiskMB: megabytesContract.nullable(),
+  freeMemMB: z.number().int().nonnegative().brand<'MachineReadingFreeMemMB'>(),
+  totalMemMB: z.number().int().nonnegative().brand<'MachineReadingTotalMemMB'>(),
+  freeDiskMB: z.number().int().nonnegative().brand<'MachineReadingFreeDiskMB'>().nullable(),
   cores: z.number().int().nonnegative().brand<'MachineReadingCores'>(),
   loadAvg: loadAverageContract,
   oomKillsSinceBoot: z.number().int().nonnegative().brand<'MachineReadingOomKillsSinceBoot'>().nullable(),

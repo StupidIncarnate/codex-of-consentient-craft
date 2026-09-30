@@ -43,7 +43,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { writeFile } from '#gateway/node/fs__promises';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
-import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
@@ -63,7 +62,7 @@ export const heartbeatWriteBroker = async ({
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
   const heartbeatPath = join(evidenceDir, locationsStatics.siegelense.heartbeat);
 
-  let rssMB: Megabytes | null = null;
+  let rssMB: number | null = null;
   try {
     rssMB = await machineRssByPgidBroker({ pgids });
   } catch (error: unknown) {

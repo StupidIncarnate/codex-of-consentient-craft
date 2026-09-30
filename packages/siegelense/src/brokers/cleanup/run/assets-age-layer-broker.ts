@@ -16,8 +16,6 @@
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
-import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
-import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import { pruneQueryContract } from '../../../contracts/prune-query/prune-query-contract';
 import type { PruneRefusal } from '../../../contracts/prune-refusal/prune-refusal-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -45,7 +43,7 @@ export const assetsAgeLayerBroker = async ({
   nowMs: number;
 }): Promise<{
   instances: number;
-  freedMB: Megabytes;
+  freedMB: number;
   refusals: readonly PruneRefusal[];
   gaps: readonly CitationGap[];
 }> => {
@@ -98,7 +96,7 @@ export const assetsAgeLayerBroker = async ({
 
   return {
     instances: touched,
-    freedMB: megabytesContract.parse(Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte)),
+    freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
     refusals,
     gaps: [...gapsByKind.values()],
   };

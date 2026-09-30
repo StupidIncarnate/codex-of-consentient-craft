@@ -22,7 +22,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { megabytesContract } from '../megabytes/megabytes-contract';
 
 export const capacitySuggestionContract = z
   .object({
@@ -31,7 +30,7 @@ export const capacitySuggestionContract = z
     memoryAllows: z.number().int().nonnegative().brand<'CapacitySuggestionMemoryAllows'>(),
     cpuAllows: z.number().int().nonnegative().brand<'CapacitySuggestionCpuAllows'>(),
     ceilingLeft: z.number().int().nonnegative().brand<'CapacitySuggestionCeilingLeft'>(),
-    availableMB: megabytesContract,
+    availableMB: z.number().int().nonnegative().brand<'CapacitySuggestionAvailableMB'>(),
   })
   .strict();
 

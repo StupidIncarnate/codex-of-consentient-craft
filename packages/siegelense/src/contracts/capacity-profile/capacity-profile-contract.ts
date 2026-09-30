@@ -17,15 +17,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 
 export const capacityProfileContract = z
   .object({
     spec: z.string().min(1).brand<'CapacityProfileSpec'>(),
     poolSize: profilePoolSizeContract,
-    steadyMB: megabytesContract,
-    peakMB: megabytesContract,
+    steadyMB: z.number().int().nonnegative().brand<'CapacityProfileSteadyMB'>(),
+    peakMB: z.number().int().nonnegative().brand<'CapacityProfilePeakMB'>(),
     fromRuns: z.number().int().nonnegative().brand<'CapacityProfileFromRuns'>(),
   })
   .strict();

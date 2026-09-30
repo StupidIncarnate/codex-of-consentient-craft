@@ -25,14 +25,13 @@ import { z } from '#gateway/npm/zod';
 
 import { processIdContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { megabytesContract } from '../megabytes/megabytes-contract';
 
 export const instanceHeartbeatContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
   pid: processIdContract,
   pgids: z.array(z.number().int().positive().brand<'InstanceHeartbeatPgids'>()).readonly(),
   beatAtMs: z.number().int().nonnegative().brand<'InstanceHeartbeatBeatAtMs'>(),
-  rssMB: megabytesContract.nullable(),
+  rssMB: z.number().int().nonnegative().brand<'InstanceHeartbeatRssMB'>().nullable(),
 });
 
 export type InstanceHeartbeat = z.infer<typeof instanceHeartbeatContract>;

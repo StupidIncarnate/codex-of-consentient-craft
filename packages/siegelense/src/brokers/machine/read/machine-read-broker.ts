@@ -22,14 +22,13 @@ import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { loadAverageContract } from '../../../contracts/load-average/load-average-contract';
 import { machineReadingContract } from '../../../contracts/machine-reading/machine-reading-contract';
 import type { MachineReading } from '../../../contracts/machine-reading/machine-reading-contract';
-import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 import { machineOomCountBroker } from '../oom-count/machine-oom-count-broker';
 
 export const machineReadBroker = async (): Promise<MachineReading> => {
   const { bytesPerMegabyte } = machineStatics.units;
-  const freeMemMB = megabytesContract.parse(Math.floor(freemem() / bytesPerMegabyte));
-  const totalMemMB = megabytesContract.parse(Math.floor(totalmem() / bytesPerMegabyte));
+  const freeMemMB = Math.floor(freemem() / bytesPerMegabyte);
+  const totalMemMB = Math.floor(totalmem() / bytesPerMegabyte);
   const cores = cpus().length;
   const loadAvg = loadAverageContract.parse(loadavg());
 
@@ -44,7 +43,7 @@ export const machineReadBroker = async (): Promise<MachineReading> => {
   const freeDiskMB =
     freeDiskBytes === null
       ? null
-      : megabytesContract.parse(Math.floor(freeDiskBytes / bytesPerMegabyte));
+      : Math.floor(freeDiskBytes / bytesPerMegabyte);
 
   return machineReadingContract.parse({
     freeMemMB,

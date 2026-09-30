@@ -12,7 +12,6 @@ import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeon
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
@@ -80,14 +79,14 @@ describe('the profile sample-write path, against a real tree', () => {
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
-      rssMB: MegabytesStub({ value: 2600 }),
+      rssMB: 2600,
       beatAtMs: FIRST_BEAT_MS,
     });
     // Beat 2 — past the settle window: the first steady reading.
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
-      rssMB: MegabytesStub({ value: 1800 }),
+      rssMB: 1800,
       beatAtMs: (FIRST_BEAT_MS + SETTLE_MS),
     });
     // Beat 3 — a failed measurement: recorded nowhere, so it cannot drag steady down.
@@ -101,7 +100,7 @@ describe('the profile sample-write path, against a real tree', () => {
     soloRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
-      rssMB: MegabytesStub({ value: 1900 }),
+      rssMB: 1900,
       beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 10_000),
     });
 
@@ -128,13 +127,13 @@ describe('the profile sample-write path, against a real tree', () => {
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
-      rssMB: MegabytesStub({ value: 2810 }),
+      rssMB: 2810,
       beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 20_000),
     });
     contendedRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
-      rssMB: MegabytesStub({ value: 2000 }),
+      rssMB: 2000,
       beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 30_000),
     });
 

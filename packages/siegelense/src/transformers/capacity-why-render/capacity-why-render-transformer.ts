@@ -39,7 +39,6 @@
 import type { CapacityMeasured } from '../../contracts/capacity-measured/capacity-measured-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
-import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
 import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
 
@@ -59,7 +58,7 @@ export const capacityWhyRenderTransformer = ({
   specName: string;
   profile: CapacityProfile | null;
   suggestion: CapacitySuggestion;
-  freeMemMB: Megabytes;
+  freeMemMB: number;
   siegeInstances: number;
   reservedInstances: number;
   requestedPoolSize: ProfilePoolSize | null;
