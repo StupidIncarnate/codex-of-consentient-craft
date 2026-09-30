@@ -4,7 +4,6 @@
 
 import { packageDiscoverBroker } from './package-discover-broker';
 import { packageDiscoverBrokerProxy } from './package-discover-broker.proxy';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 describe('packageDiscoverBroker', () => {
   describe('discovering packages', () => {
@@ -38,12 +37,12 @@ describe('packageDiscoverBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          packageName: '@dungeonmaster/cli',
           installPath: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
+          packageName: '@dungeonmaster/hooks',
           installPath: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
@@ -126,12 +125,12 @@ describe('packageDiscoverBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          packageName: '@dungeonmaster/cli',
           installPath: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/npm' }),
+          packageName: '@dungeonmaster/npm',
           installPath: '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
@@ -179,12 +178,12 @@ describe('packageDiscoverBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          packageName: '@dungeonmaster/cli',
           installPath: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+          packageName: '@dungeonmaster/orchestrator',
           installPath: '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
@@ -213,7 +212,7 @@ describe('packageDiscoverBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/siegelense' }),
+          packageName: '@dungeonmaster/siegelense',
           installPath: '/dm/packages/siegelense/dist/startup/start-install.js',
           finalizeInstallPath: '/dm/packages/siegelense/dist/startup/start-install-finalize.js',
         },
@@ -240,7 +239,7 @@ describe('packageDiscoverBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/siegelense' }),
+          packageName: '@dungeonmaster/siegelense',
           installPath: '/dm/packages/siegelense/dist/src/startup/start-install.js',
           finalizeInstallPath: '/dm/packages/siegelense/dist/src/startup/start-install-finalize.js',
         },
@@ -268,7 +267,7 @@ describe('packageDiscoverBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          packageName: '@dungeonmaster/cli',
           installPath: '/path/with spaces/packages/cli/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },

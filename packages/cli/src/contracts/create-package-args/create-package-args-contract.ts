@@ -10,10 +10,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { packageNameContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
+import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 
 export const createPackageArgsContract = z.object({
-  name: packageNameContract.optional(),
+  name: z.string().min(1).brand<'CreatePackageArgsName'>().optional(),
   packageType: packageTypeContract.optional(),
   description: z.string().brand<'CreatePackageArgsDescription'>().optional(),
   packagesDir: z.string().brand<'CreatePackageArgsPackagesDir'>().optional(),

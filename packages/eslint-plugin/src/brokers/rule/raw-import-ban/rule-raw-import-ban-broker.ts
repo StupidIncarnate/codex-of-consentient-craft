@@ -22,7 +22,6 @@
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayPathFromImportSourceTransformer } from '@dungeonmaster/shared/transformers';
 import { importPathContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { builtinModules } from '#gateway/node/module';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -36,7 +35,7 @@ import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-reso
 // ever exercises it. Held in an object, never a bare `let … = undefined`, so ESLint's own
 // `no-undef-init` autofix (which strips an explicit `= undefined`) and `init-declarations`
 // (which demands one) stop fighting each other over this declaration.
-const defaultScopeCache: { value?: PackageName } = {};
+const defaultScopeCache: { value?: string } = {};
 
 export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
   'rawImport' | 'scopedGatewayImport'
@@ -70,7 +69,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
   defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
-      options?: { scope?: PackageName }[];
+      options?: { scope?: string }[];
     };
     const { filename } = ctx;
 
@@ -84,7 +83,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
 
     const optionScope = ctx.options[0]?.scope;
 
-    const scope = ((): PackageName => {
+    const scope = ((): string => {
       if (optionScope !== undefined) {
         return optionScope;
       }

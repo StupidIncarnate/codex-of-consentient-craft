@@ -20,14 +20,14 @@
  */
 
 import { installExecuteBroker } from '../execute/install-execute-broker';
-import type { InstallContext, InstallResult, PackageName } from '@dungeonmaster/shared/contracts';
+import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 
 export const installFinalizeOrchestrateBroker = async ({
   packages,
   context,
 }: {
   packages: {
-    packageName: PackageName;
+    packageName: string;
     installPath: string;
     finalizeInstallPath: string | null;
   }[];

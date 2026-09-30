@@ -12,7 +12,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { packageNameContract } from '../package-name/package-name-contract';
 import { installActionContract } from '../install-action/install-action-contract';
 import { installMessageContract } from '../install-message/install-message-contract';
 
@@ -21,7 +20,7 @@ import { installMessageContract } from '../install-message/install-message-contr
  * Contains package name, success status, action taken, and optional message/error details
  */
 export const installResultContract = z.object({
-  packageName: packageNameContract,
+  packageName: z.string().min(1).brand<'InstallResultPackageName'>(),
   success: z.boolean(),
   action: installActionContract,
   message: installMessageContract.optional(),

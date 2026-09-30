@@ -11,7 +11,6 @@
 import { ownerIndexMatchContract } from '../../contracts/owner-index-match/owner-index-match-contract';
 import type { OwnerIndexMatch } from '../../contracts/owner-index-match/owner-index-match-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { camelWordsSplitTransformer } from '../camel-words-split/camel-words-split-transformer';
 import { ownerIndexOwnersReachableTransformer } from '../owner-index-owners-reachable/owner-index-owners-reachable-transformer';
 
@@ -21,7 +20,7 @@ export const ownerIndexNameMatchTransformer = ({
   name,
 }: {
   ownerIndex: OwnerIndex;
-  packageName: PackageName;
+  packageName: string;
   name: string;
 }): OwnerIndexMatch | undefined => {
   const nameWords = camelWordsSplitTransformer({ text: name });

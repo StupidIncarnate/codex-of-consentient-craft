@@ -8,7 +8,7 @@
  * ownerIndexFilePackageTransformer({ ownerIndex, filePath: '/repo/packages/a/src/x/x-broker.ts' });
  * // Returns '@repo/a', or undefined when no indexed package holds the file
  */
-import type { OwnerIndex, PackageName } from '@dungeonmaster/shared/contracts';
+import type { OwnerIndex } from '@dungeonmaster/shared/contracts';
 
 export const ownerIndexFilePackageTransformer = ({
   ownerIndex,
@@ -16,7 +16,7 @@ export const ownerIndexFilePackageTransformer = ({
 }: {
   ownerIndex: OwnerIndex;
   filePath: string;
-}): PackageName | undefined =>
+}): string | undefined =>
   ownerIndex.packages
     .filter(({ dir }) => filePath.startsWith(`${dir}/`))
     .sort((left, right) => right.dir.length - left.dir.length)[0]?.name;

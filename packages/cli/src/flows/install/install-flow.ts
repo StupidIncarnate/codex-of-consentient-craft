@@ -6,12 +6,7 @@
  * // Adds devDependencies to package.json and writes a playwright.config.ts
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { InstallAddDevDepsResponder } from '../../responders/install/add-dev-deps/install-add-dev-deps-responder';
 import { InstallCreatePlaywrightResponder } from '../../responders/install/create-playwright/install-create-playwright-responder';
 import { InstallCreateTsconfigResponder } from '../../responders/install/create-tsconfig/install-create-tsconfig-responder';
@@ -47,12 +42,12 @@ export const InstallFlow = async ({
     jestResult.action === 'created' ||
     gatewayResult.action === 'created';
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success,
     action: created ? 'created' : 'skipped',
     message: installMessageContract.parse(
       `${String(devDepsResult.message)}; ${String(playwrightResult.message)}; ${String(tsconfigResult.message)}; ${String(jestResult.message)}; ${String(gatewayResult.message)}`,
     ),
-  };
+  });
 };

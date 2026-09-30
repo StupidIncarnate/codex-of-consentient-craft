@@ -10,7 +10,6 @@
  */
 import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { ownerIndexOwnersReachableTransformer } from '../owner-index-owners-reachable/owner-index-owners-reachable-transformer';
 import { objectSignatureLayerTransformer } from './object-signature-layer-transformer';
 
@@ -21,7 +20,7 @@ export const ownerIndexObjectCopyMatchTransformer = ({
   contractName,
 }: {
   ownerIndex: OwnerIndex;
-  packageName: PackageName;
+  packageName: string;
   objectText: string;
   contractName: string;
 }): OwnerIndexOwner | undefined => {

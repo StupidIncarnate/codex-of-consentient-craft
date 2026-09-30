@@ -18,7 +18,7 @@
  * // file), or 'skipped' (already has both, fails validation, or could not be safely read)
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
@@ -52,7 +52,7 @@ export const InstallCreateConfigResponder = async ({
       const { error } = readResult;
       const isCorruptJson = error instanceof SyntaxError;
       return installResultContract.parse({
-        packageName: packageNameContract.parse(PACKAGE_NAME),
+        packageName: PACKAGE_NAME,
         success: true,
         action: 'skipped',
         message: installMessageContract.parse(
@@ -72,26 +72,26 @@ export const InstallCreateConfigResponder = async ({
       const parsedExisting = readResult.value;
       const validatedExisting = dungeonmasterConfigContract.safeParse(parsedExisting);
       if (!validatedExisting.success) {
-        return {
-          packageName: packageNameContract.parse(PACKAGE_NAME),
+        return installResultContract.parse({
+          packageName: PACKAGE_NAME,
           success: true,
           action: 'skipped',
           message: installMessageContract.parse(
             '.dungeonmaster.json exists but failed config validation — left untouched',
           ),
-        };
+        });
       }
 
       const hasDevServerE2e = Boolean(validatedExisting.data.devServer?.e2e);
       const hasGateway = Boolean(validatedExisting.data.gateway);
 
       if (hasDevServerE2e && hasGateway) {
-        return {
-          packageName: packageNameContract.parse(PACKAGE_NAME),
+        return installResultContract.parse({
+          packageName: PACKAGE_NAME,
           success: true,
           action: 'skipped',
           message: installMessageContract.parse('.dungeonmaster.json already exists'),
-        };
+        });
       }
 
       const rawConfig = parsedExisting as Record<PropertyKey, unknown>;
@@ -110,8 +110,8 @@ export const InstallCreateConfigResponder = async ({
 
       const mergedContents = jsonFileContentsTransformer({ value: mergedConfig });
       await writeFile(configPath, mergedContents);
-      return {
-        packageName: packageNameContract.parse(PACKAGE_NAME),
+      return installResultContract.parse({
+        packageName: PACKAGE_NAME,
         success: true,
         action: 'merged',
         message: installMessageContract.parse(
@@ -121,7 +121,7 @@ export const InstallCreateConfigResponder = async ({
               ? 'Added the gateway key to existing .dungeonmaster.json'
               : 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
         ),
-      };
+      });
     }
   }
 
@@ -146,10 +146,10 @@ export const InstallCreateConfigResponder = async ({
 
   const contents = jsonFileContentsTransformer({ value: validated });
   await writeFile(configPath, contents);
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse('Created .dungeonmaster.json'),
-  };
+  });
 };

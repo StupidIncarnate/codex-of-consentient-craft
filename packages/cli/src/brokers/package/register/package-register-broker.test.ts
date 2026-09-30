@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { packageRegisterBrokerProxy } from './package-register-broker.proxy';
 import { PackageJsonRawStub } from '../../../contracts/package-json-raw/package-json-raw.stub';
 
@@ -7,7 +6,7 @@ describe('packageRegisterBroker', () => {
     it('VALID: {dependencies without packageName} => writes the sorted merge and returns true', async () => {
       const proxy = packageRegisterBrokerProxy();
       const projectRoot = '/project';
-      const packageName = PackageNameStub({ value: '@dungeonmaster/new-pkg' });
+      const packageName = '@dungeonmaster/new-pkg';
 
       const rootPackageJson = PackageJsonRawStub({
         dependencies: { '@dungeonmaster/existing': '*' },
@@ -39,7 +38,7 @@ describe('packageRegisterBroker', () => {
     it('EDGE: {dependencies already listing packageName} => returns false and writes nothing', async () => {
       const proxy = packageRegisterBrokerProxy();
       const projectRoot = '/project';
-      const packageName = PackageNameStub({ value: '@dungeonmaster/existing' });
+      const packageName = '@dungeonmaster/existing';
 
       const rootPackageJson = PackageJsonRawStub({
         dependencies: { '@dungeonmaster/existing': '*' },
@@ -58,7 +57,7 @@ describe('packageRegisterBroker', () => {
     it('ERROR: {projectRoot with no package.json} => throws naming the path', async () => {
       const proxy = packageRegisterBrokerProxy();
       const projectRoot = '/project';
-      const packageName = PackageNameStub({ value: '@dungeonmaster/new-pkg' });
+      const packageName = '@dungeonmaster/new-pkg';
 
       proxy.setupRootPackageJsonMissing({ projectRoot });
 

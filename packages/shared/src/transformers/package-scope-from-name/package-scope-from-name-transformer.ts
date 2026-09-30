@@ -12,23 +12,21 @@
  * packageScopeFromNameTransformer({ rootPackageName: '@foo/bar' });
  * // Returns '@foo' as branded PackageName
  */
-import { packageNameContract } from '../../contracts/package-name/package-name-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 
 export const packageScopeFromNameTransformer = ({
   rootPackageName,
 }: {
   rootPackageName: string;
-}): PackageName => {
+}): string => {
   if (!rootPackageName.startsWith('@')) {
-    return packageNameContract.parse(`@${rootPackageName}`);
+    return `@${rootPackageName}`;
   }
 
   const slashIndex = rootPackageName.indexOf('/');
 
   if (slashIndex === -1) {
-    return packageNameContract.parse(rootPackageName);
+    return rootPackageName;
   }
 
-  return packageNameContract.parse(rootPackageName.slice(0, slashIndex));
+  return rootPackageName.slice(0, slashIndex);
 };

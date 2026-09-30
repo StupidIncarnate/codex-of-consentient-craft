@@ -22,7 +22,7 @@
  */
 
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
-import type { OperationItem, PackageName, Quest, Flow } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, Quest, Flow } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import type { questFlowStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -145,7 +145,7 @@ export const relayTailFanOutTransformer = ({
     // still implementation work, and filtering here would delete an init/migration flow's whole
     // scope from the ledger with nothing failing to say so.
     const flowsByPackage = new Map<unknown, Flow['id'][]>();
-    const packageNamesByKey = new Map<unknown, PackageName>();
+    const packageNamesByKey = new Map<unknown, string>();
     for (const flow of quest.flows) {
       for (const node of flow.nodes) {
         // Membership is "this package TAGS this node", never "owns it". A glue node therefore
@@ -244,7 +244,7 @@ export const relayTailFanOutTransformer = ({
     // because `operation.text` is what the execution panel renders verbatim as the row name — a
     // text naming only the package would render two identical rows for a package's two cells.
     if (ordered.length > 0) {
-      return ordered.flatMap((slice) =>
+      operationItemContract.shape.packageNames.parse(return) ordered.flatMap((slice) =>
         slice.flowIds.length === 0
           ? [
               {

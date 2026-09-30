@@ -40,7 +40,7 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readlink, symlink, unlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
-import { installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -109,38 +109,38 @@ export const InstallLinkCreateResponder = async ({
   if (!linkExists) {
     await symlink({ target: targetDir, path: linkPath, type: 'dir' });
 
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'created',
       message: installMessageContract.parse(
         `Created ${LINK_RELATIVE_PATH} -> ${targetDir}${legacySuffix}`,
       ),
-    };
+    });
   }
 
   const currentTarget = await readlink(linkPath);
 
   if (currentTarget === targetDir) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse(
         `${LINK_RELATIVE_PATH} already points at ${targetDir}${legacySuffix}`,
       ),
-    };
+    });
   }
 
   await unlink(linkPath);
   await symlink({ target: targetDir, path: linkPath, type: 'dir' });
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse(
       `Replaced ${LINK_RELATIVE_PATH} to point at ${targetDir}${legacySuffix}`,
     ),
-  };
+  });
 };

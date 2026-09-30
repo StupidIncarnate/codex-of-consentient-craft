@@ -10,7 +10,6 @@
  * // Returns rootPackageJson unchanged if packageName is already a dependency
  */
 
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { dependencyMapContract } from '../../contracts/dependency-map/dependency-map-contract';
 import {
   packageJsonRawContract,
@@ -23,7 +22,7 @@ export const rootPackageJsonRegisterTransformer = ({
   packageName,
 }: {
   rootPackageJson: PackageJsonRaw;
-  packageName: PackageName;
+  packageName: string;
 }): PackageJsonRaw => {
   const dependenciesKey = packageJsonRawContract.keyType.parse('dependencies');
   const parsedExisting = dependencyMapContract.safeParse(rootPackageJson[dependenciesKey]);

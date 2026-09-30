@@ -1,6 +1,5 @@
 import { architectureProjectMapBroker } from './architecture-project-map-broker';
 import { architectureProjectMapBrokerProxy } from './architecture-project-map-broker.proxy';
-import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
 describe('architectureProjectMapBroker', () => {
@@ -12,7 +11,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'shared' })],
+        packages: ['shared'],
       });
 
       expect(String(result).startsWith(projectMapStatics.symbolLegend)).toBe(true);
@@ -27,7 +26,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'shared' })],
+        packages: ['shared'],
       });
 
       expect(
@@ -44,7 +43,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'shared' })],
+        packages: ['shared'],
       });
 
       const lines = String(result).split('\n');
@@ -64,7 +63,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'shared' })],
+        packages: ['shared'],
       });
 
       expect(
@@ -83,7 +82,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'shared' })],
+        packages: ['shared'],
       });
 
       const lines = String(result).split('\n');
@@ -100,7 +99,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'root' })],
+        packages: ['root'],
       });
 
       expect(
@@ -119,7 +118,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'ink-cli' })],
+        packages: ['ink-cli'],
       });
 
       expect(
@@ -138,7 +137,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'mcp' })],
+        packages: ['mcp'],
       });
 
       expect(
@@ -157,7 +156,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'npm' })],
+        packages: ['npm'],
       });
 
       expect(
@@ -175,7 +174,7 @@ describe('architectureProjectMapBroker', () => {
       await expect(
         architectureProjectMapBroker({
           projectRoot,
-          packages: [PackageNameStub({ value: '@gateway' })],
+          packages: ['@gateway'],
         }),
       ).rejects.toThrow(/Unknown package\(s\): @gateway\. Valid: npm/u);
     });
@@ -189,7 +188,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: '#gateway' })],
+        packages: ['#gateway'],
       });
 
       expect(
@@ -219,7 +218,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: '#gateway' })],
+        packages: ['#gateway'],
       });
 
       const lines = String(result).split('\n');
@@ -235,7 +234,7 @@ describe('architectureProjectMapBroker', () => {
 
       const result = await architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: '#gateway' }), PackageNameStub({ value: 'root' })],
+        packages: ['#gateway', 'root'],
       });
 
       const lines = String(result).split('\n');
@@ -263,7 +262,7 @@ describe('architectureProjectMapBroker', () => {
       await expect(
         architectureProjectMapBroker({
           projectRoot,
-          packages: [PackageNameStub({ value: 'nonexistent' })],
+          packages: ['nonexistent'],
         }),
       ).rejects.toThrow(/Unknown package\(s\): nonexistent\. Valid: mcp/u);
     });

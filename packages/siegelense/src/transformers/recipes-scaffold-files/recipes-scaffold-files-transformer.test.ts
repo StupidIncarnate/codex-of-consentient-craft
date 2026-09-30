@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { recipesScaffoldFilesTransformer } from './recipes-scaffold-files-transformer';
@@ -20,7 +19,7 @@ const findContents = ({
 describe('recipesScaffoldFilesTransformer', () => {
   describe('the file list', () => {
     it('VALID: {packageName: "@acme/hydration-recipes"} => returns every path enforce-hydration-recipes-structure and the recipes convention both require', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const result = recipesScaffoldFilesTransformer({ packageName });
 
@@ -50,7 +49,7 @@ describe('recipesScaffoldFilesTransformer', () => {
 
   describe('package.json', () => {
     it('VALID: {packageName: "@acme/hydration-recipes"} => a buildable package.json naming that scope', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -92,7 +91,7 @@ describe('recipesScaffoldFilesTransformer', () => {
     });
 
     it('VALID: {packageName: "hydration-recipes", no scope} => an unscoped package.json with no imports field at all', () => {
-      const packageName = PackageNameStub({ value: 'hydration-recipes' });
+      const packageName = 'hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -134,7 +133,7 @@ describe('recipesScaffoldFilesTransformer', () => {
     });
 
     it('VALID: {packageName: "@acme/hydration-recipes", scope: "@acme"} => the package.json carries the four #gateway/* imports entries, scoped to match', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
       const scope = '@acme';
 
       const files = recipesScaffoldFilesTransformer({ packageName, scope });
@@ -185,7 +184,7 @@ describe('recipesScaffoldFilesTransformer', () => {
 
   describe('tsconfig.json', () => {
     it('VALID: {} => extends the repo root tsconfig and includes src/ alone, which holds the responders barrel', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -203,7 +202,7 @@ describe('recipesScaffoldFilesTransformer', () => {
 
   describe('tsconfig.build.json', () => {
     it('VALID: {} => compiles src/index.ts down to dist/index.js, and emits the responders barrel beside it', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -235,7 +234,7 @@ describe('recipesScaffoldFilesTransformer', () => {
 
   describe('jest.config.js', () => {
     it('VALID: {} => requires the published testing base', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -253,7 +252,7 @@ module.exports = {
 
   describe('src/responders/responders.ts', () => {
     it('VALID: {} => re-exports both responders', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -268,7 +267,7 @@ module.exports = {
 
   describe('src/responders/recipes/listing/recipes-listing-responder.ts', () => {
     it(`VALID: {} => exports ${recipesConventionStatics.exports.listing}, returning an empty array`, () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -288,7 +287,7 @@ module.exports = {
 
   describe('src/responders/recipes/seed/recipes-seed-responder.ts', () => {
     it(`VALID: {} => exports ${recipesConventionStatics.exports.seed}, throwing "no recipes defined yet"`, () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
@@ -305,7 +304,7 @@ module.exports = {
 
   describe('src/index.ts', () => {
     it('VALID: {} => exports the three names recipesConventionStatics.exports requires, delegating to StartHydrationRecipes', () => {
-      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const packageName = '@acme/hydration-recipes';
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 

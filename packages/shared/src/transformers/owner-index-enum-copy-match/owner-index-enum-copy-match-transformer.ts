@@ -11,7 +11,6 @@
  */
 import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { enumValuesReadTransformer } from '../enum-values-read/enum-values-read-transformer';
 import { ownerIndexOwnersReachableTransformer } from '../owner-index-owners-reachable/owner-index-owners-reachable-transformer';
 import { inlineEnumsReadLayerTransformer } from './inline-enums-read-layer-transformer';
@@ -23,7 +22,7 @@ export const ownerIndexEnumCopyMatchTransformer = ({
   contractName,
 }: {
   ownerIndex: OwnerIndex;
-  packageName: PackageName;
+  packageName: string;
   enumText: string;
   contractName: string;
 }): OwnerIndexEnum | undefined => {
@@ -34,7 +33,7 @@ export const ownerIndexEnumCopyMatchTransformer = ({
 
   const dependencies =
     ownerIndex.packages.find((candidate) => candidate.name === packageName)?.dependencies ?? [];
-  const reachable = new Set<PackageName>([packageName, ...dependencies]);
+  const reachable = new Set<string>([packageName, ...dependencies]);
 
   const standalone = ownerIndex.enums.find(
     (candidate) =>

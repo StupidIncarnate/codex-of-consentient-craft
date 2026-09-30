@@ -11,7 +11,7 @@
  * resolveGatewayScopeLayerBroker({ filename: '/repo/packages/@gateway/node/src/fs/fs.ts' });
  * // Returns '@dungeonmaster' as PackageName
  */
-import { packageJsonContract, type PackageName } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readFileSync } from '#gateway/node/fs';
@@ -22,13 +22,13 @@ import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-laye
 // autofixes an explicit `= undefined` initializer away, which then trips
 // `@typescript-eslint/init-declarations` right back — the two rules fight over a bare optional
 // `let`. A `const` object with an optional field satisfies both.
-const scopeCache: { value?: PackageName } = {};
+const scopeCache: { value?: string } = {};
 
 export const resolveGatewayScopeLayerBroker = ({
   filename,
 }: {
   filename: string;
-}): PackageName | undefined => {
+}): string | undefined => {
   if (scopeCache.value !== undefined) {
     return scopeCache.value;
   }

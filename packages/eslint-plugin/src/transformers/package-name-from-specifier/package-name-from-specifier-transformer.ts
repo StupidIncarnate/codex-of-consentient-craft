@@ -10,19 +10,18 @@
  * packageNameFromSpecifierTransformer({ specifier: importPathContract.parse('lodash/fp') });
  * // Returns 'lodash' as branded PackageName
  */
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
-import type { ImportPath, PackageName } from '@dungeonmaster/shared/contracts';
+import type { ImportPath } from '@dungeonmaster/shared/contracts';
 
 export const packageNameFromSpecifierTransformer = ({
   specifier,
 }: {
   specifier: ImportPath;
-}): PackageName => {
+}): string => {
   if (specifier.startsWith('@')) {
     const [scope, name] = specifier.split('/');
-    return packageNameContract.parse(name ? `${scope}/${name}` : specifier);
+    return (name ? `${scope}/${name}` : specifier);
   }
 
   const [firstSegment] = specifier.split('/');
-  return packageNameContract.parse(firstSegment ?? specifier);
+  return (firstSegment ?? specifier);
 };

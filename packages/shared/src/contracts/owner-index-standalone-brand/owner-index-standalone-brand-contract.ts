@@ -11,13 +11,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 
 export const ownerIndexStandaloneBrandContract = z.object({
   contractName: z.string().brand<'OwnerIndexStandaloneBrandContractName'>(),
   brandText: z.string().brand<'OwnerIndexStandaloneBrandBrandText'>(),
   filePath: absoluteFilePathContract,
-  packageName: packageNameContract,
+  packageName: z.string().min(1).brand<'OwnerIndexStandaloneBrandPackageName'>(),
 });
 
 export type OwnerIndexStandaloneBrand = z.infer<typeof ownerIndexStandaloneBrandContract>;

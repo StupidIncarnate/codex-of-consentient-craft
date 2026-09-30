@@ -14,8 +14,6 @@
  * // Returns { rootDir: '/repo', rootPackageJsonName: '@dungeonmaster/hooks', packageNames: [...] },
  * // or undefined when no ancestor package.json carries a `workspaces` field
  */
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
@@ -26,7 +24,7 @@ export const workspaceRootFindBroker = ({
 }: {
   startDir: string;
 }):
-  | { rootDir: string; rootPackageJsonName: PackageName; packageNames: PackageName[] }
+  | { rootDir: string; rootPackageJsonName: string; packageNames: string[] }
   | undefined => {
   const packageJsonPath = join(startDir, 'package.json');
 
@@ -39,11 +37,11 @@ export const workspaceRootFindBroker = ({
       const packageNames = Object.keys({
         ...withDeps.dependencies,
         ...withDeps.devDependencies,
-      }).map((name) => packageNameContract.parse(name));
+      }).map((name) => name);
 
       return {
         rootDir: startDir,
-        rootPackageJsonName: packageNameContract.parse(workspaceRoot.data.name),
+        rootPackageJsonName: workspaceRoot.data.name,
         packageNames,
       };
     }

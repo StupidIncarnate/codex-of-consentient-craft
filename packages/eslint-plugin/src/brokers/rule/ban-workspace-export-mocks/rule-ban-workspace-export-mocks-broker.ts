@@ -22,7 +22,6 @@ import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'composeProxy'> => ({
   meta: {
@@ -40,7 +39,7 @@ export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'compos
   defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
-      options?: { workspacePackageNames?: PackageName[] }[];
+      options?: { workspacePackageNames?: string[] }[];
     };
     const workspacePackageNames = ctx.options[0]?.workspacePackageNames ?? [];
 

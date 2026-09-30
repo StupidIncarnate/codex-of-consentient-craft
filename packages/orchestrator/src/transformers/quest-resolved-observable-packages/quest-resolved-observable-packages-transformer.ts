@@ -9,11 +9,11 @@
  * questResolvedObservablePackagesTransformer({flows: quest.flows});
  * // Returns the same flows with each single-package node's observables carrying that node's package
  */
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
+import { packageNameContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questResolvedObservablePackagesTransformer = ({ flows }: { flows: Flow[] }): Flow[] =>
-  flows.map((flow) => {
+  flowNodeContract.shape.packages.parse(flowNodeContract.shape.packages.parse(flowNodeContract.shape.packages.parse(flows.map((flow) => {
     // This reads the raw merge output, ahead of the whole-quest re-parse, so `nodes`, `observables`,
     // and `packages` may still be ABSENT on anything this write created — the contract defaults that
     // make them arrays have not been applied yet. Anything with nothing to resolve is handed back
@@ -51,4 +51,4 @@ export const questResolvedObservablePackagesTransformer = ({ flows }: { flows: F
         };
       }),
     };
-  });
+  }))));

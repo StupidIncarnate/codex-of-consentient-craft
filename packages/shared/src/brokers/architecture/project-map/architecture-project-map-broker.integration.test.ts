@@ -9,7 +9,6 @@
 
 import { architectureProjectMapBroker } from './architecture-project-map-broker';
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
-import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
 import { cwd as getCwd } from '#gateway/node/process';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
@@ -17,7 +16,7 @@ const cwd = getCwd();
 const projectRoot = cwd.slice(0, cwd.lastIndexOf('/packages/'));
 const packagesPath = `${projectRoot}/packages`;
 const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath }).map((entry) =>
-  PackageNameStub({ value: entry.name }),
+  entry.name,
 );
 
 // One whole-monorepo scan, awaited by every all-packages test below. The scan walks each
@@ -123,7 +122,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   it('VALID: {real monorepo, packages: [cli]} => renders only cli section, omits other packages', async () => {
     const result = await architectureProjectMapBroker({
       projectRoot,
-      packages: [PackageNameStub({ value: 'cli' })],
+      packages: ['cli'],
     });
     const lines = String(result).split('\n');
 
@@ -166,7 +165,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     await expect(
       architectureProjectMapBroker({
         projectRoot,
-        packages: [PackageNameStub({ value: 'nonexistent' })],
+        packages: ['nonexistent'],
       }),
     ).rejects.toThrow(/Unknown package\(s\): nonexistent\. Valid: .*\bcli\b.*\bmcp\b.*\bweb\b/u);
   });

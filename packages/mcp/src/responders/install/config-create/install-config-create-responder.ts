@@ -9,12 +9,7 @@
  * // Creates .mcp.json with dungeonmaster config, adds MCP permissions to .claude/settings.json
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
@@ -48,12 +43,12 @@ export const InstallConfigCreateResponder = async ({
 
   // Check if dungeonmaster is already configured
   if (existingConfig?.mcpServers && 'dungeonmaster' in existingConfig.mcpServers) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse('MCP config already exists, added permissions'),
-    };
+    });
   }
 
   // Merge into existing config or create new
@@ -70,14 +65,14 @@ export const InstallConfigCreateResponder = async ({
 
     await writeFile(configPath, contents);
 
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'merged',
       message: installMessageContract.parse(
         'Merged dungeonmaster into existing .mcp.json and added permissions',
       ),
-    };
+    });
   }
 
   // Create new config
@@ -89,12 +84,12 @@ export const InstallConfigCreateResponder = async ({
 
   await writeFile(configPath, contents);
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse(
       'Created .mcp.json with dungeonmaster config and added permissions',
     ),
-  };
+  });
 };

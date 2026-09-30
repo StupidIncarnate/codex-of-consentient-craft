@@ -16,7 +16,6 @@ import { contractIndexEntryContract } from '../../contracts/contract-index-entry
 import type { ContractIndexEntry } from '../../contracts/contract-index-entry/contract-index-entry-contract';
 import type { ContractIndexPackage } from '../../contracts/contract-index-package/contract-index-package-contract';
 import type { ContractParseSite } from '../../contracts/contract-parse-site/contract-parse-site-contract';
-import { packageNameContract } from '../../contracts/package-name/package-name-contract';
 import { isContractParseSourceFileGuard } from '../../guards/is-contract-parse-source-file/is-contract-parse-source-file-guard';
 import { isProductionSourceFileGuard } from '../../guards/is-production-source-file/is-production-source-file-guard';
 import { contractFileExportsReadLayerTransformer } from './contract-file-exports-read-layer-transformer';
@@ -151,7 +150,7 @@ export const contractIndexFromSourcesTransformer = ({
         .sort((left, right) => right.dir.length - left.dir.length);
       return contractIndexEntryContract.parse({
         filePath,
-        packageName: owner?.name ?? packageNameContract.parse('unknown'),
+        packageName: owner?.name ?? 'unknown',
         isLayer: filePath.endsWith('-layer-contract.ts'),
         exportedContractNames: exportedConstNames,
         typeExports,

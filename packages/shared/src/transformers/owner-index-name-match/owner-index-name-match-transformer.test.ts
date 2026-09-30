@@ -2,12 +2,11 @@ import { OwnerIndexFieldStub } from '../../contracts/owner-index-field/owner-ind
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { ownerIndexNameMatchTransformer } from './owner-index-name-match-transformer';
 
-const alpha = PackageNameStub({ value: '@repo/alpha' });
-const shared = PackageNameStub({ value: '@repo/shared' });
-const stranger = PackageNameStub({ value: '@repo/stranger' });
+const alpha = '@repo/alpha';
+const shared = '@repo/shared';
+const stranger = '@repo/stranger';
 
 const itemOwner = OwnerIndexOwnerStub({
   ownerName: 'Item',

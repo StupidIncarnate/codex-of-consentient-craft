@@ -1,15 +1,14 @@
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { ownerIndexFromSourcesTransformer } from './owner-index-from-sources-transformer';
 
 const rootDir = '/repo';
 const alphaPackage = OwnerIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/alpha' }),
+  name: '@repo/alpha',
   dir: '/repo/packages/alpha',
-  dependencies: [PackageNameStub({ value: '@repo/shared' })],
+  dependencies: ['@repo/shared'],
 });
 const sharedPackage = OwnerIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/shared' }),
+  name: '@repo/shared',
   dir: '/repo/packages/shared',
 });
 

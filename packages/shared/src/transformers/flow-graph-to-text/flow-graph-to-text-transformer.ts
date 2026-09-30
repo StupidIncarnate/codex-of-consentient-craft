@@ -56,7 +56,6 @@
  */
 
 import type { Flow } from '../../contracts/flow/flow-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
 import { flowNodeContract } from '../../contracts/flow-node/flow-node-contract';
@@ -76,7 +75,7 @@ export const flowGraphToTextTransformer = ({
   // The package whose nodes are marked, and whose nodes' observables stay verbatim. Omitted for a
   // whole-quest render and for the flowrider/siegemaster slice, both of which own every package on
   // the flow and would read a mark on every line as noise.
-  ownPackage?: PackageName | undefined;
+  ownPackage?: string | undefined;
   // The other flows on the quest, so a `flowId:nodeId` edge target can be resolved into a real
   // node. Omitted, the marker renders exactly as it always has — a bare stub.
   otherFlows?: readonly Flow[] | undefined;

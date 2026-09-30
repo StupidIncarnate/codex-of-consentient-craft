@@ -41,7 +41,7 @@ export const gatewayLintConfigContract = z.object({
         // Omitted means the whole subpath is restricted; set means only this one export is.
         name: z.string().min(1).brand<'GatewayExportName'>().optional(),
         // Whole workspace packages (`packages/*`), never a folder inside one.
-        packages: z.array(z.string().brand<'PackageName'>()).min(1),
+        packages: z.array(z.string().brand<'GatewayLintConfigRestrictedToPackages'>()).min(1),
         reason: z.string().min(1).brand<'GatewayRestrictReason'>(),
       }),
     )

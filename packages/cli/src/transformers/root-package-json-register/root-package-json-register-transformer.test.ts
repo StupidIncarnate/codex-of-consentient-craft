@@ -1,6 +1,5 @@
 import { rootPackageJsonRegisterTransformer } from './root-package-json-register-transformer';
 import { PackageJsonRawStub } from '../../contracts/package-json-raw/package-json-raw.stub';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 describe('rootPackageJsonRegisterTransformer', () => {
   describe('valid input', () => {
@@ -14,7 +13,7 @@ describe('rootPackageJsonRegisterTransformer', () => {
 
       const result = rootPackageJsonRegisterTransformer({
         rootPackageJson,
-        packageName: PackageNameStub({ value: '@dungeonmaster/aaa' }),
+        packageName: '@dungeonmaster/aaa',
       });
 
       expect(result).toStrictEqual({
@@ -41,7 +40,7 @@ describe('rootPackageJsonRegisterTransformer', () => {
 
       const result = rootPackageJsonRegisterTransformer({
         rootPackageJson,
-        packageName: PackageNameStub({ value: '@dungeonmaster/mmm' }),
+        packageName: '@dungeonmaster/mmm',
       });
 
       expect(result).toStrictEqual({
@@ -65,7 +64,7 @@ describe('rootPackageJsonRegisterTransformer', () => {
 
       const result = rootPackageJsonRegisterTransformer({
         rootPackageJson,
-        packageName: PackageNameStub({ value: '@dungeonmaster/solo' }),
+        packageName: '@dungeonmaster/solo',
       });
 
       expect(result).toStrictEqual({
@@ -83,7 +82,7 @@ describe('rootPackageJsonRegisterTransformer', () => {
 
       const result = rootPackageJsonRegisterTransformer({
         rootPackageJson,
-        packageName: PackageNameStub({ value: '@dungeonmaster/solo' }),
+        packageName: '@dungeonmaster/solo',
       });
 
       expect(result).toStrictEqual({
@@ -107,7 +106,7 @@ describe('rootPackageJsonRegisterTransformer', () => {
 
       const result = rootPackageJsonRegisterTransformer({
         rootPackageJson,
-        packageName: PackageNameStub({ value: '@dungeonmaster/aaa' }),
+        packageName: '@dungeonmaster/aaa',
       });
 
       expect(result).toStrictEqual({
@@ -134,7 +133,7 @@ describe('rootPackageJsonRegisterTransformer', () => {
 
       const result = rootPackageJsonRegisterTransformer({
         rootPackageJson,
-        packageName: PackageNameStub({ value: '@dungeonmaster/zzz' }),
+        packageName: '@dungeonmaster/zzz',
       });
 
       expect(result).toStrictEqual(rootPackageJson);

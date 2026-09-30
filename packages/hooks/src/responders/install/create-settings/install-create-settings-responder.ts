@@ -20,12 +20,7 @@
  * the two: it merges key by key, so the consumer's variables survive alongside the one added here.
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import path from '#gateway/node/path';
@@ -100,12 +95,12 @@ export const InstallCreateSettingsResponder = async ({
 
     await writeFileCreatingParent(settingsPath, contents);
 
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'merged',
       message: installMessageContract.parse('Merged hooks into existing settings'),
-    };
+    });
   }
 
   const newSettings: ClaudeSettings = {
@@ -117,10 +112,10 @@ export const InstallCreateSettingsResponder = async ({
 
   await writeFileCreatingParent(settingsPath, contents);
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse('Created .claude/settings.json with hooks'),
-  };
+  });
 };

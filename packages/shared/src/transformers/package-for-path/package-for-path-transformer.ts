@@ -20,7 +20,6 @@
  * are compared. Trailing slashes go too, or `./packages/web/` would never match `packages/web`.
  */
 
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { QuestPackageEntry } from '../../contracts/quest-package-entry/quest-package-entry-contract';
 
 export const packageForPathTransformer = ({
@@ -29,7 +28,7 @@ export const packageForPathTransformer = ({
 }: {
   path: string;
   packagesAffected: readonly QuestPackageEntry[];
-}): PackageName | undefined =>
+}): string | undefined =>
   packagesAffected
     .map((entry) => ({
       name: entry.name,

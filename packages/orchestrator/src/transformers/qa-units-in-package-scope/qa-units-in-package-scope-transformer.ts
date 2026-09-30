@@ -53,12 +53,7 @@
  * data, which silently turns the gate off — the one failure this narrowing exists not to cause.
  */
 
-import type {
-  Flow,
-  PackageGraphEntry,
-  PackageName,
-  QuestPackageEntry,
-} from '@dungeonmaster/shared/contracts';
+import type { Flow, PackageGraphEntry, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -77,7 +72,7 @@ export const qaUnitsInPackageScopeTransformer = ({
   units: readonly QaVerificationUnit[];
   track: keyof typeof stepScopeStatics.byFamilyStep;
   packagesAffected?: readonly QuestPackageEntry[];
-  packageNames?: readonly PackageName[];
+  packageNames?: readonly string[];
   packageGraph?: readonly PackageGraphEntry[];
 }): QaVerificationUnit[] => {
   const familySteps = stepScopeStatics.byFamilyStep[track];

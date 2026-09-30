@@ -31,12 +31,11 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile, readFile } from '#gateway/node/fs__promises';
 import { basename, dirname, resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, installMessageContract, packageJsonContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageJsonContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
-import { readFile } from '#gateway/node/fs__promises';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
 import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
 
@@ -59,14 +58,14 @@ export const InstallRecipesScaffoldResponder = async ({
   const packagePresent = existsSync(recipesPackagePath);
 
   if (packagePresent) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse(
         `${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ already present; left untouched`,
       ),
-    };
+    });
   }
 
   const rootPackageJsonPath = resolve(context.targetProjectRoot, ROOT_PACKAGE_JSON_FILENAME);
@@ -86,11 +85,9 @@ export const InstallRecipesScaffoldResponder = async ({
       })
     : undefined;
 
-  const recipesPackageName = packageNameContract.parse(
-    workspaceScope === undefined
+  const recipesPackageName = (workspaceScope === undefined
       ? RECIPES_PACKAGE_DIRNAME
-      : `${workspaceScope}/${RECIPES_PACKAGE_DIRNAME}`,
-  );
+      : `${workspaceScope}/${RECIPES_PACKAGE_DIRNAME}`);
 
   const scaffoldFiles = recipesScaffoldFilesTransformer({
     packageName: recipesPackageName,
@@ -126,10 +123,10 @@ export const InstallRecipesScaffoldResponder = async ({
   // only reaches for this package when this flag says it was scaffolded THIS run.
   recipesScaffoldState.markScaffolded({ recipesPackageName });
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse(createdMessage),
-  };
+  });
 };

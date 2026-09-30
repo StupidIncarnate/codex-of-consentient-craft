@@ -22,16 +22,15 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { packageNameContract } from '../package-name/package-name-contract';
 import { packageTypeContract } from '../package-type/package-type-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
 
 export const packageGraphEntryContract = z.object({
-  id: packageNameContract.describe(
+  id: z.string().min(1).brand<'PackageGraphEntryId'>().describe(
     "The package name, which is also this entry's merge key — the graph carries one node per package",
   ),
   dependsOn: z
-    .array(packageNameContract)
+    .array(z.string().min(1).brand<'PackageGraphEntryDependsOn'>())
     .default([])
     .describe(
       'The packages this one imports, unioned across dependencies, devDependencies and peerDependencies. A leaf carries none.',

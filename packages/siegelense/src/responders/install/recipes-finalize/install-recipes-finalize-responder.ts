@@ -15,7 +15,7 @@
  * // npm run build and reports success, or the command to run by hand on failure
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 
 import { install, runBuild } from '#gateway/bin/npm';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
@@ -30,14 +30,14 @@ export const InstallRecipesFinalizeResponder = async ({
   const { recipesPackageName } = recipesScaffoldState.consumeScaffolded();
 
   if (recipesPackageName === undefined) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse(
         'no freshly scaffolded packages/hydration-recipes/ this run',
       ),
-    };
+    });
   }
 
   const buildCommand = `npm run build --workspace=${recipesPackageName}`;
@@ -45,8 +45,8 @@ export const InstallRecipesFinalizeResponder = async ({
 
   const installResult = await install({ cwd: targetProjectRootCwd });
   if (installResult.exitCode !== 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'created',
       message: installMessageContract.parse(
@@ -54,7 +54,7 @@ export const InstallRecipesFinalizeResponder = async ({
           `${installResult.output} — run "npm install" at the repo root, then "${buildCommand}" ` +
           'to finish setting it up',
       ),
-    };
+    });
   }
 
   const buildResult = await runBuild({
@@ -62,23 +62,23 @@ export const InstallRecipesFinalizeResponder = async ({
     workspace: recipesPackageName,
   });
   if (buildResult.exitCode !== 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'created',
       message: installMessageContract.parse(
         `${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
           `${buildResult.output} — run "${buildCommand}" to finish setting it up`,
       ),
-    };
+    });
   }
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse(
       `${buildCommand} finished for packages/hydration-recipes/`,
     ),
-  };
+  });
 };

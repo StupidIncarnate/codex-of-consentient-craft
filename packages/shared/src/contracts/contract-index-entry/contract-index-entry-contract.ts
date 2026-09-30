@@ -12,11 +12,10 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { contractParseSiteContract } from '../contract-parse-site/contract-parse-site-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 
 export const contractIndexEntryContract = z.object({
   filePath: absoluteFilePathContract,
-  packageName: packageNameContract,
+  packageName: z.string().min(1).brand<'ContractIndexEntryPackageName'>(),
   isLayer: z.boolean(),
   exportedContractNames: z.array(z.string().brand<'ContractIndexEntryExportedContractNames'>()),
   typeExports: z.array(

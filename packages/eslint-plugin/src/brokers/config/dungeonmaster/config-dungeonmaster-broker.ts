@@ -34,7 +34,7 @@ import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';
 // namespace object here holds the same shape the old adapter's default import produced.
 import * as eslintPluginEslintComments from '#gateway/npm/eslint-plugin-eslint-comments';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
-import type { GatewayLintConfig, PackageName } from '@dungeonmaster/shared/contracts';
+import type { GatewayLintConfig } from '@dungeonmaster/shared/contracts';
 
 type DeepWritable<T> = T extends object ? { -readonly [K in keyof T]: DeepWritable<T[K]> } : T;
 
@@ -49,7 +49,7 @@ export const configDungeonmasterBroker = ({
   // workspaces root's own `workspaces` globs — ban-workspace-export-mocks' only rule option, so the
   // rule itself reads no file. Defaults to `[]` so calling this broker with no argument (every
   // existing test, every other consumer) still returns a config, with the rule reporting nothing.
-  workspacePackageNames?: PackageName[];
+  workspacePackageNames?: string[];
 } = {}): {
   typescript: TSESLint.FlatConfig.Config;
   test: TSESLint.FlatConfig.Config;

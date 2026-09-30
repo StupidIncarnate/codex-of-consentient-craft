@@ -25,7 +25,6 @@
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
@@ -34,7 +33,7 @@ import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-reso
 // Resolved lazily, on the first gateway file linted with no `scope` option, and cached from then
 // on — see raw-import-ban's identically-shaped cache for why this never runs during this rule's own
 // unit test (every RuleTester case passes `scope` explicitly).
-const defaultScopeCache: { value?: PackageName } = {};
+const defaultScopeCache: { value?: string } = {};
 
 export const ruleGatewayImportBoundaryBroker =
   (): TSESLint.RuleModule<'workspacePackageImport'> => ({
@@ -65,7 +64,7 @@ export const ruleGatewayImportBoundaryBroker =
     defaultOptions: [],
     create: (context: TSESLint.RuleContext<string, unknown[]>) => {
       const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
-        options?: { scope?: PackageName }[];
+        options?: { scope?: string }[];
       };
       const { filename } = ctx;
 
@@ -79,7 +78,7 @@ export const ruleGatewayImportBoundaryBroker =
 
       const optionScope = ctx.options[0]?.scope;
 
-      const scope = ((): PackageName => {
+      const scope = ((): string => {
         if (optionScope !== undefined) {
           return optionScope;
         }

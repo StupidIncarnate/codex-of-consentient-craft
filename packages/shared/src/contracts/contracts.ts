@@ -84,7 +84,6 @@ export * from './quest-source/quest-source-contract';
 export * from './quest-type/quest-type-contract';
 
 // Install Contracts
-export * from './package-name/package-name-contract';
 
 export * from './install-message/install-message-contract';
 

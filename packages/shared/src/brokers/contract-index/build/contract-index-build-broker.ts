@@ -14,7 +14,6 @@ import { readFileSync, readJsonFileSyncIfExists, walkFilesSync } from '#gateway/
 import { contractIndexPackageContract } from '../../../contracts/contract-index-package/contract-index-package-contract';
 import type { ContractIndexEntry } from '../../../contracts/contract-index-entry/contract-index-entry-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { packageNameContract } from '../../../contracts/package-name/package-name-contract';
 import { isContractParseSourceFileGuard } from '../../../guards/is-contract-parse-source-file/is-contract-parse-source-file-guard';
 import { contractIndexStatics } from '../../../statics/contract-index/contract-index-statics';
 import { contractIndexFromSourcesTransformer } from '../../../transformers/contract-index-from-sources/contract-index-from-sources-transformer';
@@ -44,7 +43,7 @@ export const contractIndexBuildBroker = ({
     const name = parsed.success ? parsed.data.name : undefined;
     return name === undefined
       ? []
-      : [contractIndexPackageContract.parse({ name: packageNameContract.parse(name), dir })];
+      : [contractIndexPackageContract.parse({ name: name, dir })];
   });
 
   const sources = packages

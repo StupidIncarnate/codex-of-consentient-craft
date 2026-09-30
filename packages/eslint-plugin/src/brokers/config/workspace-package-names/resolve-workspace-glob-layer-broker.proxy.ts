@@ -1,4 +1,3 @@
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
@@ -6,7 +5,7 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 export const resolveWorkspaceGlobLayerBrokerProxy = (): {
   setupGlobDirectories: (args: { basePath: string; dirNames: string[] }) => void;
   setupNoBaseDirectory: (args: { basePath: string }) => void;
-  setupMemberPackageJson: (args: { memberDir: string; name: PackageName }) => void;
+  setupMemberPackageJson: (args: { memberDir: string; name: string }) => void;
   setupMemberNoPackageJson: (args: { memberDir: string }) => void;
   setupMemberInvalidPackageJson: (args: { memberDir: string; contents: string }) => void;
 } => {
@@ -38,7 +37,7 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       name,
     }: {
       memberDir: string;
-      name: PackageName;
+      name: string;
     }): void => {
       const packageJsonPath = `${memberDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });

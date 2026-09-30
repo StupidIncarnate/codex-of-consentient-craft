@@ -11,7 +11,6 @@
  * resolveWorkspaceGlobLayerBroker({ rootDir: filePathContract.parse('/repo'), glob: 'packages/*' });
  * // Returns ['@dungeonmaster/orchestrator', '@dungeonmaster/server', ...]
  */
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
@@ -23,7 +22,7 @@ export const resolveWorkspaceGlobLayerBroker = ({
 }: {
   rootDir: string;
   glob: string;
-}): PackageName[] => {
+}): string[] => {
   const memberDirs: string[] = glob.endsWith(WILDCARD_SUFFIX)
     ? ((): string[] => {
         const baseDir = glob.slice(0, glob.length - WILDCARD_SUFFIX.length);
@@ -40,7 +39,7 @@ export const resolveWorkspaceGlobLayerBroker = ({
     : [`${rootDir}/${glob}`];
 
   return memberDirs
-    .map((memberDir): PackageName | null => {
+    .map((memberDir): string | null => {
       const memberPackageJsonPath = `${memberDir}/package.json`;
 
       if (!existsSync(memberPackageJsonPath)) {

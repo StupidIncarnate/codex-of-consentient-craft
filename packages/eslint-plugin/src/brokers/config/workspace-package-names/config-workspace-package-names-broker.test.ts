@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { configWorkspacePackageNamesBroker } from './config-workspace-package-names-broker';
 import { configWorkspacePackageNamesBrokerProxy } from './config-workspace-package-names-broker.proxy';
 
@@ -18,11 +17,11 @@ describe('configWorkspacePackageNamesBroker', () => {
       });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/orchestrator',
-        name: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+        name: '@dungeonmaster/orchestrator',
       });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/server',
-        name: PackageNameStub({ value: '@dungeonmaster/server' }),
+        name: '@dungeonmaster/server',
       });
 
       const result = configWorkspacePackageNamesBroker({

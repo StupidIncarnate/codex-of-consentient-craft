@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { recipesScaffoldState } from './recipes-scaffold-state';
 import { recipesScaffoldStateProxy } from './recipes-scaffold-state.proxy';
@@ -17,7 +16,7 @@ describe('recipesScaffoldState', () => {
     it('VALID: {markScaffolded then consumeScaffolded} => returns the marked recipesPackageName', () => {
       const proxy = recipesScaffoldStateProxy();
       proxy.setupEmpty();
-      const recipesPackageName = PackageNameStub({ value: 'hydration-recipes' });
+      const recipesPackageName = 'hydration-recipes';
 
       recipesScaffoldState.markScaffolded({ recipesPackageName });
 
@@ -29,7 +28,7 @@ describe('recipesScaffoldState', () => {
     it('VALID: {consumeScaffolded called twice after one markScaffolded} => the second read drains to undefined', () => {
       const proxy = recipesScaffoldStateProxy();
       proxy.setupEmpty();
-      const recipesPackageName = PackageNameStub({ value: 'hydration-recipes' });
+      const recipesPackageName = 'hydration-recipes';
       recipesScaffoldState.markScaffolded({ recipesPackageName });
 
       recipesScaffoldState.consumeScaffolded();
@@ -43,11 +42,11 @@ describe('recipesScaffoldState', () => {
       const proxy = recipesScaffoldStateProxy();
       proxy.setupEmpty();
       recipesScaffoldState.markScaffolded({
-        recipesPackageName: PackageNameStub({ value: 'hydration-recipes' }),
+        recipesPackageName: 'hydration-recipes',
       });
 
       recipesScaffoldState.markScaffolded({
-        recipesPackageName: PackageNameStub({ value: '@acme/hydration-recipes' }),
+        recipesPackageName: '@acme/hydration-recipes',
       });
 
       expect(recipesScaffoldState.consumeScaffolded()).toStrictEqual({
@@ -61,7 +60,7 @@ describe('recipesScaffoldState', () => {
       const proxy = recipesScaffoldStateProxy();
       proxy.setupEmpty();
       recipesScaffoldState.markScaffolded({
-        recipesPackageName: PackageNameStub({ value: 'hydration-recipes' }),
+        recipesPackageName: 'hydration-recipes',
       });
 
       recipesScaffoldState.clear();

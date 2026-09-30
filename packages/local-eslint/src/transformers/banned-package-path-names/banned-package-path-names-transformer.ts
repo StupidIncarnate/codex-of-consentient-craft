@@ -16,8 +16,6 @@
  *
  * WHEN-TO-USE: Only the no-hardcoded-package-names rule should call this.
  */
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 export const bannedPackagePathNamesTransformer = ({
   text,
@@ -27,7 +25,7 @@ export const bannedPackagePathNamesTransformer = ({
   text: string;
   packageNames: readonly string[];
   workspaceDirNames: readonly string[];
-}): PackageName[] => {
+}): string[] => {
   if (packageNames.length === 0 || workspaceDirNames.length === 0) {
     return [];
   }
@@ -48,14 +46,14 @@ export const bannedPackagePathNamesTransformer = ({
     'gu',
   );
 
-  const seen = new Set<PackageName>();
-  const found: PackageName[] = [];
+  const seen = new Set<string>();
+  const found: string[] = [];
 
   for (const match of text.matchAll(pattern)) {
     const [, workspacePathName, scopedSpecifierName] = match;
     const name = workspacePathName ?? scopedSpecifierName;
     if (name !== undefined) {
-      const packageName = packageNameContract.parse(name);
+      const packageName = name;
       if (!seen.has(packageName)) {
         seen.add(packageName);
         found.push(packageName);

@@ -6,7 +6,7 @@
  * // Adds devDependencies to package.json or skips if already present
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -27,24 +27,24 @@ export const InstallAddDevDepsResponder = async ({
   const packageJsonPath = join(context.targetProjectRoot, 'package.json');
 
   if (!existsSync(packageJsonPath)) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
       message: installMessageContract.parse('No package.json found'),
-    };
+    });
   }
 
   const packageJsonContent = await readFile(packageJsonPath);
   const parsedPackageJson = packageJsonContract.safeParse(JSON.parse(packageJsonContent));
 
   if (!parsedPackageJson.success) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
       message: installMessageContract.parse('Invalid package.json'),
-    };
+    });
   }
 
   const packageJson = parsedPackageJson.data;
@@ -56,12 +56,12 @@ export const InstallAddDevDepsResponder = async ({
   ).length;
 
   if (missingCount === 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse('All devDependencies already present'),
-    };
+    });
   }
 
   // Sort the merged map alphabetically rather than keeping `requiredPackages`' declaration order
@@ -83,10 +83,10 @@ export const InstallAddDevDepsResponder = async ({
 
   await writeFile(packageJsonPath, contents);
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse('Added devDependencies to package.json'),
-  };
+  });
 };

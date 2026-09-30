@@ -1,12 +1,11 @@
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { ownerIndexOwnersReachableTransformer } from './owner-index-owners-reachable-transformer';
 
-const alpha = PackageNameStub({ value: '@repo/alpha' });
-const shared = PackageNameStub({ value: '@repo/shared' });
-const stranger = PackageNameStub({ value: '@repo/stranger' });
+const alpha = '@repo/alpha';
+const shared = '@repo/shared';
+const stranger = '@repo/stranger';
 
 describe('ownerIndexOwnersReachableTransformer', () => {
   describe('valid input', () => {

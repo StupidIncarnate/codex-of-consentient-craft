@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -55,7 +55,7 @@ import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contra
 // anywhere. A non-nullable `flowId` drops the only session those contracts have.
 const questWorkScope = z.object({
   flowId: flowContract.shape.id.nullable(),
-  packageNames: z.array(packageNameContract).default([]),
+  packageNames: z.array(z.string().min(1).brand<'QuestWorkScopePackageNames'>()).default([]),
   operationItemId: operationItemContract.shape.id,
   operationItemText: operationItemContract.shape.text,
 });

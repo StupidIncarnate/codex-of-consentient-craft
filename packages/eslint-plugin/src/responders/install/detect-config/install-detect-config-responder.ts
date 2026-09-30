@@ -6,7 +6,7 @@
  * // Creates eslint.config.js with dungeonmaster config or skips if already exists
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -98,22 +98,22 @@ export const InstallDetectConfigResponder = ({
       const content = readFileSync(configPath);
 
       if (content.includes('@dungeonmaster')) {
-        return {
-          packageName: packageNameContract.parse(PACKAGE_NAME),
+        return installResultContract.parse({
+          packageName: PACKAGE_NAME,
           success: true,
           action: 'skipped',
           message: installMessageContract.parse('ESLint already configured with dungeonmaster'),
-        };
+        });
       }
 
-      return {
-        packageName: packageNameContract.parse(PACKAGE_NAME),
+      return installResultContract.parse({
+        packageName: PACKAGE_NAME,
         success: true,
         action: 'skipped',
         message: installMessageContract.parse(
           `Found ${configFile} - please add @dungeonmaster/eslint-plugin manually`,
         ),
-      };
+      });
     }
   }
 
@@ -123,10 +123,10 @@ export const InstallDetectConfigResponder = ({
 
   writeFileSync(newConfigPath, contents);
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse('Created eslint.config.js'),
-  };
+  });
 };

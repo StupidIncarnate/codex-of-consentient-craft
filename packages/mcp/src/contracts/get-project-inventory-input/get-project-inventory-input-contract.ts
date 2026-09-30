@@ -6,11 +6,10 @@
  * // Returns validated GetProjectInventoryInput with branded packageName
  */
 import { z } from '#gateway/npm/zod';
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
 
 export const getProjectInventoryInputContract = z
   .object({
-    packageName: packageNameContract.describe('Name of the package to return inventory for'),
+    packageName: z.string().min(1).brand<'GetProjectInventoryInputPackageName'>().describe('Name of the package to return inventory for'),
   })
   .strict();
 

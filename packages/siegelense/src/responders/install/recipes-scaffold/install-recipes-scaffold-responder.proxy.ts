@@ -2,7 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { basename, dirname, resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
@@ -68,7 +67,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   setupPackagePresent: () => void;
   getCreatedDirs: () => readonly unknown[];
   getWrittenContents: (params: { relativePath: string }) => unknown;
-  getMarkedScaffoldedRecipesPackageName: () => ReturnType<typeof PackageNameStub> | undefined;
+  getMarkedScaffoldedRecipesPackageName: () => string | undefined;
 } => {
   const realPath = requireActual<{
     basename: typeof basename;
@@ -159,7 +158,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     // — the test needs the actual package NAME the responder marked, to prove the scope-detected
     // value (not just any value) reached the state. Draining here doubles as end-of-test cleanup:
     // a test that calls this leaves the state empty for whichever test runs next in this file.
-    getMarkedScaffoldedRecipesPackageName: (): ReturnType<typeof PackageNameStub> | undefined =>
+    getMarkedScaffoldedRecipesPackageName: (): string | undefined =>
       recipesScaffoldState.consumeScaffolded().recipesPackageName,
   };
 };

@@ -1,10 +1,9 @@
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { workspaceScopeFromRootNameTransformer } from './workspace-scope-from-root-name-transformer';
 
 describe('workspaceScopeFromRootNameTransformer', () => {
   it('VALID: {rootPackageJsonName: "@acme/app", fallbackName: "app"} => returns "@acme"', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: '@acme/app' }),
+      rootPackageJsonName: '@acme/app',
       fallbackName: 'app',
     });
 
@@ -13,7 +12,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
 
   it('VALID: {rootPackageJsonName: "acme-app", fallbackName: "acme-app"} => returns "@acme-app"', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: 'acme-app' }),
+      rootPackageJsonName: 'acme-app',
       fallbackName: 'acme-app',
     });
 
@@ -22,7 +21,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
 
   it('VALID: {rootPackageJsonName: "dungeonmaster", fallbackName: "dungeonmaster"} => returns "@dungeonmaster"', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: 'dungeonmaster' }),
+      rootPackageJsonName: 'dungeonmaster',
       fallbackName: 'dungeonmaster',
     });
 
@@ -31,7 +30,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
 
   it('VALID: {rootPackageJsonName: this repo\'s own scoped root name, no fallback} => returns "@dungeonmaster"', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: '@dungeonmaster/dungeonmaster' }),
+      rootPackageJsonName: '@dungeonmaster/dungeonmaster',
     });
 
     expect(result).toBe('@dungeonmaster');
@@ -39,7 +38,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
 
   it('VALID: {rootPackageJsonName: an unscoped root name, no fallback} => prepends "@" rather than leaving it bare', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: 'dungeonmaster' }),
+      rootPackageJsonName: 'dungeonmaster',
     });
 
     expect(result).toBe('@dungeonmaster');
@@ -47,7 +46,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
 
   it('VALID: {rootPackageJsonName: a consumer\'s own scoped root name, no fallback} => returns that consumer\'s scope, not "@dungeonmaster"', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: '@acme/repo' }),
+      rootPackageJsonName: '@acme/repo',
     });
 
     expect(result).toBe('@acme');
@@ -55,7 +54,7 @@ describe('workspaceScopeFromRootNameTransformer', () => {
 
   it('VALID: {rootPackageJsonName: an unscoped root name with no "/", no fallback} => becomes its own scope, never truncated to a shorter prefix', () => {
     const result = workspaceScopeFromRootNameTransformer({
-      rootPackageJsonName: PackageNameStub({ value: 'acme-app' }),
+      rootPackageJsonName: 'acme-app',
     });
 
     expect(result).toBe('@acme-app');

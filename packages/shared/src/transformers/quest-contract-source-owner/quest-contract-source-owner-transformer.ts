@@ -21,7 +21,6 @@
  * // declared package location
  */
 
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { QuestContractEntry } from '../../contracts/quest-contract-entry/quest-contract-entry-contract';
 import type { QuestContractProperty } from '../../contracts/quest-contract-property/quest-contract-property-contract';
 import type { QuestPackageEntry } from '../../contracts/quest-package-entry/quest-package-entry-contract';
@@ -35,7 +34,7 @@ export const questContractSourceOwnerTransformer = ({
   contract: QuestContractEntry;
   property?: QuestContractProperty;
   packagesAffected: readonly QuestPackageEntry[];
-}): PackageName | undefined =>
+}): string | undefined =>
   packageForPathTransformer({
     path: String(property?.source ?? contract.source),
     packagesAffected,

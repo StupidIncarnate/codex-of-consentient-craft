@@ -23,7 +23,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { packageNameContract } from '../package-name/package-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { flowContract } from '../flow/flow-contract';
 
@@ -54,7 +53,7 @@ export const operationItemContract = z.object({
         "flow is verified by hand-checking its final state, which is Siegemaster's question.",
     ),
   packageNames: z
-    .array(packageNameContract)
+    .array(z.string().min(1).brand<'OperationItemPackageNames'>())
     .default([])
     .describe(
       'The packages this item lands in, each one an entry in `quest.packagesAffected`. On an ' +

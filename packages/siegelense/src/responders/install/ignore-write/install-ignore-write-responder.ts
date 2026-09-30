@@ -37,7 +37,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-insert-layer-responder';
 
@@ -215,10 +215,10 @@ export const InstallIgnoreWriteResponder = async ({
   const anyWritten = gitignoreWritten || anySurfaceWritten;
   const gitignoreNewlyCreated = gitignoreWritten && !gitignorePresent;
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: anyWritten ? (gitignoreNewlyCreated ? 'created' : 'merged') : 'skipped',
     message: installMessageContract.parse(clauses.join('; ')),
-  };
+  });
 };

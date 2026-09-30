@@ -12,11 +12,11 @@ import { scriptNameContract } from '../script-name/script-name-contract';
 
 export const packageJsonContract = z
   .object({
-    name: z.string().brand<'PackageName'>(),
+    name: z.string().brand<'PackageJsonName'>(),
     version: z.string().brand<'PackageVersion'>(),
     scripts: z.record(scriptNameContract, z.string().brand<'ScriptCommand'>()),
     devDependencies: z
-      .record(z.string().brand<'PackageName'>(), z.string().brand<'DependencyVersion'>())
+      .record(z.string().brand<'PackageJsonDevDependencies'>(), z.string().brand<'DependencyVersion'>())
       .optional(),
     eslintConfig: z.unknown().optional(),
     jest: z.unknown().optional(),

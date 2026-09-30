@@ -9,7 +9,7 @@
  */
 
 import { readFile, writeFile } from '#gateway/node/fs__promises';
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
@@ -37,12 +37,12 @@ export const InstallWriteGitignoreResponder = async ({
   );
 
   if (missing.length === 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse('.gitignore already carries every ward entry'),
-    };
+    });
   }
 
   const appended = `${missing.join('\n')}\n`;
@@ -55,10 +55,10 @@ export const InstallWriteGitignoreResponder = async ({
     ? `Added ${missing.join(', ')} to existing .gitignore`
     : `Created .gitignore with ${missing.join(', ')}`;
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action,
     message: installMessageContract.parse(message),
-  };
+  });
 };

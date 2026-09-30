@@ -20,14 +20,13 @@ import { pointerFooterRenderLayerBroker } from './pointer-footer-render-layer-br
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
-import type { PackageName } from '../../../contracts/package-name/package-name-contract';
 
 export const architectureProjectMapBroker = async ({
   projectRoot,
   packages,
 }: {
   projectRoot: string;
-  packages: PackageName[];
+  packages: string[];
 }): Promise<string> => {
   if (packages.length === 0) {
     throw new Error('get-project-map requires at least one package name in `packages`.');

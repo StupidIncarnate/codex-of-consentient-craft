@@ -89,7 +89,7 @@
  * defaulted zero.
  */
 
-import type { PackageName, Quest, QuestSummary } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestSummary } from '@dungeonmaster/shared/contracts';
 import {
   questNoteKindContract,
   questSummaryContract,
@@ -105,7 +105,7 @@ export const questSummaryBuildTransformer = ({
   packageNames = [],
 }: {
   quest: Quest;
-  packageNames?: readonly PackageName[];
+  packageNames?: readonly string[];
 }): QuestSummary => {
   // Enumerate ONCE per flow. Every list below is a different read of the same unit set, so
   // re-enumerating per list would let the reads disagree on a graph that changed underneath them.

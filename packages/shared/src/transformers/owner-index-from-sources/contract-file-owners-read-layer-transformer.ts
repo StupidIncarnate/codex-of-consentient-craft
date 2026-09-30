@@ -19,7 +19,6 @@ import { ownerIndexOwnerContract } from '../../contracts/owner-index-owner/owner
 import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
 import { ownerIndexStandaloneBrandContract } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
 import type { OwnerIndexStandaloneBrand } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { contractIndexStatics } from '../../statics/contract-index/contract-index-statics';
 import { enumValuesReadTransformer } from '../enum-values-read/enum-values-read-transformer';
 import { contractChainReadLayerTransformer } from './contract-chain-read-layer-transformer';
@@ -33,7 +32,7 @@ export const contractFileOwnersReadLayerTransformer = ({
 }: {
   sourceFile: ts.SourceFile;
   filePath: string;
-  packageName: PackageName;
+  packageName: string;
 }): {
   owners: OwnerIndexOwner[];
   standaloneBrands: OwnerIndexStandaloneBrand[];

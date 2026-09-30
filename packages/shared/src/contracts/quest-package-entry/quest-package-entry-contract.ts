@@ -19,13 +19,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { packageNameContract } from '../package-name/package-name-contract';
 import { packageTypeContract } from '../package-type/package-type-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
 export const questPackageEntryContract = z.object({
-  name: packageNameContract.describe(
+  name: z.string().min(1).brand<'QuestPackageEntryName'>().describe(
     'The package directory name under the workspace root, which is how every node tag and operation item refers to it',
   ),
   location: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestPackageEntryLocation'>().describe(
@@ -46,7 +45,7 @@ export const questPackageEntryContract = z.object({
       "Every kind this package's own disk signals support, winner first, stamped alongside packageType. A package can honestly be more than one — widgets+react behind a hono adapter is both an http-backend and browser-reachable — and the detector's priority table returns on its first match, so any decision made from the single winning label silently drops the kinds it never reached. Empty means never stamped, and readers fall back to [packageType].",
     ),
   usedBy: z
-    .array(packageNameContract)
+    .array(z.string().min(1).brand<'QuestPackageEntryUsedBy'>())
     .optional()
     .describe(
       "Packages that will depend on this one. Required and non-empty when changeType is 'new': a package with no package.json on disk yet has no other source of reverse edges for the post-quest dependency graph.",

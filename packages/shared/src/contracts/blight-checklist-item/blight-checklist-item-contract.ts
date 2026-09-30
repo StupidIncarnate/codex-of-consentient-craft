@@ -25,14 +25,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { blightConcernContract } from '../blight-concern/blight-concern-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 
 export const blightChecklistItemContract = z.object({
   id: z.string().min(1).brand<'BlightChecklistItemId'>(),
   implPath: repoRelativePathContract,
   concern: blightConcernContract,
-  packageName: packageNameContract
+  packageName: z.string().min(1).brand<'BlightChecklistItemPackageName'>()
     .optional()
     .describe(
       'The quest package entry whose `location` contains `implPath`, resolved by longest matching prefix. Absent when the path sits under none of them — a file outside every declared package, which is a real state and is owned by the residual partition group rather than assigned to a neighbour.',

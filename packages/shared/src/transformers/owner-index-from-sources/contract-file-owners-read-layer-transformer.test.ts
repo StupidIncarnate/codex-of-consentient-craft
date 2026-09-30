@@ -1,10 +1,9 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractFileOwnersReadLayerTransformer } from './contract-file-owners-read-layer-transformer';
 
 const filePath = '/repo/packages/alpha/src/contracts/quest/quest-contract.ts';
-const packageName = PackageNameStub({ value: '@repo/alpha' });
+const packageName = '@repo/alpha';
 
 const readText = ({
   text,

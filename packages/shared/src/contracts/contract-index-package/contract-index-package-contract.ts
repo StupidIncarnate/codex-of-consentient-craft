@@ -11,10 +11,9 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 
 export const contractIndexPackageContract = z.object({
-  name: packageNameContract,
+  name: z.string().min(1).brand<'ContractIndexPackageName'>(),
   dir: absoluteFilePathContract,
 });
 

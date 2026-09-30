@@ -21,7 +21,6 @@
  * // Returns an RuleModule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
  * // naming currentBranch() from #gateway/bin/git in the report message
  */
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -33,7 +32,7 @@ import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-lay
 
 // Resolved lazily and cached, exactly as raw-import-ban's own scope resolution is: every RuleTester
 // case passes `scope` explicitly, so the real filesystem walk only ever runs for a real ESLint run.
-const defaultScopeCache: { value?: PackageName } = {};
+const defaultScopeCache: { value?: string } = {};
 
 export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramSpawn'> => ({
   meta: {
@@ -63,7 +62,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
   defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
-      options?: { scope?: PackageName }[];
+      options?: { scope?: string }[];
     };
     const { filename } = ctx;
 
@@ -72,7 +71,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
     }
 
     const optionScope = ctx.options[0]?.scope;
-    const scope = ((): PackageName => {
+    const scope = ((): string => {
       if (optionScope !== undefined) {
         return optionScope;
       }

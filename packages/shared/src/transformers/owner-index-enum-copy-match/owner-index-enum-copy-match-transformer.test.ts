@@ -2,12 +2,11 @@ import { OwnerIndexEnumStub } from '../../contracts/owner-index-enum/owner-index
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { ownerIndexEnumCopyMatchTransformer } from './owner-index-enum-copy-match-transformer';
 
-const alpha = PackageNameStub({ value: '@repo/alpha' });
-const shared = PackageNameStub({ value: '@repo/shared' });
-const stranger = PackageNameStub({ value: '@repo/stranger' });
+const alpha = '@repo/alpha';
+const shared = '@repo/shared';
+const stranger = '@repo/stranger';
 
 const statusEnum = OwnerIndexEnumStub({
   ownerName: 'QuestStatus',

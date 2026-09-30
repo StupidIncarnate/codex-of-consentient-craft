@@ -1,16 +1,15 @@
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractIndexFromSourcesTransformer } from './contract-index-from-sources-transformer';
 
 const rootDir = '/repo';
 const alphaDir = '/repo/packages/alpha';
 const betaDir = '/repo/packages/beta';
 const alphaPackage = ContractIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/alpha' }),
+  name: '@repo/alpha',
   dir: alphaDir,
 });
 const betaPackage = ContractIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/beta' }),
+  name: '@repo/beta',
   dir: betaDir,
 });
 

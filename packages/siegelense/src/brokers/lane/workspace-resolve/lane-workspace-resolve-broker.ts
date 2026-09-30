@@ -19,8 +19,8 @@
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { packageJsonContract, packageNameContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName, PackageType } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
+import type { PackageType } from '@dungeonmaster/shared/contracts';
 
 import { LaneWorkspaceNoneMatchedError } from '../../../errors/lane-workspace-none-matched/lane-workspace-none-matched-error';
 import { LaneWorkspaceSeveralMatchedError } from '../../../errors/lane-workspace-several-matched/lane-workspace-several-matched-error';
@@ -31,7 +31,7 @@ export const laneWorkspaceResolveBroker = async ({
 }: {
   repoRoot: string;
   packageType: PackageType;
-}): Promise<PackageName> => {
+}): Promise<string> => {
   const packagesDirPath = join(repoRoot, 'packages');
   const packageDirs = readdirEntriesSync(packagesDirPath).filter(
     (entry) => entry.kind === 'directory',
@@ -52,7 +52,7 @@ export const laneWorkspaceResolveBroker = async ({
       const packageJson = packageJsonContract.parse(
         JSON.parse(readFileSync(packageJsonPath)) as unknown,
       );
-      return packageNameContract.parse(String(packageJson.name));
+      return String(packageJson.name);
     });
 
   if (matches.length === 0) {

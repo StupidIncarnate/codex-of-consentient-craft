@@ -14,19 +14,18 @@
  * // on every read after (including the next one) until markScaffolded runs again
  */
 
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 // A mutable container property, not a bare `let` — `init-declarations` demands a `let` be
 // initialized and `no-undef-init` forbids initializing one to literal `undefined`; a property on a
 // `const` object answers to neither rule.
-const pending: { recipesPackageName: PackageName | undefined } = { recipesPackageName: undefined };
+const pending: { recipesPackageName: string | undefined } = { recipesPackageName: undefined };
 
 export const recipesScaffoldState = {
-  markScaffolded: ({ recipesPackageName }: { recipesPackageName: PackageName }): void => {
+  markScaffolded: ({ recipesPackageName }: { recipesPackageName: string }): void => {
     pending.recipesPackageName = recipesPackageName;
   },
 
-  consumeScaffolded: (): { recipesPackageName: PackageName | undefined } => {
+  consumeScaffolded: (): { recipesPackageName: string | undefined } => {
     const { recipesPackageName } = pending;
     pending.recipesPackageName = undefined;
     return { recipesPackageName };

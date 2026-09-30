@@ -1,10 +1,9 @@
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
 import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractFileFindLayerTransformer } from './contract-file-find-layer-transformer';
 
 const sharedPackage = ContractIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/shared' }),
+  name: '@repo/shared',
   dir: '/repo/packages/shared',
 });
 const importer = '/repo/packages/other/src/a.ts';

@@ -16,7 +16,7 @@
  */
 
 import { packageGraphEntryContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   dependencyGraphAdjacencyBuildTransformer,
   dependencyGraphTopologicalOrderTransformer,
@@ -75,7 +75,7 @@ export const PrepareQuestPackageGraphLayerResponder = async ({
 
   // Manifests speak npm names; every tag, entry and operation item speaks the directory name. This
   // is the only place the two meet.
-  const dirNameByNpmName = new Map<unknown, PackageName>();
+  const dirNameByNpmName = new Map<unknown, string>();
   for (const manifest of manifests) {
     if (manifest.npmName !== undefined) {
       dirNameByNpmName.set(manifest.npmName, manifest.name);

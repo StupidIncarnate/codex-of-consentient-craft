@@ -25,7 +25,6 @@ import { z } from '#gateway/npm/zod';
 
 import { flowNodeTypeContract } from '../flow-node-type/flow-node-type-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 
 export const flowNodeContract = z
   .object({
@@ -33,7 +32,7 @@ export const flowNodeContract = z
     label: z.string().min(1).brand<'FlowNodeLabel'>(),
     type: flowNodeTypeContract,
     packages: z
-      .array(packageNameContract)
+      .array(z.string().min(1).brand<'FlowNodePackages'>())
       .min(1)
       .describe(
         "The packages this node lands in, every one of them also present in quest.packagesAffected. Authored with the node, because the observables that would hint at it do not exist yet. A node carrying more than one is a seam: it spans a package boundary, and it owns the glue verification units no single-package slice can. This list is what routes a node's terminal and branch units, which carry no observable to read a package from.",

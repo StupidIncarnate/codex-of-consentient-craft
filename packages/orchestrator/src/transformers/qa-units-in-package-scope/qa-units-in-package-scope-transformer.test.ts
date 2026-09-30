@@ -3,7 +3,6 @@ import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-nod
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
@@ -18,10 +17,10 @@ const TRACKS = Object.keys(stepScopeStatics.byFamilyStep) as StepFamily[];
 
 // Two packages of DIFFERENT kinds, so a narrowing that keyed on kind could be told from one that
 // keys on name: `ui-app` is browser-reachable and `api-service` is not.
-const UI_PACKAGE = PackageNameStub({ value: 'ui-app' });
-const API_PACKAGE = PackageNameStub({ value: 'api-service' });
-const GHOST_PACKAGE = PackageNameStub({ value: 'ghost-package' });
-const UNUSED_PACKAGE = PackageNameStub({ value: 'unused-package' });
+const UI_PACKAGE = 'ui-app';
+const API_PACKAGE = 'api-service';
+const GHOST_PACKAGE = 'ghost-package';
+const UNUSED_PACKAGE = 'unused-package';
 
 const PACKAGES_AFFECTED = [
   QuestPackageEntryStub({

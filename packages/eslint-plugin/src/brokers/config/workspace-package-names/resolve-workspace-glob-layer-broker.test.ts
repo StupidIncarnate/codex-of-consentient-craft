@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { resolveWorkspaceGlobLayerBroker } from './resolve-workspace-glob-layer-broker';
 import { resolveWorkspaceGlobLayerBrokerProxy } from './resolve-workspace-glob-layer-broker.proxy';
 
@@ -11,11 +10,11 @@ describe('resolveWorkspaceGlobLayerBroker', () => {
       proxy.setupGlobDirectories({ basePath, dirNames: ['orchestrator', 'server'] });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/orchestrator',
-        name: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+        name: '@dungeonmaster/orchestrator',
       });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/server',
-        name: PackageNameStub({ value: '@dungeonmaster/server' }),
+        name: '@dungeonmaster/server',
       });
 
       const result = resolveWorkspaceGlobLayerBroker({ rootDir, glob: 'packages/*' });
@@ -40,7 +39,7 @@ describe('resolveWorkspaceGlobLayerBroker', () => {
       proxy.setupGlobDirectories({ basePath, dirNames: ['orchestrator', 'scratch'] });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/orchestrator',
-        name: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+        name: '@dungeonmaster/orchestrator',
       });
       proxy.setupMemberNoPackageJson({
         memberDir: '/repo/packages/scratch',
@@ -58,7 +57,7 @@ describe('resolveWorkspaceGlobLayerBroker', () => {
       proxy.setupGlobDirectories({ basePath, dirNames: ['orchestrator', 'broken'] });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/orchestrator',
-        name: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+        name: '@dungeonmaster/orchestrator',
       });
       proxy.setupMemberInvalidPackageJson({
         memberDir: '/repo/packages/broken',
@@ -77,7 +76,7 @@ describe('resolveWorkspaceGlobLayerBroker', () => {
       proxy.setupGlobDirectories({ basePath, dirNames: ['orchestrator', 'unnamed'] });
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/orchestrator',
-        name: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+        name: '@dungeonmaster/orchestrator',
       });
       proxy.setupMemberInvalidPackageJson({
         memberDir: '/repo/packages/unnamed',
@@ -96,7 +95,7 @@ describe('resolveWorkspaceGlobLayerBroker', () => {
       const rootDir = '/repo';
       proxy.setupMemberPackageJson({
         memberDir: '/repo/packages/single',
-        name: PackageNameStub({ value: '@dungeonmaster/single' }),
+        name: '@dungeonmaster/single',
       });
 
       const result = resolveWorkspaceGlobLayerBroker({ rootDir, glob: 'packages/single' });

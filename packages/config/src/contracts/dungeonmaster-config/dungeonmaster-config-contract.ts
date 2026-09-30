@@ -38,7 +38,7 @@ export const dungeonmasterConfigContract = z
         overrides: z
           .record(
             z.string().brand<'FolderName'>(),
-            z.object({ add: z.array(z.string().brand<'PackageName'>()).optional() }),
+            z.object({ add: z.array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>()).optional() }),
           )
           .optional(),
         allowedRootFiles: z.array(z.string().brand<'DungeonmasterConfigArchitectureAllowedRootFiles'>()).optional(),

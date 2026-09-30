@@ -22,12 +22,11 @@
  * repoScopeResolveBroker({ startDir: filePathContract.parse(__dirname) });
  * // Returns '@dungeonmaster' as branded PackageName, read from the repo root package.json's name
  */
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 
-export const repoScopeResolveBroker = ({ startDir }: { startDir: string }): PackageName => {
+export const repoScopeResolveBroker = ({ startDir }: { startDir: string }): string => {
   const packageJsonPath = `${startDir}/package.json`;
 
   if (existsSync(packageJsonPath)) {

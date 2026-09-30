@@ -2,7 +2,6 @@ import { laneWorkspaceResolveBroker } from './lane-workspace-resolve-broker';
 import { laneWorkspaceResolveBrokerProxy } from './lane-workspace-resolve-broker.proxy';
 import type { LaneWorkspaceNoneMatchedError } from '../../../errors/lane-workspace-none-matched/lane-workspace-none-matched-error';
 import { LaneWorkspaceSeveralMatchedError } from '../../../errors/lane-workspace-several-matched/lane-workspace-several-matched-error';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 describe('laneWorkspaceResolveBroker', () => {
   describe('exactly one package answers the kind', () => {
@@ -208,7 +207,7 @@ describe('laneWorkspaceResolveBroker', () => {
         packageType: 'http-backend',
       });
 
-      expect(result).toBe(PackageNameStub({ value: '@dungeonmaster/server' }));
+      expect(result).toBe('@dungeonmaster/server');
     });
   });
 });

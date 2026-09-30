@@ -42,14 +42,7 @@
  */
 
 import { qaChecklistContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
-import type {
-  Flow,
-  PackageGraphEntry,
-  PackageName,
-  QaChecklist,
-  Quest,
-  QuestPackageEntry,
-} from '@dungeonmaster/shared/contracts';
+import type { Flow, PackageGraphEntry, QaChecklist, Quest, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import {
   qaCheckSurfaceStatics,
   qaChecklistLimitsStatics,
@@ -71,7 +64,7 @@ export const qaChecklistBuildTransformer = ({
   // unanswerable without the quest holding them — and passing a track without one asks for one.
   quest?: Quest;
   packagesAffected?: readonly QuestPackageEntry[];
-  packageNames?: readonly PackageName[];
+  packageNames?: readonly string[];
   packageGraph?: readonly PackageGraphEntry[];
 }): QaChecklist => {
   // The unit's own fields (anchors, source text) are spread in and `qaChecklistItem`'s

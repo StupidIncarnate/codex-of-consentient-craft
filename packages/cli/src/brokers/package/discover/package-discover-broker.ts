@@ -14,8 +14,8 @@
 
 import { join } from '#gateway/node/path';
 import { existsSync, readdirSync } from '#gateway/node/fs';
-import { packageNameContract, fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName, FileName } from '@dungeonmaster/shared/contracts';
+import { fileNameContract } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 // A directory directly under `packages/` whose name starts with `@` is a scope/group folder, not
 // a package itself — the same nesting `node_modules/@scope/name` uses. Its children are the real
@@ -28,7 +28,7 @@ export const packageDiscoverBroker = ({
   dungeonmasterRoot,
 }: {
   dungeonmasterRoot: string;
-}): { packageName: PackageName; installPath: string; finalizeInstallPath: string | null }[] => {
+}): { packageName: string; installPath: string; finalizeInstallPath: string | null }[] => {
   const monorepoPackagesDir = join(dungeonmasterRoot, 'packages');
   // A published install has no `packages/` folder to find: `cli-entry.ts` computes
   // `dungeonmasterRoot` as four directories above the running bin, which lands on the monorepo
@@ -56,7 +56,7 @@ export const packageDiscoverBroker = ({
   }
 
   const packagesWithInstallers: {
-    packageName: PackageName;
+    packageName: string;
     installPath: string;
     finalizeInstallPath: string | null;
   }[] = [];
@@ -78,7 +78,7 @@ export const packageDiscoverBroker = ({
         : null;
 
     if (installDir) {
-      const packageName = packageNameContract.parse(`@dungeonmaster/${packageDirName}`);
+      const packageName = `@dungeonmaster/${packageDirName}`;
       const finalizeCandidatePath = join(installDir, INSTALL_FINALIZE_FILENAME);
       const finalizeInstallPath = existsSync(finalizeCandidatePath)
         ? finalizeCandidatePath

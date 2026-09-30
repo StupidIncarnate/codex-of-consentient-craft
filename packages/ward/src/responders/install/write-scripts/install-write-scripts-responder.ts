@@ -7,7 +7,7 @@
  * // Merges missing ward scripts into package.json, or skips if all present / no package.json
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
@@ -26,24 +26,24 @@ export const InstallWriteScriptsResponder = async ({
   const packageJsonPath = `${context.targetProjectRoot}/${PACKAGE_JSON_FILENAME}`;
 
   if (!existsSync(packageJsonPath)) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
       message: installMessageContract.parse('No package.json found'),
-    };
+    });
   }
 
   const packageJsonContent = await readFile(packageJsonPath);
   const parsedPackageJson = packageJsonContract.safeParse(JSON.parse(packageJsonContent));
 
   if (!parsedPackageJson.success) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
       message: installMessageContract.parse('Invalid package.json'),
-    };
+    });
   }
 
   const existingScripts = parsedPackageJson.data.scripts ?? {};
@@ -53,12 +53,12 @@ export const InstallWriteScriptsResponder = async ({
   );
 
   if (Object.keys(scriptsToAdd).length === 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
       message: installMessageContract.parse('All ward scripts already present'),
-    };
+    });
   }
 
   // Keep existing scripts untouched; only append the missing ward scripts.
@@ -71,10 +71,10 @@ export const InstallWriteScriptsResponder = async ({
   const contents = jsonFileContentsTransformer({ value: updatedPackageJson });
   await writeFile(packageJsonPath, contents);
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
     message: installMessageContract.parse('Added ward scripts to package.json'),
-  };
+  });
 };

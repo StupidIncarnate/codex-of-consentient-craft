@@ -14,11 +14,9 @@
  * WHEN-TO-USE: When the session-snippet hook needs dynamic packages content at runtime
  */
 
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { cwd } from '#gateway/node/process';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 const SINGLE_ROOT_FALLBACK_PACKAGE_NAME = 'root';
 
@@ -42,7 +40,7 @@ export const HookSessionSnippetPackagesResponder = ({
   const resolvedProjectRoot = projectRoot ?? cwd();
   const packagesDir = `${String(resolvedProjectRoot)}/packages`;
 
-  let packages: PackageName[] = [packageNameContract.parse(SINGLE_ROOT_FALLBACK_PACKAGE_NAME)];
+  let packages: string[] = [SINGLE_ROOT_FALLBACK_PACKAGE_NAME];
   try {
     const topLevelEntries = readdirEntriesSync(packagesDir).filter(
       (entry) => entry.kind === 'directory',
@@ -67,7 +65,7 @@ export const HookSessionSnippetPackagesResponder = ({
 
     // readdir order is filesystem-dependent, so sort here or the snippet reshuffles between machines.
     const dirs = names
-      .map((name) => packageNameContract.parse(name))
+      .map((name) => name)
       .sort((a, b) => String(a).localeCompare(String(b)));
     if (dirs.length > 0) {
       packages = dirs;

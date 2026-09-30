@@ -7,7 +7,6 @@
  * ownerIndexImportSourceTransformer({ ownerFilePath, ownerPackageName, filePath, packageName });
  * // Returns '../quest/quest-contract' in one package, '@repo/shared/contracts' across two
  */
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 const CONTRACTS_SUBPATH = 'contracts';
 const EXTENSION = /\.tsx?$/u;
@@ -19,9 +18,9 @@ export const ownerIndexImportSourceTransformer = ({
   packageName,
 }: {
   ownerFilePath: string;
-  ownerPackageName: PackageName;
+  ownerPackageName: string;
   filePath: string;
-  packageName: PackageName;
+  packageName: string;
 }): string => {
   if (ownerPackageName !== packageName) {
     return `${ownerPackageName}/${CONTRACTS_SUBPATH}`;

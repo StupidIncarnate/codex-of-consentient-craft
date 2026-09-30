@@ -15,7 +15,6 @@
  * // Returns the parsed shape; unrecognized fields pass through untouched
  */
 import { z } from '#gateway/npm/zod';
-import { packageNameContract } from '@dungeonmaster/shared/contracts';
 
 const gatewayImportsTargetContract = z.union([
   z.string().brand<'GatewayImportsTarget'>(),
@@ -31,12 +30,12 @@ const gatewayImportsTargetContract = z.union([
 
 export const gatewayConsumerPackageJsonContract = z
   .object({
-    name: packageNameContract,
+    name: z.string().min(1).brand<'GatewayConsumerPackageJsonName'>(),
     imports: z
       .record(z.string().brand<'GatewayImportsSpecifier'>(), gatewayImportsTargetContract)
       .optional(),
-    dependencies: z.record(packageNameContract, z.string().brand<'DepVersion'>()).optional(),
-    devDependencies: z.record(packageNameContract, z.string().brand<'DepVersion'>()).optional(),
+    dependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDependencies'>(), z.string().brand<'DepVersion'>()).optional(),
+    devDependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDevDependencies'>(), z.string().brand<'DepVersion'>()).optional(),
   })
   .loose();
 

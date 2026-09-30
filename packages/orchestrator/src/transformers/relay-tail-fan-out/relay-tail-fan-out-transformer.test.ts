@@ -2,7 +2,6 @@ import { FlowIdStub } from '@dungeonmaster/shared/contracts/flow-id/flow-id.stub
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -429,7 +428,7 @@ describe('relayTailFanOutTransformer', () => {
           questFlowSliceTransformer({
             quest,
             flowId: FlowIdStub({ value: String(slice.flowIds[0]) }),
-            packageName: PackageNameStub({ value: String(slice.packageNames[0]) }),
+            packageName: String(slice.packageNames[0]),
           }),
         )
           .split('\n')

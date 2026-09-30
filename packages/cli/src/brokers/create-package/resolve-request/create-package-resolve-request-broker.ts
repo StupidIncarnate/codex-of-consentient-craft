@@ -17,8 +17,8 @@
  * // Returns a CreatePackageRequest with packageName '@acme/widgets' and directoryName 'widgets'
  */
 
-import { packageNameContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName, PackageType } from '@dungeonmaster/shared/contracts';
+import { packageTypeContract } from '@dungeonmaster/shared/contracts';
+import type { PackageType } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import { getStdin, stdout } from '#gateway/node/process';
 import { question } from '#gateway/node/readline';
@@ -61,7 +61,7 @@ export const createPackageResolveRequestBroker = async ({
     throw new Error('Package name is required.');
   }
 
-  const name = packageNameContract.parse(nameAnswer);
+  const name = nameAnswer;
 
   if (name.startsWith('@gateway/')) {
     throw new Error(
@@ -73,11 +73,11 @@ export const createPackageResolveRequestBroker = async ({
 
   const isFullyScoped = name.startsWith('@') && name.includes('/');
   const directoryName: string = (isFullyScoped ? name.slice(name.indexOf('/') + 1) : name);
-  const packageName: PackageName = isFullyScoped
+  const packageName: string = isFullyScoped
     ? name
     : String(scope) === ''
       ? name
-      : packageNameContract.parse(`${scope}/${name}`);
+      : `${scope}/${name}`;
 
   const packageTypeAnswer =
     args.packageType === undefined

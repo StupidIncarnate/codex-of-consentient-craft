@@ -17,8 +17,6 @@ import { ownerIndexPackageContract } from '../../../contracts/owner-index-packag
 import type { OwnerIndexPackage } from '../../../contracts/owner-index-package/owner-index-package-contract';
 import type { OwnerIndex } from '../../../contracts/owner-index/owner-index-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { packageNameContract } from '../../../contracts/package-name/package-name-contract';
-import type { PackageName } from '../../../contracts/package-name/package-name-contract';
 import { ownerIndexFromSourcesTransformer } from '../../../transformers/owner-index-from-sources/owner-index-from-sources-transformer';
 import { contractIndexBuildBroker } from '../../contract-index/build/contract-index-build-broker';
 
@@ -34,7 +32,7 @@ export const ownerIndexBuildBroker = ({ rootDir }: { rootDir: string }): OwnerIn
 
   const entries = contractIndexBuildBroker({ rootDir });
 
-  const dirsByName = new Map<PackageName, string>();
+  const dirsByName = new Map<string, string>();
   for (const { filePath, packageName } of entries) {
     const sourceIndex = filePath.indexOf(SOURCE_FOLDER);
     if (sourceIndex > 0) {
@@ -46,7 +44,7 @@ export const ownerIndexBuildBroker = ({ rootDir }: { rootDir: string }): OwnerIn
     const parsed = packageJsonContract.safeParse(readJsonFileSyncIfExists(`${dir}/package.json`));
     const dependencies = parsed.success
       ? Object.keys(parsed.data.dependencies ?? {})
-          .map((dependency) => packageNameContract.parse(dependency))
+          .map((dependency) => dependency)
           .filter((dependency) => dirsByName.has(dependency))
       : [];
     return ownerIndexPackageContract.parse({ name, dir, dependencies });

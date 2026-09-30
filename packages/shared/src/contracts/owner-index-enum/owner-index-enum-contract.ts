@@ -13,13 +13,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 
 export const ownerIndexEnumContract = z.object({
   ownerName: z.string().brand<'OwnerIndexEnumOwnerName'>(),
   contractName: z.string().brand<'OwnerIndexEnumContractName'>(),
   filePath: absoluteFilePathContract,
-  packageName: packageNameContract,
+  packageName: z.string().min(1).brand<'OwnerIndexEnumPackageName'>(),
   key: z.string().brand<'OwnerIndexEnumKey'>().optional(),
   values: z.array(z.string().brand<'OwnerIndexEnumValues'>()),
 });

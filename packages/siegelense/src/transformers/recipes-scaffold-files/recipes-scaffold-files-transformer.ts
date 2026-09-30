@@ -30,7 +30,6 @@
  * // a proxy and a unit test)
  */
 
-import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -50,7 +49,7 @@ export const recipesScaffoldFilesTransformer = ({
   packageName,
   scope,
 }: {
-  packageName: PackageName;
+  packageName: string;
   scope?: string;
 }): readonly RecipesScaffoldFile[] => {
   const packageJson = {

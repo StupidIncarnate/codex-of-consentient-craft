@@ -12,7 +12,7 @@
  * // Scaffolds the gateway, wires every existing package into it, or reports what was already done
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -44,12 +44,12 @@ export const InstallSetupGatewayResponder = async ({
   const rootPackageJsonPath = join(context.targetProjectRoot, 'package.json');
 
   if (!existsSync(rootPackageJsonPath)) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
+    return installResultContract.parse({
+      packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
       message: installMessageContract.parse('No package.json found'),
-    };
+    });
   }
 
   const rawRootPackageJson = await readFile(rootPackageJsonPath);
@@ -162,10 +162,10 @@ export const InstallSetupGatewayResponder = async ({
     `set gateway-dist in tsconfig.build.json of ${String(updatedBuildTsconfigCount)} existing package(s)`,
   ];
 
-  return {
-    packageName: packageNameContract.parse(PACKAGE_NAME),
+  return installResultContract.parse({
+    packageName: PACKAGE_NAME,
     success: true,
     action: anyChange ? 'created' : 'skipped',
     message: installMessageContract.parse(messageParts.join('; ')),
-  };
+  });
 };

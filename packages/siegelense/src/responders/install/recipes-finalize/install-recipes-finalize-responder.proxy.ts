@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { installProxy } from '#gateway/bin/npm/install/install.proxy';
 import { runBuildProxy } from '#gateway/bin/npm/run-build/run-build.proxy';
@@ -45,7 +44,7 @@ export const InstallRecipesFinalizeResponderProxy = (): {
     // and win, per registerMock's most-recent-wins rule.
     setupScaffolded: ({ recipesPackageName }: { recipesPackageName?: string } = {}): void => {
       recipesStateProxy.setupEmpty();
-      const packageName = PackageNameStub({ value: recipesPackageName ?? DEFAULT_WORKSPACE });
+      const packageName = (recipesPackageName ?? DEFAULT_WORKSPACE);
       recipesScaffoldState.markScaffolded({ recipesPackageName: packageName });
 
       installGatewayProxy.setupResult({ exitCode: 0, output: '' });

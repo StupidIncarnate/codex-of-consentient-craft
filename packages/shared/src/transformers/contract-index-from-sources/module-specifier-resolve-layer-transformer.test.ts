@@ -1,14 +1,13 @@
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
 import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
-import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { moduleSpecifierResolveLayerTransformer } from './module-specifier-resolve-layer-transformer';
 
 const sharedPackage = ContractIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/shared' }),
+  name: '@repo/shared',
   dir: '/repo/packages/shared',
 });
 const sharedExtraPackage = ContractIndexPackageStub({
-  name: PackageNameStub({ value: '@repo/shared-extra' }),
+  name: '@repo/shared-extra',
   dir: '/repo/packages/shared-extra',
 });
 

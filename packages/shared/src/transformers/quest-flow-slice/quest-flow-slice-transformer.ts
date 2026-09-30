@@ -26,7 +26,6 @@
  * cheapest section here and the one no reader can re-derive.
  */
 
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { Quest } from '../../contracts/quest/quest-contract';
 import { questFlowSliceLimitsStatics } from '../../statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
@@ -53,7 +52,7 @@ export const questFlowSliceTransformer = ({
   flowId?: Flow['id'] | undefined;
   // The package whose half of the flow is the reader's. Omitted, every node is theirs and every
   // observable renders verbatim — the flowrider / siegemaster / reviewer view.
-  packageName?: PackageName | undefined;
+  packageName?: string | undefined;
 }): string => {
   const flow =
     flowId === undefined

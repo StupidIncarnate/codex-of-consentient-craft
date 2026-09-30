@@ -18,7 +18,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from '#gatew
 import { Group } from '#gateway/npm/mantine__core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut } from '#gateway/npm/tabler__icons-react';
 
-import type { Flow, FlowNode, FlowObservable, PackageName, PackageType, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
+import type { Flow, FlowNode, FlowObservable, PackageType, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutBroker } from '../../brokers/elk/layout/elk-layout-broker';
 import { FlowEdgeWidget } from '../flow-edge/flow-edge-widget';
@@ -254,7 +254,7 @@ export const ReactFlowDiagramWidget = ({
     // per layout rather than by each card. Nothing keys off the package NAME: this same diagram
     // renders quests from repos whose packages it has never seen, and a repo may hold several UI
     // packages that must all read alike.
-    const packageTypeByName = new Map<PackageName, PackageType>(
+    const packageTypeByName = new Map<string, PackageType>(
       packagesAffected.map((entry) => [entry.name, entry.packageType]),
     );
 

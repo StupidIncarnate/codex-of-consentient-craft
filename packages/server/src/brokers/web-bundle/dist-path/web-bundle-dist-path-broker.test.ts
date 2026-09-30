@@ -1,4 +1,3 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { webBundleDistPathBroker } from './web-bundle-dist-path-broker';
 import { webBundleDistPathBrokerProxy } from './web-bundle-dist-path-broker.proxy';
@@ -9,7 +8,7 @@ describe('webBundleDistPathBroker', () => {
     proxy.bundleExists();
 
     const result = webBundleDistPathBroker({
-      packageName: PackageNameStub({ value: '@dungeonmaster/web' }),
+      packageName: '@dungeonmaster/web',
     });
 
     expect(result).toMatch(/^\/[^\s]+\/web\/dist$/u);
@@ -20,7 +19,7 @@ describe('webBundleDistPathBroker', () => {
     proxy.bundleMissing();
 
     const result = webBundleDistPathBroker({
-      packageName: PackageNameStub({ value: '@dungeonmaster/web' }),
+      packageName: '@dungeonmaster/web',
     });
 
     expect(result).toBe(null);
@@ -31,7 +30,7 @@ describe('webBundleDistPathBroker', () => {
     proxy.bundleExists();
 
     const result = webBundleDistPathBroker({
-      packageName: PackageNameStub({ value: '@dungeonmaster/nonexistent-test-package' }),
+      packageName: '@dungeonmaster/nonexistent-test-package',
     });
 
     expect(result).toBe(null);

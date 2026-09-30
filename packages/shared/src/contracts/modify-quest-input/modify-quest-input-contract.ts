@@ -44,7 +44,6 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationPlanContract } from '../operation-plan/operation-plan-contract';
-import { packageNameContract } from '../package-name/package-name-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
@@ -96,7 +95,7 @@ const questNoteForUpsertContract = questNoteContract
 const operationPlanForUpsertContract = operationPlanContract.extend({ at: serverStampedTimestamp });
 
 const fullFlowObservable = flowObservableContract.extend({
-  package: packageNameContract
+  package: z.string().min(1).brand<'FullFlowObservablePackage'>()
     .optional()
     .describe(
       'The package this observable is read in. Omit it when the owning node tags exactly one package — the save resolves it from the node. On a node tagging more than one there is nothing to inherit and the omission is refused, so state which side of the seam this one sits on.',

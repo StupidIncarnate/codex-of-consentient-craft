@@ -21,7 +21,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
-import type { OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, Quest } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
@@ -60,7 +60,7 @@ export const familyScopesMintTransformer = ({
   // Every package the quest's spine is tagged with, first-tagged order, deduplicated — the fallback
   // for a slice that names none of its own. Nobody authored these scopes, so the node tags are the
   // only statement of where the work lands.
-  const spinePackages = new Map<unknown, PackageName>();
+  const spinePackages = new Map<unknown, string>();
   for (const flow of quest.flows) {
     for (const node of flow.nodes) {
       for (const packageName of node.packages) {

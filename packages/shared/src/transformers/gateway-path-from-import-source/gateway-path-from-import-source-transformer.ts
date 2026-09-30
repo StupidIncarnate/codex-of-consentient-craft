@@ -19,8 +19,6 @@
  * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: '@modelcontextprotocol/sdk/types.js' }) });
  * // Returns '#gateway/npm/modelcontextprotocol__sdk__types' as branded PackageName
  */
-import { packageNameContract } from '../../contracts/package-name/package-name-contract';
-import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 import { gatewayLocationsStatics } from '../../statics/gateway-locations/gateway-locations-statics';
 
@@ -34,7 +32,7 @@ export const gatewayPathFromImportSourceTransformer = ({
 }: {
   importSource: ImportPath;
   builtinModules: readonly string[];
-}): PackageName => {
+}): string => {
   const bareModule = importSource.startsWith(NODE_PREFIX)
     ? importSource.slice(NODE_PREFIX.length)
     : importSource;
@@ -52,7 +50,5 @@ export const gatewayPathFromImportSourceTransformer = ({
     ? gatewayLocationsStatics.folders.node
     : gatewayLocationsStatics.folders.npm;
 
-  return packageNameContract.parse(
-    `${gatewayLocationsStatics.importPrefix}/${gatewayFolder}/${folderName}`,
-  );
+  return `${gatewayLocationsStatics.importPrefix}/${gatewayFolder}/${folderName}`;
 };
