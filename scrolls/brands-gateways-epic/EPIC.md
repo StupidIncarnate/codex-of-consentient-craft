@@ -129,11 +129,11 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:23, machine clock)
+### Now (updated at every event; last 2026-09-30 12:24, machine clock)
 
 | Running | Where |
 |---|---|
-| Z10 USAGE comment sweep (sonnet) | gateway-pivot checkout |
+| Z10 USAGE comment sweep (sonnet): sweep applied (460 files changed, uncommitted), hand queue and gates in progress | gateway-pivot checkout |
 
 **MASTER IS MERGED INTO gateway-pivot.** Whole-tree ward on the merged tree, run 1790795085930-be73 (1,096 s): lint
 11,511, typecheck 11,477, unit 4,176, integration 230, e2e 131, all green (exit 1 only on slow-lint flags, rule 21).
