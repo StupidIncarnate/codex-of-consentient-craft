@@ -438,7 +438,6 @@ export * from './orchestration-mode/orchestration-mode-contract';
 // Typed CWD Brand Contracts (Layer 3 — Stroustrup locations)
 export * from './repo-root-cwd/repo-root-cwd-contract';
 
-export * from './project-root-cwd/project-root-cwd-contract';
 
 
 
