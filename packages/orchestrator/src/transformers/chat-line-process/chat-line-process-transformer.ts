@@ -36,7 +36,6 @@ import {
   normalizedStreamLineContract,
   type NormalizedStreamLine,
 } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import type { TaskAgentToolPrompt } from '../../contracts/task-agent-tool-prompt/task-agent-tool-prompt-contract';
 import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
 import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 import { streamJsonToChatEntryTransformer } from '../stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
@@ -70,7 +69,7 @@ export const chatLineProcessTransformer = ({
   // can also register the parent-chain link for nested grouping.
   const outstandingTasks = new Map<
     ToolUseId,
-    { prompt: TaskAgentToolPrompt; containerChainKey: Agent['id'] | undefined }
+    { prompt: string; containerChainKey: Agent['id'] | undefined }
   >();
 
   return {
@@ -79,7 +78,7 @@ export const chatLineProcessTransformer = ({
       prompt,
     }: {
       agentId: Agent['id'];
-      prompt: TaskAgentToolPrompt;
+      prompt: string;
     }): boolean => {
       if (reverseAgentIdMap.has(realAgentId)) {
         return true;

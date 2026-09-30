@@ -25,7 +25,6 @@
 
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';
 import type { ChatLineSource } from '../chat-line-source/chat-line-source-contract';
-import type { TaskAgentToolPrompt } from '../task-agent-tool-prompt/task-agent-tool-prompt-contract';
 import type { ToolUseId } from '../tool-use-id/tool-use-id-contract';
 import type { Agent } from '@dungeonmaster/shared/contracts';
 
@@ -93,6 +92,6 @@ export interface ChatLineProcessor {
     prompt,
   }: {
     agentId: Agent['id'];
-    prompt: TaskAgentToolPrompt;
+    prompt: string;
   }) => boolean;
 }

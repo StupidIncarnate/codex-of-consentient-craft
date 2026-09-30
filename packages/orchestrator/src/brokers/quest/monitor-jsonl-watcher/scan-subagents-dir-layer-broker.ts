@@ -23,7 +23,6 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import { taskAgentToolPromptContract } from '../../../contracts/task-agent-tool-prompt/task-agent-tool-prompt-contract';
 import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 
@@ -118,7 +117,7 @@ export const scanSubagentsDirLayerBroker = async ({
         if (typeof content !== 'string' || content.length === 0) return;
         const paired = processor.pairSubagentByPrompt({
           agentId,
-          prompt: taskAgentToolPromptContract.parse(content),
+          prompt: content,
         });
         if (!paired) return;
         startSubagentTailLayerBroker({ agentId, ...tailArgs });

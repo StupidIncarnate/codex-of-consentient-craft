@@ -13,7 +13,6 @@ import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-str
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
-import { TaskAgentToolPromptStub } from '../../contracts/task-agent-tool-prompt/task-agent-tool-prompt.stub';
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from './chat-line-process-transformer';
 import { chatLineProcessTransformerProxy } from './chat-line-process-transformer.proxy';
@@ -1683,7 +1682,7 @@ describe('chatLineProcessTransformer', () => {
 
       const paired = processor.pairSubagentByPrompt({
         agentId: realAgentId,
-        prompt: TaskAgentToolPromptStub({ value: 'pair me' }),
+        prompt: 'pair me',
       });
 
       expect(paired).toBe(true);
@@ -1698,7 +1697,7 @@ describe('chatLineProcessTransformer', () => {
 
       const paired = processor.pairSubagentByPrompt({
         agentId: realAgentId,
-        prompt: TaskAgentToolPromptStub({ value: 'no such task' }),
+        prompt: 'no such task',
       });
 
       expect(paired).toBe(false);
@@ -1716,7 +1715,7 @@ describe('chatLineProcessTransformer', () => {
 
       const paired = processor.pairSubagentByPrompt({
         agentId: realAgentId,
-        prompt: TaskAgentToolPromptStub({ value: 'whatever' }),
+        prompt: 'whatever',
       });
 
       expect(paired).toBe(true);
@@ -1764,7 +1763,7 @@ describe('chatLineProcessTransformer', () => {
 
       const paired = processor.pairSubagentByPrompt({
         agentId: lateReal,
-        prompt: TaskAgentToolPromptStub({ value: 'finishes fast' }),
+        prompt: 'finishes fast',
       });
 
       expect(paired).toBe(false);
@@ -1821,7 +1820,7 @@ describe('chatLineProcessTransformer', () => {
 
       const paired = processor.pairSubagentByPrompt({
         agentId: realB,
-        prompt: TaskAgentToolPromptStub({ value: 'nested slice B' }),
+        prompt: 'nested slice B',
       });
 
       expect(paired).toBe(true);
