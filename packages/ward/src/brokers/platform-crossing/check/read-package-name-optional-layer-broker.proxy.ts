@@ -1,10 +1,9 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const readPackageNameOptionalLayerBrokerProxy = (): {
-  setupPackageJson: (params: { packageJsonPath: FilePath; name: string }) => void;
-  setupMissing: (params: { packageJsonPath: FilePath }) => void;
-  setupPermissionDenied: (params: { packageJsonPath: FilePath }) => void;
+  setupPackageJson: (params: { packageJsonPath: string; name: string }) => void;
+  setupMissing: (params: { packageJsonPath: string }) => void;
+  setupPermissionDenied: (params: { packageJsonPath: string }) => void;
 } => {
   const fsProxy = readFileProxy();
 
@@ -13,15 +12,15 @@ export const readPackageNameOptionalLayerBrokerProxy = (): {
       packageJsonPath,
       name,
     }: {
-      packageJsonPath: FilePath;
+      packageJsonPath: string;
       name: string;
     }): void => {
       fsProxy.returns({ path: packageJsonPath, contents: JSON.stringify({ name }) });
     },
-    setupMissing: ({ packageJsonPath }: { packageJsonPath: FilePath }): void => {
+    setupMissing: ({ packageJsonPath }: { packageJsonPath: string }): void => {
       fsProxy.missing({ path: packageJsonPath });
     },
-    setupPermissionDenied: ({ packageJsonPath }: { packageJsonPath: FilePath }): void => {
+    setupPermissionDenied: ({ packageJsonPath }: { packageJsonPath: string }): void => {
       fsProxy.denied({ path: packageJsonPath });
     },
   };

@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { CitationGapStub } from '../../../contracts/citation-gap/citation-gap.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -82,9 +81,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
@@ -116,9 +115,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }), entries: [] });
 
@@ -143,9 +142,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
@@ -178,9 +177,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
@@ -224,9 +223,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
@@ -268,9 +267,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
@@ -326,9 +325,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
@@ -381,9 +380,9 @@ describe('pruneInstanceReclaimBroker', () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),

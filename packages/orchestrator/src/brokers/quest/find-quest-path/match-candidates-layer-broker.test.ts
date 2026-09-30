@@ -1,6 +1,5 @@
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -15,7 +14,7 @@ describe('matchCandidatesLayerBroker', () => {
     it('VALID: {one candidate whose file records the id} => returns its folder path and guild id', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
+      const questFilePath = `/home/guilds/${GUILD_A}/quests/q/quest.json`;
 
       proxy.setupCandidateFile({
         questFilePath,
@@ -28,7 +27,7 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
         ],
@@ -44,8 +43,8 @@ describe('matchCandidatesLayerBroker', () => {
     it('VALID: {second candidate carries the id, first does not} => returns the second', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
-      const firstFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/a/quest.json` });
-      const secondFilePath = FilePathStub({ value: `/home/guilds/${GUILD_B}/quests/b/quest.json` });
+      const firstFilePath = `/home/guilds/${GUILD_A}/quests/a/quest.json`;
+      const secondFilePath = `/home/guilds/${GUILD_B}/quests/b/quest.json`;
 
       proxy.setupCandidateFile({
         questFilePath: firstFilePath,
@@ -64,12 +63,12 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath: firstFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/a` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/a`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
           {
             questFilePath: secondFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_B}/quests/b` }),
+            questFolderPath: `/home/guilds/${GUILD_B}/quests/b`,
             guildDirName: FileNameStub({ value: GUILD_B }),
           },
         ],
@@ -85,7 +84,7 @@ describe('matchCandidatesLayerBroker', () => {
     it('VALID: {file carries the id but fails the full questContract} => still returns its path', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
+      const questFilePath = `/home/guilds/${GUILD_A}/quests/q/quest.json`;
       // A hand-edited month-13 createdAt rejects the WHOLE file under questContract. Matching on
       // the id alone is what lets the caller's own load name the bad field, instead of the quest
       // that most needs diagnosing reporting as "not found in any guild".
@@ -103,7 +102,7 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
         ],
@@ -131,7 +130,7 @@ describe('matchCandidatesLayerBroker', () => {
 
     it('VALID: {candidate records a different id} => returns null', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
+      const questFilePath = `/home/guilds/${GUILD_A}/quests/q/quest.json`;
 
       proxy.setupCandidateFile({
         questFilePath,
@@ -144,7 +143,7 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
         ],
@@ -156,7 +155,7 @@ describe('matchCandidatesLayerBroker', () => {
 
     it('ERROR: {candidate file cannot be read} => skips it and returns null', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
+      const questFilePath = `/home/guilds/${GUILD_A}/quests/q/quest.json`;
 
       proxy.setupUnreadableCandidateFile({ questFilePath });
 
@@ -164,7 +163,7 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
         ],
@@ -176,7 +175,7 @@ describe('matchCandidatesLayerBroker', () => {
 
     it('ERROR: {candidate file is not valid JSON} => skips it and returns null', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
+      const questFilePath = `/home/guilds/${GUILD_A}/quests/q/quest.json`;
 
       proxy.setupCandidateFile({
         questFilePath,
@@ -187,7 +186,7 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
         ],
@@ -199,7 +198,7 @@ describe('matchCandidatesLayerBroker', () => {
 
     it('ERROR: {candidate file is JSON with no id} => skips it and returns null', async () => {
       const proxy = matchCandidatesLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
+      const questFilePath = `/home/guilds/${GUILD_A}/quests/q/quest.json`;
 
       proxy.setupCandidateFile({
         questFilePath,
@@ -210,7 +209,7 @@ describe('matchCandidatesLayerBroker', () => {
         candidates: [
           {
             questFilePath,
-            questFolderPath: FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q` }),
+            questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
             guildDirName: FileNameStub({ value: GUILD_A }),
           },
         ],

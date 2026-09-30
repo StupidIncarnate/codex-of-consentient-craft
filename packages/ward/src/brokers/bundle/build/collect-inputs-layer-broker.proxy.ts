@@ -1,5 +1,5 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
@@ -50,7 +50,7 @@ export const collectInputsLayerBrokerProxy = (): {
     // Overrides the name-only manifest setupWorkspaceRoot staged for this package: the closure walk
     // needs the `dependencies` map, and the build-script check needs `scripts`.
     readProxy.returns({
-      path: filePathContract.parse(`${String(packageRoot)}/package.json`),
+      path: `${String(packageRoot)}/package.json`,
       contents: JSON.stringify({
         name,
         scripts: { build: 'vite build' },

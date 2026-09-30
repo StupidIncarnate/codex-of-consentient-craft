@@ -1,13 +1,12 @@
 import { questLoadBroker } from './quest-load-broker';
 import { questLoadBrokerProxy } from './quest-load-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 describe('questLoadBroker', () => {
   describe('valid quest loading', () => {
     it('VALID: {questFilePath: "/quests/quest-1.json"} => parses and returns Quest object', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
+      const questFilePath = '/quests/quest-1.json';
       const questJson = JSON.stringify({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -31,7 +30,7 @@ describe('questLoadBroker', () => {
 
     it('VALID: {questFilePath: "/quests/quest-2.json"} => handles quest with all optional fields', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest-2.json' });
+      const questFilePath = '/quests/quest-2.json';
       const questJson = JSON.stringify({
         id: 'fix-bug',
         folder: '002-fix-bug',
@@ -59,7 +58,7 @@ describe('questLoadBroker', () => {
   describe('invalid quest loading', () => {
     it('ERROR: {questFilePath: "/quests/invalid.json"} => throws error for invalid JSON', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/invalid.json' });
+      const questFilePath = '/quests/invalid.json';
 
       proxy.setupQuestFile({ questJson: '{ invalid json }' });
 
@@ -70,7 +69,7 @@ describe('questLoadBroker', () => {
 
     it('ERROR: {questFilePath: "/quests/missing-fields.json"} => throws error for quest missing required fields', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/missing-fields.json' });
+      const questFilePath = '/quests/missing-fields.json';
       const questJson = JSON.stringify({
         id: 'incomplete',
         // Missing required fields
@@ -85,7 +84,7 @@ describe('questLoadBroker', () => {
 
     it('ERROR: {status: "in-progress"} => throws error naming the offending field and reason', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/bad-status.json' });
+      const questFilePath = '/quests/bad-status.json';
       const questJson = JSON.stringify({
         id: 'bad-status',
         folder: '004-bad-status',
@@ -106,7 +105,7 @@ describe('questLoadBroker', () => {
 
     it('ERROR: {questFilePath: "/missing.json"} => throws error when file does not exist', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/missing.json' });
+      const questFilePath = '/missing.json';
 
       proxy.setupQuestFileReadError({
         error: FsErrorStub({ code: 'ENOENT', path: '/missing.json' }),
@@ -121,7 +120,7 @@ describe('questLoadBroker', () => {
   describe('edge cases', () => {
     it('EDGE: {questFilePath: "/quests/.hidden.json"} => handles hidden files', async () => {
       const proxy = questLoadBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/.hidden.json' });
+      const questFilePath = '/quests/.hidden.json';
       const questJson = JSON.stringify({
         id: 'hidden-quest',
         folder: '003-hidden',

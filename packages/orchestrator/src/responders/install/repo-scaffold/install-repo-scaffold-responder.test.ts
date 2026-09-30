@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallRepoScaffoldResponderProxy } from './install-repo-scaffold-responder.proxy';
 
@@ -11,8 +10,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -36,8 +35,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -62,8 +61,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -85,8 +84,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -112,8 +111,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -139,8 +138,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -164,8 +163,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -189,8 +188,8 @@ describe('InstallRepoScaffoldResponder', () => {
       await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -209,8 +208,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -235,8 +234,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -264,8 +263,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -291,8 +290,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });
@@ -317,8 +316,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await proxy.callResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
           },
         }),
       });

@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -19,9 +18,7 @@ const flushImmediate = async (): Promise<void> =>
 describe('startSubagentTailLayerBroker', () => {
   it('VALID: {subagent JSONL line emitted} => emit fires with chatProcessId, entries (source=subagent), active questId, and sessionId=parentSessionId', async () => {
     const proxy = startSubagentTailLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/sess.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/sess.jsonl';
     const chatProcessId = ProcessIdStub({ value: 'layer-proc-1' });
     const agentId = AgentIdStub({ value: 'layer-agent-1' });
     const parentSessionId = SessionIdStub({ value: 'layer-parent-sess' });
@@ -78,9 +75,7 @@ describe('startSubagentTailLayerBroker', () => {
 
   it('VALID: {agentId already in handles map} => no second tail registered, no emit', async () => {
     const proxy = startSubagentTailLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/sess.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/sess.jsonl';
     const chatProcessId = ProcessIdStub({ value: 'layer-proc-2' });
     const agentId = AgentIdStub({ value: 'layer-agent-2' });
     const parentSessionId = SessionIdStub({ value: 'layer-parent-sess-2' });
@@ -121,9 +116,7 @@ describe('startSubagentTailLayerBroker', () => {
 
   it('VALID: {workItemIdForAgent returns non-null workItemId} => emit carries workItemId', async () => {
     const proxy = startSubagentTailLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/sess.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/sess.jsonl';
     const chatProcessId = ProcessIdStub({ value: 'layer-proc-3' });
     const agentId = AgentIdStub({ value: 'layer-agent-3' });
     const parentSessionId = SessionIdStub({ value: 'layer-parent-sess-3' });
@@ -183,9 +176,7 @@ describe('startSubagentTailLayerBroker', () => {
 
   it('VALID: {sub-agent JSONL line produces agent-detected output} => nested tail registered in handles map and emits its lines', async () => {
     const proxy = startSubagentTailLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/sess.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/sess.jsonl';
     const chatProcessId = ProcessIdStub({ value: 'layer-proc-4' });
     const agentId = AgentIdStub({ value: 'layer-agent-4' });
     const parentSessionId = SessionIdStub({ value: 'layer-parent-sess-4' });

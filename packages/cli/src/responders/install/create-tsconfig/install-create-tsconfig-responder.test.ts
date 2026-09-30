@@ -1,19 +1,19 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallCreateTsconfigResponderProxy } from './install-create-tsconfig-responder.proxy';
 import { tsconfigTemplateStatics } from '../../../statics/tsconfig-template/tsconfig-template-statics';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallCreateTsconfigResponder', () => {
   describe('no existing tsconfig.json', () => {
     it('VALID: {no tsconfig.json} => writes the base-extending tsconfig', async () => {
       const proxy = InstallCreateTsconfigResponderProxy();
 
-      proxy.setupFileNotExists({ filePath: FilePathStub({ value: '/project/tsconfig.json' }) });
+      proxy.setupFileNotExists({ filePath: '/project/tsconfig.json' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -34,13 +34,13 @@ describe('InstallCreateTsconfigResponder', () => {
     it('VALID: {tsconfig.json present} => skips without writing', async () => {
       const proxy = InstallCreateTsconfigResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/tsconfig.json' }) });
+      proxy.setupFileExists({ filePath: '/project/tsconfig.json' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({

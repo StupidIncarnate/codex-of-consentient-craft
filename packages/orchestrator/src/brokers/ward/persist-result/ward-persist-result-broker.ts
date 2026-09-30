@@ -7,7 +7,6 @@
  */
 
 import type { WardResult } from '@dungeonmaster/shared/contracts';
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -19,17 +18,15 @@ export const wardPersistResultBroker = async ({
   wardResultId,
   detailJson,
 }: {
-  questFolderPath: FilePath;
+  questFolderPath: string;
   wardResultId: WardResult['id'];
   detailJson: string;
 }): Promise<void> => {
-  const wardResultsDir = filePathContract.parse(
-    join(questFolderPath, locationsStatics.quest.wardResultsDir),
-  );
+  const wardResultsDir = join(questFolderPath, locationsStatics.quest.wardResultsDir);
 
   await ensureDir(wardResultsDir);
 
-  const filePath = filePathContract.parse(join(wardResultsDir, wardResultId + JSON_EXTENSION));
+  const filePath = join(wardResultsDir, wardResultId + JSON_EXTENSION);
 
   await writeFile(filePath, detailJson);
 };

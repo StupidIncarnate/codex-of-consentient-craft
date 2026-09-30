@@ -6,7 +6,6 @@ import { installRunBroker } from './install-run-broker';
 import { installRunBrokerProxy } from './install-run-broker.proxy';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
@@ -23,18 +22,16 @@ describe('installRunBroker', () => {
 
       // Setup package discover to return packages
       proxy.setupPackageDiscovery({
-        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packagesPath: '/dm/packages',
         packages: [
           {
             name: FileNameStub({ value: 'cli' }),
-            standardPath: FilePathStub({ value: '/dm/packages/cli/dist/startup/start-install.js' }),
+            standardPath: '/dm/packages/cli/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
           {
             name: FileNameStub({ value: 'hooks' }),
-            standardPath: FilePathStub({
-              value: '/dm/packages/hooks/dist/startup/start-install.js',
-            }),
+            standardPath: '/dm/packages/hooks/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
         ],
@@ -54,11 +51,11 @@ describe('installRunBroker', () => {
       module.StartInstall = mockFn;
 
       proxy.setupImport({
-        installPath: FilePathStub({ value: '/dm/packages/cli/dist/startup/start-install.js' }),
+        installPath: '/dm/packages/cli/dist/startup/start-install.js',
         module,
       });
       proxy.setupImport({
-        installPath: FilePathStub({ value: '/dm/packages/hooks/dist/startup/start-install.js' }),
+        installPath: '/dm/packages/hooks/dist/startup/start-install.js',
         module,
       });
 
@@ -93,7 +90,7 @@ describe('installRunBroker', () => {
 
       // Setup package discover to return no packages
       proxy.setupEmptyPackagesDirectory({
-        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packagesPath: '/dm/packages',
       });
 
       const results = await installRunBroker({ context });
@@ -112,21 +109,15 @@ describe('installRunBroker', () => {
         },
       });
 
-      const siegelenseInstallPath = FilePathStub({
-        value: '/dm/packages/siegelense/dist/startup/start-install.js',
-      });
-      const siegelenseFinalizeInstallPath = FilePathStub({
-        value: '/dm/packages/siegelense/dist/startup/start-install-finalize.js',
-      });
-      const laterInstallPath = FilePathStub({
-        value: '/dm/packages/writes-devdeps/dist/startup/start-install.js',
-      });
+      const siegelenseInstallPath = '/dm/packages/siegelense/dist/startup/start-install.js';
+      const siegelenseFinalizeInstallPath = '/dm/packages/siegelense/dist/startup/start-install-finalize.js';
+      const laterInstallPath = '/dm/packages/writes-devdeps/dist/startup/start-install.js';
 
       // siegelense is discovered FIRST — the exact shape of the readdirSync ordering that used to
       // let its inline npm install run before this LATER package's own StartInstall had written
       // its part of the shared root package.json.
       proxy.setupPackageDiscovery({
-        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packagesPath: '/dm/packages',
         packages: [
           {
             name: FileNameStub({ value: 'siegelense' }),

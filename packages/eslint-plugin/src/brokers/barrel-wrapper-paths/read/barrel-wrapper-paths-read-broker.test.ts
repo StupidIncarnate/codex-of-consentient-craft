@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { barrelWrapperPathsReadBroker } from './barrel-wrapper-paths-read-broker';
 import { barrelWrapperPathsReadBrokerProxy } from './barrel-wrapper-paths-read-broker.proxy';
@@ -16,9 +15,7 @@ describe('barrelWrapperPathsReadBroker', () => {
       });
 
       const result = barrelWrapperPathsReadBroker({
-        barrelPath: FilePathStub({
-          value: '/repo/packages/@gateway/node/src/fs__promises/fs__promises.ts',
-        }),
+        barrelPath: '/repo/packages/@gateway/node/src/fs__promises/fs__promises.ts',
       });
 
       expect(Array.from(result.entries())).toStrictEqual([['writeFile', 'write-file/write-file']]);
@@ -39,7 +36,7 @@ describe('barrelWrapperPathsReadBroker', () => {
       proxy.missing({ path: '/repo/packages/shared/src/brokers/brokers.ts' });
 
       const result = barrelWrapperPathsReadBroker({
-        barrelPath: FilePathStub({ value: '/repo/packages/shared/src/brokers/brokers.ts' }),
+        barrelPath: '/repo/packages/shared/src/brokers/brokers.ts',
       });
 
       expect(Array.from(result.entries())).toStrictEqual([]);
@@ -56,7 +53,7 @@ describe('barrelWrapperPathsReadBroker', () => {
       });
 
       const result = barrelWrapperPathsReadBroker({
-        barrelPath: FilePathStub({ value: '/repo/packages/shared/src/brokers/brokers.ts' }),
+        barrelPath: '/repo/packages/shared/src/brokers/brokers.ts',
       });
 
       expect(Array.from(result.entries())).toStrictEqual([]);

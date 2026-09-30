@@ -1,5 +1,4 @@
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, RiftcarverResult } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -12,36 +11,34 @@ const LOG_EXTENSION = '.log';
 // riftcarverPersistResultBroker joins questFolderPath + riftcarverResultsDir +
 // `${riftcarverResultId}.log` through the gateway's own join — this proxy replicates the same
 // join to key the write mock (and the ensureDir stage) on the real resulting addresses.
-const riftcarverResultsDirFor = ({ questFolderPath }: { questFolderPath: FilePath }): FilePath =>
-  filePathContract.parse(`${questFolderPath}/${locationsStatics.quest.riftcarverResultsDir}`);
+const riftcarverResultsDirFor = ({ questFolderPath }: { questFolderPath: string }): string =>
+  `${questFolderPath}/${locationsStatics.quest.riftcarverResultsDir}`;
 
 const logFilePathFor = ({
   questFolderPath,
   riftcarverResultId,
 }: {
-  questFolderPath: FilePath;
+  questFolderPath: string;
   riftcarverResultId: RiftcarverResult['id'];
-}): FilePath =>
-  filePathContract.parse(
-    `${questFolderPath}/${locationsStatics.quest.riftcarverResultsDir}/${String(riftcarverResultId)}${LOG_EXTENSION}`,
-  );
+}): string =>
+  `${questFolderPath}/${locationsStatics.quest.riftcarverResultsDir}/${String(riftcarverResultId)}${LOG_EXTENSION}`;
 
 export const riftcarverPersistResultBrokerProxy = (): {
   setupSuccess: (params: {
-    questFolderPath: FilePath;
+    questFolderPath: string;
     riftcarverResultId: RiftcarverResult['id'];
   }) => void;
   setupWriteFailure: (params: {
-    questFolderPath: FilePath;
+    questFolderPath: string;
     riftcarverResultId: RiftcarverResult['id'];
     error: Error;
   }) => void;
   getWrittenContent: (params: {
-    questFolderPath: FilePath;
+    questFolderPath: string;
     riftcarverResultId: RiftcarverResult['id'];
   }) => unknown;
   getWrittenPath: (params: {
-    questFolderPath: FilePath;
+    questFolderPath: string;
     riftcarverResultId: RiftcarverResult['id'];
   }) => unknown;
   getMkdirPaths: () => readonly unknown[];

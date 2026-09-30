@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
@@ -119,7 +118,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
       proxy.setupMkdirThrows({
-        filepath: FilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules' }),
+        filepath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',
         error: FsErrorStub({
           code: 'EACCES',
           path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',

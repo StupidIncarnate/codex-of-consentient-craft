@@ -4,7 +4,6 @@
 
 import { installExecuteBroker } from './install-execute-broker';
 import { installExecuteBrokerProxy } from './install-execute-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
@@ -14,7 +13,7 @@ describe('installExecuteBroker', () => {
     it('VALID: {packageName, installPath, context} => returns success result when StartInstall succeeds', async () => {
       const proxy = installExecuteBrokerProxy();
       const packageName = PackageNameStub({ value: '@dungeonmaster/cli' });
-      const installPath = FilePathStub({ value: '/path/to/start-install.ts' });
+      const installPath = '/path/to/start-install.ts';
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -52,7 +51,7 @@ describe('installExecuteBroker', () => {
     it('ERROR: {packageName, installPath, context} => returns failed result when runtime has no StartInstall', async () => {
       const proxy = installExecuteBrokerProxy();
       const packageName = PackageNameStub({ value: '@dungeonmaster/test' });
-      const installPath = FilePathStub({ value: '/path/to/invalid.ts' });
+      const installPath = '/path/to/invalid.ts';
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -79,7 +78,7 @@ describe('installExecuteBroker', () => {
     it('ERROR: {packageName, installPath, context} => returns failed result when runtime import fails', async () => {
       const proxy = installExecuteBrokerProxy();
       const packageName = PackageNameStub({ value: '@dungeonmaster/test' });
-      const installPath = FilePathStub({ value: '/path/to/missing.ts' });
+      const installPath = '/path/to/missing.ts';
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -106,7 +105,7 @@ describe('installExecuteBroker', () => {
     it('ERROR: {packageName, installPath, context} => returns failed result when StartInstall throws', async () => {
       const proxy = installExecuteBrokerProxy();
       const packageName = PackageNameStub({ value: '@dungeonmaster/test' });
-      const installPath = FilePathStub({ value: '/path/to/start-install.ts' });
+      const installPath = '/path/to/start-install.ts';
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -139,9 +138,7 @@ describe('installExecuteBroker', () => {
     it('VALID: {module exports StartInstallFinalize} => calls that export, not StartInstall', async () => {
       const proxy = installExecuteBrokerProxy();
       const packageName = PackageNameStub({ value: '@dungeonmaster/siegelense' });
-      const installPath = FilePathStub({
-        value: '/path/to/siegelense/start-install-finalize.ts',
-      });
+      const installPath = '/path/to/siegelense/start-install-finalize.ts';
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',
@@ -188,7 +185,7 @@ describe('installExecuteBroker', () => {
     it('ERROR: {module exports only StartInstall} => returns failed result naming StartInstallFinalize', async () => {
       const proxy = installExecuteBrokerProxy();
       const packageName = PackageNameStub({ value: '@dungeonmaster/cli' });
-      const installPath = FilePathStub({ value: '/path/to/cli/start-install-finalize.ts' });
+      const installPath = '/path/to/cli/start-install-finalize.ts';
       const context = InstallContextStub({
         value: {
           targetProjectRoot: '/project',

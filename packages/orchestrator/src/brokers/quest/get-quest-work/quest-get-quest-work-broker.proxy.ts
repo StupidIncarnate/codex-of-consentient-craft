@@ -20,7 +20,6 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -38,7 +37,7 @@ import { wardRowsLayerBrokerProxy } from './ward-rows-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 type WorkPlan = ReturnType<typeof WorkPlanStub>;
-type FilePathValue = ReturnType<typeof FilePathStub>;
+type FilePathValue = string;
 
 const HOME_DIR = '/home/testuser';
 
@@ -65,16 +64,14 @@ export const questGetQuestWorkBrokerProxy = (): {
 
   const stageQuestRead = ({ quest }: { quest: Quest }): { questFolderPath: FilePathValue } => {
     const guildId = GuildIdStub();
-    const questsDirPath = FilePathStub({
-      value: `${HOME_DIR}/.dungeonmaster/guilds/${guildId}/quests`,
-    });
-    const questFolderPath = FilePathStub({ value: `${questsDirPath}/${quest.folder}` });
-    const questFilePath = FilePathStub({ value: `${questFolderPath}/quest.json` });
+    const questsDirPath = `${HOME_DIR}/.dungeonmaster/guilds/${guildId}/quests`;
+    const questFolderPath = `${questsDirPath}/${quest.folder}`;
+    const questFilePath = `${questFolderPath}/quest.json`;
 
     findQuestPathProxy.setupQuestFound({
       homeDir: HOME_DIR,
-      homePath: FilePathStub({ value: `${HOME_DIR}/.dungeonmaster` }),
-      guildsDir: FilePathStub({ value: `${HOME_DIR}/.dungeonmaster/guilds` }),
+      homePath: `${HOME_DIR}/.dungeonmaster`,
+      guildsDir: `${HOME_DIR}/.dungeonmaster/guilds`,
       guilds: [
         {
           dirName: FileNameStub({ value: guildId }),

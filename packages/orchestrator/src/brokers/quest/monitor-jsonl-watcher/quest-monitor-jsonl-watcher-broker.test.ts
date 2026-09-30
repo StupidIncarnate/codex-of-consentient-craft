@@ -1,6 +1,5 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -24,9 +23,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
   describe('main JSONL tail', () => {
     it('VALID: {assistant text line on main JSONL, active quest set} => emits tagged ChatEntry with active questId', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-1' });
       const activeQuestId = QuestIdStub({ value: 'add-auth' });
 
@@ -71,9 +68,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {activeQuestIdGetter returns null} => emits ChatEntry with questId: null', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-2' });
 
       proxy.setupSubagentDirEmpty();
@@ -117,9 +112,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {main JSONL entry, mainSessionWorkItemId set (node worker)} => emit stamps sessionId + workItemId so the row renders live', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-worker-abc-123' });
 
       proxy.setupSubagentDirEmpty();
@@ -166,9 +159,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {two emissions with different active quest between them} => each batch tagged with the questId at its emit time', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-flip' });
       const questA = QuestIdStub({ value: 'quest-a' });
       const questB = QuestIdStub({ value: 'quest-b' });
@@ -242,9 +233,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('EMPTY: {subagents directory missing (ENOENT)} => watcher still starts, main JSONL emissions work', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/no-subdir-session.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/no-subdir-session.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-no-subdir' });
       const activeQuestId = QuestIdStub({ value: 'no-subdir-quest' });
 
@@ -292,9 +281,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {tailed main JSONL appends a user line whose content is A![Pasted Image 1](/p/x.png)B} => emitted entry content rewrites the pasted-image path to a server image URL', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-pasted-image' });
       const activeQuestId = QuestIdStub({ value: 'pasted-image-quest' });
 
@@ -341,9 +328,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
   describe('subagent JSONL tails', () => {
     it('VALID: {new agent-<id>.jsonl appears AFTER watcher start, before parent emits agent-detected} => poll-rescan tick pairs it against the outstanding Task, starts the sub-agent tail and emits its lines', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-late' });
       const activeQuestId = QuestIdStub({ value: 'quest-late-sub' });
 
@@ -436,9 +421,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {pre-existing agent-<id>.jsonl in subagents/} => the initial scan cannot pair it (no outstanding Task yet); the next poll tick pairs it once the main tail has drained the Task line, and its lines emit tagged with active questId', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-sub' });
       const activeQuestId = QuestIdStub({ value: 'quest-with-sub' });
 
@@ -529,9 +512,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {nested sub-agent B spawned by sub-agent A, only A has a work item} => B emit carries A workItemId and parentAgentId stamped', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-nested' });
       const activeQuestId = QuestIdStub({ value: 'nested-ancestor-quest' });
       const wiA = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -641,9 +622,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {depth-1 sub-agent whose realAgentId has no work item and no ancestor} => emit omits workItemId (ancestor walk finds none)', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-no-wi' });
       const activeQuestId = QuestIdStub({ value: 'no-wi-quest' });
       // Resolver is supplied (seeded with an unrelated agent so the Map type infers), but the
@@ -719,9 +698,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
   describe('stop()', () => {
     it('VALID: {stop called} => subsequent change events emit nothing', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-stop' });
       const activeQuestId = QuestIdStub({ value: 'stop-quest' });
 
@@ -755,9 +732,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {stop called with active sub-agent handles} => sub-agent handles stopped alongside main, no further emissions', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const sessionFilePath = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-      });
+      const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-stop-with-subs' });
       const activeQuestId = QuestIdStub({ value: 'stop-with-subs-quest' });
       const subagentJsonl = `${SUBAGENTS_DIR}/agent-stop-1.jsonl`;

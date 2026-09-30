@@ -1,6 +1,5 @@
 import { proxyMockCollectorMiddleware } from './proxy-mock-collector-middleware';
 import { proxyMockCollectorMiddlewareProxy } from './proxy-mock-collector-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
@@ -11,7 +10,7 @@ describe('proxyMockCollectorMiddleware', () => {
   describe('invalid program', () => {
     it('VALID: {program with no source file} => returns empty array', () => {
       const proxy = proxyMockCollectorMiddlewareProxy();
-      const proxyFilePath = FilePathStub({ value: '/nonexistent.proxy.ts' });
+      const proxyFilePath = '/nonexistent.proxy.ts';
       proxy.setupProxyFileMissing({ proxyFilePath });
 
       const program = NoProgramSourceFileStub();
@@ -28,13 +27,9 @@ describe('proxyMockCollectorMiddleware', () => {
   describe('barrel fan-out', () => {
     it("VALID: {composing proxy names ONLY one of a barrel's two re-exports} => collects that target's mock, not the unrelated target's", () => {
       const proxy = proxyMockCollectorMiddlewareProxy();
-      const barrelPath = FilePathStub({ value: '/repo/packages/shared/testing.ts' });
-      const pathJoinProxyPath = FilePathStub({
-        value: '/repo/packages/shared/src/path-join-adapter.proxy.ts',
-      });
-      const osHomedirProxyPath = FilePathStub({
-        value: '/repo/packages/shared/src/os-homedir-adapter.proxy.ts',
-      });
+      const barrelPath = '/repo/packages/shared/testing.ts';
+      const pathJoinProxyPath = '/repo/packages/shared/src/path-join-adapter.proxy.ts';
+      const osHomedirProxyPath = '/repo/packages/shared/src/os-homedir-adapter.proxy.ts';
 
       proxy.setupFileContains({
         filePath: barrelPath,
@@ -88,13 +83,9 @@ describe('proxyMockCollectorMiddleware', () => {
 
     it("VALID: {composing proxy imports the barrel with NO name filter (namespace import)} => collects every re-exported target's mock", () => {
       const proxy = proxyMockCollectorMiddlewareProxy();
-      const barrelPath = FilePathStub({ value: '/repo/packages/shared/testing.ts' });
-      const pathJoinProxyPath = FilePathStub({
-        value: '/repo/packages/shared/src/path-join-adapter.proxy.ts',
-      });
-      const osHomedirProxyPath = FilePathStub({
-        value: '/repo/packages/shared/src/os-homedir-adapter.proxy.ts',
-      });
+      const barrelPath = '/repo/packages/shared/testing.ts';
+      const pathJoinProxyPath = '/repo/packages/shared/src/path-join-adapter.proxy.ts';
+      const osHomedirProxyPath = '/repo/packages/shared/src/os-homedir-adapter.proxy.ts';
 
       proxy.setupFileContains({
         filePath: barrelPath,

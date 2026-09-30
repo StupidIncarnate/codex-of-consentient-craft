@@ -4,14 +4,13 @@ import { EditToolInputStub } from '../../../contracts/edit-tool-input/edit-tool-
 import { MultiEditToolInputStub } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input.stub';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('toolInputGetFullContentBroker', () => {
   describe('Write tool', () => {
     it('VALID: WriteToolInput with content => returns content', async () => {
       toolInputGetFullContentBrokerProxy();
       const toolInput = WriteToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: '/test/file.txt',
         content: 'Hello world',
       });
 
@@ -22,7 +21,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it("EDGE: file doesn't exist for Write tool => returns content", async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/newfile.txt' });
+      const filePath = '/test/newfile.txt';
       const toolInput = WriteToolInputStub({
         file_path: filePath,
         content: 'New file content',
@@ -39,7 +38,7 @@ describe('toolInputGetFullContentBroker', () => {
   describe('Edit tool', () => {
     it('VALID: EditToolInput single edit => returns modified content', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = EditToolInputStub({
         file_path: filePath,
         old_string: 'Hello',
@@ -56,7 +55,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('VALID: EditToolInput with replace_all => returns content with all replacements', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = EditToolInputStub({
         file_path: filePath,
         old_string: 'test',
@@ -76,7 +75,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it("ERROR: file doesn't exist for Edit tool => returns null", async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/nonexistent.txt' });
+      const filePath = '/test/nonexistent.txt';
       const toolInput = EditToolInputStub({
         file_path: filePath,
         old_string: 'Hello',
@@ -92,7 +91,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('ERROR: file read error (not ENOENT) => throws error', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = EditToolInputStub({
         file_path: filePath,
         old_string: 'Hello',
@@ -112,7 +111,7 @@ describe('toolInputGetFullContentBroker', () => {
   describe('MultiEdit tool', () => {
     it('VALID: MultiEditToolInput single edit => returns content with edit applied', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [{ old_string: 'Hello', new_string: 'Hi' }],
@@ -130,7 +129,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('VALID: MultiEditToolInput multiple edits => returns content with all edits applied', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [
@@ -151,7 +150,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('VALID: MultiEditToolInput with replace_all edits => returns content with all replacements', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [
@@ -172,7 +171,7 @@ describe('toolInputGetFullContentBroker', () => {
 
     it("ERROR: file doesn't exist for MultiEdit tool => returns null", async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/nonexistent.txt' });
+      const filePath = '/test/nonexistent.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [{ old_string: 'Hello', new_string: 'Hi' }],

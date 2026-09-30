@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -47,15 +46,15 @@ describe('assetsAgeLayerBroker', () => {
       // directory, so the resolution is staged twice.
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: UNOWNED_EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: UNOWNED_EVIDENCE,
       });
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: UNOWNED_EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: UNOWNED_EVIDENCE,
       });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${UNOWNED_EVIDENCE}/runs` }),
@@ -118,24 +117,24 @@ describe('assetsAgeLayerBroker', () => {
       const proxy = assetsAgeLayerBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: OWNED_EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: OWNED_EVIDENCE,
       });
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        rootPath: FilePathStub({ value: ROOT }),
-        evidencePath: FilePathStub({ value: OWNED_EVIDENCE }),
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: OWNED_EVIDENCE,
       });
       // Only the second (everything) pass reaches the citation resolver: the first selects no
       // video, so it never asks. One staging, consumed once.
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupFile({
         filePath: AbsoluteFilePathStub({ value: `${OWNED_EVIDENCE}/api-server.log` }),

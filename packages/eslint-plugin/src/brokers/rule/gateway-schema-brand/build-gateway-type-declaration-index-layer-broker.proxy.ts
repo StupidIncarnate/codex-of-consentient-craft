@@ -1,14 +1,13 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
 
 export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
-  setupSrcDirMissing: (args: { srcDir: FilePath }) => void;
+  setupSrcDirMissing: (args: { srcDir: string }) => void;
   setupSrcDirWithDeclaration: (args: {
-    srcDir: FilePath;
+    srcDir: string;
     fileName: FileName;
-    filePath: FilePath;
+    filePath: string;
     sourceText: string;
   }) => void;
 } => {
@@ -16,7 +15,7 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
   const collectProxy = collectGatewayTypeDeclarationNamesLayerBrokerProxy();
 
   return {
-    setupSrcDirMissing: ({ srcDir }: { srcDir: FilePath }): void => {
+    setupSrcDirMissing: ({ srcDir }: { srcDir: string }): void => {
       existsProxy.returns({ path: srcDir, exists: false });
     },
 
@@ -29,9 +28,9 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
       filePath,
       sourceText,
     }: {
-      srcDir: FilePath;
+      srcDir: string;
       fileName: FileName;
-      filePath: FilePath;
+      filePath: string;
       sourceText: string;
     }): void => {
       existsProxy.returns({ path: srcDir, exists: true });

@@ -12,13 +12,7 @@
  * // Creates worktrees/ if absent and appends whichever ignore lines are still missing
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  filePathContract,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, pathExists, readFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -38,10 +32,8 @@ export const InstallRepoScaffoldResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const worktreesDir = filePathContract.parse(
-    join(context.targetProjectRoot, locationsStatics.repoRoot.worktreesDir),
-  );
-  const gitignorePath = filePathContract.parse(join(context.targetProjectRoot, GITIGNORE_FILENAME));
+  const worktreesDir = join(context.targetProjectRoot, locationsStatics.repoRoot.worktreesDir);
+  const gitignorePath = join(context.targetProjectRoot, GITIGNORE_FILENAME);
 
   const dirPresent = await pathExists(worktreesDir);
   if (!dirPresent) {

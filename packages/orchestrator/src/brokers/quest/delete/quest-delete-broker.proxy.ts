@@ -3,8 +3,7 @@ import { join } from '#gateway/node/path';
 
 import type { FsError } from '#gateway/node/fs';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -12,10 +11,10 @@ import { questOutboxAppendBrokerProxy } from '../outbox-append/quest-outbox-appe
 
 export const questDeleteBrokerProxy = (): {
   setupQuestFolderPath: (params: {
-    homePath: FilePath;
+    homePath: string;
     guildId: Guild['id'];
     questId: Quest['id'];
-    questFolderPath: FilePath;
+    questFolderPath: string;
   }) => void;
   setupRmFailure: (params: { error: FsError }) => void;
   getRmCallArgs: () => readonly unknown[][];
@@ -27,10 +26,8 @@ export const questDeleteBrokerProxy = (): {
   const removeProxy = rmProxy();
   const outboxAppendProxy = questOutboxAppendBrokerProxy();
 
-  const outboxFilePath = FilePathStub({
-    value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
-  });
-  const questFolderPathRef: { value: FilePath } = { value: FilePathStub({ value: '/unset' }) };
+  const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
+  const questFolderPathRef: { value: string } = { value: '/unset' };
   // Every quest folder `setupQuestFolderPath` has staged on this instance, for a composer that
   // deletes several quests in one call and reads every removal back together.
   const stagedFolderPaths = new Set<unknown>();
@@ -43,10 +40,10 @@ export const questDeleteBrokerProxy = (): {
       questId,
       questFolderPath,
     }: {
-      homePath: FilePath;
+      homePath: string;
       guildId: Guild['id'];
       questId: Quest['id'];
-      questFolderPath: FilePath;
+      questFolderPath: string;
     }): void => {
       questFolderPathRef.value = questFolderPath;
       stagedFolderPaths.add(questFolderPath);

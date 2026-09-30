@@ -2,7 +2,6 @@ import { violationsFixAndReportBroker } from './violations-fix-and-report-broker
 import { violationsFixAndReportBrokerProxy } from './violations-fix-and-report-broker.proxy';
 import { EditToolInputStub } from '../../../contracts/edit-tool-input/edit-tool-input.stub';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('violationsFixAndReportBroker', () => {
   describe('with no violations after fix', () => {
@@ -15,7 +14,7 @@ describe('violationsFixAndReportBroker', () => {
         old_string: 'old',
         new_string: 'new',
       });
-      const cwd = FilePathStub({ value: '/test' });
+      const cwd = '/test';
 
       const result = await violationsFixAndReportBroker({ toolInput, cwd });
 
@@ -40,7 +39,7 @@ describe('violationsFixAndReportBroker', () => {
         file_path: '/test/file.ts',
         content: 'const x = 1;',
       });
-      const cwd = FilePathStub({ value: '/test' });
+      const cwd = '/test';
 
       const result = await violationsFixAndReportBroker({ toolInput, cwd });
 
@@ -68,7 +67,7 @@ describe('violationsFixAndReportBroker', () => {
         old_string: 'old',
         new_string: 'new',
       });
-      const cwd = FilePathStub({ value: '/test' });
+      const cwd = '/test';
 
       const result = await violationsFixAndReportBroker({ toolInput, cwd });
 

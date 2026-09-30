@@ -17,12 +17,7 @@
  * // [{ linkPath, storedTarget, resolvedTarget, relative: true, inside: true }, ...]
  */
 
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { readlinkIfLink } from '#gateway/node/fs__promises';
 import { join, resolve } from '#gateway/node/path';
@@ -31,7 +26,7 @@ const PATH_SEPARATOR = '/';
 
 export type WorktreeLinkAudit = Readonly<{
   linkPath: AbsoluteFilePath;
-  storedTarget: FilePath;
+  storedTarget: string;
   resolvedTarget: AbsoluteFilePath;
   relative: boolean;
   inside: boolean;

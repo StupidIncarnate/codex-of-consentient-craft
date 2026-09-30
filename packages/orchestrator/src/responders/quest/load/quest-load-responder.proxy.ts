@@ -1,7 +1,6 @@
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../../../brokers/quest/load/quest-load-broker.proxy';
@@ -15,8 +14,8 @@ export const QuestLoadResponderProxy = (): {
   // resolves questPath through its own join tuples, and this responder's own SEPARATE
   // join(questPath, quest.json) call needs its own address — see the "passthrough join composed
   // from far away" trap.
-  setupQuestFileJoin: (params: { questPath: FilePath; questFilePath: FilePath }) => void;
-  getQuestFileJoinArgs: (params: { questPath: FilePath }) => readonly unknown[][];
+  setupQuestFileJoin: (params: { questPath: string; questFilePath: string }) => void;
+  getQuestFileJoinArgs: (params: { questPath: string }) => readonly unknown[][];
 } => {
   const findProxy = questFindQuestPathBrokerProxy();
   const loadProxy = questLoadBrokerProxy();

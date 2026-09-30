@@ -1,13 +1,11 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';
 
 const REGISTRY_PATH_VALUE = '/home/user/.dungeonmaster/siegelense/registry.json';
-const registryPath = FilePathStub({ value: REGISTRY_PATH_VALUE });
+const registryPath = REGISTRY_PATH_VALUE;
 
 export const registryReadBrokerProxy = (): {
   setupMissingRegistry: () => void;
@@ -22,7 +20,7 @@ export const registryReadBrokerProxy = (): {
   // convention), which cannot risk this file's own setupMissingRegistry/setupPresentRegistry/
   // setupReadFailure — each also stages exists/read for a specific registryPath this proxy
   // computes, which such a caller wants to control independently.
-  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupHomeOnly: (params: { homeDir: string; homePath: string }) => void;
 } => {
   const pathProxy = locationsRegistryPathFindBrokerProxy();
   const existsProxy = existsSyncProxy();
@@ -31,8 +29,8 @@ export const registryReadBrokerProxy = (): {
   const queuePath = (): void => {
     pathProxy.setupRegistryPath({
       homeDir: '/home/user',
-      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-      rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
+      homePath: '/home/user/.dungeonmaster',
+      rootPath: '/home/user/.dungeonmaster/siegelense',
       registryPath,
     });
   };
@@ -61,7 +59,7 @@ export const registryReadBrokerProxy = (): {
       readProxy.throwsMatchingPath({ path: registryPath, error: error as FsError });
     },
 
-    setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {
+    setupHomeOnly: (params: { homeDir: string; homePath: string }): void => {
       pathProxy.setupHomeOnly(params);
     },
   };

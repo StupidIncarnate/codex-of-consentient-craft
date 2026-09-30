@@ -26,8 +26,6 @@ import { envSnapshot } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 
@@ -69,11 +67,9 @@ export const hookPersistentRunnerHarness = (): {
     }[];
   } = { responseQueue: [] };
 
-  const resolveFlowPath = ({ hookName }: { hookName: HookName }): FilePath => {
+  const resolveFlowPath = ({ hookName }: { hookName: HookName }): string => {
     const flowName = hookName.replace('start-', 'hook-').replace(/-hook$/u, '');
-    return FilePathStub({
-      value: join(PACKAGE_DIR, 'src', 'flows', flowName, `${flowName}-flow`),
-    });
+    return join(PACKAGE_DIR, 'src', 'flows', flowName, `${flowName}-flow`);
   };
 
   const handleResponse = (line: string): void => {

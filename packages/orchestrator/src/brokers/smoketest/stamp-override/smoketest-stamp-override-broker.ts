@@ -13,11 +13,7 @@
  * `smoketestPromptOverride`.
  */
 
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -43,9 +39,7 @@ export const smoketestStampOverrideBroker = async ({
     questId,
     run: async (): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
 
       const loadedQuest = await questLoadBroker({ questFilePath });
 

@@ -9,7 +9,6 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { subagentStopHookDataContract } from '../../../contracts/subagent-stop-hook-data/subagent-stop-hook-data-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { readFile } from '#gateway/node/fs__promises';
 import { transcriptToolInvocationsExtractTransformer } from '../../../transformers/transcript-tool-invocations-extract/transcript-tool-invocations-extract-transformer';
 import { subagentStopNeedsBlockGuard } from '../../../guards/subagent-stop-needs-block/subagent-stop-needs-block-guard';
@@ -32,9 +31,7 @@ export const HookSubagentStopResponder = async ({
   // For SubagentStop, `transcript_path` is the PARENT session transcript; the stopping
   // sub-agent's OWN transcript (where its get-agent-prompt + signal-back calls live) is
   // `agent_transcript_path`. Read that; fall back to transcript_path only if absent.
-  const transcriptPath = filePathContract.parse(
-    parseResult.data.agent_transcript_path ?? parseResult.data.transcript_path,
-  );
+  const transcriptPath = (parseResult.data.agent_transcript_path ?? parseResult.data.transcript_path);
 
   const transcript = await readFile(transcriptPath).catch(() => null);
 

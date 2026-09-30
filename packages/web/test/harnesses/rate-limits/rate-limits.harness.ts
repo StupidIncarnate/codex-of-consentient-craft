@@ -29,9 +29,8 @@ import { rmSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
-import type { FilePath, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
 import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 import { getEnv } from '#gateway/node/process';
@@ -41,14 +40,14 @@ const LEDGER_FILENAME = 'usage-ledger.json';
 const DISPATCH_STATE_FILENAME = 'dispatch-state.json';
 const HOUR_MS = 3_600_000;
 
-const resolveHomeFile = ({ filename }: { filename: string }): FilePath => {
+const resolveHomeFile = ({ filename }: { filename: string }): string => {
   const home = getEnv('E2E_TEST_HOME') ?? getEnv('DUNGEONMASTER_HOME');
   if (typeof home !== 'string' || home === '') {
     throw new Error(
       'rate-limits harness: neither E2E_TEST_HOME nor DUNGEONMASTER_HOME is set in the e2e environment',
     );
   }
-  return FilePathStub({ value: path.join(home, filename) });
+  return path.join(home, filename);
 };
 
 export const rateLimitsHarness = (): {

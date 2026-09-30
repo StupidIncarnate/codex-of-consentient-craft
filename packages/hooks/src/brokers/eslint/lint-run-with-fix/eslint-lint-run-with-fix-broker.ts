@@ -8,7 +8,6 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { ESLint } from '#gateway/npm/eslint';
 import { resolve } from '#gateway/node/path';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { cwd, stderr } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
@@ -41,7 +40,7 @@ export const eslintLintRunWithFixBroker = async ({
     const resolvedWorkingDir = customCwd ?? cwd();
     // Ensure we have an absolute path for ESLint
     const absolutePath = resolve(resolvedWorkingDir, filePath);
-    const absoluteFilePath = filePathContract.parse(absolutePath);
+    const absoluteFilePath = absolutePath;
 
     // Verify file is readable before linting (prevents race condition with file writes)
     // This ensures the file system has flushed any pending writes before ESLint reads it

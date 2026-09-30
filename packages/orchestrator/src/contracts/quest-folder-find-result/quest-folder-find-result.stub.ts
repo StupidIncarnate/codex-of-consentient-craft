@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
@@ -12,7 +11,7 @@ export const QuestFolderFindResultFoundStub = ({
 }: StubArgument<FoundResult> = {}): QuestFolderFindResult =>
   questFolderFindResultContract.parse({
     found: true,
-    folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/001-test-quest' }),
+    folderPath: '/project/.dungeonmaster-quests/001-test-quest',
     quest: QuestStub(),
     ...props,
   });

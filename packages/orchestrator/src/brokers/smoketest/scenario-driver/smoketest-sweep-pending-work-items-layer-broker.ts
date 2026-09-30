@@ -13,7 +13,6 @@
  * WHEN-NOT-TO-USE: Outside the smoketest scenario driver.
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -46,7 +45,7 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
   }
 
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
   const quest = await questLoadBroker({ questFilePath });
 
   const targets = quest.workItems.filter(

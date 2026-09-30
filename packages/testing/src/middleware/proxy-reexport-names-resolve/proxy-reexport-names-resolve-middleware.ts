@@ -19,7 +19,6 @@ import { typescriptSourceFileGetMiddleware } from '../typescript-source-file-get
 import { astLocalExportNamesTransformer } from '../../transformers/ast-local-export-names/ast-local-export-names-transformer';
 import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 import type * as ts from '#gateway/npm/typescript';
 
@@ -27,12 +26,12 @@ export const proxyReexportNamesResolveMiddleware = ({
   filePath,
   candidateNames,
   program,
-  visitedFiles = new Set<FilePath>(),
+  visitedFiles = new Set<string>(),
 }: {
-  filePath: FilePath;
+  filePath: string;
   candidateNames: IdentifierName[];
   program: ts.Program | undefined;
-  visitedFiles?: Set<FilePath>;
+  visitedFiles?: Set<string>;
 }): IdentifierName[] => {
   if (candidateNames.length === 0 || visitedFiles.has(filePath)) {
     return [];

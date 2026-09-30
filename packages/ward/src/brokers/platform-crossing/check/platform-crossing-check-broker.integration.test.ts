@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { platformCrossingCheckBroker } from './platform-crossing-check-broker';
 import { platformCrossingFixtureHarness } from '../../../../test/harnesses/platform-crossing-fixture/platform-crossing-fixture.harness';
@@ -42,7 +41,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -100,7 +99,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -123,7 +122,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -148,7 +147,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -194,7 +193,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -234,7 +233,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -262,7 +261,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
       });
 
       const result = await platformCrossingCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();

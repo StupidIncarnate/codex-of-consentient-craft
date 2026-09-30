@@ -30,7 +30,6 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 // code calls through (mirrors StartOrchestratorProxy's own self-reference in
 // packages/orchestrator/src/startup/start-orchestrator.proxy.ts).
 import { configResolveBroker } from '@dungeonmaster/config';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { ConfigNotFoundError } from '../errors/config-not-found/config-not-found-error';
 import { InvalidConfigError } from '../errors/invalid-config/invalid-config-error';
 import type { DungeonmasterConfigStub } from '../contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -38,9 +37,9 @@ import type { DungeonmasterConfigStub } from '../contracts/dungeonmaster-config/
 type DungeonmasterConfig = ReturnType<typeof DungeonmasterConfigStub>;
 
 export const configResolveBrokerProxy = (): {
-  setupResolves: (params: { filePath: FilePath; config: DungeonmasterConfig }) => void;
-  setupConfigNotFound: (params: { filePath: FilePath }) => void;
-  setupConfigMalformed: (params: { filePath: FilePath; message: string }) => void;
+  setupResolves: (params: { filePath: string; config: DungeonmasterConfig }) => void;
+  setupConfigNotFound: (params: { filePath: string }) => void;
+  setupConfigMalformed: (params: { filePath: string; message: string }) => void;
 } => {
   const handle = registerMock({ fn: configResolveBroker });
 
@@ -49,14 +48,14 @@ export const configResolveBrokerProxy = (): {
       filePath,
       config,
     }: {
-      filePath: FilePath;
+      filePath: string;
       config: DungeonmasterConfig;
     }): void => {
       handle.calledWith([{ filePath }]).resolves(config);
     },
     // Real shape configResolveBroker throws when configFileFindBroker walks off the top of the
     // tree with no .dungeonmaster.json — see brokers/config-file/find/config-file-find-broker.ts.
-    setupConfigNotFound: ({ filePath }: { filePath: FilePath }): void => {
+    setupConfigNotFound: ({ filePath }: { filePath: string }): void => {
       handle.calledWith([{ filePath }]).rejects(new ConfigNotFoundError({ startPath: filePath }));
     },
     // Real shape configFileLoadBroker throws for invalid JSON, a failed zod parse, or any other
@@ -65,7 +64,7 @@ export const configResolveBrokerProxy = (): {
       filePath,
       message,
     }: {
-      filePath: FilePath;
+      filePath: string;
       message: string;
     }): void => {
       handle

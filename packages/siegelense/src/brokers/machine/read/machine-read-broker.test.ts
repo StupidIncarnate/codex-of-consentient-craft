@@ -1,11 +1,10 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { machineReadBroker } from './machine-read-broker';
 import { machineReadBrokerProxy } from './machine-read-broker.proxy';
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 describe('machineReadBroker', () => {
   it('VALID: {os, disk and oom readings all available} => returns the complete machine reading', async () => {

@@ -1,9 +1,8 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { readFirstExistingCandidateLayerBrokerProxy } from './read-first-existing-candidate-layer-broker.proxy';
 
 export const resolveSpecifierLayerBrokerProxy = (): {
-  setupFile: (params: { filePath: FilePath; content: string }) => void;
-  setupMissing: (params: { filePath: FilePath }) => void;
+  setupFile: (params: { filePath: string; content: string }) => void;
+  setupMissing: (params: { filePath: string }) => void;
 } => {
   const candidateProxy = readFirstExistingCandidateLayerBrokerProxy();
 

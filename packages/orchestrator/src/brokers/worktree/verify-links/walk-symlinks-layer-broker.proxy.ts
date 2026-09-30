@@ -1,4 +1,4 @@
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
@@ -10,8 +10,8 @@ export const walkSymlinksLayerBrokerProxy = (): {
     dirPath: AbsoluteFilePath;
     entries: { name: string; isDir: boolean; isSymlink: boolean }[];
   }) => void;
-  setupReadlinkTarget: (params: { linkPath: FilePath; target: string }) => void;
-  setupReadlinkThrows: (params: { linkPath: FilePath; error: FsError }) => void;
+  setupReadlinkTarget: (params: { linkPath: string; target: string }) => void;
+  setupReadlinkThrows: (params: { linkPath: string; error: FsError }) => void;
 } => {
   const readdirProxy = readdirEntriesSyncProxy();
   const readlinkProxy = readlinkIfLinkProxy();
@@ -49,11 +49,11 @@ export const walkSymlinksLayerBrokerProxy = (): {
       });
     },
 
-    setupReadlinkTarget: ({ linkPath, target }: { linkPath: FilePath; target: string }): void => {
+    setupReadlinkTarget: ({ linkPath, target }: { linkPath: string; target: string }): void => {
       readlinkProxy.returns({ path: linkPath, target });
     },
 
-    setupReadlinkThrows: ({ linkPath, error }: { linkPath: FilePath; error: FsError }): void => {
+    setupReadlinkThrows: ({ linkPath, error }: { linkPath: string; error: FsError }): void => {
       readlinkProxy.throwsMatchingPath({ path: linkPath, error });
     },
   };

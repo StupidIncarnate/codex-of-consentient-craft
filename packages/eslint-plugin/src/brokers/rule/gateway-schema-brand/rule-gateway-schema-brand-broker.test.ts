@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ruleGatewaySchemaBrandBroker } from './rule-gateway-schema-brand-broker';
 import { ruleGatewaySchemaBrandBrokerProxy } from './rule-gateway-schema-brand-broker.proxy';
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
@@ -6,20 +5,12 @@ import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 const ruleTester = ruleTesterHarness();
 
-const CHILD_PROCESS_SCHEMA_FILE = FilePathStub({
-  value: '/repo/packages/@gateway/node/src/child_process/child-process/child-process-schema.ts',
-});
-const WALKED_FILE_SCHEMA_FILE = FilePathStub({
-  value: '/repo/packages/@gateway/node/src/fs/walk-files-sync/walked-file-schema.ts',
-});
+const CHILD_PROCESS_SCHEMA_FILE = '/repo/packages/@gateway/node/src/child_process/child-process/child-process-schema.ts';
+const WALKED_FILE_SCHEMA_FILE = '/repo/packages/@gateway/node/src/fs/walk-files-sync/walked-file-schema.ts';
 // Directly inside the node package's src/ root — matching the flat, one-file-per-srcDir shape
 // buildGatewayTypeDeclarationIndexLayerBrokerProxy's setupSrcDirWithDeclaration stages.
-const WALKED_FILE_DECLARATION_FILE = FilePathStub({
-  value: '/repo/packages/@gateway/node/src/walked-file.ts',
-});
-const OTHER_WALKED_FILE_DECLARATION_FILE = FilePathStub({
-  value: '/repo/packages/@gateway/browser/src/some-subpath/walked-file.ts',
-});
+const WALKED_FILE_DECLARATION_FILE = '/repo/packages/@gateway/node/src/walked-file.ts';
+const OTHER_WALKED_FILE_DECLARATION_FILE = '/repo/packages/@gateway/browser/src/some-subpath/walked-file.ts';
 
 // One shared gateway index across every case: 'WalkedFile' is declared exactly once, at
 // WALKED_FILE_DECLARATION_FILE. A case linting that same file sees no OTHER declarer (self-match
@@ -45,19 +36,19 @@ beforeEach(() => {
     packageNames: [],
   });
   proxy.typeDeclarationIndex.setupSrcDirMissing({
-    srcDir: FilePathStub({ value: '/repo/packages/@gateway/npm/src/' }),
+    srcDir: '/repo/packages/@gateway/npm/src/',
   });
   proxy.typeDeclarationIndex.setupSrcDirWithDeclaration({
-    srcDir: FilePathStub({ value: '/repo/packages/@gateway/node/src/' }),
+    srcDir: '/repo/packages/@gateway/node/src/',
     fileName: FileNameStub({ value: 'walked-file.ts' }),
     filePath: WALKED_FILE_DECLARATION_FILE,
     sourceText: 'export interface WalkedFile {\n  path: string;\n}\n',
   });
   proxy.typeDeclarationIndex.setupSrcDirMissing({
-    srcDir: FilePathStub({ value: '/repo/packages/@gateway/browser/src/' }),
+    srcDir: '/repo/packages/@gateway/browser/src/',
   });
   proxy.typeDeclarationIndex.setupSrcDirMissing({
-    srcDir: FilePathStub({ value: '/repo/packages/@gateway/bin/src/' }),
+    srcDir: '/repo/packages/@gateway/bin/src/',
   });
 });
 

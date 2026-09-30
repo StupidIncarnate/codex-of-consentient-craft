@@ -6,12 +6,12 @@
  * // Returns InstallContext with cwd as both paths
  */
 import { installContextContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, InstallContext } from '@dungeonmaster/shared/contracts';
+import type { InstallContext } from '@dungeonmaster/shared/contracts';
 
 export const createDefaultInstallContextTransformer = ({
   cwd,
 }: {
-  cwd: FilePath;
+  cwd: string;
 }): InstallContext =>
   installContextContract.parse({
     targetProjectRoot: cwd,

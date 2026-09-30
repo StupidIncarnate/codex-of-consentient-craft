@@ -9,7 +9,7 @@
  */
 
 import { readdirIfExists, statIfExists, unlink } from '#gateway/node/fs__promises';
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { storageBudgetStatics } from '../../../statics/storage-budget/storage-budget-statics';
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
@@ -21,7 +21,7 @@ export const storagePruneBroker = async ({
 }: {
   rootPath: AbsoluteFilePath;
 }): Promise<void> => {
-  const wardDir = filePathContract.parse(`${rootPath}/.ward`);
+  const wardDir = `${rootPath}/.ward`;
 
   try {
     const entries = await readdirIfExists(String(wardDir));
@@ -34,7 +34,7 @@ export const storagePruneBroker = async ({
 
     const judged = await Promise.all(
       runFiles.map(async (name) => {
-        const filePath = filePathContract.parse(`${wardDir}/${name}`);
+        const filePath = `${wardDir}/${name}`;
         const timestampStr = name.slice(RUN_PREFIX_LENGTH, name.indexOf('-', RUN_PREFIX_LENGTH));
         const timestamp = Number(timestampStr);
 

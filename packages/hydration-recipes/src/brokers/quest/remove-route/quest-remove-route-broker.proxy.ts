@@ -1,5 +1,4 @@
 import { questDeleteBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/delete/quest-delete-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { questOwningGuildFindBrokerProxy } from '../owning-guild-find/quest-owning-guild-find-broker.proxy';
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
@@ -20,14 +19,12 @@ export const questRemoveRouteBrokerProxy = (): {
         guilds: [guild],
         questsByGuildId: { [guild.id]: [quest] },
       });
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const homePath = '/home/testuser/.dungeonmaster';
       deleteProxy.setupQuestFolderPath({
         homePath,
         guildId: guild.id,
         questId: quest.id,
-        questFolderPath: FilePathStub({
-          value: `${homePath}/guilds/${guild.id}/quests/${quest.id}`,
-        }),
+        questFolderPath: `${homePath}/guilds/${guild.id}/quests/${quest.id}`,
       });
     },
   };

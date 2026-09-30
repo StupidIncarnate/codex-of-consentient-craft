@@ -10,8 +10,7 @@
  * // Returns a Map whose 'WalkedFile' key holds every file path across the four gateway packages
  * // that declares an exported `WalkedFile` interface or type alias
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, Identifier } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -20,14 +19,12 @@ import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway
 export const buildGatewayTypeDeclarationIndexLayerBroker = ({
   rootDir,
 }: {
-  rootDir: FilePath;
-}): Map<Identifier, FilePath[]> => {
-  const index = new Map<Identifier, FilePath[]>();
+  rootDir: string;
+}): Map<Identifier, string[]> => {
+  const index = new Map<Identifier, string[]>();
 
   Object.values(gatewayLocationsStatics.folders).forEach((folder) => {
-    const srcDir = filePathContract.parse(
-      `${join(rootDir, 'packages', '@gateway', folder, 'src')}/`,
-    );
+    const srcDir = `${join(rootDir, 'packages', '@gateway', folder, 'src')}/`;
 
     if (existsSync(srcDir)) {
       collectGatewayTypeDeclarationNamesLayerBroker({ dirPath: srcDir, index });

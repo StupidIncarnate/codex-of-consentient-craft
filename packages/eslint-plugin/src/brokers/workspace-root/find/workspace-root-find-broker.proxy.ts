@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
@@ -24,7 +23,7 @@ export const workspaceRootFindBrokerProxy = (): {
       rootPackageJsonName: string;
       packageNames: string[];
     }): void => {
-      const packageJsonPath = FilePathStub({ value: `${rootDir}/package.json` });
+      const packageJsonPath = `${rootDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,
@@ -38,7 +37,7 @@ export const workspaceRootFindBrokerProxy = (): {
 
     // An ordinary package.json (no `workspaces` field) so the walk keeps climbing past it.
     setupNonRootPackageJson: ({ packageDir }: { packageDir: string }): void => {
-      const packageJsonPath = FilePathStub({ value: `${packageDir}/package.json` });
+      const packageJsonPath = `${packageDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,
@@ -51,9 +50,7 @@ export const workspaceRootFindBrokerProxy = (): {
     // normalization (the broker joins via the real path.join):
     // a root dir ('/') must not double the leading slash.
     setupNoPackageJson: ({ dir }: { dir: string }): void => {
-      const packageJsonPath = FilePathStub({
-        value: dir.endsWith('/') ? `${dir}package.json` : `${dir}/package.json`,
-      });
+      const packageJsonPath = (dir.endsWith('/') ? `${dir}package.json` : `${dir}/package.json`);
       existsProxy.returns({ path: packageJsonPath, exists: false });
     },
   };

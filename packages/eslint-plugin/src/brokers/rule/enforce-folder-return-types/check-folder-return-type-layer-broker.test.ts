@@ -3,7 +3,6 @@ import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-e
 import { ArrowFunctionExpressionStub } from '#gateway/npm/typescript-eslint__utils/arrow-function-expression/arrow-function-expression.stub';
 import { checkFolderReturnTypeLayerBroker } from './check-folder-return-type-layer-broker';
 import { checkFolderReturnTypeLayerBrokerProxy } from './check-folder-return-type-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('checkFolderReturnTypeLayerBroker', () => {
   describe('R1 — void is permitted exactly when every discarded call also told it nothing', () => {
@@ -18,9 +17,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value: '/repo/packages/orchestrator/src/brokers/quest/x/quest-x-broker.ts',
-        }),
+        declarationFile: '/repo/packages/orchestrator/src/brokers/quest/x/quest-x-broker.ts',
       });
       proxy.setupCallReturnIsVoidLike({ callNode, isVoidLike: false });
 
@@ -49,9 +46,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value: '/repo/packages/orchestrator/src/brokers/quest/y/quest-y-broker.ts',
-        }),
+        declarationFile: '/repo/packages/orchestrator/src/brokers/quest/y/quest-y-broker.ts',
       });
       proxy.setupCallReturnIsVoidLike({ callNode, isVoidLike: true });
 
@@ -92,9 +87,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value: '/repo/packages/@gateway/node/src/fs__promises/stat-if-exists/stat-if-exists.ts',
-        }),
+        declarationFile: '/repo/packages/@gateway/node/src/fs__promises/stat-if-exists/stat-if-exists.ts',
       });
       proxy.setupCallReturnIsVoidLike({ callNode, isVoidLike: false });
 
@@ -123,10 +116,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value:
-            '/repo/packages/@gateway/node/src/fs__promises/unlink-if-exists/unlink-if-exists.ts',
-        }),
+        declarationFile: '/repo/packages/@gateway/node/src/fs__promises/unlink-if-exists/unlink-if-exists.ts',
       });
       proxy.setupCallReturnIsVoidLike({ callNode, isVoidLike: true });
 
@@ -150,9 +140,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value: '/repo/packages/orchestrator/src/brokers/quest/z/quest-z-broker.ts',
-        }),
+        declarationFile: '/repo/packages/orchestrator/src/brokers/quest/z/quest-z-broker.ts',
       });
       proxy.setupCallReturnIsVoidLike({ callNode, isVoidLike: false });
 
@@ -181,9 +169,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value: '/repo/packages/orchestrator/src/brokers/quest/w/quest-w-broker.ts',
-        }),
+        declarationFile: '/repo/packages/orchestrator/src/brokers/quest/w/quest-w-broker.ts',
       });
       proxy.setupCallReturnIsVoidLike({ callNode, isVoidLike: true });
 
@@ -207,9 +193,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
         callNode,
-        declarationFile: FilePathStub({
-          value: '/repo/packages/orchestrator/src/transformers/quest-id/quest-id-transformer.ts',
-        }),
+        declarationFile: '/repo/packages/orchestrator/src/transformers/quest-id/quest-id-transformer.ts',
       });
 
       checkFolderReturnTypeLayerBroker({

@@ -10,8 +10,7 @@
 
 import { existsSync, readFileSync } from '#gateway/node/fs';
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 const JSON_EXTENSION = '.json';
@@ -23,10 +22,8 @@ const finalPathFor = ({
 }: {
   questFolderPath: AbsoluteFilePath;
   operationItemId: OperationItem['id'];
-}): FilePath =>
-  filePathContract.parse(
-    `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}/${String(operationItemId)}${JSON_EXTENSION}`,
-  );
+}): string =>
+  `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkDiskHarness = (): {
   dirExists: (params: { questFolderPath: AbsoluteFilePath }) => boolean;
@@ -45,7 +42,7 @@ export const plannedWorkDiskHarness = (): {
 } => ({
   dirExists: ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): boolean =>
     existsSync(
-      filePathContract.parse(`${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}`),
+      `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}`,
     ),
 
   finalFileExists: ({
@@ -64,7 +61,7 @@ export const plannedWorkDiskHarness = (): {
     operationItemId: OperationItem['id'];
   }): boolean =>
     existsSync(
-      filePathContract.parse(`${finalPathFor({ questFolderPath, operationItemId })}${TMP_SUFFIX}`),
+      `${finalPathFor({ questFolderPath, operationItemId })}${TMP_SUFFIX}`,
     ),
 
   readFinalFileRaw: ({

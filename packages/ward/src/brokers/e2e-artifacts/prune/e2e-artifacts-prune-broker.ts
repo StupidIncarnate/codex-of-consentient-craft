@@ -28,7 +28,6 @@
 
 import { listeningPids } from '#gateway/bin/lsof';
 import { readdirIfExists, rm, statIfExists } from '#gateway/node/fs__promises';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
@@ -44,7 +43,7 @@ export const e2eArtifactsPruneBroker = async ({
 
   await Promise.all(
     e2eArtifactsStatics.artifacts.map(async (artifact) => {
-      const parentPath = filePathContract.parse(`${String(packageRoot)}/${artifact.parentDir}`);
+      const parentPath = `${String(packageRoot)}/${artifact.parentDir}`;
 
       // Per PREFIX, not per sweep. A package with no test-results/ must not stop the vite cache
       // under node_modules/ being swept.
@@ -63,7 +62,7 @@ export const e2eArtifactsPruneBroker = async ({
       await Promise.all(
         candidates.map(async (entry) => {
           const name = entry;
-          const entryPath = filePathContract.parse(`${String(parentPath)}/${name}`);
+          const entryPath = `${String(parentPath)}/${name}`;
 
           try {
             const stats = await statIfExists(String(entryPath));

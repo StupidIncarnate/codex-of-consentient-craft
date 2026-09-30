@@ -1,11 +1,10 @@
 import { fileReadOrEmptyBrokerProxy } from '../../file/read-or-empty/file-read-or-empty-broker.proxy';
 import { toolInputGetFullContentBrokerProxy } from '../get-full-content/tool-input-get-full-content-broker.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const toolInputGetContentChangesBrokerProxy = (): {
-  setupReadFileSuccess: ({ filePath, content }: { filePath: FilePath; content: string }) => void;
-  setupReadFileNotFound: ({ filePath }: { filePath: FilePath }) => void;
-  setupReadFileError: ({ filePath, error }: { filePath: FilePath; error: Error }) => void;
+  setupReadFileSuccess: ({ filePath, content }: { filePath: string; content: string }) => void;
+  setupReadFileNotFound: ({ filePath }: { filePath: string }) => void;
+  setupReadFileError: ({ filePath, error }: { filePath: string; error: Error }) => void;
 } => {
   const fileReadProxy = fileReadOrEmptyBrokerProxy();
   toolInputGetFullContentBrokerProxy();

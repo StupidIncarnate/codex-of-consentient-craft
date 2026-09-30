@@ -3,16 +3,15 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { dungeonmasterHomeFindBrokerProxy } from '../find/dungeonmaster-home-find-broker.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
 export const dungeonmasterHomeEnsureBrokerProxy = (): {
   setupEnsureSuccess: (params: {
     homeDir: string;
-    homePath: FilePath;
-    guildsPath: FilePath;
+    homePath: string;
+    guildsPath: string;
   }) => void;
-  setupMkdirFails: (params: { homeDir: string; homePath: FilePath; error: FsError }) => void;
+  setupMkdirFails: (params: { homeDir: string; homePath: string; error: FsError }) => void;
 } => {
   const findProxy = dungeonmasterHomeFindBrokerProxy();
   const ensureDirHandle = ensureDirProxy();
@@ -33,8 +32,8 @@ export const dungeonmasterHomeEnsureBrokerProxy = (): {
       guildsPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      guildsPath: FilePath;
+      homePath: string;
+      guildsPath: string;
     }): void => {
       findProxy.setupHomePath({ homeDir, homePath });
       ensureDirHandle.succeeds({ path: homePath });
@@ -49,7 +48,7 @@ export const dungeonmasterHomeEnsureBrokerProxy = (): {
       error,
     }: {
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       error: FsError;
     }): void => {
       findProxy.setupHomePath({ homeDir, homePath });

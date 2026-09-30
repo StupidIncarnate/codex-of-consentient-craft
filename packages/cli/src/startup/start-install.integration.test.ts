@@ -1,9 +1,9 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { StartInstall } from './start-install';
 import { scaffoldedTemplateTypecheckHarness } from '../../test/harnesses/scaffolded-template-typecheck/scaffolded-template-typecheck.harness';
 import { scaffoldedPlaywrightConfigRunHarness } from '../../test/harnesses/scaffolded-playwright-config-run/scaffolded-playwright-config-run.harness';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 // The scaffolded playwright.config.ts imports @dungeonmaster/shared/contracts, a real workspace
 // package — spawning it via tsx from a bare testbed dir under the OS /tmp finds nothing, since
@@ -23,10 +23,10 @@ describe('StartInstall', () => {
       });
 
       const result = await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const packageJsonContent = testbed.readFile({
@@ -96,10 +96,10 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const writtenContent = testbed.readFile({
@@ -191,10 +191,10 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
@@ -235,10 +235,10 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
@@ -292,10 +292,10 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
@@ -344,10 +344,10 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();

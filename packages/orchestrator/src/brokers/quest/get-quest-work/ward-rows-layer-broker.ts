@@ -29,7 +29,7 @@
  */
 
 import { filePathContract, wardDetailContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, Quest } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -48,7 +48,7 @@ export const wardRowsLayerBroker = async ({
 }: {
   questPath: AbsoluteFilePath;
   quest: Quest;
-}): Promise<{ ward: QuestWorkWard | null; riftcarverLogPath: FilePath | null }> => {
+}): Promise<{ ward: QuestWorkWard | null; riftcarverLogPath: string | null }> => {
   const failedCarve = [...quest.riftcarverResults]
     .filter((result) => result.exitCode !== GREEN_EXIT_CODE)
     .at(-1);
@@ -56,13 +56,11 @@ export const wardRowsLayerBroker = async ({
   const riftcarverLogPath =
     failedCarve === undefined
       ? null
-      : filePathContract.parse(
-          join(
+      : join(
             questPath,
             locationsStatics.quest.riftcarverResultsDir,
             `${String(failedCarve.id)}${LOG_EXTENSION}`,
-          ),
-        );
+          );
 
   const failedWard = [...quest.wardResults]
     .filter((result) => result.exitCode !== GREEN_EXIT_CODE)
@@ -72,13 +70,11 @@ export const wardRowsLayerBroker = async ({
     return { ward: null, riftcarverLogPath };
   }
 
-  const blobPath = filePathContract.parse(
-    join(
+  const blobPath = join(
       questPath,
       locationsStatics.quest.wardResultsDir,
       `${String(failedWard.id)}${JSON_EXTENSION}`,
-    ),
-  );
+    );
 
   const contents = await readFileIfExists(blobPath);
   const parsed = wardDetailContract.safeParse(contents === null ? {} : JSON.parse(contents));

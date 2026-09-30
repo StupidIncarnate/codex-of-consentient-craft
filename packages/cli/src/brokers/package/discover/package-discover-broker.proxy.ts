@@ -2,16 +2,16 @@ import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 export const packageDiscoverBrokerProxy = (): {
   setupPackageDiscovery: (params: {
-    packagesPath: FilePath;
+    packagesPath: string;
     packages: (
       | {
           name: FileName;
-          standardPath: FilePath;
-          alternatePath?: FilePath;
+          standardPath: string;
+          alternatePath?: string;
           installerLocation: 'standard' | 'alternate' | 'none';
           hasFinalize?: boolean;
         }
@@ -19,22 +19,22 @@ export const packageDiscoverBrokerProxy = (): {
           name: FileName;
           children: {
             name: FileName;
-            standardPath: FilePath;
-            alternatePath?: FilePath;
+            standardPath: string;
+            alternatePath?: string;
             installerLocation: 'standard' | 'alternate' | 'none';
             hasFinalize?: boolean;
           }[];
         }
     )[];
   }) => void;
-  setupEmptyPackagesDirectory: (params: { packagesPath: FilePath }) => void;
+  setupEmptyPackagesDirectory: (params: { packagesPath: string }) => void;
   setupInstalledConsumerPackageDiscovery: (params: {
-    dungeonmasterRoot: FilePath;
+    dungeonmasterRoot: string;
     packages: (
       | {
           name: FileName;
-          standardPath: FilePath;
-          alternatePath?: FilePath;
+          standardPath: string;
+          alternatePath?: string;
           installerLocation: 'standard' | 'alternate' | 'none';
           hasFinalize?: boolean;
         }
@@ -42,8 +42,8 @@ export const packageDiscoverBrokerProxy = (): {
           name: FileName;
           children: {
             name: FileName;
-            standardPath: FilePath;
-            alternatePath?: FilePath;
+            standardPath: string;
+            alternatePath?: string;
             installerLocation: 'standard' | 'alternate' | 'none';
             hasFinalize?: boolean;
           }[];
@@ -69,8 +69,8 @@ export const packageDiscoverBrokerProxy = (): {
       // `children` are the leaf entries that actually get an existsSync check below.
       const leafEntries: {
         name: FileName;
-        standardPath: FilePath;
-        alternatePath?: FilePath;
+        standardPath: string;
+        alternatePath?: string;
         installerLocation: 'standard' | 'alternate' | 'none';
         hasFinalize?: boolean;
       }[] = [];
@@ -138,8 +138,8 @@ export const packageDiscoverBrokerProxy = (): {
 
       const leafEntries: {
         name: FileName;
-        standardPath: FilePath;
-        alternatePath?: FilePath;
+        standardPath: string;
+        alternatePath?: string;
         installerLocation: 'standard' | 'alternate' | 'none';
         hasFinalize?: boolean;
       }[] = [];

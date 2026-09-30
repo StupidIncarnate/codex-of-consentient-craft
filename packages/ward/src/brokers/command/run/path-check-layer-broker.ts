@@ -18,7 +18,6 @@
 
 import { existsSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 
@@ -34,6 +33,6 @@ export const pathCheckLayerBroker = ({
   }
 
   return passthrough.filter(
-    (arg) => !existsSync(filePathContract.parse(`${String(rootPath)}/${String(arg)}`)),
+    (arg) => !existsSync(`${String(rootPath)}/${String(arg)}`),
   );
 };

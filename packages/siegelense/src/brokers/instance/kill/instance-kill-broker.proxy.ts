@@ -6,7 +6,6 @@ import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeou
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
@@ -35,12 +34,12 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 // (an addressed homedir()/join() pair), not a sticky override.
 const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
-const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
-const ROOT_PATH = FilePathStub({ value: `${HOME_PATH_VALUE}/siegelense` });
+const HOME_PATH = HOME_PATH_VALUE;
+const ROOT_PATH = `${HOME_PATH_VALUE}/siegelense`;
 const TMP_DIR_VALUE = '/tmp';
 const CWD_PATH_VALUE = '/default/cwd';
 const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
-const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
+const LINK_PATH_FILE = LINK_PATH_VALUE;
 
 export const instanceKillBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;

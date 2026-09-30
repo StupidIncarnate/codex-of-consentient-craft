@@ -7,13 +7,12 @@
  * }
  * // Returns true if path contains any integration test file suffix from test file pattern statics
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
 export const isIntegrationTestFileGuard = ({
   filePath,
 }: {
-  filePath?: FilePath | undefined;
+  filePath?: string | undefined;
 }): boolean => {
   if (filePath === undefined) {
     return false;

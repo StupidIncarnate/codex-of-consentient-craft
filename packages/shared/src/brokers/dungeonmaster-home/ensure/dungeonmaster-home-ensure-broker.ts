@@ -8,21 +8,18 @@
 
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 import { dungeonmasterHomeFindBroker } from '../find/dungeonmaster-home-find-broker';
 
 export const dungeonmasterHomeEnsureBroker = async (): Promise<{
-  homePath: FilePath;
-  guildsPath: FilePath;
+  homePath: string;
+  guildsPath: string;
 }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   await ensureDir(homePath);
 
-  const guildsPath = filePathContract.parse(
-    join(homePath, dungeonmasterHomeStatics.paths.guildsDir),
-  );
+  const guildsPath = join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
 
   await ensureDir(guildsPath);
 

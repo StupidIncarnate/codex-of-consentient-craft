@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -52,7 +51,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
@@ -76,7 +75,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: controller.signal,
@@ -117,7 +116,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
@@ -155,7 +154,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
@@ -203,7 +202,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
@@ -243,7 +242,7 @@ describe('questOrchestrationLoopBroker', () => {
       await questOrchestrationLoopBroker({
         processId: ProcessIdStub({ value: 'proc-test-1' }),
         questId,
-        startPath: FilePathStub({ value: '/project/src' }),
+        startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
@@ -298,7 +297,7 @@ describe('questOrchestrationLoopBroker', () => {
       await questOrchestrationLoopBroker({
         processId: ProcessIdStub({ value: 'proc-test-1' }),
         questId,
-        startPath: FilePathStub({ value: '/project/src' }),
+        startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
@@ -346,7 +345,7 @@ describe('questOrchestrationLoopBroker', () => {
       await questOrchestrationLoopBroker({
         processId: ProcessIdStub({ value: 'proc-test-1' }),
         questId,
-        startPath: FilePathStub({ value: '/project/src' }),
+        startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
@@ -394,7 +393,7 @@ describe('questOrchestrationLoopBroker', () => {
       await questOrchestrationLoopBroker({
         processId: ProcessIdStub({ value: 'proc-test-1' }),
         questId,
-        startPath: FilePathStub({ value: '/project/src' }),
+        startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
@@ -438,7 +437,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
@@ -504,7 +503,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
@@ -524,7 +523,7 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          startPath: FilePathStub({ value: '/project/src' }),
+          startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,

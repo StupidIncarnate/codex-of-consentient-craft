@@ -1,6 +1,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { StartInstall } from './start-install';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('start-install integration', () => {
   describe('StartInstall', () => {
@@ -10,10 +10,10 @@ describe('start-install integration', () => {
       });
 
       const result = await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -241,10 +241,10 @@ describe('start-install integration', () => {
       });
 
       const result = await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -483,10 +483,10 @@ describe('start-install integration', () => {
       });
 
       const result = await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const settingsContent = testbed.readFile({
@@ -725,10 +725,10 @@ describe('start-install integration', () => {
       });
 
       const result = await StartInstall({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -959,10 +959,10 @@ describe('start-install integration', () => {
         });
 
         const result = await StartInstall({
-          context: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          } }),
         });
 
         expect(result.success).toBe(true);

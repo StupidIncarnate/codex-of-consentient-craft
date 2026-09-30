@@ -33,7 +33,7 @@ import { readdirSync } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, arrayIndexContract, fileNameContract, filePathContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, arrayIndexContract, fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
 import type { ArrayIndex, ChatEntry, StreamJsonLine, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -96,7 +96,7 @@ export const chatHistoryReplayBroker = async ({
     // Falls back to the guild path when no `.dungeonmaster.json` ancestor exists (standalone
     // projects / e2e isolated /tmp dirs) — those agents spawn at the guild path itself.
     const guild = await guildGetBroker({ guildId });
-    const guildStartPath = filePathContract.parse(guild.path);
+    const guildStartPath = guild.path;
     try {
       const repoRootCwd = await cwdResolveBroker({
         startPath: guildStartPath,

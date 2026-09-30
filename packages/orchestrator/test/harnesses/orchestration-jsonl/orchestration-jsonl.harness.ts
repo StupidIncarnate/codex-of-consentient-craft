@@ -11,7 +11,6 @@ import {
   systemInitStreamLineContract,
 } from '@dungeonmaster/shared/contracts';
 import type { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
-import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
@@ -40,7 +39,7 @@ export const orchestrationJsonlHarness = (): {
   }) => ClaudeQueueResponse;
   wardPassResponse: () => WardQueueResponse;
   wardFailResponse: (params?: {
-    filePaths?: ReturnType<typeof FilePathStub>[];
+    filePaths?: string[];
   }) => WardQueueResponse;
 } => {
   const signalBackLine = ({
@@ -115,7 +114,7 @@ export const orchestrationJsonlHarness = (): {
 
   const wardFailResponse = ({
     filePaths = [],
-  }: { filePaths?: ReturnType<typeof FilePathStub>[] } = {}): WardQueueResponse => ({
+  }: { filePaths?: string[] } = {}): WardQueueResponse => ({
     exitCode: ExitCodeStub({ value: 1 }),
     runId: WardRunIdStub({ value: `ward-fail-${String(Date.now())}` }),
     wardResultJson: {

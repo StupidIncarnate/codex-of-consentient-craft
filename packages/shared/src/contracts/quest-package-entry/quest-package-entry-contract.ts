@@ -19,15 +19,16 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { filePathContract } from '../file-path/file-path-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { packageTypeContract } from '../package-type/package-type-contract';
+import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
 export const questPackageEntryContract = z.object({
   name: packageNameContract.describe(
     'The package directory name under the workspace root, which is how every node tag and operation item refers to it',
   ),
-  location: filePathContract.describe(
+  location: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestPackageEntryLocation'>().describe(
     "The package root, either absolute or prefixed './' relative to the quest's own project root. Carried rather than derived because a 'new' package has no path to look up yet, and because a quest may run in a repo whose layout is not packages/<name>.",
   ),
   changeType: z

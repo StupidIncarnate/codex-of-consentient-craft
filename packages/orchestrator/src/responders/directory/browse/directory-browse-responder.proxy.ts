@@ -1,4 +1,3 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { directoryBrowseBrokerProxy } from '../../../brokers/directory/browse/directory-browse-broker.proxy';
 import { DirectoryBrowseResponder } from './directory-browse-responder';
@@ -7,13 +6,13 @@ export const DirectoryBrowseResponderProxy = (): {
   callResponder: typeof DirectoryBrowseResponder;
   setupDirectories: (params: {
     targetPath: string;
-    directories: { name: string; joinedPath: FilePath }[];
+    directories: { name: string; joinedPath: string }[];
     files: string[];
     hiddenDirectories: string[];
   }) => void;
   setupDefaultHomedir: (params: {
     homeDir: string;
-    directories: { name: string; joinedPath: FilePath }[];
+    directories: { name: string; joinedPath: string }[];
   }) => void;
   setupEmpty: (params: { targetPath: string }) => void;
 } => {
@@ -24,7 +23,7 @@ export const DirectoryBrowseResponderProxy = (): {
 
     setupDirectories: (params: {
       targetPath: string;
-      directories: { name: string; joinedPath: FilePath }[];
+      directories: { name: string; joinedPath: string }[];
       files: string[];
       hiddenDirectories: string[];
     }): void => {
@@ -33,7 +32,7 @@ export const DirectoryBrowseResponderProxy = (): {
 
     setupDefaultHomedir: (params: {
       homeDir: string;
-      directories: { name: string; joinedPath: FilePath }[];
+      directories: { name: string; joinedPath: string }[];
     }): void => {
       brokerProxy.setupDefaultHomedir(params);
     },

@@ -1,6 +1,5 @@
 import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { stderr } from '#gateway/node/process';
@@ -13,8 +12,8 @@ describe('questListBroker', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/project/.dungeonmaster-quests',
       });
       proxy.setupQuestDirectories({
         files: [
@@ -26,7 +25,7 @@ describe('questListBroker', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-quest-1' }),
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-quest-1/quest.json' }),
+        result: '/project/.dungeonmaster-quests/001-quest-1/quest.json',
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify({
@@ -42,7 +41,7 @@ describe('questListBroker', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '002-quest-2' }),
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-quest-2/quest.json' }),
+        result: '/project/.dungeonmaster-quests/002-quest-2/quest.json',
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify({
@@ -69,8 +68,8 @@ describe('questListBroker', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/project/.dungeonmaster-quests',
       });
       proxy.setupQuestDirectories({
         files: [
@@ -90,8 +89,8 @@ describe('questListBroker', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/project/.dungeonmaster-quests',
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -108,15 +107,15 @@ describe('questListBroker', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/project/.dungeonmaster-quests',
       });
       proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-legacy' }), FileNameStub({ value: '002-good' })],
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-legacy' }),
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-legacy/quest.json' }),
+        result: '/project/.dungeonmaster-quests/001-legacy/quest.json',
       });
       // Written by an older schema: `pathseeker` is no longer in workItemRoleContract.
       proxy.setupQuestFile({
@@ -143,7 +142,7 @@ describe('questListBroker', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '002-good' }),
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-good/quest.json' }),
+        result: '/project/.dungeonmaster-quests/002-good/quest.json',
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify({
@@ -169,15 +168,15 @@ describe('questListBroker', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/project/.dungeonmaster-quests',
       });
       proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-legacy' })],
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-legacy' }),
-        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-legacy/quest.json' }),
+        result: '/project/.dungeonmaster-quests/001-legacy/quest.json',
       });
       proxy.setupQuestFile({ questJson: '{ not valid json' });
 
@@ -201,13 +200,13 @@ describe('questListBroker', () => {
       for (const _pass of [0, 1]) {
         proxy.setupQuestsPath({
           homeDir: '/home/testuser',
-          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-          questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+          homePath: '/home/testuser/.dungeonmaster',
+          questsPath: '/project/.dungeonmaster-quests',
         });
         proxy.setupQuestDirectories({ files: [FileNameStub({ value: '010-repeat' })] });
         proxy.setupQuestFilePath({
           folderName: FileNameStub({ value: '010-repeat' }),
-          result: FilePathStub({ value: '/project/.dungeonmaster-quests/010-repeat/quest.json' }),
+          result: '/project/.dungeonmaster-quests/010-repeat/quest.json',
         });
         proxy.setupQuestFile({ questJson: '{ not valid json' });
       }
@@ -227,13 +226,13 @@ describe('questListBroker', () => {
       for (const _pass of [0, 1]) {
         proxy.setupQuestsPath({
           homeDir: '/home/testuser',
-          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-          questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+          homePath: '/home/testuser/.dungeonmaster',
+          questsPath: '/project/.dungeonmaster-quests',
         });
         proxy.setupQuestDirectories({ files: [FileNameStub({ value: '011-changed' })] });
         proxy.setupQuestFilePath({
           folderName: FileNameStub({ value: '011-changed' }),
-          result: FilePathStub({ value: '/project/.dungeonmaster-quests/011-changed/quest.json' }),
+          result: '/project/.dungeonmaster-quests/011-changed/quest.json',
         });
       }
       proxy.setupQuestFile({ questJson: '{ not valid json' });
@@ -255,13 +254,13 @@ describe('questListBroker', () => {
       for (const _pass of [0, 1, 2]) {
         proxy.setupQuestsPath({
           homeDir: '/home/testuser',
-          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-          questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+          homePath: '/home/testuser/.dungeonmaster',
+          questsPath: '/project/.dungeonmaster-quests',
         });
         proxy.setupQuestDirectories({ files: [FileNameStub({ value: '012-flapping' })] });
         proxy.setupQuestFilePath({
           folderName: FileNameStub({ value: '012-flapping' }),
-          result: FilePathStub({ value: '/project/.dungeonmaster-quests/012-flapping/quest.json' }),
+          result: '/project/.dungeonmaster-quests/012-flapping/quest.json',
         });
       }
       proxy.setupQuestFile({ questJson: '{ not valid json' });
@@ -302,17 +301,15 @@ describe('questListBroker', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/project/.dungeonmaster-quests',
       });
       proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-hidden-quest' })],
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-hidden-quest' }),
-        result: FilePathStub({
-          value: '/project/.dungeonmaster-quests/001-hidden-quest/quest.json',
-        }),
+        result: '/project/.dungeonmaster-quests/001-hidden-quest/quest.json',
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify({

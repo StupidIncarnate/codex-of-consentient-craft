@@ -22,7 +22,6 @@ import { join, resolve } from '#gateway/node/path';
 
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -139,19 +138,11 @@ export const questModifyBrokerProxy = (): {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       modifyMock.calledWith([isModifyCall]).implement(realMod.questModifyBroker as never);
       const guildId = GuildIdStub();
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const guildsDir = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds',
-      });
-      const questsDirPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
-      const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
-      });
-      const questFilePath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const guildsDir = '/home/testuser/.dungeonmaster/guilds';
+      const questsDirPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
+      const questFolderPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`;
+      const questFilePath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`;
 
       findQuestPathProxy.setupQuestFound({
         homeDir: '/home/testuser',
@@ -184,7 +175,7 @@ export const questModifyBrokerProxy = (): {
       persistProxy.setupPersist({
         questFilePath,
         homePath,
-        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+        outboxFilePath: '/home/testuser/.dungeonmaster/outbox.jsonl',
       });
     },
 
@@ -256,10 +247,8 @@ export const questModifyBrokerProxy = (): {
 
     setupEmptyFolder: (): void => {
       modifyMock.calledWith([isModifyCall]).implement(realMod.questModifyBroker as never);
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const guildsDir = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds',
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const guildsDir = '/home/testuser/.dungeonmaster/guilds';
 
       findQuestPathProxy.setupNoGuilds({
         homeDir: '/home/testuser',

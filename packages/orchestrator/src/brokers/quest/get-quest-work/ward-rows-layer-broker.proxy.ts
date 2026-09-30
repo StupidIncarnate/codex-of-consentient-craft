@@ -9,8 +9,7 @@
  * const rows = await wardRowsLayerBroker({ questPath, quest });
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 import type { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -33,8 +32,8 @@ export const wardRowsLayerBrokerProxy = (): {
   }) => void;
   setupBlobMissing: (params: { questPath: AbsoluteFilePath; wardResultId: WardResultId }) => void;
   setupCarveLog: (params: { questPath: AbsoluteFilePath; carveId: RiftcarverResultId }) => void;
-  blobPathFor: (params: { questPath: AbsoluteFilePath; wardResultId: WardResultId }) => FilePath;
-  logPathFor: (params: { questPath: AbsoluteFilePath; carveId: RiftcarverResultId }) => FilePath;
+  blobPathFor: (params: { questPath: AbsoluteFilePath; wardResultId: WardResultId }) => string;
+  logPathFor: (params: { questPath: AbsoluteFilePath; carveId: RiftcarverResultId }) => string;
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
   const readFileHandle = readFileIfExistsProxy();
@@ -45,10 +44,8 @@ export const wardRowsLayerBrokerProxy = (): {
   }: {
     questPath: AbsoluteFilePath;
     wardResultId: WardResultId;
-  }): FilePath =>
-    filePathContract.parse(
-      `${String(questPath)}/${locationsStatics.quest.wardResultsDir}/${String(wardResultId)}${JSON_EXTENSION}`,
-    );
+  }): string =>
+    `${String(questPath)}/${locationsStatics.quest.wardResultsDir}/${String(wardResultId)}${JSON_EXTENSION}`;
 
   const logPathFor = ({
     questPath,
@@ -56,10 +53,8 @@ export const wardRowsLayerBrokerProxy = (): {
   }: {
     questPath: AbsoluteFilePath;
     carveId: RiftcarverResultId;
-  }): FilePath =>
-    filePathContract.parse(
-      `${String(questPath)}/${locationsStatics.quest.riftcarverResultsDir}/${String(carveId)}${LOG_EXTENSION}`,
-    );
+  }): string =>
+    `${String(questPath)}/${locationsStatics.quest.riftcarverResultsDir}/${String(carveId)}${LOG_EXTENSION}`;
 
   return {
     blobPathFor,

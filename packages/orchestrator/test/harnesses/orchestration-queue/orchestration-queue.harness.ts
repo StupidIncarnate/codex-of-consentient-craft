@@ -9,21 +9,20 @@
 import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { GuildPath } from '@dungeonmaster/shared/contracts';
 import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 export const orchestrationQueueHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
   initDirs: (params: { baseDir: GuildPath }) => {
-    claudeQueueDir: FilePath;
-    wardQueueDir: FilePath;
+    claudeQueueDir: string;
+    wardQueueDir: string;
   };
-  enqueue: (params: { queueDir: FilePath; response: unknown }) => void;
+  enqueue: (params: { queueDir: string; response: unknown }) => void;
   resetCounters: () => void;
 } => {
-  const counters = new Map<FilePath, ReturnType<typeof ArrayIndexStub>>();
+  const counters = new Map<string, ReturnType<typeof ArrayIndexStub>>();
 
   return {
     beforeEach: (): void => {
@@ -37,21 +36,21 @@ export const orchestrationQueueHarness = (): {
     }: {
       baseDir: GuildPath;
     }): {
-      claudeQueueDir: FilePath;
-      wardQueueDir: FilePath;
+      claudeQueueDir: string;
+      wardQueueDir: string;
     } => {
       const claudeQueueDir = path.join(baseDir, 'claude-queue');
       const wardQueueDir = path.join(baseDir, 'ward-queue');
       ensureDirSync(claudeQueueDir);
       ensureDirSync(wardQueueDir);
       return {
-        claudeQueueDir: FilePathStub({ value: claudeQueueDir }),
-        wardQueueDir: FilePathStub({ value: wardQueueDir }),
+        claudeQueueDir: claudeQueueDir,
+        wardQueueDir: wardQueueDir,
       };
     },
 
-    enqueue: ({ queueDir, response }: { queueDir: FilePath; response: unknown }): void => {
-      const key = FilePathStub({ value: queueDir });
+    enqueue: ({ queueDir, response }: { queueDir: string; response: unknown }): void => {
+      const key = queueDir;
       const counter = counters.get(key) ?? ArrayIndexStub({ value: 0 });
       const filePath = path.join(queueDir, `${String(counter).padStart(4, '0')}.json`);
       writeFileSync(filePath, JSON.stringify(response));

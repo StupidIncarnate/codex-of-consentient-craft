@@ -7,11 +7,9 @@
  * });
  * // Returns: '/src/widgets/user/user-widget.tsx'
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-export const tsToTsxPathTransformer = ({ tsPath }: { tsPath: string }): FilePath => {
+export const tsToTsxPathTransformer = ({ tsPath }: { tsPath: string }): string => {
   const tsxPath = tsPath.replace(/\.ts$/u, '.tsx');
 
-  return filePathContract.parse(tsxPath);
+  return tsxPath;
 };

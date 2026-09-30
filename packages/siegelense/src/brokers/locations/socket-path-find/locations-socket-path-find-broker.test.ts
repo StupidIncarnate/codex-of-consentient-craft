@@ -1,6 +1,5 @@
 import { locationsSocketPathFindBroker } from './locations-socket-path-find-broker';
 import { locationsSocketPathFindBrokerProxy } from './locations-socket-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { Buffer } from '#gateway/node/buffer';
@@ -13,7 +12,7 @@ describe('locationsSocketPathFindBroker', () => {
 
       proxy.setupSocketPath({
         tmpDir: '/tmp',
-        socketPath: FilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' }),
+        socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
       });
 
       const result = locationsSocketPathFindBroker({ instanceId });
@@ -29,9 +28,7 @@ describe('locationsSocketPathFindBroker', () => {
 
       proxy.setupSocketPath({
         tmpDir: '/var/folders/zz/zyxvpxvq6csfxvn_n0000gn/T',
-        socketPath: FilePathStub({
-          value: '/var/folders/zz/zyxvpxvq6csfxvn_n0000gn/T/dm-siege-sockets/inst_7f3a9c21.sock',
-        }),
+        socketPath: '/var/folders/zz/zyxvpxvq6csfxvn_n0000gn/T/dm-siege-sockets/inst_7f3a9c21.sock',
       });
 
       const result = locationsSocketPathFindBroker({ instanceId });
@@ -54,7 +51,7 @@ describe('locationsSocketPathFindBroker', () => {
 
       proxy.setupSocketPath({
         tmpDir: '/var/folders/zz/zyxvpxvq6csfxvn_n0000gn/T',
-        socketPath: FilePathStub({ value: socketPathValue }),
+        socketPath: socketPathValue,
       });
 
       const result = locationsSocketPathFindBroker({ instanceId });

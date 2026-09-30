@@ -12,15 +12,14 @@ import { pathExists } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
 import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const projectRootFindBroker = async ({
   startPath,
   currentPath,
 }: {
-  startPath: FilePath;
-  currentPath?: FilePath;
-}): Promise<FilePath> => {
+  startPath: string;
+  currentPath?: string;
+}): Promise<string> => {
   // On first call, check startPath itself first (handles directory paths like process.cwd())
   // Then fall back to parent directory search (handles file paths like /project/src/file.ts)
   const searchPath = currentPath ?? startPath;
@@ -32,7 +31,7 @@ export const projectRootFindBroker = async ({
   }
 
   // Check if we've reached the root directory
-  const parentPath = filePathContract.parse(dirname(searchPath));
+  const parentPath = dirname(searchPath);
   if (parentPath === searchPath) {
     // We've reached the root directory without finding package.json
     throw new ProjectRootNotFoundError({ startPath });

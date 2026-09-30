@@ -1,7 +1,6 @@
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { locationsDispatchStatePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker.proxy';
 import { locationsDispatchStateTmpPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/dispatch-state-tmp-path-find/locations-dispatch-state-tmp-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
@@ -23,13 +22,11 @@ export const dispatchStateWriteBrokerProxy = (): {
     .calledWith([])
     .returns('2024-01-15T10:00:00.000Z');
 
-  const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
+  const homePath = '/home/user/.dungeonmaster';
   // Every test in this suite writes/renames the same fixed dispatch-state tmp path — hardcode it
   // as the address instead of re-deriving it per call.
-  const tmpPath = FilePathStub({
-    value: '/home/user/.dungeonmaster/dispatch-state.json.tmp',
-  });
-  const statePath = FilePathStub({ value: '/home/user/.dungeonmaster/dispatch-state.json' });
+  const tmpPath = '/home/user/.dungeonmaster/dispatch-state.json.tmp';
+  const statePath = '/home/user/.dungeonmaster/dispatch-state.json';
 
   // Queue the once-value chains in the broker's execution order: ensure-home first, then
   // the state-file path lookup, then the tmp-file path lookup.
@@ -37,7 +34,7 @@ export const dispatchStateWriteBrokerProxy = (): {
     ensureProxy.setupEnsureSuccess({
       homeDir: '/home/user',
       homePath,
-      guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+      guildsPath: '/home/user/.dungeonmaster/guilds',
     });
     statePathProxy.setupDispatchStatePath({
       homeDir: '/home/user',

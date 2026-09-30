@@ -9,7 +9,6 @@
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
@@ -39,7 +38,7 @@ export const ruleEnforceTestColocationBroker = (): TSESLint.RuleModule<'testNotC
           return;
         }
 
-        const testFilePath = filePathContract.parse(filename);
+        const testFilePath = filename;
 
         // E2e files (.e2e.ts) colocate with the entry flow they exercise — they have no
         // single implementation companion, so exempt them from the test↔impl pairing check.

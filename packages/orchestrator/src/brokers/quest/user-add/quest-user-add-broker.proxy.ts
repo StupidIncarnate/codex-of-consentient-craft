@@ -1,5 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questCreateBroker } from '../create/quest-create-broker';
@@ -7,15 +6,11 @@ import { questCreateBrokerProxy } from '../create/quest-create-broker.proxy';
 
 registerModuleMock({ module: '../create/quest-create-broker' });
 
-const DEFAULT_QUEST_FILE_PATH = FilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default/quest.json',
-});
-const DEFAULT_QUEST_FOLDER_PATH = FilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default',
-});
+const DEFAULT_QUEST_FILE_PATH = '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default/quest.json';
+const DEFAULT_QUEST_FOLDER_PATH = '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default';
 
 export const questUserAddBrokerProxy = (): {
-  setupQuestCreation: (params: { questFilePath: FilePath; questFolderPath: FilePath }) => void;
+  setupQuestCreation: (params: { questFilePath: string; questFolderPath: string }) => void;
   setupCreateFailure: (params: { error: Error }) => void;
   getLastInitialWorkItems: () => readonly WorkItem[];
   // The questId questUserAddBroker actually asked questCreateBroker to persist under — proves
@@ -36,8 +31,8 @@ export const questUserAddBrokerProxy = (): {
       questFilePath,
       questFolderPath,
     }: {
-      questFilePath: FilePath;
-      questFolderPath: FilePath;
+      questFilePath: string;
+      questFolderPath: string;
     }): void => {
       createMock.mockResolvedValueOnce({ questFilePath, questFolderPath });
     },

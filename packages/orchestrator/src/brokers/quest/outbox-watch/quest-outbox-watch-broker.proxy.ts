@@ -1,6 +1,5 @@
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -21,9 +20,9 @@ type OnQuestChanged = (args: { questId: Quest['id'] }) => void;
 type OnError = (args: { error: unknown }) => void;
 
 export const questOutboxWatchBrokerProxy = (): {
-  setupOutboxPath: (params: { homeDir: string; homePath: FilePath; outboxPath: FilePath }) => void;
-  setupLines: (params: { path: FilePath; lines: readonly string[] }) => void;
-  triggerWatchError: (params: { path: FilePath; error: Error }) => void;
+  setupOutboxPath: (params: { homeDir: string; homePath: string; outboxPath: string }) => void;
+  setupLines: (params: { path: string; lines: readonly string[] }) => void;
+  triggerWatchError: (params: { path: string; error: Error }) => void;
   getTruncatedPaths: () => readonly unknown[];
   getCreatedPaths: () => readonly unknown[];
   // Caller-level scenario: stages an invented, self-contained fs layer (a caller reaching this
@@ -48,8 +47,8 @@ export const questOutboxWatchBrokerProxy = (): {
   const appendProxy = appendFileProxy();
   const writeHandle = writeFileProxy();
   // Every outbox path this proxy staged: `getTruncatedPaths` reads back the writes at those addresses.
-  const stagedOutboxPaths: FilePath[] = [];
-  const stageStagedOutboxPaths = (entry: FilePath): void => {
+  const stagedOutboxPaths: string[] = [];
+  const stageStagedOutboxPaths = (entry: string): void => {
     if (!stagedOutboxPaths.includes(entry)) {
       stagedOutboxPaths.push(entry);
     }
@@ -97,8 +96,8 @@ export const questOutboxWatchBrokerProxy = (): {
     outboxPath,
   }: {
     homeDir: string;
-    homePath: FilePath;
-    outboxPath: FilePath;
+    homePath: string;
+    outboxPath: string;
   }): void => {
     runRealWatch();
     homeEnsureProxy.setupEnsureSuccess({
@@ -122,11 +121,11 @@ export const questOutboxWatchBrokerProxy = (): {
   return {
     setupOutboxPath: stageOutboxPath,
 
-    setupLines: ({ path, lines }: { path: FilePath; lines: readonly string[] }): void => {
+    setupLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
       watchTailProxy.setupLines({ path, lines });
     },
 
-    triggerWatchError: ({ path, error }: { path: FilePath; error: Error }): void => {
+    triggerWatchError: ({ path, error }: { path: string; error: Error }): void => {
       watchTailProxy.triggerWatchError({ path, error });
     },
 
@@ -144,8 +143,8 @@ export const questOutboxWatchBrokerProxy = (): {
 
     setupWatchStarted: (): void => {
       const homeDir = '/quest-outbox-watch-broker-proxy';
-      const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
-      const outboxPath = filePathContract.parse(`${homePath}/event-outbox.jsonl`);
+      const homePath = `${homeDir}/.dungeonmaster`;
+      const outboxPath = `${homePath}/event-outbox.jsonl`;
       stageOutboxPath({ homeDir, homePath, outboxPath });
       // No line is ever staged in this scenario, so the tail's first drain stays open instead of
       // arming a timer that outlives the test.

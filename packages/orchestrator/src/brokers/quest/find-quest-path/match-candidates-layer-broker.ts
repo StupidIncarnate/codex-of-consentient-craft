@@ -15,7 +15,7 @@
  */
 
 import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FileName, FilePath, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { readFile } from '#gateway/node/fs__promises';
 
@@ -30,8 +30,8 @@ export const matchCandidatesLayerBroker = async ({
   questId,
 }: {
   candidates: {
-    questFilePath: FilePath;
-    questFolderPath: FilePath;
+    questFilePath: string;
+    questFolderPath: string;
     guildDirName: FileName;
   }[];
   questId: Quest['id'];

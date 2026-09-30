@@ -1,10 +1,9 @@
 import { dirname, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const projectRootFindBrokerProxy = (): {
   setupProjectRootFound: (params: { startPath: string; projectRootPath: string }) => void;
@@ -39,13 +38,13 @@ export const projectRootFindBrokerProxy = (): {
 
   const packageJsonPathFor = ({ dirPath }: { dirPath: string }): FilePath => {
     const packageJsonFile = questsFolderStatics.files.packageJson;
-    const packageJsonPath = FilePathStub({ value: realPath.join(dirPath, packageJsonFile) });
+    const packageJsonPath = realPath.join(dirPath, packageJsonFile);
     joinHandle.calledWith([dirPath, packageJsonFile]).returns(packageJsonPath);
     return packageJsonPath;
   };
 
   const dirnameFor = ({ dirPath }: { dirPath: string }): FilePath => {
-    const parent = FilePathStub({ value: realPath.dirname(dirPath) });
+    const parent = realPath.dirname(dirPath);
     dirnameHandle.calledWith([dirPath]).returns(parent);
     return parent;
   };

@@ -5,25 +5,24 @@ import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.prox
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 
 export const locationsRepoLinkPathFindBrokerProxy = (): {
   setupLinkResolvesToRoot: (params: {
     cwdPath: string;
-    linkPath: FilePath;
+    linkPath: string;
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
+    homePath: string;
+    rootPath: string;
   }) => void;
-  setupLinkAbsent: (params: { cwdPath: string; linkPath: FilePath }) => void;
+  setupLinkAbsent: (params: { cwdPath: string; linkPath: string }) => void;
   setupLinkPointsElsewhere: (params: {
     cwdPath: string;
-    linkPath: FilePath;
+    linkPath: string;
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
+    homePath: string;
+    rootPath: string;
     elsewhereTarget: string;
   }) => void;
   // The address for path.join is its SEGMENTS (see packages/testing/CLAUDE.md). registerMock keys
@@ -36,7 +35,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   // instead of setupLinkResolvesToRoot/setupLinkPointsElsewhere (both of which also stage the link
   // check itself, which a caller controlling that check independently — instanceKillBrokerProxy's
   // convention — cannot risk double-staging).
-  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupHomeOnly: (params: { homeDir: string; homePath: string }) => void;
   // A caller that needs THIS broker's `cwd()` call to resolve to a specific, known value — every
   // scenario runs it unconditionally, before the link check ever gets staged — without wanting the
   // full setupLinkResolvesToRoot/setupLinkAbsent/setupLinkPointsElsewhere scenario staged too.
@@ -59,7 +58,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const linkRealpath = realpathProxy();
 
-  const stageOuterJoin = ({ cwdPath, linkPath }: { cwdPath: string; linkPath: FilePath }): void => {
+  const stageOuterJoin = ({ cwdPath, linkPath }: { cwdPath: string; linkPath: string }): void => {
     cwdStage.setupCwd({ value: cwdPath });
     resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
     joinHandle
@@ -80,10 +79,10 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
       rootPath,
     }: {
       cwdPath: string;
-      linkPath: FilePath;
+      linkPath: string;
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
     }): void => {
       stageOuterJoin({ cwdPath, linkPath });
       existsProxy.returns({ path: linkPath, exists: true });
@@ -91,7 +90,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
       linkRealpath.returns({ path: linkPath, resolved: rootPath });
     },
 
-    setupLinkAbsent: ({ cwdPath, linkPath }: { cwdPath: string; linkPath: FilePath }): void => {
+    setupLinkAbsent: ({ cwdPath, linkPath }: { cwdPath: string; linkPath: string }): void => {
       stageOuterJoin({ cwdPath, linkPath });
       existsProxy.returns({ path: linkPath, exists: false });
     },
@@ -105,10 +104,10 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
       elsewhereTarget,
     }: {
       cwdPath: string;
-      linkPath: FilePath;
+      linkPath: string;
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
       elsewhereTarget: string;
     }): void => {
       stageOuterJoin({ cwdPath, linkPath });
@@ -122,7 +121,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
     // list" here, since this broker makes exactly one join() call per invocation.
     getJoinedSegments: (): unknown => [...joinHandle.callsMatching([])].at(-1),
 
-    setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {
+    setupHomeOnly: (params: { homeDir: string; homePath: string }): void => {
       rootPathProxy.setupHomeOnly(params);
     },
 

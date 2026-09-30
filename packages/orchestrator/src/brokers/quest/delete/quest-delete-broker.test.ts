@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -10,10 +9,8 @@ describe('questDeleteBroker', () => {
     it('VALID: {questId, guildId} => removes quest folder recursively with force and returns success', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const questFolderPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`;
       const proxy = questDeleteBrokerProxy();
       proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
@@ -27,10 +24,8 @@ describe('questDeleteBroker', () => {
     it('VALID: {questId, guildId, missing directory} => idempotent: force ignores ENOENT and still appends outbox', async () => {
       const questId = QuestIdStub({ value: 'already-gone' });
       const guildId = GuildIdStub({ value: 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c' });
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const questFolderPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`;
       const proxy = questDeleteBrokerProxy();
       proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
@@ -46,10 +41,8 @@ describe('questDeleteBroker', () => {
     it('VALID: {questId, guildId} => appends quest-modified event via outbox with questId payload', async () => {
       const questId = QuestIdStub({ value: 'emit-event' });
       const guildId = GuildIdStub({ value: '9febc069-b4e3-2f38-bd80-34df765c3b3e' });
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const questFolderPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`;
       const proxy = questDeleteBrokerProxy();
       proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
@@ -64,15 +57,11 @@ describe('questDeleteBroker', () => {
 
     it('VALID: {two quests deleted} => getAllRmCallArgs reads back both folder removals in call order', async () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const homePath = '/home/testuser/.dungeonmaster';
       const firstId = QuestIdStub({ value: 'quest-a' });
       const secondId = QuestIdStub({ value: 'quest-b' });
-      const firstFolder = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${firstId}`,
-      });
-      const secondFolder = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${secondId}`,
-      });
+      const firstFolder = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${firstId}`;
+      const secondFolder = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${secondId}`;
       const proxy = questDeleteBrokerProxy();
       proxy.setupQuestFolderPath({
         homePath,

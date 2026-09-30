@@ -1,10 +1,5 @@
 import { z } from '#gateway/npm/zod';
-import type {
-  AbsoluteFilePath,
-  ContentText,
-  FilePath,
-  Guild,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -39,7 +34,7 @@ export const runExecuteStepLayerBrokerProxy = (): {
       rect: string;
     }[];
   }) => LaneSession;
-  seedBookPresentAt: (params: { packagePath: FilePath }) => void;
+  seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
     apiBaseUrl: ContentText;
     guild: Guild;

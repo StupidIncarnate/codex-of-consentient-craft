@@ -16,18 +16,13 @@
  */
 
 import { installExecuteBroker } from '../execute/install-execute-broker';
-import type {
-  InstallContext,
-  InstallResult,
-  PackageName,
-  FilePath,
-} from '@dungeonmaster/shared/contracts';
+import type { InstallContext, InstallResult, PackageName } from '@dungeonmaster/shared/contracts';
 
 export const installOrchestrateBroker = async ({
   packages,
   context,
 }: {
-  packages: { packageName: PackageName; installPath: FilePath }[];
+  packages: { packageName: PackageName; installPath: string }[];
   context: InstallContext;
 }): Promise<InstallResult[]> => {
   const [head, ...rest] = packages;

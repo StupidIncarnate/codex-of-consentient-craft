@@ -5,7 +5,6 @@ import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { locationsRateLimitsSnapshotPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-snapshot-path-find/locations-rate-limits-snapshot-path-find-broker.proxy';
 import { locationsRateLimitsSnapshotTmpPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-snapshot-tmp-path-find/locations-rate-limits-snapshot-tmp-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const rateLimitsSnapshotWriteBrokerProxy = (): {
@@ -22,20 +21,20 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
   const snapshotPathProxy = locationsRateLimitsSnapshotPathFindBrokerProxy();
   const tmpPathProxy = locationsRateLimitsSnapshotTmpPathFindBrokerProxy();
 
-  const snapshotPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json' });
-  const tmpPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json.tmp' });
+  const snapshotPath = '/home/test/.dungeonmaster/rate-limits.json';
+  const tmpPath = '/home/test/.dungeonmaster/rate-limits.json.tmp';
 
   dirnameHandle
     .calledWith([snapshotPath])
-    .returns(FilePathStub({ value: '/home/test/.dungeonmaster' }));
+    .returns('/home/test/.dungeonmaster');
   snapshotPathProxy.setupSnapshotPath({
     homeDir: '/home/test',
-    homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),
+    homePath: '/home/test/.dungeonmaster',
     snapshotPath,
   });
   tmpPathProxy.setupTmpPath({
     homeDir: '/home/test',
-    homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),
+    homePath: '/home/test/.dungeonmaster',
     tmpPath,
   });
 

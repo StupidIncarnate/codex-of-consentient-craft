@@ -3,7 +3,6 @@ import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exi
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
@@ -11,8 +10,8 @@ import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder'
 // Every caller exercises targetProjectRoot: '/project', so the exact join tuples staged below are
 // the only ones this responder ever composes and both files it checks always land at these paths.
 const TARGET_PROJECT_ROOT = '/project';
-const WORKTREES_DIR = FilePathStub({ value: '/project/worktrees' });
-const GITIGNORE_PATH = FilePathStub({ value: '/project/.gitignore' });
+const WORKTREES_DIR = '/project/worktrees';
+const GITIGNORE_PATH = '/project/.gitignore';
 const GITIGNORE_FILENAME = '.gitignore';
 
 export const InstallRepoScaffoldResponderProxy = (): {

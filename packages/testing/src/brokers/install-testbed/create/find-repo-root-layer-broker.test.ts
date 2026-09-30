@@ -1,6 +1,5 @@
 import { findRepoRootLayerBroker } from './find-repo-root-layer-broker';
 import { findRepoRootLayerBrokerProxy } from './find-repo-root-layer-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('findRepoRootLayerBroker', () => {
   describe('immediate match', () => {
@@ -9,7 +8,7 @@ describe('findRepoRootLayerBroker', () => {
       proxy.setupWorkspacesRootAt({ dirPath: '/fake/repo' });
 
       const result = findRepoRootLayerBroker({
-        startPath: FilePathStub({ value: '/fake/repo' }),
+        startPath: '/fake/repo',
       });
 
       expect(result).toBe('/fake/repo');
@@ -23,7 +22,7 @@ describe('findRepoRootLayerBroker', () => {
       proxy.setupWorkspacesRootAt({ dirPath: '/fake/repo' });
 
       const result = findRepoRootLayerBroker({
-        startPath: FilePathStub({ value: '/fake/repo/packages/sub/src' }),
+        startPath: '/fake/repo/packages/sub/src',
       });
 
       expect(result).toBe('/fake/repo');
@@ -36,7 +35,7 @@ describe('findRepoRootLayerBroker', () => {
 
       expect(() =>
         findRepoRootLayerBroker({
-          startPath: FilePathStub({ value: '/fake-unreachable/deep/path' }),
+          startPath: '/fake-unreachable/deep/path',
         }),
       ).toThrow(
         /^findRepoRootLayerBroker: reached the filesystem root without finding a package\.json with a workspaces field, starting from \/fake-unreachable\/deep\/path$/u,

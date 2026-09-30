@@ -61,7 +61,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
     packageRoot: AbsoluteFilePath;
     parentDir: string;
   }): ReturnType<typeof filePathContract.parse> =>
-    filePathContract.parse(`${String(packageRoot)}/${parentDir}`);
+    `${String(packageRoot)}/${parentDir}`;
 
   const entryPathFor = ({
     packageRoot,
@@ -72,7 +72,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
     parentDir: string;
     name: string;
   }): ReturnType<typeof filePathContract.parse> =>
-    filePathContract.parse(`${String(packageRoot)}/${parentDir}/${name}`);
+    `${String(packageRoot)}/${parentDir}/${name}`;
 
   return {
     setupEntries: ({ packageRoot, parentDir, entries }): void => {

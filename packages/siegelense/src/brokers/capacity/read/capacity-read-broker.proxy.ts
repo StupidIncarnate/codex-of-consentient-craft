@@ -18,7 +18,6 @@
  * proxy.setupNow({ nowMs });
  */
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -31,8 +30,8 @@ type Registry = ReturnType<typeof RegistryStub>;
 type SpecProfile = ReturnType<typeof SpecProfileStub>;
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 export const capacityReadBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;

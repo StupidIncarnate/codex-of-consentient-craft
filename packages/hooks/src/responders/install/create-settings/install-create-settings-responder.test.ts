@@ -1,7 +1,7 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { InstallCreateSettingsResponderProxy } from './install-create-settings-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallCreateSettingsResponder', () => {
   describe('no existing settings', () => {
@@ -11,10 +11,10 @@ describe('InstallCreateSettingsResponder', () => {
       proxy.setupNoExistingSettings();
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -269,10 +269,10 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
@@ -307,10 +307,10 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -572,10 +572,10 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -810,10 +810,10 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -1069,10 +1069,10 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -1296,10 +1296,10 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toStrictEqual(new SyntaxError('Invalid JSON in /project/.claude/settings.json'));
 
@@ -1313,10 +1313,10 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toStrictEqual(
         FsErrorStub({
@@ -1354,10 +1354,10 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
@@ -1388,10 +1388,10 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toThrow(/"hooks"/u);
 
@@ -1407,10 +1407,10 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: {
-            targetProjectRoot: FilePathStub({ value: '/project' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toThrow(/PreToolUse/u);
 

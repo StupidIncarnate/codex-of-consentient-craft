@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { populateOneRootLayerBroker } from './populate-one-root-layer-broker';
@@ -24,14 +23,12 @@ describe('populateOneRootLayerBroker', () => {
         entries: [{ name: 'orchestrator', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
+        linkPath: '/repo/node_modules/@dungeonmaster/orchestrator',
         target: '../../packages/orchestrator',
       });
       proxy.setupSymlinkSucceeds({
-        target: FilePathStub({ value: '../../packages/orchestrator' }),
-        path: FilePathStub({
-          value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster/orchestrator',
-        }),
+        target: '../../packages/orchestrator',
+        path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster/orchestrator',
       });
 
       const result = await populateOneRootLayerBroker({
@@ -235,7 +232,7 @@ describe('populateOneRootLayerBroker', () => {
         entries: [{ name: 'core', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@babel/core' }),
+        linkPath: '/repo/node_modules/@babel/core',
         target: '/somewhere/else/entirely/core',
       });
       proxy.setupCopySucceeds();
@@ -265,7 +262,7 @@ describe('populateOneRootLayerBroker', () => {
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
       proxy.setupMkdirThrows({
-        filepath: FilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules' }),
+        filepath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',
         error: FsErrorStub({
           code: 'EACCES',
           path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',
@@ -289,9 +286,7 @@ describe('populateOneRootLayerBroker', () => {
         entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
       });
       proxy.setupMkdirThrows({
-        filepath: FilePathStub({
-          value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster',
-        }),
+        filepath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster',
         error: FsErrorStub({
           code: 'EACCES',
           path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster',
@@ -375,12 +370,12 @@ describe('populateOneRootLayerBroker', () => {
         entries: [{ name: 'orchestrator', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
+        linkPath: '/repo/node_modules/@dungeonmaster/orchestrator',
         target: '../../packages/orchestrator',
       });
       proxy.setupSymlinkSucceeds({
-        target: FilePathStub({ value: '../../packages/orchestrator' }),
-        path: FilePathStub({ value: '/wt/node_modules/@dungeonmaster/orchestrator' }),
+        target: '../../packages/orchestrator',
+        path: '/wt/node_modules/@dungeonmaster/orchestrator',
       });
 
       const result = await populateOneRootLayerBroker({
@@ -414,20 +409,20 @@ describe('populateOneRootLayerBroker', () => {
         ],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
+        linkPath: '/repo/node_modules/@dungeonmaster/orchestrator',
         target: '../../packages/orchestrator',
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/shared' }),
+        linkPath: '/repo/node_modules/@dungeonmaster/shared',
         target: '../../packages/shared',
       });
       proxy.setupSymlinkSucceeds({
-        target: FilePathStub({ value: '../../packages/orchestrator' }),
-        path: FilePathStub({ value: '/wt/node_modules/@dungeonmaster/orchestrator' }),
+        target: '../../packages/orchestrator',
+        path: '/wt/node_modules/@dungeonmaster/orchestrator',
       });
       proxy.setupSymlinkSucceeds({
-        target: FilePathStub({ value: '../../packages/shared' }),
-        path: FilePathStub({ value: '/wt/node_modules/@dungeonmaster/shared' }),
+        target: '../../packages/shared',
+        path: '/wt/node_modules/@dungeonmaster/shared',
       });
 
       const result = await populateOneRootLayerBroker({
@@ -465,7 +460,7 @@ describe('populateOneRootLayerBroker', () => {
         ],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
+        linkPath: '/repo/node_modules/@dungeonmaster/orchestrator',
         target: '/somewhere/else/orchestrator',
       });
       proxy.setupCopySucceeds();
@@ -568,7 +563,7 @@ describe('populateOneRootLayerBroker', () => {
         entries: [{ name: 'orchestrator', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/node_modules/@dungeonmaster/orchestrator' }),
+        linkPath: '/repo/node_modules/@dungeonmaster/orchestrator',
         target: '../../packages/orchestrator',
       });
 

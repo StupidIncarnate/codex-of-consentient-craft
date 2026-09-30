@@ -1,10 +1,9 @@
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const checkFolderReturnTypeLayerBrokerProxy = (): {
   setupDeclaredReturn: (args: { node: TSESTree.Node; isVoidLike: boolean | undefined }) => void;

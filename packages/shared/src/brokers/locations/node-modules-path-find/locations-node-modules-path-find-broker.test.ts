@@ -1,7 +1,6 @@
 import { locationsNodeModulesPathFindBroker } from './locations-node-modules-path-find-broker';
 import { locationsNodeModulesPathFindBrokerProxy } from './locations-node-modules-path-find-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('locationsNodeModulesPathFindBroker', () => {
   describe('node_modules path resolution', () => {
@@ -9,7 +8,7 @@ describe('locationsNodeModulesPathFindBroker', () => {
       const proxy = locationsNodeModulesPathFindBrokerProxy();
 
       proxy.setupNodeModulesPath({
-        nodeModulesPath: FilePathStub({ value: '/repo/node_modules' }),
+        nodeModulesPath: '/repo/node_modules',
       });
 
       const result = locationsNodeModulesPathFindBroker({
@@ -23,9 +22,7 @@ describe('locationsNodeModulesPathFindBroker', () => {
       const proxy = locationsNodeModulesPathFindBrokerProxy();
 
       proxy.setupNodeModulesPath({
-        nodeModulesPath: FilePathStub({
-          value: '/repo/worktrees/add-auth-7bc217a1/node_modules',
-        }),
+        nodeModulesPath: '/repo/worktrees/add-auth-7bc217a1/node_modules',
       });
 
       const result = locationsNodeModulesPathFindBroker({

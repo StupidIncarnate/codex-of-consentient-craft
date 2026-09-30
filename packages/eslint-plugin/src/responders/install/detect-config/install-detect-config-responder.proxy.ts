@@ -1,5 +1,4 @@
 import type { FileContents } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
@@ -30,12 +29,12 @@ export const InstallDetectConfigResponderProxy = (): {
       // real, so stage an explicit false existsSync answer at each joined path, since
       // existsSyncProxy ships no address-less catch-all.
       for (const configFile of eslintConfigFilesStatics) {
-        const joinedPath = filePathContract.parse(`${targetProjectRoot}/${configFile}`);
+        const joinedPath = `${targetProjectRoot}/${configFile}`;
         existsProxy.returns({ path: joinedPath, exists: false });
       }
 
       const [, newConfigFile] = locationsStatics.repoRoot.eslintConfig;
-      const newConfigPath = filePathContract.parse(`${targetProjectRoot}/${newConfigFile}`);
+      const newConfigPath = `${targetProjectRoot}/${newConfigFile}`;
       writeProxy.succeeds({ path: newConfigPath });
     },
 
@@ -52,17 +51,17 @@ export const InstallDetectConfigResponderProxy = (): {
       // match, so every candidate ahead of configFileName needs an explicit existsSync answer
       // too — not just the one that matches.
       for (const configFile of eslintConfigFilesStatics) {
-        const joinedPath = filePathContract.parse(`${targetProjectRoot}/${configFile}`);
+        const joinedPath = `${targetProjectRoot}/${configFile}`;
         existsProxy.returns({ path: joinedPath, exists: configFile === configFileName });
       }
 
-      const filePath = filePathContract.parse(`${targetProjectRoot}/${configFileName}`);
+      const filePath = `${targetProjectRoot}/${configFileName}`;
       readProxy.returns({ path: filePath, contents });
     },
 
     getWrittenConfigContent: ({ targetProjectRoot }: { targetProjectRoot: string }): unknown => {
       const [, newConfigFile] = locationsStatics.repoRoot.eslintConfig;
-      const newConfigPath = filePathContract.parse(`${targetProjectRoot}/${newConfigFile}`);
+      const newConfigPath = `${targetProjectRoot}/${newConfigFile}`;
       return writeProxy.writtenContents({ path: newConfigPath });
     },
   };

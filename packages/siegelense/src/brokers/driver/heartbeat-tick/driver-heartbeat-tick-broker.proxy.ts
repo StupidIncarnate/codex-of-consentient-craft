@@ -15,8 +15,7 @@
 
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { ContentText, FilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -25,19 +24,19 @@ import { profileSampleRecordBroker } from '../../profile/sample-record/profile-s
 import { profileSampleRecordBrokerProxy } from '../../profile/sample-record/profile-sample-record-broker.proxy';
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 export const driverHeartbeatTickBrokerProxy = (): {
   stageBeatSucceeds: (params: {
     instanceId: SiegeInstance['id'];
-    evidencePath: FilePath;
+    evidencePath: string;
     registryJson: string;
     nowMs: number;
   }) => void;
   stageBeatSucceedsWithMeasuredRss: (params: {
     instanceId: SiegeInstance['id'];
-    evidencePath: FilePath;
+    evidencePath: string;
     registryJson: string;
     nowMs: number;
     pid: string;
@@ -45,7 +44,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
     residentPages: number;
   }) => void;
   stageSampleRecordFails: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
-  getWrittenHeartbeatContent: (params: { evidencePath: FilePath }) => unknown;
+  getWrittenHeartbeatContent: (params: { evidencePath: string }) => unknown;
   getSampleRecordCalls: () => readonly unknown[];
   getStderrMessages: () => readonly ContentText[];
 } => {
@@ -65,7 +64,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
       nowMs,
     }: {
       instanceId: SiegeInstance['id'];
-      evidencePath: FilePath;
+      evidencePath: string;
       registryJson: string;
       nowMs: number;
     }): void => {
@@ -92,7 +91,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
       residentPages,
     }: {
       instanceId: SiegeInstance['id'];
-      evidencePath: FilePath;
+      evidencePath: string;
       registryJson: string;
       nowMs: number;
       pid: string;
@@ -123,7 +122,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
       sampleHandle.calledWith([{ instanceId }]).rejects(error);
     },
 
-    getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: FilePath }): unknown =>
+    getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: string }): unknown =>
       heartbeatProxy.getWrittenHeartbeatContent({ evidencePath }),
 
     getSampleRecordCalls: (): readonly unknown[] =>

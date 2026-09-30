@@ -14,11 +14,7 @@
  * resolvePackagePlatformLayerBroker({ filename: '/repo/packages/hooks/src/startup/y.ts' });
  * // Returns 'node'
  */
-import {
-  filePathContract,
-  packageJsonContract,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { packageBrowserTypeTransformer } from '@dungeonmaster/shared/transformers';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
@@ -26,14 +22,14 @@ import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-laye
 
 type GatewayPlatform = 'node' | 'browser';
 
-const packagePlatformCache = new Map<FilePath, GatewayPlatform>();
+const packagePlatformCache = new Map<string, GatewayPlatform>();
 
 export const resolvePackagePlatformLayerBroker = ({
   filename,
 }: {
   filename: string;
 }): GatewayPlatform => {
-  const startDir = filePathContract.parse(dirname(filename));
+  const startDir = dirname(filename);
   const packageRoot = findAncestorDirectoryLayerBroker({
     startDir,
     markerFileName: 'package.json',

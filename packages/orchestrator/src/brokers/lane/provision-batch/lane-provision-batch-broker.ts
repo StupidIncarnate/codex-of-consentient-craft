@@ -34,7 +34,7 @@
  * // Returns the NextStep unchanged for a non-lane batch, or trimmed + lane-started for a lane one
  */
 
-import { filePathContract, workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
+import { workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 
@@ -68,7 +68,7 @@ export const laneProvisionBatchBroker = async ({
     return step;
   }
 
-  const modulePath = filePathContract.parse(require.resolve(SIEGELENSE_BROKERS_MODULE_NAME));
+  const modulePath = require.resolve(SIEGELENSE_BROKERS_MODULE_NAME);
 
   const siegelenseBrokers = siegelenseLaneProvisionModuleContract.parse(
     await dynamicImport({ path: modulePath }).catch((error: unknown) => {

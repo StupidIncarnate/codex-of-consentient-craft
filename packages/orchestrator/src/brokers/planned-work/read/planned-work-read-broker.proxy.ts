@@ -7,8 +7,7 @@
  * real call and answer it wrong.
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
@@ -22,8 +21,8 @@ type WorkPlan = ReturnType<typeof WorkPlanStub>;
 const JSON_EXTENSION = '.json';
 const PLANNED_WORK_DIR = 'planned-work';
 
-const dirPathFor = ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): FilePath =>
-  filePathContract.parse(`${questFolderPath}/${PLANNED_WORK_DIR}`);
+const dirPathFor = ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): string =>
+  `${questFolderPath}/${PLANNED_WORK_DIR}`;
 
 const filePathFor = ({
   questFolderPath,
@@ -31,10 +30,8 @@ const filePathFor = ({
 }: {
   questFolderPath: AbsoluteFilePath;
   operationItemId: OperationItem['id'];
-}): FilePath =>
-  filePathContract.parse(
-    `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`,
-  );
+}): string =>
+  `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkReadBrokerProxy = (): {
   setupPlanFound: (params: {
@@ -62,7 +59,7 @@ export const plannedWorkReadBrokerProxy = (): {
   }: {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItem['id'];
-  }): FilePath => {
+  }): string => {
     const dirPath = dirPathFor({ questFolderPath });
     locationsProxy.setupPlannedWorkPath({ plannedWorkPath: dirPath });
     const filePath = filePathFor({ questFolderPath, operationItemId });

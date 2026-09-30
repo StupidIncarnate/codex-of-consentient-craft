@@ -10,16 +10,15 @@
 
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsProfilesPathFindBrokerProxy } from '../profiles-path-find/locations-profiles-path-find-broker.proxy';
 
 export const locationsProfileDirsFindBrokerProxy = (): {
   setupProfilesPath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    profilesPath: FilePath;
+    homePath: string;
+    rootPath: string;
+    profilesPath: string;
   }) => void;
 } => {
   const profilesProxy = locationsProfilesPathFindBrokerProxy();
@@ -38,9 +37,9 @@ export const locationsProfileDirsFindBrokerProxy = (): {
       profilesPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      profilesPath: FilePath;
+      homePath: string;
+      rootPath: string;
+      profilesPath: string;
     }): void => {
       profilesProxy.setupProfilesPath({ homeDir, homePath, rootPath, profilesPath });
     },

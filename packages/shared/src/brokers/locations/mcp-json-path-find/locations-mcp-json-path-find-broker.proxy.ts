@@ -2,13 +2,12 @@ import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { configRootFindBrokerProxy } from '../../config-root/find/config-root-find-broker.proxy';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsMcpJsonPathFindBrokerProxy = (): {
   setupMcpJsonPath: (params: {
     startPath: string;
     configRootPath: string;
-    mcpJsonPath: FilePath;
+    mcpJsonPath: string;
   }) => void;
 } => {
   const configRootProxy = configRootFindBrokerProxy();
@@ -25,7 +24,7 @@ export const locationsMcpJsonPathFindBrokerProxy = (): {
     }: {
       startPath: string;
       configRootPath: string;
-      mcpJsonPath: FilePath;
+      mcpJsonPath: string;
     }): void => {
       // setupConfigRootFoundInParent (not setupConfigRootFound): the exact-tuple join stage below
       // only matches when configRootFindBroker really walks up and returns configRootPath.

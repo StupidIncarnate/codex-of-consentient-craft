@@ -4,7 +4,6 @@ import type { AddQuestInput, Guild, GuildListItem, GuildName, GuildPath, Session
 import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import {
   registerMock,
@@ -121,7 +120,7 @@ export const questMcpCreateBrokerProxy = (): {
         success: true,
         questId,
         questFolder: questId,
-        filePath: FilePathStub({ value: '/tmp/quest.json' }),
+        filePath: '/tmp/quest.json',
       });
       addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },

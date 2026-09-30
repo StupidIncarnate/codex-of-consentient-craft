@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -134,9 +134,9 @@ const questWorkGit = z.object({
 const questWorkWard = z.object({
   wardResultId: wardResultContract.shape.id,
   runId: wardResultContract.shape.runId.unwrap().nullable(),
-  blobPath: filePathContract,
+  blobPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardBlobPath'>(),
   failingCheckTypes: z.array(wardCheckTypeContract).default([]),
-  failingPaths: z.array(filePathContract).default([]),
+  failingPaths: z.array(z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardFailingPaths'>()).default([]),
 });
 
 // An attack is an ABSENCE claim, and an absence is only evidence against a known-good reading taken
@@ -174,7 +174,7 @@ export const questWorkViewContract = z.object({
   uncommittedPaths: z.array(repoRelativePathContract).default([]),
   committedPaths: z.array(questWorkCommit).default([]),
   ward: questWorkWard.nullable(),
-  riftcarverLogPath: filePathContract.nullable(),
+  riftcarverLogPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkViewRiftcarverLogPath'>().nullable(),
   git: questWorkGit,
   instance: questWorkInstanceContract.nullable(),
   baseline: questWorkBaseline.nullable(),

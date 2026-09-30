@@ -27,7 +27,6 @@
 import { userInfo } from '#gateway/node/os';
 import { readdirIfExists, realpath, rm, statIfExists } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { jestCacheStatics } from '../../../statics/jest-cache/jest-cache-statics';
 import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
@@ -38,9 +37,7 @@ export const jestCachePruneBroker = async (): Promise<void> => {
   try {
     const { uid } = userInfo();
     const realTmp = await realpath(String(tmpdirFindBroker()));
-    const cacheDir = filePathContract.parse(
-      uid < 0 ? `${realTmp}/jest` : `${realTmp}/jest_${uid.toString(UID_RADIX)}`,
-    );
+    const cacheDir = (uid < 0 ? `${realTmp}/jest` : `${realTmp}/jest_${uid.toString(UID_RADIX)}`);
 
     const entries = await readdirIfExists(String(cacheDir));
     if (entries === null) {
@@ -50,7 +47,7 @@ export const jestCachePruneBroker = async (): Promise<void> => {
 
     await Promise.all(
       entries.map(async (name) => {
-        const entryPath = filePathContract.parse(`${String(cacheDir)}/${name}`);
+        const entryPath = `${String(cacheDir)}/${name}`;
 
         try {
           const stats = await statIfExists(String(entryPath));

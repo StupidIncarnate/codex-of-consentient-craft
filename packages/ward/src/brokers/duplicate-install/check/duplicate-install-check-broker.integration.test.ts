@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { duplicateInstallCheckBroker } from './duplicate-install-check-broker';
 import { duplicateInstallFixtureHarness } from '../../../../test/harnesses/duplicate-install-fixture/duplicate-install-fixture.harness';
@@ -25,7 +24,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
       });
 
       const result = await duplicateInstallCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -58,7 +57,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
       });
 
       const result = await duplicateInstallCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -98,7 +97,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
       });
 
       const result = await duplicateInstallCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -142,7 +141,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
       });
 
       const result = await duplicateInstallCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();
@@ -165,7 +164,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
       });
 
       const result = await duplicateInstallCheckBroker({
-        rootPath: FilePathStub({ value: testbed.guildPath }),
+        rootPath: testbed.guildPath,
       });
 
       testbed.cleanup();

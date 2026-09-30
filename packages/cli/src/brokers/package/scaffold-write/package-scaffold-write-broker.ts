@@ -14,8 +14,6 @@
 import { join, dirname } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ScaffoldFile } from '../../../contracts/scaffold-file/scaffold-file-contract';
 
@@ -23,16 +21,16 @@ export const packageScaffoldWriteBroker = async ({
   packageRoot,
   files,
 }: {
-  packageRoot: FilePath;
+  packageRoot: string;
   files: readonly ScaffoldFile[];
-}): Promise<readonly FilePath[]> => {
+}): Promise<readonly string[]> => {
   if (existsSync(packageRoot)) {
     throw new Error(
       `Cannot scaffold ${packageRoot}: a package already exists there and this command will not overwrite it.`,
     );
   }
 
-  const writtenFiles: FilePath[] = [];
+  const writtenFiles: string[] = [];
 
   // A sequential reduce chain, not a for-of with await: a later file's mkdir can land under a
   // directory an earlier file's mkdir just created, so the writes are order-dependent and
@@ -40,8 +38,8 @@ export const packageScaffoldWriteBroker = async ({
   await files.reduce(async (previous, file) => {
     await previous;
 
-    const absolutePath = filePathContract.parse(join(packageRoot, file.relativePath));
-    const parentDir = filePathContract.parse(dirname(absolutePath));
+    const absolutePath = join(packageRoot, file.relativePath);
+    const parentDir = dirname(absolutePath);
 
     await ensureDir(parentDir);
     await writeFile(absolutePath, file.contents);

@@ -1,5 +1,4 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -20,8 +19,8 @@ import { instanceEntryLayerBroker } from './instance-entry-layer-broker';
 import { instanceEntryLayerBrokerProxy } from './instance-entry-layer-broker.proxy';
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 describe('instanceEntryLayerBroker', () => {
   describe('an alive instance, not named', () => {
@@ -29,9 +28,7 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
@@ -86,9 +83,7 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c22' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c22',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c22';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
@@ -146,10 +141,7 @@ describe('instanceEntryLayerBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0001' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0001',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0001';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
@@ -179,7 +171,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -224,10 +216,7 @@ describe('instanceEntryLayerBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0005' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0005',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0005';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
@@ -257,7 +246,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogPresent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -304,10 +293,7 @@ describe('instanceEntryLayerBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0004' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
@@ -346,7 +332,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -393,10 +379,7 @@ describe('instanceEntryLayerBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
       const pgid = ProcessGroupIdStub({ value: 33_812 });
       const entry = RegistryEntryStub({
         id: instanceId,
@@ -439,7 +422,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -502,9 +485,7 @@ describe('instanceEntryLayerBroker', () => {
     it('VALID: {dead, named, memory 609 at last beat, a pool-1 profile of peak 609 / steady 488 from 5 runs} => likelyCause quotes the profile instead of denying one exists', async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_e3dd0006' });
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_e3dd0006',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_e3dd0006';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
@@ -541,7 +522,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -589,10 +570,7 @@ describe('instanceEntryLayerBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0002' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0002',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0002';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
@@ -622,7 +600,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -673,10 +651,7 @@ describe('instanceEntryLayerBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0003' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0003',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0003';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
@@ -709,7 +684,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,

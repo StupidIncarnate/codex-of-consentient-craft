@@ -17,7 +17,7 @@
  * // flags `z.instanceof(ChildProcess).brand<'#GatewayWrong'>()` as wrongBrandText;
  * // flags a second gateway file exporting `interface WalkedFile` as duplicateTypeName
  */
-import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { dirname } from '#gateway/node/path';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -118,7 +118,7 @@ export const ruleGatewaySchemaBrandBroker = (): TSESLint.RuleModule<
         const { name } = declaration.id;
 
         const workspaceRoot = workspaceRootFindBroker({
-          startDir: filePathContract.parse(dirname(filename)),
+          startDir: dirname(filename),
         });
 
         if (workspaceRoot === undefined) {

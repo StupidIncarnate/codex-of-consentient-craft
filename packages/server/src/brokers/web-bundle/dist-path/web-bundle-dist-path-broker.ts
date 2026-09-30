@@ -15,8 +15,6 @@ import { resolvePackageRoot } from '#gateway/node/module';
 import { join } from '#gateway/node/path';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 const PACKAGE_JSON_FILENAME = 'package.json';
 const DIST_DIRNAME = 'dist';
@@ -25,7 +23,7 @@ export const webBundleDistPathBroker = ({
   packageName,
 }: {
   packageName: PackageName;
-}): FilePath | null => {
+}): string | null => {
   const packageRoot = resolvePackageRoot({ specifier: `${packageName}/${PACKAGE_JSON_FILENAME}` });
 
   if (packageRoot === null) {
@@ -38,5 +36,5 @@ export const webBundleDistPathBroker = ({
     return null;
   }
 
-  return filePathContract.parse(distPath);
+  return distPath;
 };

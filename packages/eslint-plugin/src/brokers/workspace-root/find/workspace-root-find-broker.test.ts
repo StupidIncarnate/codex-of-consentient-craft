@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { workspaceRootFindBroker } from './workspace-root-find-broker';
 import { workspaceRootFindBrokerProxy } from './workspace-root-find-broker.proxy';
 
@@ -13,7 +12,7 @@ describe('workspaceRootFindBroker', () => {
       });
 
       const result = workspaceRootFindBroker({
-        startDir: FilePathStub({ value: '/repo' }),
+        startDir: '/repo',
       });
 
       expect(result).toStrictEqual({
@@ -32,7 +31,7 @@ describe('workspaceRootFindBroker', () => {
       });
 
       const result = workspaceRootFindBroker({
-        startDir: FilePathStub({ value: '/consumer-repo' }),
+        startDir: '/consumer-repo',
       });
 
       expect(result).toStrictEqual({
@@ -58,7 +57,7 @@ describe('workspaceRootFindBroker', () => {
       });
 
       const result = workspaceRootFindBroker({
-        startDir: FilePathStub({ value: '/repo/packages/eslint-plugin/src/brokers/x' }),
+        startDir: '/repo/packages/eslint-plugin/src/brokers/x',
       });
 
       expect(result).toStrictEqual({
@@ -77,7 +76,7 @@ describe('workspaceRootFindBroker', () => {
       proxy.setupNoPackageJson({ dir: '/' });
 
       const result = workspaceRootFindBroker({
-        startDir: FilePathStub({ value: '/orphan/src' }),
+        startDir: '/orphan/src',
       });
 
       expect(result).toBe(undefined);

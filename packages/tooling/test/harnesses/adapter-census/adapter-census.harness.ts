@@ -11,7 +11,6 @@
 import * as path from '#gateway/node/path';
 import { execFileSync } from '#gateway/node/child_process';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { CensusCountStub } from '../../../src/contracts/census-count/census-count.stub';
 import type { InstallTestbed } from '@dungeonmaster/testing';
@@ -29,8 +28,8 @@ interface ExecError {
   stderr?: { toString: () => string };
 }
 
-const PACKAGE_DIR = FilePathStub({ value: cwd() });
-const ENTRY_PATH = FilePathStub({ value: path.join(cwd(), 'bin', 'adapter-census.ts') });
+const PACKAGE_DIR = cwd();
+const ENTRY_PATH = path.join(cwd(), 'bin', 'adapter-census.ts');
 const MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
 const TIMEOUT_MS = CensusCountStub({ value: 300_000 });
 

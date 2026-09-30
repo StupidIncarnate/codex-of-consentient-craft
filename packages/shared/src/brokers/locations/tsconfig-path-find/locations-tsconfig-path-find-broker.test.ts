@@ -1,7 +1,6 @@
 import { locationsTsconfigPathFindBroker } from './locations-tsconfig-path-find-broker';
 import { locationsTsconfigPathFindBrokerProxy } from './locations-tsconfig-path-find-broker.proxy';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsTsconfigPathFindBroker', () => {
@@ -12,7 +11,7 @@ describe('locationsTsconfigPathFindBroker', () => {
       proxy.setupTsconfigFound({ searchPath: '/project' });
 
       const result = await locationsTsconfigPathFindBroker({
-        startPath: FilePathStub({ value: '/project' }),
+        startPath: '/project',
       });
 
       expect(result).toBe(AbsoluteFilePathStub({ value: '/project/tsconfig.json' }));
@@ -32,7 +31,7 @@ describe('locationsTsconfigPathFindBroker', () => {
       proxy.setupTsconfigFound({ searchPath: '/project' });
 
       const result = await locationsTsconfigPathFindBroker({
-        startPath: FilePathStub({ value: '/project/src/sub' }),
+        startPath: '/project/src/sub',
       });
 
       expect(result).toBe(AbsoluteFilePathStub({ value: '/project/tsconfig.json' }));
@@ -47,7 +46,7 @@ describe('locationsTsconfigPathFindBroker', () => {
 
       await expect(
         locationsTsconfigPathFindBroker({
-          startPath: FilePathStub({ value: '/no-config' }),
+          startPath: '/no-config',
         }),
       ).rejects.toThrow(ProjectRootNotFoundError);
     });

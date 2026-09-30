@@ -4,9 +4,9 @@ import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empt
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import type { FilePath, AbsoluteFilePath, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Quest, Session } from '@dungeonmaster/shared/contracts';
 import type { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { absoluteFilePathContract, filePathContract, repoRootCwdContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, repoRootCwdContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   claudeProjectPathEncoderTransformer,
@@ -74,7 +74,7 @@ export const chatHistoryReplayBrokerProxy = (): {
   // wrote the session. The walk runs for real over the staged filesystem from this test's own
   // guild path, captured by setupGuild below. Default answer mirrors the guild's own path: a
   // `.dungeonmaster.json` staged at the guild path itself.
-  const guildStartPathsRef: { value: readonly FilePath[] } = { value: [] };
+  const guildStartPathsRef: { value: readonly string[] } = { value: [] };
 
   // The broker reads the main session file and scans the subagents/ dir at a JSONL path it
   // computes from homeDir + the resolved project path + sessionId via the REAL (unmocked)
@@ -139,15 +139,13 @@ export const chatHistoryReplayBrokerProxy = (): {
       // which — being staged AFTER a sibling proxy's correct one, on the identical
       // join(homeDir, '.dungeonmaster') address — would silently win and misdirect every other
       // composed broker's own home resolution to a path nothing else staged.
-      const homePath = filePathContract.parse(
-        `${homeDir}/${dungeonmasterHomeStatics.paths.configDir}`,
-      );
+      const homePath = `${homeDir}/${dungeonmasterHomeStatics.paths.configDir}`;
       guildProxy.setupConfig({ config, homeDir, homePath });
       homedirHandle.calledWith([]).returns(homeDir);
       homeDirRef.value = absoluteFilePathContract.parse(homeDir);
       sessionIdRef.value = sessionId;
 
-      guildStartPathsRef.value = config.guilds.map((guild) => filePathContract.parse(guild.path));
+      guildStartPathsRef.value = config.guilds.map((guild) => guild.path);
       for (const startPath of guildStartPathsRef.value) {
         cwdProxy.setupRepoRootFoundAtStart({ startPath: String(startPath) });
       }

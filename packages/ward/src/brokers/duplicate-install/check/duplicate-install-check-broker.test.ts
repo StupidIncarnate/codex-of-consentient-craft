@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { duplicateInstallCheckBroker } from './duplicate-install-check-broker';
 import { duplicateInstallCheckBrokerProxy } from './duplicate-install-check-broker.proxy';
@@ -10,7 +9,7 @@ describe('duplicateInstallCheckBroker', () => {
       proxy.setupNoWorkspaces();
 
       const result = await duplicateInstallCheckBroker({
-        rootPath: FilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual([]);

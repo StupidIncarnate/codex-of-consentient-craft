@@ -6,9 +6,9 @@
  */
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallFlow } from './install-flow';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallFlow', () => {
   describe('delegation to responder', () => {
@@ -18,10 +18,10 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const configContent = testbed.readFile({
@@ -126,10 +126,10 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       testbed.cleanup();

@@ -2,13 +2,12 @@ import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { projectRootFindBrokerProxy } from '../../project-root/find/project-root-find-broker.proxy';
 import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const questsFolderFindBrokerProxy = (): {
   setupQuestsFolderFound: (params: {
     startPath: string;
     projectRootPath: string;
-    questsFolderPath: FilePath;
+    questsFolderPath: string;
   }) => void;
 } => {
   const projectRootProxy = projectRootFindBrokerProxy();
@@ -27,7 +26,7 @@ export const questsFolderFindBrokerProxy = (): {
     }: {
       startPath: string;
       projectRootPath: string;
-      questsFolderPath: FilePath;
+      questsFolderPath: string;
     }): void => {
       projectRootProxy.setupProjectRootFound({ startPath, projectRootPath });
       joinHandle

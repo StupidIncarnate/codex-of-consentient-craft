@@ -14,14 +14,13 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsTsconfigPathFindBroker = async ({
   startPath,
   currentPath,
 }: {
-  startPath: FilePath;
-  currentPath?: FilePath;
+  startPath: string;
+  currentPath?: string;
 }): Promise<AbsoluteFilePath> => {
   const searchPath = currentPath ?? startPath;
 
@@ -32,7 +31,7 @@ export const locationsTsconfigPathFindBroker = async ({
     return absoluteFilePathContract.parse(candidate);
   }
 
-  const parentPath = filePathContract.parse(dirname(searchPath));
+  const parentPath = dirname(searchPath);
   if (parentPath === searchPath) {
     throw new ProjectRootNotFoundError({ startPath });
   }

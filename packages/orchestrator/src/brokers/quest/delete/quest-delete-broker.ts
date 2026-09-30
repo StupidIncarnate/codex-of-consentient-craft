@@ -7,7 +7,6 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { rm } from '#gateway/node/fs__promises';
@@ -24,15 +23,13 @@ export const questDeleteBroker = async ({
 }): Promise<void> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const questFolderPath = filePathContract.parse(
-    join(
+  const questFolderPath = join(
       homePath,
       dungeonmasterHomeStatics.paths.guildsDir,
       guildId,
       dungeonmasterHomeStatics.paths.questsDir,
       questId,
-    ),
-  );
+    );
 
   await rm(questFolderPath, { recursive: true, force: true });
 

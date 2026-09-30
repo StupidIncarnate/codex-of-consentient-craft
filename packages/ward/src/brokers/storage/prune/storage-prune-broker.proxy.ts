@@ -2,11 +2,7 @@ import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exis
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import {
-  filePathContract,
-  type AbsoluteFilePath,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const TINY_FILE_BYTES = 1024;
 
@@ -27,8 +23,8 @@ export const storagePruneBrokerProxy = (): {
   const statProxy = statIfExistsProxy();
   const unlink = unlinkProxy();
 
-  const wardDirFor = ({ rootPath }: { rootPath: AbsoluteFilePath }): FilePath =>
-    filePathContract.parse(`${rootPath}/.ward`);
+  const wardDirFor = ({ rootPath }: { rootPath: AbsoluteFilePath }): string =>
+    `${rootPath}/.ward`;
 
   const runFilePathFor = ({
     rootPath,
@@ -36,7 +32,7 @@ export const storagePruneBrokerProxy = (): {
   }: {
     rootPath: AbsoluteFilePath;
     name: string;
-  }): FilePath => filePathContract.parse(`${wardDirFor({ rootPath })}/${name}`);
+  }): string => `${wardDirFor({ rootPath })}/${name}`;
 
   return {
     setupWithFiles: ({

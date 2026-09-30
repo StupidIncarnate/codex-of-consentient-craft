@@ -8,7 +8,7 @@
 
 import { readdirEntries, readFile } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   projectFolderContract,
@@ -22,7 +22,7 @@ export const packageReadLayerBroker = async ({
   fullPath: string;
   rootPath: AbsoluteFilePath;
 }): Promise<ProjectFolder | null> => {
-  const pkgPath = filePathContract.parse(`${fullPath}/package.json`);
+  const pkgPath = `${fullPath}/package.json`;
   try {
     const contents = await readFile(pkgPath);
     const parsed = packageJsonContract.parse(JSON.parse(contents));

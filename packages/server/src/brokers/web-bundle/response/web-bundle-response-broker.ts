@@ -14,7 +14,6 @@ import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
 import { webBundleDistPathBroker } from '../dist-path/web-bundle-dist-path-broker';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { webBundleRootStaticPathsStatics } from '../../../statics/web-bundle-root-static-paths/web-bundle-root-static-paths-statics';
 import {
@@ -53,9 +52,9 @@ export const webBundleResponseBroker = async ({
   // route, never a read outside dist.
   const isRootStatic = webBundleRootStaticPathsStatics.paths.some((path) => path === pathname);
   const isStatic = (pathname.startsWith('/assets/') || isRootStatic) && !pathname.includes('..');
-  const relativePath = filePathContract.parse(isStatic ? pathname : INDEX_HTML_PATH);
+  const relativePath = (isStatic ? pathname : INDEX_HTML_PATH);
 
-  const filepath = filePathContract.parse(join(distPath, relativePath));
+  const filepath = join(distPath, relativePath);
   const body = fileContentsContract.parse(await readFile(filepath));
 
   return {

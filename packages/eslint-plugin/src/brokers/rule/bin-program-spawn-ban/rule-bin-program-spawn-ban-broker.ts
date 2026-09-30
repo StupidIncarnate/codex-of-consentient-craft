@@ -21,7 +21,7 @@
  * // Returns an RuleModule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
  * // naming currentBranch() from #gateway/bin/git in the report message
  */
-import { contentTextContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
@@ -79,7 +79,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
       }
       if (defaultScopeCache.value === undefined) {
         defaultScopeCache.value = repoScopeResolveBroker({
-          startDir: filePathContract.parse(__dirname),
+          startDir: __dirname,
         });
       }
       return defaultScopeCache.value;

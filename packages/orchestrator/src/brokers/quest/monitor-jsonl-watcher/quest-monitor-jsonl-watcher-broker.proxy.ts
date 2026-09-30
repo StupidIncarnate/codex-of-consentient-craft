@@ -1,7 +1,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -30,7 +30,7 @@ const DEFAULT_SUBAGENTS_DIR = resolveSubagentsDir({
 
 export const questMonitorJsonlWatcherBrokerProxy = (): {
   setupSubagentDirEmpty: () => void;
-  setupSubagentDirMissing: (params: { sessionFilePath: FilePath; error: Error }) => void;
+  setupSubagentDirMissing: (params: { sessionFilePath: string; error: Error }) => void;
   setupSubagentDirFiles: (params: {
     files: readonly FileName[];
     // Overrides DEFAULT_SUBAGENTS_DIR for callers whose real sessionFilePath (hence
@@ -81,7 +81,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
       sessionFilePath,
       error,
     }: {
-      sessionFilePath: FilePath;
+      sessionFilePath: string;
       error: Error;
     }): void => {
       scanLayerProxy.setupSubagentDirMissing({

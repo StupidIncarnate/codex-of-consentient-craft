@@ -1,7 +1,6 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // Delegates the whole home → guild → quests → quest-folder chain to shared's own proxy, which
 // stages each step's own `join` call by exact tuple. This broker's OWN join is the step after
@@ -12,10 +11,10 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 export const locationsCitationQuestFilePathFindBrokerProxy = (): {
   setupQuestFolder: (params: {
     homeDir: string;
-    homePath: FilePath;
-    guildPath: FilePath;
-    guildQuestsPath: FilePath;
-    questFolderPath: FilePath;
+    homePath: string;
+    guildPath: string;
+    guildQuestsPath: string;
+    questFolderPath: string;
   }) => void;
 } => {
   const questFolderProxy = locationsQuestFolderPathFindBrokerProxy();
@@ -35,10 +34,10 @@ export const locationsCitationQuestFilePathFindBrokerProxy = (): {
       questFolderPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      guildPath: FilePath;
-      guildQuestsPath: FilePath;
-      questFolderPath: FilePath;
+      homePath: string;
+      guildPath: string;
+      guildQuestsPath: string;
+      questFolderPath: string;
     }): void => {
       questFolderProxy.setupQuestFolderPath({
         homeDir,

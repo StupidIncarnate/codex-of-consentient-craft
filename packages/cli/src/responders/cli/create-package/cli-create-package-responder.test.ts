@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 import { CreatePackageRequestStub } from '../../../contracts/create-package-request/create-package-request.stub';
@@ -11,8 +10,8 @@ import { CliCreatePackageResponderProxy } from './cli-create-package-responder.p
 describe('CliCreatePackageResponder', () => {
   it('VALID: {args: --name widgets --type library} => writes files, registers the package, and reports the summary to stdout', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
-    const packageRoot = FilePathStub({ value: '/repo/packages/widgets' });
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@acme/widgets',
@@ -68,7 +67,7 @@ describe('CliCreatePackageResponder', () => {
 
   it('EDGE: {args: --name widgets --type library --dry-run} => prints the plan and writes nothing', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
+    const projectRoot = '/repo';
 
     proxy.setupRootPackageJson({
       projectRoot,
@@ -100,8 +99,8 @@ describe('CliCreatePackageResponder', () => {
 
   it('EDGE: {packageName already in root dependencies} => still writes files but reports it was already registered', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
-    const packageRoot = FilePathStub({ value: '/repo/packages/widgets' });
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@acme/widgets',
@@ -147,8 +146,8 @@ describe('CliCreatePackageResponder', () => {
 
   it('VALID: {args: --type frontend-react} => reports the e2e caveat line for an e2e-eligible type', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
-    const packageRoot = FilePathStub({ value: '/repo/packages/widgets' });
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@acme/widgets',
@@ -200,8 +199,8 @@ describe('CliCreatePackageResponder', () => {
   // comes from the root package.json's own `name`, whether or not any dependency is scoped at all.
   it('VALID: {root package.json carries only "@dungeonmaster/*" tooling devDependencies, no scoped "dependencies"} => still derives the real scope from the root name', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
-    const packageRoot = FilePathStub({ value: '/repo/packages/widgets' });
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@acme/widgets',
@@ -244,8 +243,8 @@ describe('CliCreatePackageResponder', () => {
   // repo-root jest.config.base.js exists on disk (this checkout) or not (a real consumer).
   it('VALID: {repo-root jest.config.base.js exists} => scaffolded jest.config.js requires the repo-relative base', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
-    const packageRoot = FilePathStub({ value: '/repo/packages/widgets' });
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@acme/widgets',
@@ -282,8 +281,8 @@ describe('CliCreatePackageResponder', () => {
 
   it('VALID: {no repo-root jest.config.base.js} => scaffolded jest.config.js requires the published testing base instead', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/repo' });
-    const packageRoot = FilePathStub({ value: '/repo/packages/widgets' });
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@acme/widgets',
@@ -321,8 +320,8 @@ describe('CliCreatePackageResponder', () => {
 
   it('VALID: {root package.json has no "name"} => derives scope from targetProjectRoot directory basename', async () => {
     const proxy = CliCreatePackageResponderProxy();
-    const projectRoot = FilePathStub({ value: '/workspace/my-tool' });
-    const packageRoot = FilePathStub({ value: '/workspace/my-tool/packages/widgets' });
+    const projectRoot = '/workspace/my-tool';
+    const packageRoot = '/workspace/my-tool/packages/widgets';
     const files = packageScaffoldFilesTransformer({
       request: CreatePackageRequestStub({
         packageName: '@my-tool/widgets',

@@ -25,11 +25,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  filePathContract,
-  repoRootCwdContract,
-  type RepoRootCwd,
-} from '@dungeonmaster/shared/contracts';
+import { repoRootCwdContract, type RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { cwd } from '#gateway/node/process';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
@@ -51,7 +47,7 @@ export const callerRepoRootResolveBroker = async ({
   if (caller !== undefined) {
     try {
       const repoRoot = await cwdResolveBroker({
-        startPath: filePathContract.parse(String(caller.cwd)),
+        startPath: String(caller.cwd),
         kind: 'repo-root',
       });
       return {
@@ -71,7 +67,7 @@ export const callerRepoRootResolveBroker = async ({
     }
   }
 
-  const serverCwd = filePathContract.parse(cwd());
+  const serverCwd = cwd();
   try {
     const repoRoot = await cwdResolveBroker({ startPath: serverCwd, kind: 'repo-root' });
     return {

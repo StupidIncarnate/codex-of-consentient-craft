@@ -16,22 +16,20 @@
 
 import { dirname, join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { WorkspacePackageJson } from '../../contracts/workspace-package-json/workspace-package-json-contract';
 
 export const nearestPackageJsonFindMiddleware = ({
   dirPath,
 }: {
-  dirPath: FilePath;
+  dirPath: string;
 }): WorkspacePackageJson | null => {
-  const packageJsonPath = filePathContract.parse(join(dirPath, 'package.json'));
+  const packageJsonPath = join(dirPath, 'package.json');
   const packageJson = workspacePackageJsonReadMiddleware({ packageJsonPath });
   if (packageJson) {
     return packageJson;
   }
 
-  const parentPath = filePathContract.parse(dirname(dirPath));
+  const parentPath = dirname(dirPath);
   if (parentPath === dirPath) {
     return null;
   }

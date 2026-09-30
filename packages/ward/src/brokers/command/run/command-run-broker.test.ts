@@ -1,6 +1,5 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 import { PlatformCrossingViolationStub } from '../../../contracts/platform-crossing-violation/platform-crossing-violation.stub';
@@ -127,7 +126,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupMissingPath({
-        filePath: FilePathStub({ value: '/project/packages/wardd/src/typo.ts' }),
+        filePath: '/project/packages/wardd/src/typo.ts',
       });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
@@ -224,7 +223,7 @@ describe('commandRunBroker', () => {
       setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageLintPassWithNoFiles();
-      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
+      proxy.setupExistingPath({ filePath: '/project/src/index.ts' });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub({ only: ['lint'], passthrough: ['src/index.ts'] });
@@ -435,7 +434,7 @@ describe('commandRunBroker', () => {
       setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageCrash();
-      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
+      proxy.setupExistingPath({ filePath: '/project/src/index.ts' });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const config = WardConfigStub({ only: ['lint'], passthrough: ['src/index.ts'] });

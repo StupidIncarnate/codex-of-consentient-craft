@@ -7,8 +7,6 @@
  */
 
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -16,23 +14,23 @@ import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file
 import { join } from '#gateway/node/path';
 
 const DEFAULT_HOME_DIR = '/home/user';
-const DEFAULT_HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const DEFAULT_CONFIG_FILE_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
+const DEFAULT_HOME_PATH = '/home/user/.dungeonmaster';
+const DEFAULT_CONFIG_FILE_PATH = '/home/user/.dungeonmaster/config.json';
 
 export const guildConfigWriteBrokerProxy = (): {
   setupSuccess: () => void;
-  setupSuccessAt: (params: { configFilePath: FilePath }) => void;
-  getWrittenAt: (params: { configFilePath: FilePath }) => unknown;
+  setupSuccessAt: (params: { configFilePath: string }) => void;
+  getWrittenAt: (params: { configFilePath: string }) => unknown;
   configFilesWritten: () => readonly unknown[];
   setupWriteSuccess: (params: {
     homeDir: string;
-    homePath: FilePath;
-    configFilePath: FilePath;
+    homePath: string;
+    configFilePath: string;
   }) => void;
   setupWriteFailure: (params: {
     homeDir: string;
-    homePath: FilePath;
-    configFilePath: FilePath;
+    homePath: string;
+    configFilePath: string;
     error: Error;
   }) => void;
   getWrittenContent: () => unknown;
@@ -45,8 +43,8 @@ export const guildConfigWriteBrokerProxy = (): {
   const writeHandle = writeFileProxy();
   // Every config path this proxy staged a write for: `configFilesWritten` reads back the calls at
   // exactly those addresses.
-  const stagedConfigPaths: FilePath[] = [];
-  const stageStagedConfigPaths = (entry: FilePath): void => {
+  const stagedConfigPaths: string[] = [];
+  const stageStagedConfigPaths = (entry: string): void => {
     if (!stagedConfigPaths.includes(entry)) {
       stagedConfigPaths.push(entry);
     }
@@ -70,14 +68,14 @@ export const guildConfigWriteBrokerProxy = (): {
     // constructor already stages a real-passthrough default on this SAME shared `join` handle, so
     // the path the broker computes off the supplied home is the genuine one — and a broker falling
     // back to the process-wide home would write a DIFFERENT path and throw on an unmatched call.
-    setupSuccessAt: ({ configFilePath }: { configFilePath: FilePath }): void => {
+    setupSuccessAt: ({ configFilePath }: { configFilePath: string }): void => {
       stageStagedConfigPaths(configFilePath);
       writeHandle.succeeds({ path: configFilePath });
     },
 
     // The body written to ONE named config path — the counterpart to `getWrittenContent` below,
     // which is pinned to the default home's path.
-    getWrittenAt: ({ configFilePath }: { configFilePath: FilePath }): unknown =>
+    getWrittenAt: ({ configFilePath }: { configFilePath: string }): unknown =>
       writeHandle.writtenContentsFor({ path: configFilePath }),
 
     // Every staged config path this broker wrote to, in staging order. Assert an escape against
@@ -94,8 +92,8 @@ export const guildConfigWriteBrokerProxy = (): {
       configFilePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      configFilePath: FilePath;
+      homePath: string;
+      configFilePath: string;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       joinHandle
@@ -112,8 +110,8 @@ export const guildConfigWriteBrokerProxy = (): {
       error,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      configFilePath: FilePath;
+      homePath: string;
+      configFilePath: string;
       error: Error;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });

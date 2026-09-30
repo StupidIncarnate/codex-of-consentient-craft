@@ -12,14 +12,12 @@
  * });
  * // Returns: './http-adapter.proxy'
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const testFilePathToColocatedProxyPathTransformer = ({
   testFilePath,
 }: {
-  testFilePath: FilePath;
-}): FilePath => {
+  testFilePath: string;
+}): string => {
   // Remove .test.ts, .test.tsx, .spec.ts, .integration.test.ts extensions
   const withoutTestExtension = testFilePath
     .replace(/\.integration\.test\.(ts|tsx)$/u, '')
@@ -30,5 +28,5 @@ export const testFilePathToColocatedProxyPathTransformer = ({
   const baseFileName = withoutTestExtension.split('/').pop() ?? '';
 
   // Return relative path to colocated proxy
-  return filePathContract.parse(`./${baseFileName}.proxy`);
+  return `./${baseFileName}.proxy`;
 };

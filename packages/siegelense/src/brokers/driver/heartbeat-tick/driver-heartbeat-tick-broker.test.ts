@@ -1,6 +1,5 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { pid } from '#gateway/node/process';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -25,10 +24,7 @@ describe('driverHeartbeatTickBroker', () => {
       const pgids = [ProcessGroupIdStub({ value: 4821 }), ProcessGroupIdStub({ value: 4822 })];
       const lane = LaneSessionStub({ pgids });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
       proxy.stageBeatSucceeds({
@@ -55,9 +51,7 @@ describe('driverHeartbeatTickBroker', () => {
       const pgids = [ProcessGroupIdStub({ value: 4821 })];
       const lane = LaneSessionStub({ specName: 'dungeonmaster-api', pgids });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
       const registry = RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] });
       proxy.stageBeatSucceedsWithMeasuredRss({
         instanceId,
@@ -86,9 +80,7 @@ describe('driverHeartbeatTickBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const lane = LaneSessionStub({ specName: 'dungeonmaster-api' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
       const registry = RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] });
       proxy.stageBeatSucceeds({
         instanceId,
@@ -116,9 +108,7 @@ describe('driverHeartbeatTickBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const lane = LaneSessionStub({ specName: 'dungeonmaster-api' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
       const registry = RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] });
       proxy.stageBeatSucceeds({
         instanceId,

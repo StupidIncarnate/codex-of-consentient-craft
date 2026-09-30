@@ -20,7 +20,6 @@
  * // Forwards an empty array; StartSiegelense prints the fleet registry to stdout
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 import { siegelenseModuleContract } from '../../../contracts/siegelense-module/siegelense-module-contract';
 
@@ -32,7 +31,7 @@ export const CliSiegelenseResponder = async ({
 }: {
   args: readonly string[];
 }): Promise<void> => {
-  const siegelensePath = filePathContract.parse(require.resolve(SIEGELENSE_MODULE_NAME));
+  const siegelensePath = require.resolve(SIEGELENSE_MODULE_NAME);
 
   const siegelenseModule = siegelenseModuleContract.parse(
     await dynamicImport({ path: siegelensePath }).catch((error: unknown) => {

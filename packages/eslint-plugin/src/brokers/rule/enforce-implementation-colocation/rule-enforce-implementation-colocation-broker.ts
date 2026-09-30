@@ -13,7 +13,6 @@
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
 import { isReexportOnlyProgramGuard } from '../../../guards/is-reexport-only-program/is-reexport-only-program-guard';
 import { isTypesOnlyProgramGuard } from '../../../guards/is-types-only-program/is-types-only-program-guard';
@@ -144,7 +143,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
             (suffix) => `${baseFilePath}${suffix}${extension}`,
           );
           const hasIntegrationTest = integrationTestPaths.some((testFilePath) => {
-            const parsedPath = filePathContract.parse(testFilePath);
+            const parsedPath = testFilePath;
             return existsSync(parsedPath);
           });
 
@@ -153,7 +152,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
             (suffix) => `${baseFilePath}${suffix}${extension}`,
           );
           const existingUnitTestPath = unitTestPaths.find((testFilePath) => {
-            const parsedPath = filePathContract.parse(testFilePath);
+            const parsedPath = testFilePath;
             return existsSync(parsedPath);
           });
 
@@ -191,9 +190,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           if (!isStartup) {
             const proxyBaseName = `${removeFileExtensionTransformer({ filename: fileBaseName })}.proxy${extension}`;
             const proxyDir = filename.split('/').slice(0, -1).join('/');
-            const proxyFilePath = filePathContract.parse(
-              proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName,
-            );
+            const proxyFilePath = (proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName);
             const hasForbiddenProxy = existsSync(proxyFilePath);
 
             if (hasForbiddenProxy) {
@@ -216,7 +213,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           if (!staticsNeedsNoTest && !isTypesOnlyContract) {
             // Check if any test file exists
             const hasTestFile = testFilePaths.some((testFilePath) => {
-              const parsedPath = filePathContract.parse(testFilePath);
+              const parsedPath = testFilePath;
               return existsSync(parsedPath);
             });
 
@@ -247,7 +244,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           });
           const stubBaseName = `${stubBaseNameWithoutExtension}.ts`;
           const stubFileName = directory ? `${directory}/${stubBaseName}` : stubBaseName;
-          const stubFilePath = filePathContract.parse(stubFileName);
+          const stubFilePath = stubFileName;
           const hasStubFile = existsSync(stubFilePath);
 
           if (!hasStubFile) {
@@ -275,7 +272,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           filenameParts.pop();
           const directory = filenameParts.join('/');
           const proxyFileName = directory ? `${directory}/${proxyBaseName}` : proxyBaseName;
-          const proxyFilePath = filePathContract.parse(proxyFileName);
+          const proxyFilePath = proxyFileName;
           const hasProxyFile = existsSync(proxyFilePath);
 
           if (!hasProxyFile) {
@@ -295,7 +292,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
               const ext = getFileExtensionTransformer({ filename, includesDot: false });
               const invalidProxyFileName = `${firstPart}.proxy.${ext}`;
               const invalidProxyFilePath = filename.replace(fileBaseName, invalidProxyFileName);
-              const invalidProxyFilePathContract = filePathContract.parse(invalidProxyFilePath);
+              const invalidProxyFilePathContract = invalidProxyFilePath;
               const hasInvalidProxyFile = existsSync(invalidProxyFilePathContract);
 
               if (hasInvalidProxyFile) {

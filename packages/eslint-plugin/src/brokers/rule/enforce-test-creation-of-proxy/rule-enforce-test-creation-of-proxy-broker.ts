@@ -17,7 +17,7 @@ import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { isHarnessImportGuard } from '../../../guards/is-harness-import/is-harness-import-guard';
-import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
@@ -67,7 +67,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
     }
 
     // Check if this is an integration or e2e test file
-    const filePath = filePathContract.parse(filename);
+    const filePath = filename;
     const isSpec = isSpecFileGuard({ filename });
     const isIntegrationOrE2eTest =
       isIntegrationTestFileGuard({ filePath }) || isE2eTestFileGuard({ filePath }) || isSpec;

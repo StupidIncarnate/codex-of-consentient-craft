@@ -12,7 +12,7 @@
 
 import { join } from '#gateway/node/path';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
-import { filePathContract, type FilePath, type PackageName } from '@dungeonmaster/shared/contracts';
+import { type PackageName } from '@dungeonmaster/shared/contracts';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import { rootPackageJsonRegisterTransformer } from '../../../transformers/root-package-json-register/root-package-json-register-transformer';
@@ -21,10 +21,10 @@ export const packageRegisterBroker = async ({
   projectRoot,
   packageName,
 }: {
-  projectRoot: FilePath;
+  projectRoot: string;
   packageName: PackageName;
 }): Promise<boolean> => {
-  const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
+  const packageJsonPath = join(projectRoot, 'package.json');
 
   const rawContents = await readFile(packageJsonPath).catch((error: unknown) => {
     throw new Error(`No package.json found at ${packageJsonPath}`, { cause: error });

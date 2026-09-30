@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 
@@ -26,10 +25,10 @@ describe('pathCheckLayerBroker', () => {
     it('VALID: {two paths on disk} => returns no missing paths', () => {
       const proxy = pathCheckLayerBrokerProxy();
       proxy.setupExistingPath({
-        filePath: FilePathStub({ value: '/project/packages/ward/src/a.ts' }),
+        filePath: '/project/packages/ward/src/a.ts',
       });
       proxy.setupExistingPath({
-        filePath: FilePathStub({ value: '/project/packages/ward/src/b.ts' }),
+        filePath: '/project/packages/ward/src/b.ts',
       });
 
       const { passthrough } = WardConfigStub({
@@ -52,10 +51,10 @@ describe('pathCheckLayerBroker', () => {
     it('ERROR: {one path missing} => returns exactly that path', () => {
       const proxy = pathCheckLayerBrokerProxy();
       proxy.setupExistingPath({
-        filePath: FilePathStub({ value: '/project/packages/ward/src/a.ts' }),
+        filePath: '/project/packages/ward/src/a.ts',
       });
       proxy.setupMissingPath({
-        filePath: FilePathStub({ value: '/project/packages/wardd/src/typo.ts' }),
+        filePath: '/project/packages/wardd/src/typo.ts',
       });
 
       const { passthrough } = WardConfigStub({
@@ -72,8 +71,8 @@ describe('pathCheckLayerBroker', () => {
 
     it('ERROR: {every path missing} => returns all of them in order', () => {
       const proxy = pathCheckLayerBrokerProxy();
-      proxy.setupMissingPath({ filePath: FilePathStub({ value: '/project/one.ts' }) });
-      proxy.setupMissingPath({ filePath: FilePathStub({ value: '/project/two.ts' }) });
+      proxy.setupMissingPath({ filePath: '/project/one.ts' });
+      proxy.setupMissingPath({ filePath: '/project/two.ts' });
 
       const { passthrough } = WardConfigStub({ passthrough: ['one.ts', 'two.ts'] });
 

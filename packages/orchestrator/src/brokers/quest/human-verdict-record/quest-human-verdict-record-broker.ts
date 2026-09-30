@@ -32,7 +32,7 @@
  * the honest shape: a reader checks presence instead.
  */
 
-import { fileContentsContract, filePathContract, questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -61,9 +61,7 @@ export const questHumanVerdictRecordBroker = async ({
       const { questPath } = await questFindQuestPathBroker({
         questId: questContract.shape.id.parse(questId),
       });
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
       const quest = await questLoadBroker({ questFilePath });
 
       // A branded observable id is a plain string at runtime, so `String()` on both sides is what

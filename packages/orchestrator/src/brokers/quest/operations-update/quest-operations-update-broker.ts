@@ -26,11 +26,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, BaseBranchName, OperationItem, PackageGraphEntry, Quest, QuestBranchName, QuestSession, RiftcarverResult, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -63,9 +59,7 @@ export const questOperationsUpdateBroker = async ({
     questId,
     run: async (): Promise<{ quest: Quest } | null> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
       const quest = await questLoadBroker({ questFilePath });
 
       const changes = update({ quest });

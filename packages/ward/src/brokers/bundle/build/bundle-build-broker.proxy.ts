@@ -8,7 +8,7 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
@@ -56,9 +56,7 @@ export const bundleBuildBrokerProxy = (): {
   const readProxy = readFileProxy();
 
   const bundleParent = `${String(WEB_ROOT)}/${bundleStatics.parentDir}`;
-  const tempPath = filePathContract.parse(
-    `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`,
-  );
+  const tempPath = `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`;
 
   const hashDirFor = ({
     packageRoot,
@@ -117,7 +115,7 @@ export const bundleBuildBrokerProxy = (): {
 
     setupNoBuildScript: (): void => {
       readProxy.returns({
-        path: filePathContract.parse(`${String(WEB_ROOT)}/package.json`),
+        path: `${String(WEB_ROOT)}/package.json`,
         contents: JSON.stringify({ name: '@dm/web', scripts: { test: 'jest' } }),
       });
     },

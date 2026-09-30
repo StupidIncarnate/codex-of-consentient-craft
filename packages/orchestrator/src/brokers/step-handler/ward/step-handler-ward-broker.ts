@@ -32,7 +32,7 @@
 
 import { getEnv } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { absoluteFilePathContract, contentTextContract, filePathContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -98,11 +98,9 @@ export const stepHandlerWardBroker = async ({
   const wardResultId = randomUUID();
 
   if (detailJson) {
-    const wardResultsDir = filePathContract.parse(
-      join(questPath, locationsStatics.quest.wardResultsDir),
-    );
+    const wardResultsDir = join(questPath, locationsStatics.quest.wardResultsDir);
     await ensureDir(wardResultsDir);
-    const detailFilePath = filePathContract.parse(join(wardResultsDir, `${wardResultId}.json`));
+    const detailFilePath = join(wardResultsDir, `${wardResultId}.json`);
     await writeFile(detailFilePath, detailJson);
   }
 

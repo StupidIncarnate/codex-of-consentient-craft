@@ -1,6 +1,5 @@
 import { locationsRootPathFindBroker } from './locations-root-path-find-broker';
 import { locationsRootPathFindBrokerProxy } from './locations-root-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRootPathFindBroker', () => {
@@ -10,8 +9,8 @@ describe('locationsRootPathFindBroker', () => {
 
       proxy.setupRootPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
       });
 
       const result = locationsRootPathFindBroker();
@@ -24,8 +23,8 @@ describe('locationsRootPathFindBroker', () => {
 
       proxy.setupRootPath({
         homeDir: '/home/user/',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster/' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
+        homePath: '/home/user/.dungeonmaster/',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
       });
 
       const result = locationsRootPathFindBroker();
@@ -38,10 +37,8 @@ describe('locationsRootPathFindBroker', () => {
 
       proxy.setupRootPath({
         homeDir: '/srv/agents/worker-3/state',
-        homePath: FilePathStub({ value: '/srv/agents/worker-3/state/.dungeonmaster' }),
-        rootPath: FilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
-        }),
+        homePath: '/srv/agents/worker-3/state/.dungeonmaster',
+        rootPath: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
       });
 
       const result = locationsRootPathFindBroker();

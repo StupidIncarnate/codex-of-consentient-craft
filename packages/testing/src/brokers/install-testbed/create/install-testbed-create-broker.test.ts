@@ -4,7 +4,6 @@ import { installTestbedCreateBroker } from './install-testbed-create-broker';
 import { installTestbedCreateBrokerProxy } from './install-testbed-create-broker.proxy';
 import { BaseNameStub } from '../../../contracts/base-name/base-name.stub';
 import { FileContentStub } from '../../../contracts/file-content/file-content.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { RelativePathStub } from '../../../contracts/relative-path/relative-path.stub';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { Buffer } from '#gateway/node/buffer';
@@ -54,7 +53,7 @@ describe('installTestbedCreateBroker', () => {
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'custom-base' }),
-        baseDir: FilePathStub({ value: customBaseDir }),
+        baseDir: customBaseDir,
       });
 
       expect({
@@ -191,7 +190,7 @@ describe('installTestbedCreateBroker', () => {
 
       testbed.createSymlink({
         relativePath: RelativePathStub({ value: 'nested/.legacy-link' }),
-        targetPath: FilePathStub({ value: '/tmp/target-dir' }),
+        targetPath: '/tmp/target-dir',
       });
 
       expect({

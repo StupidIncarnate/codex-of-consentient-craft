@@ -7,7 +7,6 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { appendFile } from '#gateway/node/fs__promises';
@@ -18,9 +17,7 @@ import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/qu
 export const questOutboxAppendBroker = async ({ questId }: { questId: Quest['id'] }): Promise<void> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const outboxFilePath = filePathContract.parse(
-    join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),
-  );
+  const outboxFilePath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);
 
   const outboxLine = questOutboxLineContract.parse({
     questId,

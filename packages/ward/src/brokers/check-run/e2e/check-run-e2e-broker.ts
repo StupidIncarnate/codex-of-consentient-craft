@@ -16,7 +16,7 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { absoluteFilePathContract, exitCodeContract, fileContentsContract, filePathContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, fileContentsContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -74,7 +74,7 @@ export const checkRunE2eBroker = async ({
     });
   }
 
-  const configPath = filePathContract.parse(`${projectFolder.path}/playwright.config.ts`);
+  const configPath = `${projectFolder.path}/playwright.config.ts`;
   if (!existsSync(configPath)) {
     // Eligible per its own widgets/react (or ink) signals but missing the config Playwright needs
     // to run — a real gap, not something to skip quietly.
@@ -165,9 +165,7 @@ export const checkRunE2eBroker = async ({
   // The port makes this path unique per run, which is what lets two browser walks run against one
   // package at once. A name fixed per package has the second run overwriting a report the first is
   // still reading, and both sub-agents then read a run describing neither.
-  const jsonReportPath = filePathContract.parse(
-    `${projectFolder.path}/.ward-playwright-report-${String(serverPort)}.json`,
-  );
+  const jsonReportPath = `${projectFolder.path}/.ward-playwright-report-${String(serverPort)}.json`;
 
   // Playwright is a THIRD process layer with its own leak surface, and neither of ward's other two
   // detections reaches it: jest's `--detectOpenHandles` never runs here, and the timer watch ward

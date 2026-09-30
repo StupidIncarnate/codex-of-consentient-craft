@@ -1,7 +1,7 @@
 import type { DirEntrySync } from '#gateway/node/fs';
-import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { FileName, FilePath, GuildConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
+import type { FileName, GuildConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -21,14 +21,14 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   setupSmoketestGuildPresent: (params: {
     config: GuildConfig;
     homeDir: string;
-    homePath: FilePath;
+    homePath: string;
     guildEntries: readonly {
       accessible: boolean;
-      questsDirPath: FilePath;
+      questsDirPath: string;
       questDirEntries: DirEntrySync[];
     }[];
   }) => void;
-  setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
+  setupQuestsPath: (params: { homeDir: string; homePath: string; questsPath: string }) => void;
   setupQuestDirectoryListing: (params: { files: readonly never[] }) => void;
   setupQuestFolderListing: (params: { files: readonly FileName[] }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
@@ -44,7 +44,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   // guess which ones questSource will match at run time (see setupQuestFile).
   const deleteProxy = questDeleteBrokerProxy();
 
-  const homePathRef: { value: FilePath } = { value: filePathContract.parse('/unset') };
+  const homePathRef: { value: string } = { value: '/unset' };
   const guildIdRef: { value: Guild['id'] } = { value: GuildIdStub() };
 
   const mocked = registerMock({ fn: smoketestClearPriorQuestsBroker });
@@ -80,10 +80,10 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
     }: {
       config: GuildConfig;
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       guildEntries: readonly {
         accessible: boolean;
-        questsDirPath: FilePath;
+        questsDirPath: string;
         questDirEntries: DirEntrySync[];
       }[];
     }): void => {
@@ -101,8 +101,8 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       questsPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      questsPath: FilePath;
+      homePath: string;
+      questsPath: string;
     }): void => {
       list.setupQuestsPath({ homeDir, homePath, questsPath });
     },
@@ -125,9 +125,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       list.setupQuestFile({ questJson });
 
       const quest = questContract.parse(JSON.parse(questJson));
-      const questFolderPath = filePathContract.parse(
-        `${homePathRef.value}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildIdRef.value}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.id}`,
-      );
+      const questFolderPath = `${homePathRef.value}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildIdRef.value}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.id}`;
 
       deleteProxy.setupQuestFolderPath({
         homePath: homePathRef.value,

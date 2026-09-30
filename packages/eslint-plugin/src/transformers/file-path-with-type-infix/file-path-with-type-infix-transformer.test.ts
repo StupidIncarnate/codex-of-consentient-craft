@@ -1,10 +1,9 @@
 import { filePathWithTypeInfixTransformer } from './file-path-with-type-infix-transformer';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('filePathWithTypeInfixTransformer', () => {
   describe('valid paths with .ts extension', () => {
     it('VALID: {filePath: user-contract.ts} => returns user-contract.type.ts', () => {
-      const filePath = FilePathStub({ value: '/src/contracts/user/user-contract.ts' });
+      const filePath = '/src/contracts/user/user-contract.ts';
 
       const result = filePathWithTypeInfixTransformer({ filePath });
 
@@ -12,7 +11,7 @@ describe('filePathWithTypeInfixTransformer', () => {
     });
 
     it('VALID: {filePath: broker.ts} => returns broker.type.ts', () => {
-      const filePath = FilePathStub({ value: '/src/brokers/user/user-broker.ts' });
+      const filePath = '/src/brokers/user/user-broker.ts';
 
       const result = filePathWithTypeInfixTransformer({ filePath });
 
@@ -22,7 +21,7 @@ describe('filePathWithTypeInfixTransformer', () => {
 
   describe('valid paths with .tsx extension', () => {
     it('VALID: {filePath: button-widget.tsx} => returns button-widget.type.tsx', () => {
-      const filePath = FilePathStub({ value: '/src/widgets/button/button-widget.tsx' });
+      const filePath = '/src/widgets/button/button-widget.tsx';
 
       const result = filePathWithTypeInfixTransformer({ filePath });
 
@@ -30,7 +29,7 @@ describe('filePathWithTypeInfixTransformer', () => {
     });
 
     it('VALID: {filePath: component.tsx} => returns component.type.tsx', () => {
-      const filePath = FilePathStub({ value: '/src/widgets/avatar/avatar-widget.tsx' });
+      const filePath = '/src/widgets/avatar/avatar-widget.tsx';
 
       const result = filePathWithTypeInfixTransformer({ filePath });
 
@@ -40,7 +39,7 @@ describe('filePathWithTypeInfixTransformer', () => {
 
   describe('edge cases', () => {
     it('VALID: {filePath with multiple dots} => inserts type before extension only', () => {
-      const filePath = FilePathStub({ value: '/src/contracts/user.v2/user-contract.ts' });
+      const filePath = '/src/contracts/user.v2/user-contract.ts';
 
       const result = filePathWithTypeInfixTransformer({ filePath });
 
@@ -48,7 +47,7 @@ describe('filePathWithTypeInfixTransformer', () => {
     });
 
     it('VALID: {deeply nested path} => preserves full path with type infix', () => {
-      const filePath = FilePathStub({ value: '/src/brokers/user/fetch/deep/user-fetch-broker.ts' });
+      const filePath = '/src/brokers/user/fetch/deep/user-fetch-broker.ts';
 
       const result = filePathWithTypeInfixTransformer({ filePath });
 

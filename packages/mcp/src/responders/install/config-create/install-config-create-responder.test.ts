@@ -5,23 +5,23 @@
  * npm run ward -- --only test -- packages/mcp/src/responders/install/config-create/install-config-create-responder.test.ts
  */
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallConfigCreateResponderProxy } from './install-config-create-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallConfigCreateResponder', () => {
   describe('no existing config', () => {
     it('VALID: {no .mcp.json} => creates new config with dungeonmaster', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupFileMissing({ targetProjectRoot });
 
       const result = await proxy.callResponder({
-        context: {
+        context: InstallContextStub({ value: {
           targetProjectRoot,
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -49,7 +49,7 @@ describe('InstallConfigCreateResponder', () => {
   describe('existing config with dungeonmaster', () => {
     it('VALID: {dungeonmaster already configured} => skips config but adds permissions', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupFileRead({
         targetProjectRoot,
@@ -65,10 +65,10 @@ describe('InstallConfigCreateResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
+        context: InstallContextStub({ value: {
           targetProjectRoot,
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -83,7 +83,7 @@ describe('InstallConfigCreateResponder', () => {
   describe('existing config without dungeonmaster', () => {
     it('VALID: {other servers configured} => merges dungeonmaster config', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupFileRead({
         targetProjectRoot,
@@ -99,10 +99,10 @@ describe('InstallConfigCreateResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
+        context: InstallContextStub({ value: {
           targetProjectRoot,
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -137,7 +137,7 @@ describe('InstallConfigCreateResponder', () => {
   describe('existing config of another shape', () => {
     it('VALID: {url server and extra top-level key} => merge keeps both untouched', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupFileRead({
         targetProjectRoot,
@@ -148,10 +148,10 @@ describe('InstallConfigCreateResponder', () => {
       });
 
       await proxy.callResponder({
-        context: {
+        context: InstallContextStub({ value: {
           targetProjectRoot,
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(JSON.parse(String(proxy.getWrittenConfig({ targetProjectRoot })))).toStrictEqual({
@@ -165,7 +165,7 @@ describe('InstallConfigCreateResponder', () => {
 
     it('ERROR: {mcpServers is a string} => rejects and never writes', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupFileRead({
         targetProjectRoot,
@@ -174,10 +174,10 @@ describe('InstallConfigCreateResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: {
+          context: InstallContextStub({ value: {
             targetProjectRoot,
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toThrow(/expected record/u);
 
@@ -188,16 +188,16 @@ describe('InstallConfigCreateResponder', () => {
   describe('invalid JSON config', () => {
     it('ERROR: {invalid JSON in .mcp.json} => rejects naming the file and never writes', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupCorruptFile({ targetProjectRoot, rawContents: 'invalid json{' });
 
       await expect(
         proxy.callResponder({
-          context: {
+          context: InstallContextStub({ value: {
             targetProjectRoot,
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toThrow(/Invalid JSON in .*\.mcp\.json/u);
 
@@ -208,16 +208,16 @@ describe('InstallConfigCreateResponder', () => {
   describe('permission denied reading config', () => {
     it('ERROR: {EACCES reading .mcp.json} => rejects naming the file and never writes', async () => {
       const proxy = InstallConfigCreateResponderProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const targetProjectRoot = '/project';
 
       proxy.setupFileReadError({ targetProjectRoot });
 
       await expect(
         proxy.callResponder({
-          context: {
+          context: InstallContextStub({ value: {
             targetProjectRoot,
-            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-          },
+            dungeonmasterRoot: '/dm-root',
+          } }),
         }),
       ).rejects.toThrow(/EACCES.*\.mcp\.json/u);
 

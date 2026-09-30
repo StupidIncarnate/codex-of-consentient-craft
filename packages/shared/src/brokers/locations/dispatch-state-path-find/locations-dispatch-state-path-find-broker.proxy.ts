@@ -2,13 +2,12 @@ import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsDispatchStatePathFindBrokerProxy = (): {
   setupDispatchStatePath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    dispatchStatePath: FilePath;
+    homePath: string;
+    dispatchStatePath: string;
   }) => void;
 } => {
   const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
@@ -25,8 +24,8 @@ export const locationsDispatchStatePathFindBrokerProxy = (): {
       dispatchStatePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      dispatchStatePath: FilePath;
+      homePath: string;
+      dispatchStatePath: string;
     }): void => {
       dmHomeProxy.clearHomeEnv();
       dmHomeProxy.setupHomePath({ homeDir, homePath });

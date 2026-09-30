@@ -25,7 +25,6 @@
  * proxy.setupEvidenceDir({ ... });                       // once per instance row, AFTER machine
  */
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -37,8 +36,8 @@ import { instanceEntryLayerBrokerProxy } from './instance-entry-layer-broker.pro
 type Registry = ReturnType<typeof RegistryStub>;
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 export const statusReadBrokerProxy = (): {
   setupRegistryResolution: (params: { registry: Registry }) => void;

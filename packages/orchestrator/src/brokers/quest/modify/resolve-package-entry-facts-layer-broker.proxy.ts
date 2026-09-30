@@ -4,7 +4,6 @@ import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-e
 import { dirname, resolve } from '#gateway/node/path';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
@@ -97,7 +96,7 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
       });
 
       for (const entry of packages) {
-        const manifestPath = FilePathStub({ value: `${root}/${entry.dirName}/package.json` });
+        const manifestPath = `${root}/${entry.dirName}/package.json`;
         const body =
           entry.raw === undefined
             ? entry.manifest === undefined

@@ -1,11 +1,10 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questFindBrokerProxy } from '../find/quest-find-broker.proxy';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 // Mirrors the private constants quest-find-broker.proxy.ts stages the search around — this proxy
 // has to predict the exact absolute path the REAL find broker will hand back so the fs mock can be
@@ -27,9 +26,7 @@ export const questLoadBrokerProxy = (): {
   const readFileProxy = readFileSyncProxy();
 
   const pathFor = ({ questId }: { questId: QuestId }): FilePath =>
-    FilePathStub({
-      value: `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}/${GUILD_ID}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
-    });
+    `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}/${GUILD_ID}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`;
 
   return {
     setupQuest: ({ questId, questJson }: { questId: QuestId; questJson: unknown }): void => {

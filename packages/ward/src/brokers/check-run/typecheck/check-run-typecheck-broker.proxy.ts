@@ -1,7 +1,7 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
-import { filePathContract, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
@@ -48,8 +48,8 @@ export const checkRunTypecheckBrokerProxy = (): {
   // unless a test calls `setupBuildConfigPresent` — every test written before that method existed
   // keeps exercising the same one tsc invocation it always did.
   const setupDiscovery = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
-    const tsconfigPath = filePathContract.parse(`${projectFolder.path}/tsconfig.json`);
-    const buildTsconfigPath = filePathContract.parse(`${projectFolder.path}/tsconfig.build.json`);
+    const tsconfigPath = `${projectFolder.path}/tsconfig.json`;
+    const buildTsconfigPath = `${projectFolder.path}/tsconfig.build.json`;
     existsProxy.returns({ path: tsconfigPath, exists: true });
     existsProxy.returns({ path: buildTsconfigPath, exists: false });
     jsonProxy.returns({
@@ -113,7 +113,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     // ProjectFolderStub() path.
     setupNoTsconfig: (): void => {
       existsProxy.returns({
-        path: filePathContract.parse(`${ProjectFolderStub().path}/tsconfig.json`),
+        path: `${ProjectFolderStub().path}/tsconfig.json`,
         exists: false,
       });
     },
@@ -127,7 +127,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     // "checking pass clean, build pass fails" outcome needs the two runs to actually disagree,
     // which needs a real `tsc` — see check-run-typecheck-broker.integration.test.ts.
     setupBuildConfigPresent: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
-      const buildTsconfigPath = filePathContract.parse(`${projectFolder.path}/tsconfig.build.json`);
+      const buildTsconfigPath = `${projectFolder.path}/tsconfig.build.json`;
       existsProxy.returns({ path: buildTsconfigPath, exists: true });
       run.setupSuccess({
         command: lastChecking.command,

@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { DirectoryBrowseResponderProxy } from './directory-browse-responder.proxy';
@@ -10,7 +9,7 @@ describe('DirectoryBrowseResponder', () => {
       proxy.setupDirectories({
         targetPath: '/home/user/projects',
         directories: [
-          { name: 'app', joinedPath: FilePathStub({ value: '/home/user/projects/app' }) },
+          { name: 'app', joinedPath: '/home/user/projects/app' },
         ],
         files: [],
         hiddenDirectories: [],
@@ -29,7 +28,7 @@ describe('DirectoryBrowseResponder', () => {
       const proxy = DirectoryBrowseResponderProxy();
       proxy.setupDefaultHomedir({
         homeDir: '/home/user',
-        directories: [{ name: 'docs', joinedPath: FilePathStub({ value: '/home/user/docs' }) }],
+        directories: [{ name: 'docs', joinedPath: '/home/user/docs' }],
       });
 
       const result = proxy.callResponder({});

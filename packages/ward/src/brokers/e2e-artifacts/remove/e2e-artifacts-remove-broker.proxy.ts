@@ -19,7 +19,7 @@ export const e2eArtifactsRemoveBrokerProxy = (): {
     packageRoot: AbsoluteFilePath;
     port: number;
   }): ReturnType<typeof filePathContract.parse> =>
-    filePathContract.parse(`${String(packageRoot)}/node_modules/.vite-${String(port)}`);
+    `${String(packageRoot)}/node_modules/.vite-${String(port)}`;
 
   return {
     setupRemovable: ({ packageRoot, port }): void => {

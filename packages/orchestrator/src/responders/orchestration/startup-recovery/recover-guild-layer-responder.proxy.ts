@@ -9,7 +9,6 @@
 
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { AbsoluteFilePath, GuildPath, ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
@@ -159,10 +158,8 @@ export const RecoverGuildLayerResponderProxy = (): {
   };
 
   const stageOrphanResetChain = ({ guildId, quest }: { guildId: Guild['id']; quest: Quest }): void => {
-    const questPath = FilePathStub({
-      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
-    });
-    const questFilePath = FilePathStub({ value: `${questPath}/quest.json` });
+    const questPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`;
+    const questFilePath = `${questPath}/quest.json`;
 
     findQuestPathMock.calledWith([{ questId: quest.id }]).resolves({ questPath, guildId });
     loadMock.calledWith([{ questFilePath }]).resolves(quest);
@@ -187,7 +184,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       questListProxy.setupDirectList({ guildId, quests });
       // The loop resolves its slot count from the guild path it is launched with; an unstaged
       // config address is no longer swallowed into the default.
-      loopProxy.setupConfigResolves({ filePath: FilePathStub({ value: guildPath }) });
+      loopProxy.setupConfigResolves({ filePath: guildPath });
 
       // questModifyBroker (orphan reset, or the missing-worktree block path's get+modify) reads
       // and writes through this same chain for every quest — staged unconditionally so either

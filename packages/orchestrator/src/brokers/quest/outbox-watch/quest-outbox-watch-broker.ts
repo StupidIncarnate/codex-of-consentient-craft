@@ -14,7 +14,6 @@
  */
 
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { tailFile } from '#gateway/node/fs';
@@ -39,9 +38,7 @@ export const questOutboxWatchBroker = async ({
 }): Promise<{ stop: () => void }> => {
   const { homePath } = await dungeonmasterHomeEnsureBroker();
 
-  const outboxPath = filePathContract.parse(
-    join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),
-  );
+  const outboxPath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);
 
   if (resetOnStart) {
     await writeFile(outboxPath, '');

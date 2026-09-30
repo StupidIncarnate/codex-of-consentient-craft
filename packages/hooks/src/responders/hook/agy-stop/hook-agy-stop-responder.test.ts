@@ -1,4 +1,3 @@
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { subagentStopBlockMessageStatics } from '../../../statics/subagent-stop-block-message/subagent-stop-block-message-statics';
 import { HookAgyStopResponder } from './hook-agy-stop-responder';
 import { HookAgyStopResponderProxy } from './hook-agy-stop-responder.proxy';
@@ -34,7 +33,7 @@ describe('HookAgyStopResponder', () => {
 
   it('VALID: {transcript read error} => returns stop', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     proxy.setupReadError({ filePath: transcriptPath });
 
     const result = await HookAgyStopResponder({
@@ -51,7 +50,7 @@ describe('HookAgyStopResponder', () => {
 
   it('INVALID: work-item agent without signal-back => returns continue with block message', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     const transcript = JSON.stringify({
       tool_calls: [
         {
@@ -77,7 +76,7 @@ describe('HookAgyStopResponder', () => {
 
   it('VALID: work-item agent with signal-back => returns stop', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     const transcript = `${JSON.stringify({
       tool_calls: [
         {
@@ -109,7 +108,7 @@ describe('HookAgyStopResponder', () => {
 
   it('VALID: minion agent (no workItemId) => returns stop', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     const transcript = JSON.stringify({
       tool_calls: [
         {
@@ -134,7 +133,7 @@ describe('HookAgyStopResponder', () => {
 
   it('VALID: {fullyIdle: false, transcript with invoke_subagent} => returns stop', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     const transcript = JSON.stringify({
       tool_calls: [
         {
@@ -159,7 +158,7 @@ describe('HookAgyStopResponder', () => {
 
   it('INVALID: {fullyIdle: false, transcript with no invoke_subagent} => returns continue with background task message', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     const transcript = JSON.stringify({
       tool_calls: [
         {
@@ -185,7 +184,7 @@ describe('HookAgyStopResponder', () => {
 
   it('VALID: work-item agent without signal-back on re-entry (executionNum > 1) => returns stop', async () => {
     const proxy = HookAgyStopResponderProxy();
-    const transcriptPath = FilePathStub({ value: '/test/transcript.jsonl' });
+    const transcriptPath = '/test/transcript.jsonl';
     const transcript = JSON.stringify({
       tool_calls: [
         {

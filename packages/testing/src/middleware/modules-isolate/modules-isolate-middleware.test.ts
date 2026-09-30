@@ -1,6 +1,6 @@
 import { modulesIsolateMiddleware } from './modules-isolate-middleware';
 import { modulesIsolateMiddlewareProxy } from './modules-isolate-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
+import { IsolateModulesMockStub } from '../../contracts/isolate-modules-mock/isolate-modules-mock.stub';
 
 describe('modulesIsolateMiddleware', () => {
   it('VALID: {mocks: [{module: "path", factory}], entrypoint: "path"} => doMock registers the factory so importing the entrypoint runs it', async () => {
@@ -10,15 +10,15 @@ describe('modulesIsolateMiddleware', () => {
 
     await modulesIsolateMiddleware({
       mocks: [
-        {
-          module: FilePathStub({ value: 'path' }),
+        IsolateModulesMockStub({
+          module: 'path',
           factory: () => {
             sawMockedFactory = true;
             return { resolve: () => 'mocked-resolve-result' };
           },
-        },
+        }),
       ],
-      entrypoint: FilePathStub({ value: 'path' }),
+      entrypoint: 'path',
     });
 
     expect(sawMockedFactory).toBe(true);

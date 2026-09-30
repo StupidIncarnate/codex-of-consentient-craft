@@ -25,7 +25,6 @@ import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
 import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 // binExists/binIsExecutable/readBinContent back the "file structure" assertions in
@@ -34,12 +33,12 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-cod
 // BUNDLE's top-level `require.main === module` guard survives esbuild's wrapping (cli-entry.ts's
 // own comment notes the bundle keeps real Node CommonJS semantics at the top level), which only
 // the real bundle can answer — running the un-bundled source would not exercise that risk.
-const BIN_PATH = FilePathStub({ value: resolve(__dirname, '../../../dist/bin/dungeonmaster.js') });
+const BIN_PATH = resolve(__dirname, '../../../dist/bin/dungeonmaster.js');
 // runCommand exercises real CLI behaviour, so it spawns the source entry directly under tsx
 // instead of the built bundle. `--conditions=source` resolves every @dungeonmaster/* import to TS
 // source (see jest.config.base.js's `customExportConditions`), matching how `npm run dev` runs
 // source.
-const SOURCE_ENTRY_PATH = FilePathStub({ value: resolve(__dirname, '../../../bin/cli-entry.ts') });
+const SOURCE_ENTRY_PATH = resolve(__dirname, '../../../bin/cli-entry.ts');
 // Measured solo against a real `siegelense <call> --help` spawn: 2.5s-4.7s, dominated by tsx
 // compiling the CLI's module graph and dynamically importing @dungeonmaster/siegelense. Measured
 // with all 15 of this suite's `siegelense`-seam spawns fired at once (this file's own second
@@ -58,7 +57,7 @@ const IMPORT_PROBE_PORT = 59_999;
 const IMPORT_PROBE_TIMEOUT_MS = 3000;
 
 export const cliBinHarness = (): {
-  binPath: ReturnType<typeof FilePathStub>;
+  binPath: string;
   binExists: () => boolean;
   binIsExecutable: () => boolean;
   readBinContent: () => FileContents;

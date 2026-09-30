@@ -29,7 +29,6 @@ import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file
 import { join } from '#gateway/node/path';
 import type { ExitCode, FileContents, FileName, Quest } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -53,9 +52,7 @@ import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.p
 registerModuleMock({ module: '../../quest/cwd-resolve/quest-cwd-resolve-broker' });
 registerModuleMock({ module: '../../quest/find-quest-path/quest-find-quest-path-broker' });
 
-const QUEST_PATH = FilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/g1/quests/add-auth',
-});
+const QUEST_PATH = '/home/testuser/.dungeonmaster/guilds/g1/quests/add-auth';
 const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 // Match stepHandlerWardBroker's own WARD_COMMAND/RUN_SUBCOMMAND constants — RUN_SUBCOMMAND is what
 // the args predicate below keys on to stage this handler's own spawn apart from

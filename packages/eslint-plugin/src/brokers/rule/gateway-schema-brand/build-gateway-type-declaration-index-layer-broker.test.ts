@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { buildGatewayTypeDeclarationIndexLayerBroker } from './build-gateway-type-declaration-index-layer-broker';
@@ -8,14 +7,12 @@ describe('buildGatewayTypeDeclarationIndexLayerBroker', () => {
   describe('a real gateway package src root', () => {
     it('VALID: {node package src has one declaration file} => indexes it under the type name', () => {
       const proxy = buildGatewayTypeDeclarationIndexLayerBrokerProxy();
-      const rootDir = FilePathStub({ value: '/repo/' });
-      const srcDir = FilePathStub({ value: '/repo/packages/@gateway/node/src/' });
-      const filePath = FilePathStub({
-        value: '/repo/packages/@gateway/node/src/walked-file.ts',
-      });
+      const rootDir = '/repo/';
+      const srcDir = '/repo/packages/@gateway/node/src/';
+      const filePath = '/repo/packages/@gateway/node/src/walked-file.ts';
 
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/npm/src/' }),
+        srcDir: '/repo/packages/@gateway/npm/src/',
       });
       proxy.setupSrcDirWithDeclaration({
         srcDir,
@@ -24,10 +21,10 @@ describe('buildGatewayTypeDeclarationIndexLayerBroker', () => {
         sourceText: 'export interface WalkedFile {\n  path: unknown;\n}\n',
       });
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/browser/src/' }),
+        srcDir: '/repo/packages/@gateway/browser/src/',
       });
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/bin/src/' }),
+        srcDir: '/repo/packages/@gateway/bin/src/',
       });
 
       const index = buildGatewayTypeDeclarationIndexLayerBroker({ rootDir });
@@ -39,19 +36,19 @@ describe('buildGatewayTypeDeclarationIndexLayerBroker', () => {
   describe('a gateway package with no src/ yet', () => {
     it('EMPTY: {src/ missing for every gateway package} => returns an empty index', () => {
       const proxy = buildGatewayTypeDeclarationIndexLayerBrokerProxy();
-      const rootDir = FilePathStub({ value: '/repo/' });
+      const rootDir = '/repo/';
 
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/npm/src/' }),
+        srcDir: '/repo/packages/@gateway/npm/src/',
       });
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/node/src/' }),
+        srcDir: '/repo/packages/@gateway/node/src/',
       });
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/browser/src/' }),
+        srcDir: '/repo/packages/@gateway/browser/src/',
       });
       proxy.setupSrcDirMissing({
-        srcDir: FilePathStub({ value: '/repo/packages/@gateway/bin/src/' }),
+        srcDir: '/repo/packages/@gateway/bin/src/',
       });
 
       const index = buildGatewayTypeDeclarationIndexLayerBroker({ rootDir });

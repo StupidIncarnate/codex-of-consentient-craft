@@ -6,11 +6,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
-import {
-  filePathContract,
-  absoluteFilePathContract,
-  networkPortContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -143,7 +139,7 @@ export const checkRunE2eBrokerProxy = (): {
   }): void => {
     markEligible({ projectFolder });
     existsProxy.returns({
-      path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+      path: `${projectFolder.path}/playwright.config.ts`,
       exists: true,
     });
     const cwd = absoluteFilePathContract.parse(projectFolder.path);
@@ -229,7 +225,7 @@ export const checkRunE2eBrokerProxy = (): {
         stderr: '',
       });
       readProxy.returns({
-        path: filePathContract.parse(`${projectFolder.path}/.ward-playwright-report-40000.json`),
+        path: `${projectFolder.path}/.ward-playwright-report-40000.json`,
         contents: jsonContent,
       });
     },
@@ -270,7 +266,7 @@ export const checkRunE2eBrokerProxy = (): {
         srcDirNames: ['brokers'],
       });
       existsProxy.returns({
-        path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+        path: `${projectFolder.path}/playwright.config.ts`,
         exists: false,
       });
     },
@@ -278,7 +274,7 @@ export const checkRunE2eBrokerProxy = (): {
     setupEligibleMissingConfig: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       markEligible({ projectFolder });
       existsProxy.returns({
-        path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+        path: `${projectFolder.path}/playwright.config.ts`,
         exists: false,
       });
     },

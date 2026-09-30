@@ -1,6 +1,5 @@
 import { variantWalkLayerBroker } from './variant-walk-layer-broker';
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('variantWalkLayerBroker', () => {
@@ -10,11 +9,11 @@ describe('variantWalkLayerBroker', () => {
 
       proxy.setupFirstVariantMatches({
         searchPath: '/project',
-        configPath: FilePathStub({ value: '/project/eslint.config.ts' }),
+        configPath: '/project/eslint.config.ts',
       });
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: ['eslint.config.ts', 'eslint.config.js'],
       });
 
@@ -26,12 +25,12 @@ describe('variantWalkLayerBroker', () => {
 
       proxy.setupNthVariantMatches({
         searchPath: '/project',
-        missingPaths: [FilePathStub({ value: '/project/eslint.config.ts' })],
-        configPath: FilePathStub({ value: '/project/eslint.config.js' }),
+        missingPaths: ['/project/eslint.config.ts'],
+        configPath: '/project/eslint.config.js',
       });
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: ['eslint.config.ts', 'eslint.config.js'],
       });
 
@@ -44,7 +43,7 @@ describe('variantWalkLayerBroker', () => {
       variantWalkLayerBrokerProxy();
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: [],
       });
 
@@ -57,13 +56,13 @@ describe('variantWalkLayerBroker', () => {
       proxy.setupAllVariantsMissing({
         searchPath: '/project',
         missingPaths: [
-          FilePathStub({ value: '/project/eslint.config.ts' }),
-          FilePathStub({ value: '/project/eslint.config.js' }),
+          '/project/eslint.config.ts',
+          '/project/eslint.config.js',
         ],
       });
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: ['eslint.config.ts', 'eslint.config.js'],
       });
 

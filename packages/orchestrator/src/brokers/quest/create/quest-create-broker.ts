@@ -22,13 +22,8 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import {
-  fileContentsContract,
-  filePathContract,
-  operationItemContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
-import type { AddQuestInput, FilePath, OperationItem, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, OperationItem, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
@@ -45,12 +40,12 @@ export const questCreateBroker = async ({
   guildId: Guild['id'];
   input: AddQuestInput;
   initialWorkItems?: WorkItem[];
-}): Promise<{ questFilePath: FilePath; questFolderPath: FilePath }> => {
+}): Promise<{ questFilePath: string; questFolderPath: string }> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
-  const questsBasePath = filePathContract.parse(questsPath);
+  const questsBasePath = questsPath;
   await ensureDir(questsBasePath);
 
-  const questFolderPath = filePathContract.parse(join(questsBasePath, questId));
+  const questFolderPath = join(questsBasePath, questId);
   await ensureDir(questFolderPath);
 
   const { initialWorkItemRole } = questFlowStatics[input.questType ?? 'feature'];
@@ -95,9 +90,7 @@ export const questCreateBroker = async ({
     ...(input.questType === undefined ? {} : { questType: input.questType }),
   });
 
-  const questFilePath = filePathContract.parse(
-    join(questFolderPath, locationsStatics.quest.questFile),
-  );
+  const questFilePath = join(questFolderPath, locationsStatics.quest.questFile);
   const contents = fileContentsContract.parse(
     JSON.stringify(initialQuest, null, JSON_INDENT_SPACES),
   );

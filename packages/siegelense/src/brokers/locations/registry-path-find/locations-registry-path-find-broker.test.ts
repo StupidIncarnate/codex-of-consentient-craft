@@ -1,6 +1,5 @@
 import { locationsRegistryPathFindBroker } from './locations-registry-path-find-broker';
 import { locationsRegistryPathFindBrokerProxy } from './locations-registry-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRegistryPathFindBroker', () => {
@@ -10,11 +9,9 @@ describe('locationsRegistryPathFindBroker', () => {
 
       proxy.setupRegistryPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        registryPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/siegelense/registry.json',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        registryPath: '/home/user/.dungeonmaster/siegelense/registry.json',
       });
 
       const result = locationsRegistryPathFindBroker();
@@ -29,11 +26,9 @@ describe('locationsRegistryPathFindBroker', () => {
 
       proxy.setupRegistryPath({
         homeDir: '/home/user/',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster/' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense/' }),
-        registryPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/siegelense/registry.json',
-        }),
+        homePath: '/home/user/.dungeonmaster/',
+        rootPath: '/home/user/.dungeonmaster/siegelense/',
+        registryPath: '/home/user/.dungeonmaster/siegelense/registry.json',
       });
 
       const result = locationsRegistryPathFindBroker();
@@ -48,13 +43,9 @@ describe('locationsRegistryPathFindBroker', () => {
 
       proxy.setupRegistryPath({
         homeDir: '/srv/agents/worker-3/state',
-        homePath: FilePathStub({ value: '/srv/agents/worker-3/state/.dungeonmaster' }),
-        rootPath: FilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
-        }),
-        registryPath: FilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense/registry.json',
-        }),
+        homePath: '/srv/agents/worker-3/state/.dungeonmaster',
+        rootPath: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
+        registryPath: '/srv/agents/worker-3/state/.dungeonmaster/siegelense/registry.json',
       });
 
       const result = locationsRegistryPathFindBroker();

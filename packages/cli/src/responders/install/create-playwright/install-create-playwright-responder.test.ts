@@ -1,6 +1,6 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { playwrightConfigTemplateStatics } from '../../../statics/playwright-config-template/playwright-config-template-statics';
 import { InstallCreatePlaywrightResponderProxy } from './install-create-playwright-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallCreatePlaywrightResponder', () => {
   describe('not e2e-eligible', () => {
@@ -10,10 +10,10 @@ describe('InstallCreatePlaywrightResponder', () => {
       proxy.setupNotE2eEligible({ targetProjectRoot: '/project' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -33,14 +33,14 @@ describe('InstallCreatePlaywrightResponder', () => {
       const proxy = InstallCreatePlaywrightResponderProxy();
 
       proxy.setupFileExists({
-        filePath: FilePathStub({ value: '/project/playwright.config.ts' }),
+        filePath: '/project/playwright.config.ts',
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -59,14 +59,14 @@ describe('InstallCreatePlaywrightResponder', () => {
       const proxy = InstallCreatePlaywrightResponderProxy();
 
       proxy.setupFileNotExists({
-        filePath: FilePathStub({ value: '/project/playwright.config.ts' }),
+        filePath: '/project/playwright.config.ts',
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -96,14 +96,14 @@ describe('InstallCreatePlaywrightResponder', () => {
       const proxy = InstallCreatePlaywrightResponderProxy();
 
       proxy.setupFileNotExists({
-        filePath: FilePathStub({ value: '/project/playwright.config.ts' }),
+        filePath: '/project/playwright.config.ts',
       });
 
       await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(

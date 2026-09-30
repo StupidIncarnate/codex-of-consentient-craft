@@ -11,11 +11,7 @@
  * resolveGatewayScopeLayerBroker({ filename: '/repo/packages/@gateway/node/src/fs/fs.ts' });
  * // Returns '@dungeonmaster' as PackageName
  */
-import {
-  filePathContract,
-  packageJsonContract,
-  type PackageName,
-} from '@dungeonmaster/shared/contracts';
+import { packageJsonContract, type PackageName } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readFileSync } from '#gateway/node/fs';
@@ -37,7 +33,7 @@ export const resolveGatewayScopeLayerBroker = ({
     return scopeCache.value;
   }
 
-  const startDir = filePathContract.parse(dirname(filename));
+  const startDir = dirname(filename);
   const repoRoot = findAncestorDirectoryLayerBroker({
     startDir,
     markerFileName: locationsStatics.repoRoot.config,

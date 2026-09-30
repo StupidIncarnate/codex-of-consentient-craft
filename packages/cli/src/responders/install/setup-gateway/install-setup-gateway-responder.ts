@@ -12,14 +12,7 @@
  * // Scaffolds the gateway, wires every existing package into it, or reports what was already done
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  filePathContract,
-  installMessageContract,
-  packageNameContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -48,9 +41,7 @@ export const InstallSetupGatewayResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const rootPackageJsonPath = filePathContract.parse(
-    join(context.targetProjectRoot, 'package.json'),
-  );
+  const rootPackageJsonPath = join(context.targetProjectRoot, 'package.json');
 
   if (!existsSync(rootPackageJsonPath)) {
     return {
@@ -83,12 +74,12 @@ export const InstallSetupGatewayResponder = async ({
     );
   }
 
-  const packagesDir = filePathContract.parse(join(context.targetProjectRoot, 'packages'));
-  const gatewayDir = filePathContract.parse(join(packagesDir, '@gateway'));
+  const packagesDir = join(context.targetProjectRoot, 'packages');
+  const gatewayDir = join(packagesDir, '@gateway');
 
   const scaffoldOutcomes = await Promise.all(
     gatewayFoldersStatics.folders.map(async (folder) => {
-      const packageRoot = filePathContract.parse(join(gatewayDir, folder));
+      const packageRoot = join(gatewayDir, folder);
       if (existsSync(packageRoot)) {
         return null;
       }
@@ -102,9 +93,7 @@ export const InstallSetupGatewayResponder = async ({
   );
   const createdFolders = scaffoldOutcomes.filter((folder) => folder !== null);
 
-  const rootTsconfigPath = filePathContract.parse(
-    join(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig),
-  );
+  const rootTsconfigPath = join(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig);
   const rootTsconfigExists = existsSync(rootTsconfigPath);
   const rootTsconfigChanged = await gatewayTsconfigCompilerOptionsWriteBroker({
     tsconfigPath: rootTsconfigPath,
@@ -117,7 +106,7 @@ export const InstallSetupGatewayResponder = async ({
 
   const perPackageOutcomes = await Promise.all(
     existingPackageDirs.map(async (packageDir) => {
-      const pkgPackageJsonPath = filePathContract.parse(join(packageDir, 'package.json'));
+      const pkgPackageJsonPath = join(packageDir, 'package.json');
       const rawPkgPackageJson = await readFile(pkgPackageJsonPath);
       const pkgPackageJson = packageJsonRawContract.parse(JSON.parse(rawPkgPackageJson));
       const importsKey = packageJsonRawContract.keyType.parse('imports');
@@ -135,7 +124,7 @@ export const InstallSetupGatewayResponder = async ({
       }
 
       const pkgTsconfigBuildChanged = await gatewayTsconfigCompilerOptionsWriteBroker({
-        tsconfigPath: filePathContract.parse(join(packageDir, TSCONFIG_BUILD_FILENAME)),
+        tsconfigPath: join(packageDir, TSCONFIG_BUILD_FILENAME),
         options: tsconfigCompilerOptionsContract.parse({
           customConditions: gatewayPackageTemplateStatics.buildCustomConditions,
         }),

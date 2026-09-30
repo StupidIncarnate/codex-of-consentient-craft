@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { recipesLocateBroker } from './recipes-locate-broker';
 import { recipesLocateBrokerProxy } from './recipes-locate-broker.proxy';
@@ -13,8 +12,8 @@ describe('recipesLocateBroker', () => {
 
       proxy.setupPresentAndBuilt({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
-        entryPath: FilePathStub({ value: '/repo/packages/hydration-recipes/dist/index.js' }),
+        packagePath: '/repo/packages/hydration-recipes',
+        entryPath: '/repo/packages/hydration-recipes/dist/index.js',
       });
 
       const result = await recipesLocateBroker();
@@ -31,7 +30,7 @@ describe('recipesLocateBroker', () => {
 
       proxy.setupPackageMissing({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
+        packagePath: '/repo/packages/hydration-recipes',
       });
 
       await expect(recipesLocateBroker()).rejects.toStrictEqual(
@@ -46,8 +45,8 @@ describe('recipesLocateBroker', () => {
 
       proxy.setupBuildMissing({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
-        entryPath: FilePathStub({ value: '/repo/packages/hydration-recipes/dist/index.js' }),
+        packagePath: '/repo/packages/hydration-recipes',
+        entryPath: '/repo/packages/hydration-recipes/dist/index.js',
       });
 
       await expect(recipesLocateBroker()).rejects.toStrictEqual(

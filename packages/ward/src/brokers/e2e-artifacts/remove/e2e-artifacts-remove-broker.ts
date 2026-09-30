@@ -15,7 +15,7 @@
  */
 
 import { rm } from '#gateway/node/fs__promises';
-import { filePathContract, type NetworkPort } from '@dungeonmaster/shared/contracts';
+import { type NetworkPort } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
@@ -29,9 +29,7 @@ export const e2eArtifactsRemoveBroker = async ({
 }): Promise<void> => {
   const [cache] = e2eArtifactsStatics.artifacts;
 
-  const cachePath = filePathContract.parse(
-    `${String(packageRoot)}/${cache.parentDir}/${cache.prefix}${String(port)}${cache.suffix}`,
-  );
+  const cachePath = `${String(packageRoot)}/${cache.parentDir}/${cache.prefix}${String(port)}${cache.suffix}`;
 
   try {
     // `force` turns "already gone" into a no-op, which is the ordinary outcome whenever a

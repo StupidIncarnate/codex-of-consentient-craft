@@ -1,6 +1,5 @@
 import { findPackageJsonDirLayerBroker } from './find-package-json-dir-layer-broker';
 import { findPackageJsonDirLayerBrokerProxy } from './find-package-json-dir-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('findPackageJsonDirLayerBroker', () => {
   describe('package.json found', () => {
@@ -9,7 +8,7 @@ describe('findPackageJsonDirLayerBroker', () => {
       proxy.setupPackageJsonAt({ dirPath: '/repo/packages/node' });
 
       const result = findPackageJsonDirLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node' }),
+        startDir: '/repo/packages/node',
       });
 
       expect(result).toBe('/repo/packages/node');
@@ -22,7 +21,7 @@ describe('findPackageJsonDirLayerBroker', () => {
       proxy.setupPackageJsonAt({ dirPath: '/repo/packages/node' });
 
       const result = findPackageJsonDirLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node/src/fs' }),
+        startDir: '/repo/packages/node/src/fs',
       });
 
       expect(result).toBe('/repo/packages/node');
@@ -40,7 +39,7 @@ describe('findPackageJsonDirLayerBroker', () => {
       proxy.setupNoPackageJsonAt({ dirPath: '/' });
 
       const result = findPackageJsonDirLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node/src/fs' }),
+        startDir: '/repo/packages/node/src/fs',
       });
 
       expect(result).toBe(undefined);

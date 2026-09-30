@@ -1,7 +1,6 @@
 import { questPersistDirectBroker } from './quest-persist-direct-broker';
 import { questPersistDirectBrokerProxy } from './quest-persist-direct-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -10,9 +9,7 @@ describe('questPersistDirectBroker', () => {
     it('VALID: {questFilePath, contents, questId} => writes the file and appends one outbox line', async () => {
       const proxy = questPersistDirectBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
-      const questFilePath = FilePathStub({
-        value: '/tmp/dm-home/guilds/g1/quests/add-auth/quest.json',
-      });
+      const questFilePath = '/tmp/dm-home/guilds/g1/quests/add-auth/quest.json';
       const outboxPath = '/tmp/dm-home/event-outbox.jsonl';
       proxy.succeeds({ questFilePath, outboxPath });
 
@@ -31,9 +28,7 @@ describe('questPersistDirectBroker', () => {
     it('VALID: {questId} => the appended outbox line names that exact questId', async () => {
       const proxy = questPersistDirectBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
-      const questFilePath = FilePathStub({
-        value: '/tmp/dm-home/guilds/g1/quests/add-auth/quest.json',
-      });
+      const questFilePath = '/tmp/dm-home/guilds/g1/quests/add-auth/quest.json';
       const outboxPath = '/tmp/dm-home/event-outbox.jsonl';
       proxy.succeeds({ questFilePath, outboxPath });
 

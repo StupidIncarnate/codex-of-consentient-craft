@@ -7,7 +7,7 @@
  */
 
 import { readdirEntries } from '#gateway/node/fs__promises';
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   projectFolderContract,
@@ -25,7 +25,7 @@ export const patternResolveLayerBroker = async ({
 }): Promise<ProjectFolder[]> => {
   if (pattern.endsWith(workspaceGlobStatics.wildcardSuffix)) {
     const baseDir = pattern.slice(0, pattern.length - workspaceGlobStatics.wildcardSuffixLength);
-    const basePath = filePathContract.parse(`${rootPath}/${baseDir}`);
+    const basePath = `${rootPath}/${baseDir}`;
 
     const entries = await readdirEntries(String(basePath)).catch(() => null);
     if (entries === null) {

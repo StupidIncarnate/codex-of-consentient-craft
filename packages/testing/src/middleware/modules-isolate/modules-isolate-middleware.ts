@@ -11,8 +11,6 @@ import {
   doMock as gatewayDoMock,
   isolateModulesAsync as gatewayIsolateModulesAsync,
 } from '#gateway/npm/jest__globals';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { IsolateModulesMock } from '../../contracts/isolate-modules-mock/isolate-modules-mock-contract';
 
 export const modulesIsolateMiddleware = async ({
@@ -20,7 +18,7 @@ export const modulesIsolateMiddleware = async ({
   entrypoint,
 }: {
   mocks: IsolateModulesMock[];
-  entrypoint: FilePath;
+  entrypoint: string;
 }): Promise<void> => {
   await gatewayIsolateModulesAsync({
     fn: async () => {
@@ -28,7 +26,7 @@ export const modulesIsolateMiddleware = async ({
         gatewayDoMock({ moduleName: mock.module, factory: mock.factory });
       }
 
-      await import(filePathContract.parse(entrypoint));
+      await import(entrypoint);
     },
   });
 };

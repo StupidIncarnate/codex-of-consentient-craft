@@ -3,15 +3,14 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath, PathSegment, FileContents } from '@dungeonmaster/shared/contracts';
+import type { PathSegment, FileContents } from '@dungeonmaster/shared/contracts';
 
 export const packageScaffoldWriteBrokerProxy = (): {
   setupTargetMissing: (params: {
-    packageRoot: FilePath;
+    packageRoot: string;
     files: readonly { relativePath: PathSegment; contents: FileContents }[];
   }) => void;
-  setupTargetExists: (params: { packageRoot: FilePath }) => void;
+  setupTargetExists: (params: { packageRoot: string }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const existsProxy = existsSyncProxy();
@@ -23,15 +22,15 @@ export const packageScaffoldWriteBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   const dirnameHandle = registerMock({ fn: dirname });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  const writtenPaths: FilePath[] = [];
+  const writtenPaths: string[] = [];
 
   return {
     setupTargetMissing: ({ packageRoot, files }): void => {
       existsProxy.returns({ path: packageRoot, exists: false });
 
       for (const file of files) {
-        const absolutePath = FilePathStub({ value: realPath.join(packageRoot, file.relativePath) });
-        const parentDir = FilePathStub({ value: realPath.dirname(absolutePath) });
+        const absolutePath = realPath.join(packageRoot, file.relativePath);
+        const parentDir = realPath.dirname(absolutePath);
 
         joinHandle.calledWith([packageRoot, file.relativePath]).returns(absolutePath);
         dirnameHandle.calledWith([absolutePath]).returns(parentDir);

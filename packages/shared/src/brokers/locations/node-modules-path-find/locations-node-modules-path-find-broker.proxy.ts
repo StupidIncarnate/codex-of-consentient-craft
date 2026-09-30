@@ -1,10 +1,9 @@
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsNodeModulesPathFindBrokerProxy = (): {
-  setupNodeModulesPath: (params: { nodeModulesPath: FilePath }) => void;
+  setupNodeModulesPath: (params: { nodeModulesPath: string }) => void;
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
@@ -17,7 +16,7 @@ export const locationsNodeModulesPathFindBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   return {
-    setupNodeModulesPath: ({ nodeModulesPath }: { nodeModulesPath: FilePath }): void => {
+    setupNodeModulesPath: ({ nodeModulesPath }: { nodeModulesPath: string }): void => {
       const suffix = `/${locationsStatics.repoRoot.nodeModules}`;
       const rootPath = nodeModulesPath.slice(0, nodeModulesPath.length - suffix.length);
       joinHandle

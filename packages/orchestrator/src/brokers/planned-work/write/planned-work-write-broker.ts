@@ -14,7 +14,6 @@
  */
 
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { ensureDir, rename, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -37,10 +36,8 @@ export const plannedWorkWriteBroker = async ({
   const dirPath = locationsPlannedWorkPathFindBroker({ questFolderPath });
   await ensureDir(dirPath);
 
-  const filePath = filePathContract.parse(
-    join(dirPath, `${String(operationItemId)}${JSON_EXTENSION}`),
-  );
-  const tmpPath = filePathContract.parse(`${filePath}${TMP_SUFFIX}`);
+  const filePath = join(dirPath, `${String(operationItemId)}${JSON_EXTENSION}`);
+  const tmpPath = `${filePath}${TMP_SUFFIX}`;
 
   await writeFile(tmpPath, JSON.stringify(plan, null, JSON_INDENT_SPACES));
   await rename(tmpPath, filePath);

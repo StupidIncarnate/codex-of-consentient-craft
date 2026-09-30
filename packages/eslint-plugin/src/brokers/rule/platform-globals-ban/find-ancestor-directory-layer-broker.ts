@@ -10,7 +10,6 @@
  * findAncestorDirectoryLayerBroker({ startDir: filePathContract.parse('/repo/packages/@gateway/node/src/fs'), markerFileName: 'package.json' });
  * // Returns '/repo/packages/@gateway/node' as FilePath, or undefined if no ancestor holds the marker
  */
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
@@ -18,9 +17,9 @@ export const findAncestorDirectoryLayerBroker = ({
   startDir,
   markerFileName,
 }: {
-  startDir: FilePath;
+  startDir: string;
   markerFileName: string;
-}): FilePath | undefined => {
+}): string | undefined => {
   const markerPath = join(startDir, markerFileName);
   if (existsSync(markerPath)) {
     return startDir;
@@ -32,7 +31,7 @@ export const findAncestorDirectoryLayerBroker = ({
   }
 
   return findAncestorDirectoryLayerBroker({
-    startDir: filePathContract.parse(parentDir),
+    startDir: parentDir,
     markerFileName,
   });
 };

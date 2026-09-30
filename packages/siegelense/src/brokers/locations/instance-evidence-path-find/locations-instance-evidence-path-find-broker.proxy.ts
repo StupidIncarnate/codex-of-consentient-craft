@@ -1,23 +1,22 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 
 export const locationsInstanceEvidencePathFindBrokerProxy = (): {
   setupInstanceEvidencePath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
   }) => void;
   // A caller that cannot name the final evidencePath ahead of time (guildId/instanceId are only
   // known to the code under test, not to this proxy's own constructor — see
   // siegelense-driver-responder.proxy.ts) stages just the root chain and leaves the outer join to
   // the real passthrough default, the same convention locationsRepoLinkPathFindBrokerProxy's
   // setupCwd/setupHomeOnly split follows.
-  setupRootOnly: (params: { homeDir: string; homePath: FilePath; rootPath: FilePath }) => void;
+  setupRootOnly: (params: { homeDir: string; homePath: string; rootPath: string }) => void;
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   // Shares the same '#gateway/node/path' join handle rootPathProxy's own constructor registers —
@@ -38,9 +37,9 @@ export const locationsInstanceEvidencePathFindBrokerProxy = (): {
       evidencePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
     }): void => {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
 
@@ -80,8 +79,8 @@ export const locationsInstanceEvidencePathFindBrokerProxy = (): {
       rootPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
     }): void => {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
     },

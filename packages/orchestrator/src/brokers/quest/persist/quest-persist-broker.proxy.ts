@@ -1,5 +1,3 @@
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
@@ -21,25 +19,25 @@ const isQuestTmpPath = (value: unknown): boolean =>
 // to seed quest-find/load) so the write/rename mocks key on the real address instead of a
 // blanket catch-all, and the getters below take the same param instead of remembering "the last
 // address staged" (which would collide if a test staged more than one questFilePath).
-const tmpPathFor = ({ questFilePath }: { questFilePath: FilePath }): FilePath =>
-  filePathContract.parse(`${questFilePath}${TMP_SUFFIX}`);
+const tmpPathFor = ({ questFilePath }: { questFilePath: string }): string =>
+  `${questFilePath}${TMP_SUFFIX}`;
 
 export const questPersistBrokerProxy = (): {
   setupPersist: (params: {
-    questFilePath: FilePath;
-    homePath: FilePath;
-    outboxFilePath: FilePath;
+    questFilePath: string;
+    homePath: string;
+    outboxFilePath: string;
   }) => void;
-  setupWriteFailure: (params: { questFilePath: FilePath; error: Error }) => void;
-  setupRenameFailure: (params: { questFilePath: FilePath; error: Error }) => void;
+  setupWriteFailure: (params: { questFilePath: string; error: Error }) => void;
+  setupRenameFailure: (params: { questFilePath: string; error: Error }) => void;
   setupOutboxFailure: (params: {
-    questFilePath: FilePath;
-    homePath: FilePath;
-    outboxFilePath: FilePath;
+    questFilePath: string;
+    homePath: string;
+    outboxFilePath: string;
     error: Error;
   }) => void;
-  getWrittenContent: (params: { questFilePath: FilePath }) => unknown;
-  getWrittenPath: (params: { questFilePath: FilePath }) => unknown;
+  getWrittenContent: (params: { questFilePath: string }) => unknown;
+  getWrittenPath: (params: { questFilePath: string }) => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
   getAllRenames: () => readonly { from: unknown; to: unknown }[];
 } => {
@@ -53,9 +51,9 @@ export const questPersistBrokerProxy = (): {
       homePath,
       outboxFilePath,
     }: {
-      questFilePath: FilePath;
-      homePath: FilePath;
-      outboxFilePath: FilePath;
+      questFilePath: string;
+      homePath: string;
+      outboxFilePath: string;
     }): void => {
       const tmpPath = tmpPathFor({ questFilePath });
       writeHandle.succeeds({ path: tmpPath });
@@ -67,7 +65,7 @@ export const questPersistBrokerProxy = (): {
       questFilePath,
       error,
     }: {
-      questFilePath: FilePath;
+      questFilePath: string;
       error: Error;
     }): void => {
       writeHandle.rejects({
@@ -80,7 +78,7 @@ export const questPersistBrokerProxy = (): {
       questFilePath,
       error,
     }: {
-      questFilePath: FilePath;
+      questFilePath: string;
       error: Error;
     }): void => {
       const tmpPath = tmpPathFor({ questFilePath });
@@ -98,9 +96,9 @@ export const questPersistBrokerProxy = (): {
       outboxFilePath,
       error,
     }: {
-      questFilePath: FilePath;
-      homePath: FilePath;
-      outboxFilePath: FilePath;
+      questFilePath: string;
+      homePath: string;
+      outboxFilePath: string;
       error: Error;
     }): void => {
       const tmpPath = tmpPathFor({ questFilePath });
@@ -113,13 +111,13 @@ export const questPersistBrokerProxy = (): {
       });
     },
 
-    getWrittenContent: ({ questFilePath }: { questFilePath: FilePath }): unknown =>
+    getWrittenContent: ({ questFilePath }: { questFilePath: string }): unknown =>
       writeHandle.writtenContentsFor({ path: tmpPathFor({ questFilePath }) }),
 
     // Trivial echo of the known tmp address — the write having actually landed there is proven
     // by getWrittenContent returning a value; a caller that only wants the path (the atomic-write
     // pattern check) doesn't need to re-derive it.
-    getWrittenPath: ({ questFilePath }: { questFilePath: FilePath }): unknown =>
+    getWrittenPath: ({ questFilePath }: { questFilePath: string }): unknown =>
       tmpPathFor({ questFilePath }),
 
     // Every quest persist any staging in this test made: a quest file's tmp write, matched by the

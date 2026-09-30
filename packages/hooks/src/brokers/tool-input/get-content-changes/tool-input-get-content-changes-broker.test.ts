@@ -4,13 +4,12 @@ import { EditToolInputStub } from '../../../contracts/edit-tool-input/edit-tool-
 import { MultiEditToolInputStub } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input.stub';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('toolInputGetContentChangesBroker', () => {
   describe('Write tool', () => {
     it('VALID: WriteToolInput with existing file => returns old and new content', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = WriteToolInputStub({
         file_path: filePath,
         content: 'New content',
@@ -30,7 +29,7 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('VALID: WriteToolInput with new file (ENOENT) => returns empty old content and new content', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/newfile.txt' });
+      const filePath = '/test/newfile.txt';
       const toolInput = WriteToolInputStub({
         file_path: filePath,
         content: 'New file content',
@@ -50,7 +49,7 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('ERROR: WriteToolInput file read error (not ENOENT) => throws error', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = WriteToolInputStub({
         file_path: filePath,
         content: 'New content',
@@ -69,7 +68,7 @@ describe('toolInputGetContentChangesBroker', () => {
   describe('Edit tool', () => {
     it('VALID: EditToolInput simple text replacement => returns full file content with changes applied', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = EditToolInputStub({
         file_path: filePath,
         old_string: 'Hello',
@@ -95,7 +94,7 @@ describe('toolInputGetContentChangesBroker', () => {
   console.log(param);
 }`;
 
-      const filePath = FilePathStub({ value: '/test/example.ts' });
+      const filePath = '/test/example.ts';
       const toolInput = EditToolInputStub({
         file_path: filePath,
         old_string: 'function test(param: string): void {',
@@ -121,7 +120,7 @@ describe('toolInputGetContentChangesBroker', () => {
   describe('MultiEdit tool', () => {
     it('VALID: MultiEditToolInput with existing file => returns full file before and after changes', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [
@@ -145,7 +144,7 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('VALID: MultiEditToolInput with new file (ENOENT) => returns empty array', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/newfile.txt' });
+      const filePath = '/test/newfile.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [{ old_string: 'placeholder', new_string: 'content' }],
@@ -160,7 +159,7 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('ERROR: MultiEditToolInput file read error (not ENOENT) => throws error', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
-      const filePath = FilePathStub({ value: '/test/file.txt' });
+      const filePath = '/test/file.txt';
       const toolInput = MultiEditToolInputStub({
         file_path: filePath,
         edits: [{ old_string: 'Hello', new_string: 'Hi' }],

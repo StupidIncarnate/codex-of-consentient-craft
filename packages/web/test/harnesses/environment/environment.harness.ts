@@ -13,14 +13,13 @@
  * // Returns [] while the fixture repo holds no quest worktree
  * // Call env.cleanup() or rely on afterEach if wired
  */
-import type { Guild, FileName, FilePath } from '@dungeonmaster/shared/contracts';
+import type { Guild, FileName } from '@dungeonmaster/shared/contracts';
 import { gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
@@ -56,9 +55,9 @@ export const environmentHarness = ({
   beforeEach: () => void;
   setupGuildPath: () => void;
   cleanup: () => void;
-  getHomedir: () => FilePath;
+  getHomedir: () => string;
   listWorktreeDirNames: () => readonly FileName[];
-  carveQuestWorktree: (params: { name: string }) => FilePath;
+  carveQuestWorktree: (params: { name: string }) => string;
 } => {
   const clearStaleJsonlForGuild = (): void => {
     // Default sessionId stubs share `e2e-session-00000000-0000-0000-0000-000000000000`,
@@ -220,7 +219,7 @@ export const environmentHarness = ({
 
   // The real OS home, not DUNGEONMASTER_HOME — guild-selection.e2e asserts this against the
   // server's directory-browse default, which reads the same `#gateway/node/os` homedir directly.
-  const getHomedir = (): FilePath => FilePathStub({ value: homedir() });
+  const getHomedir = (): string => homedir();
 
   // The carve puts a quest's worktree at `<repoRoot>/worktrees/<slug>-<id8>`
   // (locationsWorktreePathFindBroker, over locationsStatics.repoRoot.worktreesDir), and the guild
@@ -256,12 +255,12 @@ export const environmentHarness = ({
   // per-test cleanup removes the worktree DIRECTORY and prunes git's admin entries, but the quest
   // BRANCH a previous run created is still there, and `-b` refuses a name that already exists. `-B`
   // resets it to `main` instead, which is exactly the state a fresh carve wants.
-  const carveQuestWorktree = ({ name }: { name: string }): FilePath => {
+  const carveQuestWorktree = ({ name }: { name: string }): string => {
     const worktreePath = path.join(guildPath, locationsStatics.repoRoot.worktreesDir, name);
 
     runGit(['worktree', 'add', '-B', `quest/${name}`, worktreePath, 'main']);
 
-    return FilePathStub({ value: worktreePath });
+    return worktreePath;
   };
 
   return {

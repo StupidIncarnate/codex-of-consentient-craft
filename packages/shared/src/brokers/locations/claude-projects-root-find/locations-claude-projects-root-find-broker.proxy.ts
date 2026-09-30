@@ -1,9 +1,8 @@
 import { homedir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsClaudeProjectsRootFindBrokerProxy = (): {
-  setupProjectsRoot: (params: { homeDir: FilePath }) => void;
+  setupProjectsRoot: (params: { homeDir: string }) => void;
 } => {
   const homedirHandle = registerMock({ fn: homedir });
 
@@ -16,7 +15,7 @@ export const locationsClaudeProjectsRootFindBrokerProxy = (): {
   homedirHandle.calledWith([]).returns('/home/default');
 
   return {
-    setupProjectsRoot: ({ homeDir }: { homeDir: FilePath }): void => {
+    setupProjectsRoot: ({ homeDir }: { homeDir: string }): void => {
       homedirHandle.onceFor([]).returns(String(homeDir));
     },
   };

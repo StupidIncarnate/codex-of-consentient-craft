@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { checkGatewayExportNameExistsLayerBroker } from './check-gateway-export-name-exists-layer-broker';
 import { checkGatewayExportNameExistsLayerBrokerProxy } from './check-gateway-export-name-exists-layer-broker.proxy';
 
@@ -14,7 +13,7 @@ describe('checkGatewayExportNameExistsLayerBroker', () => {
       });
 
       const result = checkGatewayExportNameExistsLayerBroker({
-        barrelPath: FilePathStub({ value: BARREL_PATH }),
+        barrelPath: BARREL_PATH,
         name: 'appendFile',
       });
 
@@ -36,7 +35,7 @@ describe('checkGatewayExportNameExistsLayerBroker', () => {
       });
 
       const result = checkGatewayExportNameExistsLayerBroker({
-        barrelPath: FilePathStub({ value: BARREL_PATH }),
+        barrelPath: BARREL_PATH,
         name: 'appendFile',
       });
 
@@ -53,7 +52,7 @@ describe('checkGatewayExportNameExistsLayerBroker', () => {
       });
 
       const result = checkGatewayExportNameExistsLayerBroker({
-        barrelPath: FilePathStub({ value: BARREL_PATH }),
+        barrelPath: BARREL_PATH,
         name: 'access',
       });
 
@@ -70,7 +69,7 @@ describe('checkGatewayExportNameExistsLayerBroker', () => {
       });
 
       const result = checkGatewayExportNameExistsLayerBroker({
-        barrelPath: FilePathStub({ value: BARREL_PATH }),
+        barrelPath: BARREL_PATH,
         name: 'renamedAway',
       });
 

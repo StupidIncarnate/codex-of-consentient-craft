@@ -15,7 +15,7 @@
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import { filePathContract, processIdContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem, ModifyQuestInput, Quest, SlotIndex, Session } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
@@ -49,7 +49,7 @@ export const RecoverGuildLayerResponder = async ({
   try {
     const quests = await questListBroker({ guildId: guildItem.id });
     const guild = await guildGetBroker({ guildId: guildItem.id });
-    const startPath = filePathContract.parse(guild.path);
+    const startPath = guild.path;
 
     const candidateQuests = quests.filter((quest) => {
       if (!isRecoverableQuestStatusGuard({ status: quest.status })) {

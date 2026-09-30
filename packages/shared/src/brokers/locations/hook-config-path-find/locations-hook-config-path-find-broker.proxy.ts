@@ -1,10 +1,9 @@
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
 import { dirname } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsHookConfigPathFindBrokerProxy = (): {
-  setupConfigFoundAtFirstVariant: (params: { configPath: FilePath }) => void;
+  setupConfigFoundAtFirstVariant: (params: { configPath: string }) => void;
   setupConfigFoundAtLaterVariant: (params: {
     searchPath: string;
     matchingVariant: '.js' | '.mjs' | '.cjs';
@@ -20,11 +19,11 @@ export const locationsHookConfigPathFindBrokerProxy = (): {
 
   const variantOrder = ['.ts', '.js', '.mjs', '.cjs'] as const;
 
-  const buildAllMissing = ({ searchPath }: { searchPath: string }): FilePath[] =>
+  const buildAllMissing = ({ searchPath }: { searchPath: string }): string[] =>
     variantOrder.map((variant) => `${searchPath}/.dungeonmaster-hooks.config${variant}` as never);
 
   return {
-    setupConfigFoundAtFirstVariant: ({ configPath }: { configPath: FilePath }): void => {
+    setupConfigFoundAtFirstVariant: ({ configPath }: { configPath: string }): void => {
       const searchPath = configPath.slice(0, configPath.lastIndexOf('/'));
       variantWalkProxy.setupFirstVariantMatches({ searchPath, configPath });
     },

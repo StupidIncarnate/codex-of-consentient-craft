@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolveRelativeSpecifierTransformer } from './resolve-relative-specifier-transformer';
 import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-specifier.stub';
 
@@ -6,7 +5,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {fromDir, specifier: "./chat-widget"} => joins onto the same directory', () => {
       const result = resolveRelativeSpecifierTransformer({
-        fromDir: FilePathStub({ value: '/repo/packages/web/src/widgets' }),
+        fromDir: '/repo/packages/web/src/widgets',
         specifier: ModuleSpecifierStub({ value: './chat-widget' }),
       });
 
@@ -15,7 +14,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
 
     it('VALID: {fromDir, specifier: "../shared/foo"} => walks up one directory', () => {
       const result = resolveRelativeSpecifierTransformer({
-        fromDir: FilePathStub({ value: '/repo/packages/web/src/widgets' }),
+        fromDir: '/repo/packages/web/src/widgets',
         specifier: ModuleSpecifierStub({ value: '../shared/foo' }),
       });
 
@@ -24,7 +23,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
 
     it('VALID: {fromDir, specifier: "../../other"} => walks up two directories', () => {
       const result = resolveRelativeSpecifierTransformer({
-        fromDir: FilePathStub({ value: '/repo/packages/web/src/widgets' }),
+        fromDir: '/repo/packages/web/src/widgets',
         specifier: ModuleSpecifierStub({ value: '../../other' }),
       });
 
@@ -35,7 +34,7 @@ describe('resolveRelativeSpecifierTransformer', () => {
   describe('edge cases', () => {
     it('EDGE: {specifier: "."} => returns fromDir unchanged', () => {
       const result = resolveRelativeSpecifierTransformer({
-        fromDir: FilePathStub({ value: '/repo/packages/web/src' }),
+        fromDir: '/repo/packages/web/src',
         specifier: ModuleSpecifierStub({ value: '.' }),
       });
 

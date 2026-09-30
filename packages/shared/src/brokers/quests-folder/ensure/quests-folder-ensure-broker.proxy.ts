@@ -9,18 +9,17 @@
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { questsFolderFindBrokerProxy } from '../find/quests-folder-find-broker.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const questsFolderEnsureBrokerProxy = (): {
   setupQuestsFolderEnsureSuccess: (params: {
     startPath: string;
     projectRootPath: string;
-    questsFolderPath: FilePath;
+    questsFolderPath: string;
   }) => void;
   setupQuestsFolderMkdirFails: (params: {
     startPath: string;
     projectRootPath: string;
-    questsFolderPath: FilePath;
+    questsFolderPath: string;
     error: FsError;
   }) => void;
 } => {
@@ -35,7 +34,7 @@ export const questsFolderEnsureBrokerProxy = (): {
     }: {
       startPath: string;
       projectRootPath: string;
-      questsFolderPath: FilePath;
+      questsFolderPath: string;
     }): void => {
       findProxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });
       ensureDirHandle.succeeds({ path: questsFolderPath });
@@ -48,7 +47,7 @@ export const questsFolderEnsureBrokerProxy = (): {
     }: {
       startPath: string;
       projectRootPath: string;
-      questsFolderPath: FilePath;
+      questsFolderPath: string;
       error: FsError;
     }): void => {
       findProxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });

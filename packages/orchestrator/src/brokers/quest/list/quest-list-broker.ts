@@ -29,8 +29,8 @@
  * readable, while a caller building a response needs the full skip set on every call.
  */
 
-import type { FilePath, Quest, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
-import { fileNameContract, filePathContract, skippedQuestFileContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, skippedQuestFileContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readdirSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -40,7 +40,7 @@ import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-fol
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
 
-const lastReportedReason = new Map<FilePath, string>();
+const lastReportedReason = new Map<string, string>();
 
 export const questListBroker = async ({
   guildId,
@@ -57,10 +57,8 @@ export const questListBroker = async ({
 
   const loaded = await Promise.all(
     questFolders.map(async (folderName): Promise<Quest | null> => {
-      const questFilePath = filePathContract.parse(
-        join(questsPath, folderName, locationsStatics.quest.questFile),
-      );
-      const reportKey = filePathContract.parse(String(questFilePath));
+      const questFilePath = join(questsPath, folderName, locationsStatics.quest.questFile);
+      const reportKey = String(questFilePath);
       try {
         const quest = await questLoadBroker({ questFilePath });
         lastReportedReason.delete(reportKey);

@@ -27,7 +27,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { join } from '#gateway/node/path';
-import { filePathContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
@@ -57,7 +57,7 @@ export const questRouteScopeBroker = async ({
   // The quest folder and the quest itself come off ONE lookup, not two: `questGetBroker` would walk
   // the guilds again for a path this already holds, and the plan file lives beside `quest.json`.
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
   const scanned: Quest = await questLoadBroker({ questFilePath });
 
   const candidate = scanned.operations.find((operation) => {

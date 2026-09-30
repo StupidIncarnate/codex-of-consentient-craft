@@ -1,6 +1,5 @@
 import { configResolveBroker } from './config-resolve-broker';
 import { configResolveBrokerProxy } from './config-resolve-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configResolveBroker', () => {
@@ -8,7 +7,7 @@ describe('configResolveBroker', () => {
     it('VALID: {filePath: "/project/src/file.ts"} => resolves single package config with no parent', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/project/src/file.ts' });
+      const filePath = '/project/src/file.ts';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         schema: 'zod',
@@ -32,7 +31,7 @@ describe('configResolveBroker', () => {
     it('VALID: {filePath: "/monorepo/src/index.ts"} => resolves monorepo root config only', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/monorepo/src/index.ts' });
+      const filePath = '/monorepo/src/index.ts';
       const monorepoConfig = DungeonmasterConfigStub({
         framework: 'monorepo',
         schema: 'zod',
@@ -57,7 +56,7 @@ describe('configResolveBroker', () => {
     it('VALID: {filePath: "/monorepo/packages/web/src/app.tsx"} => merges root and package configs', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/monorepo/packages/web/src/app.tsx' });
+      const filePath = '/monorepo/packages/web/src/app.tsx';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'react',
         routing: 'react-router-dom',
@@ -104,9 +103,7 @@ describe('configResolveBroker', () => {
     it('VALID: {filePath: "/deep/monorepo/workspace/packages/api/src/server.ts"} => finds multiple parent configs', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({
-        value: '/deep/monorepo/workspace/packages/api/src/server.ts',
-      });
+      const filePath = '/deep/monorepo/workspace/packages/api/src/server.ts';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'express',
         schema: 'zod',
@@ -163,7 +160,7 @@ describe('configResolveBroker', () => {
     it('VALID: {filePath: "/monorepo/packages/shared/utils.ts"} => stops at monorepo root', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/monorepo/packages/shared/utils.ts' });
+      const filePath = '/monorepo/packages/shared/utils.ts';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'node-library',
         schema: 'zod',
@@ -204,7 +201,7 @@ describe('configResolveBroker', () => {
     it('EDGE: {filePath: "/file.ts"} => handles same config found twice (no parent)', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'vue',
         schema: 'zod',
@@ -231,7 +228,7 @@ describe('configResolveBroker', () => {
     it('EDGE: {filePath: "/isolated/project/src/file.ts"} => handles no parent configs found', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/isolated/project/src/file.ts' });
+      const filePath = '/isolated/project/src/file.ts';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'angular',
         schema: 'zod',
@@ -255,7 +252,7 @@ describe('configResolveBroker', () => {
     it('EDGE: {filePath: "/project/src/file.ts"} => handles parent config load error', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/project/src/file.ts' });
+      const filePath = '/project/src/file.ts';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'svelte',
         schema: 'zod',
@@ -283,7 +280,7 @@ describe('configResolveBroker', () => {
     it('EDGE: {filePath: "/minimal/file.js"} => handles minimal path resolution', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/minimal/file.js' });
+      const filePath = '/minimal/file.js';
       const packageConfig = DungeonmasterConfigStub({
         framework: 'cli',
         schema: 'zod',

@@ -16,12 +16,11 @@ import { agentsHooksCreatorTransformer } from '../../../transformers/agents-hook
 import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-skills-creator/agents-skills-creator-transformer';
 import { agentsRulesCreatorTransformer } from '../../../transformers/agents-rules-creator/agents-rules-creator-transformer';
 import { agentsMdCreatorTransformer } from '../../../transformers/agents-md-creator/agents-md-creator-transformer';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const installAgentsSetupBroker = async ({
   targetProjectRoot,
 }: {
-  targetProjectRoot: FilePath;
+  targetProjectRoot: string;
 }): Promise<void> => {
   // 1. .agents/hooks.json
   const hooksPath = join(

@@ -9,7 +9,6 @@
 
 import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 /**
@@ -19,7 +18,7 @@ import { locationsStatics } from '../../../statics/locations/locations-statics';
 export const installCheckBroker = ({
   projectRoot,
 }: {
-  projectRoot: FilePath;
+  projectRoot: string;
 }): { valid: boolean; error?: string } => {
   const packageJsonPath = join(projectRoot, 'package.json');
   const claudeDirPath = join(projectRoot, locationsStatics.repoRoot.claude.dir);

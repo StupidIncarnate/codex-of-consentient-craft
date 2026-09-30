@@ -8,7 +8,6 @@
 
 import { readFile } from '#gateway/node/fs__promises';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import {
   dungeonmasterConfigContract,
   type DungeonmasterConfig,
@@ -17,11 +16,11 @@ import {
 export const configFileLoadBroker = async ({
   configPath,
 }: {
-  configPath: FilePath;
+  configPath: string;
 }): Promise<DungeonmasterConfig> => {
   try {
     // Read the config file
-    const filePath = filePathContract.parse(configPath);
+    const filePath = configPath;
     const fileContents = await readFile(filePath);
 
     // Validate and return

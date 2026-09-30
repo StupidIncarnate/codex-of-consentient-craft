@@ -1,8 +1,6 @@
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -11,12 +9,12 @@ import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-
 
 export const questCreateBrokerProxy = (): {
   setupQuestCreation: (params: {
-    questsFolderPath: FilePath;
-    questFolderPath: FilePath;
-    questFilePath: FilePath;
+    questsFolderPath: string;
+    questFolderPath: string;
+    questFilePath: string;
   }) => void;
-  setupQuestCreationFailure: (params: { questsFolderPath: FilePath; error: Error }) => void;
-  getWrittenContent: (params: { questFilePath: FilePath }) => unknown;
+  setupQuestCreationFailure: (params: { questsFolderPath: string; error: Error }) => void;
+  getWrittenContent: (params: { questFilePath: string }) => unknown;
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const mkdirProxy = ensureDirProxy();
@@ -29,11 +27,11 @@ export const questCreateBrokerProxy = (): {
       questFolderPath,
       questFilePath,
     }: {
-      questsFolderPath: FilePath;
-      questFolderPath: FilePath;
-      questFilePath: FilePath;
+      questsFolderPath: string;
+      questFolderPath: string;
+      questFilePath: string;
     }): void => {
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const homePath = '/home/testuser/.dungeonmaster';
       resolveQuestsPathProxy.setupQuestsPath({
         homeDir: '/home/testuser',
         homePath,
@@ -51,7 +49,7 @@ export const questCreateBrokerProxy = (): {
       persistProxy.setupPersist({
         questFilePath,
         homePath,
-        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+        outboxFilePath: '/home/testuser/.dungeonmaster/outbox.jsonl',
       });
     },
 
@@ -59,10 +57,10 @@ export const questCreateBrokerProxy = (): {
       questsFolderPath,
       error,
     }: {
-      questsFolderPath: FilePath;
+      questsFolderPath: string;
       error: Error;
     }): void => {
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const homePath = '/home/testuser/.dungeonmaster';
       resolveQuestsPathProxy.setupQuestsPath({
         homeDir: '/home/testuser',
         homePath,
@@ -73,7 +71,7 @@ export const questCreateBrokerProxy = (): {
       mkdirProxy.rejects({ path: questsFolderPath, error: fsError });
     },
 
-    getWrittenContent: ({ questFilePath }: { questFilePath: FilePath }): unknown =>
+    getWrittenContent: ({ questFilePath }: { questFilePath: string }): unknown =>
       persistProxy.getWrittenContent({ questFilePath }),
   };
 };

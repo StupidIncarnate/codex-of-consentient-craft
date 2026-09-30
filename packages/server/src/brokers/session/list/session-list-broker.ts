@@ -17,8 +17,6 @@ import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/trans
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { SessionSummary } from '../../../contracts/session-summary/session-summary-contract';
 
 export const sessionListBroker = async ({
@@ -47,9 +45,7 @@ export const sessionListBroker = async ({
     projectPath: guildPath,
     sessionId: dummySessionId,
   });
-  const claudeProjectDir = filePathContract.parse(
-    String(probePath).slice(0, String(probePath).lastIndexOf('/')),
-  );
+  const claudeProjectDir = String(probePath).slice(0, String(probePath).lastIndexOf('/'));
 
   const directFiles = (
     await glob('*.jsonl', {
@@ -57,7 +53,7 @@ export const sessionListBroker = async ({
       nodir: false,
       ignore: globIgnoreStatics.defaults,
     })
-  ).map((file) => filePathContract.parse(file));
+  ).map((file) => file);
 
   const quests = await StartOrchestrator.listQuests({ guildId });
 
@@ -81,7 +77,7 @@ export const sessionListBroker = async ({
   const directSessionIds = new Set(
     directFiles.map((p) => String(p).split('/').pop()?.replace('.jsonl', '') ?? ''),
   );
-  const crossProjectRoot = filePathContract.parse(`${homeDir}/.claude/projects`);
+  const crossProjectRoot = `${homeDir}/.claude/projects`;
 
   // Collect sessionIds that need cross-project lookup: any sessionId attached to a quest
   // (active or via a work item) that's not already in the direct project dir.
@@ -105,12 +101,12 @@ export const sessionListBroker = async ({
           nodir: false,
           ignore: globIgnoreStatics.defaults,
         })
-      ).map((file) => filePathContract.parse(file)),
+      ).map((file) => file),
     ),
   );
   const crossProjectFiles = crossProjectFileLists.flat();
 
-  const seenPaths = new Set<FilePath>();
+  const seenPaths = new Set<string>();
   const dedupedFiles = [...directFiles, ...crossProjectFiles].filter((file) => {
     if (seenPaths.has(file)) {
       return false;

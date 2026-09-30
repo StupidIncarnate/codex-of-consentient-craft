@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
@@ -9,10 +8,8 @@ describe('questOutboxAppendBroker', () => {
   describe('successful append', () => {
     it('VALID: {questId} => appends JSON line to outbox file', async () => {
       const proxy = questOutboxAppendBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const outboxFilePath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupOutboxAppend({ homePath, outboxFilePath });
@@ -26,10 +23,8 @@ describe('questOutboxAppendBroker', () => {
 
     it('VALID: {questId} => writes to correct outbox file path', async () => {
       const proxy = questOutboxAppendBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const outboxFilePath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupOutboxAppend({ homePath, outboxFilePath });
@@ -43,10 +38,8 @@ describe('questOutboxAppendBroker', () => {
 
     it('VALID: {different questId} => appends line with different quest id', async () => {
       const proxy = questOutboxAppendBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const outboxFilePath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
       const questId = QuestIdStub({ value: 'fix-login-bug' });
 
       proxy.setupOutboxAppend({ homePath, outboxFilePath });
@@ -62,10 +55,8 @@ describe('questOutboxAppendBroker', () => {
   describe('error cases', () => {
     it('ERROR: {append fails} => throws error', async () => {
       const proxy = questOutboxAppendBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const outboxFilePath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupAppendFailure({

@@ -7,7 +7,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import type { FilePath } from '../file-path/file-path-contract';
 import type { ExitCode } from '../exit-code/exit-code-contract';
 import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
@@ -36,7 +35,7 @@ export type InstallTestbed = InstallTestbedData & {
     targetPath,
   }: {
     relativePath: string;
-    targetPath: FilePath;
+    targetPath: string;
   }) => void;
   listDir: ({ relativePath }: { relativePath: string }) => readonly string[] | null;
   getClaudeSettings: () => ClaudeSettings | null;

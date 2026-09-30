@@ -6,7 +6,6 @@
  * // Returns the loaded Quest.
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -20,6 +19,6 @@ export const LoadQuestLayerResponder = async ({
   questId: Quest['id'];
 }): Promise<Quest> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
   return questLoadBroker({ questFilePath });
 };

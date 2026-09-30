@@ -2,10 +2,9 @@ import { join } from '#gateway/node/path';
 import { tmpdir } from '#gateway/node/os';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const locationsSocketPathFindBrokerProxy = (): {
-  setupSocketPath: (params: { tmpDir: string; socketPath: FilePath }) => void;
+  setupSocketPath: (params: { tmpDir: string; socketPath: string }) => void;
 } => {
   const tmpdirHandle = registerMock({ fn: tmpdir });
   tmpdirHandle.calledWith([]).returns('/tmp');
@@ -26,7 +25,7 @@ export const locationsSocketPathFindBrokerProxy = (): {
     // socketPath), so it is recovered here by slicing tmpDir + socketsDirName's own known length
     // off socketPath — the same technique locationsProfilesPathFindBrokerProxy (shared) uses to
     // recover `specHash`.
-    setupSocketPath: ({ tmpDir, socketPath }: { tmpDir: string; socketPath: FilePath }): void => {
+    setupSocketPath: ({ tmpDir, socketPath }: { tmpDir: string; socketPath: string }): void => {
       tmpdirHandle.calledWith([]).returns(tmpDir);
       const prefixLength =
         tmpDir.length + 1 + locationsStatics.siegelense.socketsDirName.length + 1;

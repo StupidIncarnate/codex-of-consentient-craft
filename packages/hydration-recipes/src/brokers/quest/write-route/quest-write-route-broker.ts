@@ -32,7 +32,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract, questContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questPersistDirectBroker } from '../persist-direct/quest-persist-direct-broker';
@@ -70,9 +70,7 @@ export const questWriteRouteBroker = async ({
     );
   }
 
-  const questFilePath = filePathContract.parse(
-    `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
-  );
+  const questFilePath = `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`;
 
   await ensureDir(questFolderPath);
   await questPersistDirectBroker({

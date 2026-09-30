@@ -6,18 +6,16 @@
  * const proxy = repoScopeResolveBrokerProxy();
  * proxy.setupWorkspaceRoot({ dirPath, packageJson: { name: '@acme/app', workspaces: ['packages/*'] } });
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const repoScopeResolveBrokerProxy = (): {
-  setupWorkspaceRoot: (args: { dirPath: FilePath; packageJson: Record<string, unknown> }) => void;
+  setupWorkspaceRoot: (args: { dirPath: string; packageJson: Record<string, unknown> }) => void;
   setupNonRootPackageJson: (args: {
-    dirPath: FilePath;
+    dirPath: string;
     packageJson: Record<string, unknown>;
   }) => void;
-  setupNoPackageJson: (args: { dirPath: FilePath }) => void;
+  setupNoPackageJson: (args: { dirPath: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();
@@ -27,10 +25,10 @@ export const repoScopeResolveBrokerProxy = (): {
       dirPath,
       packageJson,
     }: {
-      dirPath: FilePath;
+      dirPath: string;
       packageJson: Record<string, unknown>;
     }): void => {
-      const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
+      const packageJsonPath = `${dirPath}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,
@@ -42,10 +40,10 @@ export const repoScopeResolveBrokerProxy = (): {
       dirPath,
       packageJson,
     }: {
-      dirPath: FilePath;
+      dirPath: string;
       packageJson: Record<string, unknown>;
     }): void => {
-      const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
+      const packageJsonPath = `${dirPath}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,
@@ -53,8 +51,8 @@ export const repoScopeResolveBrokerProxy = (): {
       });
     },
 
-    setupNoPackageJson: ({ dirPath }: { dirPath: FilePath }): void => {
-      const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
+    setupNoPackageJson: ({ dirPath }: { dirPath: string }): void => {
+      const packageJsonPath = `${dirPath}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: false });
     },
   };

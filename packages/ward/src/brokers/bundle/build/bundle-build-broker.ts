@@ -20,7 +20,7 @@ import { NpmNotInstalledError, runScript } from '#gateway/bin/npm';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import { absoluteFilePathContract, exitCodeContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
@@ -34,7 +34,7 @@ export const bundleBuildBroker = async ({
   packageRoot: AbsoluteFilePath;
 }): Promise<{ bundleDir: AbsoluteFilePath | null; error: string | null }> => {
   const manifestRaw = await readFile(
-    filePathContract.parse(`${String(packageRoot)}/package.json`),
+    `${String(packageRoot)}/package.json`,
   ).catch(() => null);
 
   const scripts =
@@ -62,7 +62,7 @@ export const bundleBuildBroker = async ({
   const bundleParent = `${String(packageRoot)}/${bundleStatics.parentDir}`;
   const bundleDir = absoluteFilePathContract.parse(`${bundleParent}/${String(hash)}`);
 
-  if (existsSync(filePathContract.parse(String(bundleDir)))) {
+  if (existsSync(String(bundleDir))) {
     return { bundleDir, error: null };
   }
 
@@ -71,9 +71,7 @@ export const bundleBuildBroker = async ({
   // The pid is what makes this directory this PROCESS's, so two ward runs building the same inputs
   // at once never share a write target. A pid recurs across reboots, so any leftover of the same
   // name is a dead run's and is taken first — building into it would ship both runs' output.
-  const tempDir = filePathContract.parse(
-    `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`,
-  );
+  const tempDir = `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`;
   await rm(String(tempDir), { recursive: true, force: true });
 
   // A missing npm rejects `runScript` with NpmNotInstalledError rather than resolving a result —

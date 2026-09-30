@@ -3,7 +3,6 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // The same sticky default `processCwdAdapterProxy` used to install unconditionally — several
 // OTHER siegelense proxies (`run-execute-broker.proxy.ts` among them) still stage a packagePath
@@ -13,15 +12,15 @@ const DEFAULT_CWD_VALUE = '/default/cwd';
 export const recipesLocateBrokerProxy = (): {
   setupPresentAndBuilt: (params: {
     cwdPath: string;
-    packagePath: FilePath;
-    entryPath: FilePath;
+    packagePath: string;
+    entryPath: string;
   }) => void;
-  setupPresentAndBuiltAt: (params: { packagePath: FilePath; entryPath: FilePath }) => void;
-  setupPackageMissing: (params: { cwdPath: string; packagePath: FilePath }) => void;
+  setupPresentAndBuiltAt: (params: { packagePath: string; entryPath: string }) => void;
+  setupPackageMissing: (params: { cwdPath: string; packagePath: string }) => void;
   setupBuildMissing: (params: {
     cwdPath: string;
-    packagePath: FilePath;
-    entryPath: FilePath;
+    packagePath: string;
+    entryPath: string;
   }) => void;
 } => {
   // cwd() takes no arguments, so the one staged value answers every read until the next setupCwd
@@ -47,8 +46,8 @@ export const recipesLocateBrokerProxy = (): {
       entryPath,
     }: {
       cwdPath: string;
-      packagePath: FilePath;
-      entryPath: FilePath;
+      packagePath: string;
+      entryPath: string;
     }): void => {
       cwdStagingProxy.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
@@ -60,8 +59,8 @@ export const recipesLocateBrokerProxy = (): {
       packagePath,
       entryPath,
     }: {
-      packagePath: FilePath;
-      entryPath: FilePath;
+      packagePath: string;
+      entryPath: string;
     }): void => {
       existsProxy.returns({ path: packagePath, exists: true });
       existsProxy.returns({ path: entryPath, exists: true });
@@ -72,7 +71,7 @@ export const recipesLocateBrokerProxy = (): {
       packagePath,
     }: {
       cwdPath: string;
-      packagePath: FilePath;
+      packagePath: string;
     }): void => {
       cwdStagingProxy.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
@@ -85,8 +84,8 @@ export const recipesLocateBrokerProxy = (): {
       entryPath,
     }: {
       cwdPath: string;
-      packagePath: FilePath;
-      entryPath: FilePath;
+      packagePath: string;
+      entryPath: string;
     }): void => {
       cwdStagingProxy.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });

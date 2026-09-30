@@ -24,11 +24,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
-import {
-  absoluteFilePathContract,
-  exitCodeContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -59,7 +55,7 @@ export const checkRunTypecheckBroker = async ({
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
-  const tsconfigPath = filePathContract.parse(`${String(cwd)}/tsconfig.json`);
+  const tsconfigPath = `${String(cwd)}/tsconfig.json`;
 
   if (!existsSync(tsconfigPath)) {
     return projectResultContract.parse({
@@ -96,7 +92,7 @@ export const checkRunTypecheckBroker = async ({
   // The build config's `-p` target is per-package, so only `--noEmit` is a static arg; the path is
   // appended here. Run alongside the checking pass, never after it — a sequential second `tsc`
   // process would double the wall time of every package's typecheck that carries this file.
-  const buildTsconfigPath = filePathContract.parse(`${String(cwd)}/tsconfig.build.json`);
+  const buildTsconfigPath = `${String(cwd)}/tsconfig.build.json`;
   const hasBuildConfig = existsSync(buildTsconfigPath);
 
   // A missing `tsc` binary rejects `run` with RunNotFoundError rather than resolving a result —

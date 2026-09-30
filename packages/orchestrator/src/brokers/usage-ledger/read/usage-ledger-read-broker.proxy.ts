@@ -1,5 +1,4 @@
 import { locationsUsageLedgerPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
@@ -11,11 +10,11 @@ export const usageLedgerReadBrokerProxy = (): {
   const pathProxy = locationsUsageLedgerPathFindBrokerProxy();
   const readFileHandle = readFileProxy();
 
-  const ledgerPath = FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json' });
+  const ledgerPath = '/home/user/.dungeonmaster/usage-ledger.json';
   const queuePath = (): void => {
     pathProxy.setupLedgerPath({
       homeDir: '/home/user',
-      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+      homePath: '/home/user/.dungeonmaster',
       ledgerPath,
     });
   };

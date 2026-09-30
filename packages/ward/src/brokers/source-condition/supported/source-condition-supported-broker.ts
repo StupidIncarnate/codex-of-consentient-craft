@@ -21,7 +21,7 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
 
@@ -35,6 +35,6 @@ export const sourceConditionSupportedBroker = ({ cwd }: { cwd: AbsoluteFilePath 
     .filter((ancestor) => ancestor !== '');
 
   return ancestors.some((ancestor) =>
-    existsSync(filePathContract.parse(`${ancestor}${SOURCE_BARREL_SUFFIX}`)),
+    existsSync(`${ancestor}${SOURCE_BARREL_SUFFIX}`),
   );
 };

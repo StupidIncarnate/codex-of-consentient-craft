@@ -26,7 +26,6 @@
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
@@ -87,7 +86,7 @@ export const ruleGatewayImportBoundaryBroker =
 
         if (defaultScopeCache.value === undefined) {
           defaultScopeCache.value = repoScopeResolveBroker({
-            startDir: filePathContract.parse(__dirname),
+            startDir: __dirname,
           });
         }
 

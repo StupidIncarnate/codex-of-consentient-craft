@@ -10,7 +10,6 @@ import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { isInTestDirGuard } from '../../../guards/is-in-test-dir/is-in-test-dir-guard';
 import { harnessPatternsStatics } from '../../../statics/harness-patterns/harness-patterns-statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanNodeBuiltinsInTestScenariosBroker =
   (): TSESLint.RuleModule<'noNodeBuiltins'> => ({
@@ -41,7 +40,7 @@ export const ruleBanNodeBuiltinsInTestScenariosBroker =
 
           const isSpecFile = isSpecFileGuard({ filename });
           const isIntegrationTestFile = isIntegrationTestFileGuard({
-            filePath: filename as FilePath,
+            filePath: filename as string,
           });
 
           if (!isSpecFile && !isIntegrationTestFile) {

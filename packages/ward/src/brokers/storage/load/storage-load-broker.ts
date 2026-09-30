@@ -7,7 +7,7 @@
  */
 
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   wardRunResultContract,
@@ -24,10 +24,10 @@ export const storageLoadBroker = async ({
   rootPath: AbsoluteFilePath;
   runId?: WardRunResult['runId'];
 }): Promise<WardRunResult | null> => {
-  const wardDir = filePathContract.parse(`${rootPath}/.ward`);
+  const wardDir = `${rootPath}/.ward`;
 
   if (runId) {
-    const filePath = filePathContract.parse(`${wardDir}/run-${runId}.json`);
+    const filePath = `${wardDir}/run-${runId}.json`;
     try {
       const contents = await readFile(filePath);
       return wardRunResultContract.parse(JSON.parse(contents));
@@ -58,7 +58,7 @@ export const storageLoadBroker = async ({
     }
 
     const latestFile = runFiles[runFiles.length - 1];
-    const filePath = filePathContract.parse(`${wardDir}/${latestFile}`);
+    const filePath = `${wardDir}/${latestFile}`;
     const contents = await readFile(filePath);
     return wardRunResultContract.parse(JSON.parse(contents));
   } catch {

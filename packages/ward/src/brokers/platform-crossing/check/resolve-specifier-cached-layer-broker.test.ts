@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolveSpecifierCachedLayerBroker } from './resolve-specifier-cached-layer-broker';
 import { resolveSpecifierCachedLayerBrokerProxy } from './resolve-specifier-cached-layer-broker.proxy';
 import { ModuleSpecifierStub } from '../../../contracts/module-specifier/module-specifier.stub';
@@ -8,10 +7,10 @@ describe('resolveSpecifierCachedLayerBroker', () => {
   describe('same containing file and specifier', () => {
     it('VALID: {called twice with the same key} => resolves once and caches one entry', async () => {
       const proxy = resolveSpecifierCachedLayerBrokerProxy();
-      const containingFilePath = FilePathStub({ value: '/repo/entry.ts' });
+      const containingFilePath = '/repo/entry.ts';
       const specifier = ModuleSpecifierStub({ value: './helper' });
       proxy.setupFile({
-        filePath: FilePathStub({ value: '/repo/helper.ts' }),
+        filePath: '/repo/helper.ts',
         content: 'export const helper = () => 1;',
       });
       const resolveCache: ResolveSpecifierCache = new Map();
@@ -37,13 +36,13 @@ describe('resolveSpecifierCachedLayerBroker', () => {
   describe('different specifiers on the same containing file', () => {
     it('VALID: {called with two distinct specifiers} => caches two separate entries', async () => {
       const proxy = resolveSpecifierCachedLayerBrokerProxy();
-      const containingFilePath = FilePathStub({ value: '/repo/entry.ts' });
+      const containingFilePath = '/repo/entry.ts';
       proxy.setupFile({
-        filePath: FilePathStub({ value: '/repo/a.ts' }),
+        filePath: '/repo/a.ts',
         content: 'export const a = 1;',
       });
       proxy.setupFile({
-        filePath: FilePathStub({ value: '/repo/b.ts' }),
+        filePath: '/repo/b.ts',
         content: 'export const b = 1;',
       });
       const resolveCache: ResolveSpecifierCache = new Map();

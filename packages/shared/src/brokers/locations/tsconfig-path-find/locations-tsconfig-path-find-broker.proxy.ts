@@ -1,10 +1,9 @@
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { dirname, join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const locationsTsconfigPathFindBrokerProxy = (): {
   setupTsconfigFound: (params: { searchPath: string }) => void;
@@ -24,9 +23,7 @@ export const locationsTsconfigPathFindBrokerProxy = (): {
   const dirnameHandle = registerMock({ fn: dirname });
 
   const configPathFor = ({ searchPath }: { searchPath: string }): FilePath => {
-    const configPath = FilePathStub({
-      value: `${searchPath}/${locationsStatics.repoRoot.tsconfig}`,
-    });
+    const configPath = `${searchPath}/${locationsStatics.repoRoot.tsconfig}`;
     joinHandle.calledWith([searchPath, locationsStatics.repoRoot.tsconfig]).returns(configPath);
     return configPath;
   };
@@ -38,7 +35,7 @@ export const locationsTsconfigPathFindBrokerProxy = (): {
 
     setupTsconfigNotFound: ({ searchPath }: { searchPath: string }): void => {
       fsProxy.missing({ path: configPathFor({ searchPath }) });
-      dirnameHandle.calledWith([searchPath]).returns(FilePathStub({ value: searchPath }));
+      dirnameHandle.calledWith([searchPath]).returns(searchPath);
     },
 
     setupTsconfigMissingWithParent: ({
@@ -49,7 +46,7 @@ export const locationsTsconfigPathFindBrokerProxy = (): {
       parentPath: string;
     }): void => {
       fsProxy.missing({ path: configPathFor({ searchPath }) });
-      dirnameHandle.calledWith([searchPath]).returns(FilePathStub({ value: parentPath }));
+      dirnameHandle.calledWith([searchPath]).returns(parentPath);
     },
   };
 };

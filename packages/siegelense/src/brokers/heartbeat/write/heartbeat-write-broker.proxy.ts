@@ -2,8 +2,6 @@ import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -16,17 +14,17 @@ import { registryUpdateBrokerProxy } from '../../registry/update/registry-update
 export const heartbeatWriteBrokerProxy = (): {
   setupHeartbeatWrite: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
     registryJson: string;
     nowMs: number;
   }) => void;
   setupHeartbeatWriteWithMeasuredRss: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
     registryJson: string;
     nowMs: number;
     pid: string;
@@ -35,16 +33,16 @@ export const heartbeatWriteBrokerProxy = (): {
   }) => void;
   setupHeartbeatWriteWithRssMeasurementFailure: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
     registryJson: string;
     nowMs: number;
     pid: string;
     error: Error;
   }) => void;
-  getWrittenHeartbeatPath: (params: { evidencePath: FilePath }) => unknown;
-  getWrittenHeartbeatContent: (params: { evidencePath: FilePath }) => unknown;
+  getWrittenHeartbeatPath: (params: { evidencePath: string }) => unknown;
+  getWrittenHeartbeatContent: (params: { evidencePath: string }) => unknown;
   getRegistryWrittenContent: () => unknown;
 } => {
   // heartbeatWriteBroker resolves the evidence dir, joins the heartbeat filename onto it, measures
@@ -76,9 +74,9 @@ export const heartbeatWriteBrokerProxy = (): {
       nowMs,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
       registryJson: string;
       nowMs: number;
     }): void => {
@@ -87,7 +85,7 @@ export const heartbeatWriteBrokerProxy = (): {
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
-        .returns(FilePathStub({ value: heartbeatPathValue }));
+        .returns(heartbeatPathValue);
       writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
 
       // Honest default: no /proc means rssMB: null, matching InstanceHeartbeatStub's own default.
@@ -109,9 +107,9 @@ export const heartbeatWriteBrokerProxy = (): {
       residentPages,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
       registryJson: string;
       nowMs: number;
       pid: string;
@@ -123,7 +121,7 @@ export const heartbeatWriteBrokerProxy = (): {
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
-        .returns(FilePathStub({ value: heartbeatPathValue }));
+        .returns(heartbeatPathValue);
       writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
 
       rssProxy.setupProcListing({ pids: [pid] });
@@ -131,10 +129,10 @@ export const heartbeatWriteBrokerProxy = (): {
       rssProxy.setupPidStatm({ pid, residentPages });
       joinHandle
         .calledWith([machineStatics.procfs.root, pid, machineStatics.procfs.stat])
-        .returns(FilePathStub({ value: `/proc/${pid}/stat` }));
+        .returns(`/proc/${pid}/stat`);
       joinHandle
         .calledWith([machineStatics.procfs.root, pid, machineStatics.procfs.statm])
-        .returns(FilePathStub({ value: `/proc/${pid}/statm` }));
+        .returns(`/proc/${pid}/statm`);
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
       clockProxy.setupNow({ ms: nowMs });
@@ -151,9 +149,9 @@ export const heartbeatWriteBrokerProxy = (): {
       error,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
       registryJson: string;
       nowMs: number;
       pid: string;
@@ -164,7 +162,7 @@ export const heartbeatWriteBrokerProxy = (): {
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
-        .returns(FilePathStub({ value: heartbeatPathValue }));
+        .returns(heartbeatPathValue);
       writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
 
       // machineRssByPgidBroker rejects on the pid's own /proc/<pid>/stat read — the shape of one
@@ -174,7 +172,7 @@ export const heartbeatWriteBrokerProxy = (): {
       // That failing read still makes ONE real path.join call before it rejects.
       joinHandle
         .calledWith([machineStatics.procfs.root, pid, machineStatics.procfs.stat])
-        .returns(FilePathStub({ value: `/proc/${pid}/stat` }));
+        .returns(`/proc/${pid}/stat`);
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
       clockProxy.setupNow({ ms: nowMs });
@@ -182,10 +180,10 @@ export const heartbeatWriteBrokerProxy = (): {
 
     // Echoes what setup already computed — self-documenting in a test's assertion, the same role
     // registryWriteBrokerProxy's getWrittenPath() plays for its own tmp path.
-    getWrittenHeartbeatPath: ({ evidencePath }: { evidencePath: FilePath }): unknown =>
+    getWrittenHeartbeatPath: ({ evidencePath }: { evidencePath: string }): unknown =>
       `${evidencePath}/${locationsStatics.siegelense.heartbeat}`,
 
-    getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: FilePath }): unknown =>
+    getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: string }): unknown =>
       writeProxy.writtenContentsFor({
         path: AbsoluteFilePathStub({
           value: `${evidencePath}/${locationsStatics.siegelense.heartbeat}`,

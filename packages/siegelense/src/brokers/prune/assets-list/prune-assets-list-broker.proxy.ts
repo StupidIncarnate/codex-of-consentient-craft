@@ -1,5 +1,5 @@
 import { join } from '#gateway/node/path';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
@@ -15,9 +15,9 @@ const VIDEO_DIR_SUFFIX = `/${evidenceFileStatics.naming.videoDir}`;
 export const pruneAssetsListBrokerProxy = (): {
   setupEvidenceTree: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
   }) => void;
   setupDir: (params: { dirPath: AbsoluteFilePath; entries: readonly string[] }) => void;
   setupFile: (params: {
@@ -61,9 +61,9 @@ export const pruneAssetsListBrokerProxy = (): {
       evidencePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       statProxy.throwsMatchingPath({

@@ -1,6 +1,5 @@
 import { locationsDispatchStateTmpPathFindBroker } from './locations-dispatch-state-tmp-path-find-broker';
 import { locationsDispatchStateTmpPathFindBrokerProxy } from './locations-dispatch-state-tmp-path-find-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsDispatchStateTmpPathFindBroker', () => {
@@ -10,10 +9,8 @@ describe('locationsDispatchStateTmpPathFindBroker', () => {
 
       proxy.setupDispatchStateTmpPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        dispatchStateTmpPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/dispatch-state.json.tmp',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        dispatchStateTmpPath: '/home/user/.dungeonmaster/dispatch-state.json.tmp',
       });
 
       const result = locationsDispatchStateTmpPathFindBroker();

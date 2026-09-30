@@ -28,9 +28,8 @@ import { z } from '#gateway/npm/zod';
 
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { Base64ImageData, FileName, FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
+import type { Base64ImageData, FileName, Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { fileNameContract, pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
@@ -127,8 +126,8 @@ export const serverAppHarness = (): {
   // can't be settled against a mocked read, so a test that serves an image over HTTP and diffs the
   // response against the file needs a genuine file on a genuine filesystem.
   seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => Promise<{
-    imagePath: FilePath;
-    dirPath: FilePath;
+    imagePath: string;
+    dirPath: string;
     cleanup: () => void;
   }>;
   // Reach for THIS over seedImageFile when the test is about where a path RESOLVES rather than what
@@ -142,9 +141,9 @@ export const serverAppHarness = (): {
     siblingFileName: string;
     siblingBytes: Uint8Array;
   }) => Promise<{
-    symlinkPath: FilePath;
-    targetPath: FilePath;
-    siblingPath: FilePath;
+    symlinkPath: string;
+    targetPath: string;
+    siblingPath: string;
     cleanup: () => void;
   }>;
   // Strips write permission from the quest's OWN directory (not the file — questPersistBroker
@@ -184,14 +183,14 @@ export const serverAppHarness = (): {
   // Points CLAUDE_CLI_PATH at the real (working) fake-Claude-CLI binary and FAKE_CLAUDE_QUEUE_DIR
   // at a fresh, empty temp dir, so a caller that reaches a real spawn exercises a genuine OS
   // process under full control. Call `restore()` even when the test never reaches a spawn.
-  configureFakeClaudeCli: () => { claudeQueueDir: FilePath; restore: () => void };
+  configureFakeClaudeCli: () => { claudeQueueDir: string; restore: () => void };
   // Polls for the fake CLI's `invocations.jsonl` ledger (one JSON line per spawn, written BEFORE
   // any queued response is read, recording the real `--resume <sessionId>` and `-p <prompt>`
   // argv) under `claudeQueueDir`, scoped by the spawn's `cwd`. Returns the last recorded
   // invocation, or `null` if none appeared before `timeoutMs` — the honest way to prove a REAL
   // spawn either happened with the right argv, or never happened at all.
   waitForClaudeInvocation: (params: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
   }) => Promise<unknown>;
@@ -204,7 +203,7 @@ export const serverAppHarness = (): {
   // ENOENT a caller has to guess the meaning of.
   readImagesDir: (params: { dungeonmasterHome: string; guildId: Guild['id']; questId: Quest['id'] }) => {
     exists: boolean;
-    dirPath: FilePath;
+    dirPath: string;
     ino: unknown;
     fileNames: readonly FileName[];
   };
@@ -232,17 +231,17 @@ export const serverAppHarness = (): {
   // structural cast on the `unknown` prompt field) and hands back only the paths, already
   // FilePath-branded.
   waitForClaudeInvocationImagePaths: (params: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
-  }) => Promise<readonly FilePath[]>;
+  }) => Promise<readonly string[]>;
   // Reach for THIS over waitForClaudeInvocationImagePaths when a case needs the raw prompt TEXT
   // itself — pinning the whole `-p` string, or counting how many times the sentinel/instruction
   // trailer occurs in it — rather than just the paths inside its tokens. Parses the invocation
   // through the same zod contract internally, so no caller reaches for an inline structural cast
   // on the `unknown` prompt field.
   waitForClaudeInvocationPrompt: (params: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
   }) => Promise<ClaudeInvocationPrompt>;
@@ -375,7 +374,7 @@ export const serverAppHarness = (): {
     baseName: string;
     fileName: string;
     bytes: Uint8Array;
-  }): Promise<{ imagePath: FilePath; dirPath: FilePath; cleanup: () => void }> => {
+  }): Promise<{ imagePath: string; dirPath: string; cleanup: () => void }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
     const dirPath = join(rootPath, locationsStatics.quest.imagesDir);
     await ensureDir(dirPath);
@@ -387,8 +386,8 @@ export const serverAppHarness = (): {
     await writeFileBytes(imagePath, bytes);
 
     return {
-      imagePath: FilePathStub({ value: imagePath }),
-      dirPath: FilePathStub({ value: dirPath }),
+      imagePath: imagePath,
+      dirPath: dirPath,
       cleanup: (): void => {
         rmSync(rootPath, { recursive: true, force: true });
       },
@@ -420,9 +419,9 @@ export const serverAppHarness = (): {
     siblingFileName: string;
     siblingBytes: Uint8Array;
   }): Promise<{
-    symlinkPath: FilePath;
-    targetPath: FilePath;
-    siblingPath: FilePath;
+    symlinkPath: string;
+    targetPath: string;
+    siblingPath: string;
     cleanup: () => void;
   }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
@@ -448,9 +447,9 @@ export const serverAppHarness = (): {
     await writeFileBytes(siblingPath, siblingBytes);
 
     return {
-      symlinkPath: FilePathStub({ value: symlinkPath }),
-      targetPath: FilePathStub({ value: targetPath }),
-      siblingPath: FilePathStub({ value: siblingPath }),
+      symlinkPath: symlinkPath,
+      targetPath: targetPath,
+      siblingPath: siblingPath,
       cleanup: (): void => {
         rmSync(rootPath, { recursive: true, force: true });
       },
@@ -517,7 +516,7 @@ export const serverAppHarness = (): {
       path: GuildPathStub({ value: path }),
     });
 
-  const configureFakeClaudeCli = (): { claudeQueueDir: FilePath; restore: () => void } => {
+  const configureFakeClaudeCli = (): { claudeQueueDir: string; restore: () => void } => {
     const claudeQueueDir = join(tmpdir(), `claude-queue-${randomUUID()}`);
     const savedCliPath = getEnv('CLAUDE_CLI_PATH');
     const savedQueueDir = getEnv('FAKE_CLAUDE_QUEUE_DIR');
@@ -526,7 +525,7 @@ export const serverAppHarness = (): {
     setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
 
     return {
-      claudeQueueDir: FilePathStub({ value: claudeQueueDir }),
+      claudeQueueDir: claudeQueueDir,
       restore: (): void => {
         if (savedCliPath === undefined) {
           deleteEnv('CLAUDE_CLI_PATH');
@@ -587,7 +586,7 @@ export const serverAppHarness = (): {
     cwd,
     timeoutMs,
   }: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
   }): Promise<unknown> => {
@@ -608,12 +607,12 @@ export const serverAppHarness = (): {
     dungeonmasterHome: string;
     guildId: Guild['id'];
     questId: Quest['id'];
-  }): { exists: boolean; dirPath: FilePath; ino: unknown; fileNames: readonly FileName[] } => {
+  }): { exists: boolean; dirPath: string; ino: unknown; fileNames: readonly FileName[] } => {
     const dirPath = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
     const exists = existsSync(dirPath);
     return {
       exists,
-      dirPath: FilePathStub({ value: dirPath }),
+      dirPath: dirPath,
       ino: exists ? lstatSync(dirPath).ino : null,
       fileNames: exists ? readdirSync(dirPath).map((name) => fileNameContract.parse(name)) : [],
     };
@@ -652,17 +651,17 @@ export const serverAppHarness = (): {
   };
 
   const waitForClaudeInvocationImagePaths = async (params: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
-  }): Promise<readonly FilePath[]> => {
+  }): Promise<readonly string[]> => {
     const { prompt } = claudeInvocationPromptContract.parse(await waitForClaudeInvocation(params));
     const matches = [...prompt.matchAll(new RegExp(pastedImageStatics.imageTokenPattern, 'gu'))];
-    return matches.map((match) => FilePathStub({ value: match[2] ?? '' }));
+    return matches.map((match) => (match[2] ?? ''));
   };
 
   const waitForClaudeInvocationPrompt = async (params: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
   }): Promise<ClaudeInvocationPrompt> =>

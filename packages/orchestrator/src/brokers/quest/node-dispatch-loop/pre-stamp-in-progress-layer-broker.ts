@@ -14,12 +14,7 @@
  */
 
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -42,9 +37,7 @@ export const preStampInProgressLayerBroker = async ({
     questId,
     run: async (): Promise<{ stamped: boolean }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
       const quest = await questLoadBroker({ questFilePath });
 
       // Read from the quest as loaded for THIS write, inside the same lock the persist goes

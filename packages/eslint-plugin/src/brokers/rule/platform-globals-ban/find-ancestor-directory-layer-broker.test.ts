@@ -1,6 +1,5 @@
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
 import { findAncestorDirectoryLayerBrokerProxy } from './find-ancestor-directory-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('findAncestorDirectoryLayerBroker', () => {
   describe('marker found', () => {
@@ -9,7 +8,7 @@ describe('findAncestorDirectoryLayerBroker', () => {
       proxy.setupMarkerAt({ dirPath: '/repo/packages/node', markerFileName: 'package.json' });
 
       const result = findAncestorDirectoryLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node' }),
+        startDir: '/repo/packages/node',
         markerFileName: 'package.json',
       });
 
@@ -26,7 +25,7 @@ describe('findAncestorDirectoryLayerBroker', () => {
       proxy.setupMarkerAt({ dirPath: '/repo/packages/node', markerFileName: 'package.json' });
 
       const result = findAncestorDirectoryLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node/src/fs' }),
+        startDir: '/repo/packages/node/src/fs',
         markerFileName: 'package.json',
       });
 
@@ -51,7 +50,7 @@ describe('findAncestorDirectoryLayerBroker', () => {
       proxy.setupMarkerAt({ dirPath: '/repo', markerFileName: '.dungeonmaster.json' });
 
       const result = findAncestorDirectoryLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node/src/fs' }),
+        startDir: '/repo/packages/node/src/fs',
         markerFileName: '.dungeonmaster.json',
       });
 
@@ -73,7 +72,7 @@ describe('findAncestorDirectoryLayerBroker', () => {
       proxy.setupNoMarkerAt({ dirPath: '/', markerFileName: 'package.json' });
 
       const result = findAncestorDirectoryLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/node/src/fs' }),
+        startDir: '/repo/packages/node/src/fs',
         markerFileName: 'package.json',
       });
 

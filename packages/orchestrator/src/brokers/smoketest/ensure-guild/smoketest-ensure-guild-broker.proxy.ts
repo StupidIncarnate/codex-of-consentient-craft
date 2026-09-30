@@ -1,9 +1,4 @@
-import {
-  type FilePath,
-  type GuildConfig,
-  repoRootCwdContract,
-  type RepoRootCwd,
-} from '@dungeonmaster/shared/contracts';
+import { type GuildConfig, repoRootCwdContract, type RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
@@ -26,10 +21,10 @@ export const smoketestEnsureGuildBrokerProxy = (): {
   setupGuildPresent: (params: {
     config: GuildConfig;
     homeDir: string;
-    homePath: FilePath;
+    homePath: string;
     guildEntries: readonly {
       accessible: boolean;
-      questsDirPath: FilePath;
+      questsDirPath: string;
       questDirEntries: DirEntrySync[];
     }[];
     homeRepoRoot?: RepoRootCwd;
@@ -89,10 +84,10 @@ export const smoketestEnsureGuildBrokerProxy = (): {
     }: {
       config: GuildConfig;
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       guildEntries: readonly {
         accessible: boolean;
-        questsDirPath: FilePath;
+        questsDirPath: string;
         questDirEntries: DirEntrySync[];
       }[];
       homeRepoRoot?: RepoRootCwd;

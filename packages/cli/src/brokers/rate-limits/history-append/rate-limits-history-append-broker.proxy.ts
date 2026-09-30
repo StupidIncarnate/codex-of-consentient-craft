@@ -2,7 +2,6 @@ import { dirname } from '#gateway/node/path';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { locationsRateLimitsHistoryPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-history-path-find/locations-rate-limits-history-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const rateLimitsHistoryAppendBrokerProxy = (): {
@@ -14,16 +13,14 @@ export const rateLimitsHistoryAppendBrokerProxy = (): {
   const dirnameHandle = registerMock({ fn: dirname });
   const historyPathProxy = locationsRateLimitsHistoryPathFindBrokerProxy();
 
-  const historyPath = FilePathStub({
-    value: '/home/test/.dungeonmaster/rate-limits-history.jsonl',
-  });
+  const historyPath = '/home/test/.dungeonmaster/rate-limits-history.jsonl';
 
   dirnameHandle
     .calledWith([historyPath])
-    .returns(FilePathStub({ value: '/home/test/.dungeonmaster' }));
+    .returns('/home/test/.dungeonmaster');
   historyPathProxy.setupHistoryPath({
     homeDir: '/home/test',
-    homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),
+    homePath: '/home/test/.dungeonmaster',
     historyPath,
   });
 

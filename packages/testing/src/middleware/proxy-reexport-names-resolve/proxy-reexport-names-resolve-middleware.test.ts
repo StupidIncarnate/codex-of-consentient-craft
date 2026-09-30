@@ -1,6 +1,5 @@
 import { proxyReexportNamesResolveMiddleware } from './proxy-reexport-names-resolve-middleware';
 import { proxyReexportNamesResolveMiddlewareProxy } from './proxy-reexport-names-resolve-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
@@ -11,9 +10,7 @@ describe('proxyReexportNamesResolveMiddleware', () => {
   describe('local declarations', () => {
     it('VALID: {module defines the requested name locally} => returns the matched name', () => {
       const proxy = proxyReexportNamesResolveMiddlewareProxy();
-      const filePath = FilePathStub({
-        value: '/repo/packages/shared/src/path-join-adapter.proxy.ts',
-      });
+      const filePath = '/repo/packages/shared/src/path-join-adapter.proxy.ts';
       proxy.setupFileContains({
         filePath,
         content: 'export const pathJoinAdapterProxy = () => ({});',
@@ -33,9 +30,9 @@ describe('proxyReexportNamesResolveMiddleware', () => {
   describe('star reexport chains', () => {
     it('VALID: {barrel star-reexports two targets, each defining one requested name} => returns both, found through each target', () => {
       const proxy = proxyReexportNamesResolveMiddlewareProxy();
-      const barrelPath = FilePathStub({ value: '/repo/packages/shared/testing.ts' });
-      const targetAPath = FilePathStub({ value: '/repo/packages/shared/src/a.proxy.ts' });
-      const targetBPath = FilePathStub({ value: '/repo/packages/shared/src/b.proxy.ts' });
+      const barrelPath = '/repo/packages/shared/testing.ts';
+      const targetAPath = '/repo/packages/shared/src/a.proxy.ts';
+      const targetBPath = '/repo/packages/shared/src/b.proxy.ts';
       proxy.setupFileContains({
         filePath: barrelPath,
         content: "export * from './src/a.proxy';\nexport * from './src/b.proxy';\n",
@@ -57,8 +54,8 @@ describe('proxyReexportNamesResolveMiddleware', () => {
 
     it("EMPTY: {requested name matches a target's export, but the barrel's export clause names a DIFFERENT export} => returns empty, target never searched", () => {
       const proxy = proxyReexportNamesResolveMiddlewareProxy();
-      const barrelPath = FilePathStub({ value: '/repo/packages/shared/testing.ts' });
-      const targetPath = FilePathStub({ value: '/repo/packages/shared/src/x.proxy.ts' });
+      const barrelPath = '/repo/packages/shared/testing.ts';
+      const targetPath = '/repo/packages/shared/src/x.proxy.ts';
       proxy.setupFileContains({
         filePath: barrelPath,
         content: "export { onlyThis } from './src/x.proxy';\n",
@@ -83,8 +80,8 @@ describe('proxyReexportNamesResolveMiddleware', () => {
   describe('no match anywhere', () => {
     it('EMPTY: {no reexport target defines the requested name} => returns empty array', () => {
       const proxy = proxyReexportNamesResolveMiddlewareProxy();
-      const barrelPath = FilePathStub({ value: '/repo/packages/shared/testing.ts' });
-      const targetPath = FilePathStub({ value: '/repo/packages/shared/src/a.proxy.ts' });
+      const barrelPath = '/repo/packages/shared/testing.ts';
+      const targetPath = '/repo/packages/shared/src/a.proxy.ts';
       proxy.setupFileContains({
         filePath: barrelPath,
         content: "export * from './src/a.proxy';\n",
@@ -106,7 +103,7 @@ describe('proxyReexportNamesResolveMiddleware', () => {
   describe('empty candidate set', () => {
     it('EMPTY: {no candidateNames} => returns empty array', () => {
       proxyReexportNamesResolveMiddlewareProxy();
-      const filePath = FilePathStub({ value: '/repo/packages/shared/testing.ts' });
+      const filePath = '/repo/packages/shared/testing.ts';
 
       const result = proxyReexportNamesResolveMiddleware({
         filePath,

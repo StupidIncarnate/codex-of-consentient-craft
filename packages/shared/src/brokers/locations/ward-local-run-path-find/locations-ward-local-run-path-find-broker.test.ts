@@ -2,7 +2,6 @@ import { locationsWardLocalRunPathFindBroker } from './locations-ward-local-run-
 import { locationsWardLocalRunPathFindBrokerProxy } from './locations-ward-local-run-path-find-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { WardRunIdStub } from '../../../contracts/ward-run-id/ward-run-id.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('locationsWardLocalRunPathFindBroker', () => {
   describe('ward run path resolution', () => {
@@ -12,7 +11,7 @@ describe('locationsWardLocalRunPathFindBroker', () => {
       proxy.setupWardLocalRunPath({
         rootPath: '/repo',
         runId: 'abc-123',
-        runPath: FilePathStub({ value: '/repo/.ward/run-abc-123.json' }),
+        runPath: '/repo/.ward/run-abc-123.json',
       });
 
       const result = locationsWardLocalRunPathFindBroker({
@@ -29,9 +28,7 @@ describe('locationsWardLocalRunPathFindBroker', () => {
       proxy.setupWardLocalRunPath({
         rootPath: '/repo/packages/web',
         runId: '1739625600000-a3f1',
-        runPath: FilePathStub({
-          value: '/repo/packages/web/.ward/run-1739625600000-a3f1.json',
-        }),
+        runPath: '/repo/packages/web/.ward/run-1739625600000-a3f1.json',
       });
 
       const result = locationsWardLocalRunPathFindBroker({

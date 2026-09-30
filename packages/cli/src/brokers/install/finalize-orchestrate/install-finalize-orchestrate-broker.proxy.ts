@@ -1,9 +1,8 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { installExecuteBrokerProxy } from '../execute/install-execute-broker.proxy';
 
 export const installFinalizeOrchestrateBrokerProxy = (): {
-  setupImport: (params: { finalizeInstallPath: FilePath; module: unknown }) => void;
+  setupImport: (params: { finalizeInstallPath: string; module: unknown }) => void;
 } => {
   const installExecuteProxy = installExecuteBrokerProxy();
 
@@ -15,7 +14,7 @@ export const installFinalizeOrchestrateBrokerProxy = (): {
       finalizeInstallPath,
       module,
     }: {
-      finalizeInstallPath: FilePath;
+      finalizeInstallPath: string;
       module: unknown;
     }): void => {
       installExecuteProxy.setupImport({ installPath: finalizeInstallPath, module });

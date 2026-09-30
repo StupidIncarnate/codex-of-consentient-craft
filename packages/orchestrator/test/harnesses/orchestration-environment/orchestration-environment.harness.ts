@@ -14,15 +14,15 @@ import * as path from '#gateway/node/path';
 
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import type { FilePath, GuildName, GuildPath, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { GuildName, GuildPath, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
 
 interface QueueHarness {
   initDirs: (params: { baseDir: GuildPath }) => {
-    claudeQueueDir: FilePath;
-    wardQueueDir: FilePath;
+    claudeQueueDir: string;
+    wardQueueDir: string;
   };
   resetCounters: () => void;
 }
@@ -83,8 +83,8 @@ export const orchestrationEnvironmentHarness = (): {
   };
   seedRepoRootGuild: (params: { tempDir: GuildPath }) => Promise<{ guildPath: GuildPath }>;
   setup: (params: { tempDir: GuildPath; queueHarness: QueueHarness }) => {
-    claudeQueueDir: FilePath;
-    wardQueueDir: FilePath;
+    claudeQueueDir: string;
+    wardQueueDir: string;
     restore: () => void;
   };
   withRestore: <T>(env: { restore: () => void }, fn: () => Promise<T>) => Promise<T>;
@@ -261,8 +261,8 @@ export const orchestrationEnvironmentHarness = (): {
       tempDir: GuildPath;
       queueHarness: QueueHarness;
     }): {
-      claudeQueueDir: FilePath;
-      wardQueueDir: FilePath;
+      claudeQueueDir: string;
+      wardQueueDir: string;
       restore: () => void;
     } => {
       queueHarness.resetCounters();

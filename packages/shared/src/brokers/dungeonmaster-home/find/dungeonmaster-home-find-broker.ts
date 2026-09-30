@@ -9,17 +9,16 @@
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { getEnv } from '#gateway/node/process';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
-export const dungeonmasterHomeFindBroker = (): { homePath: FilePath } => {
+export const dungeonmasterHomeFindBroker = (): { homePath: string } => {
   const envHome = getEnv('DUNGEONMASTER_HOME');
 
   if (envHome !== undefined && envHome !== '') {
-    return { homePath: filePathContract.parse(envHome) };
+    return { homePath: envHome };
   }
 
-  const homePath = filePathContract.parse(join(homedir(), locationsStatics.dungeonmasterHome.dir));
+  const homePath = join(homedir(), locationsStatics.dungeonmasterHome.dir);
 
   return { homePath };
 };

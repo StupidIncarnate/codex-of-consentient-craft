@@ -1,6 +1,6 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../../../statics/slash-commands/slash-commands-statics';
 import { InstallCommandsCreateResponderProxy } from './install-commands-create-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallCommandsCreateResponder', () => {
   describe('return value', () => {
@@ -8,10 +8,10 @@ describe('InstallCommandsCreateResponder', () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -29,10 +29,10 @@ describe('InstallCommandsCreateResponder', () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(proxy.getCreatedDirs()).toStrictEqual(['/project/.claude/commands']);
@@ -44,10 +44,10 @@ describe('InstallCommandsCreateResponder', () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(proxy.getAllWrittenFiles()).toStrictEqual([

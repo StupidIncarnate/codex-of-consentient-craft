@@ -6,7 +6,7 @@
  * proxy.setupPackagesAndResults({ packages, results });
  */
 
-import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { packageDiscoverBrokerProxy } from '../../package/discover/package-discover-broker.proxy';
 import { installFinalizeOrchestrateBrokerProxy } from '../finalize-orchestrate/install-finalize-orchestrate-broker.proxy';
@@ -14,18 +14,18 @@ import { installOrchestrateBrokerProxy } from '../orchestrate/install-orchestrat
 
 export const installRunBrokerProxy = (): {
   setupPackageDiscovery: (params: {
-    packagesPath: FilePath;
+    packagesPath: string;
     packages: {
       name: FileName;
-      standardPath: FilePath;
-      alternatePath?: FilePath;
+      standardPath: string;
+      alternatePath?: string;
       installerLocation: 'standard' | 'alternate' | 'none';
       hasFinalize?: boolean;
     }[];
   }) => void;
-  setupEmptyPackagesDirectory: (params: { packagesPath: FilePath }) => void;
-  setupImport: (params: { installPath: FilePath; module: unknown }) => void;
-  setupFinalizeImport: (params: { finalizeInstallPath: FilePath; module: unknown }) => void;
+  setupEmptyPackagesDirectory: (params: { packagesPath: string }) => void;
+  setupImport: (params: { installPath: string; module: unknown }) => void;
+  setupFinalizeImport: (params: { finalizeInstallPath: string; module: unknown }) => void;
 } => {
   const packageDiscoverProxy = packageDiscoverBrokerProxy();
   const installOrchestratProxy = installOrchestrateBrokerProxy();
@@ -33,23 +33,23 @@ export const installRunBrokerProxy = (): {
 
   return {
     setupPackageDiscovery: (params: {
-      packagesPath: FilePath;
+      packagesPath: string;
       packages: {
         name: FileName;
-        standardPath: FilePath;
-        alternatePath?: FilePath;
+        standardPath: string;
+        alternatePath?: string;
         installerLocation: 'standard' | 'alternate' | 'none';
         hasFinalize?: boolean;
       }[];
     }): void => {
       packageDiscoverProxy.setupPackageDiscovery(params);
     },
-    setupEmptyPackagesDirectory: ({ packagesPath }: { packagesPath: FilePath }): void => {
+    setupEmptyPackagesDirectory: ({ packagesPath }: { packagesPath: string }): void => {
       packageDiscoverProxy.setupEmptyPackagesDirectory({ packagesPath });
     },
     // Keyed on installPath — the discovered package's own start-install.js path. Callers with
     // more than one discovered package call this once per package's installPath.
-    setupImport: ({ installPath, module }: { installPath: FilePath; module: unknown }): void => {
+    setupImport: ({ installPath, module }: { installPath: string; module: unknown }): void => {
       installOrchestratProxy.setupImport({ installPath, module });
     },
     // Keyed on finalizeInstallPath — the discovered package's own start-install-finalize.js path,
@@ -59,7 +59,7 @@ export const installRunBrokerProxy = (): {
       finalizeInstallPath,
       module,
     }: {
-      finalizeInstallPath: FilePath;
+      finalizeInstallPath: string;
       module: unknown;
     }): void => {
       installFinalizeOrchestrateProxy.setupImport({ finalizeInstallPath, module });

@@ -29,7 +29,6 @@
  */
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -56,26 +55,26 @@ type SpecProfile = ReturnType<typeof SpecProfileStub>;
 export const instanceEntryLayerBrokerProxy = (): {
   setupEvidenceDir: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
   }) => void;
   setupHeartbeatMissing: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
   }) => void;
   setupHeartbeatFound: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
     heartbeat: InstanceHeartbeat;
   }) => void;
-  setupRunsDirEntries: (params: { evidencePath: FilePath; entries: readonly string[] }) => void;
-  setupShutdownReasonMissing: (params: { evidencePath: FilePath }) => void;
-  setupShutdownReasonFound: (params: { evidencePath: FilePath; marker: ShutdownReason }) => void;
+  setupRunsDirEntries: (params: { evidencePath: string; entries: readonly string[] }) => void;
+  setupShutdownReasonMissing: (params: { evidencePath: string }) => void;
+  setupShutdownReasonFound: (params: { evidencePath: string; marker: ShutdownReason }) => void;
   setupProfileSolo: (params: { profile: SpecProfile }) => void;
   setupProcListing: (params: { pids: readonly string[] }) => void;
   setupPidStat: (params: { pid: string; pgrp: number; comm?: string }) => void;
@@ -83,21 +82,21 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupOrphanCmdline: (params: { pid: string; argv: readonly string[] }) => void;
   setupOrphanAlive: (params: { pgid: ProcessGroupId }) => void;
   setupOrphanGone: (params: { pgid: ProcessGroupId }) => void;
-  setupApiLogPresent: (params: { evidencePath: FilePath }) => void;
-  setupApiLogAbsent: (params: { evidencePath: FilePath }) => void;
-  setupWebLogPresent: (params: { evidencePath: FilePath }) => void;
-  setupWebLogAbsent: (params: { evidencePath: FilePath }) => void;
-  setupDriverLogPresent: (params: { evidencePath: FilePath }) => void;
-  setupDriverLogAbsent: (params: { evidencePath: FilePath }) => void;
+  setupApiLogPresent: (params: { evidencePath: string }) => void;
+  setupApiLogAbsent: (params: { evidencePath: string }) => void;
+  setupWebLogPresent: (params: { evidencePath: string }) => void;
+  setupWebLogAbsent: (params: { evidencePath: string }) => void;
+  setupDriverLogPresent: (params: { evidencePath: string }) => void;
+  setupDriverLogAbsent: (params: { evidencePath: string }) => void;
   setupRepoLinkResolves: (params: {
     cwdPath: string;
-    linkPath: FilePath;
+    linkPath: string;
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
+    homePath: string;
+    rootPath: string;
   }) => void;
   setupTranscriptLines: (params: {
-    evidencePath: FilePath;
+    evidencePath: string;
     runId: string;
     lines: readonly string[];
   }) => void;
@@ -117,27 +116,27 @@ export const instanceEntryLayerBrokerProxy = (): {
   return {
     setupEvidenceDir: (params: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
     }): void => {
       directEvidencePathProxy.setupInstanceEvidencePath(params);
     },
 
     setupHeartbeatMissing: (params: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
     }): void => {
       heartbeatProxy.setupHeartbeatMissing(params);
     },
 
     setupHeartbeatFound: (params: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
       heartbeat: InstanceHeartbeat;
     }): void => {
       heartbeatProxy.setupHeartbeatFound(params);
@@ -147,7 +146,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       evidencePath,
       entries,
     }: {
-      evidencePath: FilePath;
+      evidencePath: string;
       entries: readonly string[];
     }): void => {
       runsDirProxy.returns({
@@ -156,7 +155,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       });
     },
 
-    setupShutdownReasonMissing: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupShutdownReasonMissing: ({ evidencePath }: { evidencePath: string }): void => {
       shutdownReasonProxy.setupMarkerMissing({
         evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
       });
@@ -166,7 +165,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       evidencePath,
       marker,
     }: {
-      evidencePath: FilePath;
+      evidencePath: string;
       marker: ShutdownReason;
     }): void => {
       shutdownReasonProxy.setupMarkerFound({
@@ -206,7 +205,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       orphanProxy.setupGone(params);
     },
 
-    setupApiLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupApiLogPresent: ({ evidencePath }: { evidencePath: string }): void => {
       logStatProxy.returnsFile({
         path: `${evidencePath}/${locationsStatics.siegelense.apiLog}`,
         sizeBytes: 1,
@@ -214,11 +213,11 @@ export const instanceEntryLayerBrokerProxy = (): {
       });
     },
 
-    setupApiLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupApiLogAbsent: ({ evidencePath }: { evidencePath: string }): void => {
       logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.apiLog}` });
     },
 
-    setupWebLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupWebLogPresent: ({ evidencePath }: { evidencePath: string }): void => {
       logStatProxy.returnsFile({
         path: `${evidencePath}/${locationsStatics.siegelense.webLog}`,
         sizeBytes: 1,
@@ -226,11 +225,11 @@ export const instanceEntryLayerBrokerProxy = (): {
       });
     },
 
-    setupWebLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupWebLogAbsent: ({ evidencePath }: { evidencePath: string }): void => {
       logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.webLog}` });
     },
 
-    setupDriverLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupDriverLogPresent: ({ evidencePath }: { evidencePath: string }): void => {
       logStatProxy.returnsFile({
         path: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
         sizeBytes: 1,
@@ -238,16 +237,16 @@ export const instanceEntryLayerBrokerProxy = (): {
       });
     },
 
-    setupDriverLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    setupDriverLogAbsent: ({ evidencePath }: { evidencePath: string }): void => {
       logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.driverLog}` });
     },
 
     setupRepoLinkResolves: (params: {
       cwdPath: string;
-      linkPath: FilePath;
+      linkPath: string;
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
     }): void => {
       repoLinkProxy.setupLinkResolvesToRoot(params);
     },
@@ -257,7 +256,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       runId,
       lines,
     }: {
-      evidencePath: FilePath;
+      evidencePath: string;
       runId: string;
       lines: readonly string[];
     }): void => {

@@ -3,11 +3,10 @@ import { join } from '#gateway/node/path';
 import { deleteEnv, setEnv } from '#gateway/node/process';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 export const dungeonmasterHomeFindBrokerProxy = (): {
-  setupHomePath: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupHomePath: (params: { homeDir: string; homePath: string }) => void;
   setHomeEnv: (params: { value: string }) => void;
   clearHomeEnv: () => void;
 } => {
@@ -32,7 +31,7 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   return {
-    setupHomePath: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
+    setupHomePath: ({ homeDir, homePath }: { homeDir: string; homePath: string }): void => {
       deleteEnv('DUNGEONMASTER_HOME');
       homedirHandle.calledWith([]).returns(homeDir);
       // Specific address (homeDir, dir name), never a bare `calledWith([])`: a bare zero-arg

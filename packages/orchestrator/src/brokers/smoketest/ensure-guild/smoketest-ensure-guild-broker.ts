@@ -21,7 +21,7 @@
  */
 
 import { cwdResolveBroker, dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
@@ -29,7 +29,7 @@ import { guildListBroker } from '../../guild/list/guild-list-broker';
 export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: Guild['id'] }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
   const homeRepoRoot = await cwdResolveBroker({
-    startPath: filePathContract.parse(homePath),
+    startPath: homePath,
     kind: 'repo-root',
   });
 
@@ -39,7 +39,7 @@ export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: Guild['id
     guilds.map(async (guild): Promise<GuildListItem | null> => {
       try {
         const guildRepoRoot = await cwdResolveBroker({
-          startPath: filePathContract.parse(guild.path),
+          startPath: guild.path,
           kind: 'repo-root',
         });
         return guildRepoRoot === homeRepoRoot ? guild : null;

@@ -1,6 +1,5 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { WardRunResponderProxy } from './ward-run-responder.proxy';
 
@@ -42,8 +41,8 @@ describe('WardRunResponder', () => {
       setExitCode(0);
       const proxy = WardRunResponderProxy();
       proxy.setupSinglePackagePass();
-      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
-      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/utils.ts' }) });
+      proxy.setupExistingPath({ filePath: '/project/src/index.ts' });
+      proxy.setupExistingPath({ filePath: '/project/src/utils.ts' });
       proxy.setupCompanionTestMissing({ relativePath: 'src/index.ts' });
       proxy.setupCompanionTestMissing({ relativePath: 'src/utils.ts' });
 

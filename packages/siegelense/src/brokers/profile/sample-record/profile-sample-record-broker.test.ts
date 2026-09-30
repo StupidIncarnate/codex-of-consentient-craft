@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -21,10 +20,8 @@ const FIRST_BEAT_MS = 1_700_000_000_000;
 // The digest is REAL — laneSpecHashBrokerProxy deliberately stages nothing, so the directory a
 // record lands in is the genuine content hash of the spec, which is what makes "a changed spec
 // re-measures" a property of the tree rather than of a stub.
-const headlessProfilesPath = async (): Promise<ReturnType<typeof FilePathStub>> =>
-  FilePathStub({
-    value: `${ROOT_PATH_VALUE}/profiles/${laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) })}`,
-  });
+const headlessProfilesPath = async (): Promise<string> =>
+  `${ROOT_PATH_VALUE}/profiles/${laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) })}`;
 
 describe('profileSampleRecordBroker', () => {
   describe('a beat with nothing measured', () => {

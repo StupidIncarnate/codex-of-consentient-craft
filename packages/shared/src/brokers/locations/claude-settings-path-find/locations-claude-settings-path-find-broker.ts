@@ -16,7 +16,6 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export type ClaudeSettingsKind = 'shared' | 'local';
 
@@ -24,7 +23,7 @@ export const locationsClaudeSettingsPathFindBroker = async ({
   startPath,
   kind,
 }: {
-  startPath: FilePath;
+  startPath: string;
   kind: ClaudeSettingsKind;
 }): Promise<AbsoluteFilePath> => {
   const configRoot = await configRootFindBroker({ startPath });

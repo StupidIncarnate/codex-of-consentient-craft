@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { TsconfigCompilerOptionsStub } from '../../../contracts/tsconfig-compiler-options/tsconfig-compiler-options.stub';
 import { gatewayTsconfigCompilerOptionsWriteBroker } from './gateway-tsconfig-compiler-options-write-broker';
 import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from './gateway-tsconfig-compiler-options-write-broker.proxy';
@@ -6,7 +5,7 @@ import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from './gateway-tsconf
 describe('gatewayTsconfigCompilerOptionsWriteBroker', () => {
   it('EMPTY: {tsconfigPath: missing file} => returns false without writing', async () => {
     const proxy = gatewayTsconfigCompilerOptionsWriteBrokerProxy();
-    const tsconfigPath = FilePathStub({ value: '/repo/packages/app/tsconfig.build.json' });
+    const tsconfigPath = '/repo/packages/app/tsconfig.build.json';
     proxy.setupMissingFile({ tsconfigPath });
 
     const result = await gatewayTsconfigCompilerOptionsWriteBroker({
@@ -19,7 +18,7 @@ describe('gatewayTsconfigCompilerOptionsWriteBroker', () => {
 
   it('VALID: {file with commonjs and a comment} => sets node16 resolution, keeps the comment, and returns true', async () => {
     const proxy = gatewayTsconfigCompilerOptionsWriteBrokerProxy();
-    const tsconfigPath = FilePathStub({ value: '/repo/tsconfig.json' });
+    const tsconfigPath = '/repo/tsconfig.json';
     proxy.setupFileContent({
       tsconfigPath,
       content: `{
@@ -56,7 +55,7 @@ describe('gatewayTsconfigCompilerOptionsWriteBroker', () => {
 
   it('VALID: {file already holds every value} => returns false without writing', async () => {
     const proxy = gatewayTsconfigCompilerOptionsWriteBrokerProxy();
-    const tsconfigPath = FilePathStub({ value: '/repo/packages/app/tsconfig.build.json' });
+    const tsconfigPath = '/repo/packages/app/tsconfig.build.json';
     proxy.setupFileContent({
       tsconfigPath,
       content: `{

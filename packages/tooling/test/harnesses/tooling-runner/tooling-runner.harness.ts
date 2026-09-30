@@ -9,8 +9,6 @@
 import * as path from '#gateway/node/path';
 import { execSync } from '#gateway/node/child_process';
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { cwd } from '#gateway/node/process';
 
@@ -31,9 +29,7 @@ interface ExecError {
 // src/index.ts, is a re-export barrel with no top-level call (confirmed: running it does
 // nothing), so this points at the actual CLI entry point instead — the same file the built
 // `dist/bin/detect-duplicate-primitives.js` this replaced was compiled from.
-const ENTRY_PATH = FilePathStub({
-  value: path.join(cwd(), 'bin', 'detect-duplicate-primitives.ts'),
-});
+const ENTRY_PATH = path.join(cwd(), 'bin', 'detect-duplicate-primitives.ts');
 
 const isExecError = (error: unknown): error is ExecError =>
   typeof error === 'object' &&
@@ -43,7 +39,7 @@ const isExecError = (error: unknown): error is ExecError =>
 
 export const toolingRunnerHarness = (): {
   runStartup: (params: { args: readonly string[] }) => RunResult;
-  entryPath: FilePath;
+  entryPath: string;
 } => {
   const runStartup = ({ args }: { args: readonly string[] }): RunResult => {
     const command = `npx tsx ${String(ENTRY_PATH)} ${args.join(' ')}`;

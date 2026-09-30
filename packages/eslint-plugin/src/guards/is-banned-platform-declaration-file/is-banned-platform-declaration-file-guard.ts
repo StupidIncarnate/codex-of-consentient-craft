@@ -9,14 +9,13 @@
  * isBannedPlatformDeclarationFileGuard({ fileName: FilePathStub({ value: '/repo/node_modules/typescript/lib/lib.es5.d.ts' }) });
  * // Returns false
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 const DECLARATION_FILE_PATTERNS = [/lib\.dom(\.\w+)?\.d\.ts$/u, /lib\.webworker(\.\w+)?\.d\.ts$/u];
 
 export const isBannedPlatformDeclarationFileGuard = ({
   fileName,
 }: {
-  fileName?: FilePath;
+  fileName?: string;
 }): boolean => {
   if (fileName === undefined) {
     return false;

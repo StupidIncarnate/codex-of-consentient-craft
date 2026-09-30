@@ -7,7 +7,6 @@
  * (the "passthrough join composed from far away" trap).
  */
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -32,8 +31,8 @@ export const LoadQuestLayerResponderProxy = (): {
   getCallArgs: () => readonly unknown[][];
   setupQuestFound: ReturnType<typeof questFindQuestPathBrokerProxy>['setupQuestFound'];
   setupQuestFile: ReturnType<typeof questLoadBrokerProxy>['setupQuestFile'];
-  setupQuestFileJoin: (params: { questPath: FilePath; questFilePath: FilePath }) => void;
-  getQuestFileJoinArgs: (params: { questPath: FilePath }) => readonly unknown[][];
+  setupQuestFileJoin: (params: { questPath: string; questFilePath: string }) => void;
+  getQuestFileJoinArgs: (params: { questPath: string }) => readonly unknown[][];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const loadProxy = questLoadBrokerProxy();
@@ -61,12 +60,12 @@ export const LoadQuestLayerResponderProxy = (): {
       questPath,
       questFilePath,
     }: {
-      questPath: FilePath;
-      questFilePath: FilePath;
+      questPath: string;
+      questFilePath: string;
     }): void => {
       joinHandle.calledWith([questPath, locationsStatics.quest.questFile]).returns(questFilePath);
     },
-    getQuestFileJoinArgs: ({ questPath }: { questPath: FilePath }): readonly unknown[][] =>
+    getQuestFileJoinArgs: ({ questPath }: { questPath: string }): readonly unknown[][] =>
       joinHandle.callsMatching([questPath]),
   };
 };

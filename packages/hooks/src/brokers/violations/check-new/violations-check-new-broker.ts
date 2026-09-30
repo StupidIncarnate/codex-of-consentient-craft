@@ -17,7 +17,6 @@ import {
   violationComparisonContract,
   type ViolationComparison,
 } from '../../../contracts/violation-comparison/violation-comparison-contract';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { cwd, getEnv } from '#gateway/node/process';
 
 /**
@@ -40,9 +39,9 @@ export const violationsCheckNewBroker = async ({
   cwd: cwdParam,
 }: {
   toolInput: ToolInput;
-  cwd?: FilePath;
+  cwd?: string;
 }): Promise<ViolationComparison> => {
-  const workingDir = cwdParam ?? filePathContract.parse(cwd());
+  const workingDir = cwdParam ?? cwd();
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {

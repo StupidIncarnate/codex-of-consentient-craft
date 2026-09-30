@@ -7,13 +7,7 @@
  * // Merges missing ward scripts into package.json, or skips if all present / no package.json
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
@@ -29,9 +23,7 @@ export const InstallWriteScriptsResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const packageJsonPath = filePathContract.parse(
-    `${context.targetProjectRoot}/${PACKAGE_JSON_FILENAME}`,
-  );
+  const packageJsonPath = `${context.targetProjectRoot}/${PACKAGE_JSON_FILENAME}`;
 
   if (!existsSync(packageJsonPath)) {
     return {

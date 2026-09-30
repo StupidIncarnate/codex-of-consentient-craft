@@ -12,13 +12,12 @@ import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/star
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
-import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type GlobPattern = ReturnType<typeof GlobPatternStub>;
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const sessionListBrokerProxy = (): {
   setupGuild: (params: { guild: Guild }) => void;

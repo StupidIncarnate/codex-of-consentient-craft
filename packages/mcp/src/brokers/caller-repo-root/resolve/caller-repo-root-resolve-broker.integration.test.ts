@@ -14,7 +14,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { architecturePackageInventoryBroker } from '@dungeonmaster/shared/brokers';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: real nested worktree layout)', () => {
   it('VALID: {startPath deep inside a worktree nested under the main checkout} => resolves the WORKTREE root, and an inventory taken there sees the worktree package but NOT a package that exists only in the outer checkout', async () => {
@@ -43,7 +42,7 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
     const deepStartPath = `${innerRoot}/packages/inner-pkg/src/brokers/foo`;
 
     const repoRoot = await cwdResolveBroker({
-      startPath: FilePathStub({ value: deepStartPath }),
+      startPath: deepStartPath,
       kind: 'repo-root',
     });
 
@@ -86,7 +85,7 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
     });
 
     const repoRoot = await cwdResolveBroker({
-      startPath: FilePathStub({ value: String(testbed.guildPath) }),
+      startPath: String(testbed.guildPath),
       kind: 'repo-root',
     });
     const expectedRoot = String(testbed.guildPath);

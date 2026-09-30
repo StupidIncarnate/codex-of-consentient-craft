@@ -7,7 +7,6 @@
  */
 import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/violations-check-new-broker';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
 import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -40,7 +39,7 @@ export const HookPreEditResponder = async ({
   // Check for newly introduced violations
   const result = await violationsCheckNewBroker({
     toolInput: hookData.tool_input,
-    cwd: filePathContract.parse(hookData.cwd),
+    cwd: hookData.cwd,
   });
 
   if (result.hasNewViolations) {

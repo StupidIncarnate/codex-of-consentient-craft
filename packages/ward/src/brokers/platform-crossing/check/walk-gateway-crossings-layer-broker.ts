@@ -39,7 +39,7 @@
  * // Returns: readonly PlatformCrossingChainHop[][] — the first chain reached to each forbidden import
  */
 
-import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
@@ -64,7 +64,7 @@ export type WalkGatewayCrossingsMemo = Map<
   string,
   Promise<readonly PlatformCrossingChainHop[][]>
 >;
-export type ModuleShapeCache = Map<FilePath, TypescriptModuleShape>;
+export type ModuleShapeCache = Map<string, TypescriptModuleShape>;
 export type { ResolveSpecifierCache };
 
 export const walkGatewayCrossingsLayerBroker = async ({
@@ -79,10 +79,10 @@ export const walkGatewayCrossingsLayerBroker = async ({
   moduleShapeCache = new Map(),
   resolveCache = new Map(),
 }: {
-  filePath: FilePath;
+  filePath: string;
   content: FileContents;
   requestedNames: 'all' | readonly ImportedName[];
-  pathHistory: readonly FilePath[];
+  pathHistory: readonly string[];
   chainLabels: readonly PlatformCrossingChainHop[];
   knownPackages: readonly ProjectFolder[];
   forbiddenPackageNames: readonly GatewayPackageName[];

@@ -6,7 +6,6 @@
 // link segments, so sibling verb proxies' own `join` calls are unaffected.
 // USAGE: const proxy = stepVideoBrokerProxy(); const { session, getVideoActionCalls } = proxy.session();
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { VideoResultStub } from '../../../contracts/video-result/video-result.stub';
@@ -17,12 +16,10 @@ type VideoResult = ReturnType<typeof VideoResultStub>;
 
 // `locationsRepoLinkPathFindBroker`'s own `cwd()` call has no default — every scenario stages it.
 const CWD_PATH_VALUE = '/default/cwd';
-const LINK_PATH = FilePathStub({
-  value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`,
-});
+const LINK_PATH = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 // `stageRepoLinkPresent` resolves the link to SIEGELENSE_ROOT_VALUE under HOME_PATH.
 const HOME_DIR_VALUE = '/home/default';
-const HOME_PATH = FilePathStub({ value: `${HOME_DIR_VALUE}/.dungeonmaster` });
+const HOME_PATH = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const SIEGELENSE_ROOT_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster/siegelense`;
 
 export const stepVideoBrokerProxy = (): {
@@ -60,7 +57,7 @@ export const stepVideoBrokerProxy = (): {
         linkPath: LINK_PATH,
         homeDir: HOME_DIR_VALUE,
         homePath: HOME_PATH,
-        rootPath: FilePathStub({ value: SIEGELENSE_ROOT_VALUE }),
+        rootPath: SIEGELENSE_ROOT_VALUE,
       });
     },
   };

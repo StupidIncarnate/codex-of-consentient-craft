@@ -45,11 +45,7 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
 import type { FileContents } from '@dungeonmaster/shared/contracts';
-import {
-  identifierContract,
-  filePathContract,
-  fileContentsContract,
-} from '@dungeonmaster/shared/contracts';
+import { identifierContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
@@ -156,7 +152,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
           }
           const wrapperPaths = barrelWrapperPathsReadBroker({
             barrelPath: gatewayBarrelPathTransformer({
-              callerFilePath: filePathContract.parse(filename),
+              callerFilePath: filename,
               gatewayFolder: folder,
               subpath,
             }),
@@ -196,7 +192,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     const workspaceScope = filename
       ? workspaceScopeFromRootNameTransformer({
           rootPackageJsonName: workspaceRootFindBroker({
-            startDir: filePathContract.parse(dirname(filename)),
+            startDir: dirname(filename),
           })?.rootPackageJsonName,
         })
       : undefined;
@@ -339,7 +335,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
                 gatewaySubpathSegment === undefined
                   ? null
                   : gatewayBarrelPathTransformer({
-                      callerFilePath: filePathContract.parse(filename),
+                      callerFilePath: filename,
                       gatewayFolder: gatewayFolderSegment,
                       subpath: gatewaySubpathSegment,
                     });
@@ -367,7 +363,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
               // subpath's barrel (see its own PURPOSE — both are "which sibling file does this
               // name re-export from").
               const barrelPath = packageRootSourcePathTransformer({
-                callerFilePath: filePathContract.parse(filename),
+                callerFilePath: filename,
                 packageName,
                 relativePath: 'index.ts',
               });
@@ -389,7 +385,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
               // from `agentRoleContract` (no proxy — contracts use stubs) without this rule ever
               // naming either one.
               const wrapperProxyPath = packageRootSourcePathTransformer({
-                callerFilePath: filePathContract.parse(filename),
+                callerFilePath: filename,
                 packageName,
                 relativePath: `${relativeWrapperPath}.proxy.ts`,
               });
@@ -410,7 +406,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
                   ? undefined
                   : barrelWrapperPathsReadBroker({
                       barrelPath: packageRootSourcePathTransformer({
-                        callerFilePath: filePathContract.parse(filename),
+                        callerFilePath: filename,
                         packageName,
                         relativePath: `${folderType}/${folderType}.ts`,
                       }),

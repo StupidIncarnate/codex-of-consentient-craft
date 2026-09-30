@@ -8,7 +8,6 @@
 
 import { pathExists } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
 
@@ -16,9 +15,9 @@ export const configRootFindBroker = async ({
   startPath,
   currentPath,
 }: {
-  startPath: FilePath;
-  currentPath?: FilePath;
-}): Promise<FilePath> => {
+  startPath: string;
+  currentPath?: string;
+}): Promise<string> => {
   const searchPath = currentPath ?? startPath;
 
   const configPath = join(searchPath, dungeonmasterHomeStatics.paths.projectConfigFile);
@@ -27,7 +26,7 @@ export const configRootFindBroker = async ({
     return searchPath;
   }
 
-  const parentPath = filePathContract.parse(dirname(searchPath));
+  const parentPath = dirname(searchPath);
   if (parentPath === searchPath) {
     throw new ProjectRootNotFoundError({ startPath });
   }

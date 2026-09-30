@@ -14,7 +14,7 @@
  */
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -41,7 +41,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupSucceeds: () => void;
   setupRejects: (params: { error: Error }) => void;
   setupPassthrough: () => void;
-  setupQuestDeleted: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
+  setupQuestDeleted: (params: { homeDir: string; homePath: string; guildsDir: string }) => void;
   setupQuestFound: (params: {
     questId: Quest['id'];
     questPath: AbsoluteFilePath;
@@ -90,8 +90,8 @@ export const processTerminalEventLayerBrokerProxy = (): {
       guildsDir,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      guildsDir: FilePath;
+      homePath: string;
+      guildsDir: string;
     }): void => {
       // Simulates the "quest was deleted between the outbox event firing and this handler
       // running" case — `questFindQuestPathBroker` throws "not found in any guild" when no

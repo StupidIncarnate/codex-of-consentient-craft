@@ -17,8 +17,6 @@
  * });
  * // Returns '/repo/packages/@gateway/node/src/fs__promises/fs__promises.ts' as branded FilePath
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 const PACKAGES_SEGMENT = '/packages/';
 
@@ -27,17 +25,15 @@ export const gatewayBarrelPathTransformer = ({
   gatewayFolder,
   subpath,
 }: {
-  callerFilePath: FilePath;
+  callerFilePath: string;
   gatewayFolder: string;
   subpath: string;
-}): FilePath | null => {
+}): string | null => {
   const packagesIndex = callerFilePath.indexOf(PACKAGES_SEGMENT);
   if (packagesIndex === -1) {
     return null;
   }
 
   const workspaceRoot = callerFilePath.slice(0, packagesIndex);
-  return filePathContract.parse(
-    `${workspaceRoot}/packages/@gateway/${gatewayFolder}/src/${subpath}/${subpath}.ts`,
-  );
+  return `${workspaceRoot}/packages/@gateway/${gatewayFolder}/src/${subpath}/${subpath}.ts`;
 };

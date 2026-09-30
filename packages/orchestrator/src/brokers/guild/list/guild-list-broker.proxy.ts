@@ -1,5 +1,5 @@
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { FilePath, GuildConfig, GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig, GuildListItem } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -22,14 +22,14 @@ export const guildListBrokerProxy = (): {
   setupGuildList: (params: {
     config: GuildConfig;
     homeDir: string;
-    homePath: FilePath;
+    homePath: string;
     guildEntries: {
       accessible: boolean;
-      questsDirPath: FilePath;
+      questsDirPath: string;
       questDirEntries: DirEntrySync[];
     }[];
   }) => void;
-  setupEmptyConfig: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupEmptyConfig: (params: { homeDir: string; homePath: string }) => void;
   setupDirectListing: (params: { items: readonly GuildListItem[] }) => void;
 } => {
   const configReadProxy = guildConfigReadBrokerProxy();
@@ -59,10 +59,10 @@ export const guildListBrokerProxy = (): {
     }: {
       config: GuildConfig;
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       guildEntries: {
         accessible: boolean;
-        questsDirPath: FilePath;
+        questsDirPath: string;
         questDirEntries: DirEntrySync[];
       }[];
     }): void => {
@@ -101,7 +101,7 @@ export const guildListBrokerProxy = (): {
       });
     },
 
-    setupEmptyConfig: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
+    setupEmptyConfig: ({ homeDir, homePath }: { homeDir: string; homePath: string }): void => {
       configReadProxy.setupConfig({ config: { guilds: [] }, homeDir, homePath });
       homeFindProxy.setupHomePath({ homeDir, homePath });
     },

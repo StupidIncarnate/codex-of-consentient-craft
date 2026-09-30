@@ -9,7 +9,6 @@ import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanInlineHelpersInTestScenariosBroker =
   (): TSESLint.RuleModule<'noInlineHelper'> => ({
@@ -32,7 +31,7 @@ export const ruleBanInlineHelpersInTestScenariosBroker =
 
       const isSpec = isSpecFileGuard({ filename });
       const isIntegration = isIntegrationTestFileGuard({
-        filePath: filePathContract.parse(filename),
+        filePath: filename,
       });
 
       if (!isSpec && !isIntegration) {

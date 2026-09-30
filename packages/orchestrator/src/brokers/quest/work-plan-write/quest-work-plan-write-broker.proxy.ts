@@ -1,6 +1,5 @@
 import { join } from '#gateway/node/path';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -55,9 +54,7 @@ export const questWorkPlanWriteBrokerProxy = (): {
       const questFolderPath = AbsoluteFilePathStub({
         value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
       });
-      const questFilePath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
-      });
+      const questFilePath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`;
 
       findQuestPathMock
         .calledWith([{ questId: quest.id }])

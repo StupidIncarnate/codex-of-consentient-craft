@@ -13,7 +13,6 @@ import { transcriptResolveForHookBroker } from '../../../brokers/transcript/reso
 import { folderDetailWasCalledBroker } from '../../../brokers/folder-detail/was-called/folder-detail-was-called-broker';
 import { folderDetailHookDataContract } from '../../../contracts/folder-detail-hook-data/folder-detail-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { packageSrcFolderTypeTransformer } from '../../../transformers/package-src-folder-type/package-src-folder-type-transformer';
 import { folderDetailBlockMessageStatics } from '../../../statics/folder-detail-block-message/folder-detail-block-message-statics';
 import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -53,7 +52,7 @@ export const HookPreFolderDetailResponder = async ({
   }
 
   const lookup = await folderDetailWasCalledBroker({
-    transcriptFilePath: filePathContract.parse(String(resolvedTranscript)),
+    transcriptFilePath: String(resolvedTranscript),
     folderType,
   });
 

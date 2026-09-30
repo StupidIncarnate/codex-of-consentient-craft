@@ -1,7 +1,6 @@
 import { locationsGuildConfigPathFindBroker } from './locations-guild-config-path-find-broker';
 import { locationsGuildConfigPathFindBrokerProxy } from './locations-guild-config-path-find-broker.proxy';
 import { GuildIdStub } from '../../../contracts/guild-id/guild-id.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsGuildConfigPathFindBroker', () => {
@@ -12,13 +11,9 @@ describe('locationsGuildConfigPathFindBroker', () => {
 
       proxy.setupGuildConfigPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        guildPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        }),
-        guildConfigPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/guild.json',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        guildPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        guildConfigPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/guild.json',
       });
 
       const result = locationsGuildConfigPathFindBroker({ guildId });

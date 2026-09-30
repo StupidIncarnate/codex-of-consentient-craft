@@ -13,8 +13,7 @@
  */
 
 import { rm } from '#gateway/node/fs__promises';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 
@@ -23,8 +22,8 @@ export const smoketestTeardownQuestBroker = async ({
 }: {
   questId: Quest['id'];
 }): Promise<void> => {
-  const resolvedQuestPath: FilePath | null = await questFindQuestPathBroker({ questId })
-    .then((resolved) => filePathContract.parse(resolved.questPath))
+  const resolvedQuestPath: string | null = await questFindQuestPathBroker({ questId })
+    .then((resolved) => resolved.questPath)
     .catch(() => null);
 
   if (resolvedQuestPath === null) {

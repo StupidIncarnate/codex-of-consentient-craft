@@ -27,7 +27,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { IntervalHandleStub } from '#gateway/node/setInterval/interval-handle.stub';
 import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
@@ -110,9 +109,9 @@ export const DriverServeLayerResponderProxy = (): {
   // unoverridden.
   evidencePathProxy.setupInstanceEvidencePath({
     homeDir: '/home/user',
-    homePath: FilePathStub({ value: '/tmp/dm-siege-evidence-test' }),
-    rootPath: FilePathStub({ value: '/tmp/dm-siege-evidence-test' }),
-    evidencePath: FilePathStub({ value: EVIDENCE_PATH_VALUE }),
+    homePath: '/tmp/dm-siege-evidence-test',
+    rootPath: '/tmp/dm-siege-evidence-test',
+    evidencePath: EVIDENCE_PATH_VALUE,
   });
 
   const handleRequestHandle = registerMock({ fn: driverHandleRequestBroker });

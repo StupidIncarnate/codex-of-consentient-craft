@@ -1,8 +1,7 @@
 import { Buffer } from '#gateway/node/buffer';
 import { readFileBytesSyncProxy } from '#gateway/node/fs/read-file-bytes-sync/read-file-bytes-sync.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 
@@ -33,7 +32,7 @@ export const bundleHashFilesBrokerProxy = (): {
   }: {
     rootPath: AbsoluteFilePath;
     relativePath: GitRelativePath;
-  }): FilePath => filePathContract.parse(`${String(rootPath)}/${String(relativePath)}`);
+  }): string => `${String(rootPath)}/${String(relativePath)}`;
 
   return {
     hasFile: ({

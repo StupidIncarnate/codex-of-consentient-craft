@@ -12,7 +12,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
@@ -28,7 +27,7 @@ export const gatewayDependencyNamesReadLayerBroker = async ({
 }): Promise<readonly DuplicateInstallPackageName[]> => {
   const namesPerFolder = await Promise.all(
     gatewayFolders.map(async (folder) => {
-      const packageJsonPath = filePathContract.parse(`${folder.path}/package.json`);
+      const packageJsonPath = `${folder.path}/package.json`;
       const raw = await readFile(packageJsonPath);
       const parsed = packageJsonContract.parse(JSON.parse(raw));
 

@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -64,17 +63,17 @@ describe('statusReadBroker', () => {
       });
 
       for (const id of ids) {
-        const evidencePath = FilePathStub({ value: `${ROOT_PATH_VALUE}/unowned/instances/${id}` });
+        const evidencePath = `${ROOT_PATH_VALUE}/unowned/instances/${id}`;
         proxy.setupEvidenceDir({
           homeDir: '/home/user',
-          homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-          rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+          homePath: '/home/user/.dungeonmaster',
+          rootPath: ROOT_PATH_VALUE,
           evidencePath,
         });
         proxy.setupHeartbeatMissing({
           homeDir: '/home/user',
-          homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-          rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+          homePath: '/home/user/.dungeonmaster',
+          rootPath: ROOT_PATH_VALUE,
           evidencePath,
         });
         proxy.setupRunsDirEntries({ evidencePath, entries: [] });
@@ -160,9 +159,7 @@ describe('statusReadBroker', () => {
       const nowMs = 1_700_001_000_000;
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const evidencePath = FilePathStub({
-        value: `${ROOT_PATH_VALUE}/guilds/${guildId}/instances/${instanceId}`,
-      });
+      const evidencePath = `${ROOT_PATH_VALUE}/guilds/${guildId}/instances/${instanceId}`;
       const pgid = ProcessGroupIdStub({ value: 33_812 });
       const entry = RegistryEntryStub({
         id: instanceId,
@@ -194,8 +191,8 @@ describe('statusReadBroker', () => {
       });
 
       const homeDir = '/home/user';
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const rootPath = FilePathStub({ value: ROOT_PATH_VALUE });
+      const homePath = '/home/user/.dungeonmaster';
+      const rootPath = ROOT_PATH_VALUE;
 
       proxy.setupEvidenceDir({ homeDir, homePath, rootPath, evidencePath });
       proxy.setupHeartbeatFound({
@@ -222,7 +219,7 @@ describe('statusReadBroker', () => {
       proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir,
         homePath,
         rootPath,
@@ -372,17 +369,17 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const evidencePath1 = FilePathStub({ value: `${ROOT_PATH_VALUE}/unowned/instances/${id1}` });
+      const evidencePath1 = `${ROOT_PATH_VALUE}/unowned/instances/${id1}`;
       proxy.setupEvidenceDir({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePath1,
       });
       proxy.setupHeartbeatMissing({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePath1,
       });
       proxy.setupRunsDirEntries({ evidencePath: evidencePath1, entries: [] });
@@ -448,19 +445,17 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const evidencePathRecent = FilePathStub({
-        value: `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`,
-      });
+      const evidencePathRecent = `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`;
       proxy.setupEvidenceDir({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathRecent,
       });
       proxy.setupHeartbeatMissing({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathRecent,
       });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
@@ -521,19 +516,17 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const evidencePath = FilePathStub({
-        value: `${ROOT_PATH_VALUE}/unowned/instances/${idReservation}`,
-      });
+      const evidencePath = `${ROOT_PATH_VALUE}/unowned/instances/${idReservation}`;
       proxy.setupEvidenceDir({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath,
       });
       proxy.setupHeartbeatMissing({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath,
       });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
@@ -603,37 +596,33 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const evidencePathRecent = FilePathStub({
-        value: `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`,
-      });
+      const evidencePathRecent = `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`;
       proxy.setupEvidenceDir({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathRecent,
       });
       proxy.setupHeartbeatMissing({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathRecent,
       });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
-      const evidencePathOld = FilePathStub({
-        value: `${ROOT_PATH_VALUE}/unowned/instances/${idOld}`,
-      });
+      const evidencePathOld = `${ROOT_PATH_VALUE}/unowned/instances/${idOld}`;
       proxy.setupEvidenceDir({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathOld,
       });
       proxy.setupHeartbeatMissing({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathOld,
       });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathOld, entries: [] });
@@ -719,19 +708,17 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const evidencePathRecent = FilePathStub({
-        value: `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`,
-      });
+      const evidencePathRecent = `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`;
       proxy.setupEvidenceDir({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathRecent,
       });
       proxy.setupHeartbeatMissing({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
         evidencePath: evidencePathRecent,
       });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });

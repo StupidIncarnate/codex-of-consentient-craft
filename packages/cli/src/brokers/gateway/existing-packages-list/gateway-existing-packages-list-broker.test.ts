@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { gatewayExistingPackagesListBroker } from './gateway-existing-packages-list-broker';
 import { gatewayExistingPackagesListBrokerProxy } from './gateway-existing-packages-list-broker.proxy';
@@ -6,7 +5,7 @@ import { gatewayExistingPackagesListBrokerProxy } from './gateway-existing-packa
 describe('gatewayExistingPackagesListBroker', () => {
   it('EMPTY: {packagesDir: does not exist} => returns an empty list', () => {
     const proxy = gatewayExistingPackagesListBrokerProxy();
-    const packagesDir = FilePathStub({ value: '/repo/packages' });
+    const packagesDir = '/repo/packages';
     proxy.setupNoPackagesDir({ packagesDir });
 
     const result = gatewayExistingPackagesListBroker({ packagesDir });
@@ -16,7 +15,7 @@ describe('gatewayExistingPackagesListBroker', () => {
 
   it('VALID: {packagesDir: two flat packages} => returns both package directories', () => {
     const proxy = gatewayExistingPackagesListBrokerProxy();
-    const packagesDir = FilePathStub({ value: '/repo/packages' });
+    const packagesDir = '/repo/packages';
 
     proxy.setupPackages({
       packagesDir,
@@ -33,7 +32,7 @@ describe('gatewayExistingPackagesListBroker', () => {
 
   it('VALID: {packagesDir: a flat entry with no package.json} => excludes it', () => {
     const proxy = gatewayExistingPackagesListBrokerProxy();
-    const packagesDir = FilePathStub({ value: '/repo/packages' });
+    const packagesDir = '/repo/packages';
 
     proxy.setupPackages({
       packagesDir,
@@ -50,7 +49,7 @@ describe('gatewayExistingPackagesListBroker', () => {
 
   it('VALID: {packagesDir: @gateway group present} => excludes @gateway entirely, without recursing into it', () => {
     const proxy = gatewayExistingPackagesListBrokerProxy();
-    const packagesDir = FilePathStub({ value: '/repo/packages' });
+    const packagesDir = '/repo/packages';
 
     // @gateway is staged as a plain leaf name (no `children`), so if the broker ever tried to
     // recurse into it, the un-staged nested readdir call would throw — proving the exclusion
@@ -70,7 +69,7 @@ describe('gatewayExistingPackagesListBroker', () => {
 
   it('VALID: {packagesDir: a non-gateway @scope group} => recurses into it and returns its children', () => {
     const proxy = gatewayExistingPackagesListBrokerProxy();
-    const packagesDir = FilePathStub({ value: '/repo/packages' });
+    const packagesDir = '/repo/packages';
 
     proxy.setupPackages({
       packagesDir,

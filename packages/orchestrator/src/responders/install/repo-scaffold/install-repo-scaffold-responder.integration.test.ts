@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
 
@@ -13,8 +12,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await InstallRepoScaffoldResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
           },
         }),
       });
@@ -59,8 +58,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await InstallRepoScaffoldResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
           },
         }),
       });
@@ -91,8 +90,8 @@ describe('InstallRepoScaffoldResponder', () => {
       await InstallRepoScaffoldResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
           },
         }),
       });
@@ -103,8 +102,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const secondResult = await InstallRepoScaffoldResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
           },
         }),
       });
@@ -139,8 +138,8 @@ describe('InstallRepoScaffoldResponder', () => {
       const result = await InstallRepoScaffoldResponder({
         context: InstallContextStub({
           value: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
           },
         }),
       });

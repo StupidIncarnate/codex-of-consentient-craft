@@ -46,11 +46,7 @@
  * have to guess a layout.
  */
 
-import {
-  filePathContract,
-  questContract,
-  repoRelativePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, repoRelativePathContract } from '@dungeonmaster/shared/contracts';
 import type { BlightChecklist, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -80,7 +76,7 @@ export const questGetBlightChecklistBroker = async ({
 }): Promise<BlightChecklist | null> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
 
   const quest = await questLoadBroker({ questFilePath });
   const { baseRef } = quest;

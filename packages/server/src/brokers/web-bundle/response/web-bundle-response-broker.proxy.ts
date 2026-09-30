@@ -4,7 +4,6 @@ import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/pa
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { webBundleDistPathBroker } from '../dist-path/web-bundle-dist-path-broker';
 import { webBundleDistPathBrokerProxy } from '../dist-path/web-bundle-dist-path-broker.proxy';
 import { webBundlePackageResolveBrokerProxy } from '../../web-bundle-package/resolve/web-bundle-package-resolve-broker.proxy';
@@ -46,7 +45,7 @@ export const webBundleResponseBrokerProxy = (): {
           'webBundleResponseBrokerProxy.setupFileContents: webBundleDistPathBroker resolved null — is @dungeonmaster/web built?',
         );
       }
-      const expectedFilepath = FilePathStub({ value: join(distPath, expectedRelativePath) });
+      const expectedFilepath = join(distPath, expectedRelativePath);
       readProxy.returns({ path: expectedFilepath, contents });
     },
     setupMissingBundle: (): void => {

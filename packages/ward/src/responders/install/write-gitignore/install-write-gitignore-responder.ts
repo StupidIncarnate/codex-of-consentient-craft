@@ -9,13 +9,7 @@
  */
 
 import { readFile, writeFile } from '#gateway/node/fs__promises';
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
@@ -26,9 +20,7 @@ export const InstallWriteGitignoreResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const gitignorePath = filePathContract.parse(
-    `${context.targetProjectRoot}/${GITIGNORE_FILENAME}`,
-  );
+  const gitignorePath = `${context.targetProjectRoot}/${GITIGNORE_FILENAME}`;
 
   let existingContent = '';
 

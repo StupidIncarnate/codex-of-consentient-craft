@@ -1,7 +1,6 @@
 import { violationsCheckNewBroker } from './violations-check-new-broker';
 import { violationsCheckNewBrokerProxy } from './violations-check-new-broker.proxy';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { ViolationCountStub } from '../../../contracts/violation-count/violation-count.stub';
 import { ViolationDetailStub } from '../../../contracts/violation-detail/violation-detail.stub';
 
@@ -9,15 +8,15 @@ describe('violationsCheckNewBroker', () => {
   describe('input validation', () => {
     it('VALID: {toolInput: valid file_path} => returns no new violations when no changes', async () => {
       const proxy = violationsCheckNewBrokerProxy();
-      proxy.setupFileMissing({ filePath: FilePathStub({ value: '/test/file.ts' }) });
+      proxy.setupFileMissing({ filePath: '/test/file.ts' });
       const toolInput = WriteToolInputStub({
         content: 'test',
-        file_path: FilePathStub({ value: '/test/file.ts' }),
+        file_path: '/test/file.ts',
       });
 
       const result = await violationsCheckNewBroker({
         toolInput,
-        cwd: FilePathStub({ value: '/test/project' }),
+        cwd: '/test/project',
       });
 
       expect(result).toStrictEqual({
@@ -35,12 +34,12 @@ describe('violationsCheckNewBroker', () => {
 
       const toolInput = WriteToolInputStub({
         content: 'const x = new;',
-        file_path: FilePathStub({ value: '/test/project/smoke-repo/fixture.ts' }),
+        file_path: '/test/project/smoke-repo/fixture.ts',
       });
 
       const result = await violationsCheckNewBroker({
         toolInput,
-        cwd: FilePathStub({ value: '/test/project' }),
+        cwd: '/test/project',
       });
 
       expect(result).toStrictEqual({
@@ -55,17 +54,17 @@ describe('violationsCheckNewBroker', () => {
       proxy.setPathIgnored({ ignored: true });
       proxy.setupViolationCheck({
         hasViolations: true,
-        filePath: FilePathStub({ value: '/test/project/smoke-repo/fixture.ts' }),
+        filePath: '/test/project/smoke-repo/fixture.ts',
       });
 
       const toolInput = WriteToolInputStub({
         content: 'const x = new;',
-        file_path: FilePathStub({ value: '/test/project/smoke-repo/fixture.ts' }),
+        file_path: '/test/project/smoke-repo/fixture.ts',
       });
 
       const result = await violationsCheckNewBroker({
         toolInput,
-        cwd: FilePathStub({ value: '/test/project' }),
+        cwd: '/test/project',
       });
 
       expect(result).toStrictEqual({

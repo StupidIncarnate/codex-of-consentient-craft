@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -13,17 +12,13 @@ describe('QuestListWithSkipsResponder', () => {
       const proxy = QuestListWithSkipsResponderProxy();
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
       proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-add-auth' })] });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-add-auth' }),
-        result: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-add-auth/quest.json',
-        }),
+        result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-add-auth/quest.json',
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
@@ -41,26 +36,20 @@ describe('QuestListWithSkipsResponder', () => {
       const proxy = QuestListWithSkipsResponderProxy();
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
       proxy.setupQuestDirectories({
         files: [FileNameStub({ value: '001-broken' }), FileNameStub({ value: '002-good' })],
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-broken' }),
-        result: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-broken/quest.json',
-        }),
+        result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-broken/quest.json',
       });
       proxy.setupQuestFile({ questJson: '{ not valid json' });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '002-good' }),
-        result: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/002-good/quest.json',
-        }),
+        result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/002-good/quest.json',
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
@@ -82,17 +71,13 @@ describe('QuestListWithSkipsResponder', () => {
       const proxy = QuestListWithSkipsResponderProxy();
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
       proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-legacy' })] });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: '001-legacy' }),
-        result: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-legacy/quest.json',
-        }),
+        result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-legacy/quest.json',
       });
       // `pathseeker` is no longer in workItemRoleContract, and relatedDataItems is a bare uuid
       // instead of the `{collection}/{id}` shape — the exact drift a long-lived home dir carries.
@@ -137,10 +122,8 @@ describe('QuestListWithSkipsResponder', () => {
       const proxy = QuestListWithSkipsResponderProxy();
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
       proxy.setupQuestDirectories({ files: [] });
 

@@ -5,7 +5,6 @@ import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
@@ -112,10 +111,10 @@ export const laneTeardownBrokerProxy = (): {
     setupEvidenceResolved: (): void => {
       evidenceProxy.setupLinkResolvesToRoot({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
       });
     },
 

@@ -2,16 +2,15 @@ import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsUsageLedgerTmpPathFindBrokerProxy = (): {
   setupLedgerTmpPath: (params: {
     homeDir: string;
-    homePath: FilePath;
+    homePath: string;
     token: string;
-    ledgerTmpPath: FilePath;
+    ledgerTmpPath: string;
   }) => void;
-  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupHomeOnly: (params: { homeDir: string; homePath: string }) => void;
 } => {
   const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
@@ -31,9 +30,9 @@ export const locationsUsageLedgerTmpPathFindBrokerProxy = (): {
       ledgerTmpPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       token: string;
-      ledgerTmpPath: FilePath;
+      ledgerTmpPath: string;
     }): void => {
       dmHomeProxy.clearHomeEnv();
       dmHomeProxy.setupHomePath({ homeDir, homePath });
@@ -47,7 +46,7 @@ export const locationsUsageLedgerTmpPathFindBrokerProxy = (): {
     // than replayed from a staged value. Reach for this over setupLedgerTmpPath whenever the
     // assertion is about the NAME — a staged result comes back whether or not the token ever
     // reached the filename.
-    setupHomeOnly: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
+    setupHomeOnly: ({ homeDir, homePath }: { homeDir: string; homePath: string }): void => {
       dmHomeProxy.clearHomeEnv();
       dmHomeProxy.setupHomePath({ homeDir, homePath });
     },

@@ -5,7 +5,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -49,10 +48,8 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -87,12 +84,10 @@ describe('ChatReplayResponder', () => {
       // Quest lookup runs FIRST in the responder. Underlying fs/path mocks are sequential
       // queues, so set up mocks in the order the responder consumes them: questList first,
       // then chatHistoryReplay (guildGet + JSONL + subagent dir).
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectories({
@@ -100,9 +95,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: quest.folder }),
-        result: FilePathStub({
-          value: `${questsPath}/${quest.folder}/quest.json`,
-        }),
+        result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify(quest),
@@ -150,12 +143,10 @@ describe('ChatReplayResponder', () => {
       const quest = QuestStub({ workItems: [linkedWorkItem] });
 
       // Quest lookup runs FIRST in the responder. Mocks consumed in setup order.
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectories({
@@ -163,9 +154,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: quest.folder }),
-        result: FilePathStub({
-          value: `${questsPath}/${quest.folder}/quest.json`,
-        }),
+        result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify(quest),
@@ -209,10 +198,8 @@ describe('ChatReplayResponder', () => {
       // Quest list comes back EMPTY — sessionId belongs to no quest workItem.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -255,13 +242,11 @@ describe('ChatReplayResponder', () => {
       const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'replay-no-quests-dir' });
       const guild = GuildStub({ id: guildId });
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectoriesFailure({ error: FileMissingErrorStub({ path: questsPath }) });
@@ -290,13 +275,11 @@ describe('ChatReplayResponder', () => {
       const sessionId = SessionIdStub({ value: 'session-quests-dir-denied' });
       const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'replay-quests-dir-denied' });
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectoriesFailure({
@@ -329,12 +312,10 @@ describe('ChatReplayResponder', () => {
       // Quest lookup runs FIRST in the responder. Stage it before the chatHistoryReplayBroker
       // stubs, which resolve their JSONL directory through questCwdResolveBroker BEFORE
       // touching any JSONL.
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectories({
@@ -342,9 +323,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: quest.folder }),
-        result: FilePathStub({
-          value: `${questsPath}/${quest.folder}/quest.json`,
-        }),
+        result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify(quest),
@@ -414,10 +393,8 @@ describe('ChatReplayResponder', () => {
       // Quest list comes back EMPTY — sessionId belongs to no quest workItem.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -474,10 +451,8 @@ describe('ChatReplayResponder', () => {
       // chat-output.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -522,10 +497,8 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -569,10 +542,8 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -634,12 +605,10 @@ describe('ChatReplayResponder', () => {
       // Quest lookup runs FIRST in the responder. Stage it before the chatHistoryReplayBroker
       // stubs, which now resolve their JSONL directory through questCwdResolveBroker BEFORE
       // touching any JSONL.
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectories({
@@ -647,9 +616,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: quest.folder }),
-        result: FilePathStub({
-          value: `${questsPath}/${quest.folder}/quest.json`,
-        }),
+        result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify(quest),
@@ -723,10 +690,8 @@ describe('ChatReplayResponder', () => {
       // walk-up. No questCwdResolveBroker staging needed — that branch is never reached.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -780,12 +745,10 @@ describe('ChatReplayResponder', () => {
       const quest = QuestStub({ workItems: [linkedWorkItem] });
       const worktreePath = '/home/testuser/worktrees/quest-missing-99';
 
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectories({
@@ -793,9 +756,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: quest.folder }),
-        result: FilePathStub({
-          value: `${questsPath}/${quest.folder}/quest.json`,
-        }),
+        result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify(quest),
@@ -824,12 +785,10 @@ describe('ChatReplayResponder', () => {
       const quest = QuestStub({ workItems: [linkedWorkItem] });
       const worktreePath = '/home/testuser/worktrees/quest-missing-77';
 
-      const questsPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
+      const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        homePath: '/home/testuser/.dungeonmaster',
         questsPath,
       });
       proxy.setupQuestDirectories({
@@ -837,9 +796,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestFilePath({
         folderName: FileNameStub({ value: quest.folder }),
-        result: FilePathStub({
-          value: `${questsPath}/${quest.folder}/quest.json`,
-        }),
+        result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
         questJson: JSON.stringify(quest),
@@ -876,10 +833,8 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 

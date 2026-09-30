@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -75,9 +74,9 @@ describe('cleanupRunBroker', () => {
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME_PATH }),
-        rootPath: FilePathStub({ value: ROOT_PATH }),
-        evidencePath: FilePathStub({ value: STALE_EVIDENCE_PATH }),
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath: STALE_EVIDENCE_PATH,
       });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
@@ -121,9 +120,9 @@ describe('cleanupRunBroker', () => {
       });
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME_PATH }),
-        rootPath: FilePathStub({ value: ROOT_PATH }),
-        evidencePath: FilePathStub({ value: ABANDONED_RESERVATION_EVIDENCE_PATH }),
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath: ABANDONED_RESERVATION_EVIDENCE_PATH,
       });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${ABANDONED_RESERVATION_EVIDENCE_PATH}/runs` }),
@@ -194,9 +193,9 @@ describe('cleanupRunBroker', () => {
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME_PATH }),
-        rootPath: FilePathStub({ value: ROOT_PATH }),
-        evidencePath: FilePathStub({ value: STALE_EVIDENCE_PATH }),
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath: STALE_EVIDENCE_PATH,
       });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),

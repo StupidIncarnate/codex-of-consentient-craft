@@ -1,9 +1,9 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
 import { jestConfigTemplateStatics } from '../../statics/jest-config-template/jest-config-template-statics';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallFlow', () => {
   describe('add-dev-deps + create-playwright', () => {
@@ -28,10 +28,10 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const packageJsonContent = testbed.readFile({
@@ -98,10 +98,10 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const playwrightConfigContent = testbed.readFile({
@@ -128,10 +128,10 @@ describe('InstallFlow', () => {
       // (name + version only) already represents a non-eligible target.
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const playwrightConfigContent = testbed.readFile({
@@ -164,10 +164,10 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const jestConfigContent = testbed.readFile({
@@ -242,10 +242,10 @@ describe('InstallFlow', () => {
       });
 
       const firstRun = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       expect(firstRun.action).toBe('created');
@@ -485,10 +485,10 @@ export {};
       );
 
       const secondRun = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const afterSecondRun = filesToCompare.map((relativePath) =>
@@ -512,10 +512,10 @@ export {};
       });
 
       const result = await InstallFlow({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const npmPackageJson = JSON.parse(

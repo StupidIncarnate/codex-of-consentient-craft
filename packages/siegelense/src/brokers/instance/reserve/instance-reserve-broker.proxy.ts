@@ -6,7 +6,7 @@ import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
+import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
@@ -23,9 +23,9 @@ export const instanceReserveBrokerProxy = (): {
   setupRegistryForExhaustedClaim: (params: { json: string }) => void;
   setupEvidenceDir: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
   }) => void;
   // Stages the OS's answer for every port-claim candidate this broker asks for, in call order —
   // this broker asks for `claimAttempts` pairs UPFRONT (they don't depend on each other), so
@@ -55,7 +55,7 @@ export const instanceReserveBrokerProxy = (): {
 
   // The two paths setupEvidenceDir stages ensureDir for, captured so getCreatedDirs can read both
   // back afterward — a const holder whose fields mutate, not a reassigned let.
-  const capturedDirsState: { rootPath: FilePath | null; evidencePath: FilePath | null } = {
+  const capturedDirsState: { rootPath: string | null; evidencePath: string | null } = {
     rootPath: null,
     evidencePath: null,
   };
@@ -84,9 +84,9 @@ export const instanceReserveBrokerProxy = (): {
       evidencePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
     }): void => {
       evidenceProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       mkdirProxy.succeeds({ path: String(evidencePath) });

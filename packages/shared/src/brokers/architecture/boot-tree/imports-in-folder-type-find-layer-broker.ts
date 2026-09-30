@@ -24,7 +24,6 @@ import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { layerFileParentResolveTransformer } from '../../../transformers/layer-file-parent-resolve/layer-file-parent-resolve-transformer';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { existsSync } from '#gateway/node/fs';
 import { readFileContentsLayerBroker } from './read-file-contents-layer-broker';
 
@@ -70,7 +69,7 @@ export const importsInFolderTypeFindLayerBroker = ({
     if (!isNonTestFileGuard({ filePath: onDisk })) continue;
 
     const parentOrNull = layerFileParentResolveTransformer({
-      layerFilePath: filePathContract.parse(onDisk),
+      layerFilePath: onDisk,
     });
     if (parentOrNull !== null) {
       layers.push(onDisk);

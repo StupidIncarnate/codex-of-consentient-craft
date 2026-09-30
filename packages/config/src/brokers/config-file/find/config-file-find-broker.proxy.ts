@@ -1,5 +1,3 @@
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { configRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/config-root/find/config-root-find-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { dirname } from '#gateway/node/path';
@@ -21,9 +19,9 @@ export const configFileFindBrokerProxy = (): {
   const realPath = requireActual<{ dirname: typeof dirname }>({ module: 'path' });
   const dirnameHandle = registerMock({ fn: dirname });
 
-  const directoryOf = ({ startPath }: { startPath: string }): FilePath => {
+  const directoryOf = ({ startPath }: { startPath: string }): string => {
     dirnameHandle.calledWith([startPath]).implement(realPath.dirname);
-    return filePathContract.parse(realPath.dirname(startPath));
+    return realPath.dirname(startPath);
   };
 
   return {

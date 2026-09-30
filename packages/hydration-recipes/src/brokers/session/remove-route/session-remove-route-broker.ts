@@ -6,7 +6,6 @@
  * // Deletes <claudeHome>/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
  */
 import { rm } from '#gateway/node/fs__promises';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -16,5 +15,5 @@ export const sessionRemoveRouteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<void> => {
-  await rm(filePathContract.parse(record.filePath));
+  await rm(record.filePath);
 };

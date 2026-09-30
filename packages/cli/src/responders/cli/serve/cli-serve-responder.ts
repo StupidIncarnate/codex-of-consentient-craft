@@ -6,7 +6,6 @@
  * // Starts server module, writes URL to stdout, opens browser with platform-appropriate command
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 import { runFireAndForget } from '#gateway/node/child_process';
 import { getPlatform, stdout } from '#gateway/node/process';
@@ -18,7 +17,7 @@ import { startServerModuleContract } from '../../../contracts/start-server-modul
 
 export const CliServeResponder = async (): Promise<void> => {
   const serverPackageName = await httpBackendPackageResolveBroker();
-  const serverPath = filePathContract.parse(require.resolve(serverPackageName));
+  const serverPath = require.resolve(serverPackageName);
   const serverModule = startServerModuleContract.parse(await dynamicImport({ path: serverPath }));
 
   // Published single-port launch: no separate vite server exists, so the HTTP server serves the

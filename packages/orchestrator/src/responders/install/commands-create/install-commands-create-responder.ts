@@ -9,13 +9,7 @@
  * // Returns InstallResult — action 'created'; the two command files are written to disk
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  filePathContract,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -29,18 +23,12 @@ export const InstallCommandsCreateResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const commandsDir = filePathContract.parse(
-    join(context.targetProjectRoot, locationsStatics.repoRoot.claude.dir, COMMANDS_DIR_NAME),
-  );
+  const commandsDir = join(context.targetProjectRoot, locationsStatics.repoRoot.claude.dir, COMMANDS_DIR_NAME);
 
   await ensureDir(commandsDir);
 
-  const createPath = filePathContract.parse(
-    join(commandsDir, slashCommandsStatics.dumpsterCreate.fileName),
-  );
-  const huntPath = filePathContract.parse(
-    join(commandsDir, slashCommandsStatics.dumpsterHunt.fileName),
-  );
+  const createPath = join(commandsDir, slashCommandsStatics.dumpsterCreate.fileName);
+  const huntPath = join(commandsDir, slashCommandsStatics.dumpsterHunt.fileName);
 
   await writeFile(createPath, slashCommandsStatics.dumpsterCreate.body);
   await writeFile(huntPath, slashCommandsStatics.dumpsterHunt.body);

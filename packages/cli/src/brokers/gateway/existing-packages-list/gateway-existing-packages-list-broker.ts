@@ -14,8 +14,6 @@
 
 import { join } from '#gateway/node/path';
 import { existsSync, readdirSync } from '#gateway/node/fs';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 const GROUP_FOLDER_PREFIX = '@';
 const GATEWAY_GROUP_FOLDER = '@gateway';
@@ -23,8 +21,8 @@ const GATEWAY_GROUP_FOLDER = '@gateway';
 export const gatewayExistingPackagesListBroker = ({
   packagesDir,
 }: {
-  packagesDir: FilePath;
-}): readonly FilePath[] => {
+  packagesDir: string;
+}): readonly string[] => {
   if (!existsSync(packagesDir)) {
     return [];
   }
@@ -44,5 +42,5 @@ export const gatewayExistingPackagesListBroker = ({
 
   return candidateDirs
     .filter((candidateDir) => existsSync(join(candidateDir, 'package.json')))
-    .map((candidateDir) => filePathContract.parse(candidateDir));
+    .map((candidateDir) => candidateDir);
 };

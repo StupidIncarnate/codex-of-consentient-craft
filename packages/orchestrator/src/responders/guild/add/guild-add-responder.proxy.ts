@@ -1,4 +1,4 @@
-import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBrokerProxy } from '../../../brokers/guild/add/guild-add-broker.proxy';
 import { GuildAddResponder } from './guild-add-responder';
@@ -8,10 +8,10 @@ export const GuildAddResponderProxy = (): {
   setupAddGuild: (params: {
     existingConfig: GuildConfig;
     homeDir: string;
-    homePath: FilePath;
-    guildsPath: FilePath;
-    guildDirPath: FilePath;
-    questsDirPath: FilePath;
+    homePath: string;
+    guildsPath: string;
+    guildDirPath: string;
+    questsDirPath: string;
   }) => void;
   setupDuplicatePath: (params: { existingConfig: GuildConfig }) => void;
 } => {
@@ -23,10 +23,10 @@ export const GuildAddResponderProxy = (): {
     setupAddGuild: (params: {
       existingConfig: GuildConfig;
       homeDir: string;
-      homePath: FilePath;
-      guildsPath: FilePath;
-      guildDirPath: FilePath;
-      questsDirPath: FilePath;
+      homePath: string;
+      guildsPath: string;
+      guildDirPath: string;
+      questsDirPath: string;
     }): void => {
       brokerProxy.setupAddGuild(params);
     },

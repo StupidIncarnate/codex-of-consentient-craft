@@ -1,6 +1,5 @@
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { dirname } from '#gateway/node/path';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { configFileFindBrokerProxy } from '../../config-file/find/config-file-find-broker.proxy';
 import { configFileLoadBrokerProxy } from '../../config-file/load/config-file-load-broker.proxy';
 import { findParentConfigsLayerBrokerProxy } from './find-parent-configs-layer-broker.proxy';
@@ -38,12 +37,12 @@ export const configResolveBrokerProxy = (): {
     // setupConfigFound call just described - callers pass that same value here.
     setupValidConfig: (params: { configPath: string; config: Record<string, unknown> }): void => {
       loadProxy.setupValidConfig({
-        configPath: params.configPath as FilePath,
+        configPath: params.configPath as string,
         config: params.config,
       });
     },
     setupFileNotFound: (params: { configPath: string }): void => {
-      loadProxy.setupFileNotFound({ configPath: params.configPath as FilePath });
+      loadProxy.setupFileNotFound({ configPath: params.configPath as string });
     },
   };
 };

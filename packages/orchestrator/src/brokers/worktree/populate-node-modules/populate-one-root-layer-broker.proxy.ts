@@ -1,6 +1,6 @@
 import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
 import { cpRunProxy } from '#gateway/bin/cp/cp-run/cp-run.proxy';
@@ -49,7 +49,7 @@ export const populateOneRootLayerBrokerProxy = (): {
     targetRoot: AbsoluteFilePath;
     entries: { name: string; isDir: boolean; isSymlink: boolean }[];
   }) => void;
-  setupReadlinkTarget: (params: { linkPath: FilePath; target: string }) => void;
+  setupReadlinkTarget: (params: { linkPath: string; target: string }) => void;
   // Stages the ROOT `ensureDir(targetRoot/node_modules)` call every "not already populated" pass
   // makes, plus one per named npm scope directory beneath it — the exact set this layer computes,
   // addressed by their real values rather than an unaddressed catch-all.
@@ -57,8 +57,8 @@ export const populateOneRootLayerBrokerProxy = (): {
     targetRoot: AbsoluteFilePath;
     scopeNames?: readonly string[];
   }) => void;
-  setupMkdirThrows: (params: { filepath: FilePath; error: FsError }) => void;
-  setupSymlinkSucceeds: (params: { target: FilePath; path: FilePath }) => void;
+  setupMkdirThrows: (params: { filepath: string; error: FsError }) => void;
+  setupSymlinkSucceeds: (params: { target: string; path: string }) => void;
   setupCopySucceeds: () => void;
   setupCopyFails: (params: { output: string }) => void;
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
@@ -74,7 +74,7 @@ export const populateOneRootLayerBrokerProxy = (): {
   const readlinkProxy = readlinkIfLinkProxy();
   // Every (target, path) pair a test staged: `getAllSymlinks` reads back the calls at exactly those
   // addresses, so an unstaged link the broker attempts rejects rather than going unseen.
-  const stagedLinks: { target: FilePath; path: FilePath }[] = [];
+  const stagedLinks: { target: string; path: string }[] = [];
   const isAccessibleProxy = pathExistsProxy();
   const copyChild = cpRunProxy();
   // `join` computes many intermediate scope/child paths purely from string arithmetic, and the
@@ -120,7 +120,7 @@ export const populateOneRootLayerBrokerProxy = (): {
       });
     },
 
-    setupReadlinkTarget: ({ linkPath, target }: { linkPath: FilePath; target: string }): void => {
+    setupReadlinkTarget: ({ linkPath, target }: { linkPath: string; target: string }): void => {
       readlinkProxy.returns({ path: linkPath, target });
     },
     setupTargetReady: ({
@@ -140,13 +140,13 @@ export const populateOneRootLayerBrokerProxy = (): {
         ensureDirHandle.succeeds({ path: `${targetNodeModules}/${name}` });
       });
     },
-    setupMkdirThrows: ({ filepath, error }: { filepath: FilePath; error: FsError }): void => {
+    setupMkdirThrows: ({ filepath, error }: { filepath: string; error: FsError }): void => {
       // The done-check probes the target node_modules before any mkdir runs, and a directory whose
       // creation fails was not there.
       isAccessibleProxy.missing({ path: filepath });
       ensureDirHandle.rejects({ path: filepath, error });
     },
-    setupSymlinkSucceeds: ({ target, path }: { target: FilePath; path: FilePath }): void => {
+    setupSymlinkSucceeds: ({ target, path }: { target: string; path: string }): void => {
       stagedLinks.push({ target, path });
       linkProxy.succeeds({ target, path });
     },

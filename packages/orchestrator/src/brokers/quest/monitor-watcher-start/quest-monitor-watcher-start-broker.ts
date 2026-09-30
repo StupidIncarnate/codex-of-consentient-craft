@@ -32,7 +32,7 @@
 
 import type { WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import { absoluteFilePathContract, filePathContract, processIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, processIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -102,7 +102,7 @@ export const questMonitorWatcherStartBroker = async ({
   const stoppedStateSet = new Set<'stopped'>();
 
   const watcherHandle = questMonitorJsonlWatcherBroker({
-    sessionFilePath: filePathContract.parse(String(sessionFilePath)),
+    sessionFilePath: String(sessionFilePath),
     activeQuestIdGetter: (): Quest['id'] | null => null,
     chatProcessId,
     // A sub-agent that carries no work item of its own — a parent-summoned minion, or a

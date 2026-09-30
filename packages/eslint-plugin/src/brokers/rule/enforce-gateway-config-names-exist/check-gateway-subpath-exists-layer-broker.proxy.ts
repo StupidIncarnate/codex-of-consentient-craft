@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 
 export const checkGatewaySubpathExistsLayerBrokerProxy = (): {
@@ -9,11 +8,11 @@ export const checkGatewaySubpathExistsLayerBrokerProxy = (): {
 
   return {
     setupBarrelExists: ({ barrelPath }: { barrelPath: string }): void => {
-      existsProxy.returns({ path: FilePathStub({ value: barrelPath }), exists: true });
+      existsProxy.returns({ path: barrelPath, exists: true });
     },
 
     setupBarrelMissing: ({ barrelPath }: { barrelPath: string }): void => {
-      existsProxy.returns({ path: FilePathStub({ value: barrelPath }), exists: false });
+      existsProxy.returns({ path: barrelPath, exists: false });
     },
   };
 };

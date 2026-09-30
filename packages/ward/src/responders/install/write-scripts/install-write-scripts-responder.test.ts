@@ -1,6 +1,6 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallWriteScriptsResponderProxy } from './install-write-scripts-responder.proxy';
 import { installScriptsStatics } from '../../../statics/install-scripts/install-scripts-statics';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallWriteScriptsResponder', () => {
   describe('no package.json', () => {
@@ -10,10 +10,10 @@ describe('InstallWriteScriptsResponder', () => {
       proxy.setupFileNotExists();
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -28,16 +28,16 @@ describe('InstallWriteScriptsResponder', () => {
   describe('invalid package.json', () => {
     it('VALID: {non-object JSON} => returns skipped with failure', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
-      const filePath = FilePathStub({ value: '/project/package.json' });
+      const filePath = '/project/package.json';
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({ filePath, content: '"not-an-object"' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -52,7 +52,7 @@ describe('InstallWriteScriptsResponder', () => {
   describe('no ward scripts present', () => {
     it('VALID: {no scripts} => appends all ward scripts after existing keys', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
-      const filePath = FilePathStub({ value: '/project/package.json' });
+      const filePath = '/project/package.json';
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({
@@ -61,10 +61,10 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -90,7 +90,7 @@ describe('InstallWriteScriptsResponder', () => {
   describe('some ward scripts present', () => {
     it('VALID: {custom ward script} => preserves it and adds only the missing scripts', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
-      const filePath = FilePathStub({ value: '/project/package.json' });
+      const filePath = '/project/package.json';
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({
@@ -99,10 +99,10 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -134,7 +134,7 @@ describe('InstallWriteScriptsResponder', () => {
   describe('all ward scripts present', () => {
     it('VALID: {all scripts already defined} => skips installation', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
-      const filePath = FilePathStub({ value: '/project/package.json' });
+      const filePath = '/project/package.json';
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({
@@ -143,10 +143,10 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({

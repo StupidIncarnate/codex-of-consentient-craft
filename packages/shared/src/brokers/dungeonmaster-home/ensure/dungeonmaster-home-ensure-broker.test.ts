@@ -1,7 +1,6 @@
 import { dungeonmasterHomeEnsureBroker } from './dungeonmaster-home-ensure-broker';
 import { dungeonmasterHomeEnsureBrokerProxy } from './dungeonmaster-home-ensure-broker.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('dungeonmasterHomeEnsureBroker', () => {
   describe('successful ensure', () => {
@@ -10,8 +9,8 @@ describe('dungeonmasterHomeEnsureBroker', () => {
 
       proxy.setupEnsureSuccess({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        homePath: '/home/user/.dungeonmaster',
+        guildsPath: '/home/user/.dungeonmaster/guilds',
       });
 
       const result = await dungeonmasterHomeEnsureBroker();
@@ -27,8 +26,8 @@ describe('dungeonmasterHomeEnsureBroker', () => {
 
       proxy.setupEnsureSuccess({
         homeDir: '/root',
-        homePath: FilePathStub({ value: '/root/.dungeonmaster' }),
-        guildsPath: FilePathStub({ value: '/root/.dungeonmaster/guilds' }),
+        homePath: '/root/.dungeonmaster',
+        guildsPath: '/root/.dungeonmaster/guilds',
       });
 
       const result = await dungeonmasterHomeEnsureBroker();
@@ -47,7 +46,7 @@ describe('dungeonmasterHomeEnsureBroker', () => {
 
       proxy.setupMkdirFails({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         error,
       });
 

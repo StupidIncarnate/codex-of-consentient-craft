@@ -1,5 +1,4 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 export const folderResolveLayerBrokerProxy = (): {
@@ -11,9 +10,7 @@ export const folderResolveLayerBrokerProxy = (): {
 
   // Every caller of this proxy (folder-resolve-layer-broker.test.ts and
   // command-run-broker.proxy.ts) resolves the package.json for rootPath '/project'.
-  const path = filePathContract.parse(
-    `${AbsoluteFilePathStub({ value: '/project' })}/package.json`,
-  );
+  const path = `${AbsoluteFilePathStub({ value: '/project' })}/package.json`;
 
   return {
     setupReturnsPackage: ({ name }: { name: string }): void => {

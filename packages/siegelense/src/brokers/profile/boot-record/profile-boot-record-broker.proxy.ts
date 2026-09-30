@@ -12,7 +12,6 @@
 
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
@@ -25,9 +24,9 @@ type InstanceId = ReturnType<typeof InstanceIdStub>;
 export const profileBootRecordBrokerProxy = (): {
   setupBootRecordWrite: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    profilesPath: FilePath;
+    homePath: string;
+    rootPath: string;
+    profilesPath: string;
     instanceId: InstanceId;
     nowMs: number;
   }) => void;
@@ -35,8 +34,8 @@ export const profileBootRecordBrokerProxy = (): {
   // shared writeHandle predicate, a call-count-tuned dateNowHandle queue) and only needs the
   // boots directory itself created, without setupBootRecordWrite's own sticky Date.now() default
   // colliding with that queue.
-  setupBootsDirCreated: (params: { profilesPath: FilePath }) => void;
-  getWrittenRecord: (params: { profilesPath: FilePath; instanceId: InstanceId }) => unknown;
+  setupBootsDirCreated: (params: { profilesPath: string }) => void;
+  getWrittenRecord: (params: { profilesPath: string; instanceId: InstanceId }) => unknown;
 } => {
   // Constructed, never staged: the record-path join runs through the real passthrough default
   // dirsProxy's own composition chain already registers on '#gateway/node/path's `join`.
@@ -55,9 +54,9 @@ export const profileBootRecordBrokerProxy = (): {
       nowMs,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      profilesPath: FilePath;
+      homePath: string;
+      rootPath: string;
+      profilesPath: string;
       instanceId: InstanceId;
       nowMs: number;
     }): void => {
@@ -73,7 +72,7 @@ export const profileBootRecordBrokerProxy = (): {
       dateHandle.calledWith([]).returns(nowMs);
     },
 
-    setupBootsDirCreated: ({ profilesPath }: { profilesPath: FilePath }): void => {
+    setupBootsDirCreated: ({ profilesPath }: { profilesPath: string }): void => {
       mkdirProxy.succeeds({
         path: `${String(profilesPath)}/${profileStatics.dirs.boots}`,
       });
@@ -83,7 +82,7 @@ export const profileBootRecordBrokerProxy = (): {
       profilesPath,
       instanceId,
     }: {
-      profilesPath: FilePath;
+      profilesPath: string;
       instanceId: InstanceId;
     }): unknown =>
       writeProxy.writtenContentsFor({

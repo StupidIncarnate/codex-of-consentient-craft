@@ -2,7 +2,6 @@ import { locationsWorktreePathFindBroker } from './locations-worktree-path-find-
 import { locationsWorktreePathFindBrokerProxy } from './locations-worktree-path-find-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('locationsWorktreePathFindBroker', () => {
   describe('worktree path resolution', () => {
@@ -12,7 +11,7 @@ describe('locationsWorktreePathFindBroker', () => {
       proxy.setupWorktreePath({
         repoRoot: '/repo',
         worktreeDirName: 'add-auth-7bc217a1',
-        worktreePath: FilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
+        worktreePath: '/repo/worktrees/add-auth-7bc217a1',
       });
 
       const result = locationsWorktreePathFindBroker({
@@ -29,9 +28,7 @@ describe('locationsWorktreePathFindBroker', () => {
       proxy.setupWorktreePath({
         repoRoot: '/home/user/repo',
         worktreeDirName: 'quest-git-lifecycle-baseref-branching-7bc217a1',
-        worktreePath: FilePathStub({
-          value: '/home/user/repo/worktrees/quest-git-lifecycle-baseref-branching-7bc217a1',
-        }),
+        worktreePath: '/home/user/repo/worktrees/quest-git-lifecycle-baseref-branching-7bc217a1',
       });
 
       const result = locationsWorktreePathFindBroker({

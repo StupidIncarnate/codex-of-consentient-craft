@@ -16,8 +16,6 @@
  */
 
 import { isProxyImportGuard } from '../../guards/is-proxy-import/is-proxy-import-guard';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const importPathToFilePathTransformer = ({
@@ -25,18 +23,18 @@ export const importPathToFilePathTransformer = ({
   resolvedPath,
   fileExists,
 }: {
-  sourceFilePath: FilePath;
+  sourceFilePath: string;
   importPath: ImportPath;
-  resolvedPath: FilePath;
+  resolvedPath: string;
   fileExists: boolean;
-}): FilePath | null => {
+}): string | null => {
   const isResolvableSpecifier = importPath.startsWith('.') || isProxyImportGuard({ importPath });
   if (!isResolvableSpecifier) {
     return null;
   }
 
   if (fileExists) {
-    return filePathContract.parse(resolvedPath);
+    return resolvedPath;
   }
 
   return null;

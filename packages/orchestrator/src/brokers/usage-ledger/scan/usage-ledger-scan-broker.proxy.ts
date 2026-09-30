@@ -1,6 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 import { locationsClaudeProjectsRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/claude-projects-root-find/locations-claude-projects-root-find-broker.proxy';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -77,7 +76,7 @@ export const usageLedgerScanBrokerProxy = (): {
       // unconsumed whenever this proxy is only being created to satisfy dependency discovery — and
       // the next broker that joins a path gets this one's answer instead of its own.
       rootProxy.setupProjectsRoot({
-        homeDir: FilePathStub({ value: '/home/user' }),
+        homeDir: '/home/user',
       });
 
       walkProxy.setupDirectory({

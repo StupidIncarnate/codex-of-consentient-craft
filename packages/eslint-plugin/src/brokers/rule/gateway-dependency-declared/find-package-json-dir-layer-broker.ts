@@ -10,16 +10,14 @@
  * findPackageJsonDirLayerBroker({ startDir: filePathContract.parse('/repo/packages/hooks/src/brokers/x') });
  * // Returns '/repo/packages/hooks' as FilePath, or undefined if no ancestor holds one
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
 export const findPackageJsonDirLayerBroker = ({
   startDir,
 }: {
-  startDir: FilePath;
-}): FilePath | undefined => {
+  startDir: string;
+}): string | undefined => {
   const packageJsonPath = join(startDir, 'package.json');
 
   if (existsSync(packageJsonPath)) {
@@ -31,5 +29,5 @@ export const findPackageJsonDirLayerBroker = ({
     return undefined;
   }
 
-  return findPackageJsonDirLayerBroker({ startDir: filePathContract.parse(parentDir) });
+  return findPackageJsonDirLayerBroker({ startDir: parentDir });
 };

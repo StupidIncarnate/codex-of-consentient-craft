@@ -1,7 +1,7 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 import { StartCli } from './start-cli';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('StartCli', () => {
   describe('delegation to CLI flow', () => {
@@ -22,10 +22,10 @@ describe('StartCli', () => {
       await StartCli({
         command: 'init',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const packageJsonContent = testbed.readFile({

@@ -28,7 +28,6 @@
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -115,8 +114,8 @@ export const SiegelenseDriverResponderProxy = (): {
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   evidencePathProxy.setupRootOnly({
     homeDir: '/home/user',
-    homePath: FilePathStub({ value: SHARED_PATH_VALUE }),
-    rootPath: FilePathStub({ value: SHARED_PATH_VALUE }),
+    homePath: SHARED_PATH_VALUE,
+    rootPath: SHARED_PATH_VALUE,
   });
   // instanceId is only chosen by each test AFTER this constructor already ran, so the exact final
   // socketPath can't be staged here either — locationsSocketPathFindBrokerProxy's own sticky

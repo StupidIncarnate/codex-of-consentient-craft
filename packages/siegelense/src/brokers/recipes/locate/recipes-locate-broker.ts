@@ -16,17 +16,13 @@ import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { RecipesPackageMissingError } from '../../../errors/recipes-package-missing/recipes-package-missing-error';
 import { RecipesBuildMissingError } from '../../../errors/recipes-build-missing/recipes-build-missing-error';
 
 export const recipesLocateBroker = async (): Promise<AbsoluteFilePath> => {
-  const cwdPath = filePathContract.parse(cwd());
+  const cwdPath = cwd();
   const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
 
   const packagePath = join(

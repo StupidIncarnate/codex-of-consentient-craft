@@ -1,19 +1,19 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallAddDevDepsResponderProxy } from './install-add-dev-deps-responder.proxy';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallAddDevDepsResponder', () => {
   describe('no package.json', () => {
     it('VALID: {no package.json} => returns skipped with failure', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileNotExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileNotExists({ filePath: '/project/package.json' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -29,17 +29,17 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {invalid JSON object} => returns skipped with failure', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileExists({ filePath: '/project/package.json' });
       proxy.setupReadFile({
-        filePath: FilePathStub({ value: '/project/package.json' }),
+        filePath: '/project/package.json',
         content: '"not-an-object"',
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -53,17 +53,17 @@ describe('InstallAddDevDepsResponder', () => {
     it('EMPTY: {null package.json} => returns skipped with failure', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileExists({ filePath: '/project/package.json' });
       proxy.setupReadFile({
-        filePath: FilePathStub({ value: '/project/package.json' }),
+        filePath: '/project/package.json',
         content: 'null',
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -79,17 +79,17 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {no devDependencies} => adds all required devDependencies', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileExists({ filePath: '/project/package.json' });
       proxy.setupReadFile({
-        filePath: FilePathStub({ value: '/project/package.json' }),
+        filePath: '/project/package.json',
         content: JSON.stringify({ name: 'test-project', version: '1.0.0' }),
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -127,9 +127,9 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {devDependencies present before nothing} => keeps name first, preserves + merges', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileExists({ filePath: '/project/package.json' });
       proxy.setupReadFile({
-        filePath: FilePathStub({ value: '/project/package.json' }),
+        filePath: '/project/package.json',
         content: JSON.stringify({
           name: 'test-project',
           devDependencies: { typescript: '^5.0.0' },
@@ -138,10 +138,10 @@ describe('InstallAddDevDepsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -176,9 +176,9 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {devDependencies has ts-node, not in the required list} => sorts it into its alphabetical position instead of appending it after every required package', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileExists({ filePath: '/project/package.json' });
       proxy.setupReadFile({
-        filePath: FilePathStub({ value: '/project/package.json' }),
+        filePath: '/project/package.json',
         content: JSON.stringify({
           name: 'test-project',
           devDependencies: { 'ts-node': '^10.9.2', typescript: '^5.0.0' },
@@ -186,10 +186,10 @@ describe('InstallAddDevDepsResponder', () => {
       });
 
       await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       // String-exact: 'ts-node' sorts between 'ts-jest' and 'tsx' — proving it lands at its
@@ -218,9 +218,9 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {all devDependencies exist} => skips installation', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupFileExists({ filePath: '/project/package.json' });
       proxy.setupReadFile({
-        filePath: FilePathStub({ value: '/project/package.json' }),
+        filePath: '/project/package.json',
         content: JSON.stringify({
           name: 'test-project',
           devDependencies: { ...devDependenciesStatics.packages },
@@ -228,10 +228,10 @@ describe('InstallAddDevDepsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({

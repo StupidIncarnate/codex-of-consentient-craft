@@ -30,7 +30,7 @@
  */
 
 import type { InstallContext } from '@dungeonmaster/shared/contracts';
-import { filePathContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -56,9 +56,7 @@ export const CliCreatePackageResponder = async ({
 }): Promise<void> => {
   const parsedArgs = createPackageArgsParseTransformer({ args });
 
-  const rootPackageJsonPath = filePathContract.parse(
-    join(context.targetProjectRoot, 'package.json'),
-  );
+  const rootPackageJsonPath = join(context.targetProjectRoot, 'package.json');
   const rootPackageJsonContent = await readFile(rootPackageJsonPath);
   const rootPackageJson = packageJsonRawContract.parse(JSON.parse(rootPackageJsonContent));
   const nameKey = packageJsonRawContract.keyType.parse('name');
@@ -72,9 +70,7 @@ export const CliCreatePackageResponder = async ({
     );
   }
 
-  const jestConfigBasePath = filePathContract.parse(
-    join(context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME),
-  );
+  const jestConfigBasePath = join(context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME);
   const usesPublishedJestBase = !existsSync(jestConfigBasePath);
 
   // Zero args at a terminal prompts; zero args with no TTY falls through to the resolver, which
@@ -92,9 +88,7 @@ export const CliCreatePackageResponder = async ({
     usesPublishedJestBase,
     workspaceScope: scope,
   });
-  const packageRoot = filePathContract.parse(
-    join(context.targetProjectRoot, request.packagesDir, request.directoryName),
-  );
+  const packageRoot = join(context.targetProjectRoot, request.packagesDir, request.directoryName);
 
   stdout.write(`Scaffolding ${request.packageName} at ${packageRoot}\n`);
   files.forEach((file) => {

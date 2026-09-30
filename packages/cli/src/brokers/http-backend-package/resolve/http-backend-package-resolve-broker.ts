@@ -11,12 +11,7 @@
  * // Returns PackageName('@dungeonmaster/server') — throws if none or several dependencies qualify
  */
 import { readFileSync } from '#gateway/node/fs';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  packageJsonContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, packageJsonContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
@@ -25,7 +20,7 @@ const SCOPE_PREFIX = '@dungeonmaster/';
 
 export const httpBackendPackageResolveBroker = async (): Promise<PackageName> => {
   const projectRoot = await cwdResolveBroker({
-    startPath: filePathContract.parse(__dirname),
+    startPath: __dirname,
     kind: 'project-root',
   });
   const ownPackageJson = packageJsonContract.parse(

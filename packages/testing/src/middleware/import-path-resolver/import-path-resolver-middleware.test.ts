@@ -1,6 +1,5 @@
 import { importPathResolverMiddleware } from './import-path-resolver-middleware';
 import { importPathResolverMiddlewareProxy } from './import-path-resolver-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('importPathResolverMiddleware', () => {
@@ -8,30 +7,30 @@ describe('importPathResolverMiddleware', () => {
     it('VALID: {relative import to an existing .ts proxy file} => returns FilePath', () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widget/widget.proxy.ts'] });
-      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const sourceFilePath = '/repo/src/widget/widget.test.ts';
       const importPath = ImportPathStub({ value: './widget.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(FilePathStub({ value: '/repo/src/widget/widget.proxy.ts' }));
+      expect(result).toStrictEqual('/repo/src/widget/widget.proxy.ts');
     });
 
     it('VALID: {relative import that already carries its .ts extension} => returns FilePath as-is', () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widget/widget.ts'] });
-      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const sourceFilePath = '/repo/src/widget/widget.test.ts';
       const importPath = ImportPathStub({ value: './widget.ts' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(FilePathStub({ value: '/repo/src/widget/widget.ts' }));
+      expect(result).toStrictEqual('/repo/src/widget/widget.ts');
     });
   });
 
   describe('non-relative imports', () => {
     it('VALID: {absolute import path} => returns null', () => {
       importPathResolverMiddlewareProxy();
-      const sourceFilePath = FilePathStub({ value: '/src/test.test.ts' });
+      const sourceFilePath = '/src/test.test.ts';
       const importPath = ImportPathStub({ value: 'some-package' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -53,12 +52,12 @@ describe('importPathResolverMiddleware', () => {
         },
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/shared/testing.ts' });
-      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const sourceFilePath = '/repo/src/widget/widget.test.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/shared/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(FilePathStub({ value: '/repo/packages/shared/testing.ts' }));
+      expect(result).toStrictEqual('/repo/packages/shared/testing.ts');
     });
   });
 
@@ -78,15 +77,12 @@ describe('importPathResolverMiddleware', () => {
         },
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/testing.ts' });
-      const sourceFilePath = FilePathStub({
-        value:
-          '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts',
-      });
+      const sourceFilePath = '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(FilePathStub({ value: '/repo/packages/bin/testing.ts' }));
+      expect(result).toStrictEqual('/repo/packages/bin/testing.ts');
     });
 
     it('VALID: {@dungeonmaster/node/testing, only a wildcard export} => resolves through the "./*" pattern', () => {
@@ -101,13 +97,13 @@ describe('importPathResolverMiddleware', () => {
         },
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/node/src/testing/testing.ts' });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/node/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/node/src/testing/testing.ts' }),
+        '/repo/packages/node/src/testing/testing.ts',
       );
     });
 
@@ -122,7 +118,7 @@ describe('importPathResolverMiddleware', () => {
           exports: { './testing': { source: './testing.ts' } },
         },
       });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -141,7 +137,7 @@ describe('importPathResolverMiddleware', () => {
           exports: { './testing': { source: './testing.ts' } },
         },
       });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/npm/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -160,7 +156,7 @@ describe('importPathResolverMiddleware', () => {
           exports: { './git': { source: './git.ts' } },
         },
       });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/hooks/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -170,7 +166,7 @@ describe('importPathResolverMiddleware', () => {
 
     it('VALID: {no ancestor package.json declares workspaces} => returns null', () => {
       importPathResolverMiddlewareProxy();
-      const sourceFilePath = FilePathStub({ value: '/unreachable/deep/path/a.proxy.ts' });
+      const sourceFilePath = '/unreachable/deep/path/a.proxy.ts';
       const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -203,9 +199,7 @@ describe('importPathResolverMiddleware', () => {
         filePath:
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
-      const sourceFilePath = FilePathStub({
-        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
-      });
+      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = ImportPathStub({
         value: '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
       });
@@ -213,10 +207,7 @@ describe('importPathResolverMiddleware', () => {
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({
-          value:
-            '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
-        }),
+        '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       );
     });
   });
@@ -247,15 +238,13 @@ describe('importPathResolverMiddleware', () => {
       proxy.setupSourceFileExists({
         filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       });
-      const sourceFilePath = FilePathStub({
-        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
-      });
+      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts' }),
+        '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       );
     });
 
@@ -268,7 +257,7 @@ describe('importPathResolverMiddleware', () => {
           imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
         },
       });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '#foo' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -281,13 +270,13 @@ describe('importPathResolverMiddleware', () => {
     it('VALID: {relative import to a .tsx proxy file} => returns FilePath with .tsx', () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widgets/btn/btn-widget.proxy.tsx'] });
-      const sourceFilePath = FilePathStub({ value: '/repo/src/widgets/btn/btn-widget.test.tsx' });
+      const sourceFilePath = '/repo/src/widgets/btn/btn-widget.test.tsx';
       const importPath = ImportPathStub({ value: './btn-widget.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/src/widgets/btn/btn-widget.proxy.tsx' }),
+        '/repo/src/widgets/btn/btn-widget.proxy.tsx',
       );
     });
   });
@@ -296,12 +285,12 @@ describe('importPathResolverMiddleware', () => {
     it('VALID: {relative import to a .jsx file} => returns FilePath with .jsx', () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widget/legacy.jsx'] });
-      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const sourceFilePath = '/repo/src/widget/widget.test.ts';
       const importPath = ImportPathStub({ value: './legacy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(FilePathStub({ value: '/repo/src/widget/legacy.jsx' }));
+      expect(result).toStrictEqual('/repo/src/widget/legacy.jsx');
     });
   });
 
@@ -309,7 +298,7 @@ describe('importPathResolverMiddleware', () => {
     it('VALID: {no candidate file exists} => returns null', () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupFilesOnDisk({ filePaths: [] });
-      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const sourceFilePath = '/repo/src/widget/widget.test.ts';
       const importPath = ImportPathStub({ value: './missing.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });

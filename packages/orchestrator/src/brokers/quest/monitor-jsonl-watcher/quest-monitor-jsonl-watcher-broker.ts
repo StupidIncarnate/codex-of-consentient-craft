@@ -19,7 +19,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, type ChatEntry, type FilePath, type ProcessId, sessionContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type ChatEntry, type ProcessId, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -50,7 +50,7 @@ export const questMonitorJsonlWatcherBroker = ({
   emit,
   mainSessionWorkItemId,
 }: {
-  sessionFilePath: FilePath;
+  sessionFilePath: string;
   activeQuestIdGetter: () => Quest['id'] | null;
   // Resolves the owning work item id for a sub-agent's realAgentId. Forwarded to each
   // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript

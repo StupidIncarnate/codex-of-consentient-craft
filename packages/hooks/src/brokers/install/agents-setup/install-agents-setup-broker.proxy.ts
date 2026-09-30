@@ -3,11 +3,10 @@ import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-f
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 type FileContents = ReturnType<typeof FileContentsStub>;
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const installAgentsSetupBrokerProxy = (): {
   setupSuccess: (params: { targetProjectRoot: FilePath }) => void;
@@ -23,36 +22,26 @@ export const installAgentsSetupBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments) => realJoin(...segments));
 
   const setupSuccess = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
-    const hooksPath = FilePathStub({
-      value: realJoin(
+    const hooksPath = realJoin(
         targetProjectRoot,
         locationsStatics.repoRoot.agents.dir,
         locationsStatics.repoRoot.agents.hooksJson,
-      ),
-    });
-    const skillsPath = FilePathStub({
-      value: realJoin(
+      );
+    const skillsPath = realJoin(
         targetProjectRoot,
         locationsStatics.repoRoot.agents.dir,
         locationsStatics.repoRoot.agents.skillsJson,
-      ),
-    });
-    const rulesPath = FilePathStub({
-      value: realJoin(
+      );
+    const rulesPath = realJoin(
         targetProjectRoot,
         locationsStatics.repoRoot.agents.dir,
         locationsStatics.repoRoot.agents.pluginsDir,
         mcpToolsStatics.server.name,
         locationsStatics.repoRoot.agents.rulesDir,
         locationsStatics.repoRoot.agentsMd,
-      ),
-    });
-    const claudeMdPath = FilePathStub({
-      value: realJoin(targetProjectRoot, locationsStatics.repoRoot.claudeMd),
-    });
-    const agentsMdPath = FilePathStub({
-      value: realJoin(targetProjectRoot, locationsStatics.repoRoot.agentsMd),
-    });
+      );
+    const claudeMdPath = realJoin(targetProjectRoot, locationsStatics.repoRoot.claudeMd);
+    const agentsMdPath = realJoin(targetProjectRoot, locationsStatics.repoRoot.agentsMd);
 
     writeProxy.succeeds({ path: hooksPath });
     writeProxy.succeeds({ path: skillsPath });

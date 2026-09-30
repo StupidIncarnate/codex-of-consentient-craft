@@ -1,6 +1,5 @@
 import { findNearestPackageJsonLayerBroker } from './find-nearest-package-json-layer-broker';
 import { findNearestPackageJsonLayerBrokerProxy } from './find-nearest-package-json-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('findNearestPackageJsonLayerBroker', () => {
   describe('package.json found', () => {
@@ -12,7 +11,7 @@ describe('findNearestPackageJsonLayerBroker', () => {
       });
 
       const result = findNearestPackageJsonLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/hooks/src/brokers/x' }),
+        startDir: '/repo/packages/hooks/src/brokers/x',
       });
 
       expect(result).toStrictEqual({
@@ -30,7 +29,7 @@ describe('findNearestPackageJsonLayerBroker', () => {
       proxy.setupNoPackageJsonAt({ dirPath: '/' });
 
       const result = findNearestPackageJsonLayerBroker({
-        startDir: FilePathStub({ value: '/orphan/src' }),
+        startDir: '/orphan/src',
       });
 
       expect(result).toBe(undefined);
@@ -46,10 +45,10 @@ describe('findNearestPackageJsonLayerBroker', () => {
       });
 
       findNearestPackageJsonLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/cache-a/src/a' }),
+        startDir: '/repo/packages/cache-a/src/a',
       });
       findNearestPackageJsonLayerBroker({
-        startDir: FilePathStub({ value: '/repo/packages/cache-a/src/b' }),
+        startDir: '/repo/packages/cache-a/src/b',
       });
 
       const readCount = proxy.countPackageJsonReads({ packageDir: '/repo/packages/cache-a' });

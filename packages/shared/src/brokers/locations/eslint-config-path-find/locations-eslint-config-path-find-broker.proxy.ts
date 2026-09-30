@@ -1,21 +1,20 @@
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
 import { dirname } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsEslintConfigPathFindBrokerProxy = (): {
-  setupConfigFoundAtFirstVariant: (params: { searchPath: string; configPath: FilePath }) => void;
+  setupConfigFoundAtFirstVariant: (params: { searchPath: string; configPath: string }) => void;
   setupConfigFoundAtNonFirstVariant: (params: {
     searchPath: string;
-    missingPaths: FilePath[];
-    configPath: FilePath;
+    missingPaths: string[];
+    configPath: string;
   }) => void;
   setupConfigFoundAtParentDirectory: (params: {
     childPaths: string[];
     parentPaths: string[];
     finalSearchPath: string;
-    parentConfigPath: FilePath;
-    parentMissingPaths: FilePath[];
+    parentConfigPath: string;
+    parentMissingPaths: string[];
   }) => void;
   setupAllVariantsMissingThenParentNotFound: (params: { searchPath: string }) => void;
 } => {
@@ -31,7 +30,7 @@ export const locationsEslintConfigPathFindBrokerProxy = (): {
       configPath,
     }: {
       searchPath: string;
-      configPath: FilePath;
+      configPath: string;
     }): void => {
       variantWalkProxy.setupFirstVariantMatches({ searchPath, configPath });
     },
@@ -42,8 +41,8 @@ export const locationsEslintConfigPathFindBrokerProxy = (): {
       configPath,
     }: {
       searchPath: string;
-      missingPaths: FilePath[];
-      configPath: FilePath;
+      missingPaths: string[];
+      configPath: string;
     }): void => {
       variantWalkProxy.setupNthVariantMatches({ searchPath, missingPaths, configPath });
     },
@@ -58,8 +57,8 @@ export const locationsEslintConfigPathFindBrokerProxy = (): {
       childPaths: string[];
       parentPaths: string[];
       finalSearchPath: string;
-      parentConfigPath: FilePath;
-      parentMissingPaths: FilePath[];
+      parentConfigPath: string;
+      parentMissingPaths: string[];
     }): void => {
       // Walk-up loop: at each child dir, all 4 variants miss, then dirname returns parent.
       for (const [index, childDir] of childPaths.entries()) {

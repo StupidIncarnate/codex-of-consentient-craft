@@ -10,16 +10,15 @@
  * // Returns: '/repo/packages/web/src/shared/foo' as FilePath
  */
 
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import type { ModuleSpecifier } from '../../contracts/module-specifier/module-specifier-contract';
 
 export const resolveRelativeSpecifierTransformer = ({
   fromDir,
   specifier,
 }: {
-  fromDir: FilePath;
+  fromDir: string;
   specifier: ModuleSpecifier;
-}): FilePath => {
+}): string => {
   const combinedSegments = [...fromDir.split('/'), ...specifier.split('/')];
 
   const normalizedSegments = combinedSegments.reduce<typeof combinedSegments>(
@@ -37,5 +36,5 @@ export const resolveRelativeSpecifierTransformer = ({
     [],
   );
 
-  return filePathContract.parse(`/${normalizedSegments.join('/')}`);
+  return `/${normalizedSegments.join('/')}`;
 };

@@ -14,7 +14,6 @@ import {
   hookPostEditResponderResultContract,
   type HookPostEditResponderResult,
 } from '../../../contracts/hook-post-edit-responder-result/hook-post-edit-responder-result-contract';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { cwd } from '#gateway/node/process';
 
 /**
@@ -36,9 +35,9 @@ export const violationsFixAndReportBroker = async ({
   cwd: cwdParam,
 }: {
   toolInput: ToolInput;
-  cwd?: FilePath;
+  cwd?: string;
 }): Promise<HookPostEditResponderResult> => {
-  const workingDir = cwdParam ?? filePathContract.parse(cwd());
+  const workingDir = cwdParam ?? cwd();
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {

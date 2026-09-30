@@ -26,7 +26,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract, getQuestInputContract, relatedDataItemContract, workItemContract, questContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, getQuestInputContract, relatedDataItemContract, workItemContract, questContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
@@ -69,9 +69,7 @@ export const questWorkItemAttachBroker = async ({
   const updatedQuest = { ...quest, workItems: [...quest.workItems, newItem] };
 
   const questFolderPath = await questFolderPathResolveBroker({ target, record: quest });
-  const questFilePath = filePathContract.parse(
-    `${questFolderPath}/${locationsStatics.quest.questFile}`,
-  );
+  const questFilePath = `${questFolderPath}/${locationsStatics.quest.questFile}`;
 
   await questPersistDirectBroker({
     target,

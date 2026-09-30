@@ -13,15 +13,13 @@
  * //   '/src/brokers/user/user-broker.e2e.test.ts'
  * // ]
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
 export const testFilePathVariantsTransformer = ({
   sourceFilePath,
 }: {
   sourceFilePath: string;
-}): readonly FilePath[] => {
+}): readonly string[] => {
   // Determine extension
   const extension = sourceFilePath.endsWith('.tsx') ? '.tsx' : '.ts';
 
@@ -30,6 +28,6 @@ export const testFilePathVariantsTransformer = ({
 
   // Generate all possible test file paths
   return testFilePatternStatics.suffixes.map((suffix) =>
-    filePathContract.parse(`${baseFilePath}${suffix}${extension}`),
+    `${baseFilePath}${suffix}${extension}`,
   );
 };

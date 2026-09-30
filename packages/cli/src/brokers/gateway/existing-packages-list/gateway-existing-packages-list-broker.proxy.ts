@@ -1,19 +1,18 @@
 import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 export const gatewayExistingPackagesListBrokerProxy = (): {
   setupPackages: (params: {
-    packagesDir: FilePath;
+    packagesDir: string;
     packages: (
       | { name: FileName; hasPackageJson: boolean }
       | { name: FileName; children: { name: FileName; hasPackageJson: boolean }[] }
     )[];
   }) => void;
-  setupNoPackagesDir: (params: { packagesDir: FilePath }) => void;
+  setupNoPackagesDir: (params: { packagesDir: string }) => void;
 } => {
   const fsReaddirProxy = readdirSyncProxy();
   const joinHandle = registerMock({ fn: join });
@@ -39,16 +38,14 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
         if ('children' in pkg) {
           for (const child of pkg.children) {
             fsExistsSyncProxy.returns({
-              path: filePathContract.parse(
-                `${String(packagesDir)}/${String(pkg.name)}/${String(child.name)}/package.json`,
-              ),
+              path: `${String(packagesDir)}/${String(pkg.name)}/${String(child.name)}/package.json`,
               exists: child.hasPackageJson,
             });
           }
           continue;
         }
         fsExistsSyncProxy.returns({
-          path: filePathContract.parse(`${String(packagesDir)}/${String(pkg.name)}/package.json`),
+          path: `${String(packagesDir)}/${String(pkg.name)}/package.json`,
           exists: pkg.hasPackageJson,
         });
       }

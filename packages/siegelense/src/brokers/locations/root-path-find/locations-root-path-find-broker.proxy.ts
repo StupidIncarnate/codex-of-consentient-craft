@@ -2,10 +2,9 @@ import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const locationsRootPathFindBrokerProxy = (): {
-  setupRootPath: (params: { homeDir: string; homePath: FilePath; rootPath: FilePath }) => void;
+  setupRootPath: (params: { homeDir: string; homePath: string; rootPath: string }) => void;
   // Stages ONLY the addressed homedir()/join() pair dungeonmasterHomeFindBroker reads — never the
   // outer root join. A caller composed alongside another resolver that also needs the home to
   // resolve, but does not want THIS file's own outer join staged too, reaches for this instead of
@@ -13,7 +12,7 @@ export const locationsRootPathFindBrokerProxy = (): {
   // (dungeonmasterHomeFindBrokerProxy) its own implementation never imports directly, so a caller
   // several layers up this composition chain (instanceKillBrokerProxy's convention) can only reach
   // the home stage through its own DIRECT child's forwarded method.
-  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupHomeOnly: (params: { homeDir: string; homePath: string }) => void;
 } => {
   const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
@@ -31,15 +30,15 @@ export const locationsRootPathFindBrokerProxy = (): {
       rootPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
     }): void => {
       dmHomeProxy.clearHomeEnv();
       dmHomeProxy.setupHomePath({ homeDir, homePath });
       joinHandle.calledWith([homePath, locationsStatics.siegelense.dir]).returns(rootPath);
     },
 
-    setupHomeOnly: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
+    setupHomeOnly: ({ homeDir, homePath }: { homeDir: string; homePath: string }): void => {
       dmHomeProxy.setupHomePath({ homeDir, homePath });
     },
   };

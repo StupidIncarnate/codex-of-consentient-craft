@@ -22,12 +22,7 @@
  * // Persists workItem.payload = { ...workItem.payload, instance } and returns that instance
  */
 
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -53,9 +48,7 @@ export const laneRecordInstanceBroker = async ({
   questWithModifyLockBroker({
     questId,
     run: async (): Promise<QuestWorkInstance> => {
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
       const quest = await questLoadBroker({ questFilePath });
 
       const nextWorkItems = quest.workItems.map((workItem) =>

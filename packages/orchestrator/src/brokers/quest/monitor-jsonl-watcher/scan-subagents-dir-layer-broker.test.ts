@@ -1,7 +1,6 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -48,9 +47,7 @@ const seedOutstandingTask = ({
 describe('scanSubagentsDirLayerBroker', () => {
   it('VALID: {one agent-<id>.jsonl whose first line matches an outstanding Task prompt} => starts a tail and its lines emit through the shared processor', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-1' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan' });
@@ -115,9 +112,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
   it('EMPTY: {readdir throws ENOENT} => returns success without throwing, emit never called', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-2' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-empty' });
@@ -151,9 +146,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
   it('ERROR: {readdir throws EACCES} => rejects with the original error, emit never called', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-eacces' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-eacces' });
@@ -186,9 +179,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
   it('VALID: {non-agent file in dir alongside a paired agent file} => only the agent file gets a tail', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-3' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-mixed' });
@@ -258,9 +249,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
   it("VALID: {one file's first line matches an outstanding Task, a sibling's does not} => only the matching file is tailed, the stale one stays skipped", async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-filter' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-filter' });
@@ -343,9 +332,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
   it('VALID: {nested sub-agent file whose first-line prompt matches an outstanding Task} => paired and tailed', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
-    const sessionFilePath = FilePathStub({
-      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
-    });
+    const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-nested' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-nested' });

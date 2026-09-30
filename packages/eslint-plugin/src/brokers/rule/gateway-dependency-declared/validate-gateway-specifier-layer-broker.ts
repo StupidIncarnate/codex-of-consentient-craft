@@ -22,7 +22,6 @@
  * // undeclared; returns true, reporting nothing, when the import already resolves to a declared
  * // dependency
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
@@ -45,7 +44,7 @@ export const validateGatewaySpecifierLayerBroker = ({
   specifier: ImportPath;
 }): boolean => {
   const nearestPackageJson = findNearestPackageJsonLayerBroker({
-    startDir: filePathContract.parse(dirname(filename)),
+    startDir: dirname(filename),
   });
 
   if (!nearestPackageJson) {

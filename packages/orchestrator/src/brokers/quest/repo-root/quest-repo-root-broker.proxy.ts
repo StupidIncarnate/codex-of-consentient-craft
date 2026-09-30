@@ -1,6 +1,5 @@
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -18,9 +17,9 @@ import { questRepoRootBroker } from './quest-repo-root-broker';
 
 type Quest = ReturnType<typeof QuestStub>;
 type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
-const GUILD_PATH = FilePathStub({ value: '/home/testuser/my-guild' });
+const GUILD_PATH = '/home/testuser/my-guild';
 
 // Auto-mock so every caller resolves through one mocked module. `setupQuestFound` stages a
 // passthrough to the real broker for that quest's id, so a test driving the quest-lookup + walk-up
@@ -51,17 +50,11 @@ export const questRepoRootBrokerProxy = (): {
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       const guildId = GuildIdStub();
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const guildsDir = FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' });
-      const questsDirPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
-      const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
-      });
-      const questFilePath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
-      });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const guildsDir = '/home/testuser/.dungeonmaster/guilds';
+      const questsDirPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
+      const questFolderPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`;
+      const questFilePath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`;
 
       findQuestPathProxy.setupQuestFound({
         homeDir: '/home/testuser',

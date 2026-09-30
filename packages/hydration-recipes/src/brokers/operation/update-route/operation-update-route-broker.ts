@@ -8,7 +8,7 @@
  * // Returns the updated OperationItem
  */
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
 
 import { operationOwningQuestFindBroker } from '../owning-quest-find/operation-owning-quest-find-broker';
@@ -35,9 +35,7 @@ export const operationUpdateRouteBroker = async ({
   const updatedQuest = { ...quest, operations: updatedOperations };
 
   const questFolderPath = await questFolderPathResolveBroker({ target, record: quest });
-  const questFilePath = filePathContract.parse(
-    `${questFolderPath}/${locationsStatics.quest.questFile}`,
-  );
+  const questFilePath = `${questFolderPath}/${locationsStatics.quest.questFile}`;
 
   await questPersistDirectBroker({
     target,

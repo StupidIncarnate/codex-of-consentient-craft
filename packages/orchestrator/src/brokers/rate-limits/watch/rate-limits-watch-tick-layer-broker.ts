@@ -6,13 +6,7 @@
  * // Returns { outcome, lastJson } so the watch broker can thread state to the next tick without mutation.
  */
 
-import {
-  fileContentsContract,
-  filePathContract,
-  rateLimitsSnapshotContract,
-  type FileContents,
-  type RateLimitsSnapshot,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, rateLimitsSnapshotContract, type FileContents, type RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import { locationsRateLimitsSnapshotPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 
@@ -30,7 +24,7 @@ export const rateLimitsWatchTickLayerBroker = async ({
   onSnapshot: ({ snapshot }: { snapshot: RateLimitsSnapshot | null }) => void;
   onError: ({ message }: { message: string }) => void;
 }): Promise<RateLimitsWatchTickResult> => {
-  const path = filePathContract.parse(locationsRateLimitsSnapshotPathFindBroker());
+  const path = locationsRateLimitsSnapshotPathFindBroker();
 
   const result = await readFileIfExists(path).catch((error: unknown) => {
     onError({

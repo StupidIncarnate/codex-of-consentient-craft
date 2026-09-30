@@ -14,7 +14,7 @@
  * // Returns void; the tail handle lands in `subagentHandles`
  */
 
-import { absoluteFilePathContract, type ChatEntry, type FilePath, type ProcessId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type ChatEntry, type ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -36,7 +36,7 @@ export const startSubagentTailLayerBroker = ({
   subagentHandles,
 }: {
   agentId: Agent['id'];
-  sessionFilePath: FilePath;
+  sessionFilePath: string;
   // The parent session's UUID. Stamped on every emit as `sessionId`
   // so the web binding buckets each sub-agent's entries under the same key that
   // chat-replay-responder uses on the replay path (and that the work item carries as

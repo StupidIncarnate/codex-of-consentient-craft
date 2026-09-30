@@ -15,17 +15,13 @@
  */
 
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 import { recipesReadBrokerProxy } from '../../recipes/read/recipes-read-broker.proxy';
 
-const ENTRY_PATH: FilePath = FilePathStub({
-  value: '/repo/packages/hydration-recipes/dist/index.js',
-});
-const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/hydration-recipes' });
+const ENTRY_PATH: string = '/repo/packages/hydration-recipes/dist/index.js';
+const PACKAGE_PATH: string = '/repo/packages/hydration-recipes';
 
 const LOCATE_REPEAT_COUNT = 8;
 
@@ -33,7 +29,7 @@ export const stepSeedBrokerProxy = (): {
   stagesListing: (params: { listing: unknown }) => void;
   stagesSeedRun: (params: { result: unknown }) => { getCallArgs: () => readonly unknown[] };
   stagesSeedRunThrows: (params: { error: Error }) => void;
-  bookPresentAt: (params: { packagePath: FilePath }) => void;
+  bookPresentAt: (params: { packagePath: string }) => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
   // Staged through dynamicImportProxy, keyed on the module specifier. It also covers
@@ -43,14 +39,12 @@ export const stepSeedBrokerProxy = (): {
   const importProxy = dynamicImportProxy();
   recipesReadBrokerProxy();
   const moduleExports: Record<PropertyKey, unknown> = {};
-  const state: { packagePath: FilePath | null } = { packagePath: null };
+  const state: { packagePath: string | null } = { packagePath: null };
 
   const stageEntry = (): void => {
     if (state.packagePath !== null) {
       const pkgPath = state.packagePath;
-      const entryPath = FilePathStub({
-        value: `${state.packagePath}/${recipesConventionStatics.entry.distRelativePath}`,
-      });
+      const entryPath = `${state.packagePath}/${recipesConventionStatics.entry.distRelativePath}`;
       locateProxy.setupPresentAndBuiltAt({
         packagePath: pkgPath,
         entryPath,
@@ -69,7 +63,7 @@ export const stepSeedBrokerProxy = (): {
   };
 
   return {
-    bookPresentAt: ({ packagePath }: { packagePath: FilePath }): void => {
+    bookPresentAt: ({ packagePath }: { packagePath: string }): void => {
       state.packagePath = packagePath;
       stageEntry();
     },

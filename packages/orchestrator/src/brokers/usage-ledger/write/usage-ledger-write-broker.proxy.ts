@@ -1,7 +1,6 @@
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { locationsUsageLedgerPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker.proxy';
 import { locationsUsageLedgerTmpPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { pid } from '#gateway/node/process';
@@ -20,10 +19,10 @@ export const usageLedgerWriteBrokerProxy = (): {
   // Unstaged: creating it restores the real pid, which is the `pid` the token below reads.
   getPidProxy();
 
-  const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-  const ledgerPath = FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json' });
+  const homePath = '/home/user/.dungeonmaster';
+  const ledgerPath = '/home/user/.dungeonmaster/usage-ledger.json';
   // The tmp path of the last staged write: `getWrittenContent` reads back the write at that address.
-  const lastTmpPath: { value: ReturnType<typeof FilePathStub> | undefined } = {
+  const lastTmpPath: { value: string | undefined } = {
     value: undefined,
   };
 
@@ -32,16 +31,14 @@ export const usageLedgerWriteBrokerProxy = (): {
   // the real pid here is not a stage, it is the SAME process the broker runs in, so this proxy and
   // the broker always compute the identical token, which is what lets the write be staged against
   // the exact token-suffixed path instead of a prefix/suffix predicate.
-  const queuePaths = ({ nowMs }: { nowMs: number }): ReturnType<typeof FilePathStub> => {
+  const queuePaths = ({ nowMs }: { nowMs: number }): string => {
     const token = `${String(pid)}-${String(nowMs)}`;
-    const tmpPath = FilePathStub({
-      value: `/home/user/.dungeonmaster/usage-ledger.json.tmp.${token}`,
-    });
+    const tmpPath = `/home/user/.dungeonmaster/usage-ledger.json.tmp.${token}`;
 
     ensureProxy.setupEnsureSuccess({
       homeDir: '/home/user',
       homePath,
-      guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+      guildsPath: '/home/user/.dungeonmaster/guilds',
     });
     ledgerPathProxy.setupLedgerPath({
       homeDir: '/home/user',

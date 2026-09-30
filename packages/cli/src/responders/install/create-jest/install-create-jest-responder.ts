@@ -11,14 +11,7 @@
  * // present or the target has npm workspaces
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -33,7 +26,7 @@ export const InstallCreateJestResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const packageJsonPath = filePathContract.parse(join(context.targetProjectRoot, 'package.json'));
+  const packageJsonPath = join(context.targetProjectRoot, 'package.json');
 
   if (existsSync(packageJsonPath)) {
     const packageJsonContent = await readFile(packageJsonPath);
@@ -55,7 +48,7 @@ export const InstallCreateJestResponder = async ({
     }
   }
 
-  const configPath = filePathContract.parse(join(context.targetProjectRoot, CONFIG_FILENAME));
+  const configPath = join(context.targetProjectRoot, CONFIG_FILENAME);
 
   if (existsSync(configPath)) {
     return {

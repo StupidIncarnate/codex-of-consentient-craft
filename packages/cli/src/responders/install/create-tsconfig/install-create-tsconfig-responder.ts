@@ -6,14 +6,7 @@
  * // Creates tsconfig.json (extends @dungeonmaster/eslint-plugin/tsconfig) or skips if already present
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -28,7 +21,7 @@ export const InstallCreateTsconfigResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const configPath = filePathContract.parse(join(context.targetProjectRoot, CONFIG_FILENAME));
+  const configPath = join(context.targetProjectRoot, CONFIG_FILENAME);
 
   if (existsSync(configPath)) {
     return {

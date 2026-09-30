@@ -14,12 +14,8 @@
 
 import { join } from '#gateway/node/path';
 import { existsSync, readdirSync } from '#gateway/node/fs';
-import {
-  packageNameContract,
-  filePathContract,
-  fileNameContract,
-} from '@dungeonmaster/shared/contracts';
-import type { FilePath, PackageName, FileName } from '@dungeonmaster/shared/contracts';
+import { packageNameContract, fileNameContract } from '@dungeonmaster/shared/contracts';
+import type { PackageName, FileName } from '@dungeonmaster/shared/contracts';
 
 // A directory directly under `packages/` whose name starts with `@` is a scope/group folder, not
 // a package itself — the same nesting `node_modules/@scope/name` uses. Its children are the real
@@ -31,9 +27,9 @@ const INSTALL_FINALIZE_FILENAME = 'start-install-finalize.js';
 export const packageDiscoverBroker = ({
   dungeonmasterRoot,
 }: {
-  dungeonmasterRoot: FilePath;
-}): { packageName: PackageName; installPath: FilePath; finalizeInstallPath: FilePath | null }[] => {
-  const monorepoPackagesDir = filePathContract.parse(join(dungeonmasterRoot, 'packages'));
+  dungeonmasterRoot: string;
+}): { packageName: PackageName; installPath: string; finalizeInstallPath: string | null }[] => {
+  const monorepoPackagesDir = join(dungeonmasterRoot, 'packages');
   // A published install has no `packages/` folder to find: `cli-entry.ts` computes
   // `dungeonmasterRoot` as four directories above the running bin, which lands on the monorepo
   // root ONLY in this repo and its worktrees. In an installed consumer (local `node_modules`, or
@@ -61,8 +57,8 @@ export const packageDiscoverBroker = ({
 
   const packagesWithInstallers: {
     packageName: PackageName;
-    installPath: FilePath;
-    finalizeInstallPath: FilePath | null;
+    installPath: string;
+    finalizeInstallPath: string | null;
   }[] = [];
 
   for (const { relativeDir, packageDirName } of candidates) {
@@ -85,12 +81,12 @@ export const packageDiscoverBroker = ({
       const packageName = packageNameContract.parse(`@dungeonmaster/${packageDirName}`);
       const finalizeCandidatePath = join(installDir, INSTALL_FINALIZE_FILENAME);
       const finalizeInstallPath = existsSync(finalizeCandidatePath)
-        ? filePathContract.parse(finalizeCandidatePath)
+        ? finalizeCandidatePath
         : null;
 
       packagesWithInstallers.push({
         packageName,
-        installPath: filePathContract.parse(join(installDir, 'start-install.js')),
+        installPath: join(installDir, 'start-install.js'),
         finalizeInstallPath,
       });
     }

@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { worktreeVerifyLinksBroker } from './worktree-verify-links-broker';
 import { worktreeVerifyLinksBrokerProxy } from './worktree-verify-links-broker.proxy';
@@ -16,7 +15,7 @@ describe('worktreeVerifyLinksBroker', () => {
         entries: [{ name: 'ward-link', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/ward-link' }),
+        linkPath: '/repo/worktrees/probe/node_modules/ward-link',
         target: '../packages/ward',
       });
 
@@ -57,7 +56,7 @@ describe('worktreeVerifyLinksBroker', () => {
         entries: [{ name: '.bin', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/.bin' }),
+        linkPath: '/repo/worktrees/probe/node_modules/.bin',
         target: '/repo/node_modules/.bin',
       });
 
@@ -80,7 +79,7 @@ describe('worktreeVerifyLinksBroker', () => {
         entries: [{ name: 'escapee', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/escapee' }),
+        linkPath: '/repo/worktrees/probe/node_modules/escapee',
         target: '../../../packages/ward',
       });
 
@@ -106,11 +105,11 @@ describe('worktreeVerifyLinksBroker', () => {
         ],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/good' }),
+        linkPath: '/repo/worktrees/probe/node_modules/good',
         target: '../packages/shared',
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/bad' }),
+        linkPath: '/repo/worktrees/probe/node_modules/bad',
         target: '/repo/node_modules/zod',
       });
 

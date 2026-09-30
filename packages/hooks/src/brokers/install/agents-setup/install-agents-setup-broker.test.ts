@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { agentsHooksCreatorTransformer } from '../../../transformers/agents-hooks-creator/agents-hooks-creator-transformer';
 import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-skills-creator/agents-skills-creator-transformer';
@@ -12,24 +11,18 @@ const JSON_INDENT_SPACES = 2;
 describe('installAgentsSetupBroker', () => {
   it('VALID: creates .agents files, plugin rules, and writes AGENTS.md when CLAUDE.md exists', async () => {
     const proxy = installAgentsSetupBrokerProxy();
-    const targetProjectRoot = FilePathStub({ value: '/test/repo' });
+    const targetProjectRoot = '/test/repo';
     proxy.setupSuccess({ targetProjectRoot });
 
-    const claudeMdPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.claudeMd}`,
-    });
-    const agentsMdPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.agentsMd}`,
-    });
+    const claudeMdPath = `/test/repo/${locationsStatics.repoRoot.claudeMd}`;
+    const agentsMdPath = `/test/repo/${locationsStatics.repoRoot.agentsMd}`;
 
     proxy.setupFileExists({ filePath: claudeMdPath, exists: true });
     proxy.setupFileExists({ filePath: agentsMdPath, exists: false });
 
     await expect(installAgentsSetupBroker({ targetProjectRoot })).resolves.toBe(undefined);
 
-    const hooksPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.hooksJson}`,
-    });
+    const hooksPath = `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.hooksJson}`;
     const writtenHooks = proxy.getWrittenFor({ filepath: hooksPath });
 
     // String-exact: proves the write ends in one trailing newline.
@@ -37,9 +30,7 @@ describe('installAgentsSetupBroker', () => {
       `${JSON.stringify(agentsHooksCreatorTransformer(), null, JSON_INDENT_SPACES)}\n`,
     );
 
-    const skillsPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.skillsJson}`,
-    });
+    const skillsPath = `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.skillsJson}`;
     const writtenSkills = proxy.getWrittenFor({ filepath: skillsPath });
 
     // String-exact: same file format applies to .agents/skills.json.
@@ -47,9 +38,7 @@ describe('installAgentsSetupBroker', () => {
       `${JSON.stringify(agentsSkillsCreatorTransformer(), null, JSON_INDENT_SPACES)}\n`,
     );
 
-    const rulesPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.pluginsDir}/${mcpToolsStatics.server.name}/${locationsStatics.repoRoot.agents.rulesDir}/${locationsStatics.repoRoot.agentsMd}`,
-    });
+    const rulesPath = `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.pluginsDir}/${mcpToolsStatics.server.name}/${locationsStatics.repoRoot.agents.rulesDir}/${locationsStatics.repoRoot.agentsMd}`;
     const writtenRules = proxy.getWrittenFor({ filepath: rulesPath });
 
     expect(writtenRules).toBe(agentsRulesCreatorTransformer());
@@ -61,15 +50,11 @@ describe('installAgentsSetupBroker', () => {
 
   it('VALID: skips writing AGENTS.md when AGENTS.md already exists', async () => {
     const proxy = installAgentsSetupBrokerProxy();
-    const targetProjectRoot = FilePathStub({ value: '/test/repo' });
+    const targetProjectRoot = '/test/repo';
     proxy.setupSuccess({ targetProjectRoot });
 
-    const claudeMdPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.claudeMd}`,
-    });
-    const agentsMdPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.agentsMd}`,
-    });
+    const claudeMdPath = `/test/repo/${locationsStatics.repoRoot.claudeMd}`;
+    const agentsMdPath = `/test/repo/${locationsStatics.repoRoot.agentsMd}`;
 
     proxy.setupFileExists({ filePath: claudeMdPath, exists: true });
     proxy.setupFileExists({ filePath: agentsMdPath, exists: true });
@@ -80,15 +65,11 @@ describe('installAgentsSetupBroker', () => {
 
   it('VALID: skips writing AGENTS.md when CLAUDE.md does not exist', async () => {
     const proxy = installAgentsSetupBrokerProxy();
-    const targetProjectRoot = FilePathStub({ value: '/test/repo' });
+    const targetProjectRoot = '/test/repo';
     proxy.setupSuccess({ targetProjectRoot });
 
-    const claudeMdPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.claudeMd}`,
-    });
-    const agentsMdPath = FilePathStub({
-      value: `/test/repo/${locationsStatics.repoRoot.agentsMd}`,
-    });
+    const claudeMdPath = `/test/repo/${locationsStatics.repoRoot.claudeMd}`;
+    const agentsMdPath = `/test/repo/${locationsStatics.repoRoot.agentsMd}`;
 
     proxy.setupFileExists({ filePath: claudeMdPath, exists: false });
     proxy.setupFileExists({ filePath: agentsMdPath, exists: false });

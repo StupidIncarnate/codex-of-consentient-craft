@@ -10,7 +10,6 @@
 import { configResolveBroker } from './src/brokers/config/resolve/config-resolve-broker';
 import { computeAllowedImportsTransformer } from './src/transformers/compute-allowed-imports/compute-allowed-imports-transformer';
 import { dungeonmasterConfigContract } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { ConfigNotFoundError } from './src/errors/config-not-found/config-not-found-error';
 import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { DevServerE2eProcess } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process-contract';
@@ -29,7 +28,7 @@ export const resolveConfigForFile = async ({
 }: {
   filePath: string;
 }): Promise<AllowedExternalImports> => {
-  const config = await configResolveBroker({ filePath: filePathContract.parse(filePath) });
+  const config = await configResolveBroker({ filePath: filePath });
   return computeAllowedImportsTransformer({ config });
 };
 

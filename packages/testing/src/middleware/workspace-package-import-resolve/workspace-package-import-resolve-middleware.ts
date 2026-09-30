@@ -22,31 +22,29 @@ import { workspaceGlobBaseDirsTransformer } from '../../transformers/workspace-g
 import { workspacePackageExportSourceTransformer } from '../../transformers/workspace-package-export-source/workspace-package-export-source-transformer';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
 import { workspaceRootFindMiddleware } from '../workspace-root-find/workspace-root-find-middleware';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 export const workspacePackageImportResolveMiddleware = ({
   sourceFilePath,
   importPath,
 }: {
-  sourceFilePath: FilePath;
+  sourceFilePath: string;
   importPath: ImportPath;
-}): FilePath | null => {
+}): string | null => {
   const specifierParts = packageSpecifierSplitTransformer({ importPath });
   if (!specifierParts) {
     return null;
   }
 
   const workspaceRoot = workspaceRootFindMiddleware({
-    dirPath: filePathContract.parse(dirname(sourceFilePath)),
+    dirPath: dirname(sourceFilePath),
   });
   if (!workspaceRoot) {
     return null;
   }
 
   const rootPackageJson = workspacePackageJsonReadMiddleware({
-    packageJsonPath: filePathContract.parse(join(workspaceRoot, 'package.json')),
+    packageJsonPath: join(workspaceRoot, 'package.json'),
   });
   const packagesBaseDirs = workspaceGlobBaseDirsTransformer({
     workspaces: rootPackageJson?.workspaces,
@@ -58,7 +56,7 @@ export const workspacePackageImportResolveMiddleware = ({
     for (const folderName of readdirSync(packagesDirPath)) {
       const packageDirPath = join(packagesDirPath, folderName);
       const packageJson = workspacePackageJsonReadMiddleware({
-        packageJsonPath: filePathContract.parse(join(packageDirPath, 'package.json')),
+        packageJsonPath: join(packageDirPath, 'package.json'),
       });
       if (!packageJson || packageJson.name !== specifierParts.packageName) {
         continue;
@@ -72,7 +70,7 @@ export const workspacePackageImportResolveMiddleware = ({
         continue;
       }
 
-      const resolvedSourcePath = filePathContract.parse(join(packageDirPath, source));
+      const resolvedSourcePath = join(packageDirPath, source);
       return existsSync(resolvedSourcePath) ? resolvedSourcePath : null;
     }
   }

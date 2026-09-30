@@ -11,13 +11,7 @@
  * const packageName = await webBundlePackageResolveBroker();
  * // Returns PackageName('@dungeonmaster/web') — throws if none or several dependencies qualify
  */
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  filePathContract,
-  packageJsonContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, packageJsonContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { readFileSync } from '#gateway/node/fs';
@@ -27,7 +21,7 @@ const SCOPE_PREFIX = '@dungeonmaster/';
 
 export const webBundlePackageResolveBroker = async (): Promise<PackageName> => {
   const projectRoot = await cwdResolveBroker({
-    startPath: filePathContract.parse(__dirname),
+    startPath: __dirname,
     kind: 'project-root',
   });
   const ownPackageJson = packageJsonContract.parse(

@@ -39,12 +39,7 @@ import { join } from '#gateway/node/path';
 import { cwd, envSnapshot } from '#gateway/node/process';
 import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  filePathContract,
-  packageTypeContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
@@ -88,7 +83,7 @@ export const laneBootBroker = async ({
       .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
   );
 
-  const cwdSeed = filePathContract.parse(cwd());
+  const cwdSeed = cwd();
   const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
   const spawnCwd = absoluteFilePathContract.parse(repoRoot);
 

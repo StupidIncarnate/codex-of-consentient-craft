@@ -1,5 +1,4 @@
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -8,14 +7,14 @@ import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-f
 import { join } from '#gateway/node/path';
 
 export const questOutboxAppendBrokerProxy = (): {
-  setupOutboxAppend: (params: { homePath: FilePath; outboxFilePath: FilePath }) => void;
+  setupOutboxAppend: (params: { homePath: string; outboxFilePath: string }) => void;
   setupAppendFailure: (params: {
-    homePath: FilePath;
-    outboxFilePath: FilePath;
+    homePath: string;
+    outboxFilePath: string;
     error: FsError;
   }) => void;
-  getAppendedContent: (params: { outboxFilePath: FilePath }) => unknown;
-  getAppendedPath: (params: { outboxFilePath: FilePath }) => unknown;
+  getAppendedContent: (params: { outboxFilePath: string }) => unknown;
+  getAppendedPath: (params: { outboxFilePath: string }) => unknown;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -37,8 +36,8 @@ export const questOutboxAppendBrokerProxy = (): {
       homePath,
       outboxFilePath,
     }: {
-      homePath: FilePath;
-      outboxFilePath: FilePath;
+      homePath: string;
+      outboxFilePath: string;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       // questOutboxAppendBroker's own join(homePath, event-outbox.jsonl) -> outboxFilePath,
@@ -55,8 +54,8 @@ export const questOutboxAppendBrokerProxy = (): {
       outboxFilePath,
       error,
     }: {
-      homePath: FilePath;
-      outboxFilePath: FilePath;
+      homePath: string;
+      outboxFilePath: string;
       error: FsError;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
@@ -67,12 +66,12 @@ export const questOutboxAppendBrokerProxy = (): {
     },
 
     // Address-keyed: proves the append landed on the same outboxFilePath setupOutboxAppend used.
-    getAppendedContent: ({ outboxFilePath }: { outboxFilePath: FilePath }): unknown =>
+    getAppendedContent: ({ outboxFilePath }: { outboxFilePath: string }): unknown =>
       appendProxy.appendedContentsFor({ path: outboxFilePath }),
 
     // questOutboxAppendBroker appends exactly once per call, so the last recorded call is
     // unambiguous — there is no second address it could be confused with.
-    getAppendedPath: ({ outboxFilePath }: { outboxFilePath: FilePath }): unknown =>
+    getAppendedPath: ({ outboxFilePath }: { outboxFilePath: string }): unknown =>
       appendProxy.getCallsFor({ path: outboxFilePath }).at(-1)?.[0],
   };
 };

@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -12,13 +11,11 @@ describe('GuildListResponder', () => {
       proxy.setupGuildList({
         config: GuildConfigStub({ guilds: [guild] }),
         homeDir: '/home/user/.dungeonmaster',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         guildEntries: [
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `/home/user/.dungeonmaster/guilds/${guild.id}/quests`,
-            }),
+            questsDirPath: `/home/user/.dungeonmaster/guilds/${guild.id}/quests`,
             questDirEntries: [],
           },
         ],

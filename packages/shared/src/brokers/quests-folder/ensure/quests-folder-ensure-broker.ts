@@ -7,14 +7,13 @@
  */
 
 import { ensureDir } from '#gateway/node/fs__promises';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { questsFolderFindBroker } from '../find/quests-folder-find-broker';
 
 export const questsFolderEnsureBroker = async ({
   startPath,
 }: {
-  startPath: FilePath;
-}): Promise<{ questsBasePath: FilePath }> => {
+  startPath: string;
+}): Promise<{ questsBasePath: string }> => {
   const questsBasePath = await questsFolderFindBroker({ startPath });
 
   await ensureDir(questsBasePath);

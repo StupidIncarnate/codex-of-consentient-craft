@@ -9,7 +9,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { questSourceContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, SmoketestCaseResult, SmoketestSuite, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
+import type { SmoketestCaseResult, SmoketestSuite, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import {
@@ -31,7 +31,7 @@ export const SmoketestRunResponder = async ({
   startPath: _startPath,
 }: {
   suite: SmoketestSuite;
-  startPath: FilePath;
+  startPath: string;
 }): Promise<{
   runId: ActiveSmoketestRun['runId'];
   enqueued: readonly { questId: Quest['id']; guildSlug: UrlSlug }[];

@@ -12,14 +12,12 @@
  * });
  * // Returns: '/src/widgets/button/button-widget.type.tsx'
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const filePathWithTypeInfixTransformer = ({
   filePath,
 }: {
-  filePath: FilePath;
-}): FilePath => {
+  filePath: string;
+}): string => {
   const withTypeInfix = String(filePath).replace(/\.(ts|tsx)$/u, '.type.$1');
-  return filePathContract.parse(withTypeInfix);
+  return withTypeInfix;
 };

@@ -1,4 +1,4 @@
-import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { resolveWorkspaceGlobLayerBrokerProxy } from './resolve-workspace-glob-layer-broker.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
@@ -6,8 +6,8 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 export const configWorkspacePackageNamesBrokerProxy = (): {
   setupWorkspaceRoot: (args: { rootDir: string; rootPackageJsonName: string }) => void;
   setupNoPackageJson: (args: { dir: string }) => void;
-  setupGlobDirectories: (args: { basePath: FilePath; dirNames: string[] }) => void;
-  setupMemberPackageJson: (args: { memberDir: FilePath; name: PackageName }) => void;
+  setupGlobDirectories: (args: { basePath: string; dirNames: string[] }) => void;
+  setupMemberPackageJson: (args: { memberDir: string; name: PackageName }) => void;
 } => {
   const workspaceRootProxy = workspaceRootFindBrokerProxy();
   const globProxy = resolveWorkspaceGlobLayerBrokerProxy();
@@ -39,7 +39,7 @@ export const configWorkspacePackageNamesBrokerProxy = (): {
       basePath,
       dirNames,
     }: {
-      basePath: FilePath;
+      basePath: string;
       dirNames: string[];
     }): void => {
       globProxy.setupGlobDirectories({ basePath, dirNames });
@@ -49,7 +49,7 @@ export const configWorkspacePackageNamesBrokerProxy = (): {
       memberDir,
       name,
     }: {
-      memberDir: FilePath;
+      memberDir: string;
       name: PackageName;
     }): void => {
       globProxy.setupMemberPackageJson({ memberDir, name });

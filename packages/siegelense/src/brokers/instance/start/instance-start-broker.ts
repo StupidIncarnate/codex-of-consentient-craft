@@ -78,7 +78,7 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
 import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, contentTextContract, filePathContract, type ContentText, type TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, type ContentText, type TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
@@ -238,7 +238,7 @@ export const instanceStartBroker = async ({
     );
     const driverLogFd = openForAppendSync(driverLogPath);
 
-    const cwdSeed = filePathContract.parse(cwd());
+    const cwdSeed = cwd();
     const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
 
     // Spawns the CLI's own resolved bin script through the CURRENT node binary rather than the

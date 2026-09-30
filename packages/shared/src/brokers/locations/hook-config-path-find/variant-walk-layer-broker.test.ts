@@ -1,6 +1,5 @@
 import { variantWalkLayerBroker } from './variant-walk-layer-broker';
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('variantWalkLayerBroker', () => {
@@ -10,11 +9,11 @@ describe('variantWalkLayerBroker', () => {
 
       proxy.setupFirstVariantMatches({
         searchPath: '/project',
-        configPath: FilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' }),
+        configPath: '/project/.dungeonmaster-hooks.config.ts',
       });
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: ['.dungeonmaster-hooks.config.ts', '.dungeonmaster-hooks.config.js'],
       });
 
@@ -28,12 +27,12 @@ describe('variantWalkLayerBroker', () => {
 
       proxy.setupNthVariantMatches({
         searchPath: '/project',
-        missingPaths: [FilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' })],
-        configPath: FilePathStub({ value: '/project/.dungeonmaster-hooks.config.js' }),
+        missingPaths: ['/project/.dungeonmaster-hooks.config.ts'],
+        configPath: '/project/.dungeonmaster-hooks.config.js',
       });
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: ['.dungeonmaster-hooks.config.ts', '.dungeonmaster-hooks.config.js'],
       });
 
@@ -48,7 +47,7 @@ describe('variantWalkLayerBroker', () => {
       variantWalkLayerBrokerProxy();
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: [],
       });
 
@@ -61,13 +60,13 @@ describe('variantWalkLayerBroker', () => {
       proxy.setupAllVariantsMissing({
         searchPath: '/project',
         missingPaths: [
-          FilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' }),
-          FilePathStub({ value: '/project/.dungeonmaster-hooks.config.js' }),
+          '/project/.dungeonmaster-hooks.config.ts',
+          '/project/.dungeonmaster-hooks.config.js',
         ],
       });
 
       const result = await variantWalkLayerBroker({
-        searchPath: FilePathStub({ value: '/project' }),
+        searchPath: '/project',
         variants: ['.dungeonmaster-hooks.config.ts', '.dungeonmaster-hooks.config.js'],
       });
 

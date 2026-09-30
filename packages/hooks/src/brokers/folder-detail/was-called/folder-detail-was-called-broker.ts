@@ -16,7 +16,6 @@ import { transcriptLineContract } from '../../../contracts/transcript-line/trans
 import { toolInputParamNameContract } from '../../../contracts/tool-input-param-name/tool-input-param-name-contract';
 import { folderDetailCallLookupContract } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
 import type { FolderDetailCallLookup } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 // The bare name also matches the namespaced tool name, which is what the prefilter needs — a line
 // mentioning either form is a parse candidate, but only the namespaced form counts as a real call.
@@ -27,7 +26,7 @@ export const folderDetailWasCalledBroker = async ({
   transcriptFilePath,
   folderType,
 }: {
-  transcriptFilePath: FilePath;
+  transcriptFilePath: string;
   folderType: FolderType;
 }): Promise<FolderDetailCallLookup> => {
   const transcript = await readFile(transcriptFilePath).catch((): null => null);

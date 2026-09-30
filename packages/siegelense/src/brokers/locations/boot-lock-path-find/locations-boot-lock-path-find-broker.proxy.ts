@@ -1,21 +1,20 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 
 export const locationsBootLockPathFindBrokerProxy = (): {
   setupBootLockPath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    bootLockPath: FilePath;
+    homePath: string;
+    rootPath: string;
+    bootLockPath: string;
   }) => void;
   // Forwards to locationsRootPathFindBrokerProxy's own addressed-only stage — see its header
   // comment for why a caller composed alongside another real-path.join-making resolver needs this
   // instead of setupBootLockPath.
-  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupHomeOnly: (params: { homeDir: string; homePath: string }) => void;
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   // Shares the same '#gateway/node/path' join handle rootPathProxy's own constructor registers —
@@ -31,15 +30,15 @@ export const locationsBootLockPathFindBrokerProxy = (): {
       bootLockPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      bootLockPath: FilePath;
+      homePath: string;
+      rootPath: string;
+      bootLockPath: string;
     }): void => {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
       joinHandle.calledWith([rootPath, locationsStatics.siegelense.bootLock]).returns(bootLockPath);
     },
 
-    setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {
+    setupHomeOnly: (params: { homeDir: string; homePath: string }): void => {
       rootPathProxy.setupHomeOnly(params);
     },
   };

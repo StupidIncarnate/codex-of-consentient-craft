@@ -1,6 +1,5 @@
 import { locationsProfilesPathFindBroker } from './locations-profiles-path-find-broker';
 import { locationsProfilesPathFindBrokerProxy } from './locations-profiles-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
@@ -12,11 +11,9 @@ describe('locationsProfilesPathFindBroker', () => {
 
       proxy.setupProfilesPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        profilesPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        profilesPath: '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1',
       });
 
       const result = locationsProfilesPathFindBroker({ specHash });
@@ -33,11 +30,9 @@ describe('locationsProfilesPathFindBroker', () => {
 
       proxy.setupProfilesPath({
         homeDir: '/srv/agents/worker-3/state',
-        homePath: FilePathStub({ value: '/srv/agents/worker-3/state/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense' }),
-        profilesPath: FilePathStub({
-          value: `/srv/agents/worker-3/state/.dungeonmaster/siegelense/profiles/${longHash}`,
-        }),
+        homePath: '/srv/agents/worker-3/state/.dungeonmaster',
+        rootPath: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
+        profilesPath: `/srv/agents/worker-3/state/.dungeonmaster/siegelense/profiles/${longHash}`,
       });
 
       const result = locationsProfilesPathFindBroker({ specHash });

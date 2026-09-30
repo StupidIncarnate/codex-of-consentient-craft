@@ -1,10 +1,9 @@
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { installExecuteBrokerProxy } from '../execute/install-execute-broker.proxy';
 
 export const installOrchestrateBrokerProxy = (): {
-  setupImport: (params: { installPath: FilePath; module: unknown }) => void;
-  setupOverlapRecordingInstalls: (params: { installPaths: FilePath[] }) => void;
+  setupImport: (params: { installPath: string; module: unknown }) => void;
+  setupOverlapRecordingInstalls: (params: { installPaths: string[] }) => void;
   hadOverlappingInstalls: () => boolean;
 } => {
   const installExecuteProxy = installExecuteBrokerProxy();
@@ -13,7 +12,7 @@ export const installOrchestrateBrokerProxy = (): {
   return {
     // Keyed on installPath — the broker calls installExecuteBroker once per package with that
     // package's own installPath, so each package the caller cares about needs its own call.
-    setupImport: ({ installPath, module }: { installPath: FilePath; module: unknown }): void => {
+    setupImport: ({ installPath, module }: { installPath: string; module: unknown }): void => {
       installExecuteProxy.setupImport({ installPath, module });
     },
 
@@ -22,7 +21,7 @@ export const installOrchestrateBrokerProxy = (): {
     // how two installs writing the same file (.claude/settings.json) lose each other's writes.
     // The caller passes every package's installPath so the SAME overlap-recording module answers
     // for each one — installOrchestrateBroker calls a different installPath per package.
-    setupOverlapRecordingInstalls: ({ installPaths }: { installPaths: FilePath[] }): void => {
+    setupOverlapRecordingInstalls: ({ installPaths }: { installPaths: string[] }): void => {
       const module: Record<PropertyKey, unknown> = {
         StartInstall: async (): Promise<ReturnType<typeof InstallResultStub>> => {
           inFlight.count += 1;

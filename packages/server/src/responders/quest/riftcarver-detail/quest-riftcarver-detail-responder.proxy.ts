@@ -8,12 +8,11 @@ import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestRiftcarverDetailResponder } from './quest-riftcarver-detail-responder';
 
 const DETAIL_RIFTCARVER_RESULT_ID = '22222222-2222-4222-8222-222222222222';
 const LOG_FILE_PATH_VALUE = `/home/testuser/quest/riftcarver-results/${DETAIL_RIFTCARVER_RESULT_ID}.log`;
-const LOG_FILE_PATH = FilePathStub({ value: LOG_FILE_PATH_VALUE });
+const LOG_FILE_PATH = LOG_FILE_PATH_VALUE;
 // Matches the literal VALID_QUEST_ID used by every test in quest-riftcarver-detail-responder.test.ts —
 // the responder passes params.questId straight through, so the mocked address must match it.
 const DETAIL_QUEST_ID = QuestIdStub({ value: '11111111-1111-4111-8111-111111111111' });

@@ -11,14 +11,13 @@ import { dirname } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsEslintConfigPathFindBroker = async ({
   startPath,
   currentPath,
 }: {
-  startPath: FilePath;
-  currentPath?: FilePath;
+  startPath: string;
+  currentPath?: string;
 }): Promise<AbsoluteFilePath> => {
   const searchPath = currentPath ?? startPath;
 
@@ -31,7 +30,7 @@ export const locationsEslintConfigPathFindBroker = async ({
     return matched;
   }
 
-  const parentPath = filePathContract.parse(dirname(searchPath));
+  const parentPath = dirname(searchPath);
   if (parentPath === searchPath) {
     throw new ProjectRootNotFoundError({ startPath });
   }

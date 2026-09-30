@@ -13,7 +13,6 @@
  */
 
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { join } from '#gateway/node/path';
@@ -46,15 +45,15 @@ export const laneRecordInstanceBrokerProxy = (): {
       quest: Quest;
       questPath: AbsoluteFilePath;
     }): void => {
-      const questFilePath = FilePathStub({ value: `${String(questPath)}/quest.json` });
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const questFilePath = `${String(questPath)}/quest.json`;
+      const homePath = '/home/testuser/.dungeonmaster';
 
       joinHandle.calledWith([questPath, locationsStatics.quest.questFile]).returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
       persistProxy.setupPersist({
         questFilePath,
         homePath,
-        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+        outboxFilePath: '/home/testuser/.dungeonmaster/outbox.jsonl',
       });
     },
 

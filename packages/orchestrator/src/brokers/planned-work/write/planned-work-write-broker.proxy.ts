@@ -6,8 +6,7 @@
  * per-function wrapper to compose), addressed by the EXACT [dirPath, fileName] tuple.
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
@@ -20,8 +19,8 @@ const JSON_EXTENSION = '.json';
 const TMP_SUFFIX = '.tmp';
 const PLANNED_WORK_DIR = 'planned-work';
 
-const dirPathFor = ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): FilePath =>
-  filePathContract.parse(`${questFolderPath}/${PLANNED_WORK_DIR}`);
+const dirPathFor = ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): string =>
+  `${questFolderPath}/${PLANNED_WORK_DIR}`;
 
 const filePathFor = ({
   questFolderPath,
@@ -29,10 +28,8 @@ const filePathFor = ({
 }: {
   questFolderPath: AbsoluteFilePath;
   operationItemId: OperationItem['id'];
-}): FilePath =>
-  filePathContract.parse(
-    `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`,
-  );
+}): string =>
+  `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkWriteBrokerProxy = (): {
   setupWriteSucceeds: (params: {
@@ -66,7 +63,7 @@ export const plannedWorkWriteBrokerProxy = (): {
   const writeHandle = writeFileProxy();
   const renameHandle = renameProxy();
   // Every rename this proxy staged, so `getAllRenames` reads back exactly the addresses a test set up.
-  const stagedRenames: { from: FilePath; to: FilePath }[] = [];
+  const stagedRenames: { from: string; to: string }[] = [];
 
   const stagePaths = ({
     questFolderPath,
@@ -74,14 +71,14 @@ export const plannedWorkWriteBrokerProxy = (): {
   }: {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItem['id'];
-  }): { dirPath: FilePath; tmpPath: FilePath; filePath: FilePath } => {
+  }): { dirPath: string; tmpPath: string; filePath: string } => {
     const dirPath = dirPathFor({ questFolderPath });
     locationsProxy.setupPlannedWorkPath({ plannedWorkPath: dirPath });
     const filePath = filePathFor({ questFolderPath, operationItemId });
     joinHandle
       .calledWith([dirPath, `${String(operationItemId)}${JSON_EXTENSION}`])
       .returns(filePath);
-    const tmpPath = filePathContract.parse(`${filePath}${TMP_SUFFIX}`);
+    const tmpPath = `${filePath}${TMP_SUFFIX}`;
     return { dirPath, tmpPath, filePath };
   };
 
@@ -123,7 +120,7 @@ export const plannedWorkWriteBrokerProxy = (): {
 
     getWrittenContent: ({ questFolderPath, operationItemId }): unknown => {
       const filePath = filePathFor({ questFolderPath, operationItemId });
-      const tmpPath = filePathContract.parse(`${filePath}${TMP_SUFFIX}`);
+      const tmpPath = `${filePath}${TMP_SUFFIX}`;
       return writeHandle.writtenContentsFor({ path: tmpPath });
     },
 

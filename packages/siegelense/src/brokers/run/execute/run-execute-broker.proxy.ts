@@ -6,8 +6,7 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { AbsoluteFilePath, ContentText, FilePath, Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -54,9 +53,7 @@ const CWD_PATH_VALUE = '/default/cwd';
 // the broker's own unstaged `join` call (via `#gateway/node/path`, staged by
 // locationsRepoLinkPathFindBrokerProxy's own sticky real-passthrough default) computes, so this
 // address is exactly what a real run would check.
-const LINK_PATH = FilePathStub({
-  value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`,
-});
+const LINK_PATH = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 
 // `stageRepoLinkPresent` stages the home through `repoLinkProxy.setupHomeOnly` (forwarded from
 // locationsRootPathFindBrokerProxy) so `locationsRootPathFindBroker` resolves to
@@ -69,7 +66,7 @@ const LINK_PATH = FilePathStub({
 // mean anything.
 const HOME_DIR_VALUE = '/home/default';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
-const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
+const HOME_PATH = HOME_PATH_VALUE;
 const SIEGELENSE_ROOT_VALUE = `${HOME_PATH_VALUE}/siegelense`;
 const HOME_ROOTED_EVIDENCE_PATH = AbsoluteFilePathStub({
   value: `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`,
@@ -256,7 +253,7 @@ export const runExecuteBrokerProxy = (): {
         linkPath: LINK_PATH,
         homeDir: HOME_DIR_VALUE,
         homePath: HOME_PATH,
-        rootPath: FilePathStub({ value: SIEGELENSE_ROOT_VALUE }),
+        rootPath: SIEGELENSE_ROOT_VALUE,
       });
     },
 
@@ -302,7 +299,7 @@ export const runExecuteBrokerProxy = (): {
     // as one-shots, and this proxy is already using both for the run's own evidence paths.
     seedBookPresent: (): void => {
       stepLayerProxy.seedBookPresentAt({
-        packagePath: FilePathStub({ value: '/default/cwd/packages/hydration-recipes' }),
+        packagePath: '/default/cwd/packages/hydration-recipes',
       });
     },
 
@@ -492,7 +489,7 @@ export const runExecuteBrokerProxy = (): {
       return {
         lane,
         captureCalls: (): readonly AbsoluteFilePath[] =>
-          (captureMock.mock.calls as [{ filePath: FilePath }][]).map(([{ filePath }]) =>
+          (captureMock.mock.calls as [{ filePath: string }][]).map(([{ filePath }]) =>
             absoluteFilePathContract.parse(filePath),
           ),
       };

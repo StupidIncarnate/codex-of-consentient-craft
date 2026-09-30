@@ -13,16 +13,14 @@
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 import { workspacePackageJsonContract } from '../../../contracts/workspace-package-json/workspace-package-json-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const findRepoRootLayerBroker = ({
   startPath,
   currentPath,
 }: {
-  startPath: FilePath;
-  currentPath?: FilePath;
-}): FilePath => {
+  startPath: string;
+  currentPath?: string;
+}): string => {
   const searchPath = currentPath ?? startPath;
   const packageJsonPath = join(searchPath, 'package.json');
 
@@ -34,7 +32,7 @@ export const findRepoRootLayerBroker = ({
     }
   }
 
-  const parentPath = filePathContract.parse(dirname(searchPath));
+  const parentPath = dirname(searchPath);
 
   if (parentPath === searchPath) {
     throw new Error(

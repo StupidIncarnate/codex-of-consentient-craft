@@ -15,12 +15,7 @@
  * // Writes {questFolderPath}/riftcarver-results/{riftcarverResultId}.log
  */
 
-import {
-  filePathContract,
-  type FileContents,
-  type FilePath,
-  type RiftcarverResult,
-} from '@dungeonmaster/shared/contracts';
+import { type FileContents, type RiftcarverResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -32,19 +27,15 @@ export const riftcarverPersistResultBroker = async ({
   riftcarverResultId,
   logContents,
 }: {
-  questFolderPath: FilePath;
+  questFolderPath: string;
   riftcarverResultId: RiftcarverResult['id'];
   logContents: FileContents;
 }): Promise<void> => {
-  const riftcarverResultsDir = filePathContract.parse(
-    join(questFolderPath, locationsStatics.quest.riftcarverResultsDir),
-  );
+  const riftcarverResultsDir = join(questFolderPath, locationsStatics.quest.riftcarverResultsDir);
 
   await ensureDir(riftcarverResultsDir);
 
-  const filePath = filePathContract.parse(
-    join(riftcarverResultsDir, `${String(riftcarverResultId)}${LOG_EXTENSION}`),
-  );
+  const filePath = join(riftcarverResultsDir, `${String(riftcarverResultId)}${LOG_EXTENSION}`);
 
   await writeFile(filePath, logContents);
 };

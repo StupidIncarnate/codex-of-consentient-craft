@@ -1,5 +1,4 @@
 import { locationsDispatchStatePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
@@ -15,13 +14,11 @@ export const dispatchStateReadBrokerProxy = (): {
   // heartbeat read-modify-write) stay aligned with the once-value mock queues. The resolved
   // path is always this same literal — dispatchStatePath below — so the read's filePath
   // address is that same literal too.
-  const dispatchStatePath = FilePathStub({
-    value: '/home/user/.dungeonmaster/dispatch-state.json',
-  });
+  const dispatchStatePath = '/home/user/.dungeonmaster/dispatch-state.json';
   const queuePath = (): void => {
     pathProxy.setupDispatchStatePath({
       homeDir: '/home/user',
-      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+      homePath: '/home/user/.dungeonmaster',
       dispatchStatePath,
     });
   };

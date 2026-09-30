@@ -1,7 +1,6 @@
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { slashCommandsStatics } from '../../../statics/slash-commands/slash-commands-statics';
@@ -19,18 +18,14 @@ export const InstallCommandsCreateResponderProxy = (): {
   // Every caller exercises targetProjectRoot: '/project', so the exact join tuples below are the
   // only ones this responder ever composes and the two command files always land here.
   const targetProjectRoot = '/project';
-  const commandsDir = FilePathStub({ value: `${targetProjectRoot}/.claude/commands` });
+  const commandsDir = `${targetProjectRoot}/.claude/commands`;
   joinHandle
     .calledWith([targetProjectRoot, locationsStatics.repoRoot.claude.dir, 'commands'])
     .returns(commandsDir);
   mkdirProxy.succeeds({ path: commandsDir });
 
-  const createPath = FilePathStub({
-    value: `${commandsDir}/${slashCommandsStatics.dumpsterCreate.fileName}`,
-  });
-  const huntPath = FilePathStub({
-    value: `${commandsDir}/${slashCommandsStatics.dumpsterHunt.fileName}`,
-  });
+  const createPath = `${commandsDir}/${slashCommandsStatics.dumpsterCreate.fileName}`;
+  const huntPath = `${commandsDir}/${slashCommandsStatics.dumpsterHunt.fileName}`;
   joinHandle
     .calledWith([commandsDir, slashCommandsStatics.dumpsterCreate.fileName])
     .returns(createPath);

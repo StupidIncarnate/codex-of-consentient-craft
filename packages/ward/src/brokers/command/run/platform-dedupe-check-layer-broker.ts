@@ -16,7 +16,6 @@
  */
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
@@ -58,7 +57,7 @@ export const platformDedupeCheckLayerBroker = async ({
     return undefined;
   }
 
-  const repoPath = filePathContract.parse(rootPath);
+  const repoPath = rootPath;
   const [platformViolations, duplicateViolations] = await Promise.all([
     platformCrossingCheckBroker({ rootPath: repoPath }),
     duplicateInstallCheckBroker({ rootPath: repoPath }),

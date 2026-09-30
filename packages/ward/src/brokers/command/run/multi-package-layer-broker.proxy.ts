@@ -1,11 +1,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { streamProxy } from '#gateway/node/child_process/stream/stream.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
@@ -79,7 +75,7 @@ export const multiPackageLayerBrokerProxy = (): {
     config: ReturnType<typeof DungeonmasterConfigStub>;
   }): void => {
     configProxy.setupResolves({
-      filePath: filePathContract.parse(`${String(rootPath)}/package.json`),
+      filePath: `${String(rootPath)}/package.json`,
       config,
     });
   };

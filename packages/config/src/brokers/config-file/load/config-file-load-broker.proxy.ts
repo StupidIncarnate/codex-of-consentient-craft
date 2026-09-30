@@ -1,11 +1,10 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 export const configFileLoadBrokerProxy = (): {
-  setupValidConfig: (params: { configPath: FilePath; config: Record<string, unknown> }) => void;
-  setupInvalidJson: (params: { configPath: FilePath }) => void;
-  setupFileNotFound: (params: { configPath: FilePath }) => void;
+  setupValidConfig: (params: { configPath: string; config: Record<string, unknown> }) => void;
+  setupInvalidJson: (params: { configPath: string }) => void;
+  setupFileNotFound: (params: { configPath: string }) => void;
 } => {
   const readFileHandle = readFileProxy();
 
@@ -14,7 +13,7 @@ export const configFileLoadBrokerProxy = (): {
       configPath,
       config,
     }: {
-      configPath: FilePath;
+      configPath: string;
       config: Record<string, unknown>;
     }) => {
       readFileHandle.returns({
@@ -23,14 +22,14 @@ export const configFileLoadBrokerProxy = (): {
       });
     },
 
-    setupInvalidJson: ({ configPath }: { configPath: FilePath }) => {
+    setupInvalidJson: ({ configPath }: { configPath: string }) => {
       readFileHandle.returns({
         path: configPath,
         contents: FileContentsStub({ value: '{ invalid json }' }),
       });
     },
 
-    setupFileNotFound: ({ configPath }: { configPath: FilePath }) => {
+    setupFileNotFound: ({ configPath }: { configPath: string }) => {
       readFileHandle.missing({ path: configPath });
     },
   };

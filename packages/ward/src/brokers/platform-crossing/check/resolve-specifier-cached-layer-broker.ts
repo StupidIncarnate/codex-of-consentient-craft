@@ -16,7 +16,7 @@
  * // Returns: { filePath, content } or undefined, same shape as resolveSpecifierLayerBroker
  */
 
-import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import type { ModuleSpecifier } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -24,7 +24,7 @@ import { resolveSpecifierLayerBroker } from './resolve-specifier-layer-broker';
 
 export type ResolveSpecifierCache = Map<
   string,
-  Promise<{ filePath: FilePath; content: FileContents } | undefined>
+  Promise<{ filePath: string; content: FileContents } | undefined>
 >;
 
 export const resolveSpecifierCachedLayerBroker = async ({
@@ -34,10 +34,10 @@ export const resolveSpecifierCachedLayerBroker = async ({
   resolveCache,
 }: {
   specifier: ModuleSpecifier;
-  containingFilePath: FilePath;
+  containingFilePath: string;
   knownPackages: readonly ProjectFolder[];
   resolveCache: ResolveSpecifierCache;
-}): Promise<{ filePath: FilePath; content: FileContents } | undefined> => {
+}): Promise<{ filePath: string; content: FileContents } | undefined> => {
   const cacheKey = `${containingFilePath}\u0000${specifier}`;
   const cached = resolveCache.get(cacheKey);
   if (cached !== undefined) {

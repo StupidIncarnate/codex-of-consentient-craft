@@ -13,11 +13,7 @@
  * // Returns: readonly DuplicateInstallViolation[] — empty when every candidate resolves to one copy
  */
 
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import {
   duplicateInstallViolationContract,
@@ -36,7 +32,7 @@ import { installedPackageVersionReadOptionalLayerBroker } from './installed-pack
 export const duplicateInstallCheckBroker = async ({
   rootPath,
 }: {
-  rootPath: FilePath;
+  rootPath: string;
 }): Promise<readonly DuplicateInstallViolation[]> => {
   const rootAbsolute = absoluteFilePathContract.parse(rootPath);
   const rootAbsoluteString = String(rootAbsolute);
@@ -60,9 +56,7 @@ export const duplicateInstallCheckBroker = async ({
     namesToCheck.map(async (name): Promise<DuplicateInstallViolation | undefined> => {
       const foundLocations = await Promise.all(
         locationDirs.map(async (dir): Promise<DuplicateInstallLocation | undefined> => {
-          const packageJsonPath = filePathContract.parse(
-            `${dir}/node_modules/${name}/package.json`,
-          );
+          const packageJsonPath = `${dir}/node_modules/${name}/package.json`;
           const version = await installedPackageVersionReadOptionalLayerBroker({
             packageJsonPath,
           });

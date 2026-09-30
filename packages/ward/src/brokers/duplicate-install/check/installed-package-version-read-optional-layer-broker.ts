@@ -11,7 +11,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { installedPackageManifestContract } from '../../../contracts/installed-package-manifest/installed-package-manifest-contract';
 import type { InstalledPackageVersion } from '../../../contracts/installed-package-version/installed-package-version-contract';
@@ -20,7 +19,7 @@ import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-cod
 export const installedPackageVersionReadOptionalLayerBroker = async ({
   packageJsonPath,
 }: {
-  packageJsonPath: FilePath;
+  packageJsonPath: string;
 }): Promise<InstalledPackageVersion | undefined> => {
   const raw = await readFile(packageJsonPath).catch((error: unknown) => {
     if (isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })) {

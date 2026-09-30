@@ -16,7 +16,6 @@ import { sourceFilePrependStatementsTransformer } from '../../transformers/sourc
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyMockCollectorMiddleware } from '../proxy-mock-collector/proxy-mock-collector-middleware';
 import { mockCallsMergeByModuleTransformer } from '../../transformers/mock-calls-merge-by-module/mock-calls-merge-by-module-transformer';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type * as ts from '#gateway/npm/typescript';
 
@@ -34,7 +33,7 @@ export const typescriptProxyMockTransformerMiddleware = ({
   const proxyEdges = astProxyImportsTransformer({ sourceFile });
 
   for (const edge of proxyEdges) {
-    const sourceFilePath = filePathContract.parse(sourceFile.fileName);
+    const sourceFilePath = sourceFile.fileName;
     const proxyPath = importPathResolverMiddleware({
       sourceFilePath,
       importPath: edge.importPath,

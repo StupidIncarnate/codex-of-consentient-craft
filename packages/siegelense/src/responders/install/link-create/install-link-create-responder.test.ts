@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallLinkCreateResponderProxy } from './install-link-create-responder.proxy';
 
@@ -9,8 +8,8 @@ import { InstallLinkCreateResponderProxy } from './install-link-create-responder
 // locationsRootPathFindBrokerProxy), proving the responder ignores this field.
 const CONTEXT = InstallContextStub({
   value: {
-    targetProjectRoot: FilePathStub({ value: '/project' }),
-    dungeonmasterRoot: FilePathStub({ value: '/wrong-cli-install-root' }),
+    targetProjectRoot: '/project',
+    dungeonmasterRoot: '/wrong-cli-install-root',
   },
 });
 
@@ -47,8 +46,8 @@ describe('InstallLinkCreateResponder', () => {
       await proxy.callResponder({ context: CONTEXT });
 
       expect(proxy.getMkdirCalls()).toStrictEqual([
-        FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        FilePathStub({ value: '/project/.dungeonmaster-assets' }),
+        '/home/user/.dungeonmaster/siegelense',
+        '/project/.dungeonmaster-assets',
       ]);
       expect(proxy.assertMkdirCalledBeforeSymlink()).toBe(true);
     });

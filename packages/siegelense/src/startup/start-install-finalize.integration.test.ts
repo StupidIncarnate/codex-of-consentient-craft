@@ -1,7 +1,7 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { StartInstallFinalize } from './start-install-finalize';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('StartInstallFinalize', () => {
   describe('wiring to install finalize flow', () => {
@@ -11,10 +11,10 @@ describe('StartInstallFinalize', () => {
       });
 
       const result = await StartInstallFinalize({
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+        } }),
       });
 
       testbed.cleanup();

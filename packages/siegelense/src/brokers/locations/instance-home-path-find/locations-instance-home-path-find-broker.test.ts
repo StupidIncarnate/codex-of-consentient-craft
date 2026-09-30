@@ -1,6 +1,5 @@
 import { locationsInstanceHomePathFindBroker } from './locations-instance-home-path-find-broker';
 import { locationsInstanceHomePathFindBrokerProxy } from './locations-instance-home-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
@@ -12,7 +11,7 @@ describe('locationsInstanceHomePathFindBroker', () => {
 
       proxy.setupHomePath({
         tmpDir: '/tmp',
-        homePath: FilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' }),
+        homePath: '/tmp/dm-siege-inst_7f3a9c21',
       });
 
       const result = locationsInstanceHomePathFindBroker({ instanceId });
@@ -26,7 +25,7 @@ describe('locationsInstanceHomePathFindBroker', () => {
 
       proxy.setupHomePath({
         tmpDir: '/tmp',
-        homePath: FilePathStub({ value: '/tmp/dm-siege-inst_00000000' }),
+        homePath: '/tmp/dm-siege-inst_00000000',
       });
 
       const result = locationsInstanceHomePathFindBroker({ instanceId });

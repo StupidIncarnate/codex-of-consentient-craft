@@ -1,6 +1,5 @@
 import { locationsRateLimitsSnapshotTmpPathFindBroker } from './locations-rate-limits-snapshot-tmp-path-find-broker';
 import { locationsRateLimitsSnapshotTmpPathFindBrokerProxy } from './locations-rate-limits-snapshot-tmp-path-find-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRateLimitsSnapshotTmpPathFindBroker', () => {
@@ -9,8 +8,8 @@ describe('locationsRateLimitsSnapshotTmpPathFindBroker', () => {
 
     proxy.setupTmpPath({
       homeDir: '/home/user',
-      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-      tmpPath: FilePathStub({ value: '/home/user/.dungeonmaster/rate-limits.json.tmp' }),
+      homePath: '/home/user/.dungeonmaster',
+      tmpPath: '/home/user/.dungeonmaster/rate-limits.json.tmp',
     });
 
     const result = locationsRateLimitsSnapshotTmpPathFindBroker();

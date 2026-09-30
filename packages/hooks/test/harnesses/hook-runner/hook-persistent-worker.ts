@@ -7,7 +7,6 @@
  */
 import { argv, exit, getStdin, stderr, stdout } from '#gateway/node/process';
 import { lineReader } from '#gateway/node/readline';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
@@ -83,7 +82,7 @@ const processEnvelope = async (params: {
 };
 
 const main = async (): Promise<void> => {
-  const flowModule = (await import(filePathContract.parse(argv[2]))) as FlowModule;
+  const flowModule = (await import(argv[2])) as FlowModule;
 
   stdout.write('READY\n');
 

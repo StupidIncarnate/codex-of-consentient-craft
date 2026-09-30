@@ -12,7 +12,6 @@
  */
 import { AST_NODE_TYPES, ESLintUtils } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 export const typedParserServicesTransformer = ({
   context,
@@ -20,7 +19,7 @@ export const typedParserServicesTransformer = ({
 }: {
   context: unknown;
   node: unknown;
-}): FilePath | undefined => {
+}): string | undefined => {
   // `never` in place of the library's own `MessageIds extends string` type parameter: this transformer
   // never reads a message id off the context, only its parser services, so the constraint needs no
   // concrete string literal type — and `never` still satisfies "extends string".
@@ -41,5 +40,5 @@ export const typedParserServicesTransformer = ({
       : undefined;
   const symbol = shorthandValueSymbol ?? services.getSymbolAtLocation(esNode);
   const fileName = symbol?.getDeclarations()?.[0]?.getSourceFile().fileName;
-  return fileName === undefined ? undefined : filePathContract.parse(fileName);
+  return fileName === undefined ? undefined : fileName;
 };

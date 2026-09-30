@@ -7,18 +7,16 @@
  * });
  * // Returns: '/src/brokers/user/user-broker.ts'
  */
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 
 export const proxyPathToImplementationPathTransformer = ({
   proxyPath,
 }: {
   proxyPath: string;
-}): FilePath => {
+}): string => {
   // Handle both .proxy.ts and .proxy.tsx extensions
   const implementationPath = proxyPath.replace(/\.proxy\.tsx?$/u, (match) =>
     match.endsWith('.tsx') ? '.tsx' : '.ts',
   );
 
-  return filePathContract.parse(implementationPath);
+  return implementationPath;
 };

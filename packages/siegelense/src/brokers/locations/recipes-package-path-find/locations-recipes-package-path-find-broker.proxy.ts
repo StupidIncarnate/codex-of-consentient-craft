@@ -2,16 +2,15 @@ import { join } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { recipeLocationStatics } from '../../../statics/recipe-location/recipe-location-statics';
 
 export const locationsRecipesPackagePathFindBrokerProxy = (): {
-  setupRepoRootAtCwd: (params: { cwdPath: string; packagePath: FilePath }) => void;
+  setupRepoRootAtCwd: (params: { cwdPath: string; packagePath: string }) => void;
   setupRepoRootInParent: (params: {
     cwdPath: string;
     repoRoot: string;
-    packagePath: FilePath;
+    packagePath: string;
   }) => void;
 } => {
   const cwdStage = cwdProxy();
@@ -27,7 +26,7 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
       packagePath,
     }: {
       cwdPath: string;
-      packagePath: FilePath;
+      packagePath: string;
     }): void => {
       cwdStage.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
@@ -43,7 +42,7 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
     }: {
       cwdPath: string;
       repoRoot: string;
-      packagePath: FilePath;
+      packagePath: string;
     }): void => {
       cwdStage.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundInParent({ startPath: cwdPath, repoRoot });

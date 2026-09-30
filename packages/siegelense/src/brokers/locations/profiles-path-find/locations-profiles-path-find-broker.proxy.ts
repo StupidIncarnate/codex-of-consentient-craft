@@ -1,16 +1,15 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 
 export const locationsProfilesPathFindBrokerProxy = (): {
   setupProfilesPath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    profilesPath: FilePath;
+    homePath: string;
+    rootPath: string;
+    profilesPath: string;
   }) => void;
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
@@ -30,9 +29,9 @@ export const locationsProfilesPathFindBrokerProxy = (): {
       profilesPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      profilesPath: FilePath;
+      homePath: string;
+      rootPath: string;
+      profilesPath: string;
     }): void => {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
       const prefixLength = rootPath.length + 1 + locationsStatics.siegelense.profilesDir.length + 1;

@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
@@ -8,6 +7,7 @@ import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/
 
 import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
 import { CliFlow } from './cli-flow';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 type BuiltSiegelenseCall = keyof typeof siegelenseHelpStatics.calls;
 
@@ -35,10 +35,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'init',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       const packageJsonContent = testbed.readFile({
@@ -60,10 +60,10 @@ describe('CliFlow', () => {
         CliFlow({
           command: 'seigelense',
           args: [],
-          context: {
-            targetProjectRoot: FilePathStub({ value: '/repo' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dungeonmaster' }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: '/repo',
+            dungeonmasterRoot: '/dungeonmaster',
+          } }),
         }),
       ).rejects.toThrow(
         'Unknown command: seigelense. Commands: init, start, statusline-tap, create-package, siegelense.',
@@ -75,10 +75,10 @@ describe('CliFlow', () => {
         CliFlow({
           command: '--help',
           args: [],
-          context: {
-            targetProjectRoot: FilePathStub({ value: '/repo' }),
-            dungeonmasterRoot: FilePathStub({ value: '/dungeonmaster' }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: '/repo',
+            dungeonmasterRoot: '/dungeonmaster',
+          } }),
         }),
       ).rejects.toThrow(/^Unknown command: --help\. Commands: /u);
     });
@@ -107,10 +107,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'statusline-tap',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       stdin.restore();
@@ -152,10 +152,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'statusline-tap',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
       firstStdin.restore();
       firstStdout.restore();
@@ -166,10 +166,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'statusline-tap',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
       secondStdin.restore();
       secondStdout.restore();
@@ -195,10 +195,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'statusline-tap',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       stdin.restore();
@@ -230,10 +230,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'create-package',
         args: ['--name', 'widgets', '--type', 'library'],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       stdout.restore();
@@ -263,10 +263,10 @@ describe('CliFlow', () => {
       const attempt = CliFlow({
         command: 'create-package',
         args: ['--type', 'library'],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       await expect(attempt).rejects.toThrow(/^--name is required/u);
@@ -308,10 +308,10 @@ describe('CliFlow', () => {
       await CliFlow({
         command: 'siegelense',
         args: [],
-        context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: testbed.guildPath,
+          dungeonmasterRoot: testbed.dungeonmasterPath,
+        } }),
       });
 
       stdout.restore();
@@ -352,10 +352,10 @@ describe('CliFlow', () => {
         await CliFlow({
           command: 'siegelense',
           args: [call, '--help'],
-          context: {
-            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
-          },
+          context: InstallContextStub({ value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          } }),
         });
 
         stdout.restore();

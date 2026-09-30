@@ -1,14 +1,13 @@
 import { join } from '#gateway/node/path';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { packageRegisterBroker } from './package-register-broker';
 
 export const packageRegisterBrokerProxy = (): {
   callBroker: typeof packageRegisterBroker;
-  setupRootPackageJson: (params: { projectRoot: FilePath; contents: string }) => void;
-  setupRootPackageJsonMissing: (params: { projectRoot: FilePath }) => void;
+  setupRootPackageJson: (params: { projectRoot: string; contents: string }) => void;
+  setupRootPackageJsonMissing: (params: { projectRoot: string }) => void;
   getWrittenContents: () => readonly unknown[];
 } => {
   const joinHandle = registerMock({ fn: join });
@@ -16,7 +15,7 @@ export const packageRegisterBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const readProxy = readFileProxy();
   const writeProxy = writeFileProxy();
-  const writtenPaths: FilePath[] = [];
+  const writtenPaths: string[] = [];
 
   return {
     callBroker: packageRegisterBroker,
@@ -25,17 +24,17 @@ export const packageRegisterBrokerProxy = (): {
       projectRoot,
       contents,
     }: {
-      projectRoot: FilePath;
+      projectRoot: string;
       contents: string;
     }): void => {
-      const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
+      const packageJsonPath = join(projectRoot, 'package.json');
       readProxy.returns({ path: packageJsonPath, contents });
       writeProxy.succeeds({ path: packageJsonPath });
       writtenPaths.push(packageJsonPath);
     },
 
-    setupRootPackageJsonMissing: ({ projectRoot }: { projectRoot: FilePath }): void => {
-      const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
+    setupRootPackageJsonMissing: ({ projectRoot }: { projectRoot: string }): void => {
+      const packageJsonPath = join(projectRoot, 'package.json');
       readProxy.missing({ path: packageJsonPath });
     },
 

@@ -11,8 +11,6 @@ import { createRequire } from '#gateway/node/module';
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { hookConfigDefaultBroker } from '../default/hook-config-default-broker';
 import { hookConfigMergeBroker } from '../merge/hook-config-merge-broker';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
 import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -22,9 +20,9 @@ const req = createRequire(__filename);
 export const hookConfigLoadBroker = ({
   cwd: cwdParam,
 }: {
-  cwd?: FilePath;
+  cwd?: string;
 } = {}): PreEditLintConfig => {
-  const workingDir = cwdParam ?? filePathContract.parse(cwd());
+  const workingDir = cwdParam ?? cwd();
   // Skip the .ts variant (index 0) — require() cannot load TypeScript without a transpiler.
   const configPaths = locationsStatics.hooks.configFiles
     .filter((f) => !f.endsWith('.ts'))

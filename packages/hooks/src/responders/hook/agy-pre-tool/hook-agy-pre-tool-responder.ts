@@ -20,7 +20,6 @@ import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/
 import { writeToolInputContract } from '../../../contracts/write-tool-input/write-tool-input-contract';
 import { editToolInputContract } from '../../../contracts/edit-tool-input/edit-tool-input-contract';
 import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-tool-input-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { agyPreToolHookDataContract } from '../../../contracts/agy-pre-tool-hook-data/agy-pre-tool-hook-data-contract';
 import {
   agyPreToolDecisionContract,
@@ -102,7 +101,7 @@ export const HookAgyPreToolResponder = async ({
     });
 
     const firstWorkspace = workspacePaths?.[0];
-    const cwd = firstWorkspace ? filePathContract.parse(firstWorkspace) : undefined;
+    const cwd = firstWorkspace ? firstWorkspace : undefined;
 
     const result = await violationsCheckNewBroker({
       toolInput,
@@ -138,7 +137,7 @@ export const HookAgyPreToolResponder = async ({
     });
 
     const firstWorkspace = workspacePaths?.[0];
-    const cwd = firstWorkspace ? filePathContract.parse(firstWorkspace) : undefined;
+    const cwd = firstWorkspace ? firstWorkspace : undefined;
 
     const result = await violationsCheckNewBroker({
       toolInput,

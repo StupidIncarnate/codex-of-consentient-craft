@@ -13,7 +13,7 @@ import { basename, dirname, join } from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
-import { filePathContract, questContract, type Quest, type FilePath, type WorkItemRole, guildContract } from '@dungeonmaster/shared/contracts';
+import { questContract, type Quest, type WorkItemRole, guildContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -101,7 +101,7 @@ export const questHarness = ({
   createQuest: (params: { guildId: Guild['id']; title: string; userRequest: string }) => Promise<{
     questId: Quest['id'];
     questFolder: Quest['folder'];
-    filePath: FilePath;
+    filePath: string;
     success: boolean;
   }>;
   // Same plan shape as createQuest, run against the `write` target instead of the `api` one — for
@@ -110,7 +110,7 @@ export const questHarness = ({
     guildId: Guild['id'];
     title: string;
     userRequest: string;
-  }) => Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: FilePath }>;
+  }) => Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: string }>;
   writeQuestFile: (params: {
     guildId?: Guild['id'];
     questId: Quest['id'];
@@ -354,7 +354,7 @@ export const questHarness = ({
   }): Promise<{
     questId: Quest['id'];
     questFolder: Quest['folder'];
-    filePath: FilePath;
+    filePath: string;
     success: boolean;
   }> => {
     const plan = recipe({ name: 'seed-quest', description: 'seed one quest via api route' }, () => [
@@ -370,9 +370,7 @@ export const questHarness = ({
     const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
     const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
     const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
-    const filePath = filePathContract.parse(
-      `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
-    );
+    const filePath = `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`;
     return {
       success: true,
       questId: quest.id,
@@ -391,7 +389,7 @@ export const questHarness = ({
     guildId: Guild['id'];
     title: string;
     userRequest: string;
-  }): Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: FilePath }> => {
+  }): Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: string }> => {
     const plan = recipe(
       { name: 'seed-quest-write', description: 'seed one quest via write route' },
       () => [
@@ -408,9 +406,7 @@ export const questHarness = ({
     const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
     const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
     const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
-    const filePath = filePathContract.parse(
-      `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
-    );
+    const filePath = `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`;
     return {
       questId: quest.id,
       questFolder: quest.folder,

@@ -2,10 +2,9 @@ import type { Guild } from '../../../contracts/guild/guild-contract';
 import { dirname, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const guildPathWalkUpLayerBrokerProxy = (): {
   setupGuildFoundAtStart: (params: { startPath: string }) => void;
@@ -39,13 +38,13 @@ export const guildPathWalkUpLayerBrokerProxy = (): {
 
   const guildConfigPathFor = ({ dirPath }: { dirPath: string }): FilePath => {
     const { guildConfigFile } = locationsStatics.dungeonmasterHome;
-    const guildConfigPath = FilePathStub({ value: realPath.join(dirPath, guildConfigFile) });
+    const guildConfigPath = realPath.join(dirPath, guildConfigFile);
     joinHandle.calledWith([dirPath, guildConfigFile]).returns(guildConfigPath);
     return guildConfigPath;
   };
 
   const dirnameFor = ({ dirPath }: { dirPath: string }): FilePath => {
-    const parent = FilePathStub({ value: realPath.dirname(dirPath) });
+    const parent = realPath.dirname(dirPath);
     dirnameHandle.calledWith([dirPath]).returns(parent);
     return parent;
   };

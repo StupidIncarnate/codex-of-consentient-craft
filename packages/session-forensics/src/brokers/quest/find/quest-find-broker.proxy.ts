@@ -5,11 +5,10 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 // A logical candidate root, in the exact precedence questFindBroker searches.
 type QuestFindRootKind = 'repoLocal' | 'dev' | 'envHome' | 'userGlobal';
@@ -51,14 +50,10 @@ export const questFindBrokerProxy = (): {
   const cwdStageProxy = cwdProxy();
   cwdStageProxy.setupCwd({ value: REPO_CWD });
 
-  const repoLocalGuildsPath = FilePathStub({
-    value: `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}`,
-  });
-  const devGuildsPath = FilePathStub({
-    value: `${REPO_CWD}/${DUNGEONMASTER_DEV_DIR}/${GUILDS_DIR}`,
-  });
-  const envHomeGuildsPath = FilePathStub({ value: `${ENV_HOME}/${GUILDS_DIR}` });
-  const userGlobalGuildsPath = FilePathStub({ value: `${USER_GLOBAL_ROOT}/${GUILDS_DIR}` });
+  const repoLocalGuildsPath = `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}`;
+  const devGuildsPath = `${REPO_CWD}/${DUNGEONMASTER_DEV_DIR}/${GUILDS_DIR}`;
+  const envHomeGuildsPath = `${ENV_HOME}/${GUILDS_DIR}`;
+  const userGlobalGuildsPath = `${USER_GLOBAL_ROOT}/${GUILDS_DIR}`;
 
   // existsSyncProxy has no catch-all by design: every one of the four fixed root guildsPath
   // addresses this broker's loop can reach gets an explicit false default here, overridden below
@@ -71,7 +66,7 @@ export const questFindBrokerProxy = (): {
   const stageUserGlobalHomedir = (): void => {
     homeFindProxy.setupHomePath({
       homeDir: USER_HOMEDIR,
-      homePath: FilePathStub({ value: USER_GLOBAL_ROOT }),
+      homePath: USER_GLOBAL_ROOT,
     });
   };
 
@@ -124,16 +119,12 @@ export const questFindBrokerProxy = (): {
       });
       for (const decoyId of decoyGuildIds) {
         existsProxy.returns({
-          path: FilePathStub({
-            value: `${guildsPath}/${decoyId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
-          }),
+          path: `${guildsPath}/${decoyId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
           exists: false,
         });
       }
       existsProxy.returns({
-        path: FilePathStub({
-          value: `${guildsPath}/${guildId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
-        }),
+        path: `${guildsPath}/${guildId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
         exists: true,
       });
     },
@@ -156,9 +147,7 @@ export const questFindBrokerProxy = (): {
       });
       for (const guildId of guildIds) {
         existsProxy.returns({
-          path: FilePathStub({
-            value: `${guildsPath}/${guildId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
-          }),
+          path: `${guildsPath}/${guildId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
           exists: false,
         });
       }

@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { QuestUserAddResponderProxy } from './quest-user-add-responder.proxy';
@@ -7,12 +6,8 @@ describe('QuestUserAddResponder', () => {
   describe('successful quest creation', () => {
     it('VALID: {title, userRequest, guildId} => returns success result from broker', async () => {
       const guildId = GuildIdStub();
-      const questFolderPath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1',
-      });
-      const questFilePath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1/quest.json',
-      });
+      const questFolderPath = '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1';
+      const questFilePath = '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1/quest.json';
       const proxy = QuestUserAddResponderProxy();
       proxy.setupQuestCreation({ questFolderPath, questFilePath });
 

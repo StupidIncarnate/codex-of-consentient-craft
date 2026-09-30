@@ -1,6 +1,5 @@
 import { locationsClaudeProjectsRootFindBroker } from './locations-claude-projects-root-find-broker';
 import { locationsClaudeProjectsRootFindBrokerProxy } from './locations-claude-projects-root-find-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsClaudeProjectsRootFindBroker', () => {
@@ -8,7 +7,7 @@ describe('locationsClaudeProjectsRootFindBroker', () => {
     const proxy = locationsClaudeProjectsRootFindBrokerProxy();
 
     proxy.setupProjectsRoot({
-      homeDir: FilePathStub({ value: '/home/user' }),
+      homeDir: '/home/user',
     });
 
     const result = locationsClaudeProjectsRootFindBroker();

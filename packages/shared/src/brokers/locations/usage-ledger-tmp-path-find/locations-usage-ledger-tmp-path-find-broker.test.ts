@@ -1,6 +1,5 @@
 import { locationsUsageLedgerTmpPathFindBroker } from './locations-usage-ledger-tmp-path-find-broker';
 import { locationsUsageLedgerTmpPathFindBrokerProxy } from './locations-usage-ledger-tmp-path-find-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsUsageLedgerTmpPathFindBroker', () => {
@@ -9,11 +8,9 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
 
     proxy.setupLedgerTmpPath({
       homeDir: '/home/user',
-      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+      homePath: '/home/user/.dungeonmaster',
       token: '4821-1789337123234',
-      ledgerTmpPath: FilePathStub({
-        value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-      }),
+      ledgerTmpPath: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
     });
 
     const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
@@ -31,7 +28,7 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
 
       proxy.setupHomeOnly({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
       });
 
       const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
@@ -48,14 +45,14 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
 
       proxy.setupHomeOnly({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
       });
 
       const first = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
 
       proxy.setupHomeOnly({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
       });
 
       const second = locationsUsageLedgerTmpPathFindBroker({ token: '4822-1789337123234' });

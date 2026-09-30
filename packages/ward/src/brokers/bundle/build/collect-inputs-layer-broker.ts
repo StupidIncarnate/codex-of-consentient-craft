@@ -14,11 +14,7 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  packageJsonContract as workspaceNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, packageJsonContract as workspaceNameContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
   dependencyGraphAdjacencyBuildTransformer,
@@ -61,7 +57,7 @@ export const collectInputsLayerBroker = async ({
   const manifests = await Promise.all(
     packagePaths.map(async (packagePath) => {
       const raw = await readFile(
-        filePathContract.parse(`${String(packagePath)}/package.json`),
+        `${String(packagePath)}/package.json`,
       ).catch(() => null);
 
       const parsed =

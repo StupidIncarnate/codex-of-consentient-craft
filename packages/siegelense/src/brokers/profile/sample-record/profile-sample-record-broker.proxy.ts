@@ -18,8 +18,7 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { join } from '#gateway/node/path';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
@@ -37,22 +36,22 @@ type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 export const profileSampleRecordBrokerProxy = (): {
   setupFirstBeat: (params: {
-    profilesPath: FilePath;
+    profilesPath: string;
     instanceId: InstanceId;
     registry: Registry;
   }) => void;
   setupLaterBeat: (params: {
-    profilesPath: FilePath;
+    profilesPath: string;
     instanceId: InstanceId;
     registry: Registry;
     existingRecordJson: string;
   }) => void;
-  getWrittenRecord: (params: { profilesPath: FilePath; instanceId: InstanceId }) => unknown;
+  getWrittenRecord: (params: { profilesPath: string; instanceId: InstanceId }) => unknown;
   getStderrMessages: () => readonly ContentText[];
 } => {
   // Both are empty proxies — the spec lookup is a statics read and the hash is a real digest the
@@ -74,26 +73,24 @@ export const profileSampleRecordBrokerProxy = (): {
   const writeProxy = writeFileProxy();
   const stderr = stderrProxy();
 
-  const samplesDirFor = ({ profilesPath }: { profilesPath: FilePath }): FilePath =>
-    FilePathStub({ value: `${String(profilesPath)}/${profileStatics.dirs.samples}` });
+  const samplesDirFor = ({ profilesPath }: { profilesPath: string }): string =>
+    `${String(profilesPath)}/${profileStatics.dirs.samples}`;
 
   const recordPathFor = ({
     profilesPath,
     instanceId,
   }: {
-    profilesPath: FilePath;
+    profilesPath: string;
     instanceId: InstanceId;
-  }): FilePath =>
-    FilePathStub({
-      value: `${String(samplesDirFor({ profilesPath }))}/${instanceId}${profileStatics.extensions.record}`,
-    });
+  }): string =>
+    `${String(samplesDirFor({ profilesPath }))}/${instanceId}${profileStatics.extensions.record}`;
 
   const stageChain = ({
     profilesPath,
     instanceId,
     registry,
   }: {
-    profilesPath: FilePath;
+    profilesPath: string;
     instanceId: InstanceId;
     registry: Registry;
   }): void => {

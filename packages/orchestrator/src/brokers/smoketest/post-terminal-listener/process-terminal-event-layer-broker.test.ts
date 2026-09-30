@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -21,8 +20,8 @@ describe('processTerminalEventLayerBroker', () => {
       proxy.setupPassthrough();
       proxy.setupQuestDeleted({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        homePath: '/home/user/.dungeonmaster',
+        guildsDir: '/home/user/.dungeonmaster/guilds',
       });
 
       const stopDriver = jest.fn();
@@ -49,8 +48,8 @@ describe('processTerminalEventLayerBroker', () => {
       proxy.setupPassthrough();
       proxy.setupQuestDeleted({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        homePath: '/home/user/.dungeonmaster',
+        guildsDir: '/home/user/.dungeonmaster/guilds',
       });
 
       const unregisterListener = jest.fn();

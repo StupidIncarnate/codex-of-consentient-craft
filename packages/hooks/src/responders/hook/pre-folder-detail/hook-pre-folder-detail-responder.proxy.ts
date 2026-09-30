@@ -1,6 +1,5 @@
 import { transcriptResolveForHookBrokerProxy } from '../../../brokers/transcript/resolve-for-hook/transcript-resolve-for-hook-broker.proxy';
 import { folderDetailWasCalledBrokerProxy } from '../../../brokers/folder-detail/was-called/folder-detail-was-called-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 export const HookPreFolderDetailResponderProxy = (): {
   setupNoTranscript: (params: { transcriptPath: string }) => void;
@@ -17,7 +16,7 @@ export const HookPreFolderDetailResponderProxy = (): {
     },
     setupUndetermined: ({ transcriptPath }: { transcriptPath: string }): void => {
       transcriptProxy.setupExists({ path: transcriptPath, exists: true });
-      lookupProxy.setupReadError({ transcriptFilePath: FilePathStub({ value: transcriptPath }) });
+      lookupProxy.setupReadError({ transcriptFilePath: transcriptPath });
     },
     setupAlreadyCalled: ({
       transcriptPath,
@@ -28,7 +27,7 @@ export const HookPreFolderDetailResponderProxy = (): {
     }): void => {
       transcriptProxy.setupExists({ path: transcriptPath, exists: true });
       lookupProxy.setupTranscript({
-        transcriptFilePath: FilePathStub({ value: transcriptPath }),
+        transcriptFilePath: transcriptPath,
         contents: JSON.stringify({
           type: 'assistant',
           message: {
@@ -54,7 +53,7 @@ export const HookPreFolderDetailResponderProxy = (): {
     }): void => {
       transcriptProxy.setupExists({ path: transcriptPath, exists: true });
       lookupProxy.setupTranscript({
-        transcriptFilePath: FilePathStub({ value: transcriptPath }),
+        transcriptFilePath: transcriptPath,
         contents: JSON.stringify({
           type: 'assistant',
           message: {

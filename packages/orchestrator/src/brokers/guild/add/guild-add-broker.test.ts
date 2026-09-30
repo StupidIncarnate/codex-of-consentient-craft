@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -14,14 +13,10 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
       const name = GuildNameStub({ value: 'My App' });
       const path = GuildPathStub({ value: '/home/user/my-app' });
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
-      const guildDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-      });
-      const questsDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
-      });
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
+      const guildDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
@@ -47,14 +42,10 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
       const name = GuildNameStub({ value: 'Second App' });
       const path = GuildPathStub({ value: '/home/user/second-app' });
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
-      const guildDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-      });
-      const questsDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
-      });
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
+      const guildDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       const existingGuild = GuildStub({
         id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
@@ -129,14 +120,10 @@ describe('guildAddBroker', () => {
       const name = GuildNameStub({ value: 'Pinned App' });
       const path = GuildPathStub({ value: '/home/user/pinned-app' });
       const suppliedId = '38c6cbd2-8bf1-6507-8d07-0980dd1fb595';
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
-      const guildDirPath = FilePathStub({
-        value: `/home/user/.dungeonmaster/guilds/${suppliedId}`,
-      });
-      const questsDirPath = FilePathStub({
-        value: `/home/user/.dungeonmaster/guilds/${suppliedId}/quests`,
-      });
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
+      const guildDirPath = `/home/user/.dungeonmaster/guilds/${suppliedId}`;
+      const questsDirPath = `/home/user/.dungeonmaster/guilds/${suppliedId}/quests`;
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
@@ -162,18 +149,16 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
       const name = GuildNameStub({ value: 'Bad Id App' });
       const path = GuildPathStub({ value: '/home/user/bad-id-app' });
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
-        guildDirPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds/unused' }),
-        questsDirPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/unused/quests',
-        }),
+        guildDirPath: '/home/user/.dungeonmaster/guilds/unused',
+        questsDirPath: '/home/user/.dungeonmaster/guilds/unused/quests',
       });
 
       await expect(guildAddBroker({ name, path, id: 'not-a-uuid' })).rejects.toThrow(
@@ -188,7 +173,7 @@ describe('guildAddBroker', () => {
 
       proxy.setupAddGuildInSuppliedHome({
         existingConfig: GuildConfigStub({ guilds: [] }),
-        configFilePath: FilePathStub({ value: '/tmp/dm-home-target/config.json' }),
+        configFilePath: '/tmp/dm-home-target/config.json',
       });
 
       await guildAddBroker({
@@ -207,7 +192,7 @@ describe('guildAddBroker', () => {
 
       proxy.setupAddGuildInSuppliedHome({
         existingConfig: GuildConfigStub({ guilds: [] }),
-        configFilePath: FilePathStub({ value: '/tmp/dm-home-target/config.json' }),
+        configFilePath: '/tmp/dm-home-target/config.json',
       });
 
       await guildAddBroker({
@@ -224,7 +209,7 @@ describe('guildAddBroker', () => {
 
       proxy.setupAddGuildInSuppliedHome({
         existingConfig: GuildConfigStub({ guilds: [] }),
-        configFilePath: FilePathStub({ value: '/tmp/dm-home-target/config.json' }),
+        configFilePath: '/tmp/dm-home-target/config.json',
       });
 
       const result = await guildAddBroker({
@@ -281,20 +266,16 @@ describe('guildAddBroker', () => {
   describe('no supplied home', () => {
     it('VALID: {name, path} => makes the default home, its guilds dir and the quests dir under it', async () => {
       const proxy = guildAddBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
-      const questsDirPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
-      });
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
+      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
-        guildDirPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        }),
+        guildDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
         questsDirPath,
       });
 
@@ -316,14 +297,10 @@ describe('guildAddBroker', () => {
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
-        guildDirPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        }),
-        questsDirPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        guildsPath: '/home/user/.dungeonmaster/guilds',
+        guildDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questsDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
       await guildAddBroker({
@@ -338,8 +315,8 @@ describe('guildAddBroker', () => {
   describe('no supplied id', () => {
     it('VALID: {name, path, two calls, no id} => mints a different valid id each call', async () => {
       const proxy = guildAddBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
       const firstId = '45ccae5e-c8bd-3883-8d53-8ed4bf696af3';
       const secondId = '016612e6-8f4a-726a-802b-10c043690d99';
 
@@ -348,10 +325,8 @@ describe('guildAddBroker', () => {
         homeDir: '/home/user',
         homePath,
         guildsPath,
-        guildDirPath: FilePathStub({ value: `/home/user/.dungeonmaster/guilds/${firstId}` }),
-        questsDirPath: FilePathStub({
-          value: `/home/user/.dungeonmaster/guilds/${firstId}/quests`,
-        }),
+        guildDirPath: `/home/user/.dungeonmaster/guilds/${firstId}`,
+        questsDirPath: `/home/user/.dungeonmaster/guilds/${firstId}/quests`,
       });
       proxy.stageGeneratedId({ id: firstId });
 
@@ -365,10 +340,8 @@ describe('guildAddBroker', () => {
         homeDir: '/home/user',
         homePath,
         guildsPath,
-        guildDirPath: FilePathStub({ value: `/home/user/.dungeonmaster/guilds/${secondId}` }),
-        questsDirPath: FilePathStub({
-          value: `/home/user/.dungeonmaster/guilds/${secondId}/quests`,
-        }),
+        guildDirPath: `/home/user/.dungeonmaster/guilds/${secondId}`,
+        questsDirPath: `/home/user/.dungeonmaster/guilds/${secondId}/quests`,
       });
       proxy.stageGeneratedId({ id: secondId });
 

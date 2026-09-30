@@ -1,13 +1,12 @@
 import { configRootFindBroker } from './config-root-find-broker';
 import { configRootFindBrokerProxy } from './config-root-find-broker.proxy';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('configRootFindBroker', () => {
   describe('config root found', () => {
     it('VALID: {startPath: "/project"} => finds .dungeonmaster.json in startPath directory', async () => {
       const proxy = configRootFindBrokerProxy();
-      const startPath = FilePathStub({ value: '/project' });
+      const startPath = '/project';
 
       proxy.setupConfigRootFound({
         startPath: '/project',
@@ -21,7 +20,7 @@ describe('configRootFindBroker', () => {
 
     it('VALID: {startPath: "/monorepo/packages/web"} => finds .dungeonmaster.json in parent directory', async () => {
       const proxy = configRootFindBrokerProxy();
-      const startPath = FilePathStub({ value: '/monorepo/packages/web' });
+      const startPath = '/monorepo/packages/web';
 
       proxy.setupConfigRootFoundInParent({
         startPath: '/monorepo/packages/web',
@@ -37,7 +36,7 @@ describe('configRootFindBroker', () => {
   describe('config root not found', () => {
     it('ERROR: {startPath: "/no-config"} => throws ProjectRootNotFoundError', async () => {
       const proxy = configRootFindBrokerProxy();
-      const startPath = FilePathStub({ value: '/no-config' });
+      const startPath = '/no-config';
 
       proxy.setupConfigRootNotFound({ startPath: '/no-config' });
 

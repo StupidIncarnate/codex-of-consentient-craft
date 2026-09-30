@@ -3,7 +3,6 @@ import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-
 import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { installAgentsSetupBrokerProxy } from '../../../brokers/install/agents-setup/install-agents-setup-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { InstallCreateSettingsResponder } from './install-create-settings-responder';
 
@@ -21,20 +20,18 @@ export const InstallCreateSettingsResponderProxy = (): {
 } => {
   const agentsBrokerProxy = installAgentsSetupBrokerProxy();
 
-  const settingsPath = FilePathStub({
-    value: path.join(
+  const settingsPath = path.join(
       TARGET_PROJECT_ROOT,
       locationsStatics.repoRoot.claude.dir,
       locationsStatics.repoRoot.claude.settings,
-    ),
-  });
+    );
 
   const readProxy = readJsonFileIfExistsProxy();
   const writeProxy = writeFileCreatingParentProxy();
 
   writeProxy.succeeds({ path: settingsPath });
   agentsBrokerProxy.setupSuccess({
-    targetProjectRoot: FilePathStub({ value: TARGET_PROJECT_ROOT }),
+    targetProjectRoot: TARGET_PROJECT_ROOT,
   });
 
   return {

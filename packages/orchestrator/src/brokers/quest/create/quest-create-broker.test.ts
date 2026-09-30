@@ -1,6 +1,5 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -15,13 +14,9 @@ describe('questCreateBroker', () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'add-auth-quest' });
     const guildId = GuildIdStub();
-    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-    const questFolderPath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/add-auth-quest',
-    });
-    const questFilePath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/add-auth-quest/quest.json',
-    });
+    const questsFolderPath = '/project/.dungeonmaster-quests';
+    const questFolderPath = '/project/.dungeonmaster-quests/add-auth-quest';
+    const questFilePath = '/project/.dungeonmaster-quests/add-auth-quest/quest.json';
 
     brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
 
@@ -80,13 +75,9 @@ describe('questCreateBroker', () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'smoketest-quest' });
     const guildId = GuildIdStub();
-    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-    const questFolderPath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/smoketest-quest',
-    });
-    const questFilePath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/smoketest-quest/quest.json',
-    });
+    const questsFolderPath = '/project/.dungeonmaster-quests';
+    const questFolderPath = '/project/.dungeonmaster-quests/smoketest-quest';
+    const questFilePath = '/project/.dungeonmaster-quests/smoketest-quest/quest.json';
 
     brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
 
@@ -110,13 +101,9 @@ describe('questCreateBroker', () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'bug-hunt-quest' });
     const guildId = GuildIdStub();
-    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-    const questFolderPath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/bug-hunt-quest',
-    });
-    const questFilePath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/bug-hunt-quest/quest.json',
-    });
+    const questsFolderPath = '/project/.dungeonmaster-quests';
+    const questFolderPath = '/project/.dungeonmaster-quests/bug-hunt-quest';
+    const questFilePath = '/project/.dungeonmaster-quests/bug-hunt-quest/quest.json';
 
     brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
 
@@ -140,13 +127,9 @@ describe('questCreateBroker', () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'feature-quest' });
     const guildId = GuildIdStub();
-    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-    const questFolderPath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/feature-quest',
-    });
-    const questFilePath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/feature-quest/quest.json',
-    });
+    const questsFolderPath = '/project/.dungeonmaster-quests';
+    const questFolderPath = '/project/.dungeonmaster-quests/feature-quest';
+    const questFilePath = '/project/.dungeonmaster-quests/feature-quest/quest.json';
 
     brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
 
@@ -166,13 +149,9 @@ describe('questCreateBroker', () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'plain-quest' });
     const guildId = GuildIdStub();
-    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
-    const questFolderPath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/plain-quest',
-    });
-    const questFilePath = FilePathStub({
-      value: '/project/.dungeonmaster-quests/plain-quest/quest.json',
-    });
+    const questsFolderPath = '/project/.dungeonmaster-quests';
+    const questFolderPath = '/project/.dungeonmaster-quests/plain-quest';
+    const questFilePath = '/project/.dungeonmaster-quests/plain-quest/quest.json';
 
     brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
 
@@ -195,7 +174,7 @@ describe('questCreateBroker', () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'failed-quest' });
     const guildId = GuildIdStub();
-    const questsFolderPath = FilePathStub({ value: '/readonly/.dungeonmaster-quests' });
+    const questsFolderPath = '/readonly/.dungeonmaster-quests';
 
     brokerProxy.setupQuestCreationFailure({
       questsFolderPath,

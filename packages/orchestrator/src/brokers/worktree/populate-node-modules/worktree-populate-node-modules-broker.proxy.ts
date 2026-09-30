@@ -1,14 +1,13 @@
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FsError } from '#gateway/node/fs';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 import { populateOneRootLayerBrokerProxy } from './populate-one-root-layer-broker.proxy';
 
 export const worktreePopulateNodeModulesBrokerProxy = (): {
-  setupMkdirThrows: (params: { filepath: FilePath; error: FsError }) => void;
+  setupMkdirThrows: (params: { filepath: string; error: FsError }) => void;
   setupEmptyRepo: (params: { repoRoot: AbsoluteFilePath; worktreePath: AbsoluteFilePath }) => void;
   setupNoWorkspaceLinks: (params: {
     repoRoot: AbsoluteFilePath;
@@ -71,17 +70,17 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       entries: [{ name: packageName, isDir: false, isSymlink: true }],
     });
     layerProxy.setupReadlinkTarget({
-      linkPath: FilePathStub({ value: `${repoRoot}/node_modules/@dungeonmaster/${packageName}` }),
+      linkPath: `${repoRoot}/node_modules/@dungeonmaster/${packageName}`,
       target: relativeTarget,
     });
     layerProxy.setupSymlinkSucceeds({
-      target: FilePathStub({ value: relativeTarget }),
-      path: FilePathStub({ value: `${worktreePath}/node_modules/@dungeonmaster/${packageName}` }),
+      target: relativeTarget,
+      path: `${worktreePath}/node_modules/@dungeonmaster/${packageName}`,
     });
   };
 
   return {
-    setupMkdirThrows: ({ filepath, error }: { filepath: FilePath; error: FsError }): void => {
+    setupMkdirThrows: ({ filepath, error }: { filepath: string; error: FsError }): void => {
       layerProxy.setupMkdirThrows({ filepath, error });
     },
 
@@ -114,9 +113,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     }): void => {
       stageWorkspaceLink({ repoRoot, worktreePath, packageName });
 
-      const packageNodeModules = FilePathStub({
-        value: `${repoRoot}/packages/${packageName}/node_modules`,
-      });
+      const packageNodeModules = `${repoRoot}/packages/${packageName}/node_modules`;
       isAccessibleProxy.present({ path: packageNodeModules });
 
       layerProxy.setupTargetReady({
@@ -145,13 +142,11 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     }): void => {
       stageWorkspaceLink({ repoRoot, worktreePath, packageName });
 
-      const packageNodeModules = FilePathStub({
-        value: `${repoRoot}/packages/${packageName}/node_modules`,
-      });
+      const packageNodeModules = `${repoRoot}/packages/${packageName}/node_modules`;
       isAccessibleProxy.present({ path: packageNodeModules });
 
       layerProxy.setupMkdirThrows({
-        filepath: FilePathStub({ value: `${worktreePath}/packages/${packageName}/node_modules` }),
+        filepath: `${worktreePath}/packages/${packageName}/node_modules`,
         error,
       });
     },

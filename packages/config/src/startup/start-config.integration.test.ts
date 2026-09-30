@@ -2,7 +2,6 @@
 // relative path; it resolves to the same module '@dungeonmaster/config' does, the one the proxy
 // mocks, so this test observes the exact call real external callers make.
 import { configResolveBroker } from '../../index';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { configResolveBrokerProxy } from './start-config.proxy';
 import { DungeonmasterConfigStub } from '../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
@@ -10,7 +9,7 @@ describe('configResolveBrokerProxy', () => {
   describe('setupResolves()', () => {
     it('VALID: {filePath, config} => configResolveBroker resolves with the staged config', async () => {
       const proxy = configResolveBrokerProxy();
-      const filePath = FilePathStub({ value: '/project/.dungeonmaster.json' });
+      const filePath = '/project/.dungeonmaster.json';
       const config = DungeonmasterConfigStub({ framework: 'react' });
 
       proxy.setupResolves({ filePath, config });
@@ -24,7 +23,7 @@ describe('configResolveBrokerProxy', () => {
   describe('setupConfigNotFound()', () => {
     it('ERROR: {filePath} => configResolveBroker rejects with the real ConfigNotFoundError message', async () => {
       const proxy = configResolveBrokerProxy();
-      const filePath = FilePathStub({ value: '/isolated/.dungeonmaster.json' });
+      const filePath = '/isolated/.dungeonmaster.json';
 
       proxy.setupConfigNotFound({ filePath });
 
@@ -37,7 +36,7 @@ describe('configResolveBrokerProxy', () => {
   describe('setupConfigMalformed()', () => {
     it('ERROR: {filePath, message} => configResolveBroker rejects with the real InvalidConfigError message', async () => {
       const proxy = configResolveBrokerProxy();
-      const filePath = FilePathStub({ value: '/project/.dungeonmaster.json' });
+      const filePath = '/project/.dungeonmaster.json';
 
       proxy.setupConfigMalformed({ filePath, message: 'Missing required field' });
 

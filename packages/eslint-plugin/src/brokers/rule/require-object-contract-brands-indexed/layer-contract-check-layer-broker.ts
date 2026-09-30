@@ -12,7 +12,6 @@
  * // when quest-contract.ts uses the layer as `owner: questOwnerLayerContract`
  */
 import { contractIndexBuildBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import {
   layerFileParentResolveTransformer,
   repoRootFromSourcePathTransformer,
@@ -41,7 +40,7 @@ export const layerContractCheckLayerBroker = ({
 }): void => {
   const rootDir = repoRootFromSourcePathTransformer({ filePath: filename });
   const parent = layerFileParentResolveTransformer({
-    layerFilePath: filePathContract.parse(filename),
+    layerFilePath: filename,
   });
   if (rootDir === undefined || parent === null) {
     return;

@@ -14,7 +14,6 @@
  * for a quest that does not exist.
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { QuestProjection, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -30,7 +29,7 @@ export const questGetProjectionBroker = async ({
 }): Promise<QuestProjection> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
 
   const quest = await questLoadBroker({ questFilePath });
 

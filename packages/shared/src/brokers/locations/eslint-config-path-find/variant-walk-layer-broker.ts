@@ -16,13 +16,12 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const variantWalkLayerBroker = async ({
   searchPath,
   variants,
 }: {
-  searchPath: FilePath;
+  searchPath: string;
   variants: readonly string[];
 }): Promise<AbsoluteFilePath | null> => {
   const [head, ...rest] = variants;

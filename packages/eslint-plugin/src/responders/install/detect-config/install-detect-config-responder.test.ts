@@ -1,6 +1,6 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { InstallDetectConfigResponderProxy } from './install-detect-config-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallDetectConfigResponder', () => {
   describe('no existing config', () => {
@@ -9,10 +9,10 @@ describe('InstallDetectConfigResponder', () => {
       proxy.setupNoConfigExists({ targetProjectRoot: '/test/project' });
 
       const result = proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/test/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/test/.dungeonmaster' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/test/project',
+          dungeonmasterRoot: '/test/.dungeonmaster',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -28,10 +28,10 @@ describe('InstallDetectConfigResponder', () => {
       proxy.setupNoConfigExists({ targetProjectRoot: '/test/project' });
 
       proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/test/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/test/.dungeonmaster' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/test/project',
+          dungeonmasterRoot: '/test/.dungeonmaster',
+        } }),
       });
 
       const content = proxy.getWrittenConfigContent({ targetProjectRoot: '/test/project' });
@@ -129,10 +129,10 @@ module.exports = [
       });
 
       const result = proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/test/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/test/.dungeonmaster' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/test/project',
+          dungeonmasterRoot: '/test/.dungeonmaster',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -154,10 +154,10 @@ module.exports = [
       });
 
       const result = proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/test/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/test/.dungeonmaster' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/test/project',
+          dungeonmasterRoot: '/test/.dungeonmaster',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -177,10 +177,10 @@ module.exports = [
       });
 
       const result = proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/test/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/test/.dungeonmaster' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/test/project',
+          dungeonmasterRoot: '/test/.dungeonmaster',
+        } }),
       });
 
       expect(result).toStrictEqual({

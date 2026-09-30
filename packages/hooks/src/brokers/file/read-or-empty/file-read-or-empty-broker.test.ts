@@ -1,12 +1,11 @@
 import { fileReadOrEmptyBroker } from './file-read-or-empty-broker';
 import { fileReadOrEmptyBrokerProxy } from './file-read-or-empty-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('fileReadOrEmptyBroker', () => {
   describe('valid input', () => {
     it('VALID: {filePath: existing file} => returns file content', async () => {
       const proxy = fileReadOrEmptyBrokerProxy();
-      const filePath = FilePathStub({ value: '/path/to/file.ts' });
+      const filePath = '/path/to/file.ts';
       const content = 'const x = 1;';
 
       proxy.setupFileExists({ filePath, content });
@@ -20,7 +19,7 @@ describe('fileReadOrEmptyBroker', () => {
   describe('error handling', () => {
     it('ERROR: {filePath: nonexistent file} => returns empty string', async () => {
       const proxy = fileReadOrEmptyBrokerProxy();
-      const filePath = FilePathStub({ value: '/nonexistent/file.ts' });
+      const filePath = '/nonexistent/file.ts';
 
       proxy.setupFileNotFound({ filePath });
 
@@ -31,7 +30,7 @@ describe('fileReadOrEmptyBroker', () => {
 
     it('ERROR: {filePath: permission denied} => throws error', async () => {
       const proxy = fileReadOrEmptyBrokerProxy();
-      const filePath = FilePathStub({ value: '/forbidden/file.ts' });
+      const filePath = '/forbidden/file.ts';
       const permissionError = new Error('EACCES: permission denied') as NodeJS.ErrnoException;
       permissionError.code = 'EACCES';
 

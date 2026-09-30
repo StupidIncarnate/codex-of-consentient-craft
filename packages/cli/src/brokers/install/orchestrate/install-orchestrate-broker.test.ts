@@ -4,7 +4,6 @@
 
 import { installOrchestrateBroker } from './install-orchestrate-broker';
 import { installOrchestrateBrokerProxy } from './install-orchestrate-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
@@ -22,11 +21,11 @@ describe('installOrchestrateBroker', () => {
 
       const pkg1 = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
-        installPath: FilePathStub({ value: '/path/to/cli/start-install.ts' }),
+        installPath: '/path/to/cli/start-install.ts',
       });
       const pkg2 = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
-        installPath: FilePathStub({ value: '/path/to/hooks/start-install.ts' }),
+        installPath: '/path/to/hooks/start-install.ts',
       });
       const packages = [pkg1, pkg2];
 
@@ -76,11 +75,11 @@ describe('installOrchestrateBroker', () => {
 
       const hooksPkg = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
-        installPath: FilePathStub({ value: '/path/to/hooks/start-install.ts' }),
+        installPath: '/path/to/hooks/start-install.ts',
       });
       const mcpPkg = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/mcp' }),
-        installPath: FilePathStub({ value: '/path/to/mcp/start-install.ts' }),
+        installPath: '/path/to/mcp/start-install.ts',
       });
       const packages = [hooksPkg, mcpPkg];
 
@@ -119,11 +118,11 @@ describe('installOrchestrateBroker', () => {
 
       const pkg1 = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
-        installPath: FilePathStub({ value: '/path/to/cli/start-install.ts' }),
+        installPath: '/path/to/cli/start-install.ts',
       });
       const pkg2 = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
-        installPath: FilePathStub({ value: '/path/to/hooks/start-install.ts' }),
+        installPath: '/path/to/hooks/start-install.ts',
       });
       const packages = [pkg1, pkg2];
 

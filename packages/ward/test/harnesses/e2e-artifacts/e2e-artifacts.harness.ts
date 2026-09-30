@@ -19,7 +19,6 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const DAY_SECONDS = 86_400;
@@ -44,8 +43,8 @@ export const e2eArtifactsHarness = (): {
   }: {
     packageRoot: AbsoluteFilePath;
     relativePath: string;
-  }): ReturnType<typeof FilePathStub> =>
-    FilePathStub({ value: join(String(packageRoot), relativePath) });
+  }): string =>
+    join(String(packageRoot), relativePath);
 
   // utimes takes SECONDS since the epoch, not milliseconds. Handing it now() dates everything
   // ~55,000 years into the future, which reads as newer than every TTL and turns every deletion

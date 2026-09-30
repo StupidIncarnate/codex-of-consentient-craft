@@ -10,7 +10,7 @@ import type { Quest, SlotIndex, ModifyQuestInput, ModifyQuestResult, Session } f
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
@@ -58,7 +58,7 @@ export const QuestModifyResponder = async ({
         questFindQuestPathBroker({ questId: typedQuestId })
           .then(async ({ guildId }) => {
             const guild = await guildGetBroker({ guildId });
-            const startPath = filePathContract.parse(guild.path);
+            const startPath = guild.path;
 
             return questOrchestrationLoopBroker({
               processId,

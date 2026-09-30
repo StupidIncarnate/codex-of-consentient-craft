@@ -1,6 +1,5 @@
 import { nearestPackageJsonFindMiddleware } from './nearest-package-json-find-middleware';
 import { nearestPackageJsonFindMiddlewareProxy } from './nearest-package-json-find-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 
 describe('nearestPackageJsonFindMiddleware', () => {
   describe('immediate match', () => {
@@ -13,7 +12,7 @@ describe('nearestPackageJsonFindMiddleware', () => {
           imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
         },
       });
-      const dirPath = FilePathStub({ value: '/repo/packages/mcp' });
+      const dirPath = '/repo/packages/mcp';
 
       const result = nearestPackageJsonFindMiddleware({ dirPath });
 
@@ -35,7 +34,7 @@ describe('nearestPackageJsonFindMiddleware', () => {
         dirPath: '/repo/packages/mcp',
         packageJson: { name: '@dungeonmaster/mcp' },
       });
-      const dirPath = FilePathStub({ value: '/repo/packages/mcp/src/brokers/file/scanner' });
+      const dirPath = '/repo/packages/mcp/src/brokers/file/scanner';
 
       const result = nearestPackageJsonFindMiddleware({ dirPath });
 
@@ -46,7 +45,7 @@ describe('nearestPackageJsonFindMiddleware', () => {
   describe('not found', () => {
     it('EMPTY: {no ancestor has a package.json} => returns null', () => {
       nearestPackageJsonFindMiddlewareProxy();
-      const dirPath = FilePathStub({ value: '/unreachable/deep/path' });
+      const dirPath = '/unreachable/deep/path';
 
       const result = nearestPackageJsonFindMiddleware({ dirPath });
 

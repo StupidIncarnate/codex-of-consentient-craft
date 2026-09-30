@@ -1,4 +1,3 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
@@ -14,7 +13,7 @@ const isAnyPath = (value: unknown): boolean => typeof value === 'string';
 export const questLoadBrokerProxy = (): {
   setupQuestFile: (params: { questJson: string }) => void;
   setupQuestFileReadError: (params: { error: FsError }) => void;
-  setupQuestFileAt: (params: { questFilePath: FilePath; questJson: string }) => void;
+  setupQuestFileAt: (params: { questFilePath: string; questJson: string }) => void;
 } => {
   const readFileChild = readFileProxy();
 
@@ -31,7 +30,7 @@ export const questLoadBrokerProxy = (): {
       questFilePath,
       questJson,
     }: {
-      questFilePath: FilePath;
+      questFilePath: string;
       questJson: string;
     }): void => {
       readFileChild.returns({ path: questFilePath, contents: questJson });

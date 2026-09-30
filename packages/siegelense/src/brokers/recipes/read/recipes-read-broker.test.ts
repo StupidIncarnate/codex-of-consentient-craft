@@ -1,5 +1,4 @@
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { recipesReadBroker } from './recipes-read-broker';
 import { recipesReadBrokerProxy } from './recipes-read-broker.proxy';
@@ -24,7 +23,7 @@ describe('recipesReadBroker', () => {
       });
 
       proxy.setupModule({
-        entryPath: FilePathStub({ value: ENTRY_PATH }),
+        entryPath: ENTRY_PATH,
         moduleExports: { [recipesConventionStatics.exports.listing]: () => [entryA, entryB] },
       });
 
@@ -39,7 +38,7 @@ describe('recipesReadBroker', () => {
       const proxy = recipesReadBrokerProxy();
 
       proxy.setupModule({
-        entryPath: FilePathStub({ value: ENTRY_PATH }),
+        entryPath: ENTRY_PATH,
         moduleExports: { [recipesConventionStatics.exports.listing]: () => [] },
       });
 
@@ -54,7 +53,7 @@ describe('recipesReadBroker', () => {
       const proxy = recipesReadBrokerProxy();
 
       proxy.setupModule({
-        entryPath: FilePathStub({ value: ENTRY_PATH }),
+        entryPath: ENTRY_PATH,
         moduleExports: {},
       });
 
@@ -73,7 +72,7 @@ describe('recipesReadBroker', () => {
       const proxy = recipesReadBrokerProxy();
 
       proxy.setupModule({
-        entryPath: FilePathStub({ value: ENTRY_PATH }),
+        entryPath: ENTRY_PATH,
         moduleExports: { [recipesConventionStatics.exports.listing]: 'not-a-function' },
       });
 
@@ -92,7 +91,7 @@ describe('recipesReadBroker', () => {
       const proxy = recipesReadBrokerProxy();
 
       proxy.setupModule({
-        entryPath: FilePathStub({ value: ENTRY_PATH }),
+        entryPath: ENTRY_PATH,
         moduleExports: {
           [recipesConventionStatics.exports.listing]: () => [
             {

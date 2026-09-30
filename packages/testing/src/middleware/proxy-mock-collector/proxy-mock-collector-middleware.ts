@@ -24,24 +24,24 @@ import { importPathResolverMiddleware } from '../import-path-resolver/import-pat
 import { proxyReexportNamesResolveMiddleware } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware';
 import { dirname, resolve } from '#gateway/node/path';
 import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type * as ts from '#gateway/npm/typescript';
 import type { ProxyMockQueueEntry } from '../../contracts/proxy-mock-queue-entry/proxy-mock-queue-entry-contract';
+import { proxyMockQueueEntryContract } from '../../contracts/proxy-mock-queue-entry/proxy-mock-queue-entry-contract';
 
 export const proxyMockCollectorMiddleware = ({
   proxyFilePath,
   program,
   requestedNames = null,
 }: {
-  proxyFilePath: FilePath;
+  proxyFilePath: string;
   program: ts.Program | undefined;
   requestedNames?: IdentifierName[] | null;
 }): MockCall[] => {
   const visitedKeys = new Set();
   const mockCalls: MockCall[] = [];
-  const filesToProcess: ProxyMockQueueEntry[] = [{ filePath: proxyFilePath, requestedNames }];
+  const filesToProcess: ProxyMockQueueEntry[] = [proxyMockQueueEntryContract.parse({ filePath: proxyFilePath, requestedNames })];
 
   while (filesToProcess.length > 0) {
     const entry = filesToProcess.pop();
@@ -92,14 +92,14 @@ export const proxyMockCollectorMiddleware = ({
 
       if (edge.kind === 'import') {
         // The current (already-relevant) file's own internal dependency — always followed in full.
-        filesToProcess.push({ filePath: nextPath, requestedNames: edge.names });
+        filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: edge.names }));
         continue;
       }
 
       // A `reexport` edge is part of entry.filePath's OWN re-export surface — follow it only for
       // the names entry's own requestedNames constraint still needs.
       if (entry.requestedNames === null) {
-        filesToProcess.push({ filePath: nextPath, requestedNames: edge.names });
+        filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: edge.names }));
         continue;
       }
 
@@ -110,14 +110,14 @@ export const proxyMockCollectorMiddleware = ({
           program,
         });
         if (provided.length > 0) {
-          filesToProcess.push({ filePath: nextPath, requestedNames: provided });
+          filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: provided }));
         }
         continue;
       }
 
       const overlap = edge.names.filter((name) => entry.requestedNames?.includes(name));
       if (overlap.length > 0) {
-        filesToProcess.push({ filePath: nextPath, requestedNames: overlap });
+        filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: overlap }));
       }
     }
   }

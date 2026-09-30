@@ -1,5 +1,4 @@
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -64,11 +63,11 @@ const primeGuildAndQuestsPath = ({
       ],
     }),
     homeDir: '/home/testuser',
-    homePath: FilePathStub({ value: SMOKETEST_HOME }),
+    homePath: SMOKETEST_HOME,
     guildEntries: [
       {
         accessible: true,
-        questsDirPath: FilePathStub({ value: QUESTS_PATH }),
+        questsDirPath: QUESTS_PATH,
         questDirEntries: [],
       },
     ],
@@ -76,8 +75,8 @@ const primeGuildAndQuestsPath = ({
 
   proxy.setupQuestsPath({
     homeDir: '/home/testuser',
-    homePath: FilePathStub({ value: SMOKETEST_HOME }),
-    questsPath: FilePathStub({ value: QUESTS_PATH }),
+    homePath: SMOKETEST_HOME,
+    questsPath: QUESTS_PATH,
   });
 };
 

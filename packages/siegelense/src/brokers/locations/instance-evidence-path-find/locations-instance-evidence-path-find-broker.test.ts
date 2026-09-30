@@ -1,6 +1,5 @@
 import { locationsInstanceEvidencePathFindBroker } from './locations-instance-evidence-path-find-broker';
 import { locationsInstanceEvidencePathFindBrokerProxy } from './locations-instance-evidence-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -14,12 +13,9 @@ describe('locationsInstanceEvidencePathFindBroker', () => {
 
       proxy.setupInstanceEvidencePath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        evidencePath: FilePathStub({
-          value:
-            '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        evidencePath: '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
       });
 
       const result = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
@@ -40,11 +36,9 @@ describe('locationsInstanceEvidencePathFindBroker', () => {
 
       proxy.setupInstanceEvidencePath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        evidencePath: FilePathStub({
-          value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        evidencePath: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
       });
 
       const result = locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });

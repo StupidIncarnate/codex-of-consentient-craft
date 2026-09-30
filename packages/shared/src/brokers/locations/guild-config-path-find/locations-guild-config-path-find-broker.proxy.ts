@@ -2,14 +2,13 @@ import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsGuildPathFindBrokerProxy } from '../guild-path-find/locations-guild-path-find-broker.proxy';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsGuildConfigPathFindBrokerProxy = (): {
   setupGuildConfigPath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    guildPath: FilePath;
-    guildConfigPath: FilePath;
+    homePath: string;
+    guildPath: string;
+    guildConfigPath: string;
   }) => void;
 } => {
   const guildPathProxy = locationsGuildPathFindBrokerProxy();
@@ -26,9 +25,9 @@ export const locationsGuildConfigPathFindBrokerProxy = (): {
       guildConfigPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      guildPath: FilePath;
-      guildConfigPath: FilePath;
+      homePath: string;
+      guildPath: string;
+      guildConfigPath: string;
     }): void => {
       guildPathProxy.setupGuildPath({ homeDir, homePath, guildPath });
       joinHandle

@@ -13,8 +13,7 @@
  * // Returns ['@dungeonmaster/orchestrator', '@dungeonmaster/server', ...] — every packages/* and
  * // packages/@gateway/* member's own package.json name field
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { readFileSync } from '#gateway/node/fs';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
@@ -23,7 +22,7 @@ import { resolveWorkspaceGlobLayerBroker } from './resolve-workspace-glob-layer-
 export const configWorkspacePackageNamesBroker = ({
   startDir,
 }: {
-  startDir: FilePath;
+  startDir: string;
 }): PackageName[] => {
   const workspaceRoot = workspaceRootFindBroker({ startDir });
 
@@ -31,7 +30,7 @@ export const configWorkspacePackageNamesBroker = ({
     return [];
   }
 
-  const rootPackageJsonPath = filePathContract.parse(`${workspaceRoot.rootDir}/package.json`);
+  const rootPackageJsonPath = `${workspaceRoot.rootDir}/package.json`;
   const contents = readFileSync(rootPackageJsonPath);
   const rootPackageJson = workspaceRootPackageJsonContract.parse(JSON.parse(contents));
 

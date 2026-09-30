@@ -1,5 +1,4 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
@@ -9,7 +8,7 @@ import { questExecutionQueueStateProxy } from '../../../state/quest-execution-qu
 
 type QueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 
-const OUTBOX_PATH = FilePathStub({ value: '/tmp/sync-listener-test/event-outbox.jsonl' });
+const OUTBOX_PATH = '/tmp/sync-listener-test/event-outbox.jsonl';
 
 export const ExecutionQueueSyncListenerBootstrapResponderProxy = (): {
   reset: () => void;
@@ -35,7 +34,7 @@ export const ExecutionQueueSyncListenerBootstrapResponderProxy = (): {
       getProxy.setupEmptyFolder();
       outboxProxy.setupOutboxPath({
         homeDir: '/tmp/sync-listener-test',
-        homePath: FilePathStub({ value: '/tmp/sync-listener-test' }),
+        homePath: '/tmp/sync-listener-test',
         outboxPath: OUTBOX_PATH,
       });
       queueProxy.setupEmpty();

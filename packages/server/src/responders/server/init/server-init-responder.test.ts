@@ -1,7 +1,6 @@
 import { setTimeout } from '#gateway/node/setTimeout';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -184,12 +183,8 @@ describe('ServerInitResponder', () => {
       });
       const guildId = GuildIdStub();
       const wardResultId = 'ward-result-abc';
-      const wardResultsPath = FilePathStub({
-        value: '/guilds/g1/quests/quest-ward-detail-1/ward-results',
-      });
-      const detailFilePath = FilePathStub({
-        value: '/guilds/g1/quests/quest-ward-detail-1/ward-results/ward-result-abc.json',
-      });
+      const wardResultsPath = '/guilds/g1/quests/quest-ward-detail-1/ward-results';
+      const detailFilePath = '/guilds/g1/quests/quest-ward-detail-1/ward-results/ward-result-abc.json';
       const detail = WardDetailStub();
       proxy.setupWardDetailSuccess({
         questId,

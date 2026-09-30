@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
@@ -9,8 +8,8 @@ import { heartbeatReadBroker } from './heartbeat-read-broker';
 import { heartbeatReadBrokerProxy } from './heartbeat-read-broker.proxy';
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 describe('heartbeatReadBroker', () => {
   describe('a beat was written', () => {
@@ -18,10 +17,7 @@ describe('heartbeatReadBroker', () => {
       const proxy = heartbeatReadBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const evidencePath = FilePathStub({
-        value:
-          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
       const heartbeat = InstanceHeartbeatStub({
         instanceId,
         pgids: [ProcessGroupIdStub({ value: 33_812 })],
@@ -46,9 +42,7 @@ describe('heartbeatReadBroker', () => {
     it('EMPTY: {heartbeat.json absent} => returns null', async () => {
       const proxy = heartbeatReadBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_9b2c0000',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_9b2c0000';
 
       proxy.setupHeartbeatMissing({
         homeDir: HOME_DIR,
@@ -67,9 +61,7 @@ describe('heartbeatReadBroker', () => {
     it('ERROR: {EACCES} => rejects rather than treating it as missing', async () => {
       const proxy = heartbeatReadBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
-      const evidencePath = FilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_9b2c0000',
-      });
+      const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_9b2c0000';
 
       proxy.setupHeartbeatReadFails({
         homeDir: HOME_DIR,

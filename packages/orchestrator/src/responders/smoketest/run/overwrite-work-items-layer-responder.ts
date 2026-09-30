@@ -8,11 +8,7 @@
  * WHEN-TO-USE: MCP/Signals suites only; orchestration scenarios do not call this path.
  */
 
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -35,9 +31,7 @@ export const OverwriteWorkItemsLayerResponder = async ({
     questId,
     run: async (): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
       const loaded = await questLoadBroker({ questFilePath });
       const updatedQuest = questContract.parse({
         ...loaded,

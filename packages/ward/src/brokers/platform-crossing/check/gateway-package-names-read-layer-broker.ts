@@ -10,7 +10,6 @@
  * // Returns: { node: '@dungeonmaster/node', bin: '@dungeonmaster/bin', browser: '@dungeonmaster/browser' }
  */
 
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   gatewayPackageNamesContract,
@@ -22,14 +21,12 @@ import { readPackageNameOptionalLayerBroker } from './read-package-name-optional
 export const gatewayPackageNamesReadLayerBroker = async ({
   rootPath,
 }: {
-  rootPath: FilePath;
+  rootPath: string;
 }): Promise<GatewayPackageNames> => {
   const [node, bin, browser] = await Promise.all(
     gatewayFolderNamesStatics.map(async (folderName) =>
       readPackageNameOptionalLayerBroker({
-        packageJsonPath: filePathContract.parse(
-          `${rootPath}/packages/@gateway/${folderName}/package.json`,
-        ),
+        packageJsonPath: `${rootPath}/packages/@gateway/${folderName}/package.json`,
       }),
     ),
   );

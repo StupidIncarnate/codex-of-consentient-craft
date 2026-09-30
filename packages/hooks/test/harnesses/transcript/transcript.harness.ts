@@ -12,31 +12,27 @@ import { writeFile } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const transcriptHarness = (): {
-  write: (params: { contents: string }) => Promise<FilePath>;
-  missingPath: () => FilePath;
+  write: (params: { contents: string }) => Promise<string>;
+  missingPath: () => string;
   cleanup: () => void;
 } => {
-  const createdDirs: FilePath[] = [];
+  const createdDirs: string[] = [];
 
-  const newDir = (): FilePath => {
-    const dir = FilePathStub({
-      value: mkdtempSync(join(tmpdir(), 'dm-subagent-stop-')),
-    });
+  const newDir = (): string => {
+    const dir = mkdtempSync(join(tmpdir(), 'dm-subagent-stop-'));
     createdDirs.push(dir);
     return dir;
   };
 
   return {
-    write: async ({ contents }: { contents: string }): Promise<FilePath> => {
-      const filePath = FilePathStub({ value: join(newDir(), 'agent.jsonl') });
+    write: async ({ contents }: { contents: string }): Promise<string> => {
+      const filePath = join(newDir(), 'agent.jsonl');
       await writeFile(filePath, contents);
       return filePath;
     },
-    missingPath: (): FilePath => FilePathStub({ value: join(newDir(), 'missing.jsonl') }),
+    missingPath: (): string => join(newDir(), 'missing.jsonl'),
     cleanup: (): void => {
       createdDirs.forEach((dir) => {
         rmSync(dir, { recursive: true, force: true });

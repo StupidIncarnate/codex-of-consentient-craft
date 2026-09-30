@@ -7,11 +7,7 @@
  */
 
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
-import {
-  fileContentsContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
@@ -22,10 +18,10 @@ export const storageSaveBroker = async ({
   rootPath: AbsoluteFilePath;
   wardResult: WardRunResult;
 }): Promise<void> => {
-  const wardDir = filePathContract.parse(`${rootPath}/.ward`);
+  const wardDir = `${rootPath}/.ward`;
   await ensureDir(wardDir);
 
-  const filePath = filePathContract.parse(`${rootPath}/.ward/run-${wardResult.runId}.json`);
+  const filePath = `${rootPath}/.ward/run-${wardResult.runId}.json`;
   const contents = fileContentsContract.parse(JSON.stringify(wardResult));
 
   await writeFile(filePath, contents);

@@ -7,7 +7,6 @@ import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;
@@ -31,9 +30,9 @@ export const bootLockReleaseBrokerProxy = (): {
   const pathProxy = locationsBootLockPathFindBrokerProxy();
   pathProxy.setupBootLockPath({
     homeDir: HOME_DIR,
-    homePath: FilePathStub({ value: `${HOME_DIR}/.dungeonmaster` }),
-    rootPath: FilePathStub({ value: `${HOME_DIR}/.dungeonmaster/siegelense` }),
-    bootLockPath: FilePathStub({ value: BOOT_LOCK_VALUE }),
+    homePath: `${HOME_DIR}/.dungeonmaster`,
+    rootPath: `${HOME_DIR}/.dungeonmaster/siegelense`,
+    bootLockPath: BOOT_LOCK_VALUE,
   });
 
   const readProxy = readFileIfExistsProxy();

@@ -1,11 +1,6 @@
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import {
-  filePathContract,
-  type AbsoluteFilePath,
-  type FileContents,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath, type FileContents } from '@dungeonmaster/shared/contracts';
 
 import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
@@ -20,7 +15,7 @@ export const storageLoadBrokerProxy = (): {
   setupLatestRunByPath: (params: {
     rootPath: AbsoluteFilePath;
     entries: string[];
-    contents: Record<FilePath, FileContents>;
+    contents: Record<string, FileContents>;
   }) => void;
   setupEmptyDir: (params: { rootPath: AbsoluteFilePath }) => void;
   setupReadFail: (params: { rootPath: AbsoluteFilePath; runId: WardRunResult['runId'] }) => void;
@@ -29,8 +24,8 @@ export const storageLoadBrokerProxy = (): {
   const readProxy = readFileProxy();
   const readdirProxy = readdirIfExistsProxy();
 
-  const wardDirFor = ({ rootPath }: { rootPath: AbsoluteFilePath }): FilePath =>
-    filePathContract.parse(`${rootPath}/.ward`);
+  const wardDirFor = ({ rootPath }: { rootPath: AbsoluteFilePath }): string =>
+    `${rootPath}/.ward`;
 
   return {
     setupRunById: ({
@@ -42,7 +37,7 @@ export const storageLoadBrokerProxy = (): {
       runId: WardRunResult['runId'];
       content: string;
     }): void => {
-      const path = filePathContract.parse(`${wardDirFor({ rootPath })}/run-${runId}.json`);
+      const path = `${wardDirFor({ rootPath })}/run-${runId}.json`;
       readProxy.returns({ path, contents: content });
     },
 
@@ -59,7 +54,7 @@ export const storageLoadBrokerProxy = (): {
     }): void => {
       const dirPath = wardDirFor({ rootPath });
       readdirProxy.returns({ path: String(dirPath), names: entries });
-      const path = filePathContract.parse(`${dirPath}/${latestEntry}`);
+      const path = `${dirPath}/${latestEntry}`;
       readProxy.returns({ path, contents: content });
     },
 
@@ -70,12 +65,12 @@ export const storageLoadBrokerProxy = (): {
     }: {
       rootPath: AbsoluteFilePath;
       entries: string[];
-      contents: Record<FilePath, FileContents>;
+      contents: Record<string, FileContents>;
     }): void => {
       const dirPath = wardDirFor({ rootPath });
       readdirProxy.returns({ path: String(dirPath), names: entries });
       for (const [filePath, content] of Object.entries(contents)) {
-        readProxy.returns({ path: filePathContract.parse(filePath), contents: content });
+        readProxy.returns({ path: filePath, contents: content });
       }
     },
 
@@ -84,7 +79,7 @@ export const storageLoadBrokerProxy = (): {
     },
 
     setupReadFail: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: WardRunResult['runId'] }): void => {
-      const path = filePathContract.parse(`${wardDirFor({ rootPath })}/run-${runId}.json`);
+      const path = `${wardDirFor({ rootPath })}/run-${runId}.json`;
       readProxy.missing({ path });
     },
 

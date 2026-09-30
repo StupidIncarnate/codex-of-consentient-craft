@@ -1,13 +1,10 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { gatewaySubpathHasStubLayerBroker } from './gateway-subpath-has-stub-layer-broker';
 import { gatewaySubpathHasStubLayerBrokerProxy } from './gateway-subpath-has-stub-layer-broker.proxy';
 
 describe('gatewaySubpathHasStubLayerBroker', () => {
   it('VALID: {subpath with a .stub.ts directly inside it} => returns true', () => {
     const proxy = gatewaySubpathHasStubLayerBrokerProxy();
-    const subpathDirectory = FilePathStub({
-      value: '/repo/packages/@gateway/node/src/setTimeout/',
-    });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/setTimeout/';
     proxy.fsReaddirSync.returns({
       path: subpathDirectory,
       entries: [
@@ -22,10 +19,8 @@ describe('gatewaySubpathHasStubLayerBroker', () => {
 
   it('VALID: {subpath with a .stub.ts nested two folders deep} => returns true', () => {
     const proxy = gatewaySubpathHasStubLayerBrokerProxy();
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/' });
-    const wrapperDirectory = FilePathStub({
-      value: '/repo/packages/@gateway/node/src/fs/is-fs-error/',
-    });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/fs/';
+    const wrapperDirectory = '/repo/packages/@gateway/node/src/fs/is-fs-error/';
     proxy.fsReaddirSync.returns({
       path: subpathDirectory,
       entries: [
@@ -47,10 +42,8 @@ describe('gatewaySubpathHasStubLayerBroker', () => {
 
   it('EMPTY: {subpath with wrapper folders but no .stub.ts anywhere} => returns false', () => {
     const proxy = gatewaySubpathHasStubLayerBrokerProxy();
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/os/' });
-    const wrapperDirectory = FilePathStub({
-      value: '/repo/packages/@gateway/node/src/os/homedir/',
-    });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/os/';
+    const wrapperDirectory = '/repo/packages/@gateway/node/src/os/homedir/';
     proxy.fsReaddirSync.returns({
       path: subpathDirectory,
       entries: [

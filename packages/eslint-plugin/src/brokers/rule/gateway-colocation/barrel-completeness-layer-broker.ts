@@ -23,8 +23,7 @@
  * // Reports 'barrelMissingReexport' for every wrapper export the list above leaves out, and
  * // 'barrelStaleReexport' for every listed entry whose target file no longer carries that name
  */
-import type { FilePath, Identifier, ImportPath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import type { Identifier, ImportPath } from '@dungeonmaster/shared/contracts';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { isGatewayWrapperImplementationFileGuard } from '../../../guards/is-gateway-wrapper-implementation-file/is-gateway-wrapper-implementation-file-guard';
@@ -40,7 +39,7 @@ export const barrelCompletenessLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   fileName: string;
-  subpathDirectory: FilePath;
+  subpathDirectory: string;
   reexports: { name: Identifier; source: ImportPath }[];
 }): boolean => {
   let complete = true;
@@ -51,7 +50,7 @@ export const barrelCompletenessLayerBroker = ({
   );
 
   for (const wrapperFolder of wrapperFolders) {
-    const wrapperDirectory = filePathContract.parse(`${subpathDirectory}${wrapperFolder.name}/`);
+    const wrapperDirectory = `${subpathDirectory}${wrapperFolder.name}/`;
     const wrapperFiles = readdirEntriesSync(wrapperDirectory).filter(
       (entry) =>
         entry.kind !== 'directory' &&
@@ -59,7 +58,7 @@ export const barrelCompletenessLayerBroker = ({
     );
 
     for (const wrapperFile of wrapperFiles) {
-      const wrapperFilePath = filePathContract.parse(`${wrapperDirectory}${wrapperFile.name}`);
+      const wrapperFilePath = `${wrapperDirectory}${wrapperFile.name}`;
       const { valueNames } = gatewayWrapperExportedNamesTransformer({
         sourceText: readFileSync(wrapperFilePath),
       });
@@ -88,7 +87,7 @@ export const barrelCompletenessLayerBroker = ({
     }
 
     const relativePath = reexport.source.slice('./'.length);
-    const targetFilePath = filePathContract.parse(`${subpathDirectory}${relativePath}.ts`);
+    const targetFilePath = `${subpathDirectory}${relativePath}.ts`;
 
     if (!existsSync(targetFilePath)) {
       complete = false;

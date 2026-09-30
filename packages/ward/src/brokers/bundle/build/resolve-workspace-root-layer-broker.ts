@@ -13,11 +13,7 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 
@@ -26,7 +22,7 @@ export const resolveWorkspaceRootLayerBroker = async ({
 }: {
   startPath: AbsoluteFilePath;
 }): Promise<AbsoluteFilePath | null> => {
-  const manifestPath = filePathContract.parse(`${String(startPath)}/package.json`);
+  const manifestPath = `${String(startPath)}/package.json`;
   const raw = await readFile(manifestPath).catch(() => null);
 
   const workspaces =

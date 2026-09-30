@@ -16,8 +16,6 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
@@ -29,22 +27,22 @@ type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
 export const heartbeatReadBrokerProxy = (): {
   setupHeartbeatFound: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
     heartbeat: InstanceHeartbeat;
   }) => void;
   setupHeartbeatMissing: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
   }) => void;
   setupHeartbeatReadFails: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
-    evidencePath: FilePath;
+    homePath: string;
+    rootPath: string;
+    evidencePath: string;
     error: Error;
   }) => void;
 } => {
@@ -63,16 +61,16 @@ export const heartbeatReadBrokerProxy = (): {
       heartbeat,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
       heartbeat: InstanceHeartbeat;
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
-        .returns(FilePathStub({ value: heartbeatPathValue }));
+        .returns(heartbeatPathValue);
       readProxy.returns({
         path: heartbeatPathValue,
         contents: `${JSON.stringify(heartbeat)}\n`,
@@ -86,15 +84,15 @@ export const heartbeatReadBrokerProxy = (): {
       evidencePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
-        .returns(FilePathStub({ value: heartbeatPathValue }));
+        .returns(heartbeatPathValue);
       readProxy.missing({ path: heartbeatPathValue });
     },
 
@@ -106,16 +104,16 @@ export const heartbeatReadBrokerProxy = (): {
       error,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
-      evidencePath: FilePath;
+      homePath: string;
+      rootPath: string;
+      evidencePath: string;
       error: Error;
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
-        .returns(FilePathStub({ value: heartbeatPathValue }));
+        .returns(heartbeatPathValue);
       readProxy.throwsMatchingPath({
         path: heartbeatPathValue,
         error: error as FsError,

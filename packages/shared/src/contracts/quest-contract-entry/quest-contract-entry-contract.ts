@@ -28,7 +28,7 @@ export const questContractEntryContract = z.object({
   source: z
     .string()
     .min(1)
-    .brand<'FilePath'>()
+    .brand<'QuestContractEntrySource'>()
     .describe(
       'File path where this contract lives or will be created. REQUIRED — the dedup error message uses this path to tell a conflicting writer where the existing entry lives.',
     ),

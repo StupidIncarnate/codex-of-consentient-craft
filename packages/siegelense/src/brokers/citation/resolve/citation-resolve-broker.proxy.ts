@@ -1,4 +1,4 @@
-import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { locationsCitationQuestFilePathFindBrokerProxy } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker.proxy';
@@ -9,10 +9,10 @@ import { walkedNoteLayerBrokerProxy } from './walked-note-layer-broker.proxy';
 export const citationResolveBrokerProxy = (): {
   setupQuestFolder: (params: {
     homeDir: string;
-    homePath: FilePath;
-    guildPath: FilePath;
-    guildQuestsPath: FilePath;
-    questFolderPath: FilePath;
+    homePath: string;
+    guildPath: string;
+    guildQuestsPath: string;
+    questFolderPath: string;
   }) => void;
   setupQuestRecord: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
   setupQuestRecordMissing: (params: { filePath: AbsoluteFilePath }) => void;

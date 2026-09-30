@@ -13,7 +13,6 @@
 
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import {
   widgetTreeResultContract,
   type WidgetTreeResult,
@@ -43,7 +42,7 @@ export const architectureWidgetTreeBroker = ({
   const entryWidgetFiles: AbsoluteFilePath[] = [];
   for (const widgetFile of allWidgetFiles) {
     const parentOrNull = layerFileParentResolveTransformer({
-      layerFilePath: filePathContract.parse(widgetFile),
+      layerFilePath: widgetFile,
     });
     if (parentOrNull === null) {
       entryWidgetFiles.push(widgetFile);

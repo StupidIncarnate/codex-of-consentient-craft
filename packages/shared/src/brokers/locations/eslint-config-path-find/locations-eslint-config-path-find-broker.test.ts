@@ -1,7 +1,6 @@
 import { locationsEslintConfigPathFindBroker } from './locations-eslint-config-path-find-broker';
 import { locationsEslintConfigPathFindBrokerProxy } from './locations-eslint-config-path-find-broker.proxy';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsEslintConfigPathFindBroker', () => {
@@ -11,11 +10,11 @@ describe('locationsEslintConfigPathFindBroker', () => {
 
       proxy.setupConfigFoundAtFirstVariant({
         searchPath: '/project',
-        configPath: FilePathStub({ value: '/project/eslint.config.ts' }),
+        configPath: '/project/eslint.config.ts',
       });
 
       const result = await locationsEslintConfigPathFindBroker({
-        startPath: FilePathStub({ value: '/project' }),
+        startPath: '/project',
       });
 
       expect(result).toBe(AbsoluteFilePathStub({ value: '/project/eslint.config.ts' }));
@@ -26,12 +25,12 @@ describe('locationsEslintConfigPathFindBroker', () => {
 
       proxy.setupConfigFoundAtNonFirstVariant({
         searchPath: '/project',
-        missingPaths: [FilePathStub({ value: '/project/eslint.config.ts' })],
-        configPath: FilePathStub({ value: '/project/eslint.config.js' }),
+        missingPaths: ['/project/eslint.config.ts'],
+        configPath: '/project/eslint.config.js',
       });
 
       const result = await locationsEslintConfigPathFindBroker({
-        startPath: FilePathStub({ value: '/project' }),
+        startPath: '/project',
       });
 
       expect(result).toBe(AbsoluteFilePathStub({ value: '/project/eslint.config.js' }));
@@ -44,12 +43,12 @@ describe('locationsEslintConfigPathFindBroker', () => {
         childPaths: ['/repo/packages/foo/src', '/repo/packages/foo', '/repo/packages'],
         parentPaths: ['/repo/packages/foo', '/repo/packages', '/repo'],
         finalSearchPath: '/repo',
-        parentMissingPaths: [FilePathStub({ value: '/repo/eslint.config.ts' })],
-        parentConfigPath: FilePathStub({ value: '/repo/eslint.config.js' }),
+        parentMissingPaths: ['/repo/eslint.config.ts'],
+        parentConfigPath: '/repo/eslint.config.js',
       });
 
       const result = await locationsEslintConfigPathFindBroker({
-        startPath: FilePathStub({ value: '/repo/packages/foo/src' }),
+        startPath: '/repo/packages/foo/src',
       });
 
       expect(result).toBe(AbsoluteFilePathStub({ value: '/repo/eslint.config.js' }));
@@ -64,7 +63,7 @@ describe('locationsEslintConfigPathFindBroker', () => {
 
       await expect(
         locationsEslintConfigPathFindBroker({
-          startPath: FilePathStub({ value: '/no-config' }),
+          startPath: '/no-config',
         }),
       ).rejects.toThrow(ProjectRootNotFoundError);
     });

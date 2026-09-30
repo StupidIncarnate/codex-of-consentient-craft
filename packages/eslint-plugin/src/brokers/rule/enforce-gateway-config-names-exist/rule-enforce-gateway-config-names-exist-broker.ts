@@ -14,7 +14,7 @@
  * // Registered at 'error' with the SAME gateway lint config option the other two gateway rules take;
  * // only reports while linting dungeonmaster-config-contract.ts
  */
-import { filePathContract, gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
+import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { dirname } from '#gateway/node/path';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
@@ -62,7 +62,7 @@ export const ruleEnforceGatewayConfigNamesExistBroker = (): TSESLint.RuleModule<
     return {
       Program: (node: TSESTree.Program): void => {
         const workspaceRoot = workspaceRootFindBroker({
-          startDir: filePathContract.parse(dirname(filename)),
+          startDir: dirname(filename),
         });
 
         if (workspaceRoot === undefined) {

@@ -9,7 +9,6 @@ import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-e
 import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
 import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
@@ -35,7 +34,7 @@ const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;
 // `FsErrorStub` for the read and unlink codes (EMFILE, EACCES) no recorded stub covers.
 export const bootLockAcquireBrokerProxy = (): {
   bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
-  rootPath: ReturnType<typeof FilePathStub>;
+  rootPath: string;
   setupNow: (params: { nowMs: EpochMs }) => void;
   setupPid: (params: { pid: number }) => void;
   setupLockHeldBy: (params: {
@@ -67,8 +66,8 @@ export const bootLockAcquireBrokerProxy = (): {
   getCreatedDirs: () => readonly unknown[];
 } => {
   const bootLockPath = AbsoluteFilePathStub({ value: BOOT_LOCK_VALUE });
-  const homePath = FilePathStub({ value: HOME_PATH_VALUE });
-  const rootPath = FilePathStub({ value: ROOT_PATH_VALUE });
+  const homePath = HOME_PATH_VALUE;
+  const rootPath = ROOT_PATH_VALUE;
 
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathProxy = locationsBootLockPathFindBrokerProxy();
@@ -91,7 +90,7 @@ export const bootLockAcquireBrokerProxy = (): {
       homeDir: HOME_DIR,
       homePath,
       rootPath,
-      bootLockPath: FilePathStub({ value: BOOT_LOCK_VALUE }),
+      bootLockPath: BOOT_LOCK_VALUE,
     });
   };
   stageBootLockPathResolution();

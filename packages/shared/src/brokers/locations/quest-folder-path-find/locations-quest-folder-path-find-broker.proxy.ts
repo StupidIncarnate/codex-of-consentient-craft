@@ -1,15 +1,14 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsGuildQuestsPathFindBrokerProxy } from '../guild-quests-path-find/locations-guild-quests-path-find-broker.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsQuestFolderPathFindBrokerProxy = (): {
   setupQuestFolderPath: (params: {
     homeDir: string;
-    homePath: FilePath;
-    guildPath: FilePath;
-    guildQuestsPath: FilePath;
-    questFolderPath: FilePath;
+    homePath: string;
+    guildPath: string;
+    guildQuestsPath: string;
+    questFolderPath: string;
   }) => void;
 } => {
   const guildQuestsProxy = locationsGuildQuestsPathFindBrokerProxy();
@@ -32,10 +31,10 @@ export const locationsQuestFolderPathFindBrokerProxy = (): {
       questFolderPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      guildPath: FilePath;
-      guildQuestsPath: FilePath;
-      questFolderPath: FilePath;
+      homePath: string;
+      guildPath: string;
+      guildQuestsPath: string;
+      questFolderPath: string;
     }): void => {
       guildQuestsProxy.setupGuildQuestsPath({ homeDir, homePath, guildPath, guildQuestsPath });
       const questId = questFolderPath.slice(guildQuestsPath.length + 1);

@@ -9,8 +9,7 @@
  */
 
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
-import type { FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
@@ -18,10 +17,8 @@ import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-br
 
 type SeedResult = ReturnType<typeof SeedResultStub>;
 
-const ENTRY_PATH: FilePath = FilePathStub({
-  value: '/repo/packages/hydration-recipes/dist/index.js',
-});
-const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/hydration-recipes' });
+const ENTRY_PATH: string = '/repo/packages/hydration-recipes/dist/index.js';
+const PACKAGE_PATH: string = '/repo/packages/hydration-recipes';
 
 export const recipeSeedRunBrokerProxy = (): {
   bookPresent: () => void;
@@ -97,9 +94,7 @@ export const recipeSeedRunBrokerProxy = (): {
     bookMissingUnder: ({ repoRoot }: { repoRoot: string }): void => {
       locateProxy.setupPackageMissing({
         cwdPath: repoRoot,
-        packagePath: FilePathStub({
-          value: `${repoRoot}/${recipesConventionStatics.package.workspaceDirName}/${recipesConventionStatics.package.dirName}`,
-        }),
+        packagePath: `${repoRoot}/${recipesConventionStatics.package.workspaceDirName}/${recipesConventionStatics.package.dirName}`,
       });
     },
 

@@ -1,4 +1,4 @@
-import type { WardResult, AbsoluteFilePath, FileContents, FilePath, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { WardResult, AbsoluteFilePath, FileContents, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -99,8 +99,8 @@ export const ServerInitResponderProxy = (): {
     questPath: AbsoluteFilePath;
     guildId: Guild['id'];
     wardResultId: WardResult['id'];
-    wardResultsPath: FilePath;
-    detailFilePath: FilePath;
+    wardResultsPath: string;
+    detailFilePath: string;
     contents: FileContents;
   }) => void;
   getCapturedWebSocketAppIsHono: () => boolean;
@@ -275,8 +275,8 @@ export const ServerInitResponderProxy = (): {
       questPath: AbsoluteFilePath;
       guildId: Guild['id'];
       wardResultId: WardResult['id'];
-      wardResultsPath: FilePath;
-      detailFilePath: FilePath;
+      wardResultsPath: string;
+      detailFilePath: string;
       contents: FileContents;
     }): void => {
       findQuestPathProxy.setupResolves({ questId, questPath, guildId });

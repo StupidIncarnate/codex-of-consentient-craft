@@ -15,7 +15,7 @@ export const resolveWorkspaceRootLayerBrokerProxy = (): {
   }: {
     dirPath: AbsoluteFilePath;
   }): ReturnType<typeof filePathContract.parse> =>
-    filePathContract.parse(`${String(dirPath)}/package.json`);
+    `${String(dirPath)}/package.json`;
 
   return {
     declaresWorkspaces: ({

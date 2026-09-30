@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { FsError } from '#gateway/node/fs';
@@ -13,7 +12,7 @@ type EpochMs = ReturnType<typeof EpochMsStub>;
 
 const HOME_DIR = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
-const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
+const HOME_PATH = HOME_PATH_VALUE;
 const BOOT_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/boot.lock`;
 const REGISTRY_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/registry.lock`;
 

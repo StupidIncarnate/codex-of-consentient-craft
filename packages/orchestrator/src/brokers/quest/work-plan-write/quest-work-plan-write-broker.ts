@@ -16,7 +16,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -44,9 +43,7 @@ export const questWorkPlanWriteBroker = async ({
     questId,
     run: async (): Promise<{ operationItemId: OperationItem['id'] }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(
-        join(questPath, locationsStatics.quest.questFile),
-      );
+      const questFilePath = join(questPath, locationsStatics.quest.questFile);
       const quest = await questLoadBroker({ questFilePath });
 
       const workItem = quest.workItems.find((item) => item.id === workItemId);

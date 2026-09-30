@@ -11,12 +11,13 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
-import { filePathContract } from '../file-path/file-path-contract';
 
 export const skippedQuestFileContract = z.object({
   questFolder: z.string().min(1).brand<'QuestFolder'>(),
-  questFilePath: filePathContract,
+  questFilePath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'SkippedQuestFileQuestFilePath'>(),
   reason: z.string().min(1).brand<'SkipReason'>(),
 });
 

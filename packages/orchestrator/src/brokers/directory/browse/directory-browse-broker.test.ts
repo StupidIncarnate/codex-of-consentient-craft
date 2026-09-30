@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { directoryBrowseBroker } from './directory-browse-broker';
@@ -13,8 +12,8 @@ describe('directoryBrowseBroker', () => {
       proxy.setupDirectories({
         targetPath: '/home/user',
         directories: [
-          { name: 'beta', joinedPath: FilePathStub({ value: '/home/user/beta' }) },
-          { name: 'alpha', joinedPath: FilePathStub({ value: '/home/user/alpha' }) },
+          { name: 'beta', joinedPath: '/home/user/beta' },
+          { name: 'alpha', joinedPath: '/home/user/alpha' },
         ],
         files: [],
         hiddenDirectories: [],
@@ -34,7 +33,7 @@ describe('directoryBrowseBroker', () => {
 
       proxy.setupDirectories({
         targetPath: '/home/user',
-        directories: [{ name: 'docs', joinedPath: FilePathStub({ value: '/home/user/docs' }) }],
+        directories: [{ name: 'docs', joinedPath: '/home/user/docs' }],
         files: ['readme.md'],
         hiddenDirectories: [],
       });
@@ -51,7 +50,7 @@ describe('directoryBrowseBroker', () => {
       proxy.setupDirectories({
         targetPath: '/home/user',
         directories: [
-          { name: 'projects', joinedPath: FilePathStub({ value: '/home/user/projects' }) },
+          { name: 'projects', joinedPath: '/home/user/projects' },
         ],
         files: [],
         hiddenDirectories: ['.config', '.ssh'],
@@ -82,7 +81,7 @@ describe('directoryBrowseBroker', () => {
 
       proxy.setupDefaultHomedir({
         homeDir: '/home/default',
-        directories: [{ name: 'docs', joinedPath: FilePathStub({ value: '/home/default/docs' }) }],
+        directories: [{ name: 'docs', joinedPath: '/home/default/docs' }],
       });
 
       const result = directoryBrowseBroker({});

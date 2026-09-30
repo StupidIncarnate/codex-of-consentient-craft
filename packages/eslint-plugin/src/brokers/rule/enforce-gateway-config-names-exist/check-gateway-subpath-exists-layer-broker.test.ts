@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { checkGatewaySubpathExistsLayerBroker } from './check-gateway-subpath-exists-layer-broker';
 import { checkGatewaySubpathExistsLayerBrokerProxy } from './check-gateway-subpath-exists-layer-broker.proxy';
 
@@ -9,7 +8,7 @@ describe('checkGatewaySubpathExistsLayerBroker', () => {
       proxy.setupBarrelExists({ barrelPath: '/repo/packages/@gateway/node/src/fs/fs.ts' });
 
       const result = checkGatewaySubpathExistsLayerBroker({
-        rootDir: FilePathStub({ value: '/repo' }),
+        rootDir: '/repo',
         subpath: '#gateway/node/fs',
       });
 
@@ -23,7 +22,7 @@ describe('checkGatewaySubpathExistsLayerBroker', () => {
       });
 
       const result = checkGatewaySubpathExistsLayerBroker({
-        rootDir: FilePathStub({ value: '/repo' }),
+        rootDir: '/repo',
         subpath: '#gateway/node/fs__promises',
       });
 
@@ -36,7 +35,7 @@ describe('checkGatewaySubpathExistsLayerBroker', () => {
       checkGatewaySubpathExistsLayerBrokerProxy();
 
       const result = checkGatewaySubpathExistsLayerBroker({
-        rootDir: FilePathStub({ value: '/repo' }),
+        rootDir: '/repo',
         subpath: '#gateway/nope/fs',
       });
 
@@ -49,7 +48,7 @@ describe('checkGatewaySubpathExistsLayerBroker', () => {
       checkGatewaySubpathExistsLayerBrokerProxy();
 
       const result = checkGatewaySubpathExistsLayerBroker({
-        rootDir: FilePathStub({ value: '/repo' }),
+        rootDir: '/repo',
         subpath: 'zod',
       });
 
@@ -65,7 +64,7 @@ describe('checkGatewaySubpathExistsLayerBroker', () => {
       });
 
       const result = checkGatewaySubpathExistsLayerBroker({
-        rootDir: FilePathStub({ value: '/repo' }),
+        rootDir: '/repo',
         subpath: '#gateway/node/renamed-away',
       });
 

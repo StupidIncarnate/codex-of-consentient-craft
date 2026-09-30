@@ -21,7 +21,7 @@
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayPathFromImportSourceTransformer } from '@dungeonmaster/shared/transformers';
-import { importPathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { importPathContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { builtinModules } from '#gateway/node/module';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
@@ -91,7 +91,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
 
       if (defaultScopeCache.value === undefined) {
         defaultScopeCache.value = repoScopeResolveBroker({
-          startDir: filePathContract.parse(__dirname),
+          startDir: __dirname,
         });
       }
 

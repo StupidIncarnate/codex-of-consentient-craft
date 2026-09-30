@@ -11,8 +11,7 @@
  */
 
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProfileObservationStub } from '../../../contracts/profile-observation/profile-observation.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
@@ -31,15 +30,13 @@ import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-bro
 import { locationsProfileDirsFindBrokerProxy } from '../../locations/profile-dirs-find/locations-profile-dirs-find-broker.proxy';
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 const PROFILES_ROOT_VALUE = `${String(ROOT_PATH)}/${locationsStatics.siegelense.profilesDir}/`;
 // laneSpecHashBroker's real sha256 digest of laneSpecFindBrokerProxy's sticky default spec (one
 // headless api process, spec name `api`); the profile directory a scenario for that spec reads.
 const DEFAULT_SPEC_HASH_VALUE = 'd710f23b94181fa9168a01db4dfc9a25bd0a4dd95887c301d34ca3bb51931583';
-const DEFAULT_PROFILES_PATH = FilePathStub({
-  value: `${PROFILES_ROOT_VALUE}${DEFAULT_SPEC_HASH_VALUE}`,
-});
+const DEFAULT_PROFILES_PATH = `${PROFILES_ROOT_VALUE}${DEFAULT_SPEC_HASH_VALUE}`;
 
 const RECORD_INDEX_WIDTH = 4;
 
@@ -53,12 +50,12 @@ export const profileReadBrokerProxy = (): {
   // A spec whose profile directory holds nothing yet, for every spec hash under the profiles root.
   setupNoProfileForAnySpec: () => void;
   setupProfileTree: (params: {
-    profilesPath: FilePath;
+    profilesPath: string;
     sampleFileNames: readonly string[];
     bootFileNames: readonly string[];
   }) => void;
-  stageSampleRecord: (params: { profilesPath: FilePath; fileName: string; json: string }) => void;
-  stageBootRecord: (params: { profilesPath: FilePath; fileName: string; json: string }) => void;
+  stageSampleRecord: (params: { profilesPath: string; fileName: string; json: string }) => void;
+  stageBootRecord: (params: { profilesPath: string; fileName: string; json: string }) => void;
   stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
   getStderrMessages: () => readonly ContentText[];
 } => {
@@ -148,7 +145,7 @@ export const profileReadBrokerProxy = (): {
       sampleFileNames,
       bootFileNames,
     }: {
-      profilesPath: FilePath;
+      profilesPath: string;
       sampleFileNames: readonly string[];
       bootFileNames: readonly string[];
     }): void => {
@@ -174,7 +171,7 @@ export const profileReadBrokerProxy = (): {
       fileName,
       json,
     }: {
-      profilesPath: FilePath;
+      profilesPath: string;
       fileName: string;
       json: string;
     }): void => {
@@ -189,7 +186,7 @@ export const profileReadBrokerProxy = (): {
       fileName,
       json,
     }: {
-      profilesPath: FilePath;
+      profilesPath: string;
       fileName: string;
       json: string;
     }): void => {

@@ -2,13 +2,12 @@ import { GuildPathStub } from '../../../contracts/guild-path/guild-path.stub';
 import { cwdResolveBroker } from './cwd-resolve-broker';
 import { cwdResolveBrokerProxy } from './cwd-resolve-broker.proxy';
 import { GuildRootNotFoundError } from '../../../errors/guild-root-not-found/guild-root-not-found-error';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('cwdResolveBroker', () => {
   describe('kind: repo-root', () => {
     it('VALID: {startPath, kind: "repo-root"} => returns RepoRootCwd branded path', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/project' });
+      const startPath = '/project';
 
       proxy.setupRepoRootFoundAtStart({ startPath: '/project' });
 
@@ -19,7 +18,7 @@ describe('cwdResolveBroker', () => {
 
     it('VALID: {startPath: child, kind: "repo-root"} => walks up to find .dungeonmaster.json', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/monorepo/packages/web' });
+      const startPath = '/monorepo/packages/web';
 
       proxy.setupRepoRootFoundInParent({
         startPath: '/monorepo/packages/web',
@@ -33,7 +32,7 @@ describe('cwdResolveBroker', () => {
 
     it('ERROR: {no .dungeonmaster.json anywhere up the tree, kind: "repo-root"} => rejects with ProjectRootNotFoundError naming the start path', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/scratch/no-config-here' });
+      const startPath = '/scratch/no-config-here';
 
       proxy.setupRepoRootNotFound({ startPath: '/scratch/no-config-here' });
 
@@ -46,7 +45,7 @@ describe('cwdResolveBroker', () => {
   describe('kind: project-root', () => {
     it('VALID: {startPath, kind: "project-root"} => returns ProjectRootCwd branded path', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/project' });
+      const startPath = '/project';
 
       proxy.setupProjectRootFoundAtStart({ startPath: '/project' });
 
@@ -57,7 +56,7 @@ describe('cwdResolveBroker', () => {
 
     it('VALID: {startPath: nested file, kind: "project-root"} => walks up to package.json', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/repo/packages/web/src/file.ts' });
+      const startPath = '/repo/packages/web/src/file.ts';
 
       proxy.setupProjectRootFoundInParent({
         startPath: '/repo/packages/web/src/file.ts',
@@ -74,7 +73,7 @@ describe('cwdResolveBroker', () => {
   describe('kind: guild-path', () => {
     it('VALID: {startPath, kind: "guild-path"} => returns GuildPathCwd branded path', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/dm/guilds/foo' });
+      const startPath = '/dm/guilds/foo';
 
       proxy.setupGuildPathFoundAtStart({ startPath: '/dm/guilds/foo' });
 
@@ -85,7 +84,7 @@ describe('cwdResolveBroker', () => {
 
     it('VALID: {startPath: child, kind: "guild-path"} => walks up to guild.json', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/dm/guilds/foo/quests/q1' });
+      const startPath = '/dm/guilds/foo/quests/q1';
 
       proxy.setupGuildPathFoundInParent({
         startPath: '/dm/guilds/foo/quests/q1',
@@ -99,7 +98,7 @@ describe('cwdResolveBroker', () => {
 
     it('EDGE: {startPath: no guild, kind: "guild-path"} => throws GuildRootNotFoundError', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/no-guild' });
+      const startPath = '/no-guild';
 
       proxy.setupGuildPathNotFound({ startPath: '/no-guild' });
 
@@ -112,7 +111,7 @@ describe('cwdResolveBroker', () => {
   describe('kind: dungeonmaster-home', () => {
     it('VALID: {kind: "dungeonmaster-home"} => returns DungeonmasterHomeCwd from homedir', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/anywhere' });
+      const startPath = '/anywhere';
 
       proxy.setupDungeonmasterHomeFromHomedir({
         homeDir: '/home/user',
@@ -127,7 +126,7 @@ describe('cwdResolveBroker', () => {
 
     it('VALID: {kind: "dungeonmaster-home"} with DUNGEONMASTER_HOME env => returns env value', async () => {
       const proxy = cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/anywhere' });
+      const startPath = '/anywhere';
 
       proxy.setupDungeonmasterHomeFromEnv({ homePath: '/custom/dm-home' });
 
@@ -141,7 +140,7 @@ describe('cwdResolveBroker', () => {
   describe('invalid kind', () => {
     it('ERROR: {kind: "unknown"} => throws Error', async () => {
       cwdResolveBrokerProxy();
-      const startPath = FilePathStub({ value: '/project' });
+      const startPath = '/project';
 
       await expect(cwdResolveBroker({ startPath, kind: 'unknown' as never })).rejects.toThrow(
         /Unknown cwd kind: unknown/u,

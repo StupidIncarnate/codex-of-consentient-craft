@@ -6,12 +6,10 @@ import { eslintIsPathIgnoredBrokerProxy } from '../../eslint/is-path-ignored/esl
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const violationsCheckNewBrokerProxy = (): {
-  setupViolationCheck: (params?: { hasViolations?: boolean; filePath?: FilePath }) => void;
-  setupFileMissing: (params: { filePath: FilePath }) => void;
+  setupViolationCheck: (params?: { hasViolations?: boolean; filePath?: string }) => void;
+  setupFileMissing: (params: { filePath: string }) => void;
   setPathIgnored: (params: { ignored: boolean }) => void;
   setLintIgnoredPaths: (params: { enabled: boolean }) => void;
 } => {
@@ -58,14 +56,14 @@ export const violationsCheckNewBrokerProxy = (): {
         ignored,
       });
     },
-    setupFileMissing: ({ filePath }: { filePath: FilePath }): void => {
+    setupFileMissing: ({ filePath }: { filePath: string }): void => {
       stageLintIgnoredPaths();
       contentChangesProxy.setupReadFileNotFound({ filePath });
     },
     setupViolationCheck: ({
       hasViolations = false,
-      filePath = FilePathStub({ value: '/test/file.ts' }),
-    }: { hasViolations?: boolean; filePath?: FilePath } = {}): void => {
+      filePath = '/test/file.ts',
+    }: { hasViolations?: boolean; filePath?: string } = {}): void => {
       stageLintIgnoredPaths();
       // Setup content changes with actual content to avoid early returns in lint broker
       // For Edit tool: content contains 'old' which gets replaced with 'new' by the edit

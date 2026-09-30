@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
@@ -8,9 +7,7 @@ import { InstallCreateConfigResponder } from './install-create-config-responder'
 // Every test in this file calls the responder with this fixed targetProjectRoot, so this is
 // the one real config path exists/read/write are ever called with here.
 const TARGET_PROJECT_ROOT = '/project';
-const CONFIG_PATH = FilePathStub({
-  value: `${TARGET_PROJECT_ROOT}/${locationsStatics.repoRoot.config}`,
-});
+const CONFIG_PATH = `${TARGET_PROJECT_ROOT}/${locationsStatics.repoRoot.config}`;
 
 export const InstallCreateConfigResponderProxy = (): {
   callResponder: typeof InstallCreateConfigResponder;

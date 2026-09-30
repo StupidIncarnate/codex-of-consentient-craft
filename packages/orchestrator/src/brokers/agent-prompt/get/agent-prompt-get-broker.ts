@@ -35,7 +35,7 @@
  * // Returns AgentPromptResult whose `prompt` has $ARGUMENTS substituted with operation context
  */
 
-import { agentPromptResultContract, filePathContract, workItemContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
+import { agentPromptResultContract, workItemContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
@@ -102,7 +102,7 @@ export const agentPromptGetBroker = async ({
   const base = agentNameToPromptTransformer({ agent: parsedAgent });
 
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
   const quest = await questLoadBroker({ questFilePath });
 
   const workItem = quest.workItems.find((item) => item.id === workItemId);

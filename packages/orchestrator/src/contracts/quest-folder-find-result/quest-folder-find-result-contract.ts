@@ -7,12 +7,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
+import { questContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 
 export const questFolderFindResultContract = z.union([
   z.object({
     found: z.literal(true),
-    folderPath: filePathContract,
+    folderPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestFolderFindResultFolderPath'>(),
     quest: questContract,
   }),
   z.object({

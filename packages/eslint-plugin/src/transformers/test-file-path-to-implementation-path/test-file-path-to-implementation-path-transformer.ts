@@ -12,15 +12,13 @@
  * });
  * // Returns: '/src/adapters/http/http-adapter.ts'
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
 export const testFilePathToImplementationPathTransformer = ({
   testFilePath,
 }: {
-  testFilePath: FilePath;
-}): FilePath => {
+  testFilePath: string;
+}): string => {
   let implementationPath = testFilePath;
 
   // Sort suffixes by length (longest first) to handle compound suffixes like .integration.test before .test
@@ -29,10 +27,10 @@ export const testFilePathToImplementationPathTransformer = ({
   // Remove test suffix (.integration.test, .e2e.test, .test, .spec, etc.)
   for (const suffix of sortedSuffixes) {
     if (implementationPath.includes(suffix)) {
-      implementationPath = implementationPath.replace(suffix, '') as FilePath;
+      implementationPath = implementationPath.replace(suffix, '') as string;
       break;
     }
   }
 
-  return filePathContract.parse(implementationPath);
+  return implementationPath;
 };

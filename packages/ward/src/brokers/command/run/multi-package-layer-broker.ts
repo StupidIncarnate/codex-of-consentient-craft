@@ -8,7 +8,7 @@
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, exitCodeContract, filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
@@ -80,7 +80,7 @@ export const multiPackageLayerBroker = async ({
   // for fields inside one that's present), so the fallback to configDefaultsStatics is load-bearing,
   // not decorative.
   const dungeonmasterConfig = await configResolveBroker({
-    filePath: filePathContract.parse(`${String(rootPath)}/package.json`),
+    filePath: `${String(rootPath)}/package.json`,
   });
   const CONCURRENCY_LIMIT = Number(
     dungeonmasterConfig.ward?.concurrency ?? configDefaultsStatics.ward.concurrency.default,

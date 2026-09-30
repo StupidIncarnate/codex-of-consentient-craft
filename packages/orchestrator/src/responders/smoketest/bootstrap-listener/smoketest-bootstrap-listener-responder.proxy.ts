@@ -1,5 +1,4 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
@@ -17,9 +16,7 @@ type QuestId = ReturnType<typeof QuestIdStub>;
 type ListenerEntry = ReturnType<typeof SmoketestListenerEntryStub>;
 type ScenarioMeta = ReturnType<typeof SmoketestScenarioMetaStub>;
 
-const OUTBOX_PATH = FilePathStub({
-  value: '/tmp/smoketest-bootstrap-listener-test/event-outbox.jsonl',
-});
+const OUTBOX_PATH = '/tmp/smoketest-bootstrap-listener-test/event-outbox.jsonl';
 
 export const SmoketestBootstrapListenerResponderProxy = (): {
   reset: () => void;
@@ -48,7 +45,7 @@ export const SmoketestBootstrapListenerResponderProxy = (): {
 
   outboxProxy.setupOutboxPath({
     homeDir: '/tmp/smoketest-bootstrap-listener-test',
-    homePath: FilePathStub({ value: '/tmp/smoketest-bootstrap-listener-test' }),
+    homePath: '/tmp/smoketest-bootstrap-listener-test',
     outboxPath: OUTBOX_PATH,
   });
   listenerProxy.setupEmpty();
@@ -58,7 +55,7 @@ export const SmoketestBootstrapListenerResponderProxy = (): {
     reset: (): void => {
       outboxProxy.setupOutboxPath({
         homeDir: '/tmp/smoketest-bootstrap-listener-test',
-        homePath: FilePathStub({ value: '/tmp/smoketest-bootstrap-listener-test' }),
+        homePath: '/tmp/smoketest-bootstrap-listener-test',
         outboxPath: OUTBOX_PATH,
       });
       listenerProxy.setupEmpty();

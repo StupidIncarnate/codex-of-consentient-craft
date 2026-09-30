@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { locationsRecipesPackagePathFindBroker } from './locations-recipes-package-path-find-broker';
 import { locationsRecipesPackagePathFindBrokerProxy } from './locations-recipes-package-path-find-broker.proxy';
@@ -9,7 +8,7 @@ describe('locationsRecipesPackagePathFindBroker', () => {
       const proxy = locationsRecipesPackagePathFindBrokerProxy();
       proxy.setupRepoRootAtCwd({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
+        packagePath: '/repo/packages/hydration-recipes',
       });
 
       const result = await locationsRecipesPackagePathFindBroker();
@@ -24,7 +23,7 @@ describe('locationsRecipesPackagePathFindBroker', () => {
       proxy.setupRepoRootInParent({
         cwdPath: '/repo/packages/web/src',
         repoRoot: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
+        packagePath: '/repo/packages/hydration-recipes',
       });
 
       const result = await locationsRecipesPackagePathFindBroker();
@@ -39,7 +38,7 @@ describe('locationsRecipesPackagePathFindBroker', () => {
       proxy.setupRepoRootInParent({
         cwdPath: '/home/dev/their-app/apps/api',
         repoRoot: '/home/dev/their-app',
-        packagePath: FilePathStub({ value: '/home/dev/their-app/packages/hydration-recipes' }),
+        packagePath: '/home/dev/their-app/packages/hydration-recipes',
       });
 
       const result = await locationsRecipesPackagePathFindBroker();

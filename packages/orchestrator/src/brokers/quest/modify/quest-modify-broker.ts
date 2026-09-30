@@ -20,21 +20,12 @@
  *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract, modifyQuestInputContract, modifyQuestResultContract, verifyQuestCheckContract, questContractEntryContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join, resolve } from '#gateway/node/path';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
-import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput, UnitObservation } from '@dungeonmaster/shared/contracts';
-import { modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
-import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
-import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, UnitObservation, ModifyQuestResult, VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import {
   hasQuestGateContentGuard,
   isQuestBlockedQuestStatusGuard,
@@ -93,9 +84,7 @@ export const questModifyBroker = async ({
 
         const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
 
-        const questFilePath = filePathContract.parse(
-          join(questPath, locationsStatics.quest.questFile),
-        );
+        const questFilePath = join(questPath, locationsStatics.quest.questFile);
 
         const loadedQuest = await questLoadBroker({ questFilePath });
         const quest = { ...loadedQuest };
@@ -160,10 +149,10 @@ export const questModifyBroker = async ({
         }
 
         if (validated.contracts) {
-          quest.contracts = questArrayUpsertTransformer({
+          quest.contracts = questContractEntryContract.shape.source.parse(questContractEntryContract.shape.source.parse(questContractEntryContract.shape.source.parse(questArrayUpsertTransformer({
             existing: quest.contracts,
             updates: validated.contracts as typeof quest.contracts,
-          });
+          }))));
         }
 
         if (validated.packagesAffected !== undefined) {

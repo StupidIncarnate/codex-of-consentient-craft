@@ -1,6 +1,4 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { InstallWriteScriptsResponder } from './install-write-scripts-responder';
@@ -9,8 +7,8 @@ export const InstallWriteScriptsResponderProxy = (): {
   callResponder: typeof InstallWriteScriptsResponder;
   setupFileExists: () => void;
   setupFileNotExists: () => void;
-  setupReadFileContent: (params: { filePath: FilePath; content: string }) => void;
-  getWrittenContent: (params: { filePath: FilePath }) => unknown;
+  setupReadFileContent: (params: { filePath: string; content: string }) => void;
+  getWrittenContent: (params: { filePath: string }) => unknown;
   getWrittenPath: () => unknown;
 } => {
   const existsProxy = existsSyncProxy();
@@ -19,7 +17,7 @@ export const InstallWriteScriptsResponderProxy = (): {
 
   // Every test in this file targets targetProjectRoot '/project', so the resolved package.json
   // path is the same for every scenario.
-  const packageJsonPath = FilePathStub({ value: '/project/package.json' });
+  const packageJsonPath = '/project/package.json';
 
   return {
     callResponder: InstallWriteScriptsResponder,
@@ -36,14 +34,14 @@ export const InstallWriteScriptsResponderProxy = (): {
       filePath,
       content,
     }: {
-      filePath: FilePath;
+      filePath: string;
       content: string;
     }): void => {
       readProxy.returns({ path: filePath, contents: content });
       writeProxy.succeeds({ path: filePath });
     },
 
-    getWrittenContent: ({ filePath }: { filePath: FilePath }): unknown =>
+    getWrittenContent: ({ filePath }: { filePath: string }): unknown =>
       writeProxy.writtenContentsFor({ path: filePath }),
 
     // Trivial echo of the known address — the write having actually landed there is proven by

@@ -1,5 +1,4 @@
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -14,15 +13,13 @@ import { smoketestStampOverrideBrokerProxy } from '../stamp-override/smoketest-s
 
 type Quest = ReturnType<typeof QuestStub>;
 type PromptText = ReturnType<typeof PromptTextStub>;
-type FilePathValue = ReturnType<typeof FilePathStub>;
+type FilePathValue = string;
 
 // smoketestSweepPendingWorkItemsLayerBroker's own join(questPath, quest.json) shares the exact
 // tuple stampProxy.setupQuestFound already stages for its OWN internal join — one home for both,
 // since GuildIdStub()'s fixed default makes every setupQuestFound call compute the same folder.
 const questFolderPathFor = ({ quest }: { quest: Quest }): FilePathValue =>
-  FilePathStub({
-    value: `/home/testuser/.dungeonmaster/guilds/${GuildIdStub()}/quests/${quest.folder}`,
-  });
+  `/home/testuser/.dungeonmaster/guilds/${GuildIdStub()}/quests/${quest.folder}`;
 
 export const smoketestSweepPendingWorkItemsLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => { questFolderPath: FilePathValue };

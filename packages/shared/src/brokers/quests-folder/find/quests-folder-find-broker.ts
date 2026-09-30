@@ -9,16 +9,15 @@
 import { join } from '#gateway/node/path';
 import { projectRootFindBroker } from '../../project-root/find/project-root-find-broker';
 import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const questsFolderFindBroker = async ({
   startPath,
 }: {
-  startPath: FilePath;
-}): Promise<FilePath> => {
+  startPath: string;
+}): Promise<string> => {
   const projectRoot = await projectRootFindBroker({ startPath });
 
   const questsFolderPath = join(projectRoot, questsFolderStatics.paths.root);
 
-  return filePathContract.parse(questsFolderPath);
+  return questsFolderPath;
 };

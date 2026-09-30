@@ -42,12 +42,7 @@
 
 import { stderr } from '#gateway/node/process';
 import type { ProcessId, QuestStatus, Quest, Guild } from '@dungeonmaster/shared/contracts';
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
@@ -92,9 +87,7 @@ export const questPauseBroker = async ({
       questId,
       run: async (): Promise<{ paused: boolean }> => {
         const { questPath } = await questFindQuestPathBroker({ questId });
-        const questFilePath = filePathContract.parse(
-          join(questPath, locationsStatics.quest.questFile),
-        );
+        const questFilePath = join(questPath, locationsStatics.quest.questFile);
         const quest = await questLoadBroker({ questFilePath });
 
         // A second pause racing behind the first reaches this lock turn AFTER the first one's

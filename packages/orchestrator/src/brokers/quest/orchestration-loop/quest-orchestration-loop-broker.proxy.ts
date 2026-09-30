@@ -1,6 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { questContract, type FilePath, type Quest, type WorkItem, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { questContract, type Quest, type WorkItem, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -15,7 +14,7 @@ type QuestParam = ReturnType<typeof QuestStub>;
 // Every questOrchestrationLoopBroker.test.ts call site passes this same startPath, which is
 // what the broker forwards to configResolveBroker — the real, distinguishing address every
 // config-resolve call in this suite resolves.
-const START_PATH = FilePathStub({ value: '/project/src' });
+const START_PATH = '/project/src';
 
 const parsePersistedQuests = ({
   modifyProxy,
@@ -31,7 +30,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupQuestBlocked: (params: { quest: QuestParam }) => void;
   setupQuestReady: (params: { quest: QuestParam }) => void;
   setupQuestNotFound: () => void;
-  setupConfigResolves: (params: { filePath: FilePath }) => void;
+  setupConfigResolves: (params: { filePath: string }) => void;
   setupConfigNotFound: () => void;
   setupConfigMalformed: (params: { message: string }) => void;
   setupNoReadyItems: (params: { quest: QuestParam }) => void;
@@ -98,7 +97,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
     },
 
     // For a caller that launches the loop from a startPath other than START_PATH.
-    setupConfigResolves: ({ filePath }: { filePath: FilePath }): void => {
+    setupConfigResolves: ({ filePath }: { filePath: string }): void => {
       configProxy.setupResolves({ filePath, config: DungeonmasterConfigStub() });
     },
 

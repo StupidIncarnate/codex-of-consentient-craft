@@ -3,7 +3,6 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { basename, dirname, resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import type { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
@@ -16,8 +15,8 @@ import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-resp
 
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
 // resolve passthrough resolves it to these exact paths), so every test lands on these paths.
-const RECIPES_PACKAGE_PATH = FilePathStub({ value: '/project/packages/hydration-recipes' });
-const ROOT_PACKAGE_JSON_PATH = FilePathStub({ value: '/project/package.json' });
+const RECIPES_PACKAGE_PATH = '/project/packages/hydration-recipes';
+const ROOT_PACKAGE_JSON_PATH = '/project/package.json';
 
 const RECIPES_PACKAGE_ROOT = '/project/packages/hydration-recipes';
 const SCAFFOLD_RELATIVE_PATHS = [

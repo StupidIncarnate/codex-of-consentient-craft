@@ -9,7 +9,6 @@ import type { ToolInput } from '../../../contracts/tool-input/tool-input-contrac
 import type { ContentChange } from '../../../contracts/content-change/content-change-contract';
 import { contentChangeContract } from '../../../contracts/content-change/content-change-contract';
 import { toolInputGetFullContentBroker } from '../get-full-content/tool-input-get-full-content-broker';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import { fileReadOrEmptyBroker } from '../../file/read-or-empty/file-read-or-empty-broker';
 
@@ -27,7 +26,7 @@ export const toolInputGetContentChangesBroker = async ({
   // Handle Write tool
   if ('content' in toolInput) {
     const oldContent = await fileReadOrEmptyBroker({
-      filePath: filePathContract.parse(filePath),
+      filePath: filePath,
     });
 
     return [
@@ -41,7 +40,7 @@ export const toolInputGetContentChangesBroker = async ({
   // Handle Edit tool
   if ('new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput)) {
     const oldContent = await fileReadOrEmptyBroker({
-      filePath: filePathContract.parse(filePath),
+      filePath: filePath,
     });
 
     const newContent = await toolInputGetFullContentBroker({ toolInput });
@@ -61,7 +60,7 @@ export const toolInputGetContentChangesBroker = async ({
   // Handle MultiEdit tool
   if ('edits' in toolInput) {
     const oldContent = await fileReadOrEmptyBroker({
-      filePath: filePathContract.parse(filePath),
+      filePath: filePath,
     });
 
     const newContent = await toolInputGetFullContentBroker({ toolInput });

@@ -15,7 +15,6 @@
 
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { tsconfigCompilerOptionsLocateTransformer } from '../../../transformers/tsconfig-compiler-options-locate/tsconfig-compiler-options-locate-transformer';
 import { tsconfigCompilerOptionsSetTextTransformer } from '../../../transformers/tsconfig-compiler-options-set-text/tsconfig-compiler-options-set-text-transformer';
 import type { TsconfigCompilerOptions } from '../../../contracts/tsconfig-compiler-options/tsconfig-compiler-options-contract';
@@ -24,7 +23,7 @@ export const gatewayTsconfigCompilerOptionsWriteBroker = async ({
   tsconfigPath,
   options,
 }: {
-  tsconfigPath: FilePath;
+  tsconfigPath: string;
   options: TsconfigCompilerOptions;
 }): Promise<boolean> => {
   if (!existsSync(tsconfigPath)) {

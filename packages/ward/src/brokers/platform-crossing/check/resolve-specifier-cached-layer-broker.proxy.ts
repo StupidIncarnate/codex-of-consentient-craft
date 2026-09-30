@@ -1,9 +1,8 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { resolveSpecifierLayerBrokerProxy } from './resolve-specifier-layer-broker.proxy';
 
 export const resolveSpecifierCachedLayerBrokerProxy = (): {
-  setupFile: (params: { filePath: FilePath; content: string }) => void;
-  setupMissing: (params: { filePath: FilePath }) => void;
+  setupFile: (params: { filePath: string; content: string }) => void;
+  setupMissing: (params: { filePath: string }) => void;
 } => {
   const resolveProxy = resolveSpecifierLayerBrokerProxy();
 

@@ -10,7 +10,7 @@ import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, unlink } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import { absoluteFilePathContract, exitCodeContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -60,7 +60,7 @@ export const checkRunUnitBroker = async ({
 }): Promise<ProjectResult> => {
   const { bin, args } = checkCommandsStatics.unit;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
-  const hasPackageJestConfig = existsSync(filePathContract.parse(`${String(cwd)}/jest.config.js`));
+  const hasPackageJestConfig = existsSync(`${String(cwd)}/jest.config.js`);
   const { patterns, excludePatterns } = jestDiscoverPatternsTransformer({
     checkType: 'unit',
     hasPackageJestConfig,
@@ -109,7 +109,7 @@ export const checkRunUnitBroker = async ({
       }
       const base = relativePath.slice(0, lastDot);
       return tsExtensionsStatics.allExtensions.some((ext) =>
-        existsSync(filePathContract.parse(`${String(cwd)}/${base}.test.${ext}`)),
+        existsSync(`${String(cwd)}/${base}.test.${ext}`),
       );
     });
 

@@ -20,7 +20,6 @@
  * which is the opposite of "we could not find it".
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { QuestSummary, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -36,7 +35,7 @@ export const questGetSummaryBroker = async ({
 }): Promise<QuestSummary> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
 
   const quest = await questLoadBroker({ questFilePath });
 

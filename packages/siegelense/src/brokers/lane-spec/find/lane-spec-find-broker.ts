@@ -15,7 +15,6 @@
  */
 
 import { cwd } from '#gateway/node/process';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { configResolveBroker, e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
 
@@ -49,9 +48,7 @@ export const laneSpecFindBroker = async ({
   // bare directory dirname()s to cwd's PARENT, walking above the repo root and missing the config.
   // Built by template concatenation, never `join`: joining is unneeded when only one segment is
   // ever appended onto a value already known to be a directory.
-  const startPath = filePathContract.parse(
-    `${cwd()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
-  );
+  const startPath = `${cwd()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
   const config = await configResolveBroker({ filePath: startPath });
   const configuredProcesses = config.devServer?.e2e?.processes;
 

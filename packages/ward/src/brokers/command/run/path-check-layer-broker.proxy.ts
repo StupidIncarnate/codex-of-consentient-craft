@@ -1,9 +1,8 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const pathCheckLayerBrokerProxy = (): {
-  setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
-  setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
+  setupExistingPath: ({ filePath }: { filePath: string }) => void;
+  setupMissingPath: ({ filePath }: { filePath: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
 
@@ -14,10 +13,10 @@ export const pathCheckLayerBrokerProxy = (): {
   // ABSOLUTE path, which is what the broker builds from `rootPath` plus the repo-relative arg, so
   // two tests naming different paths cannot collide.
   return {
-    setupExistingPath: ({ filePath }: { filePath: FilePath }): void => {
+    setupExistingPath: ({ filePath }: { filePath: string }): void => {
       existsProxy.returns({ path: filePath, exists: true });
     },
-    setupMissingPath: ({ filePath }: { filePath: FilePath }): void => {
+    setupMissingPath: ({ filePath }: { filePath: string }): void => {
       existsProxy.returns({ path: filePath, exists: false });
     },
   };

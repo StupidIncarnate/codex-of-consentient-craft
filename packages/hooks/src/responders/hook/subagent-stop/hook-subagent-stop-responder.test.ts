@@ -2,13 +2,12 @@ import { HookSubagentStopResponder } from './hook-subagent-stop-responder';
 import { HookSubagentStopResponderProxy } from './hook-subagent-stop-responder.proxy';
 import { SubagentStopHookDataStub } from '../../../contracts/subagent-stop-hook-data/subagent-stop-hook-data.stub';
 import { subagentStopBlockMessageStatics } from '../../../statics/subagent-stop-block-message/subagent-stop-block-message-statics';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { HookBackgroundTaskStub } from '../../../contracts/hook-background-task/hook-background-task.stub';
 
 // HookSubagentStopResponder reads whichever of agent_transcript_path / transcript_path the hook
 // input carries; every test below uses SubagentStopHookDataStub()'s default transcript_path, so
 // the read is addressed by that same fixed path.
-const TRANSCRIPT_PATH = FilePathStub({ value: '/tmp/transcript.jsonl' });
+const TRANSCRIPT_PATH = '/tmp/transcript.jsonl';
 
 const workItemAgentLine = JSON.stringify({
   message: {

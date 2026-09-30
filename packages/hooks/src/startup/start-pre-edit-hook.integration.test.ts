@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import {
   EditToolHookStub,
@@ -15,9 +14,7 @@ const PACKAGE_DIR = resolve(__dirname, '../..');
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
-const BASE_DIR = FilePathStub({
-  value: `${PACKAGE_DIR}/src/.test-tmp/pre-edit-lint-tests`,
-});
+const BASE_DIR = `${PACKAGE_DIR}/src/.test-tmp/pre-edit-lint-tests`;
 
 const CLEAN_SOURCE = `export function add({ a, b }: { a: boolean; b: boolean }): boolean {
   return a || b;

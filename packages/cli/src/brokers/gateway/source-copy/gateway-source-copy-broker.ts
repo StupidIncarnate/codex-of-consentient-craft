@@ -12,7 +12,6 @@
 
 import { resolvePackageRoot } from '#gateway/node/module';
 import { cp } from '#gateway/node/fs__promises';
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import {
   gatewaySourceCopyStatics,
   type GatewayCopiedFolder,
@@ -23,8 +22,8 @@ export const gatewaySourceCopyBroker = async ({
   packageRoot,
 }: {
   folder: GatewayCopiedFolder;
-  packageRoot: FilePath;
-}): Promise<readonly FilePath[]> => {
+  packageRoot: string;
+}): Promise<readonly string[]> => {
   const { specifier, directories } = gatewaySourceCopyStatics.sources[folder];
   const sourceRoot = resolvePackageRoot({ specifier });
 
@@ -36,7 +35,7 @@ export const gatewaySourceCopyBroker = async ({
 
   return Promise.all(
     directories.map(async (directory) => {
-      const destination = filePathContract.parse(`${packageRoot}/${directory}`);
+      const destination = `${packageRoot}/${directory}`;
       await cp(`${sourceRoot}/${directory}`, destination, { recursive: true });
       return destination;
     }),

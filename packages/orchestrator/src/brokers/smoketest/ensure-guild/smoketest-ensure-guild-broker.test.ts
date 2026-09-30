@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -28,13 +27,11 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupGuildPresent({
         config: GuildConfigStub({ guilds: [codexGuild] }),
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: HOME_PATH }),
+        homePath: HOME_PATH,
         guildEntries: [
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
             questDirEntries: [],
           },
         ],
@@ -69,20 +66,16 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupGuildPresent({
         config: GuildConfigStub({ guilds: [codexGuild, otherGuild] }),
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: HOME_PATH }),
+        homePath: HOME_PATH,
         guildEntries: [
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
             questDirEntries: [],
           },
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
             questDirEntries: [],
           },
         ],
@@ -120,20 +113,16 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupGuildPresent({
         config: GuildConfigStub({ guilds: [firstGuild, secondGuild] }),
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: HOME_PATH }),
+        homePath: HOME_PATH,
         guildEntries: [
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
             questDirEntries: [],
           },
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
             questDirEntries: [],
           },
         ],
@@ -165,13 +154,11 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupGuildPresent({
         config: GuildConfigStub({ guilds: [otherGuild] }),
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: HOME_PATH }),
+        homePath: HOME_PATH,
         guildEntries: [
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
             questDirEntries: [],
           },
         ],
@@ -191,7 +178,7 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupGuildPresent({
         config: GuildConfigStub({ guilds: [] }),
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: HOME_PATH }),
+        homePath: HOME_PATH,
         guildEntries: [],
         homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
         guildRepoRoots: [],
@@ -224,20 +211,16 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupGuildPresent({
         config: GuildConfigStub({ guilds: [broken, codexGuild] }),
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: HOME_PATH }),
+        homePath: HOME_PATH,
         guildEntries: [
           {
             accessible: false,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${SECOND_GUILD_ID}/quests`,
             questDirEntries: [],
           },
           {
             accessible: true,
-            questsDirPath: FilePathStub({
-              value: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
-            }),
+            questsDirPath: `${HOME_PATH}/guilds/${CODEX_GUILD_ID}/quests`,
             questDirEntries: [],
           },
         ],

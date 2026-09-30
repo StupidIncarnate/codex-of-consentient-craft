@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -10,7 +9,7 @@ import { workItemPatchLayerBrokerProxy } from './work-item-patch-layer-broker.pr
 const QUEST_ID = QuestIdStub({ value: 'add-auth' });
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' });
 const OTHER_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' });
-const QUEST_FILE_PATH = FilePathStub({ value: '/home/testuser/.dungeonmaster/quest.json' });
+const QUEST_FILE_PATH = '/home/testuser/.dungeonmaster/quest.json';
 const NOW_AT = '2026-01-15T10:00:00.000Z';
 
 describe('workItemPatchLayerBroker', () => {

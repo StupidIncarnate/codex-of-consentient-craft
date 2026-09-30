@@ -1,11 +1,10 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { gatewayPackageNamesReadLayerBroker } from './gateway-package-names-read-layer-broker';
 import { gatewayPackageNamesReadLayerBrokerProxy } from './gateway-package-names-read-layer-broker.proxy';
 
 describe('gatewayPackageNamesReadLayerBroker', () => {
   describe('valid inputs', () => {
     it('VALID: {only packages/node exists} => returns node, leaves bin and browser absent', async () => {
-      const rootPath = FilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const proxy = gatewayPackageNamesReadLayerBrokerProxy({ rootPath });
       proxy.setupPackageJson({ folderName: 'node', name: '@dungeonmaster/node' });
 
@@ -15,7 +14,7 @@ describe('gatewayPackageNamesReadLayerBroker', () => {
     });
 
     it('VALID: {all three gateway packages exist} => returns all three names', async () => {
-      const rootPath = FilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const proxy = gatewayPackageNamesReadLayerBrokerProxy({ rootPath });
       proxy.setupPackageJson({ folderName: 'node', name: '@dungeonmaster/node' });
       proxy.setupPackageJson({ folderName: 'bin', name: '@dungeonmaster/bin' });
@@ -33,7 +32,7 @@ describe('gatewayPackageNamesReadLayerBroker', () => {
 
   describe('empty input', () => {
     it('EMPTY: {none of the gateway packages exist} => returns an object with every field absent', async () => {
-      const rootPath = FilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       gatewayPackageNamesReadLayerBrokerProxy({ rootPath });
 
       const result = await gatewayPackageNamesReadLayerBroker({ rootPath });

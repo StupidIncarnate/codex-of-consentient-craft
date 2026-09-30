@@ -22,8 +22,6 @@ import { existsSync } from '#gateway/node/fs';
 import { dirname, resolve } from '#gateway/node/path';
 import { packageImportsSpecifierResolveMiddleware } from '../package-imports-specifier-resolve/package-imports-specifier-resolve-middleware';
 import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
 const IMPORTS_MAP_SPECIFIER_PREFIX = '#';
@@ -32,9 +30,9 @@ export const importPathResolverMiddleware = ({
   sourceFilePath,
   importPath,
 }: {
-  sourceFilePath: FilePath;
+  sourceFilePath: string;
   importPath: ImportPath;
-}): FilePath | null => {
+}): string | null => {
   if (importPath.startsWith(IMPORTS_MAP_SPECIFIER_PREFIX)) {
     return packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
   }
@@ -48,14 +46,14 @@ export const importPathResolverMiddleware = ({
 
   // Try extensions in order of likelihood for this codebase
   for (const ext of fileExtensionsStatics.source.all) {
-    const withExt = filePathContract.parse(`${resolved}${ext}`);
+    const withExt = `${resolved}${ext}`;
     if (existsSync(withExt)) {
       return withExt;
     }
   }
 
   // Try without extension (already has extension)
-  const asIs = filePathContract.parse(resolved);
+  const asIs = resolved;
   if (existsSync(asIs)) {
     return asIs;
   }

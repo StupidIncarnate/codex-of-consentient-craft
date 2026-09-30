@@ -19,11 +19,7 @@
  */
 
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  packageJsonContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
 import type { PackageType, RepoRootCwd, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
 import { readdirSync } from '#gateway/node/fs';
@@ -52,7 +48,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
       const packageRoot = absoluteFilePathContract.parse(
         resolve(String(projectRoot), String(entry.location)),
       );
-      const filePath = filePathContract.parse(packageRoot);
+      const filePath = packageRoot;
       return {
         location: String(entry.location),
         packageRoot,
@@ -129,7 +125,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   // Anchored on the RESOLVED location, not the declared one: a delete in a foreign repo would
   // otherwise scan a same-named directory under whichever repo this process happens to sit in.
   const workspaceRoots = new Set<unknown>(
-    locationChecks.map((check) => String(filePathContract.parse(dirname(check.filePath)))),
+    locationChecks.map((check) => String(dirname(check.filePath))),
   );
 
   const siblingDirs: { root: unknown; dirName: unknown }[] = [];
@@ -149,9 +145,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
     siblingDirs.map(async (sibling) => {
       // Concatenated rather than joined: the root is an absolute FilePath already, so appending
       // segments keeps it valid without a second adapter hop through filePathContract.
-      const manifestPath = filePathContract.parse(
-        `${String(sibling.root)}/${String(sibling.dirName)}/package.json`,
-      );
+      const manifestPath = `${String(sibling.root)}/${String(sibling.dirName)}/package.json`;
       try {
         const contents = await readFileIfExists(manifestPath);
         if (contents === null) {

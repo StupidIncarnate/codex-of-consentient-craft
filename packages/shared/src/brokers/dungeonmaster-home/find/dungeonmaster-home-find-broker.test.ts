@@ -1,6 +1,5 @@
 import { dungeonmasterHomeFindBroker } from './dungeonmaster-home-find-broker';
 import { dungeonmasterHomeFindBrokerProxy } from './dungeonmaster-home-find-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('dungeonmasterHomeFindBroker', () => {
   describe('DUNGEONMASTER_HOME unset', () => {
@@ -10,7 +9,7 @@ describe('dungeonmasterHomeFindBroker', () => {
       proxy.clearHomeEnv();
       proxy.setupHomePath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
       });
 
       const result = dungeonmasterHomeFindBroker();
@@ -24,7 +23,7 @@ describe('dungeonmasterHomeFindBroker', () => {
       proxy.clearHomeEnv();
       proxy.setupHomePath({
         homeDir: '/root',
-        homePath: FilePathStub({ value: '/root/.dungeonmaster' }),
+        homePath: '/root/.dungeonmaster',
       });
 
       const result = dungeonmasterHomeFindBroker();

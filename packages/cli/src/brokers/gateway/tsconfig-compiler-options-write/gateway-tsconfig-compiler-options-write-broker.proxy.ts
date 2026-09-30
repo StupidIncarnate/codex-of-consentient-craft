@@ -1,12 +1,11 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
-  setupMissingFile: (params: { tsconfigPath: FilePath }) => void;
-  setupFileContent: (params: { tsconfigPath: FilePath; content: string }) => void;
-  getWrittenContent: (params: { tsconfigPath: FilePath }) => unknown;
+  setupMissingFile: (params: { tsconfigPath: string }) => void;
+  setupFileContent: (params: { tsconfigPath: string; content: string }) => void;
+  getWrittenContent: (params: { tsconfigPath: string }) => unknown;
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileProxy();

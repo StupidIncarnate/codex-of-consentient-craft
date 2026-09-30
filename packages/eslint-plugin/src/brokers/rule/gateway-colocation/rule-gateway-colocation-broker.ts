@@ -46,7 +46,6 @@
  * // sibling subpath as reexportOutsideOwnSubpath, and one re-exporting a .proxy.ts/.stub.ts as
  * // barrelReexportsTestSupportFile
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
@@ -219,8 +218,8 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
         const proxyFileName = `${baseNameWithoutExtension}.proxy${extension}`;
 
         const hasTestFile =
-          existsSync(filePathContract.parse(`${directory}${testFileName}`)) ||
-          existsSync(filePathContract.parse(`${directory}${integrationTestFileName}`));
+          existsSync(`${directory}${testFileName}`) ||
+          existsSync(`${directory}${integrationTestFileName}`);
 
         if (!isBarrelFile) {
           statements.forEach((statement) => {
@@ -270,7 +269,7 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
             });
           }
 
-          const hasProxyFile = existsSync(filePathContract.parse(`${directory}${proxyFileName}`));
+          const hasProxyFile = existsSync(`${directory}${proxyFileName}`);
 
           if (!hasProxyFile) {
             ctx.report({
@@ -371,7 +370,7 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
         if (
           requireStub &&
           !gatewaySubpathHasStubLayerBroker({
-            subpathDirectory: filePathContract.parse(directory),
+            subpathDirectory: directory,
           })
         ) {
           ctx.report({
@@ -394,7 +393,7 @@ export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
           node,
           context: ctx,
           fileName: fileBaseName,
-          subpathDirectory: filePathContract.parse(directory),
+          subpathDirectory: directory,
           reexports,
         });
       },

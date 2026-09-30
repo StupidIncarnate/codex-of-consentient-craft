@@ -4,7 +4,6 @@ import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 type PathSegment = ReturnType<typeof PathSegmentStub>;
@@ -46,7 +45,7 @@ export const transcriptResolveBrokerProxy = (): {
   // existsSync has no catch-all by design: every path it can be asked about here is exactly
   // staged below, true or false, so a broker that queries the wrong candidate throws instead of
   // silently reading "not found".
-  existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: false });
+  existsProxy.returns({ path: PROJECTS_ROOT, exists: false });
 
   const projectDirNames: PathSegment[] = [];
   const fileEntryNamesByProjectDir = new Map<PathSegment, PathSegment[]>();
@@ -63,7 +62,7 @@ export const transcriptResolveBrokerProxy = (): {
       const presentHere = mainSessionIdsByProjectDir.get(projectDir) ?? new Set<SessionId>();
       for (const sessionId of allMainSessionIds) {
         existsProxy.returns({
-          path: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}.jsonl` }),
+          path: `${PROJECTS_ROOT}/${projectDir}/${sessionId}.jsonl`,
           exists: presentHere.has(sessionId),
         });
       }
@@ -83,9 +82,7 @@ export const transcriptResolveBrokerProxy = (): {
       for (const [sessionDirName, presentAgentIds] of sessionDirMap) {
         for (const agentId of allAgentIds) {
           existsProxy.returns({
-            path: FilePathStub({
-              value: `${PROJECTS_ROOT}/${projectDir}/${sessionDirName}/${SUBAGENTS_DIR_NAME}/${agentId}.jsonl`,
-            }),
+            path: `${PROJECTS_ROOT}/${projectDir}/${sessionDirName}/${SUBAGENTS_DIR_NAME}/${agentId}.jsonl`,
             exists: presentAgentIds.has(agentId),
           });
         }
@@ -94,9 +91,9 @@ export const transcriptResolveBrokerProxy = (): {
   };
 
   const refreshProjectsRootListing = (): void => {
-    existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });
+    existsProxy.returns({ path: PROJECTS_ROOT, exists: true });
     readdirProxy.returns({
-      path: FilePathStub({ value: PROJECTS_ROOT }),
+      path: PROJECTS_ROOT,
       entries: projectDirNames.map((name) => ({ name, kind: 'directory' as const })),
     });
   };
@@ -105,7 +102,7 @@ export const transcriptResolveBrokerProxy = (): {
     const fileNames = fileEntryNamesByProjectDir.get(projectDirName) ?? [];
     const sessionDirNames = sessionDirNamesByProjectDir.get(projectDirName) ?? [];
     readdirProxy.returns({
-      path: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDirName}` }),
+      path: `${PROJECTS_ROOT}/${projectDirName}`,
       entries: [
         ...fileNames.map((name) => ({ name, kind: 'file' as const })),
         ...sessionDirNames.map((name) => ({ name, kind: 'directory' as const })),
@@ -173,8 +170,8 @@ export const transcriptResolveBrokerProxy = (): {
     },
     setupNothing: (): void => {
       stageHomeDir();
-      existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });
-      readdirProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), entries: [] });
+      existsProxy.returns({ path: PROJECTS_ROOT, exists: true });
+      readdirProxy.returns({ path: PROJECTS_ROOT, entries: [] });
     },
   };
 };

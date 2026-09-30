@@ -1,6 +1,5 @@
 import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broker';
@@ -12,7 +11,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/' });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/fs/';
 
     proxy.fsReaddirSync.returns({
       path: subpathDirectory,
@@ -22,7 +21,7 @@ describe('barrelCompletenessLayerBroker', () => {
       ],
     });
     proxy.fsReaddirSync.returns({
-      path: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/is-fs-error/' }),
+      path: '/repo/packages/@gateway/node/src/fs/is-fs-error/',
       entries: [
         { name: 'fs-error.ts', kind: 'file' },
         { name: 'fs-error.stub.ts', kind: 'file' },
@@ -32,27 +31,19 @@ describe('barrelCompletenessLayerBroker', () => {
       ],
     });
     proxy.fsReadFileSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
       contents: 'export interface FsError {}\n',
     });
     proxy.fsReadFileSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
       contents: 'export const isFsError = (): boolean => false;\n',
     });
     proxy.fsExistsSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
       exists: true,
     });
     proxy.fsExistsSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
       exists: true,
     });
 
@@ -82,7 +73,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/' });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/dns/';
 
     proxy.fsReaddirSync.returns({
       path: subpathDirectory,
@@ -92,13 +83,11 @@ describe('barrelCompletenessLayerBroker', () => {
       ],
     });
     proxy.fsReaddirSync.returns({
-      path: FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/resolve4/' }),
+      path: '/repo/packages/@gateway/node/src/dns/resolve4/',
       entries: [{ name: 'resolve4.ts', kind: 'file' }],
     });
     proxy.fsReadFileSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/dns/resolve4/resolve4.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/dns/resolve4/resolve4.ts',
       contents: 'export const resolve4 = (): string[] => [];\n',
     });
 
@@ -124,7 +113,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/dgram/' });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/dgram/';
 
     proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
@@ -132,9 +121,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const source = ImportPathStub({ value: './create-socket/create-socket' });
 
     proxy.fsExistsSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/dgram/create-socket/create-socket.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/dgram/create-socket/create-socket.ts',
       exists: false,
     });
 
@@ -160,19 +147,15 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/tls/' });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/tls/';
 
     proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
     proxy.fsExistsSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
       exists: true,
     });
     proxy.fsReadFileSync.returns({
-      path: FilePathStub({
-        value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
-      }),
+      path: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
       contents: 'export const startServer = (): void => {};\n',
     });
 
@@ -201,7 +184,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/vm/' });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/vm/';
 
     proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
@@ -227,9 +210,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({
-      value: '/repo/packages/@gateway/node/src/perf_hooks/',
-    });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/perf_hooks/';
 
     proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
@@ -255,7 +236,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const mockReport = jest.fn();
     const context = RuleContextStub({ report: mockReport });
     const node = ProgramStub({ code: '' });
-    const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/os/' });
+    const subpathDirectory = '/repo/packages/@gateway/node/src/os/';
 
     proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 

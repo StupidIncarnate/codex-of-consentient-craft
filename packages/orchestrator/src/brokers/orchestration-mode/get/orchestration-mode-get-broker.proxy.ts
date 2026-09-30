@@ -1,5 +1,4 @@
 import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
@@ -14,9 +13,7 @@ const CWD_VALUE = '/default/cwd';
 // The broker builds startPath as join(cwd(), projectConfigFile). `cwd` takes no argument to key
 // on (the honest catch-all); `join` is staged on the exact [cwd, projectConfigFile] tuple, so
 // this is the exact, real address configResolveBroker is called with.
-const CONFIG_START_PATH = FilePathStub({
-  value: `${CWD_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
-});
+const CONFIG_START_PATH = `${CWD_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
 
 export const orchestrationModeGetBrokerProxy = (): {
   setupMode: (params: { mode: OrchestrationMode }) => void;

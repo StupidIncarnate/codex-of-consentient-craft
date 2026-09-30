@@ -5,12 +5,10 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { hookConfigDefaultBrokerProxy } from '../default/hook-config-default-broker.proxy';
 import { hookConfigMergeBrokerProxy } from '../merge/hook-config-merge-broker.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const hookConfigLoadBrokerProxy = (): {
-  setupConfigPath: (params: { workingDir: string; filename: string; path: FilePath }) => void;
-  setupConfigExists: (params: { filePath: FilePath; exists: boolean }) => void;
+  setupConfigPath: (params: { workingDir: string; filename: string; path: string }) => void;
+  setupConfigExists: (params: { filePath: string; exists: boolean }) => void;
 } => {
   cwdProxy();
   const resolveHandle = registerMock({ fn: resolve });
@@ -20,7 +18,7 @@ export const hookConfigLoadBrokerProxy = (): {
 
   // hookConfigLoadBroker resolves every candidate config filename before checking existence.
   // resolve has an address-less default here because tests don't specify cwd/candidate combinations.
-  const unusedConfigPath = FilePathStub({ value: '/unused/config/path' });
+  const unusedConfigPath = '/unused/config/path';
   resolveHandle.calledWith([]).returns(unusedConfigPath);
   fsProxy.returns({ path: unusedConfigPath, exists: false });
 
@@ -36,11 +34,11 @@ export const hookConfigLoadBrokerProxy = (): {
     }: {
       workingDir: string;
       filename: string;
-      path: FilePath;
+      path: string;
     }): void => {
       resolveHandle.calledWith([workingDir, filename]).returns(path);
     },
-    setupConfigExists: ({ filePath, exists }: { filePath: FilePath; exists: boolean }): void => {
+    setupConfigExists: ({ filePath, exists }: { filePath: string; exists: boolean }): void => {
       fsProxy.returns({ path: filePath, exists });
     },
   };

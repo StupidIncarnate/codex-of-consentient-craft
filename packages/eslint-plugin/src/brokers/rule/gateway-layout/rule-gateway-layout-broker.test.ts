@@ -1,7 +1,6 @@
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleGatewayLayoutBroker } from './rule-gateway-layout-broker';
 import { ruleGatewayLayoutBrokerProxy } from './rule-gateway-layout-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 const ruleTester = ruleTesterHarness();
 
@@ -9,7 +8,7 @@ beforeEach(() => {
   const proxy = ruleGatewayLayoutBrokerProxy();
 
   proxy.fsReaddirSync.returns({
-    path: FilePathStub({ value: '/repo/packages/@gateway/node/src' }),
+    path: '/repo/packages/@gateway/node/src',
     entries: [
       { name: 'fs', kind: 'directory' },
       { name: 'fs__promises', kind: 'directory' },
@@ -19,14 +18,14 @@ beforeEach(() => {
     ],
   });
   proxy.fsReaddirSync.returns({
-    path: FilePathStub({ value: '/repo/packages/@gateway/browser/src' }),
+    path: '/repo/packages/@gateway/browser/src',
     entries: [
       { name: 'URL', kind: 'directory' },
       { name: 'url', kind: 'directory' },
     ],
   });
   proxy.fsReaddirSync.returns({
-    path: FilePathStub({ value: '/repo/packages/@gateway/bin/src' }),
+    path: '/repo/packages/@gateway/bin/src',
     entries: [{ name: 'git', kind: 'directory' }],
   });
 });

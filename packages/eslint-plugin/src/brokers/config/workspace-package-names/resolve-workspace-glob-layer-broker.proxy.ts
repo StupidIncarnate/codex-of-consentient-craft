@@ -1,15 +1,14 @@
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 
 export const resolveWorkspaceGlobLayerBrokerProxy = (): {
-  setupGlobDirectories: (args: { basePath: FilePath; dirNames: string[] }) => void;
-  setupNoBaseDirectory: (args: { basePath: FilePath }) => void;
-  setupMemberPackageJson: (args: { memberDir: FilePath; name: PackageName }) => void;
-  setupMemberNoPackageJson: (args: { memberDir: FilePath }) => void;
-  setupMemberInvalidPackageJson: (args: { memberDir: FilePath; contents: string }) => void;
+  setupGlobDirectories: (args: { basePath: string; dirNames: string[] }) => void;
+  setupNoBaseDirectory: (args: { basePath: string }) => void;
+  setupMemberPackageJson: (args: { memberDir: string; name: PackageName }) => void;
+  setupMemberNoPackageJson: (args: { memberDir: string }) => void;
+  setupMemberInvalidPackageJson: (args: { memberDir: string; contents: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();
@@ -20,7 +19,7 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       basePath,
       dirNames,
     }: {
-      basePath: FilePath;
+      basePath: string;
       dirNames: string[];
     }): void => {
       existsProxy.returns({ path: basePath, exists: true });
@@ -30,7 +29,7 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       });
     },
 
-    setupNoBaseDirectory: ({ basePath }: { basePath: FilePath }): void => {
+    setupNoBaseDirectory: ({ basePath }: { basePath: string }): void => {
       existsProxy.returns({ path: basePath, exists: false });
     },
 
@@ -38,10 +37,10 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       memberDir,
       name,
     }: {
-      memberDir: FilePath;
+      memberDir: string;
       name: PackageName;
     }): void => {
-      const packageJsonPath = filePathContract.parse(`${memberDir}/package.json`);
+      const packageJsonPath = `${memberDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,
@@ -49,8 +48,8 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       });
     },
 
-    setupMemberNoPackageJson: ({ memberDir }: { memberDir: FilePath }): void => {
-      const packageJsonPath = filePathContract.parse(`${memberDir}/package.json`);
+    setupMemberNoPackageJson: ({ memberDir }: { memberDir: string }): void => {
+      const packageJsonPath = `${memberDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: false });
     },
 
@@ -58,10 +57,10 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       memberDir,
       contents,
     }: {
-      memberDir: FilePath;
+      memberDir: string;
       contents: string;
     }): void => {
-      const packageJsonPath = filePathContract.parse(`${memberDir}/package.json`);
+      const packageJsonPath = `${memberDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,

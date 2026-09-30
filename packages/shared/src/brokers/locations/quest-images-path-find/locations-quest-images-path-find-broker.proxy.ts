@@ -1,9 +1,8 @@
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsQuestImagesPathFindBrokerProxy = (): {
-  setupQuestImagesPath: (params: { questImagesPath: FilePath }) => void;
+  setupQuestImagesPath: (params: { questImagesPath: string }) => void;
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
@@ -18,7 +17,7 @@ export const locationsQuestImagesPathFindBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   return {
-    setupQuestImagesPath: ({ questImagesPath }: { questImagesPath: FilePath }): void => {
+    setupQuestImagesPath: ({ questImagesPath }: { questImagesPath: string }): void => {
       joinHandle.onceFor([]).returns(questImagesPath);
     },
   };

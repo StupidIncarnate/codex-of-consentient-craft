@@ -18,7 +18,6 @@
  * // Resolves once siegelense has stopped that instance or reaped its orphaned processes
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 
@@ -33,7 +32,7 @@ export const laneKillBroker = async ({
 }: {
   instanceId: SiegeInstance['id'];
 }): Promise<LaneKillResult> => {
-  const modulePath = filePathContract.parse(require.resolve(SIEGELENSE_BROKERS_MODULE_NAME));
+  const modulePath = require.resolve(SIEGELENSE_BROKERS_MODULE_NAME);
 
   const siegelenseBrokers = siegelenseInstanceKillModuleContract.parse(
     await dynamicImport({ path: modulePath }).catch((error: unknown) => {

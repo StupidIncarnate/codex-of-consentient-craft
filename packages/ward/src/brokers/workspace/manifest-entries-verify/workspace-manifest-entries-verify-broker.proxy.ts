@@ -1,11 +1,10 @@
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const workspaceManifestEntriesVerifyBrokerProxy = (): {
-  setupManifest: (params: { manifestPath: FilePath; manifestJson: string }) => void;
-  setupFileExists: (params: { filePath: FilePath }) => void;
-  setupFileMissing: (params: { filePath: FilePath }) => void;
+  setupManifest: (params: { manifestPath: string; manifestJson: string }) => void;
+  setupFileExists: (params: { filePath: string }) => void;
+  setupFileMissing: (params: { filePath: string }) => void;
 } => {
   const readProxy = readFileProxy();
   const statProxy = statIfExistsProxy();
@@ -15,15 +14,15 @@ export const workspaceManifestEntriesVerifyBrokerProxy = (): {
       manifestPath,
       manifestJson,
     }: {
-      manifestPath: FilePath;
+      manifestPath: string;
       manifestJson: string;
     }): void => {
       readProxy.returns({ path: manifestPath, contents: manifestJson });
     },
-    setupFileExists: ({ filePath }: { filePath: FilePath }): void => {
+    setupFileExists: ({ filePath }: { filePath: string }): void => {
       statProxy.returnsFile({ path: String(filePath), sizeBytes: 1024, modifiedAtMs: 0 });
     },
-    setupFileMissing: ({ filePath }: { filePath: FilePath }): void => {
+    setupFileMissing: ({ filePath }: { filePath: string }): void => {
       statProxy.missing({ path: String(filePath) });
     },
   };

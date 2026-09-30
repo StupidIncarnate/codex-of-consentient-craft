@@ -6,16 +6,15 @@
  * // Returns ['/project/.test-tmp/foo/fallback.ts', '/project/.test-tmp/fallback.ts', '/project/fallback.ts', ...]
  */
 import { resolve } from '#gateway/node/path';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 const MAX_DEPTH = 10;
 
-export const eslintFallbackPathsBroker = ({ cwd }: { cwd: FilePath }): FilePath[] => {
-  const paths: FilePath[] = [];
-  let currentDir: FilePath = cwd;
+export const eslintFallbackPathsBroker = ({ cwd }: { cwd: string }): string[] => {
+  const paths: string[] = [];
+  let currentDir: string = cwd;
   for (let depth = 0; depth < MAX_DEPTH; depth++) {
-    paths.push(filePathContract.parse(resolve(currentDir, 'fallback.ts')));
-    const parentDir = filePathContract.parse(resolve(currentDir, '..'));
+    paths.push(resolve(currentDir, 'fallback.ts'));
+    const parentDir = resolve(currentDir, '..');
     if (parentDir === currentDir) {
       break;
     }

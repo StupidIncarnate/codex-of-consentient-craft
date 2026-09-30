@@ -2,11 +2,10 @@ import { homedir } from '#gateway/node/os';
 import { deleteEnv, setEnv } from '#gateway/node/process';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsClaudeConfigDirFindBrokerProxy = (): {
   returns: (params: { path: string }) => void;
-  setupUnset: (params: { homeDir: FilePath }) => void;
+  setupUnset: (params: { homeDir: string }) => void;
 } => {
   getEnvProxy();
   const homedirHandle = registerMock({ fn: homedir });
@@ -23,7 +22,7 @@ export const locationsClaudeConfigDirFindBrokerProxy = (): {
     returns: ({ path }: { path: string }): void => {
       setEnv('CLAUDE_CONFIG_DIR', path);
     },
-    setupUnset: ({ homeDir }: { homeDir: FilePath }): void => {
+    setupUnset: ({ homeDir }: { homeDir: string }): void => {
       deleteEnv('CLAUDE_CONFIG_DIR');
       homedirHandle.onceFor([]).returns(String(homeDir));
     },

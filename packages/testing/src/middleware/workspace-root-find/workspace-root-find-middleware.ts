@@ -12,21 +12,19 @@
 
 import { dirname, join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
-import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 
 export const workspaceRootFindMiddleware = ({
   dirPath,
 }: {
-  dirPath: FilePath;
-}): FilePath | null => {
-  const packageJsonPath = filePathContract.parse(join(dirPath, 'package.json'));
+  dirPath: string;
+}): string | null => {
+  const packageJsonPath = join(dirPath, 'package.json');
   const packageJson = workspacePackageJsonReadMiddleware({ packageJsonPath });
   if (packageJson?.workspaces) {
     return dirPath;
   }
 
-  const parentPath = filePathContract.parse(dirname(dirPath));
+  const parentPath = dirname(dirPath);
   if (parentPath === dirPath) {
     return null;
   }

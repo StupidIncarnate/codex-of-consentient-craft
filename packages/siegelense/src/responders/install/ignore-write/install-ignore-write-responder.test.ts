@@ -1,11 +1,10 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallIgnoreWriteResponderProxy } from './install-ignore-write-responder.proxy';
 
 const CONTEXT = InstallContextStub({
   value: {
-    targetProjectRoot: FilePathStub({ value: '/project' }),
-    dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+    targetProjectRoot: '/project',
+    dungeonmasterRoot: '/dm-root',
   },
 });
 

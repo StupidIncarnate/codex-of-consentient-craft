@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
@@ -13,11 +12,9 @@ describe('locationsProfileDirsFindBroker', () => {
 
       proxy.setupProfilesPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        profilesPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        profilesPath: '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1',
       });
 
       const result = locationsProfileDirsFindBroker({ specHash });
@@ -35,11 +32,9 @@ describe('locationsProfileDirsFindBroker', () => {
 
       proxy.setupProfilesPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        profilesPath: FilePathStub({
-          value: `/home/user/.dungeonmaster/siegelense/profiles/${longHash}`,
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        profilesPath: `/home/user/.dungeonmaster/siegelense/profiles/${longHash}`,
       });
 
       const result = locationsProfileDirsFindBroker({ specHash });

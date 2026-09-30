@@ -31,8 +31,8 @@
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FileName, FilePath, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import { fileNameContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
@@ -47,9 +47,7 @@ export const questFindQuestPathBroker = async ({
 }): Promise<{ questPath: AbsoluteFilePath; guildId: Guild['id'] }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const guildsDir = filePathContract.parse(
-    join(homePath, dungeonmasterHomeStatics.paths.guildsDir),
-  );
+  const guildsDir = join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
 
   // A guilds/ directory that does not exist yet reads as "no quests here" — the same treatment
   // the per-guild scan loop below gives an unreadable quests/ dir — rather than an ENOENT
@@ -68,14 +66,10 @@ export const questFindQuestPathBroker = async ({
   // probe rather than being joined into a path that resolves somewhere else.
   const probeCandidates = isSafePathSegmentGuard({ segment: String(questId) })
     ? guildDirs.map((guildDir) => {
-        const questFolderPath = filePathContract.parse(
-          join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir, String(questId)),
-        );
+        const questFolderPath = join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir, String(questId));
 
         return {
-          questFilePath: filePathContract.parse(
-            join(questFolderPath, locationsStatics.quest.questFile),
-          ),
+          questFilePath: join(questFolderPath, locationsStatics.quest.questFile),
           questFolderPath,
           guildDirName: guildDir.name,
         };
@@ -105,15 +99,13 @@ export const questFindQuestPathBroker = async ({
   }
 
   const candidates: {
-    questFilePath: FilePath;
-    questFolderPath: FilePath;
+    questFilePath: string;
+    questFolderPath: string;
     guildDirName: FileName;
   }[] = [];
 
   for (const guildDir of guildDirs) {
-    const questsDirPath = filePathContract.parse(
-      join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir),
-    );
+    const questsDirPath = join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir);
 
     try {
       const questFolderEntries = readdirEntriesSync(questsDirPath);
@@ -122,10 +114,8 @@ export const questFindQuestPathBroker = async ({
 
       for (const questFolder of questFolders) {
         candidates.push({
-          questFilePath: filePathContract.parse(
-            join(questsDirPath, questFolder.name, locationsStatics.quest.questFile),
-          ),
-          questFolderPath: filePathContract.parse(join(questsDirPath, questFolder.name)),
+          questFilePath: join(questsDirPath, questFolder.name, locationsStatics.quest.questFile),
+          questFolderPath: join(questsDirPath, questFolder.name),
           guildDirName: fileNameContract.parse(guildDir.name),
         });
       }

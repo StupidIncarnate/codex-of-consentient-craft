@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -85,10 +84,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecordMissing({ filePath: AbsoluteFilePathStub({ value: QUEST_FILE }) });
 
@@ -116,10 +115,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -148,10 +147,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -179,10 +178,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -235,10 +234,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -279,10 +278,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -323,10 +322,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -369,10 +368,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -422,10 +421,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -461,10 +460,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -508,10 +507,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -547,10 +546,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -598,10 +597,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
@@ -638,10 +637,10 @@ describe('citationResolveBroker', () => {
       const proxy = citationResolveBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: HOME_DIR,
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: GUILD_DIR }),
-        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
-        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+        homePath: HOME,
+        guildPath: GUILD_DIR,
+        guildQuestsPath: `${GUILD_DIR}/quests`,
+        questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
         filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),

@@ -43,7 +43,7 @@ const questContractPropertyFields = z.object({
   source: z
     .string()
     .min(1)
-    .brand<'FilePath'>()
+    .brand<'QuestContractPropertyFieldsSource'>()
     .optional()
     .describe(
       "File path this ONE property lands in, when it is not the contract's own source. Omit it whenever the property lives in the contract's file — the routing falls back to that. Set it when the contract spans packages: the derived implementation ledger routes a contract to a package by resolving a path, so a property whose file lives in another package otherwise reaches no session at all. Set it on a TOP-LEVEL property only; a nested property describes a field inside its parent and lives in the parent's file.",

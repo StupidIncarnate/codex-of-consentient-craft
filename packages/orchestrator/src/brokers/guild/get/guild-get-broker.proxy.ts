@@ -1,4 +1,4 @@
-import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -16,7 +16,7 @@ export const guildGetBrokerProxy = (): {
     // Forwarded to guildConfigReadBrokerProxy's own setupConfig — see its header for why a
     // composing test must pass the SAME homeDir/homePath a sibling quest-path proxy staged.
     homeDir?: string;
-    homePath?: FilePath;
+    homePath?: string;
   }) => void;
   setupDirectGuild: (params: { guild: Guild }) => void;
 } => {
@@ -41,7 +41,7 @@ export const guildGetBrokerProxy = (): {
       config: GuildConfig;
       missingGuildId?: Guild['id'];
       homeDir?: string;
-      homePath?: FilePath;
+      homePath?: string;
     }): void => {
       // The real lookup answers each guild this config holds, addressed by that guild's own id.
       config.guilds.forEach((guild) => {

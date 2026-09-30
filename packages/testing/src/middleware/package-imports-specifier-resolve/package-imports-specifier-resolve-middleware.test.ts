@@ -1,6 +1,5 @@
 import { packageImportsSpecifierResolveMiddleware } from './package-imports-specifier-resolve-middleware';
 import { packageImportsSpecifierResolveMiddlewareProxy } from './package-imports-specifier-resolve-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('packageImportsSpecifierResolveMiddleware', () => {
@@ -30,15 +29,13 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
       proxy.setupSourceFileExists({
         filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       });
-      const sourceFilePath = FilePathStub({
-        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
-      });
+      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts' }),
+        '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       );
     });
   });
@@ -74,9 +71,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         filePath:
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
-      const sourceFilePath = FilePathStub({
-        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
-      });
+      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = ImportPathStub({
         value: '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
       });
@@ -84,10 +79,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({
-          value:
-            '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
-        }),
+        '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       );
     });
 
@@ -121,9 +113,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         filePath:
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
-      const sourceFilePath = FilePathStub({
-        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
-      });
+      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = ImportPathStub({
         value: '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
       });
@@ -131,10 +121,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({
-          value:
-            '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
-        }),
+        '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       );
     });
   });
@@ -149,7 +136,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
           imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
         },
       });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '#foo' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
@@ -165,7 +152,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         dirPath: '/repo/packages/mcp',
         packageJson: { name: '@dungeonmaster/mcp' },
       });
-      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
       const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
@@ -177,7 +164,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
   describe('no ancestor package.json', () => {
     it('EMPTY: {no ancestor has any package.json} => returns null', () => {
       packageImportsSpecifierResolveMiddlewareProxy();
-      const sourceFilePath = FilePathStub({ value: '/unreachable/deep/path/a.proxy.ts' });
+      const sourceFilePath = '/unreachable/deep/path/a.proxy.ts';
       const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });

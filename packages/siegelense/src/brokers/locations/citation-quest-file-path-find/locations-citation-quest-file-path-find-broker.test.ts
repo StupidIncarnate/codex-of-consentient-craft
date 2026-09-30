@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -16,10 +15,10 @@ describe('locationsCitationQuestFilePathFindBroker', () => {
       const proxy = locationsCitationQuestFilePathFindBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: `${HOME}/guilds/${GUILD_A}` }),
-        guildQuestsPath: FilePathStub({ value: `${HOME}/guilds/${GUILD_A}/quests` }),
-        questFolderPath: FilePathStub({ value: `${HOME}/guilds/${GUILD_A}/quests/quest-1` }),
+        homePath: HOME,
+        guildPath: `${HOME}/guilds/${GUILD_A}`,
+        guildQuestsPath: `${HOME}/guilds/${GUILD_A}/quests`,
+        questFolderPath: `${HOME}/guilds/${GUILD_A}/quests/quest-1`,
       });
 
       const result = locationsCitationQuestFilePathFindBroker({
@@ -38,10 +37,10 @@ describe('locationsCitationQuestFilePathFindBroker', () => {
       const proxy = locationsCitationQuestFilePathFindBrokerProxy();
       proxy.setupQuestFolder({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: HOME }),
-        guildPath: FilePathStub({ value: `${HOME}/guilds/${GUILD_B}` }),
-        guildQuestsPath: FilePathStub({ value: `${HOME}/guilds/${GUILD_B}/quests` }),
-        questFolderPath: FilePathStub({ value: `${HOME}/guilds/${GUILD_B}/quests/quest-2/` }),
+        homePath: HOME,
+        guildPath: `${HOME}/guilds/${GUILD_B}`,
+        guildQuestsPath: `${HOME}/guilds/${GUILD_B}/quests`,
+        questFolderPath: `${HOME}/guilds/${GUILD_B}/quests/quest-2/`,
       });
 
       const result = locationsCitationQuestFilePathFindBroker({

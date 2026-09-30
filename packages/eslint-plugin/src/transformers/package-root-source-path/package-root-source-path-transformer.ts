@@ -19,8 +19,6 @@
  * });
  * // Returns '/repo/packages/orchestrator/src/index.ts' as branded FilePath
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 const PACKAGES_SEGMENT = '/packages/';
 
@@ -29,15 +27,15 @@ export const packageRootSourcePathTransformer = ({
   packageName,
   relativePath,
 }: {
-  callerFilePath: FilePath;
+  callerFilePath: string;
   packageName: string;
   relativePath: string;
-}): FilePath | null => {
+}): string | null => {
   const packagesIndex = callerFilePath.indexOf(PACKAGES_SEGMENT);
   if (packagesIndex === -1) {
     return null;
   }
 
   const workspaceRoot = callerFilePath.slice(0, packagesIndex);
-  return filePathContract.parse(`${workspaceRoot}/packages/${packageName}/src/${relativePath}`);
+  return `${workspaceRoot}/packages/${packageName}/src/${relativePath}`;
 };

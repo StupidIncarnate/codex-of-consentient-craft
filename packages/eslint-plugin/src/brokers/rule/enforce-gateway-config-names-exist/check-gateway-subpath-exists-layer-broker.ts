@@ -10,8 +10,6 @@
  * checkGatewaySubpathExistsLayerBroker({ rootDir: filePathContract.parse('/repo'), subpath: '#gateway/node/fs' });
  * // Returns '/repo/packages/@gateway/node/src/fs/fs.ts' as FilePath, or undefined when it does not exist
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -20,9 +18,9 @@ export const checkGatewaySubpathExistsLayerBroker = ({
   rootDir,
   subpath,
 }: {
-  rootDir: FilePath;
+  rootDir: string;
   subpath: string;
-}): FilePath | undefined => {
+}): string | undefined => {
   const prefix = `${gatewayLocationsStatics.importPrefix}/`;
   if (!subpath.startsWith(prefix)) {
     return undefined;
@@ -41,9 +39,7 @@ export const checkGatewaySubpathExistsLayerBroker = ({
   }
 
   const lastSegment = rest[rest.length - 1];
-  const barrelPath = filePathContract.parse(
-    join(rootDir, 'packages', '@gateway', folder, 'src', ...rest, `${lastSegment}.ts`),
-  );
+  const barrelPath = join(rootDir, 'packages', '@gateway', folder, 'src', ...rest, `${lastSegment}.ts`);
 
   return existsSync(barrelPath) ? barrelPath : undefined;
 };

@@ -15,11 +15,10 @@ import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/per
 import { agentsPluginCreateBrokerProxy } from '../../../brokers/agents/plugin-create/agents-plugin-create-broker.proxy';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { InstallConfigCreateResponder } from './install-config-create-responder';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 type PathSegment = ReturnType<typeof PathSegmentStub>;
 
 export const InstallConfigCreateResponderProxy = (): {

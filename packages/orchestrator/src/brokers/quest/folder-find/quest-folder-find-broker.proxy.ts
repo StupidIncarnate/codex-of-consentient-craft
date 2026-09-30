@@ -6,8 +6,7 @@
  * proxy.setupQuestFolders({ questFolders, questFiles });
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, FileContents, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileContents, FileName } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -17,22 +16,22 @@ import { join } from '#gateway/node/path';
 
 export const questFolderFindBrokerProxy = (): {
   setupQuestFolders: (params: {
-    questsPath: FilePath;
+    questsPath: string;
     questFolders: FileName[];
     questFiles: {
-      folderPath: FilePath;
-      questFilePath: FilePath;
+      folderPath: string;
+      questFilePath: string;
       contents: FileContents;
     }[];
   }) => void;
-  setupEmptyFolder: (params: { questsPath: FilePath }) => void;
+  setupEmptyFolder: (params: { questsPath: string }) => void;
   setupQuestFoldersWithMissingFile: (params: {
-    questsPath: FilePath;
+    questsPath: string;
     questFolders: FileName[];
-    missingFileFolder: FilePath;
+    missingFileFolder: string;
     validQuestFile: {
-      folderPath: FilePath;
-      questFilePath: FilePath;
+      folderPath: string;
+      questFilePath: string;
       contents: FileContents;
     };
   }) => void;
@@ -47,11 +46,11 @@ export const questFolderFindBrokerProxy = (): {
       questFolders,
       questFiles,
     }: {
-      questsPath: FilePath;
+      questsPath: string;
       questFolders: FileName[];
       questFiles: {
-        folderPath: FilePath;
-        questFilePath: FilePath;
+        folderPath: string;
+        questFilePath: string;
         contents: FileContents;
       }[];
     }): void => {
@@ -78,7 +77,7 @@ export const questFolderFindBrokerProxy = (): {
       });
     },
 
-    setupEmptyFolder: ({ questsPath }: { questsPath: FilePath }): void => {
+    setupEmptyFolder: ({ questsPath }: { questsPath: string }): void => {
       readdirProxy.returns({ path: questsPath, names: [] });
     },
 
@@ -88,21 +87,19 @@ export const questFolderFindBrokerProxy = (): {
       missingFileFolder,
       validQuestFile,
     }: {
-      questsPath: FilePath;
+      questsPath: string;
       questFolders: FileName[];
-      missingFileFolder: FilePath;
+      missingFileFolder: string;
       validQuestFile: {
-        folderPath: FilePath;
-        questFilePath: FilePath;
+        folderPath: string;
+        questFilePath: string;
         contents: FileContents;
       };
     }): void => {
       readdirProxy.returns({ path: questsPath, names: questFolders });
 
       const [invalidFolderName, validFolderName] = questFolders;
-      const missingFolderPath = filePathContract.parse(
-        missingFileFolder.replace(`/${locationsStatics.quest.questFile}`, ''),
-      );
+      const missingFolderPath = missingFileFolder.replace(`/${locationsStatics.quest.questFile}`, '');
 
       if (invalidFolderName !== undefined) {
         joinHandle.calledWith([questsPath, invalidFolderName]).returns(missingFolderPath);

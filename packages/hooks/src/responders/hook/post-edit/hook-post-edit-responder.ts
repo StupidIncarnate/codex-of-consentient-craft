@@ -8,7 +8,6 @@
 import { violationsFixAndReportBroker } from '../../../brokers/violations/fix-and-report/violations-fix-and-report-broker';
 import { postToolUseHookDataContract } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data-contract';
 import { toolInputContract } from '../../../contracts/tool-input/tool-input-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
 import type { HookPostEditResponderResult } from '../../../contracts/hook-post-edit-responder-result/hook-post-edit-responder-result-contract';
 
@@ -40,7 +39,7 @@ export const HookPostEditResponder = async ({
   // Run auto-fix and report remaining violations
   const result = await violationsFixAndReportBroker({
     toolInput: toolInputContract.parse(hookData.tool_input),
-    cwd: filePathContract.parse(hookData.cwd),
+    cwd: hookData.cwd,
   });
 
   return result;

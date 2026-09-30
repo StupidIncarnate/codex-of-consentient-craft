@@ -1,16 +1,15 @@
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const variantWalkLayerBrokerProxy = (): {
-  setupFirstVariantMatches: (params: { searchPath: string; configPath: FilePath }) => void;
+  setupFirstVariantMatches: (params: { searchPath: string; configPath: string }) => void;
   setupNthVariantMatches: (params: {
     searchPath: string;
-    missingPaths: FilePath[];
-    configPath: FilePath;
+    missingPaths: string[];
+    configPath: string;
   }) => void;
-  setupAllVariantsMissing: (params: { searchPath: string; missingPaths: FilePath[] }) => void;
+  setupAllVariantsMissing: (params: { searchPath: string; missingPaths: string[] }) => void;
 } => {
   const fsProxy = pathExistsProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
@@ -26,7 +25,7 @@ export const variantWalkLayerBrokerProxy = (): {
       configPath,
     }: {
       searchPath: string;
-      configPath: FilePath;
+      configPath: string;
     }): void => {
       const variant = configPath.slice(searchPath.length + 1);
       joinHandle.calledWith([searchPath, variant]).returns(configPath);
@@ -39,8 +38,8 @@ export const variantWalkLayerBrokerProxy = (): {
       configPath,
     }: {
       searchPath: string;
-      missingPaths: FilePath[];
-      configPath: FilePath;
+      missingPaths: string[];
+      configPath: string;
     }): void => {
       for (const missing of missingPaths) {
         const missingVariant = missing.slice(searchPath.length + 1);
@@ -57,7 +56,7 @@ export const variantWalkLayerBrokerProxy = (): {
       missingPaths,
     }: {
       searchPath: string;
-      missingPaths: FilePath[];
+      missingPaths: string[];
     }): void => {
       for (const missing of missingPaths) {
         const variant = missing.slice(searchPath.length + 1);

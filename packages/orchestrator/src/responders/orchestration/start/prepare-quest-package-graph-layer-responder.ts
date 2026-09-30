@@ -15,11 +15,7 @@
  * // no packages; otherwise the entries to stamp
  */
 
-import {
-  filePathContract,
-  packageGraphEntryContract,
-  packageJsonContract,
-} from '@dungeonmaster/shared/contracts';
+import { packageGraphEntryContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName, Quest } from '@dungeonmaster/shared/contracts';
 import {
   dependencyGraphAdjacencyBuildTransformer,
@@ -56,7 +52,7 @@ export const PrepareQuestPackageGraphLayerResponder = async ({
       // pathJoinAdapter re-parses its own result through filePathContract, which rejects a bare
       // relative path. The location is itself a parsed FilePath, so appending a segment keeps it
       // valid either way.
-      const manifestPath = filePathContract.parse(`${String(node.location)}/package.json`);
+      const manifestPath = `${String(node.location)}/package.json`;
 
       try {
         const contents = await readFile(manifestPath);

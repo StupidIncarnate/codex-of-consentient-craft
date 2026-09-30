@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
@@ -20,7 +19,7 @@ import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/in
 
 const UNOWNED_EVIDENCE_PATH_VALUE =
   '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479';
-const UNOWNED_EVIDENCE_PATH = FilePathStub({ value: UNOWNED_EVIDENCE_PATH_VALUE });
+const UNOWNED_EVIDENCE_PATH = UNOWNED_EVIDENCE_PATH_VALUE;
 
 describe('instanceStartBroker', () => {
   describe('reservation ordering', () => {
@@ -608,9 +607,7 @@ describe('instanceStartBroker', () => {
       const instanceId = proxy.mintInstanceId();
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
-      const guildEvidencePath = FilePathStub({
-        value: `/home/user/.dungeonmaster/siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
-      });
+      const guildEvidencePath = `/home/user/.dungeonmaster/siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`;
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: guildEvidencePath,

@@ -4,27 +4,27 @@ import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file
 import type { dirname } from '#gateway/node/path';
 import { basename, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 import { packageScaffoldWriteBrokerProxy } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker.proxy';
 import { gatewayExistingPackagesListBrokerProxy } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker.proxy';
 import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker.proxy';
 import { gatewaySourceCopyBrokerProxy } from '../../../brokers/gateway/source-copy/gateway-source-copy-broker.proxy';
 
 export const InstallSetupGatewayResponderProxy = (): {
-  setupNoRootPackageJson: (params: { rootPackageJsonPath: FilePath }) => void;
-  setupRootPackageJson: (params: { rootPackageJsonPath: FilePath; content: string }) => void;
-  setupGatewayFolderExists: (params: { packageRoot: FilePath }) => void;
-  setupRootTsconfig: (params: { rootTsconfigPath: FilePath; content: string }) => void;
-  setupRootTsconfigMissing: (params: { rootTsconfigPath: FilePath }) => void;
+  setupNoRootPackageJson: (params: { rootPackageJsonPath: string }) => void;
+  setupRootPackageJson: (params: { rootPackageJsonPath: string; content: string }) => void;
+  setupGatewayFolderExists: (params: { packageRoot: string }) => void;
+  setupRootTsconfig: (params: { rootTsconfigPath: string; content: string }) => void;
+  setupRootTsconfigMissing: (params: { rootTsconfigPath: string }) => void;
   setupExistingPackages: (params: {
-    packagesDir: FilePath;
+    packagesDir: string;
     packages: { name: FileName; hasPackageJson: boolean }[];
   }) => void;
-  setupPackageJson: (params: { packageJsonPath: FilePath; content: string }) => void;
-  setupPackageTsconfig: (params: { tsconfigPath: FilePath; content: string }) => void;
-  setupPackageTsconfigBuildMissing: (params: { tsconfigBuildPath: FilePath }) => void;
+  setupPackageJson: (params: { packageJsonPath: string; content: string }) => void;
+  setupPackageTsconfig: (params: { tsconfigPath: string; content: string }) => void;
+  setupPackageTsconfigBuildMissing: (params: { tsconfigBuildPath: string }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
-  setupGatewayCopy: (params: { folder: 'node' | 'browser'; packageRoot: FilePath }) => void;
+  setupGatewayCopy: (params: { folder: 'node' | 'browser'; packageRoot: string }) => void;
   getCopiedSources: () => readonly unknown[];
 } => {
   const existsProxy = existsSyncProxy();
@@ -49,7 +49,7 @@ export const InstallSetupGatewayResponderProxy = (): {
   // tsconfig write routed through the composed broker (rootTsconfigPath/tsconfigPath, answered by
   // tsconfigWriteProxy). getWrittenFiles checks both sources per candidate and drops the ones that
   // were never actually written.
-  const writeCandidates: FilePath[] = [];
+  const writeCandidates: string[] = [];
 
   return {
     setupNoRootPackageJson: ({ rootPackageJsonPath }): void => {

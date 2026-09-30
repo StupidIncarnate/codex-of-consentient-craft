@@ -25,7 +25,6 @@ import { URL } from '#gateway/node/url';
 import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
 import { serve } from '#gateway/npm/hono__node-server';
 
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import {
   StartOrchestrator,
   isoTimestampContract,
@@ -208,7 +207,7 @@ export const ServerInitResponder = ({
                   `${wardResultId}.json`,
                 );
 
-                const contents = await readFile(filePathContract.parse(detailFilePath));
+                const contents = await readFile(detailFilePath);
 
                 const detail: unknown = JSON.parse(contents);
 

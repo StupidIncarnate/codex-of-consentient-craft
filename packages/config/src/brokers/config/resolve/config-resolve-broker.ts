@@ -11,13 +11,12 @@ import { configFileLoadBroker } from '../../config-file/load/config-file-load-br
 import { findParentConfigsLayerBroker } from './find-parent-configs-layer-broker';
 import { mergeConfigsTransformer } from '../../../transformers/merge-configs/merge-configs-transformer';
 import { dirname } from '#gateway/node/path';
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const configResolveBroker = async ({
   filePath,
 }: {
-  filePath: FilePath;
+  filePath: string;
 }): Promise<DungeonmasterConfig> => {
   const configs: DungeonmasterConfig[] = [];
 
@@ -30,7 +29,7 @@ export const configResolveBroker = async ({
 
   // If this isn't a monorepo root, look for parent configs
   if (packageConfig.framework !== 'monorepo') {
-    const startPath = filePathContract.parse(dirname(configPath));
+    const startPath = dirname(configPath);
     await findParentConfigsLayerBroker({
       currentPath: startPath,
       originalConfigPath: configPath,

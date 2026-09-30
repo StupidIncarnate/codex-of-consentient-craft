@@ -9,7 +9,6 @@
  * // Returns: branded FilePath '/home/user/repo'
  */
 
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
-export const stripTrailingSlashTransformer = ({ path }: { path: string }): FilePath =>
-  filePathContract.parse(path.replace(/\/+$/u, ''));
+export const stripTrailingSlashTransformer = ({ path }: { path: string }): string =>
+  path.replace(/\/+$/u, '');

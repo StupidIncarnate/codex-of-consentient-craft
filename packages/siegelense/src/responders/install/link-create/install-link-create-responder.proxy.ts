@@ -4,7 +4,6 @@ import { readlinkProxy } from '#gateway/node/fs__promises/readlink/readlink.prox
 import { join } from '#gateway/node/path';
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
@@ -24,7 +23,7 @@ const LINK_PATH_VALUE = '/project/.dungeonmaster-assets/siegelense-assets';
 // branch the nested link itself takes — see install-link-create-responder.ts's own local literal.
 const LEGACY_LINK_PATH_VALUE = '/project/.siegelense';
 
-const targetDirFp = FilePathStub({ value: TARGET_DIR_VALUE });
+const targetDirFp = TARGET_DIR_VALUE;
 const linkPathAbs = AbsoluteFilePathStub({ value: LINK_PATH_VALUE });
 const legacyLinkPathAbs = AbsoluteFilePathStub({ value: LEGACY_LINK_PATH_VALUE });
 
@@ -68,7 +67,7 @@ export const InstallLinkCreateResponderProxy = (): {
   const setupTargetDir = (): void => {
     rootPathProxy.setupRootPath({
       homeDir: '/home/user',
-      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+      homePath: '/home/user/.dungeonmaster',
       rootPath: targetDirFp,
     });
   };

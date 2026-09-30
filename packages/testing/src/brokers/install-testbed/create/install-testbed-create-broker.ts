@@ -31,12 +31,10 @@ import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-s
 import { mcpConfigContract } from '../../../contracts/mcp-config/mcp-config-contract';
 import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
 import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { findRepoRootLayerBroker } from './find-repo-root-layer-broker';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
 import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
@@ -47,7 +45,7 @@ export const installTestbedCreateBroker = ({
   baseDir,
 }: {
   baseName: string;
-  baseDir?: FilePath;
+  baseDir?: string;
 }): InstallTestbed => {
   const testId = randomBytes(integrationEnvironmentStatics.constants.randomBytesLength).toString(
     'hex',
@@ -82,7 +80,7 @@ export const installTestbedCreateBroker = ({
   // whether this package resolves to dist/src/... (published/runtime) or src/... directly
   // (ts-jest, --conditions=source), unlike a fixed hop count off __dirname.
   const dungeonmasterPath = findRepoRootLayerBroker({
-    startPath: filePathContract.parse(__dirname),
+    startPath: __dirname,
   });
 
   const testbed: InstallTestbed = {
@@ -124,7 +122,7 @@ export const installTestbedCreateBroker = ({
       targetPath,
     }: {
       relativePath: string;
-      targetPath: FilePath;
+      targetPath: string;
     }): void => {
       const fullPath = join(projectPath, relativePath);
       const dir = dirname(fullPath);

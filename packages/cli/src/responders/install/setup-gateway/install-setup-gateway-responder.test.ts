@@ -1,18 +1,18 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { InstallSetupGatewayResponder } from './install-setup-gateway-responder';
 import { InstallSetupGatewayResponderProxy } from './install-setup-gateway-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallSetupGatewayResponder', () => {
   it('EMPTY: {context: no package.json} => returns skipped without touching anything else', async () => {
     const proxy = InstallSetupGatewayResponderProxy();
-    const targetProjectRoot = FilePathStub({ value: '/repo' });
+    const targetProjectRoot = '/repo';
     proxy.setupNoRootPackageJson({
-      rootPackageJsonPath: FilePathStub({ value: '/repo/package.json' }),
+      rootPackageJsonPath: '/repo/package.json',
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
     });
 
     expect(result).toStrictEqual({
@@ -25,10 +25,10 @@ describe('InstallSetupGatewayResponder', () => {
 
   it('VALID: {context: workspaces, gateway folders, root tsconfig node16, and one package all already in place} => returns skipped without writing anything', async () => {
     const proxy = InstallSetupGatewayResponderProxy();
-    const targetProjectRoot = FilePathStub({ value: '/repo' });
+    const targetProjectRoot = '/repo';
 
     proxy.setupRootPackageJson({
-      rootPackageJsonPath: FilePathStub({ value: '/repo/package.json' }),
+      rootPackageJsonPath: '/repo/package.json',
       content: JSON.stringify({
         name: '@acme/app',
         version: '1.0.0',
@@ -38,12 +38,12 @@ describe('InstallSetupGatewayResponder', () => {
 
     for (const folder of ['npm', 'node', 'browser', 'bin']) {
       proxy.setupGatewayFolderExists({
-        packageRoot: FilePathStub({ value: `/repo/packages/@gateway/${folder}` }),
+        packageRoot: `/repo/packages/@gateway/${folder}`,
       });
     }
 
     proxy.setupRootTsconfig({
-      rootTsconfigPath: FilePathStub({ value: '/repo/tsconfig.json' }),
+      rootTsconfigPath: '/repo/tsconfig.json',
       content: `{
   "compilerOptions": {
     "module": "node16",
@@ -55,12 +55,12 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     proxy.setupExistingPackages({
-      packagesDir: FilePathStub({ value: '/repo/packages' }),
+      packagesDir: '/repo/packages',
       packages: [{ name: FileNameStub({ value: 'app' }), hasPackageJson: true }],
     });
 
     proxy.setupPackageJson({
-      packageJsonPath: FilePathStub({ value: '/repo/packages/app/package.json' }),
+      packageJsonPath: '/repo/packages/app/package.json',
       content: JSON.stringify({
         name: '@acme/app',
         imports: {
@@ -73,11 +73,11 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     proxy.setupPackageTsconfigBuildMissing({
-      tsconfigBuildPath: FilePathStub({ value: '/repo/packages/app/tsconfig.build.json' }),
+      tsconfigBuildPath: '/repo/packages/app/tsconfig.build.json',
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
     });
 
     expect(result).toStrictEqual({
@@ -92,10 +92,10 @@ describe('InstallSetupGatewayResponder', () => {
 
   it('EMPTY: {context: root tsconfig.json missing, everything else already in place} => reports it by name instead of claiming it already resolves node16', async () => {
     const proxy = InstallSetupGatewayResponderProxy();
-    const targetProjectRoot = FilePathStub({ value: '/repo' });
+    const targetProjectRoot = '/repo';
 
     proxy.setupRootPackageJson({
-      rootPackageJsonPath: FilePathStub({ value: '/repo/package.json' }),
+      rootPackageJsonPath: '/repo/package.json',
       content: JSON.stringify({
         name: '@acme/app',
         version: '1.0.0',
@@ -105,21 +105,21 @@ describe('InstallSetupGatewayResponder', () => {
 
     for (const folder of ['npm', 'node', 'browser', 'bin']) {
       proxy.setupGatewayFolderExists({
-        packageRoot: FilePathStub({ value: `/repo/packages/@gateway/${folder}` }),
+        packageRoot: `/repo/packages/@gateway/${folder}`,
       });
     }
 
     proxy.setupRootTsconfigMissing({
-      rootTsconfigPath: FilePathStub({ value: '/repo/tsconfig.json' }),
+      rootTsconfigPath: '/repo/tsconfig.json',
     });
 
     proxy.setupExistingPackages({
-      packagesDir: FilePathStub({ value: '/repo/packages' }),
+      packagesDir: '/repo/packages',
       packages: [],
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
     });
 
     expect(result).toStrictEqual({
@@ -134,10 +134,10 @@ describe('InstallSetupGatewayResponder', () => {
 
   it('VALID: {context: root tsconfig on commonjs, one package with a build config} => sets node16 in the root and gateway-dist in the build config', async () => {
     const proxy = InstallSetupGatewayResponderProxy();
-    const targetProjectRoot = FilePathStub({ value: '/repo' });
+    const targetProjectRoot = '/repo';
 
     proxy.setupRootPackageJson({
-      rootPackageJsonPath: FilePathStub({ value: '/repo/package.json' }),
+      rootPackageJsonPath: '/repo/package.json',
       content: JSON.stringify({
         name: '@acme/app',
         version: '1.0.0',
@@ -147,12 +147,12 @@ describe('InstallSetupGatewayResponder', () => {
 
     for (const folder of ['npm', 'node', 'browser', 'bin']) {
       proxy.setupGatewayFolderExists({
-        packageRoot: FilePathStub({ value: `/repo/packages/@gateway/${folder}` }),
+        packageRoot: `/repo/packages/@gateway/${folder}`,
       });
     }
 
     proxy.setupRootTsconfig({
-      rootTsconfigPath: FilePathStub({ value: '/repo/tsconfig.json' }),
+      rootTsconfigPath: '/repo/tsconfig.json',
       content: `{
   "compilerOptions": {
     "module": "commonjs"
@@ -162,12 +162,12 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     proxy.setupExistingPackages({
-      packagesDir: FilePathStub({ value: '/repo/packages' }),
+      packagesDir: '/repo/packages',
       packages: [{ name: FileNameStub({ value: 'app' }), hasPackageJson: true }],
     });
 
     proxy.setupPackageJson({
-      packageJsonPath: FilePathStub({ value: '/repo/packages/app/package.json' }),
+      packageJsonPath: '/repo/packages/app/package.json',
       content: JSON.stringify({
         name: '@acme/app',
         imports: {
@@ -180,7 +180,7 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     proxy.setupPackageTsconfig({
-      tsconfigPath: FilePathStub({ value: '/repo/packages/app/tsconfig.build.json' }),
+      tsconfigPath: '/repo/packages/app/tsconfig.build.json',
       content: `{
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -191,7 +191,7 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
     });
 
     expect(result).toStrictEqual({

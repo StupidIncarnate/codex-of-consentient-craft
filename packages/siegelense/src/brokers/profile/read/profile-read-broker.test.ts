@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
@@ -30,10 +29,8 @@ const profilesPathFor = async ({
   specName,
 }: {
   specName: ReturnType<typeof SpecNameStub>;
-}): Promise<ReturnType<typeof FilePathStub>> =>
-  FilePathStub({
-    value: `${ROOT_PATH_VALUE}/profiles/${String(await specHashFor({ specName }))}`,
-  });
+}): Promise<string> =>
+  `${ROOT_PATH_VALUE}/profiles/${String(await specHashFor({ specName }))}`;
 
 describe('profileReadBroker', () => {
   describe('a spec nothing has ever run', () => {

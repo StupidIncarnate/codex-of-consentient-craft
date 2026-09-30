@@ -13,7 +13,6 @@ import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 type EpochMs = ReturnType<typeof EpochMsStub>;
 
@@ -27,7 +26,7 @@ const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock
 // (EMFILE, EACCES) no recorded stub covers.
 export const registryLockAcquireBrokerProxy = (): {
   lockPath: ReturnType<typeof AbsoluteFilePathStub>;
-  rootPath: ReturnType<typeof FilePathStub>;
+  rootPath: string;
   setupNow: (params: { nowMs: EpochMs }) => void;
   setupAvailable: () => void;
   setupStaleHeldByAnother: (params: { nowMs: EpochMs }) => void;
@@ -41,8 +40,8 @@ export const registryLockAcquireBrokerProxy = (): {
   getCreatedDirs: () => readonly unknown[];
 } => {
   const lockPath = AbsoluteFilePathStub({ value: REGISTRY_LOCK_VALUE });
-  const rootPath = FilePathStub({ value: ROOT_PATH_VALUE });
-  const homePath = FilePathStub({ value: HOME_PATH_VALUE });
+  const rootPath = ROOT_PATH_VALUE;
+  const homePath = HOME_PATH_VALUE;
 
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathProxy = locationsRegistryLockPathFindBrokerProxy();
@@ -67,7 +66,7 @@ export const registryLockAcquireBrokerProxy = (): {
       homeDir: HOME_DIR,
       homePath,
       rootPath,
-      registryLockPath: FilePathStub({ value: REGISTRY_LOCK_VALUE }),
+      registryLockPath: REGISTRY_LOCK_VALUE,
     });
   };
 

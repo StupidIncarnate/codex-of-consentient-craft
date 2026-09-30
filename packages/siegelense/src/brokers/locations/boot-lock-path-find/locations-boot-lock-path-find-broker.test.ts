@@ -1,6 +1,5 @@
 import { locationsBootLockPathFindBroker } from './locations-boot-lock-path-find-broker';
 import { locationsBootLockPathFindBrokerProxy } from './locations-boot-lock-path-find-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsBootLockPathFindBroker', () => {
@@ -10,9 +9,9 @@ describe('locationsBootLockPathFindBroker', () => {
 
       proxy.setupBootLockPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-        bootLockPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense/boot.lock' }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
+        bootLockPath: '/home/user/.dungeonmaster/siegelense/boot.lock',
       });
 
       const result = locationsBootLockPathFindBroker();
@@ -27,9 +26,9 @@ describe('locationsBootLockPathFindBroker', () => {
 
       proxy.setupBootLockPath({
         homeDir: '/home/user/',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster/' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense/' }),
-        bootLockPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense/boot.lock' }),
+        homePath: '/home/user/.dungeonmaster/',
+        rootPath: '/home/user/.dungeonmaster/siegelense/',
+        bootLockPath: '/home/user/.dungeonmaster/siegelense/boot.lock',
       });
 
       const result = locationsBootLockPathFindBroker();
@@ -44,13 +43,9 @@ describe('locationsBootLockPathFindBroker', () => {
 
       proxy.setupBootLockPath({
         homeDir: '/srv/agents/worker-3/state',
-        homePath: FilePathStub({ value: '/srv/agents/worker-3/state/.dungeonmaster' }),
-        rootPath: FilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
-        }),
-        bootLockPath: FilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense/boot.lock',
-        }),
+        homePath: '/srv/agents/worker-3/state/.dungeonmaster',
+        rootPath: '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
+        bootLockPath: '/srv/agents/worker-3/state/.dungeonmaster/siegelense/boot.lock',
       });
 
       const result = locationsBootLockPathFindBroker();

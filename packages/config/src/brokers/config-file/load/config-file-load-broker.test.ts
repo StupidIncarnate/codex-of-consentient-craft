@@ -1,14 +1,13 @@
 import { configFileLoadBroker } from './config-file-load-broker';
 import { configFileLoadBrokerProxy } from './config-file-load-broker.proxy';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configFileLoadBroker', () => {
   describe('successful config loading', () => {
     it('VALID: {configPath: "/project/.dungeonmaster"} => loads JSON config', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
       const mockConfig = DungeonmasterConfigStub();
 
       proxy.setupValidConfig({ configPath, config: mockConfig });
@@ -20,7 +19,7 @@ describe('configFileLoadBroker', () => {
 
     it('VALID: {configPath: "/complex/.dungeonmaster"} => loads config with architecture overrides', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/complex/.dungeonmaster' });
+      const configPath = '/complex/.dungeonmaster';
       const mockConfig = DungeonmasterConfigStub({
         framework: 'react',
         routing: 'react-router-dom',
@@ -43,7 +42,7 @@ describe('configFileLoadBroker', () => {
   describe('config validation errors', () => {
     it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when config is null', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -52,7 +51,7 @@ describe('configFileLoadBroker', () => {
 
     it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when config is string', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -61,7 +60,7 @@ describe('configFileLoadBroker', () => {
 
     it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when config is number', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -70,7 +69,7 @@ describe('configFileLoadBroker', () => {
 
     it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when framework is missing', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -79,7 +78,7 @@ describe('configFileLoadBroker', () => {
 
     it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when framework is null', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -90,7 +89,7 @@ describe('configFileLoadBroker', () => {
   describe('file system errors', () => {
     it('ERROR: {configPath: "/nonexistent/.dungeonmaster"} => throws wrapped error when file read fails', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/nonexistent/.dungeonmaster' });
+      const configPath = '/nonexistent/.dungeonmaster';
 
       proxy.setupFileNotFound({ configPath });
 
@@ -99,7 +98,7 @@ describe('configFileLoadBroker', () => {
 
     it('ERROR: {configPath: "/corrupted/.dungeonmaster"} => throws wrapped error when JSON parse fails', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/corrupted/.dungeonmaster' });
+      const configPath = '/corrupted/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -108,7 +107,7 @@ describe('configFileLoadBroker', () => {
 
     it('ERROR: {configPath: "/project/.dungeonmaster"} => wraps validation errors in InvalidConfigError', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
 
       proxy.setupInvalidJson({ configPath });
 
@@ -119,7 +118,7 @@ describe('configFileLoadBroker', () => {
   describe('edge cases', () => {
     it('EDGE: {configPath: "/project/.dungeonmaster"} => strips unknown properties during validation', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
       const expectedConfig = DungeonmasterConfigStub();
 
       proxy.setupValidConfig({ configPath, config: expectedConfig });
@@ -131,7 +130,7 @@ describe('configFileLoadBroker', () => {
 
     it('EDGE: {configPath: "/project/.dungeonmaster"} => handles minimal valid config', async () => {
       const proxy = configFileLoadBrokerProxy();
-      const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
+      const configPath = '/project/.dungeonmaster';
       const mockConfig = DungeonmasterConfigStub({ framework: 'node-library', schema: 'zod' });
 
       proxy.setupValidConfig({ configPath, config: mockConfig });

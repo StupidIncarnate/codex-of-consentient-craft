@@ -1,12 +1,9 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { gatewayBarrelPathTransformer } from './gateway-barrel-path-transformer';
 
 describe('gatewayBarrelPathTransformer', () => {
   it('VALID: {callerFilePath: repo-anchored path, gatewayFolder: npm, subpath: glob} => builds the glob production barrel path', () => {
     const result = gatewayBarrelPathTransformer({
-      callerFilePath: FilePathStub({
-        value: '/repo/packages/mcp/src/brokers/x/x-broker.proxy.ts',
-      }),
+      callerFilePath: '/repo/packages/mcp/src/brokers/x/x-broker.proxy.ts',
       gatewayFolder: 'npm',
       subpath: 'glob',
     });
@@ -16,9 +13,7 @@ describe('gatewayBarrelPathTransformer', () => {
 
   it('VALID: {callerFilePath: nested worktree path, gatewayFolder: node} => anchors on the last /packages/ segment', () => {
     const result = gatewayBarrelPathTransformer({
-      callerFilePath: FilePathStub({
-        value: '/repo/worktrees/gateway-pivot/packages/mcp/src/responders/x/x-responder.proxy.ts',
-      }),
+      callerFilePath: '/repo/worktrees/gateway-pivot/packages/mcp/src/responders/x/x-responder.proxy.ts',
       gatewayFolder: 'node',
       subpath: 'fs__promises',
     });
@@ -30,7 +25,7 @@ describe('gatewayBarrelPathTransformer', () => {
 
   it('EMPTY: {callerFilePath: no /packages/ segment} => returns null', () => {
     const result = gatewayBarrelPathTransformer({
-      callerFilePath: FilePathStub({ value: '/project/src/brokers/x/x-broker.proxy.ts' }),
+      callerFilePath: '/project/src/brokers/x/x-broker.proxy.ts',
       gatewayFolder: 'npm',
       subpath: 'glob',
     });

@@ -12,8 +12,6 @@
  * // Returns { packageJsonPath: '/repo/packages/hooks/package.json', packageJson: {...} }, or
  * // undefined when no ancestor package.json exists
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
@@ -21,15 +19,15 @@ import type { GatewayConsumerPackageJson } from '../../../contracts/gateway-cons
 import { findPackageJsonDirLayerBroker } from './find-package-json-dir-layer-broker';
 
 const nearestPackageJsonCache = new Map<
-  FilePath,
-  { packageJsonPath: FilePath; packageJson: GatewayConsumerPackageJson }
+  string,
+  { packageJsonPath: string; packageJson: GatewayConsumerPackageJson }
 >();
 
 export const findNearestPackageJsonLayerBroker = ({
   startDir,
 }: {
-  startDir: FilePath;
-}): { packageJsonPath: FilePath; packageJson: GatewayConsumerPackageJson } | undefined => {
+  startDir: string;
+}): { packageJsonPath: string; packageJson: GatewayConsumerPackageJson } | undefined => {
   const packageDir = findPackageJsonDirLayerBroker({ startDir });
 
   if (packageDir === undefined) {
@@ -41,7 +39,7 @@ export const findNearestPackageJsonLayerBroker = ({
     return cached;
   }
 
-  const packageJsonPath = filePathContract.parse(join(packageDir, 'package.json'));
+  const packageJsonPath = join(packageDir, 'package.json');
   const contents = readFileSync(packageJsonPath);
   const packageJson = gatewayConsumerPackageJsonContract.parse(JSON.parse(contents));
 

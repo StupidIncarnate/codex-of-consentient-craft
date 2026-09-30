@@ -10,15 +10,16 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { filePathContract } from '../file-path/file-path-contract';
+import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
 /**
  * Represents the context for an install operation
  * Contains the target project root and dungeonmaster installation root
  */
 export const installContextContract = z.object({
-  targetProjectRoot: filePathContract,
-  dungeonmasterRoot: filePathContract,
+  targetProjectRoot: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'InstallContextTargetProjectRoot'>(),
+  dungeonmasterRoot: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'InstallContextDungeonmasterRoot'>(),
 });
 
 export type InstallContext = z.infer<typeof installContextContract>;

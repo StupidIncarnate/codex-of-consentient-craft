@@ -7,10 +7,9 @@
  * }
  * // Returns true if path contains any e2e test file suffix from test file pattern statics
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
-export const isE2eTestFileGuard = ({ filePath }: { filePath?: FilePath | undefined }): boolean => {
+export const isE2eTestFileGuard = ({ filePath }: { filePath?: string | undefined }): boolean => {
   if (filePath === undefined) {
     return false;
   }

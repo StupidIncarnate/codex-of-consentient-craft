@@ -1,10 +1,9 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsPlannedWorkPathFindBrokerProxy = (): {
-  setupPlannedWorkPath: (params: { plannedWorkPath: FilePath }) => void;
+  setupPlannedWorkPath: (params: { plannedWorkPath: string }) => void;
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
@@ -14,7 +13,7 @@ export const locationsPlannedWorkPathFindBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
 
   return {
-    setupPlannedWorkPath: ({ plannedWorkPath }: { plannedWorkPath: FilePath }): void => {
+    setupPlannedWorkPath: ({ plannedWorkPath }: { plannedWorkPath: string }): void => {
       const suffix = `/${locationsStatics.quest.plannedWorkDir}`;
       const questFolderPath = plannedWorkPath.slice(0, plannedWorkPath.length - suffix.length);
       joinHandle

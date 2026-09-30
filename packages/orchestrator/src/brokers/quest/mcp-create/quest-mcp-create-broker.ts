@@ -22,14 +22,7 @@ import {
 } from '@dungeonmaster/shared/transformers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 import type { AddQuestInput, Guild, GuildListItem, QuestType, RepoRootCwd, UrlSlug, Quest, Session } from '@dungeonmaster/shared/contracts';
-import {
-  addQuestInputContract,
-  filePathContract,
-  guildPathContract,
-  pathSegmentContract,
-  repoRootCwdContract,
-  urlSlugContract,
-} from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, guildPathContract, pathSegmentContract, repoRootCwdContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 
 import { guildCoversRepoRootGuard } from '../../../guards/guild-covers-repo-root/guild-covers-repo-root-guard';
 import { guildAddBroker } from '../../guild/add/guild-add-broker';
@@ -58,7 +51,7 @@ export const questMcpCreateBroker = async ({
   let repoRoot: RepoRootCwd = repoRootCwdContract.parse(currentWorkingDirectory);
   try {
     repoRoot = await cwdResolveBroker({
-      startPath: filePathContract.parse(currentWorkingDirectory),
+      startPath: currentWorkingDirectory,
       kind: 'repo-root',
     });
   } catch (error) {

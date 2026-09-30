@@ -6,7 +6,6 @@
  * // Returns ESLint rule that verifies required files in hydration-recipes and forbids direct broker imports
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { hydrationRecipesStructureStatics } from '../../../statics/hydration-recipes-structure/hydration-recipes-structure-statics';
@@ -40,16 +39,16 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): TSESLint.RuleModul
     const fallbackDir = lastSlash === -1 ? '' : filename.slice(0, lastSlash);
     const fallbackCandidate =
       fallbackDir.length > 0
-        ? filePathContract.parse(`${fallbackDir}/packages/hydration-recipes`)
+        ? `${fallbackDir}/packages/hydration-recipes`
         : undefined;
 
     const repoRoot =
       packagesIndex > 0
-        ? filePathContract.parse(filename.slice(0, packagesIndex))
+        ? filename.slice(0, packagesIndex)
         : packagesIndex === 0 || filename.startsWith('packages/')
-          ? filePathContract.parse('')
+          ? ''
           : fallbackCandidate && existsSync(fallbackCandidate)
-            ? filePathContract.parse(fallbackDir)
+            ? fallbackDir
             : undefined;
 
     if (repoRoot === undefined) {
@@ -58,10 +57,10 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): TSESLint.RuleModul
 
     const hydrationRecipesDir =
       repoRoot.length > 0
-        ? filePathContract.parse(`${repoRoot}/packages/hydration-recipes`)
+        ? `${repoRoot}/packages/hydration-recipes`
         : filename.startsWith('/packages/')
-          ? filePathContract.parse('/packages/hydration-recipes')
-          : filePathContract.parse('packages/hydration-recipes');
+          ? '/packages/hydration-recipes'
+          : 'packages/hydration-recipes';
 
     if (!existsSync(hydrationRecipesDir)) {
       return {};
@@ -121,7 +120,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): TSESLint.RuleModul
         const { requiredFiles } = hydrationRecipesStructureStatics;
 
         for (const requiredFile of requiredFiles) {
-          const fullPath = filePathContract.parse(`${hydrationRecipesDir}/${requiredFile}`);
+          const fullPath = `${hydrationRecipesDir}/${requiredFile}`;
           if (!existsSync(fullPath)) {
             context.report({
               node,

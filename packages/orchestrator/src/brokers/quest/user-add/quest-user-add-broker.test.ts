@@ -1,5 +1,4 @@
 import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -12,12 +11,8 @@ describe('questUserAddBroker', () => {
   it('VALID: {input, guildId} => returns success with UUID questId, questFolder equals questId, and filePath from questCreateBroker', async () => {
     const brokerProxy = questUserAddBrokerProxy();
     const guildId = GuildIdStub();
-    const questFilePath = FilePathStub({
-      value: '/home/testuser/.dungeonmaster/guilds/g/quests/q/quest.json',
-    });
-    const questFolderPath = FilePathStub({
-      value: '/home/testuser/.dungeonmaster/guilds/g/quests/q',
-    });
+    const questFilePath = '/home/testuser/.dungeonmaster/guilds/g/quests/q/quest.json';
+    const questFolderPath = '/home/testuser/.dungeonmaster/guilds/g/quests/q';
 
     brokerProxy.setupQuestCreation({ questFilePath, questFolderPath });
 
@@ -66,12 +61,8 @@ describe('questUserAddBroker', () => {
   it('VALID: {input.questType: "bug-hunt"} => seeds a bughunt work item and returns its intakeWorkItemId', async () => {
     const brokerProxy = questUserAddBrokerProxy();
     const guildId = GuildIdStub();
-    const questFilePath = FilePathStub({
-      value: '/home/testuser/.dungeonmaster/guilds/g/quests/q/quest.json',
-    });
-    const questFolderPath = FilePathStub({
-      value: '/home/testuser/.dungeonmaster/guilds/g/quests/q',
-    });
+    const questFilePath = '/home/testuser/.dungeonmaster/guilds/g/quests/q/quest.json';
+    const questFolderPath = '/home/testuser/.dungeonmaster/guilds/g/quests/q';
 
     brokerProxy.setupQuestCreation({ questFilePath, questFolderPath });
 

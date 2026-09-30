@@ -18,21 +18,17 @@ import { mkdtemp, writeFile } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const freshProjectHarness = (): {
-  create: () => Promise<FilePath>;
-  readSettings: (params: { projectPath: FilePath }) => unknown;
+  create: () => Promise<string>;
+  readSettings: (params: { projectPath: string }) => unknown;
   cleanup: () => void;
 } => {
-  const createdDirs: FilePath[] = [];
+  const createdDirs: string[] = [];
 
   return {
-    create: async (): Promise<FilePath> => {
-      const projectPath = FilePathStub({
-        value: await mkdtemp(join(tmpdir(), 'dm-fresh-project-')),
-      });
+    create: async (): Promise<string> => {
+      const projectPath = (await mkdtemp(join(tmpdir(), 'dm-fresh-project-')));
       await writeFile(
         join(projectPath, 'package.json'),
         JSON.stringify({ name: 'fresh-project', version: '1.0.0' }, null, 2),
@@ -41,7 +37,7 @@ export const freshProjectHarness = (): {
       return projectPath;
     },
 
-    readSettings: ({ projectPath }: { projectPath: FilePath }): unknown => {
+    readSettings: ({ projectPath }: { projectPath: string }): unknown => {
       return readJsonFileSyncIfExists(join(projectPath, '.claude', 'settings.json'));
     },
 

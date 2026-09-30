@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { QuestOutboxLineStub } from '../../../contracts/quest-outbox-line/quest-outbox-line.stub';
@@ -7,7 +6,7 @@ import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 import { questOutboxWatchBrokerProxy } from './quest-outbox-watch-broker.proxy';
 import { setImmediate } from '#gateway/node/setImmediate';
 
-const OUTBOX_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' });
+const OUTBOX_PATH = '/home/user/.dungeonmaster/event-outbox.jsonl';
 
 const flushImmediate = async (): Promise<void> =>
   new Promise((resolve) => {
@@ -23,7 +22,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -51,7 +50,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -79,7 +78,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -102,7 +101,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -128,7 +127,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -154,7 +153,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -182,7 +181,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 
@@ -207,7 +206,7 @@ describe('questOutboxWatchBroker', () => {
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        homePath: '/home/user/.dungeonmaster',
         outboxPath: OUTBOX_PATH,
       });
 

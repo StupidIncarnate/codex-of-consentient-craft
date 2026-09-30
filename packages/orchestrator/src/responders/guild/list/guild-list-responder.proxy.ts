@@ -1,6 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 
-import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 
 import { guildListBrokerProxy } from '../../../brokers/guild/list/guild-list-broker.proxy';
 import { GuildListResponder } from './guild-list-responder';
@@ -10,14 +10,14 @@ export const GuildListResponderProxy = (): {
   setupGuildList: (params: {
     config: GuildConfig;
     homeDir: string;
-    homePath: FilePath;
+    homePath: string;
     guildEntries: {
       accessible: boolean;
-      questsDirPath: FilePath;
+      questsDirPath: string;
       questDirEntries: DirEntrySync[];
     }[];
   }) => void;
-  setupEmptyConfig: (params: { homeDir: string; homePath: FilePath }) => void;
+  setupEmptyConfig: (params: { homeDir: string; homePath: string }) => void;
 } => {
   const brokerProxy = guildListBrokerProxy();
 
@@ -27,17 +27,17 @@ export const GuildListResponderProxy = (): {
     setupGuildList: (params: {
       config: GuildConfig;
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       guildEntries: {
         accessible: boolean;
-        questsDirPath: FilePath;
+        questsDirPath: string;
         questDirEntries: DirEntrySync[];
       }[];
     }): void => {
       brokerProxy.setupGuildList(params);
     },
 
-    setupEmptyConfig: (params: { homeDir: string; homePath: FilePath }): void => {
+    setupEmptyConfig: (params: { homeDir: string; homePath: string }): void => {
       brokerProxy.setupEmptyConfig(params);
     },
   };

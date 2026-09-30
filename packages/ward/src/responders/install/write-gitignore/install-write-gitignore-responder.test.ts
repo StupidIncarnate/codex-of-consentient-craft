@@ -1,5 +1,5 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallWriteGitignoreResponderProxy } from './install-write-gitignore-responder.proxy';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 const ALL_ENTRIES = '.ward/\ntest-results/\n.ward-playwright-report*.json\n';
 
@@ -7,15 +7,15 @@ describe('InstallWriteGitignoreResponder', () => {
   describe('no existing .gitignore', () => {
     it('VALID: {no .gitignore file} => creates one carrying every ward entry', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
-      const filePath = FilePathStub({ value: '/project/.gitignore' });
+      const filePath = '/project/.gitignore';
 
       proxy.setupReadFileThrows({ filePath });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -33,15 +33,15 @@ describe('InstallWriteGitignoreResponder', () => {
   describe('existing .gitignore carrying none of them', () => {
     it('VALID: {.gitignore exists without any ward entry} => appends all three, keeping what was there', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
-      const filePath = FilePathStub({ value: '/project/.gitignore' });
+      const filePath = '/project/.gitignore';
 
       proxy.setupReadFileContent({ filePath, content: 'node_modules/\ndist/\n' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -62,15 +62,15 @@ describe('InstallWriteGitignoreResponder', () => {
     // needs the other two, and a check on the first line alone would skip them for ever.
     it('VALID: {.gitignore already has .ward/} => appends only the two that are missing', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
-      const filePath = FilePathStub({ value: '/project/.gitignore' });
+      const filePath = '/project/.gitignore';
 
       proxy.setupReadFileContent({ filePath, content: 'node_modules/\n.ward/\n' });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({
@@ -89,7 +89,7 @@ describe('InstallWriteGitignoreResponder', () => {
   describe('existing .gitignore carrying all of them', () => {
     it('VALID: {.gitignore already has every entry} => skips without writing', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
-      const filePath = FilePathStub({ value: '/project/.gitignore' });
+      const filePath = '/project/.gitignore';
 
       proxy.setupReadFileContent({
         filePath,
@@ -97,10 +97,10 @@ describe('InstallWriteGitignoreResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
+        context: InstallContextStub({ value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm-root',
+        } }),
       });
 
       expect(result).toStrictEqual({

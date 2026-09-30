@@ -13,7 +13,7 @@
  */
 import { writeFile } from '#gateway/node/fs__promises';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -35,9 +35,7 @@ export const questCorruptToLegacySchemaBroker = async ({
   record: Record<string, unknown>;
 }): Promise<void> => {
   const questFolderPath = await questFolderPathResolveBroker({ target, record });
-  const questFilePath = filePathContract.parse(
-    `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
-  );
+  const questFilePath = `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`;
 
   const corrupted = { ...record, workItems: [CORRUPT_WORK_ITEM] };
 

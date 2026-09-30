@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { wardPersistResultBroker } from './ward-persist-result-broker';
 import { wardPersistResultBrokerProxy } from './ward-persist-result-broker.proxy';
@@ -7,7 +6,7 @@ describe('wardPersistResultBroker', () => {
   describe('successful persist', () => {
     it('VALID: {questFolderPath, wardResultId, detailJson} => writes file successfully', async () => {
       const proxy = wardPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/quest-001' });
+      const questFolderPath = '/quests/quest-001';
       const wardResultId = 'run-1773805659495';
       const detailJson = '{"checks":[]}';
 
@@ -20,7 +19,7 @@ describe('wardPersistResultBroker', () => {
 
     it('VALID: {different inputs} => writes to correct path', async () => {
       const proxy = wardPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/quest-002' });
+      const questFolderPath = '/quests/quest-002';
       const wardResultId = 'run-abc';
       const detailJson = '{"checks":[{"checkType":"lint"}]}';
 
@@ -39,7 +38,7 @@ describe('wardPersistResultBroker', () => {
   describe('file path construction', () => {
     it('VALID: {questFolderPath, wardResultId} => writes to ward-results/{wardResultId}.json', async () => {
       const proxy = wardPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/quest-003' });
+      const questFolderPath = '/quests/quest-003';
       const wardResultId = 'result-xyz';
       const detailJson = '{"checks":[]}';
 
@@ -54,7 +53,7 @@ describe('wardPersistResultBroker', () => {
 
     it('VALID: {questFolderPath, wardResultId} => creates the ward-results directory before writing', async () => {
       const proxy = wardPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/quest-004' });
+      const questFolderPath = '/quests/quest-004';
       const wardResultId = 'result-mkdir';
       const detailJson = '{"checks":[]}';
 
@@ -69,7 +68,7 @@ describe('wardPersistResultBroker', () => {
   describe('error cases', () => {
     it('ERROR: {write fails} => throws write error', async () => {
       const proxy = wardPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/quest-001' });
+      const questFolderPath = '/quests/quest-001';
       const wardResultId = 'run-fail';
       const detailJson = '{"checks":[]}';
 

@@ -1,10 +1,9 @@
 import { join } from '#gateway/node/path';
 import { tmpdir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const locationsInstanceHomePathFindBrokerProxy = (): {
-  setupHomePath: (params: { tmpDir: string; homePath: FilePath }) => void;
+  setupHomePath: (params: { tmpDir: string; homePath: string }) => void;
 } => {
   const tmpdirHandle = registerMock({ fn: tmpdir });
   tmpdirHandle.calledWith([]).returns('/tmp');
@@ -18,7 +17,7 @@ export const locationsInstanceHomePathFindBrokerProxy = (): {
     // own second join segment (`${driverStatics.boot.homePrefix}${instanceId}`) is recovered here
     // by slicing tmpDir's own known length off homePath — the same technique
     // locationsQuestFolderPathFindBrokerProxy (shared) uses to recover `questId`.
-    setupHomePath: ({ tmpDir, homePath }: { tmpDir: string; homePath: FilePath }): void => {
+    setupHomePath: ({ tmpDir, homePath }: { tmpDir: string; homePath: string }): void => {
       tmpdirHandle.calledWith([]).returns(tmpDir);
       const suffix = homePath.slice(tmpDir.length + 1);
       joinHandle.calledWith([tmpDir, suffix]).returns(homePath);

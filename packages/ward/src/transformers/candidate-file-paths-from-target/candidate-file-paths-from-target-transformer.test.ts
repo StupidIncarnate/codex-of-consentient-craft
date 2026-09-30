@@ -1,11 +1,10 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { candidateFilePathsFromTargetTransformer } from './candidate-file-paths-from-target-transformer';
 
 describe('candidateFilePathsFromTargetTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {target} => returns the four candidates in resolution order', () => {
       const result = candidateFilePathsFromTargetTransformer({
-        target: FilePathStub({ value: '/repo/packages/node/fs' }),
+        target: '/repo/packages/node/fs',
       });
 
       expect(result).toStrictEqual([

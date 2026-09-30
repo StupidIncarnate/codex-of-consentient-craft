@@ -38,7 +38,6 @@
  * than throwing: the caller learns the flow is not on this quest, which is a real answer.
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { QaChecklist, VerificationTrack, Quest, OperationItem, Flow } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -59,7 +58,7 @@ export const questGetQaChecklistBroker = async ({
 }): Promise<{ checklists: QaChecklist[]; track?: VerificationTrack }> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
+  const questFilePath = join(questPath, locationsStatics.quest.questFile);
 
   const quest = await questLoadBroker({ questFilePath });
 

@@ -1,5 +1,4 @@
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -13,7 +12,7 @@ import { join } from '#gateway/node/path';
 const isGuildIdSegment = (value: unknown): boolean => typeof value === 'string';
 
 export const questResolveQuestsPathBrokerProxy = (): {
-  setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
+  setupQuestsPath: (params: { homeDir: string; homePath: string; questsPath: string }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -25,8 +24,8 @@ export const questResolveQuestsPathBrokerProxy = (): {
       questsPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      questsPath: FilePath;
+      homePath: string;
+      questsPath: string;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       joinHandle

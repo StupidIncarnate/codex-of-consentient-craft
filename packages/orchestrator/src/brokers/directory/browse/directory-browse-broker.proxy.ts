@@ -1,20 +1,19 @@
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const directoryBrowseBrokerProxy = (): {
   setupDirectories: (params: {
     targetPath: string;
-    directories: { name: string; joinedPath: FilePath }[];
+    directories: { name: string; joinedPath: string }[];
     files: string[];
     hiddenDirectories: string[];
   }) => void;
   setupDefaultHomedir: (params: {
     homeDir: string;
-    directories: { name: string; joinedPath: FilePath }[];
+    directories: { name: string; joinedPath: string }[];
   }) => void;
   setupEmpty: (params: { targetPath: string }) => void;
   setupThrows: (params: { targetPath: string; error: Error }) => void;
@@ -30,7 +29,7 @@ export const directoryBrowseBrokerProxy = (): {
     hiddenDirectories,
   }: {
     path: string;
-    directories: { name: string; joinedPath: FilePath }[];
+    directories: { name: string; joinedPath: string }[];
     files: string[];
     hiddenDirectories: string[];
   }): void => {
@@ -56,7 +55,7 @@ export const directoryBrowseBrokerProxy = (): {
       hiddenDirectories,
     }: {
       targetPath: string;
-      directories: { name: string; joinedPath: FilePath }[];
+      directories: { name: string; joinedPath: string }[];
       files: string[];
       hiddenDirectories: string[];
     }): void => {
@@ -68,7 +67,7 @@ export const directoryBrowseBrokerProxy = (): {
       directories,
     }: {
       homeDir: string;
-      directories: { name: string; joinedPath: FilePath }[];
+      directories: { name: string; joinedPath: string }[];
     }): void => {
       homedirHandle.calledWith([]).returns(homeDir);
       stageEntries({ path: homeDir, directories, files: [], hiddenDirectories: [] });

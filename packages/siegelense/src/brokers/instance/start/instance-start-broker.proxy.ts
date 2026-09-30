@@ -12,10 +12,9 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { FilePath, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -108,33 +107,33 @@ const VMSTAT_CONTENT_VALUE = 'nr_free_pages 12345\noom_kill 0\n';
 const PRE_RESERVE_REGISTRY_READS = 2;
 const STALE_REAP_REGISTRY_READS = 2;
 
-const ROOT_PATH_FILE = FilePathStub({ value: ROOT_PATH_VALUE });
-const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
-const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
+const ROOT_PATH_FILE = ROOT_PATH_VALUE;
+const LINK_PATH_FILE = LINK_PATH_VALUE;
+const HOME_PATH = HOME_PATH_VALUE;
 
 export const instanceStartBrokerProxy = (): {
   setupHappyBoot: (params: {
     instanceId: InstanceId;
-    evidencePath: FilePath;
+    evidencePath: string;
     registry: Registry;
     idleTimeoutMs?: TimeoutMs;
   }) => void;
   setupHappyBootWithQueuedMs: (params: {
     instanceId: InstanceId;
-    evidencePath: FilePath;
+    evidencePath: string;
     registry: Registry;
     startedAtMs: number;
     queuedMs: number;
   }) => void;
   setupBootNeverAnswers: (params: {
     instanceId: InstanceId;
-    evidencePath: FilePath;
+    evidencePath: string;
     registry: Registry;
     nowMs: number;
   }) => void;
   setupBootFailureMarkerAppears: (params: {
     instanceId: InstanceId;
-    evidencePath: FilePath;
+    evidencePath: string;
     registry: Registry;
     driverMessage: string;
   }) => void;
@@ -160,8 +159,8 @@ export const instanceStartBrokerProxy = (): {
   getKillConnectionCountFor: (params: {
     instanceId: InstanceId;
   }) => ReturnType<typeof ReadingCountStub>;
-  stageShutdownReasonWriteSucceeds: (params: { evidencePath: FilePath }) => void;
-  getWrittenShutdownReason: (params: { evidencePath: FilePath }) => unknown;
+  stageShutdownReasonWriteSucceeds: (params: { evidencePath: string }) => void;
+  getWrittenShutdownReason: (params: { evidencePath: string }) => unknown;
 } => {
   // Composed (not phantom) — this file stages its own branch answer and port candidates through
   // reserveProxy's own semantic methods below, rather than through a one-shot stub any of these
@@ -290,7 +289,7 @@ export const instanceStartBrokerProxy = (): {
     idleTimeoutMs,
   }: {
     instanceId: InstanceId;
-    evidencePath: FilePath;
+    evidencePath: string;
     registry: Registry;
     idleTimeoutMs?: TimeoutMs;
   }): void => {
@@ -326,9 +325,7 @@ export const instanceStartBrokerProxy = (): {
       homeDir: HOME_DIR_VALUE,
       homePath: HOME_PATH,
       rootPath: ROOT_PATH_FILE,
-      profilesPath: FilePathStub({
-        value: `${ROOT_PATH_VALUE}/profiles/${DEFAULT_SPEC_HASH_VALUE}`,
-      }),
+      profilesPath: `${ROOT_PATH_VALUE}/profiles/${DEFAULT_SPEC_HASH_VALUE}`,
       instanceId,
       nowMs: EpochMsStub().valueOf(),
     });
@@ -385,7 +382,7 @@ export const instanceStartBrokerProxy = (): {
       queuedMs,
     }: {
       instanceId: InstanceId;
-      evidencePath: FilePath;
+      evidencePath: string;
       registry: Registry;
       startedAtMs: number;
       queuedMs: number;
@@ -466,7 +463,7 @@ export const instanceStartBrokerProxy = (): {
       driverMessage,
     }: {
       instanceId: InstanceId;
-      evidencePath: FilePath;
+      evidencePath: string;
       registry: Registry;
       driverMessage: string;
     }): void => {
@@ -590,7 +587,7 @@ export const instanceStartBrokerProxy = (): {
         homeDir: HOME_DIR_VALUE,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH_FILE,
-        evidencePath: FilePathStub({ value: UNOWNED_EVIDENCE_PATH_VALUE }),
+        evidencePath: UNOWNED_EVIDENCE_PATH_VALUE,
       });
       // EMFILE, not ENOENT: a read that fails for a reason other than absence, which the acquire
       // must throw rather than read as a released lock.
@@ -628,13 +625,13 @@ export const instanceStartBrokerProxy = (): {
         }),
       }),
 
-    stageShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: FilePath }): void => {
+    stageShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: string }): void => {
       killProxy.setupShutdownReasonWriteSucceeds({
         evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
       });
     },
 
-    getWrittenShutdownReason: ({ evidencePath }: { evidencePath: FilePath }): unknown =>
+    getWrittenShutdownReason: ({ evidencePath }: { evidencePath: string }): unknown =>
       killProxy.getWrittenShutdownReason({
         evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
       }),

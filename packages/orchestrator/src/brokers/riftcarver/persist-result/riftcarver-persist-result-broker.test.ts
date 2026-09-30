@@ -1,5 +1,4 @@
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 
 import { riftcarverPersistResultBroker } from './riftcarver-persist-result-broker';
@@ -9,7 +8,7 @@ describe('riftcarverPersistResultBroker', () => {
   describe('successful persist', () => {
     it('VALID: {questFolderPath, riftcarverResultId, logContents} => resolves success', async () => {
       const proxy = riftcarverPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/001-add-auth' });
+      const questFolderPath = '/quests/001-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
       const logContents = FileContentsStub({ value: '— build pass 1/3 —\n' });
 
@@ -22,7 +21,7 @@ describe('riftcarverPersistResultBroker', () => {
 
     it('VALID: {multi-line carve log} => writes the log verbatim', async () => {
       const proxy = riftcarverPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/002-add-auth' });
+      const questFolderPath = '/quests/002-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
       const logContents = FileContentsStub({
         value: '— base branch: main —\n— build pass 1/3 —\n',
@@ -41,7 +40,7 @@ describe('riftcarverPersistResultBroker', () => {
   describe('file path construction', () => {
     it('VALID: {questFolderPath, riftcarverResultId} => writes riftcarver-results/{id}.log and creates that directory', async () => {
       const proxy = riftcarverPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/003-add-auth' });
+      const questFolderPath = '/quests/003-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
       const logContents = FileContentsStub({ value: 'carved\n' });
 
@@ -59,7 +58,7 @@ describe('riftcarverPersistResultBroker', () => {
   describe('error cases', () => {
     it('ERROR: {write fails} => rejects with the write error', async () => {
       const proxy = riftcarverPersistResultBrokerProxy();
-      const questFolderPath = FilePathStub({ value: '/quests/004-add-auth' });
+      const questFolderPath = '/quests/004-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
       const logContents = FileContentsStub({ value: 'carved\n' });
 

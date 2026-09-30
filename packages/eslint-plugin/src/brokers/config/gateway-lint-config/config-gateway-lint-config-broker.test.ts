@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { configGatewayLintConfigBroker } from './config-gateway-lint-config-broker';
 import { configGatewayLintConfigBrokerProxy } from './config-gateway-lint-config-broker.proxy';
 
@@ -11,7 +10,7 @@ describe('configGatewayLintConfigBroker', () => {
       proxy.setupNoDungeonmasterConfigAt({ configDir: '/' });
 
       const result = configGatewayLintConfigBroker({
-        startDir: FilePathStub({ value: '/orphan/src' }),
+        startDir: '/orphan/src',
       });
 
       expect(result).toStrictEqual({});
@@ -26,7 +25,7 @@ describe('configGatewayLintConfigBroker', () => {
         contents: JSON.stringify({ framework: 'monorepo', schema: 'zod' }),
       });
 
-      const result = configGatewayLintConfigBroker({ startDir: FilePathStub({ value: '/repo' }) });
+      const result = configGatewayLintConfigBroker({ startDir: '/repo' });
 
       expect(result).toStrictEqual({});
     });
@@ -61,7 +60,7 @@ describe('configGatewayLintConfigBroker', () => {
       });
 
       const result = configGatewayLintConfigBroker({
-        startDir: FilePathStub({ value: '/repo/packages/eslint-plugin/src/brokers/config' }),
+        startDir: '/repo/packages/eslint-plugin/src/brokers/config',
       });
 
       expect(result).toStrictEqual({
@@ -82,7 +81,7 @@ describe('configGatewayLintConfigBroker', () => {
       const proxy = configGatewayLintConfigBrokerProxy();
       proxy.setupDungeonmasterConfig({ configDir: '/repo', contents: '{ not valid json' });
 
-      const result = configGatewayLintConfigBroker({ startDir: FilePathStub({ value: '/repo' }) });
+      const result = configGatewayLintConfigBroker({ startDir: '/repo' });
 
       expect(result).toStrictEqual({});
     });
@@ -100,7 +99,7 @@ describe('configGatewayLintConfigBroker', () => {
         }),
       });
 
-      const result = configGatewayLintConfigBroker({ startDir: FilePathStub({ value: '/repo' }) });
+      const result = configGatewayLintConfigBroker({ startDir: '/repo' });
 
       expect(result).toStrictEqual({});
     });

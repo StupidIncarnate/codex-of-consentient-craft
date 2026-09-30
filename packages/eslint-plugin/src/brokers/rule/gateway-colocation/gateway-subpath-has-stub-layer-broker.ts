@@ -9,8 +9,6 @@
  * gatewaySubpathHasStubLayerBroker({ subpathDirectory: filePathContract.parse('/repo/packages/@gateway/node/src/fs/') });
  * // Returns true once any file anywhere under that directory ends in `.stub.ts`
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
 
 const STUB_FILE_SUFFIX = '.stub.ts';
@@ -18,12 +16,12 @@ const STUB_FILE_SUFFIX = '.stub.ts';
 export const gatewaySubpathHasStubLayerBroker = ({
   subpathDirectory,
 }: {
-  subpathDirectory: FilePath;
+  subpathDirectory: string;
 }): boolean =>
   readdirEntriesSync(subpathDirectory).some((entry) =>
     entry.kind === 'directory'
       ? gatewaySubpathHasStubLayerBroker({
-          subpathDirectory: filePathContract.parse(`${subpathDirectory}${entry.name}/`),
+          subpathDirectory: `${subpathDirectory}${entry.name}/`,
         })
       : entry.name.endsWith(STUB_FILE_SUFFIX),
   );

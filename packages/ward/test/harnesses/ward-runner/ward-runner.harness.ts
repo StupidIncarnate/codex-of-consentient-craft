@@ -18,20 +18,14 @@
 import { existsSync } from '#gateway/node/fs';
 import { resolve } from '#gateway/node/path';
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
-const REPO_ROOT = FilePathStub({
-  value: resolve(__dirname, '../../../../..'),
-});
-const WARD_BIN = FilePathStub({
-  value: resolve(String(REPO_ROOT), 'packages/ward/dist/src/startup/start-ward.js'),
-});
+const REPO_ROOT = resolve(__dirname, '../../../../..');
+const WARD_BIN = resolve(String(REPO_ROOT), 'packages/ward/dist/src/startup/start-ward.js');
 
 export const wardRunnerHarness = (): {
   wardBinExists: () => boolean;
-  repoRoot: FilePath;
-  wardBin: FilePath;
+  repoRoot: string;
+  wardBin: string;
 } => ({
   wardBinExists: (): boolean => existsSync(String(WARD_BIN)),
   repoRoot: REPO_ROOT,

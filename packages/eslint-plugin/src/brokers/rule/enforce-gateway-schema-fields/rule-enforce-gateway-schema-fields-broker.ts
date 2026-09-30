@@ -22,8 +22,6 @@
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
@@ -54,7 +52,7 @@ export const ruleEnforceGatewaySchemaFieldsBroker =
 
       // Populated by every ImportDeclaration before a later CallExpression reads it — imports are
       // always syntactically ahead of their usage, so one forward pass over the file is enough.
-      const importSourceByLocalName = new Map<string, FilePath>();
+      const importSourceByLocalName = new Map<string, string>();
 
       return {
         ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
@@ -63,7 +61,7 @@ export const ruleEnforceGatewaySchemaFieldsBroker =
             return;
           }
 
-          const importSource = filePathContract.parse(sourceValue);
+          const importSource = sourceValue;
 
           for (const specifier of node.specifiers) {
             importSourceByLocalName.set(specifier.local.name, importSource);

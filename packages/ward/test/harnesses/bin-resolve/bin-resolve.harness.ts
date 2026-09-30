@@ -15,7 +15,6 @@ import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const binResolveHarness = (): {
@@ -27,7 +26,7 @@ export const binResolveHarness = (): {
     contents: string;
   }) => Promise<void>;
   prependPathDecoy: (params: { root: AbsoluteFilePath; binName: string }) => void;
-  firstPathDir: () => ReturnType<typeof FilePathStub>;
+  firstPathDir: () => string;
 } => {
   const originalPath = { value: getEnv('PATH') };
 
@@ -54,7 +53,7 @@ export const binResolveHarness = (): {
       chmodSync(join(decoyDir, binName), 0o755);
       setEnv('PATH', `${decoyDir}:${originalPath.value ?? ''}`);
     },
-    firstPathDir: (): ReturnType<typeof FilePathStub> =>
-      FilePathStub({ value: (getEnv('PATH') ?? '').split(':')[0] ?? '' }),
+    firstPathDir: (): string =>
+      ((getEnv('PATH') ?? '').split(':')[0] ?? ''),
   };
 };

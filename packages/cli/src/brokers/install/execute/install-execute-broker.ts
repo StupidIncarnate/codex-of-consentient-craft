@@ -16,12 +16,7 @@
 
 import { dynamicImport } from '#gateway/node/module';
 import { installResultContract } from '@dungeonmaster/shared/contracts';
-import type {
-  InstallContext,
-  InstallResult,
-  PackageName,
-  FilePath,
-} from '@dungeonmaster/shared/contracts';
+import type { InstallContext, InstallResult, PackageName } from '@dungeonmaster/shared/contracts';
 import { installModuleContract } from '../../../contracts/install-module/install-module-contract';
 
 export const installExecuteBroker = async ({
@@ -31,7 +26,7 @@ export const installExecuteBroker = async ({
   exportName = 'StartInstall',
 }: {
   packageName: PackageName;
-  installPath: FilePath;
+  installPath: string;
   context: InstallContext;
   exportName?: 'StartInstall' | 'StartInstallFinalize';
 }): Promise<InstallResult> => {

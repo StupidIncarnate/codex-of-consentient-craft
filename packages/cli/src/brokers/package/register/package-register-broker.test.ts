@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { packageRegisterBrokerProxy } from './package-register-broker.proxy';
 import { PackageJsonRawStub } from '../../../contracts/package-json-raw/package-json-raw.stub';
@@ -7,7 +6,7 @@ describe('packageRegisterBroker', () => {
   describe('VALID: registering a package missing from root dependencies', () => {
     it('VALID: {dependencies without packageName} => writes the sorted merge and returns true', async () => {
       const proxy = packageRegisterBrokerProxy();
-      const projectRoot = FilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       const packageName = PackageNameStub({ value: '@dungeonmaster/new-pkg' });
 
       const rootPackageJson = PackageJsonRawStub({
@@ -39,7 +38,7 @@ describe('packageRegisterBroker', () => {
   describe('EDGE: packageName already present in root dependencies', () => {
     it('EDGE: {dependencies already listing packageName} => returns false and writes nothing', async () => {
       const proxy = packageRegisterBrokerProxy();
-      const projectRoot = FilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       const packageName = PackageNameStub({ value: '@dungeonmaster/existing' });
 
       const rootPackageJson = PackageJsonRawStub({
@@ -58,7 +57,7 @@ describe('packageRegisterBroker', () => {
   describe('ERROR: root package.json is missing', () => {
     it('ERROR: {projectRoot with no package.json} => throws naming the path', async () => {
       const proxy = packageRegisterBrokerProxy();
-      const projectRoot = FilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       const packageName = PackageNameStub({ value: '@dungeonmaster/new-pkg' });
 
       proxy.setupRootPackageJsonMissing({ projectRoot });

@@ -8,8 +8,6 @@
  * });
  * // Returns '/src/contracts/user.ts' as the resolved absolute path
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 
 export const filepathResolveRelativeImportTransformer = ({
@@ -18,7 +16,7 @@ export const filepathResolveRelativeImportTransformer = ({
 }: {
   currentFilePath: string;
   importPath: string;
-}): FilePath => {
+}): string => {
   const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
   const parts = currentDir.split('/').filter((p) => p !== '');
 
@@ -40,5 +38,5 @@ export const filepathResolveRelativeImportTransformer = ({
 
   // Use original extension if present, otherwise default to .ts
   const extension = originalExtension ?? '.ts';
-  return filePathContract.parse(`/${parts.join('/')}${extension}`);
+  return `/${parts.join('/')}${extension}`;
 };

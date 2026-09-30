@@ -3,13 +3,12 @@
  */
 import { eslintFallbackPathsBrokerProxy } from './eslint-fallback-paths-broker.proxy';
 import { eslintFallbackPathsBroker } from './eslint-fallback-paths-broker';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('eslintFallbackPathsBroker', () => {
   it('VALID: {cwd: nested path} => returns fallback paths from deepest to root', () => {
     eslintFallbackPathsBrokerProxy();
 
-    const result = eslintFallbackPathsBroker({ cwd: FilePathStub({ value: '/a/b/c' }) });
+    const result = eslintFallbackPathsBroker({ cwd: '/a/b/c' });
 
     expect(result).toStrictEqual([
       '/a/b/c/fallback.ts',
@@ -22,7 +21,7 @@ describe('eslintFallbackPathsBroker', () => {
   it('VALID: {cwd: root} => returns single fallback path at root', () => {
     eslintFallbackPathsBrokerProxy();
 
-    const result = eslintFallbackPathsBroker({ cwd: FilePathStub({ value: '/' }) });
+    const result = eslintFallbackPathsBroker({ cwd: '/' });
 
     expect(result).toStrictEqual(['/fallback.ts']);
   });
@@ -30,7 +29,7 @@ describe('eslintFallbackPathsBroker', () => {
   it('VALID: {cwd: single level} => returns two fallback paths', () => {
     eslintFallbackPathsBrokerProxy();
 
-    const result = eslintFallbackPathsBroker({ cwd: FilePathStub({ value: '/project' }) });
+    const result = eslintFallbackPathsBroker({ cwd: '/project' });
 
     expect(result).toStrictEqual(['/project/fallback.ts', '/fallback.ts']);
   });

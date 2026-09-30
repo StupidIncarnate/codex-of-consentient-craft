@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { walkSymlinksLayerBroker } from './walk-symlinks-layer-broker';
@@ -16,7 +15,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'ward-link', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/ward-link' }),
+        linkPath: '/repo/worktrees/probe/node_modules/ward-link',
         target: '../packages/ward',
       });
 
@@ -47,7 +46,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'zod', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/zod' }),
+        linkPath: '/repo/worktrees/probe/node_modules/zod',
         target: '/repo/node_modules/zod',
       });
 
@@ -78,7 +77,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'escapee', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/escapee' }),
+        linkPath: '/repo/worktrees/probe/node_modules/escapee',
         target: '../../../packages/ward',
       });
 
@@ -109,7 +108,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'sibling', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/sibling' }),
+        linkPath: '/repo/worktrees/probe/node_modules/sibling',
         target: '../../probe-two/packages/ward',
       });
 
@@ -144,9 +143,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'dungeonmaster-ward', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({
-          value: '/repo/worktrees/probe/node_modules/.bin/dungeonmaster-ward',
-        }),
+        linkPath: '/repo/worktrees/probe/node_modules/.bin/dungeonmaster-ward',
         target: '../@dungeonmaster/ward/dist/bin/ward-entry.js',
       });
 
@@ -180,7 +177,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'linked-dir', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/linked-dir' }),
+        linkPath: '/repo/worktrees/probe/node_modules/linked-dir',
         target: '../packages/shared',
       });
       proxy.setupDirectoryEntries({
@@ -188,7 +185,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'inner', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/linked-dir/inner' }),
+        linkPath: '/repo/worktrees/probe/node_modules/linked-dir/inner',
         target: '/repo/node_modules/inner',
       });
 
@@ -239,7 +236,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'bare', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/bare' }),
+        linkPath: '/repo/worktrees/probe/node_modules/bare',
         target: 'zod/index.js',
       });
 
@@ -260,7 +257,7 @@ describe('walkSymlinksLayerBroker', () => {
         entries: [{ name: 'broken', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkThrows({
-        linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/broken' }),
+        linkPath: '/repo/worktrees/probe/node_modules/broken',
         error: FsErrorStub({
           code: 'EINVAL',
           path: '/repo/worktrees/probe/node_modules/broken',

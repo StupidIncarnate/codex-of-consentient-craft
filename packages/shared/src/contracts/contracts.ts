@@ -9,7 +9,6 @@
 // Subpath export entry for @dungeonmaster/shared/contracts
 
 // File Path Contracts
-export * from './file-path/file-path-contract';
 
 export * from './absolute-file-path/absolute-file-path-contract';
 

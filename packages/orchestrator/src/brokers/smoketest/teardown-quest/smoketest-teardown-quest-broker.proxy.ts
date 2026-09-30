@@ -2,9 +2,8 @@ import type { FsError } from '#gateway/node/fs';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import type { AbsoluteFilePath, FilePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Guild } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 
@@ -22,7 +21,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
 } => {
   const findProxy = questFindQuestPathBrokerProxy();
   const removeProxy = rmProxy();
-  const questFolderPathRef: { value: FilePath } = { value: FilePathStub({ value: '/unset' }) };
+  const questFolderPathRef: { value: string } = { value: '/unset' };
 
   return {
     setupQuestFound: ({
@@ -34,13 +33,11 @@ export const smoketestTeardownQuestBrokerProxy = (): {
       guildId: Guild['id'];
       questId: Quest['id'];
     }): void => {
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const guildsDir = FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' });
-      const questsDirPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-      });
-      const questFolderPath = FilePathStub({ value: String(questPath) });
-      const questFilePath = FilePathStub({ value: `${questPath}/quest.json` });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const guildsDir = '/home/testuser/.dungeonmaster/guilds';
+      const questsDirPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
+      const questFolderPath = String(questPath);
+      const questFilePath = `${questPath}/quest.json`;
       const quest: Quest = QuestStub({ id: questId });
 
       questFolderPathRef.value = questFolderPath;
@@ -69,8 +66,8 @@ export const smoketestTeardownQuestBrokerProxy = (): {
     },
 
     setupQuestNotFound: (): void => {
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const guildsDir = FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' });
+      const homePath = '/home/testuser/.dungeonmaster';
+      const guildsDir = '/home/testuser/.dungeonmaster/guilds';
       findProxy.setupNoGuilds({
         homeDir: '/home/testuser',
         homePath,

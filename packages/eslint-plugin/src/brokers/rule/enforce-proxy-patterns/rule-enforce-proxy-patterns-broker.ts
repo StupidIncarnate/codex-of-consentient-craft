@@ -8,7 +8,7 @@
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
-import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isIoBoundaryProxyGuard } from '../../../guards/is-io-boundary-proxy/is-io-boundary-proxy-guard';
@@ -97,13 +97,11 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
       // Check proxy file colocation at Program level
       Program: (node: TSESTree.Program): void => {
         // Check that proxy file is colocated with implementation file
-        const proxyFilePath = filePathContract.parse(filename);
+        const proxyFilePath = filename;
 
         // Extract implementation file path by removing .proxy.ts and adding .ts
         // Example: foo-adapter.proxy.ts -> foo-adapter.ts
-        const implementationPathTs = filePathContract.parse(
-          proxyPathToImplementationPathTransformer({ proxyPath: proxyFilePath }),
-        );
+        const implementationPathTs = proxyPathToImplementationPathTransformer({ proxyPath: proxyFilePath });
 
         // Also check for .tsx extension (React components)
         const implementationPathTsx = tsToTsxPathTransformer({ tsPath: implementationPathTs });

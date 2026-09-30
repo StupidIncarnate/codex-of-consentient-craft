@@ -1,10 +1,10 @@
-import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 export const matchCandidatesLayerBrokerProxy = (): {
-  setupCandidateFile: (params: { questFilePath: FilePath; contents: FileContents }) => void;
-  setupCandidateFileOnce: (params: { questFilePath: FilePath; contents: FileContents }) => void;
-  setupUnreadableCandidateFile: (params: { questFilePath: FilePath }) => void;
+  setupCandidateFile: (params: { questFilePath: string; contents: FileContents }) => void;
+  setupCandidateFileOnce: (params: { questFilePath: string; contents: FileContents }) => void;
+  setupUnreadableCandidateFile: (params: { questFilePath: string }) => void;
 } => {
   const readFileChild = readFileProxy();
 
@@ -13,7 +13,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath,
       contents,
     }: {
-      questFilePath: FilePath;
+      questFilePath: string;
       contents: FileContents;
     }): void => {
       readFileChild.returns({ path: questFilePath, contents });
@@ -26,13 +26,13 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath,
       contents,
     }: {
-      questFilePath: FilePath;
+      questFilePath: string;
       contents: FileContents;
     }): void => {
       readFileChild.returnsOnce({ path: questFilePath, contents });
     },
 
-    setupUnreadableCandidateFile: ({ questFilePath }: { questFilePath: FilePath }): void => {
+    setupUnreadableCandidateFile: ({ questFilePath }: { questFilePath: string }): void => {
       readFileChild.denied({ path: questFilePath });
     },
   };

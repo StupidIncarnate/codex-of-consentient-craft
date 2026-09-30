@@ -2,7 +2,7 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { join } from '#gateway/node/path';
 
-import { filePathContract, type FilePath, type FileName } from '@dungeonmaster/shared/contracts';
+import { type FileName } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -21,10 +21,10 @@ registerModuleMock({ module: './quest-list-broker' });
 type Quest = ReturnType<typeof QuestStub>;
 
 export const questListBrokerProxy = (): {
-  setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
+  setupQuestsPath: (params: { homeDir: string; homePath: string; questsPath: string }) => void;
   setupQuestDirectories: (params: { files: FileName[] }) => void;
   setupQuestDirectoriesFailure: (params: { error: Error }) => void;
-  setupQuestFilePath: (params: { folderName: FileName; result: FilePath }) => void;
+  setupQuestFilePath: (params: { folderName: FileName; result: string }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
   setupDirectList: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
   setupDirectListOnce: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
@@ -51,7 +51,7 @@ export const questListBrokerProxy = (): {
   // setupQuestsPath is always called immediately before setupQuestDirectories* in every caller —
   // captured here so the readdir mock can be addressed by the SAME questsPath the broker will
   // actually list, instead of guessing at a directory the test never described.
-  const questsPathRef = { value: filePathContract.parse('/quest-list-broker-proxy/unset') };
+  const questsPathRef = { value: '/quest-list-broker-proxy/unset' };
 
   return {
     setupQuestsPath: ({
@@ -60,8 +60,8 @@ export const questListBrokerProxy = (): {
       questsPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      questsPath: FilePath;
+      homePath: string;
+      questsPath: string;
     }): void => {
       questsPathRef.value = questsPath;
       mocked.calledWith([isListCall]).implement(realMod.questListBroker as never);
@@ -82,7 +82,7 @@ export const questListBrokerProxy = (): {
       result,
     }: {
       folderName: FileName;
-      result: FilePath;
+      result: string;
     }): void => {
       // questListBroker's own per-folder join(questsPath, folderName, quest.json) -> result,
       // addressed by the exact tuple rather than an address-less FIFO slot, so a second folder's

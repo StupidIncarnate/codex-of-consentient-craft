@@ -1,10 +1,4 @@
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-  type BaseBranchName,
-  type QuestBranchName,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath, type BaseBranchName, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
@@ -222,7 +216,7 @@ export const worktreePrepareBrokerProxy = (): {
         entries: [{ name: entryName, isDir: false, isSymlink: true }],
       });
       linksProxy.setupReadlinkTarget({
-        linkPath: filePathContract.parse(`${String(worktreePath)}/node_modules/${entryName}`),
+        linkPath: `${String(worktreePath)}/node_modules/${entryName}`,
         target: storedTarget,
       });
     },

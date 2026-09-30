@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { pastePayloadLayerBroker } from './paste-payload-layer-broker';
@@ -20,7 +19,7 @@ describe('pastePayloadLayerBroker', () => {
 
     it('VALID: {value and an existing file} => the value wins, and the file is never read', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/test-image.png' });
+      const filePath = '/tmp/test-image.png';
       proxy.setupFileExists({ filePath, content: Buffer.from('fake-png') });
 
       const result = pastePayloadLayerBroker({ filePath, value: 'typed' });
@@ -35,7 +34,7 @@ describe('pastePayloadLayerBroker', () => {
   describe('a file', () => {
     it('VALID: {filePath: a .png} => returns its bytes as base64 with the png mime type', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/test-image.png' });
+      const filePath = '/tmp/test-image.png';
       proxy.setupFileExists({ filePath, content: Buffer.from('fake-png') });
 
       const result = pastePayloadLayerBroker({ filePath, value: null });
@@ -49,7 +48,7 @@ describe('pastePayloadLayerBroker', () => {
 
     it('VALID: {filePath: an upper-case .JPEG} => the extension is matched case-insensitively', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/PHOTO.JPEG' });
+      const filePath = '/tmp/PHOTO.JPEG';
       proxy.setupFileExists({ filePath, content: Buffer.from('fake-jpeg') });
 
       const result = pastePayloadLayerBroker({ filePath, value: null });
@@ -63,7 +62,7 @@ describe('pastePayloadLayerBroker', () => {
 
     it('EDGE: {filePath: an unknown extension} => falls back to the default mime type', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/data.custom' });
+      const filePath = '/tmp/data.custom';
       proxy.setupFileExists({ filePath, content: Buffer.from('fake-custom') });
 
       const result = pastePayloadLayerBroker({ filePath, value: null });
@@ -77,7 +76,7 @@ describe('pastePayloadLayerBroker', () => {
 
     it('EDGE: {filePath: no extension} => falls back to the default mime type', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/README' });
+      const filePath = '/tmp/README';
       proxy.setupFileExists({ filePath, content: Buffer.from('plain') });
 
       const result = pastePayloadLayerBroker({ filePath, value: null });
@@ -93,7 +92,7 @@ describe('pastePayloadLayerBroker', () => {
   describe('refusals', () => {
     it('ERROR: {filePath that does not exist} => throws naming the file', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/nonexistent.png' });
+      const filePath = '/tmp/nonexistent.png';
       proxy.setupFileNotFound({ filePath });
 
       expect(() => pastePayloadLayerBroker({ filePath, value: null })).toThrow(
@@ -103,7 +102,7 @@ describe('pastePayloadLayerBroker', () => {
 
     it('ERROR: {a value, but a filePath that does not exist} => still throws naming the file', () => {
       const proxy = pastePayloadLayerBrokerProxy();
-      const filePath = FilePathStub({ value: '/tmp/nonexistent.png' });
+      const filePath = '/tmp/nonexistent.png';
       proxy.setupFileNotFound({ filePath });
 
       expect(() => pastePayloadLayerBroker({ filePath, value: 'typed' })).toThrow(

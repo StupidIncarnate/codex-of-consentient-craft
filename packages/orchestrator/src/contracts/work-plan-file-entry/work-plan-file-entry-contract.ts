@@ -23,11 +23,11 @@
  * proves nothing, which is a different claim.
  */
 
-import { filePathContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workPlanFileEntryContract = z.object({
-  path: filePathContract,
+  path: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'WorkPlanFileEntryPath'>(),
   change: z.enum(['new', 'edit']),
   in: z
     .string()

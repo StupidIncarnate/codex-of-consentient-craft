@@ -1,10 +1,9 @@
 import { dirname, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type FilePath = string;
 
 export const configRootFindBrokerProxy = (): {
   setupConfigRootFound: (params: { startPath: string; configRootPath: string }) => void;
@@ -40,13 +39,13 @@ export const configRootFindBrokerProxy = (): {
 
   const configPathFor = ({ dirPath }: { dirPath: string }): FilePath => {
     const configFile = dungeonmasterHomeStatics.paths.projectConfigFile;
-    const configPath = FilePathStub({ value: realPath.join(dirPath, configFile) });
+    const configPath = realPath.join(dirPath, configFile);
     joinHandle.calledWith([dirPath, configFile]).returns(configPath);
     return configPath;
   };
 
   const dirnameFor = ({ dirPath }: { dirPath: string }): FilePath => {
-    const parent = FilePathStub({ value: realPath.dirname(dirPath) });
+    const parent = realPath.dirname(dirPath);
     dirnameHandle.calledWith([dirPath]).returns(parent);
     return parent;
   };

@@ -1,7 +1,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath, Guild, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { Guild, GuildConfig } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,
   registerModuleMock,
@@ -26,14 +26,14 @@ export const guildAddBrokerProxy = (): {
   setupAddGuild: (params: {
     existingConfig: GuildConfig;
     homeDir: string;
-    homePath: FilePath;
-    guildsPath: FilePath;
-    guildDirPath: FilePath;
-    questsDirPath: FilePath;
+    homePath: string;
+    guildsPath: string;
+    guildDirPath: string;
+    questsDirPath: string;
   }) => void;
   setupAddGuildInSuppliedHome: (params: {
     existingConfig: GuildConfig;
-    configFilePath: FilePath;
+    configFilePath: string;
   }) => void;
   setupDuplicatePath: (params: { existingConfig: GuildConfig }) => void;
   stageGeneratedId: (params: { id: string }) => void;
@@ -97,10 +97,10 @@ export const guildAddBrokerProxy = (): {
     }: {
       existingConfig: GuildConfig;
       homeDir: string;
-      homePath: FilePath;
-      guildsPath: FilePath;
-      guildDirPath: FilePath;
-      questsDirPath: FilePath;
+      homePath: string;
+      guildsPath: string;
+      guildDirPath: string;
+      questsDirPath: string;
     }): void => {
       runRealBroker();
       configReadProxy.setupConfig({ config: existingConfig });
@@ -131,7 +131,7 @@ export const guildAddBrokerProxy = (): {
       configFilePath,
     }: {
       existingConfig: GuildConfig;
-      configFilePath: FilePath;
+      configFilePath: string;
     }): void => {
       runRealBroker();
       configReadProxy.setupConfigAt({ configFilePath, config: existingConfig });

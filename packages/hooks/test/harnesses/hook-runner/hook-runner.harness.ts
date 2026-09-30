@@ -12,8 +12,6 @@ import { execPath, envSnapshot } from '#gateway/node/process';
 import { join, resolve } from '#gateway/node/path';
 import { tsxLoaderUrl } from '#gateway/npm/tsx';
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 
@@ -48,10 +46,10 @@ export const hookRunnerHarness = (): {
     input: ReturnType<typeof ExecResultStub>['stdout'];
     args?: readonly string[];
   }) => ReturnType<typeof runSyncWithInput>;
-  resolveHookPath: (params: { hookName: HookName }) => FilePath;
+  resolveHookPath: (params: { hookName: HookName }) => string;
 } => {
-  const resolveHookPath = ({ hookName }: { hookName: HookName }): FilePath =>
-    FilePathStub({ value: join(PACKAGE_DIR, 'src', 'startup', `${hookName}.ts`) });
+  const resolveHookPath = ({ hookName }: { hookName: HookName }): string =>
+    join(PACKAGE_DIR, 'src', 'startup', `${hookName}.ts`);
 
   // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
   // jest.config.base.js) so this spawned child resolves `@dungeonmaster/*` imports to the same

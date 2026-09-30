@@ -2,10 +2,9 @@ import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsOutboxPathFindBrokerProxy = (): {
-  setupOutboxPath: (params: { homeDir: string; homePath: FilePath; outboxPath: FilePath }) => void;
+  setupOutboxPath: (params: { homeDir: string; homePath: string; outboxPath: string }) => void;
 } => {
   const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
@@ -20,8 +19,8 @@ export const locationsOutboxPathFindBrokerProxy = (): {
       outboxPath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      outboxPath: FilePath;
+      homePath: string;
+      outboxPath: string;
     }): void => {
       dmHomeProxy.clearHomeEnv();
       dmHomeProxy.setupHomePath({ homeDir, homePath });

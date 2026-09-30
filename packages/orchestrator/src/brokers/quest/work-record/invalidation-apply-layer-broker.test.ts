@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
 import { FlowIdStub } from '@dungeonmaster/shared/contracts/flow-id/flow-id.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
@@ -17,7 +16,7 @@ import { invalidationApplyLayerBroker } from './invalidation-apply-layer-broker'
 import { invalidationApplyLayerBrokerProxy } from './invalidation-apply-layer-broker.proxy';
 
 const QUEST_ID = QuestIdStub({ value: 'add-auth' });
-const QUEST_FILE_PATH = FilePathStub({ value: '/home/testuser/.dungeonmaster/quest.json' });
+const QUEST_FILE_PATH = '/home/testuser/.dungeonmaster/quest.json';
 const TARGET_FLOW_ID = FlowIdStub({ value: 'send-flow' });
 const OTHER_FLOW_ID = FlowIdStub({ value: 'signup-flow' });
 const NOW_AT = '2026-01-15T10:00:00.000Z';

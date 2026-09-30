@@ -12,13 +12,7 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  filePathContract,
-  packageTypeContract,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileContentsContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
 
 import {
@@ -48,7 +42,7 @@ const LIBRARY_TYPE = packageTypeContract.parse('library');
 export const platformCrossingCheckBroker = async ({
   rootPath,
 }: {
-  rootPath: FilePath;
+  rootPath: string;
 }): Promise<readonly PlatformCrossingViolation[]> => {
   const rootAbsolute = absoluteFilePathContract.parse(rootPath);
   const folders = (await workspaceDiscoverBroker({ rootPath: rootAbsolute })) ?? [];
@@ -109,7 +103,7 @@ export const platformCrossingCheckBroker = async ({
 
       const violationsPerFile = await Promise.all(
         discoveredFiles.map(async (relativeFile): Promise<readonly PlatformCrossingViolation[]> => {
-          const absoluteFile = filePathContract.parse(`${folder.path}/${relativeFile}`);
+          const absoluteFile = `${folder.path}/${relativeFile}`;
           if (!isImplementationSourceFileGuard({ filePath: absoluteFile })) {
             return [];
           }

@@ -9,12 +9,12 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
-import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 export const questLoadBroker = async ({
   questFilePath,
 }: {
-  questFilePath: FilePath;
+  questFilePath: string;
 }): Promise<Quest> => {
   const fileContents = await readFile(questFilePath);
 

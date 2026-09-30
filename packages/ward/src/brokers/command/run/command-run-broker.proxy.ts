@@ -2,8 +2,6 @@ import { setExitCodeProxy } from '#gateway/node/process/set-exit-code/set-exit-c
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -43,8 +41,8 @@ export const commandRunBrokerProxy = (): {
   setupUncommittedWithOneEditedFile: () => void;
   setupUncommittedWithSurvivingAndDeletedFile: () => void;
   setupUncommittedWithOnlyDeletedFile: () => void;
-  setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
-  setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
+  setupExistingPath: ({ filePath }: { filePath: string }) => void;
+  setupMissingPath: ({ filePath }: { filePath: string }) => void;
   setupCompanionTestMissing: (params: { relativePath: string }) => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
   setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
@@ -134,7 +132,7 @@ export const commandRunBrokerProxy = (): {
     setupUncommittedWithOneEditedFile: (): void => {
       gitScopeProxy.setupUncommittedFiles({ trackedOutput: 'src/index.ts\n', untrackedOutput: '' });
       pathCheckProxy.setupExistingPath({
-        filePath: filePathContract.parse('/project/src/index.ts'),
+        filePath: '/project/src/index.ts',
       });
       stageNoUnitCompanion({ relativePath: 'src/index.ts' });
     },
@@ -147,25 +145,25 @@ export const commandRunBrokerProxy = (): {
         untrackedOutput: '',
       });
       pathCheckProxy.setupExistingPath({
-        filePath: filePathContract.parse('/project/src/index.ts'),
+        filePath: '/project/src/index.ts',
       });
       pathCheckProxy.setupMissingPath({
-        filePath: filePathContract.parse('/project/src/gone.ts'),
+        filePath: '/project/src/gone.ts',
       });
       stageNoUnitCompanion({ relativePath: 'src/index.ts' });
     },
     setupUncommittedWithOnlyDeletedFile: (): void => {
       gitScopeProxy.setupUncommittedFiles({ trackedOutput: 'src/gone.ts\n', untrackedOutput: '' });
       pathCheckProxy.setupMissingPath({
-        filePath: filePathContract.parse('/project/src/gone.ts'),
+        filePath: '/project/src/gone.ts',
       });
     },
     // Address the ABSOLUTE path — `rootPath` joined to the repo-relative arg — because that is what
     // the path-check layer hands the adapter. Everything not named here answers "on disk".
-    setupExistingPath: ({ filePath }: { filePath: FilePath }): void => {
+    setupExistingPath: ({ filePath }: { filePath: string }): void => {
       pathCheckProxy.setupExistingPath({ filePath });
     },
-    setupMissingPath: ({ filePath }: { filePath: FilePath }): void => {
+    setupMissingPath: ({ filePath }: { filePath: string }): void => {
       pathCheckProxy.setupMissingPath({ filePath });
     },
     // Declares NO colocated unit test for a passthrough source file, project-relative

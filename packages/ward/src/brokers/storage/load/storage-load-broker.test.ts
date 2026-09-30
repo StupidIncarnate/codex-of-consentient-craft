@@ -1,6 +1,5 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -63,9 +62,9 @@ describe('storageLoadBroker', () => {
           'run-e2e-dispatch-ward-5.json',
         ],
         contents: {
-          [FilePathStub({ value: '/home/user/project/.ward/run-1739625700000-b4e2.json' })]:
+          ['/home/user/project/.ward/run-1739625700000-b4e2.json']:
             FileContentsStub({ value: JSON.stringify(wardResult) }),
-          [FilePathStub({ value: '/home/user/project/.ward/run-e2e-dispatch-ward-5.json' })]:
+          ['/home/user/project/.ward/run-e2e-dispatch-ward-5.json']:
             FileContentsStub({ value: JSON.stringify({ checks: [] }) }),
         },
       });
@@ -82,7 +81,7 @@ describe('storageLoadBroker', () => {
         rootPath,
         entries: ['run-e2e-dispatch-ward-5.json'],
         contents: {
-          [FilePathStub({ value: '/home/user/project/.ward/run-e2e-dispatch-ward-5.json' })]:
+          ['/home/user/project/.ward/run-e2e-dispatch-ward-5.json']:
             FileContentsStub({ value: JSON.stringify(WardRunResultStub()) }),
         },
       });

@@ -14,7 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type { AbsoluteFilePath, FileContents, GuildPath, FilePath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents, GuildPath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -22,12 +22,7 @@ import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/que
 import type { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  filePathContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileContentsContract, questContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -157,14 +152,14 @@ export const orchestrationQuestHarness = (): {
   // agentLaunchBroker → agent-spawn-stream-json-broker) exercises a genuine OS process
   // under full control instead of risking the bare `claude` command. Call `restore()` even when
   // the test never reaches a spawn.
-  configureFakeClaudeCli: () => { claudeQueueDir: FilePath; restore: () => void };
+  configureFakeClaudeCli: () => { claudeQueueDir: string; restore: () => void };
   // Polls for the fake CLI's `invocations.jsonl` ledger (one JSON line per spawn, written BEFORE
   // any queued response is read, recording the real `--resume <sessionId>` and `-p <prompt>`
   // argv) under `claudeQueueDir`, scoped by the spawn's `cwd`. Returns the last recorded
   // invocation, or `null` if none appeared before `timeoutMs` — the honest way to prove a REAL
   // spawn either happened with the right argv, or never happened at all.
   waitForClaudeInvocation: (params: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
   }) => Promise<unknown>;
@@ -204,7 +199,7 @@ export const orchestrationQuestHarness = (): {
     branchName?: BranchName;
   }): Promise<void> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
-    const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
+    const questFilePath = join(questPath, QUEST_FILE_NAME);
     const loadedQuest = await questLoadBroker({ questFilePath });
 
     const seededQuest = {
@@ -306,18 +301,18 @@ export const orchestrationQuestHarness = (): {
 
   const readQuestFileRaw = async ({ questId }: { questId: Quest['id'] }): Promise<FileContents> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
-    const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
+    const questFilePath = join(questPath, QUEST_FILE_NAME);
     return fileContentsContract.parse(readFileSync(questFilePath));
   };
 
   const loadByQuestId = async (params: { questId: Quest['id'] }): Promise<Quest> => {
     const { questId } = params;
     const { questPath } = await questFindQuestPathBroker({ questId });
-    const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
+    const questFilePath = join(questPath, QUEST_FILE_NAME);
     return questLoadBroker({ questFilePath });
   };
 
-  const configureFakeClaudeCli = (): { claudeQueueDir: FilePath; restore: () => void } => {
+  const configureFakeClaudeCli = (): { claudeQueueDir: string; restore: () => void } => {
     const claudeQueueDir = join(tmpdir(), `claude-queue-${randomUUID()}`);
     const savedCliPath = getEnv('CLAUDE_CLI_PATH');
     const savedQueueDir = getEnv('FAKE_CLAUDE_QUEUE_DIR');
@@ -326,7 +321,7 @@ export const orchestrationQuestHarness = (): {
     setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
 
     return {
-      claudeQueueDir: filePathContract.parse(claudeQueueDir),
+      claudeQueueDir: claudeQueueDir,
       restore: (): void => {
         if (savedCliPath === undefined) {
           deleteEnv('CLAUDE_CLI_PATH');
@@ -376,7 +371,7 @@ export const orchestrationQuestHarness = (): {
     cwd,
     timeoutMs,
   }: {
-    claudeQueueDir: FilePath;
+    claudeQueueDir: string;
     cwd: string;
     timeoutMs: number;
   }): Promise<unknown> => {
@@ -451,7 +446,7 @@ export const orchestrationQuestHarness = (): {
       comments: readonly QuestComment[];
     }): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
+      const questFilePath = join(questPath, QUEST_FILE_NAME);
       const loadedQuest = await questLoadBroker({ questFilePath });
 
       const seededQuest = {

@@ -1,6 +1,5 @@
 import { locationsClaudeConfigDirFindBroker } from './locations-claude-config-dir-find-broker';
 import { locationsClaudeConfigDirFindBrokerProxy } from './locations-claude-config-dir-find-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsClaudeConfigDirFindBroker', () => {
@@ -8,7 +7,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
     it('VALID: {homeDir: "/home/user"} => returns /home/user/.claude', () => {
       const proxy = locationsClaudeConfigDirFindBrokerProxy();
 
-      proxy.setupUnset({ homeDir: FilePathStub({ value: '/home/user' }) });
+      proxy.setupUnset({ homeDir: '/home/user' });
 
       const result = locationsClaudeConfigDirFindBroker();
 
@@ -20,7 +19,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
     it('EMPTY: {CLAUDE_CONFIG_DIR: ""} => falls back to /home/user/.claude', () => {
       const proxy = locationsClaudeConfigDirFindBrokerProxy();
 
-      proxy.setupUnset({ homeDir: FilePathStub({ value: '/home/user' }) });
+      proxy.setupUnset({ homeDir: '/home/user' });
       proxy.returns({ path: '' });
 
       const result = locationsClaudeConfigDirFindBroker();
@@ -37,7 +36,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
 
       const result = locationsClaudeConfigDirFindBroker();
 
-      proxy.setupUnset({ homeDir: FilePathStub({ value: '/home/user' }) });
+      proxy.setupUnset({ homeDir: '/home/user' });
 
       expect(result).toBe(AbsoluteFilePathStub({ value: '/custom/claude' }));
     });
@@ -51,7 +50,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
         /CLAUDE_CONFIG_DIR must be an absolute path, got "relative\/claude"/u,
       );
 
-      proxy.setupUnset({ homeDir: FilePathStub({ value: '/home/user' }) });
+      proxy.setupUnset({ homeDir: '/home/user' });
 
       expect(locationsClaudeConfigDirFindBroker()).toBe(
         AbsoluteFilePathStub({ value: '/home/user/.claude' }),

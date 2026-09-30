@@ -1,5 +1,4 @@
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -29,9 +28,7 @@ export const laneSpecFindBrokerProxy = (): {
   cwdStagingProxy.setupCwd({ value: CWD_PATH_VALUE });
   const configProxy = configResolveBrokerProxy();
 
-  const startPath = filePathContract.parse(
-    `${CWD_PATH_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
-  );
+  const startPath = `${CWD_PATH_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
 
   // Sticky default: a single headless api process, so any caller composing this proxy without
   // addressing it still resolves a real, valid LaneSpec — setupConfiguredProcesses below is a live

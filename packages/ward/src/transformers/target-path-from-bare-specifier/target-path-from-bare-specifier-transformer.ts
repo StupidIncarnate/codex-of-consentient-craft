@@ -22,7 +22,6 @@
  * // Returns: '/repo/packages/@gateway/node/src/fs' as FilePath
  */
 
-import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ModuleSpecifier } from '../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
@@ -36,7 +35,7 @@ export const targetPathFromBareSpecifierTransformer = ({
 }: {
   specifier: ModuleSpecifier;
   knownPackages: readonly ProjectFolder[];
-}): FilePath | undefined => {
+}): string | undefined => {
   const canonicalSpecifier = gatewaySpecifierCanonicalizeTransformer({ specifier, knownPackages });
 
   const matchedPackage = knownPackages.find((projectFolder) =>
@@ -54,5 +53,5 @@ export const targetPathFromBareSpecifierTransformer = ({
     ? `${matchedPackage.path}/src`
     : matchedPackage.path;
 
-  return filePathContract.parse(subpath === '' ? packageRoot : `${packageRoot}${subpath}`);
+  return (subpath === '' ? packageRoot : `${packageRoot}${subpath}`);
 };

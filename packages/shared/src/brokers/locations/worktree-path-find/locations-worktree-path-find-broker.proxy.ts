@@ -1,13 +1,12 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsWorktreePathFindBrokerProxy = (): {
   setupWorktreePath: (params: {
     repoRoot: string;
     worktreeDirName: string;
-    worktreePath: FilePath;
+    worktreePath: string;
   }) => void;
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
@@ -23,7 +22,7 @@ export const locationsWorktreePathFindBrokerProxy = (): {
     }: {
       repoRoot: string;
       worktreeDirName: string;
-      worktreePath: FilePath;
+      worktreePath: string;
     }): void => {
       joinHandle
         .calledWith([repoRoot, locationsStatics.repoRoot.worktreesDir, worktreeDirName])

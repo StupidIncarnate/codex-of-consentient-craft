@@ -1,6 +1,5 @@
 import { diskFreeBytesProxy } from '#gateway/node/fs__promises/disk-free-bytes/disk-free-bytes.proxy';
 import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -10,8 +9,8 @@ import { machineOomCountBrokerProxy } from '../oom-count/machine-oom-count-broke
 export const machineReadBrokerProxy = (): {
   setupMachineReading: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
+    homePath: string;
+    rootPath: string;
     freeMemBytes: number;
     totalMemBytes: number;
     coreCount: number;
@@ -22,8 +21,8 @@ export const machineReadBrokerProxy = (): {
   }) => void;
   setupOomUnavailable: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
+    homePath: string;
+    rootPath: string;
     freeMemBytes: number;
     totalMemBytes: number;
     coreCount: number;
@@ -33,8 +32,8 @@ export const machineReadBrokerProxy = (): {
   }) => void;
   setupSiegelenseDirNotYetCreated: (params: {
     homeDir: string;
-    homePath: FilePath;
-    rootPath: FilePath;
+    homePath: string;
+    rootPath: string;
     freeMemBytes: number;
     totalMemBytes: number;
     coreCount: number;
@@ -45,7 +44,7 @@ export const machineReadBrokerProxy = (): {
   }) => void;
   setupHomeStatfsPermissionDenied: (params: {
     homeDir: string;
-    homePath: FilePath;
+    homePath: string;
     freeMemBytes: number;
     totalMemBytes: number;
     coreCount: number;
@@ -97,8 +96,8 @@ export const machineReadBrokerProxy = (): {
       vmstatContent,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
       freeMemBytes: number;
       totalMemBytes: number;
       coreCount: number;
@@ -129,8 +128,8 @@ export const machineReadBrokerProxy = (): {
       diskBsize,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
       freeMemBytes: number;
       totalMemBytes: number;
       coreCount: number;
@@ -166,8 +165,8 @@ export const machineReadBrokerProxy = (): {
       vmstatContent,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      rootPath: FilePath;
+      homePath: string;
+      rootPath: string;
       freeMemBytes: number;
       totalMemBytes: number;
       coreCount: number;
@@ -199,7 +198,7 @@ export const machineReadBrokerProxy = (): {
       vmstatContent,
     }: {
       homeDir: string;
-      homePath: FilePath;
+      homePath: string;
       freeMemBytes: number;
       totalMemBytes: number;
       coreCount: number;

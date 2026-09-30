@@ -9,12 +9,11 @@ import { readFile } from '#gateway/node/fs__promises';
 import { isFsError } from '#gateway/node/fs';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const fileReadOrEmptyBroker = async ({
   filePath,
 }: {
-  filePath: FilePath;
+  filePath: string;
 }): Promise<FileContents> => {
   try {
     const contents = await readFile(filePath);

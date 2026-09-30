@@ -5,7 +5,6 @@ import {
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -66,10 +65,8 @@ describe('ChatStartResponder', () => {
       // of order lets chatSpawnBrokerProxy's entries answer questListBroker's call instead.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -95,10 +92,8 @@ describe('ChatStartResponder', () => {
       // "starts chat with session" test above for why the ordering matters.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -154,10 +149,8 @@ describe('ChatStartResponder', () => {
       // ordering reason as the "session resumption" test above.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
-        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-        questsPath: FilePathStub({
-          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-        }),
+        homePath: '/home/testuser/.dungeonmaster',
+        questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
       });
       proxy.setupQuestDirectories({ files: [] });
 
@@ -186,14 +179,10 @@ describe('ChatStartResponder', () => {
       const proxy = ChatStartResponderProxy({
         questSetup: {
           homeDir: '/home/testuser',
-          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-          questsPath: FilePathStub({
-            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-          }),
+          homePath: '/home/testuser/.dungeonmaster',
+          questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
           questFiles: [FileNameStub({ value: '001-quest-inflight' })],
-          questFilePath: FilePathStub({
-            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-inflight/quest.json`,
-          }),
+          questFilePath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-inflight/quest.json`,
           questJson: JSON.stringify({
             id: questId,
             folder: '001-quest-inflight',
@@ -251,14 +240,10 @@ describe('ChatStartResponder', () => {
       const proxy = ChatStartResponderProxy({
         questSetup: {
           homeDir: '/home/testuser',
-          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-          questsPath: FilePathStub({
-            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-          }),
+          homePath: '/home/testuser/.dungeonmaster',
+          questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
           questFiles: [FileNameStub({ value: '001-quest-no-proc' })],
-          questFilePath: FilePathStub({
-            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-no-proc/quest.json`,
-          }),
+          questFilePath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-no-proc/quest.json`,
           questJson: JSON.stringify({
             id: questId,
             folder: '001-quest-no-proc',
@@ -325,14 +310,10 @@ describe('ChatStartResponder', () => {
       const proxy = ChatStartResponderProxy({
         questSetup: {
           homeDir: '/home/testuser',
-          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
-          questsPath: FilePathStub({
-            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-          }),
+          homePath: '/home/testuser/.dungeonmaster',
+          questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
           questFiles: [FileNameStub({ value: '001-quest-this-session' })],
-          questFilePath: FilePathStub({
-            value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-this-session/quest.json`,
-          }),
+          questFilePath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-this-session/quest.json`,
           questJson: JSON.stringify({
             id: questId,
             folder: '001-quest-this-session',

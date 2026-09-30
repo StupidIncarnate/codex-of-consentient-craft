@@ -16,7 +16,6 @@
  * });
  * // Returns true
  */
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 import { gatewayBarrelExportedNamesTransformer } from '../../../transformers/gateway-barrel-exported-names/gateway-barrel-exported-names-transformer';
@@ -25,7 +24,7 @@ export const checkGatewayExportNameExistsLayerBroker = ({
   barrelPath,
   name,
 }: {
-  barrelPath: FilePath;
+  barrelPath: string;
   name: string;
 }): boolean => {
   const sourceText = readFileSync(barrelPath);

@@ -8,7 +8,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const multiEditToolInputContract = z.object({
-  file_path: z.string().min(1).brand<'FilePath'>(),
+  file_path: z.string().min(1).brand<'MultiEditToolInputFilePath'>(),
   edits: z.array(
     z.object({
       old_string: z.string().brand<'OldString'>(),

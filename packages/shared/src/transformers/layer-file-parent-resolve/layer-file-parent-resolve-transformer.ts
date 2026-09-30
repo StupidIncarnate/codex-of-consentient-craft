@@ -13,15 +13,14 @@
  * WHEN-NOT-TO-USE: When the input path is not a `-layer-` file (returns null instead of throwing — caller decides)
  */
 
-import { filePathContract, type FilePath } from '../../contracts/file-path/file-path-contract';
 
 const LAYER_BASENAME_PATTERN = /^(.+)-[^-]+-layer-([^-]+)(\.[^.]+)$/u;
 
 export const layerFileParentResolveTransformer = ({
   layerFilePath,
 }: {
-  layerFilePath: FilePath;
-}): FilePath | null => {
+  layerFilePath: string;
+}): string | null => {
   const lastSlash = layerFilePath.lastIndexOf('/');
   const dir = lastSlash === -1 ? '' : layerFilePath.slice(0, lastSlash + 1);
   const basename = lastSlash === -1 ? layerFilePath : layerFilePath.slice(lastSlash + 1);
@@ -32,5 +31,5 @@ export const layerFileParentResolveTransformer = ({
   }
 
   const [, parentStem, folderSuffix, extension] = match;
-  return filePathContract.parse(`${dir}${parentStem}-${folderSuffix}${extension}`);
+  return `${dir}${parentStem}-${folderSuffix}${extension}`;
 };

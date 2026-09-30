@@ -15,8 +15,9 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 
-import { filePathContract } from '../file-path/file-path-contract';
 
 export const operationPlanPieceContract = z.object({
   id: operationPlanPieceId.describe(
@@ -44,7 +45,7 @@ export const operationPlanPieceContract = z.object({
         "early or keep polishing past the piece's actual scope.",
     ),
   files: z
-    .array(filePathContract)
+    .array(z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'OperationPlanPieceFiles'>())
     .default([])
     .describe(
       'The explicit paths this piece owns — every file the worker is expected to create or edit to ' +
@@ -78,7 +79,7 @@ export const operationPlanPieceContract = z.object({
         'listing a dependency should not start until every id here reports status done, so a worker ' +
         'never builds against a file or contract another piece has not written yet.',
     ),
-  mirror: filePathContract
+  mirror: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'OperationPlanPieceMirror'>()
     .optional()
     .describe(
       'An existing sibling file whose shape this piece should follow — the nearest analogous file ' +

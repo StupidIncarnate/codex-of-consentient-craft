@@ -29,7 +29,6 @@ import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 import { baseBranchNameContract, exitCodeContract, questBranchNameContract, riftcarverResultContract, type ExitCode, type Quest } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -112,7 +111,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
 
   const worktreePath = AbsoluteFilePathStub({ value: WORKTREE_PATH });
   const riftcarverResultId = riftcarverResultContract.shape.id.parse(FIXED_RIFTCARVER_RESULT_UUID);
-  const questFolderRef = { value: FilePathStub({ value: `${QUESTS_DIR}/unset` }) };
+  const questFolderRef = { value: `${QUESTS_DIR}/unset` };
 
   // Whether the quest's own branch already resolves in git: decides whether the carve is a create
   // (`-b`) or an attach, and both are staged from this one flag.
@@ -197,7 +196,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     setupQuest: ({ quest }: { quest: QuestInput }): void => {
       updateProxy.setupQuestOnDisk({ quest });
       getProxy.setupRealLookup({ questId: quest.id });
-      questFolderRef.value = FilePathStub({ value: `${QUESTS_DIR}/${String(quest.folder)}` });
+      questFolderRef.value = `${QUESTS_DIR}/${String(quest.folder)}`;
 
       baseBranchProxy.setupMainExists();
       // Nothing sits at the worktree path before the first carve.

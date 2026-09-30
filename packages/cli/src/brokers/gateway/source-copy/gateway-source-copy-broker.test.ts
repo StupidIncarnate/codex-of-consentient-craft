@@ -1,11 +1,10 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { gatewaySourceCopyBroker } from './gateway-source-copy-broker';
 import { gatewaySourceCopyBrokerProxy } from './gateway-source-copy-broker.proxy';
 
 describe('gatewaySourceCopyBroker', () => {
   it('VALID: {folder: node} => copies the installed node gateway src into the package root', async () => {
     const proxy = gatewaySourceCopyBrokerProxy();
-    const packageRoot = FilePathStub({ value: '/consumer/packages/@gateway/node' });
+    const packageRoot = '/consumer/packages/@gateway/node';
     proxy.copySucceeds({ folder: 'node', packageRoot });
 
     const result = await gatewaySourceCopyBroker({ folder: 'node', packageRoot });
@@ -18,7 +17,7 @@ describe('gatewaySourceCopyBroker', () => {
 
   it('VALID: {folder: browser} => copies src only, since the jsdom polyfill is a @dungeonmaster/testing import now', async () => {
     const proxy = gatewaySourceCopyBrokerProxy();
-    const packageRoot = FilePathStub({ value: '/consumer/packages/@gateway/browser' });
+    const packageRoot = '/consumer/packages/@gateway/browser';
     proxy.copySucceeds({ folder: 'browser', packageRoot });
 
     const result = await gatewaySourceCopyBroker({ folder: 'browser', packageRoot });

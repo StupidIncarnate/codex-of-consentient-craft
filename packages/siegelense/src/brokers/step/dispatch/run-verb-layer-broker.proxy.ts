@@ -1,12 +1,7 @@
 import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type {
-  AbsoluteFilePath,
-  ContentText,
-  FilePath,
-  Guild,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
 
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
@@ -57,7 +52,7 @@ export const runVerbLayerBrokerProxy = (): {
   stagesSeedRecipe: (params: { result: unknown }) => {
     getSeedRunCallArgs: () => readonly unknown[];
   };
-  seedBookPresentAt: (params: { packagePath: FilePath }) => void;
+  seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
     apiBaseUrl: ContentText;
     guild: Guild;
@@ -184,7 +179,7 @@ export const runVerbLayerBrokerProxy = (): {
       return { getSeedRunCallArgs: seedRun.getCallArgs };
     },
 
-    seedBookPresentAt: ({ packagePath }: { packagePath: FilePath }): void => {
+    seedBookPresentAt: ({ packagePath }: { packagePath: string }): void => {
       seedProxy.bookPresentAt({ packagePath });
     },
 

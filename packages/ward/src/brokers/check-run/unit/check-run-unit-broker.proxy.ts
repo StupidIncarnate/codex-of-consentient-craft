@@ -5,11 +5,7 @@ import { pid } from '#gateway/node/process';
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
@@ -118,9 +114,7 @@ export const checkRunUnitBrokerProxy = (): {
   // it separately below, against the same default ProjectFolderStub() path.
   const stageJestConfigPresent = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
     existsProxy.returns({
-      path: filePathContract.parse(
-        `${String(absoluteFilePathContract.parse(projectFolder.path))}/jest.config.js`,
-      ),
+      path: `${String(absoluteFilePathContract.parse(projectFolder.path))}/jest.config.js`,
       exists: true,
     });
   };
@@ -231,9 +225,7 @@ export const checkRunUnitBrokerProxy = (): {
       exists: boolean;
     }): void => {
       existsProxy.returns({
-        path: filePathContract.parse(
-          `${String(absoluteFilePathContract.parse(projectFolder.path))}/${relativePath}`,
-        ),
+        path: `${String(absoluteFilePathContract.parse(projectFolder.path))}/${relativePath}`,
         exists,
       });
     },

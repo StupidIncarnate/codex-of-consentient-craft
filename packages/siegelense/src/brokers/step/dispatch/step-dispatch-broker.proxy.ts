@@ -1,12 +1,7 @@
 import { PNG } from '#gateway/npm/pngjs';
 import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  ContentText,
-  FilePath,
-  Guild,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
@@ -76,7 +71,7 @@ export const stepDispatchBrokerProxy = (): {
     captureCallArgs: () => readonly unknown[];
   };
   laneRejectingWaitForMatch: (params: { error: Error }) => { lane: LaneSession };
-  seedBookPresentAt: (params: { packagePath: FilePath }) => void;
+  seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
     apiBaseUrl: ContentText;
     guild: Guild;
@@ -303,7 +298,7 @@ export const stepDispatchBrokerProxy = (): {
     }): void => {
       verbLayerProxy.setupHoldCopy({ sourcePath, destinationPath });
     },
-    seedBookPresentAt: ({ packagePath }: { packagePath: FilePath }): void => {
+    seedBookPresentAt: ({ packagePath }: { packagePath: string }): void => {
       verbLayerProxy.seedBookPresentAt({ packagePath });
     },
 

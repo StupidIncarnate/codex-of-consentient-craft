@@ -1,6 +1,5 @@
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
@@ -12,14 +11,10 @@ describe('GuildAddResponder', () => {
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
         homeDir: '/home/user/.dungeonmaster',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
-        guildDirPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        }),
-        questsDirPath: FilePathStub({
-          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
-        }),
+        homePath: '/home/user/.dungeonmaster',
+        guildsPath: '/home/user/.dungeonmaster/guilds',
+        guildDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questsDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
       const result = await proxy.callResponder({

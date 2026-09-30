@@ -1,11 +1,10 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 
 export const workItemPatchLayerBrokerProxy = (): {
-  setupPersistSucceeds: (params: { questFilePath: FilePath }) => void;
+  setupPersistSucceeds: (params: { questFilePath: string }) => void;
   getPersistedQuests: () => readonly unknown[];
 } => {
   // Replaced wholesale, like every sibling proxy that touches questPersistBroker's own
@@ -13,7 +12,7 @@ export const workItemPatchLayerBrokerProxy = (): {
   questPersistBrokerProxy();
   const persistMock = registerMock({ fn: questPersistBroker });
   return {
-    setupPersistSucceeds: ({ questFilePath }: { questFilePath: FilePath }): void => {
+    setupPersistSucceeds: ({ questFilePath }: { questFilePath: string }): void => {
       persistMock.calledWith([{ questFilePath }]).resolves({ success: true as const });
     },
 

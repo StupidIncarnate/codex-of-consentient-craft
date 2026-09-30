@@ -9,7 +9,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { agyTranscriptToolInvocationsExtractTransformer } from '../../../transformers/agy-transcript-tool-invocations-extract/agy-transcript-tool-invocations-extract-transformer';
 import { subagentStopNeedsBlockGuard } from '../../../guards/subagent-stop-needs-block/subagent-stop-needs-block-guard';
 import { subagentStopBlockMessageStatics } from '../../../statics/subagent-stop-block-message/subagent-stop-block-message-statics';
@@ -42,7 +41,7 @@ export const HookAgyStopResponder = async ({
     return agyStopDecisionContract.parse({ decision: 'stop' });
   }
 
-  const transcript = await readFile(filePathContract.parse(transcriptPath)).catch(() => null);
+  const transcript = await readFile(transcriptPath).catch(() => null);
 
   if (transcript === null) {
     if (fullyIdle === false) {

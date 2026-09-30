@@ -6,7 +6,6 @@
  * webBundleContentTypeTransformer({ filePath: FilePathStub({ value: '/assets/index-abc.js' }) });
  * // → 'text/javascript; charset=utf-8'
  */
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 
 const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -27,7 +26,7 @@ export type WebBundleContentType =
 export const webBundleContentTypeTransformer = ({
   filePath,
 }: {
-  filePath: FilePath;
+  filePath: string;
 }): WebBundleContentType => {
   const dotIndex = filePath.lastIndexOf('.');
   const slashIndex = filePath.lastIndexOf('/');

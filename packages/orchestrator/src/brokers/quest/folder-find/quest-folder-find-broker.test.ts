@@ -1,5 +1,4 @@
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -10,7 +9,7 @@ describe('questFolderFindBroker', () => {
   describe('quest found', () => {
     it('VALID: {questId exists in single folder} => returns folder path and quest', async () => {
       const proxy = questFolderFindBrokerProxy();
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+      const questsPath = '/project/.dungeonmaster-quests';
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
       proxy.setupQuestFolders({
@@ -18,10 +17,8 @@ describe('questFolderFindBroker', () => {
         questFolders: [FileNameStub({ value: '001-add-auth' })],
         questFiles: [
           {
-            folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' }),
-            questFilePath: FilePathStub({
-              value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-            }),
+            folderPath: '/project/.dungeonmaster-quests/001-add-auth',
+            questFilePath: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
             contents: FileContentsStub({ value: JSON.stringify(quest) }),
           },
         ],
@@ -38,7 +35,7 @@ describe('questFolderFindBroker', () => {
 
     it('VALID: {questId exists in multiple folders} => returns matching folder', async () => {
       const proxy = questFolderFindBrokerProxy();
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+      const questsPath = '/project/.dungeonmaster-quests';
       const quest1 = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
       const quest2 = QuestStub({ id: 'fix-bug', folder: '002-fix-bug' });
 
@@ -50,17 +47,13 @@ describe('questFolderFindBroker', () => {
         ],
         questFiles: [
           {
-            folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' }),
-            questFilePath: FilePathStub({
-              value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-            }),
+            folderPath: '/project/.dungeonmaster-quests/001-add-auth',
+            questFilePath: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
             contents: FileContentsStub({ value: JSON.stringify(quest1) }),
           },
           {
-            folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/002-fix-bug' }),
-            questFilePath: FilePathStub({
-              value: '/project/.dungeonmaster-quests/002-fix-bug/quest.json',
-            }),
+            folderPath: '/project/.dungeonmaster-quests/002-fix-bug',
+            questFilePath: '/project/.dungeonmaster-quests/002-fix-bug/quest.json',
             contents: FileContentsStub({ value: JSON.stringify(quest2) }),
           },
         ],
@@ -79,7 +72,7 @@ describe('questFolderFindBroker', () => {
   describe('quest not found', () => {
     it('VALID: {questId not exists} => returns not found', async () => {
       const proxy = questFolderFindBrokerProxy();
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+      const questsPath = '/project/.dungeonmaster-quests';
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
       proxy.setupQuestFolders({
@@ -87,10 +80,8 @@ describe('questFolderFindBroker', () => {
         questFolders: [FileNameStub({ value: '001-add-auth' })],
         questFiles: [
           {
-            folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' }),
-            questFilePath: FilePathStub({
-              value: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-            }),
+            folderPath: '/project/.dungeonmaster-quests/001-add-auth',
+            questFilePath: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
             contents: FileContentsStub({ value: JSON.stringify(quest) }),
           },
         ],
@@ -110,7 +101,7 @@ describe('questFolderFindBroker', () => {
 
     it('VALID: {empty folder} => returns not found', async () => {
       const proxy = questFolderFindBrokerProxy();
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+      const questsPath = '/project/.dungeonmaster-quests';
 
       proxy.setupEmptyFolder({ questsPath });
 
@@ -127,7 +118,7 @@ describe('questFolderFindBroker', () => {
   describe('error handling', () => {
     it('VALID: {folder without quest.json} => skips folder, continues search', async () => {
       const proxy = questFolderFindBrokerProxy();
-      const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+      const questsPath = '/project/.dungeonmaster-quests';
       const quest = QuestStub({ id: 'add-auth', folder: '002-add-auth' });
 
       proxy.setupQuestFoldersWithMissingFile({
@@ -136,14 +127,10 @@ describe('questFolderFindBroker', () => {
           FileNameStub({ value: '001-invalid' }),
           FileNameStub({ value: '002-add-auth' }),
         ],
-        missingFileFolder: FilePathStub({
-          value: '/project/.dungeonmaster-quests/001-invalid/quest.json',
-        }),
+        missingFileFolder: '/project/.dungeonmaster-quests/001-invalid/quest.json',
         validQuestFile: {
-          folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/002-add-auth' }),
-          questFilePath: FilePathStub({
-            value: '/project/.dungeonmaster-quests/002-add-auth/quest.json',
-          }),
+          folderPath: '/project/.dungeonmaster-quests/002-add-auth',
+          questFilePath: '/project/.dungeonmaster-quests/002-add-auth/quest.json',
           contents: FileContentsStub({ value: JSON.stringify(quest) }),
         },
       });

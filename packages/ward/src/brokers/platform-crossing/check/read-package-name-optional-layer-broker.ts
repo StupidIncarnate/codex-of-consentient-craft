@@ -10,7 +10,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { gatewayPackageNameContract } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
@@ -20,7 +19,7 @@ import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-cod
 export const readPackageNameOptionalLayerBroker = async ({
   packageJsonPath,
 }: {
-  packageJsonPath: FilePath;
+  packageJsonPath: string;
 }): Promise<GatewayPackageName | undefined> => {
   const raw = await readFile(packageJsonPath).catch((error: unknown) => {
     if (isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })) {

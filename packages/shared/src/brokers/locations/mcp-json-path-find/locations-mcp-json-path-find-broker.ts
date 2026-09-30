@@ -13,12 +13,11 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsMcpJsonPathFindBroker = async ({
   startPath,
 }: {
-  startPath: FilePath;
+  startPath: string;
 }): Promise<AbsoluteFilePath> => {
   const configRoot = await configRootFindBroker({ startPath });
 

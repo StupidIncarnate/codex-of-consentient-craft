@@ -1,5 +1,4 @@
 import { pid } from '#gateway/node/process';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -16,12 +15,9 @@ import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/po
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 const HOME_DIR = '/home/user';
-const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
-const UNOWNED_EVIDENCE_PATH = FilePathStub({
-  value:
-    '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
-});
+const HOME_PATH = '/home/user/.dungeonmaster';
+const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
+const UNOWNED_EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479';
 
 const FREE_PAIR = PortPairStub({ api: 40_000, web: 40_001 });
 const CLAIMED_PAIR = PortPairStub({ api: 34_173, web: 34_174 });
@@ -121,9 +117,7 @@ describe('instanceReserveBroker', () => {
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
-        evidencePath: FilePathStub({
-          value: `/home/user/.dungeonmaster/siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
-        }),
+        evidencePath: `/home/user/.dungeonmaster/siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
       });
       proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
 

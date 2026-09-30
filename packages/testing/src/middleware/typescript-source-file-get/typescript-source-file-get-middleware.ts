@@ -11,14 +11,13 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { readFileSync } from '#gateway/node/fs';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
 
 export const typescriptSourceFileGetMiddleware = ({
   program,
   filePath,
 }: {
   program: ts.Program | undefined;
-  filePath: FilePath;
+  filePath: string;
 }): ts.SourceFile | undefined => {
   // There may be NO program: ts-jest builds one only when `isolatedModules` is off, and on its
   // transpile path `this.program` is never assigned before the transformer factory reads it.

@@ -20,8 +20,8 @@
  */
 import { appendFile, rename, writeFile } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents, FilePath, Quest } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { FileContents, Quest } from '@dungeonmaster/shared/contracts';
 
 import { dmQuestOutboxLineContract } from '../../../contracts/dm-quest-outbox-line/dm-quest-outbox-line-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -35,18 +35,16 @@ export const questPersistDirectBroker = async ({
   questId,
 }: {
   target: DmTarget;
-  questFilePath: FilePath;
+  questFilePath: string;
   contents: FileContents;
   questId: Quest['id'];
 }): Promise<void> => {
-  const tmpPath = filePathContract.parse(`${questFilePath}${TMP_SUFFIX}`);
+  const tmpPath = `${questFilePath}${TMP_SUFFIX}`;
 
   await writeFile(tmpPath, contents);
   await rename(tmpPath, questFilePath);
 
-  const outboxPath = filePathContract.parse(
-    `${target.home}/${locationsStatics.dungeonmasterHome.eventOutbox}`,
-  );
+  const outboxPath = `${target.home}/${locationsStatics.dungeonmasterHome.eventOutbox}`;
   const outboxLine = dmQuestOutboxLineContract.parse({
     questId,
     timestamp: new Date().toISOString(),

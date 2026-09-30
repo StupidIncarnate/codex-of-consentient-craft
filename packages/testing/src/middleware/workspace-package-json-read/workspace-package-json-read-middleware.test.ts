@@ -1,6 +1,5 @@
 import { workspacePackageJsonReadMiddleware } from './workspace-package-json-read-middleware';
 import { workspacePackageJsonReadMiddlewareProxy } from './workspace-package-json-read-middleware.proxy';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 
 describe('workspacePackageJsonReadMiddleware', () => {
   describe('existing, valid package.json', () => {
@@ -13,7 +12,7 @@ describe('workspacePackageJsonReadMiddleware', () => {
           exports: { './testing': { source: './testing.ts' } },
         },
       });
-      const packageJsonPath = FilePathStub({ value: '/repo/packages/bin/package.json' });
+      const packageJsonPath = '/repo/packages/bin/package.json';
 
       const result = workspacePackageJsonReadMiddleware({ packageJsonPath });
 
@@ -29,7 +28,7 @@ describe('workspacePackageJsonReadMiddleware', () => {
         packageJsonPath: '/repo/package.json',
         packageJson: { name: 'dungeonmaster', workspaces: ['packages/*'] },
       });
-      const packageJsonPath = FilePathStub({ value: '/repo/package.json' });
+      const packageJsonPath = '/repo/package.json';
 
       const result = workspacePackageJsonReadMiddleware({ packageJsonPath });
 
@@ -41,7 +40,7 @@ describe('workspacePackageJsonReadMiddleware', () => {
     it('EMPTY: {packageJsonPath does not exist} => returns null', () => {
       const proxy = workspacePackageJsonReadMiddlewareProxy();
       proxy.setupMissingAt({ packageJsonPath: '/repo/packages/ghost/package.json' });
-      const packageJsonPath = FilePathStub({ value: '/repo/packages/ghost/package.json' });
+      const packageJsonPath = '/repo/packages/ghost/package.json';
 
       const result = workspacePackageJsonReadMiddleware({ packageJsonPath });
 
@@ -56,7 +55,7 @@ describe('workspacePackageJsonReadMiddleware', () => {
         packageJsonPath: '/repo/packages/bin/package.json',
         packageJson: { name: 123 },
       });
-      const packageJsonPath = FilePathStub({ value: '/repo/packages/bin/package.json' });
+      const packageJsonPath = '/repo/packages/bin/package.json';
 
       const result = workspacePackageJsonReadMiddleware({ packageJsonPath });
 

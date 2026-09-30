@@ -28,7 +28,7 @@ import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStatus, ModifyQuestInput, SlotIndex, Quest, Session } from '@dungeonmaster/shared/contracts';
 
-import { filePathContract, getQuestInputContract, modifyQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, modifyQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { questResumeRearmWorkItemsTransformer } from '../../../transformers/quest-resume-rearm-work-items/quest-resume-rearm-work-items-transformer';
@@ -177,7 +177,7 @@ export const OrchestrationResumeResponder = async ({
   // Resolve the guild path so questOrchestrationLoopBroker can run from the correct root.
   const { guildId } = await questFindQuestPathBroker({ questId });
   const guild = await guildGetBroker({ guildId });
-  const startPath = filePathContract.parse(guild.path);
+  const startPath = guild.path;
 
   // Reset orphaned active work items back to pending, keeping sessionId + the resume marker so
   // Node dispatch resumes the interrupted session (work preserved) instead of fresh-spawning.

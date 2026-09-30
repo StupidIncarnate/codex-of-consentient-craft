@@ -1,4 +1,3 @@
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
@@ -25,12 +24,12 @@ export const questCwdResolveBrokerProxy = (): {
   return {
     setupWorktreePresent: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      accessibleProxy.present({ path: filePathContract.parse(quest.worktreePath) });
+      accessibleProxy.present({ path: quest.worktreePath });
     },
 
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      accessibleProxy.missing({ path: filePathContract.parse(quest.worktreePath) });
+      accessibleProxy.missing({ path: quest.worktreePath });
     },
 
     // Stages the quest read and NOTHING ELSE. The absent pathExists staging is the

@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { workspaceManifestEntriesVerifyBroker } from './workspace-manifest-entries-verify-broker';
 import { workspaceManifestEntriesVerifyBrokerProxy } from './workspace-manifest-entries-verify-broker.proxy';
@@ -11,11 +10,11 @@ describe('workspaceManifestEntriesVerifyBroker', () => {
       const packagePath = AbsoluteFilePathStub({ value: '/repo/packages/example' });
 
       proxy.setupManifest({
-        manifestPath: FilePathStub({ value: '/repo/packages/example/package.json' }),
+        manifestPath: '/repo/packages/example/package.json',
         manifestJson: JSON.stringify({ main: 'dist/index.js' }),
       });
       proxy.setupFileExists({
-        filePath: FilePathStub({ value: '/repo/packages/example/dist/index.js' }),
+        filePath: '/repo/packages/example/dist/index.js',
       });
 
       const result = await workspaceManifestEntriesVerifyBroker({ packagePath });
@@ -30,11 +29,11 @@ describe('workspaceManifestEntriesVerifyBroker', () => {
       const packagePath = AbsoluteFilePathStub({ value: '/repo/packages/example' });
 
       proxy.setupManifest({
-        manifestPath: FilePathStub({ value: '/repo/packages/example/package.json' }),
+        manifestPath: '/repo/packages/example/package.json',
         manifestJson: JSON.stringify({ main: 'dist/index.js' }),
       });
       proxy.setupFileMissing({
-        filePath: FilePathStub({ value: '/repo/packages/example/dist/index.js' }),
+        filePath: '/repo/packages/example/dist/index.js',
       });
 
       const result = await workspaceManifestEntriesVerifyBroker({ packagePath });
@@ -47,7 +46,7 @@ describe('workspaceManifestEntriesVerifyBroker', () => {
       const packagePath = AbsoluteFilePathStub({ value: '/repo/packages/example' });
 
       proxy.setupManifest({
-        manifestPath: FilePathStub({ value: '/repo/packages/example/package.json' }),
+        manifestPath: '/repo/packages/example/package.json',
         manifestJson: JSON.stringify({
           exports: {
             '.': {
@@ -58,7 +57,7 @@ describe('workspaceManifestEntriesVerifyBroker', () => {
         }),
       });
       proxy.setupFileMissing({
-        filePath: FilePathStub({ value: '/repo/packages/example/./dist/index.js' }),
+        filePath: '/repo/packages/example/./dist/index.js',
       });
 
       const result = await workspaceManifestEntriesVerifyBroker({ packagePath });
@@ -75,7 +74,7 @@ describe('workspaceManifestEntriesVerifyBroker', () => {
       const packagePath = AbsoluteFilePathStub({ value: '/repo/packages/example' });
 
       proxy.setupManifest({
-        manifestPath: FilePathStub({ value: '/repo/packages/example/package.json' }),
+        manifestPath: '/repo/packages/example/package.json',
         manifestJson: JSON.stringify({ name: '@dungeonmaster/example' }),
       });
 

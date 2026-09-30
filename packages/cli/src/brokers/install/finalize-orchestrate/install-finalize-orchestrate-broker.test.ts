@@ -4,7 +4,6 @@
 
 import { installFinalizeOrchestrateBroker } from './install-finalize-orchestrate-broker';
 import { installFinalizeOrchestrateBrokerProxy } from './install-finalize-orchestrate-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
@@ -36,12 +35,12 @@ describe('installFinalizeOrchestrateBroker', () => {
 
       const pkg1 = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
-        installPath: FilePathStub({ value: '/path/to/cli/start-install.ts' }),
+        installPath: '/path/to/cli/start-install.ts',
         finalizeInstallPath: null,
       });
       const pkg2 = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
-        installPath: FilePathStub({ value: '/path/to/hooks/start-install.ts' }),
+        installPath: '/path/to/hooks/start-install.ts',
         finalizeInstallPath: null,
       });
       const packages = [pkg1, pkg2];
@@ -62,15 +61,13 @@ describe('installFinalizeOrchestrateBroker', () => {
 
       const withoutFinalize = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
-        installPath: FilePathStub({ value: '/path/to/cli/start-install.ts' }),
+        installPath: '/path/to/cli/start-install.ts',
         finalizeInstallPath: null,
       });
-      const finalizeInstallPath = FilePathStub({
-        value: '/path/to/siegelense/start-install-finalize.ts',
-      });
+      const finalizeInstallPath = '/path/to/siegelense/start-install-finalize.ts';
       const withFinalize = Object.assign(Object.create(null), {
         packageName: PackageNameStub({ value: '@dungeonmaster/siegelense' }),
-        installPath: FilePathStub({ value: '/path/to/siegelense/start-install.ts' }),
+        installPath: '/path/to/siegelense/start-install.ts',
         finalizeInstallPath,
       });
       const packages = [withoutFinalize, withFinalize];

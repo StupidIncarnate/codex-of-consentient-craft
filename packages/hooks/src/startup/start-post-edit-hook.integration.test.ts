@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
@@ -16,9 +15,7 @@ const WARMUP_TIMEOUT_MS = 120_000;
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using _lint-testbed (NOT _test-workspace or .test-tmp which are ESLint-ignored)
-const BASE_DIR = FilePathStub({
-  value: `${PACKAGE_DIR}/src/_lint-testbed/post-edit-tests`,
-});
+const BASE_DIR = `${PACKAGE_DIR}/src/_lint-testbed/post-edit-tests`;
 
 describe('post-edit-hook', () => {
   const persistentRunner = hookPersistentRunnerHarness();

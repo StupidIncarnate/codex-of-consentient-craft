@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
@@ -18,7 +17,7 @@ export const checkGatewayExportNameExistsLayerBrokerProxy = (): {
       sourceText: string;
     }): void => {
       readProxy.returns({
-        path: FilePathStub({ value: barrelPath }),
+        path: barrelPath,
         contents: sourceText,
       });
     },
@@ -30,7 +29,7 @@ export const checkGatewayExportNameExistsLayerBrokerProxy = (): {
       targetPath: string;
       sourceText: string;
     }): void => {
-      const filePath = FilePathStub({ value: targetPath });
+      const filePath = targetPath;
       existsProxy.returns({ path: filePath, exists: true });
       readProxy.returns({ path: filePath, contents: sourceText });
     },

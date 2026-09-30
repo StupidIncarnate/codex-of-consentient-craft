@@ -7,8 +7,7 @@
  */
 
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -18,8 +17,8 @@ import { join } from '#gateway/node/path';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 const DEFAULT_HOME_DIR = '/home/user';
-const DEFAULT_HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
-const DEFAULT_CONFIG_FILE_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
+const DEFAULT_HOME_PATH = '/home/user/.dungeonmaster';
+const DEFAULT_CONFIG_FILE_PATH = '/home/user/.dungeonmaster/config.json';
 
 export const guildConfigReadBrokerProxy = (): {
   setupConfig: (params: {
@@ -30,24 +29,24 @@ export const guildConfigReadBrokerProxy = (): {
     // has to run through this one process's dungeonmasterHomeFindBroker() — the mock is shared and
     // address-less, so the LAST setupHomePath call in a test wins for every composed proxy.
     homeDir?: string;
-    homePath?: FilePath;
+    homePath?: string;
   }) => void;
-  setupConfigAt: (params: { configFilePath: FilePath; config: GuildConfig }) => void;
+  setupConfigAt: (params: { configFilePath: string; config: GuildConfig }) => void;
   setupConfigExists: (params: {
     homeDir: string;
-    homePath: FilePath;
-    configFilePath: FilePath;
+    homePath: string;
+    configFilePath: string;
     configJson: string;
   }) => void;
   setupConfigMissing: (params: {
     homeDir: string;
-    homePath: FilePath;
-    configFilePath: FilePath;
+    homePath: string;
+    configFilePath: string;
   }) => void;
   setupReadError: (params: {
     homeDir: string;
-    homePath: FilePath;
-    configFilePath: FilePath;
+    homePath: string;
+    configFilePath: string;
     error: FsError;
   }) => void;
 } => {
@@ -66,12 +65,12 @@ export const guildConfigReadBrokerProxy = (): {
     }: {
       config: GuildConfig;
       homeDir?: string;
-      homePath?: FilePath;
+      homePath?: string;
     }): void => {
       const configFilePath =
         homePath === DEFAULT_HOME_PATH
           ? DEFAULT_CONFIG_FILE_PATH
-          : FilePathStub({ value: `${String(homePath)}/config.json` });
+          : `${String(homePath)}/config.json`;
       homeFindProxy.setupHomePath({ homeDir, homePath });
       joinHandle
         .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
@@ -89,7 +88,7 @@ export const guildConfigReadBrokerProxy = (): {
       configFilePath,
       config,
     }: {
-      configFilePath: FilePath;
+      configFilePath: string;
       config: GuildConfig;
     }): void => {
       readFileHandle.returns({ path: configFilePath, contents: JSON.stringify(config) });
@@ -102,8 +101,8 @@ export const guildConfigReadBrokerProxy = (): {
       configJson,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      configFilePath: FilePath;
+      homePath: string;
+      configFilePath: string;
       configJson: string;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
@@ -119,8 +118,8 @@ export const guildConfigReadBrokerProxy = (): {
       configFilePath,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      configFilePath: FilePath;
+      homePath: string;
+      configFilePath: string;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       joinHandle
@@ -136,8 +135,8 @@ export const guildConfigReadBrokerProxy = (): {
       error,
     }: {
       homeDir: string;
-      homePath: FilePath;
-      configFilePath: FilePath;
+      homePath: string;
+      configFilePath: string;
       error: FsError;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });

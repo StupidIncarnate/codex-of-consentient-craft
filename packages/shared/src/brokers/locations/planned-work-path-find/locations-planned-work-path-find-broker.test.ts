@@ -1,7 +1,6 @@
 import { locationsPlannedWorkPathFindBroker } from './locations-planned-work-path-find-broker';
 import { locationsPlannedWorkPathFindBrokerProxy } from './locations-planned-work-path-find-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('locationsPlannedWorkPathFindBroker', () => {
   describe('planned-work path resolution', () => {
@@ -9,7 +8,7 @@ describe('locationsPlannedWorkPathFindBroker', () => {
       const proxy = locationsPlannedWorkPathFindBrokerProxy();
 
       proxy.setupPlannedWorkPath({
-        plannedWorkPath: FilePathStub({ value: '/quest/planned-work' }),
+        plannedWorkPath: '/quest/planned-work',
       });
 
       const result = locationsPlannedWorkPathFindBroker({

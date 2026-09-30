@@ -1,7 +1,6 @@
 import { locationsRepoLinkPathFindBroker } from './locations-repo-link-path-find-broker';
 import { locationsRepoLinkPathFindBrokerProxy } from './locations-repo-link-path-find-broker.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 
@@ -15,10 +14,10 @@ describe('locationsRepoLinkPathFindBroker', () => {
 
       proxy.setupLinkResolvesToRoot({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
       });
 
       const result = await locationsRepoLinkPathFindBroker({ homePath });
@@ -43,7 +42,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
 
       proxy.setupLinkAbsent({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
       });
 
       const result = await locationsRepoLinkPathFindBroker({ homePath });
@@ -59,7 +58,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
 
       proxy.setupLinkAbsent({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
       });
 
       await locationsRepoLinkPathFindBroker({ homePath });
@@ -81,10 +80,10 @@ describe('locationsRepoLinkPathFindBroker', () => {
 
       proxy.setupLinkPointsElsewhere({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: '/home/user',
-        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: '/home/user/.dungeonmaster/siegelense',
         elsewhereTarget: '/other/checkout/.dungeonmaster/siegelense',
       });
 

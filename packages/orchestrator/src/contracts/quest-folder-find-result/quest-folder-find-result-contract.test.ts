@@ -1,4 +1,3 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questFolderFindResultContract } from './quest-folder-find-result-contract';
@@ -13,7 +12,7 @@ describe('questFolderFindResultContract', () => {
       const quest = QuestStub({ id: 'add-auth' });
       const result = questFolderFindResultContract.parse({
         found: true,
-        folderPath: FilePathStub({ value: '/project/.dungeonmaster-quests/001-add-auth' }),
+        folderPath: '/project/.dungeonmaster-quests/001-add-auth',
         quest,
       });
 
@@ -55,7 +54,7 @@ describe('questFolderFindResultContract', () => {
       expect(() =>
         questFolderFindResultContract.parse({
           found: true,
-          folderPath: FilePathStub({ value: '/path' }),
+          folderPath: '/path',
         }),
       ).toThrow(/Invalid input: expected object, received undefined/iu);
     });

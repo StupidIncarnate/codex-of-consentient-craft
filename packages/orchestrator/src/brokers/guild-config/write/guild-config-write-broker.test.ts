@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -17,7 +16,7 @@ describe('guildConfigWriteBroker', () => {
       const config = GuildConfigStub({ guilds: [] });
 
       proxy.setupSuccessAt({
-        configFilePath: FilePathStub({ value: '/tmp/dm-home-target/config.json' }),
+        configFilePath: '/tmp/dm-home-target/config.json',
       });
 
       await guildConfigWriteBroker({
@@ -39,7 +38,7 @@ describe('guildConfigWriteBroker', () => {
       const config = GuildConfigStub({ guilds: [guild] });
 
       proxy.setupSuccessAt({
-        configFilePath: FilePathStub({ value: '/tmp/dm-home-target/config.json' }),
+        configFilePath: '/tmp/dm-home-target/config.json',
       });
 
       await guildConfigWriteBroker({
@@ -49,7 +48,7 @@ describe('guildConfigWriteBroker', () => {
 
       expect(
         proxy.getWrittenAt({
-          configFilePath: FilePathStub({ value: '/tmp/dm-home-target/config.json' }),
+          configFilePath: '/tmp/dm-home-target/config.json',
         }),
       ).toBe(JSON.stringify(config, null, 2));
     });
@@ -58,8 +57,8 @@ describe('guildConfigWriteBroker', () => {
   describe('successful write', () => {
     it('VALID: {config with guilds} => writes pretty-printed JSON', async () => {
       const proxy = guildConfigWriteBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
+      const homePath = '/home/user/.dungeonmaster';
+      const configFilePath = '/home/user/.dungeonmaster/config.json';
       const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'My Guild',
@@ -83,8 +82,8 @@ describe('guildConfigWriteBroker', () => {
 
     it('VALID: {config with empty guilds} => writes JSON with empty array', async () => {
       const proxy = guildConfigWriteBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
+      const homePath = '/home/user/.dungeonmaster';
+      const configFilePath = '/home/user/.dungeonmaster/config.json';
       const config = GuildConfigStub({ guilds: [] });
 
       proxy.setupWriteSuccess({
@@ -104,8 +103,8 @@ describe('guildConfigWriteBroker', () => {
   describe('write errors', () => {
     it('ERROR: {write failure} => throws error', async () => {
       const proxy = guildConfigWriteBrokerProxy();
-      const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-      const configFilePath = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
+      const homePath = '/home/user/.dungeonmaster';
+      const configFilePath = '/home/user/.dungeonmaster/config.json';
       const config = GuildConfigStub({ guilds: [] });
 
       proxy.setupWriteFailure({

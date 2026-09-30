@@ -1,4 +1,3 @@
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { commandRunBrokerProxy } from '../../../brokers/command/run/command-run-broker.proxy';
 import { WardRunResponder } from './ward-run-responder';
 
@@ -6,7 +5,7 @@ export const WardRunResponderProxy = (): {
   callResponder: typeof WardRunResponder;
   setupSinglePackagePass: () => void;
   setupSinglePackageLintOnly: () => void;
-  setupExistingPath: (params: { filePath: FilePath }) => void;
+  setupExistingPath: (params: { filePath: string }) => void;
   setupCompanionTestMissing: (params: { relativePath: string }) => void;
 } => {
   const runProxy = commandRunBrokerProxy();
@@ -22,7 +21,7 @@ export const WardRunResponderProxy = (): {
       runProxy.setupSinglePackagePass();
     },
 
-    setupExistingPath: ({ filePath }: { filePath: FilePath }): void => {
+    setupExistingPath: ({ filePath }: { filePath: string }): void => {
       runProxy.setupExistingPath({ filePath });
     },
 

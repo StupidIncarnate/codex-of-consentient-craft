@@ -9,12 +9,11 @@ import { join } from '#gateway/node/path';
 import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestWardDetailResponder } from './quest-ward-detail-responder';
 
 const DETAIL_WARD_RESULT_ID = '22222222-2222-4222-8222-222222222222';
 const DETAIL_FILE_PATH_VALUE = `/home/testuser/quest/ward-results/${DETAIL_WARD_RESULT_ID}.json`;
-const DETAIL_FILE_PATH = FilePathStub({ value: DETAIL_FILE_PATH_VALUE });
+const DETAIL_FILE_PATH = DETAIL_FILE_PATH_VALUE;
 // Matches the literal VALID_QUEST_ID used by every test in quest-ward-detail-responder.test.ts —
 // the responder passes params.questId straight through, so the mocked address must match it.
 const DETAIL_QUEST_ID = QuestIdStub({ value: '11111111-1111-4111-8111-111111111111' });
