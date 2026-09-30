@@ -41,7 +41,6 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
 import { keyListingContract } from '../key-listing/key-listing-contract';
-import { nodeLabelContract } from '../node-label/node-label-contract';
 import { serverLogWindowContract } from '../server-log-window/server-log-window-contract';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
@@ -50,7 +49,7 @@ import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/insta
 export const stepReadingContract = z.object({
   step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'StepReadingStep'>(),
   verb: stepVerbContract,
-  node: nodeLabelContract.nullable(),
+  node: z.string().min(1).brand<'StepReadingNode'>().nullable(),
   ok: z.boolean(),
   expected: stepExpectationContract,
   reading: z.string().brand<'StepReadingReading'>(),

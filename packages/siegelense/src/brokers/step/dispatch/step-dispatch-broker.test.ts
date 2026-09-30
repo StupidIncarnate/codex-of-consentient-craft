@@ -3,7 +3,6 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
-import { NodeLabelStub } from '../../../contracts/node-label/node-label.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import type { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { stepStatics } from '../../../statics/step/step-statics';
@@ -837,7 +836,7 @@ describe('stepDispatchBroker', () => {
       const step = StepStub({
         step: 'click',
         target: '[data-testid="GUILD_ADD"]',
-        node: NodeLabelStub({ value: 'open-guild-modal' }),
+        node: 'open-guild-modal',
       });
 
       const result = await stepDispatchBroker({

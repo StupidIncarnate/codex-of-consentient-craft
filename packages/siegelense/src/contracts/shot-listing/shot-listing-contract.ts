@@ -24,7 +24,6 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { nodeLabelContract } from '../node-label/node-label-contract';
 import { shotOpenReasonContract } from '../shot-open-reason/shot-open-reason-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -33,7 +32,7 @@ export const shotListingContract = z.object({
   path: absoluteFilePathContract,
   open: z.boolean(),
   why: shotOpenReasonContract.nullable(),
-  node: nodeLabelContract.nullable(),
+  node: z.string().min(1).brand<'ShotListingNode'>().nullable(),
   pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'ShotListingPixelChange'>().nullable(),
   blank: z.boolean().nullable(),
   blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'ShotListingBlankColour'>().nullable(),

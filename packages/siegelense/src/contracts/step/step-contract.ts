@@ -39,7 +39,6 @@ import { domFieldContract } from '../dom-field/dom-field-contract';
 import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
 import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
-import { nodeLabelContract } from '../node-label/node-label-contract';
 import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
@@ -70,7 +69,7 @@ export const stepContract = z
         // `urlPathContract` alone would refuse it. Resolving the reference into a real path is a run's
         // job (holding earlier steps' outputs), not this contract's.
         path: z.string().startsWith('/').brand<'StepPath'>().or(stepRefContract),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -83,7 +82,7 @@ export const stepContract = z
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         state: locatorStateContract,
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -96,7 +95,7 @@ export const stepContract = z
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -110,7 +109,7 @@ export const stepContract = z
         ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
         value: z.string().brand<'StepValue'>(),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -131,7 +130,7 @@ export const stepContract = z
             message: `a screenshot name must end in "${evidenceFileStatics.extensions.shot}" — the capture is a PNG and every call that reads one decodes it as such. Try { "step": "screenshot", "name": "after-create${evidenceFileStatics.extensions.shot}" }`,
           },
         ),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -141,7 +140,7 @@ export const stepContract = z
       .object({
         step: z.literal('eval'),
         source: z.string().brand<'StepSource'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -157,7 +156,7 @@ export const stepContract = z
         // session copying a scope out of an error and a session writing the spec's shorthand are
         // never one silent element-tag match apart.
         within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -167,7 +166,7 @@ export const stepContract = z
       .object({
         step: z.literal('box'),
         ref: z.number().int().positive().brand<'StepRef'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -179,7 +178,7 @@ export const stepContract = z
         target: z.string().min(1).brand<'StepTarget'>(),
         fields: z.array(domFieldContract).readonly().nullable().default(null),
         text: domTextModeContract.nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -194,7 +193,7 @@ export const stepContract = z
         // (siegelense-tooling.md lines 882-883).
         params: z.record(z.string().min(1).brand<'StepParams'>(), z.unknown()).nullable().default(null),
         as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -212,7 +211,7 @@ export const stepContract = z
         predicate: z.string().brand<'StepPredicate'>().nullable().default(null),
         console: untilConsolePatternContract.nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -222,7 +221,7 @@ export const stepContract = z
       .object({
         step: z.literal('key'),
         press: z.string().brand<'StepPress'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -231,7 +230,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('health'),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -242,7 +241,7 @@ export const stepContract = z
         step: z.literal('resize'),
         width: z.number().int().positive().brand<'PositiveNumber'>(),
         height: z.number().int().positive().brand<'PositiveNumber'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -257,7 +256,7 @@ export const stepContract = z
         headers: z
           .record(z.string().brand<'HttpHeaderName'>(), z.string().brand<'HttpHeaderValue'>())
           .optional(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -267,7 +266,7 @@ export const stepContract = z
       .object({
         step: z.literal('before'),
         source: z.string().brand<'StepSource'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -277,7 +276,7 @@ export const stepContract = z
       .object({
         step: z.literal('file'),
         path: stepFilePathContract,
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -289,7 +288,7 @@ export const stepContract = z
         // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the
         // schema's own output type, and a bare string can never satisfy a branded type.
         prefix: z.string().default(storageStatics.defaults.prefix).brand<'StoragePrefix'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -304,7 +303,7 @@ export const stepContract = z
         filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
         value: z.string().brand<'StepValue'>().nullable().default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -327,7 +326,7 @@ export const stepContract = z
           .positive()
           .default(holdStatics.defaults.everyMs)
           .brand<'HoldEveryMs'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -337,7 +336,7 @@ export const stepContract = z
       .object({
         step: z.literal('video'),
         action: videoActionContract,
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -347,7 +346,7 @@ export const stepContract = z
       .object({
         step: z.literal('snapshot'),
         as: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'StepAs'>(),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
@@ -359,7 +358,7 @@ export const stepContract = z
         level: resetLevelContract.default(resetLevelContract.parse('state')),
         to: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'StepTo'>().nullable().default(null),
         reseed: z.string().brand<'StepReseed'>().nullable().default(null),
-        node: nodeLabelContract.nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
