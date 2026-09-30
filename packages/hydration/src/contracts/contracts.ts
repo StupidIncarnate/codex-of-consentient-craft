@@ -6,7 +6,6 @@
  * import { ... } from '@dungeonmaster/hydration/contracts';
  */
 
-export * from './build-sequence/build-sequence-contract';
 
 
 export * from './copies-target/copies-target-contract';

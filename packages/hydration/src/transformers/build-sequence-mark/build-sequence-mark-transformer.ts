@@ -14,14 +14,12 @@
  * buildSequenceMarkTransformer({ advance: true });
  * // Returns the freshly-advanced BuildSequence, one higher than the previous call
  */
-import { buildSequenceContract } from '../../contracts/build-sequence/build-sequence-contract';
-import type { BuildSequence } from '../../contracts/build-sequence/build-sequence-contract';
 
-let currentBuildSequence = buildSequenceContract.parse(0);
+let currentBuildSequence = 0;
 
-export const buildSequenceMarkTransformer = ({ advance }: { advance: boolean }): BuildSequence => {
+export const buildSequenceMarkTransformer = ({ advance }: { advance: boolean }): number => {
   if (advance) {
-    currentBuildSequence = buildSequenceContract.parse(currentBuildSequence + 1);
+    currentBuildSequence = (currentBuildSequence + 1);
   }
   return currentBuildSequence;
 };

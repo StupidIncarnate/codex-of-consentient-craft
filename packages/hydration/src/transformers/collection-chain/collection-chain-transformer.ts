@@ -51,7 +51,6 @@ import { fieldValuesContract } from '../../contracts/field-values/field-values-c
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { rowIndexContract } from '../../contracts/row-index/row-index-contract';
 import { callIndexContract } from '../../contracts/call-index/call-index-contract';
-import type { BuildSequence } from '../../contracts/build-sequence/build-sequence-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
 import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
@@ -87,7 +86,7 @@ export const collectionChainTransformer = <
   const identity = hydrationCollectionContract.parse({ ingredient: ingredientConfig.name });
   const scope = ancestors.length === 0 ? undefined : ancestors[ancestors.length - 1];
   let nextCallIndex = 0;
-  let lastSeenBuildSequence: BuildSequence | null = null;
+  let lastSeenBuildSequence: number | null = null;
 
   return {
     ...identity,
