@@ -42,7 +42,9 @@ type HookName =
 
 const PACKAGE_DIR = resolve(__dirname, '../../..');
 const WORKER_PATH = join(__dirname, 'hook-persistent-worker.ts');
-const STARTUP_TIMEOUT_MS = 30000;
+// The clock runs while a caller's own `spawnSync` blocks the event loop, so READY is only noticed
+// once that block ends; 30s lost that race under a full ward run.
+const STARTUP_TIMEOUT_MS = 120000;
 const STOP_TIMEOUT_MS = 5000;
 
 export const hookPersistentRunnerHarness = (): {
@@ -141,7 +143,7 @@ export const hookPersistentRunnerHarness = (): {
     // Wait for READY signal
     await new Promise<void>((resolveReady, rejectReady) => {
       const timeout = setTimeout(() => {
-        rejectReady(new Error('Worker startup timeout (30s)'));
+        rejectReady(new Error('Worker startup timeout (120s)'));
       }, STARTUP_TIMEOUT_MS);
 
       child.onStdoutLine((line) => {

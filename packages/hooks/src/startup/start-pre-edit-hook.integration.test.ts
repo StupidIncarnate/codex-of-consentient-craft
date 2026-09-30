@@ -34,13 +34,23 @@ describe('pre-edit-lint', () => {
   let smokeSuccess: ReturnType<typeof ExecResultStub>;
   let smokeFailure: ReturnType<typeof ExecResultStub>;
 
+  // Three cold children, each paying the ~5s `eslint.config.js` load (2333 modules through tsx)
+  // plus ESLint's first program: measured 6.9s to 8.0s per child at load average 2.3. The worker
+  // warm-up is started WITHOUT await so it loads while the two `spawnSync` smokes block this
+  // thread; the children are separate processes, so they overlap. Jest's 30s test timeout (ward's
+  // `--testTimeout`) covered the serial sum alone (about 21s) but not a full run, where `--maxWorkers`
+  // workers and every other file's children share the cores and each child takes two to three times
+  // as long (full-run ward 1790796592908-a9ef: every test in this file timed out). 180s is that
+  // worst case with margin; the suite exits as soon as the children finish.
+  const BEFORE_ALL_TIMEOUT_MS = 180000;
+
   beforeAll(async () => {
     const warmupTestbed = installTestbedCreateBroker({
       baseName: 'warmup',
       baseDir: BASE_DIR,
     });
 
-    await persistentRunner.start({
+    const warmup = persistentRunner.start({
       hookName: 'start-pre-edit-hook',
       warmupHookData: WriteToolHookStub({
         cwd: warmupTestbed.guildPath,
@@ -50,8 +60,6 @@ describe('pre-edit-lint', () => {
         },
       }),
     });
-
-    warmupTestbed.cleanup();
 
     const successTestbed = installTestbedCreateBroker({
       baseName: 'smoke-success',
@@ -88,7 +96,10 @@ describe('pre-edit-lint', () => {
     });
 
     failureTestbed.cleanup();
-  });
+
+    await warmup;
+    warmupTestbed.cleanup();
+  }, BEFORE_ALL_TIMEOUT_MS);
 
   afterAll(async () => {
     await persistentRunner.stop();
