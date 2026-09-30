@@ -25,14 +25,14 @@ const mcpServerConfigContract = z.object({
   type: mcpServerTypeContract,
   command: mcpCommandContract,
   args: z.array(mcpArgContract),
-});
+}).brand<'McpServerConfig'>();
 
 // `.loose()` and `.partial()`: .mcp.json belongs to the user. A server entry of another shape
 // (`url`, `env`, no `type`) and any top-level key must survive the merge the install responder writes back.
 export const mcpConfigContract = z
   .object({
     mcpServers: z
-      .record(mcpServerNameContract, mcpServerConfigContract.partial().loose())
+      .record(mcpServerNameContract, mcpServerConfigContract.partial().brand<'McpConfigMcpServers'>().loose())
       .optional(),
   })
   .loose().brand<'McpConfig'>();

@@ -9,7 +9,7 @@ import { z } from '#gateway/npm/zod';
 import { signalBackInputContract } from '../signal-back-input/signal-back-input-contract';
 
 export const signalBackResultContract = z.object({
-  success: z.boolean().brand<'SuccessFlag'>(),
+  success: z.boolean(),
   signal: signalBackInputContract,
 }).brand<'SignalBackResult'>();
 

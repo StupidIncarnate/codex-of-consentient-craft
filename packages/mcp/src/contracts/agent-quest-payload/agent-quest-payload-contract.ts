@@ -20,7 +20,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 // back — see quest-strip-comments-transformer.ts for where this contract is actually applied.
 export const agentQuestPayloadContract = z.object({
   success: z.boolean(),
-  quest: questContract.omit({ comments: true }).optional(),
+  quest: questContract.omit({ comments: true }).brand<'AgentQuestPayloadQuest'>().optional(),
   error: z.string().brand<'AgentQuestPayloadError'>().optional(),
 }).brand<'AgentQuestPayload'>();
 

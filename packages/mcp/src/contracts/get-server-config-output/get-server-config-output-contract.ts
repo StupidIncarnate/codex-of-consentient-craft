@@ -13,7 +13,7 @@ export const getServerConfigOutputContract = z
   .object({
     baseUrl: z
       .url()
-      .brand<'BaseUrl'>()
+      .brand<'GetServerConfigOutputBaseUrl'>()
       .describe(
         'Full base URL the dungeonmaster server is listening on (e.g. http://localhost:3737)',
       ),

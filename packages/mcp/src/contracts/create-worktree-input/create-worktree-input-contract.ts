@@ -20,7 +20,7 @@ export const createWorktreeInputContract = z
       .describe(
         'Directory name under worktrees/, which doubles as the branch name. Asking again for a name that already exists hands back the same tree',
       )
-      .brand<'WorktreeName'>(),
+      .brand<'CreateWorktreeInputName'>(),
   })
   .strict()
   .brand<'CreateWorktreeInput'>();

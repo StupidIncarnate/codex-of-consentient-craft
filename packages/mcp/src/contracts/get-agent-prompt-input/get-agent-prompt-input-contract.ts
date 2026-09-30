@@ -24,7 +24,7 @@ export const getAgentPromptInputContract = z.object({
   agent: z
     .string()
     .min(1)
-    .brand<'AgentPromptInputAgent'>()
+    .brand<'GetAgentPromptInputAgent'>()
     .describe(
       'Agent name. A relay role (codeweaver, flowrider, siegemaster, spiritmender, warpgate) or a minion named for the role that summons it (e.g. codeweaver-reviewer, siegemaster-walker).',
     ),

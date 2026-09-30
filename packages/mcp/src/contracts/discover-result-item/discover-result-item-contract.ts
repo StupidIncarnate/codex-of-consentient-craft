@@ -10,12 +10,12 @@ import { z } from '#gateway/npm/zod';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
 export const discoverResultItemContract = z.object({
-  name: z.string().brand<'FunctionName'>(),
+  name: z.string().brand<'DiscoverResultItemName'>(),
   path: z.string().brand<'DiscoverResultItemPath'>(),
-  type: z.string().brand<'FileType'>(),
-  purpose: z.string().brand<'Purpose'>().optional(),
-  usage: z.string().brand<'UsageExample'>().optional(),
-  signature: z.string().brand<'FunctionSignature'>().optional(),
+  type: z.string().brand<'DiscoverResultItemType'>(),
+  purpose: z.string().brand<'DiscoverResultItemPurpose'>().optional(),
+  usage: z.string().brand<'DiscoverResultItemUsage'>().optional(),
+  signature: z.string().brand<'DiscoverResultItemSignature'>().optional(),
   relatedFiles: z.array(z.string().brand<'DiscoverResultItemRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
 }).brand<'DiscoverResultItem'>();

@@ -24,12 +24,12 @@ const planPayloadContract = z
   .object({
     kind: z.literal('plan'),
     plan: z
-      .record(z.string().brand<'PlanFieldKey'>(), z.unknown())
+      .record(z.string().brand<'PlanPayloadPlanKey'>(), z.unknown())
       .describe(
         "The pieces and their batches, plus plannerMarks — story 07's whole-plan envelope, minus writtenBy/writtenAt (stamped server-side).",
       ),
   })
-  .strict();
+  .strict().brand<'PlanPayload'>();
 
 const observationsPayloadContract = z
   .object({
@@ -40,17 +40,17 @@ const observationsPayloadContract = z
           .object({
             unitId: qaChecklistItemContract.shape.id,
             mark: z.enum(['met', 'cant-meet', 'unmet']),
-            evidence: z.string().min(1).brand<'MarkEvidence'>(),
-            toSettle: z.string().min(1).brand<'ToSettleInstruction'>().optional(),
+            evidence: z.string().min(1).brand<'ObservationsPayloadObservationsEvidence'>(),
+            toSettle: z.string().min(1).brand<'ObservationsPayloadObservationsToSettle'>().optional(),
           })
-          .strict(),
+          .strict().brand<'ObservationsPayloadObservations'>(),
       )
       .min(1)
       .describe(
         'Per unit, one of met / cant-meet / unmet, with evidence. toSettle is required on cant-meet and refused elsewhere.',
       ),
   })
-  .strict();
+  .strict().brand<'ObservationsPayload'>();
 
 const amendmentPayloadContract = z
   .object({
@@ -58,23 +58,23 @@ const amendmentPayloadContract = z
     reason: z
       .string()
       .min(1)
-      .brand<'AmendmentReason'>()
+      .brand<'AmendmentPayloadReason'>()
       .describe('What the run revealed that makes the plan wrong.'),
     plan: z
-      .record(z.string().brand<'PlanFieldKey'>(), z.unknown())
+      .record(z.string().brand<'AmendmentPayloadPlanKey'>(), z.unknown())
       .describe(
         'The WHOLE replacement plan, in the same shape as the plan payload — never a patch.',
       ),
   })
-  .strict();
+  .strict().brand<'AmendmentPayload'>();
 
 const outcomePayloadContract = z
   .object({
     kind: z.literal('outcome'),
     word: z.enum(['done', 'unmet', 'empty', 'wall']),
-    reason: z.string().min(1).brand<'OutcomeReason'>().describe('Required on all four words.'),
+    reason: z.string().min(1).brand<'OutcomePayloadReason'>().describe('Required on all four words.'),
   })
-  .strict();
+  .strict().brand<'OutcomePayload'>();
 
 const invalidationPayloadContract = z
   .object({
@@ -83,12 +83,12 @@ const invalidationPayloadContract = z
     reason: z
       .string()
       .min(1)
-      .brand<'ResetReason'>()
+      .brand<'InvalidationPayloadReason'>()
       .describe(
         "What changed underneath the flow's already-recorded marks. Recorded as the walk-reset note detail.",
       ),
   })
-  .strict();
+  .strict().brand<'InvalidationPayload'>();
 
 const requestPayloadContract = z
   .object({
@@ -101,10 +101,10 @@ const requestPayloadContract = z
     reason: z
       .string()
       .min(1)
-      .brand<'RequestReason'>()
+      .brand<'RequestPayloadReason'>()
       .describe('Why this step is blocked without it.'),
   })
-  .strict();
+  .strict().brand<'RequestPayload'>();
 
 export const mcpQuestWorkInputContract = z
   .object({

@@ -9,27 +9,27 @@ import { z } from '#gateway/npm/zod';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
 const signatureParameterContract = z.object({
-  name: z.string().brand<'ParameterName'>(),
+  name: z.string().brand<'SignatureParameterName'>(),
   type: z.union([
-    z.record(z.string().brand<'GenericParamName'>(), z.string().brand<'TypeName'>()),
-    z.string().brand<'TypeName'>(),
+    z.record(z.string().brand<'SignatureParameterTypeKey'>(), z.string().brand<'SignatureParameterType'>()),
+    z.string().brand<'SignatureParameterType'>(),
   ]),
-});
+}).brand<'SignatureParameter'>();
 
 const functionSignatureContract = z.object({
-  raw: z.string().brand<'SignatureRaw'>(),
+  raw: z.string().brand<'FunctionSignatureRaw'>(),
   parameters: z.array(signatureParameterContract),
-  returnType: z.string().brand<'ReturnType'>(),
-});
+  returnType: z.string().brand<'FunctionSignatureReturnType'>(),
+}).brand<'FunctionSignature'>();
 
 export const fileMetadataContract = z.object({
-  name: z.string().brand<'FunctionName'>(),
+  name: z.string().brand<'FileMetadataName'>(),
   path: z.string().brand<'FileMetadataPath'>(),
-  fileType: z.string().brand<'FileType'>(),
-  purpose: z.string().brand<'Purpose'>().optional(),
+  fileType: z.string().brand<'FileMetadataFileType'>(),
+  purpose: z.string().brand<'FileMetadataPurpose'>().optional(),
   signature: functionSignatureContract.optional(),
-  usage: z.string().brand<'UsageExample'>().optional(),
-  metadata: z.record(z.string().brand<'FileMetadataKey'>(), z.unknown()).optional(),
+  usage: z.string().brand<'FileMetadataUsage'>().optional(),
+  metadata: z.record(z.string().brand<'FileMetadataMetadataKey'>(), z.unknown()).optional(),
   relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
 }).brand<'FileMetadata'>();

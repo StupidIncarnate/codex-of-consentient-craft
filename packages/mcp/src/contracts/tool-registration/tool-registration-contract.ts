@@ -23,7 +23,7 @@ export type ToolHandler = ({
 export const toolRegistrationContract = z.object({
   name: z.string().brand<'ToolRegistrationName'>(),
   description: z.string().brand<'ToolRegistrationDescription'>(),
-  inputSchema: z.record(z.string().brand<'InputSchemaKey'>(), z.unknown()),
+  inputSchema: z.record(z.string().brand<'ToolRegistrationInputSchemaKey'>(), z.unknown()),
 }).brand<'ToolRegistration'>();
 
 export type ToolRegistration = z.infer<typeof toolRegistrationContract> & {
