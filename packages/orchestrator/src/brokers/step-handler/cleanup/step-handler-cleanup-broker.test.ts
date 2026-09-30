@@ -1,7 +1,7 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
-import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
+import { CleanupCliAnswerStub } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer.stub';
 import { stepHandlerCleanupBroker } from './step-handler-cleanup-broker';
 import { stepHandlerCleanupBrokerProxy } from './step-handler-cleanup-broker.proxy';
 

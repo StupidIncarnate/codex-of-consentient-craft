@@ -1,12 +1,19 @@
 /**
- * PURPOSE: Checks if a value is an array of objects that each contain an `id` property
+ * PURPOSE: Checks if a value is a non-empty array of objects that each carry a string `id` and, when
+ * present, a boolean `_delete`, narrowing the params so the caller reads `params.value` as `ItemWithId[]`
  *
  * USAGE:
- * isArrayOfItemsWithIdGuard({value: [{id: 'node-1', label: 'X'}]});
- * // Returns true if all items are objects with an `id` property
+ * const candidate = { value: [{id: 'node-1', label: 'X'}] };
+ * if (isArrayOfItemsWithIdGuard(candidate)) { candidate.value; }
+ * // Returns true if every item is an object with a string `id`
  */
 
-export const isArrayOfItemsWithIdGuard = ({ value }: { value?: unknown }): boolean => {
+import type { ItemWithId } from '@dungeonmaster/shared/contracts';
+
+export const isArrayOfItemsWithIdGuard = (params: {
+  value?: unknown;
+}): params is { value: ItemWithId[] } => {
+  const { value } = params;
   if (!value) {
     return false;
   }
@@ -19,5 +26,12 @@ export const isArrayOfItemsWithIdGuard = ({ value }: { value?: unknown }): boole
     return false;
   }
 
-  return value.every((item) => typeof item === 'object' && item !== null && 'id' in item);
+  return value.every(
+    (item: unknown) =>
+      typeof item === 'object' &&
+      item !== null &&
+      'id' in item &&
+      typeof item.id === 'string' &&
+      (!('_delete' in item) || item._delete === undefined || typeof item._delete === 'boolean'),
+  );
 };

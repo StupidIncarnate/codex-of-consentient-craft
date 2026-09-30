@@ -7,13 +7,13 @@
  * branch only, so which leaks a run could have seen depends on the scope it was given.
  *
  * USAGE:
- * hasOpenHandlesGuard({wardResult: WardResultStub()});
+ * hasOpenHandlesGuard({wardResult: WardRunResultStub()});
  * // Returns true when at least one suite left a handle armed
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 
-export const hasOpenHandlesGuard = ({ wardResult }: { wardResult?: WardResult }): boolean => {
+export const hasOpenHandlesGuard = ({ wardResult }: { wardResult?: WardRunResult }): boolean => {
   if (!wardResult) {
     return false;
   }

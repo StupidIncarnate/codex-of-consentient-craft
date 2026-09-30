@@ -2,7 +2,7 @@ import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-i
 
 import { signalBackResultContract } from './signal-back-result-contract';
 import { SignalBackResultStub } from './signal-back-result.stub';
-import { SignalBackInputStub } from '../signal-back-input/signal-back-input.stub';
+import { SignalBackInputStub } from '@dungeonmaster/shared/contracts/signal-back-input/signal-back-input.stub';
 
 describe('signalBackResultContract', () => {
   describe('valid inputs', () => {

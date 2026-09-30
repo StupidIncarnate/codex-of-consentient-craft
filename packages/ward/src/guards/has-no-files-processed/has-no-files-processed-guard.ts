@@ -5,7 +5,7 @@
  * cannot, because a check with nothing discovered AND nothing processed agrees with itself.
  *
  * USAGE:
- * hasNoFilesProcessedGuard({ wardResult: WardResultStub() });
+ * hasNoFilesProcessedGuard({ wardResult: WardRunResultStub() });
  * // Returns: true when every non-skipped, file-scoped check reported filesCount 0
  *
  * TYPECHECK IS EXCLUDED BY CLASSIFICATION, not by a filter written at the call site. `tsc` has no
@@ -39,7 +39,7 @@
  */
 
 import type { CheckType } from '../../contracts/check-type/check-type-contract';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 import { isCrashedProjectResultGuard } from '../is-crashed-project-result/is-crashed-project-result-guard';
 
 const HONORS_FILE_SCOPE_BY_CHECK_TYPE = {
@@ -50,7 +50,11 @@ const HONORS_FILE_SCOPE_BY_CHECK_TYPE = {
   e2e: true,
 } as const satisfies Record<CheckType, boolean>;
 
-export const hasNoFilesProcessedGuard = ({ wardResult }: { wardResult?: WardResult }): boolean => {
+export const hasNoFilesProcessedGuard = ({
+  wardResult,
+}: {
+  wardResult?: WardRunResult;
+}): boolean => {
   if (wardResult === undefined) {
     return false;
   }

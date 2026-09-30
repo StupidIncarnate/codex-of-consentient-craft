@@ -16,13 +16,15 @@
 import { collectInputsLayerResultContract } from '../../../contracts/collect-inputs-layer-result/collect-inputs-layer-result-contract';
 import type { CollectInputsLayerResult } from '../../../contracts/collect-inputs-layer-result/collect-inputs-layer-result-contract';
 import { readFile } from '#gateway/node/fs__promises';
-import { packageJsonContract as workspaceNameContract } from '@dungeonmaster/shared/contracts';
+import {
+  packageJsonContract as workspaceNameContract,
+  packageJsonContract,
+} from '@dungeonmaster/shared/contracts';
 import {
   dependencyGraphAdjacencyBuildTransformer,
   dependencyGraphClosureWalkTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { bundleInputsTransformer } from '../../../transformers/bundle-inputs/bundle-inputs-transformer';

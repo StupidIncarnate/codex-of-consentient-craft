@@ -10,8 +10,8 @@ describe('subagentStopBlockMessageStatics', () => {
     });
   });
 
-  // packages/mcp/src/contracts/signal-back-input/signal-back-input-contract.ts and its server mirror
-  // (packages/server/src/contracts/signal-back-input/signal-back-input-contract.ts) are both
+  // packages/shared/src/contracts/signal-back-input/signal-back-input-contract.ts, which the MCP tool
+  // and the HTTP endpoint both parse through, is
   // `.strict()` over exactly {questId, workItemId, signal, operationItemId?, blockedReason?} — an
   // `operationStatus` key throws a parse error rather than being silently dropped. `statics/` files
   // may import only `statics/` (this repo's architecture rule), so the contract cannot be imported

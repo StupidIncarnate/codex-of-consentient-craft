@@ -9,6 +9,7 @@ import { ChatOutputPayloadStub } from '../../contracts/chat-output-payload/chat-
 import { ChatStreamEndedPayloadStub } from '../../contracts/chat-stream-ended-payload/chat-stream-ended-payload.stub';
 import { ClarificationRequestPayloadStub } from '../../contracts/clarification-request-payload/clarification-request-payload.stub';
 import { QuestLoadFailedPayloadStub } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestModifiedPayloadStub } from '../../contracts/quest-modified-payload/quest-modified-payload.stub';
 import { WardDetailResponseStub } from '../../contracts/ward-detail-response/ward-detail-response.stub';
 
@@ -155,7 +156,7 @@ describe('webSocketChannelState', () => {
         captured.push(q);
       });
 
-      const payload = QuestModifiedPayloadStub({ questId });
+      const payload = QuestModifiedPayloadStub({ quest: QuestStub({ id: questId }) });
       proxy.deliverMessage({
         data: JSON.stringify({
           type: 'quest-modified',

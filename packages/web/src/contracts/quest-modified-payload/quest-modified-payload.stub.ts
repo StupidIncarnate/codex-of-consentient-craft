@@ -8,7 +8,6 @@ export const QuestModifiedPayloadStub = ({
   ...props
 }: StubArgument<QuestModifiedPayload> = {}): QuestModifiedPayload =>
   questModifiedPayloadContract.parse({
-    questId: QuestStub().id,
     quest: QuestStub(),
     ...props,
   });

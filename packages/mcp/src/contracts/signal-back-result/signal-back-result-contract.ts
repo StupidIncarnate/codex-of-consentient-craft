@@ -6,7 +6,7 @@
  * // Returns validated result from the signal-back broker
  */
 import { z } from '#gateway/npm/zod';
-import { signalBackInputContract } from '../signal-back-input/signal-back-input-contract';
+import { signalBackInputContract } from '@dungeonmaster/shared/contracts';
 
 export const signalBackResultContract = z
   .object({

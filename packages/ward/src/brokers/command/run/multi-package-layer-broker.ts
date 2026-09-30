@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Spawns ward runs in each workspace package, loads sub-results, and merges into a combined WardResult
+ * PURPOSE: Spawns ward runs in each workspace package, loads sub-results, and merges into a combined WardRunResult
  *
  * USAGE:
  * const result = await multiPackageLayerBroker({ config: WardConfigStub(), projectFolders: [...], rootPath });
- * // Returns merged WardResult combining all package sub-results
+ * // Returns merged WardRunResult combining all package sub-results
  */
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
@@ -12,9 +12,9 @@ import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
 import {
-  wardResultContract,
-  type WardResult,
-} from '../../../contracts/ward-result/ward-result-contract';
+  wardRunResultContract,
+  type WardRunResult,
+} from '../../../contracts/ward-run-result/ward-run-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
@@ -46,7 +46,7 @@ export const multiPackageLayerBroker = async ({
   projectFolders: ProjectFolder[];
   rootPath: string;
   platformDedupeProjectResult?: ProjectResult;
-}): Promise<WardResult> => {
+}): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
   const wardBin = binResolveBroker({
@@ -232,7 +232,7 @@ export const multiPackageLayerBroker = async ({
       : { extraProjectResult: platformDedupeProjectResult }),
   });
 
-  const wardResult = wardResultContract.parse({
+  const wardResult = wardRunResultContract.parse({
     runId,
     timestamp,
     // THE GIT FLAGS RIDE ALONG BECAUSE `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker`

@@ -31,7 +31,7 @@
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
-import { cleanupAnswerContract } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
+import { cleanupCliAnswerContract } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer-contract';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
@@ -74,7 +74,7 @@ export const stepHandlerCleanupBroker = async ({
     });
   }
 
-  const answer = cleanupAnswerContract.parse(JSON.parse(output));
+  const answer = cleanupCliAnswerContract.parse(JSON.parse(output));
 
   return stepHandlerResultContract.parse({
     outcome: cleanupOutcomeClassifyTransformer({ answer }),

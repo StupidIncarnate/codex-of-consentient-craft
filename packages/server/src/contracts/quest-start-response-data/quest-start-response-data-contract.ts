@@ -10,11 +10,14 @@ import { z } from '#gateway/npm/zod';
 
 export const questStartResponseDataContract = z
   .strictObject({
-    processId: z.string(),
+    processId: z.string().brand<'QuestStartResponseDataProcessId'>(),
     dispatch: z.union([
       z.strictObject({ started: z.boolean() }).brand<'QuestStartResponseDataDispatch'>(),
       z
-        .strictObject({ started: z.boolean(), reason: z.string() })
+        .strictObject({
+          started: z.boolean(),
+          reason: z.string().brand<'QuestStartResponseDataDispatchReason'>(),
+        })
         .brand<'QuestStartResponseDataDispatch'>(),
     ]),
   })

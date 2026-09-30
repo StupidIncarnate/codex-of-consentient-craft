@@ -1,17 +1,17 @@
 /**
- * PURPOSE: Reads a WardResult from .ward/run-<id>.json or finds the most recent run
+ * PURPOSE: Reads a WardRunResult from .ward/run-<id>.json or finds the most recent run
  *
  * USAGE:
  * const result = await storageLoadBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
- * // Returns the most recent WardResult or null if none found
+ * // Returns the most recent WardRunResult or null if none found
  */
 
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 
 import {
-  wardResultContract,
-  type WardResult,
-} from '../../../contracts/ward-result/ward-result-contract';
+  wardRunResultContract,
+  type WardRunResult,
+} from '../../../contracts/ward-run-result/ward-run-result-contract';
 
 const RUN_FILE_PREFIX = 'run-';
 const RUN_FILE_SUFFIX = '.json';
@@ -21,15 +21,15 @@ export const storageLoadBroker = async ({
   runId,
 }: {
   rootPath: string;
-  runId?: WardResult['runId'];
-}): Promise<WardResult | null> => {
+  runId?: WardRunResult['runId'];
+}): Promise<WardRunResult | null> => {
   const wardDir = `${rootPath}/.ward`;
 
   if (runId) {
     const filePath = `${wardDir}/run-${runId}.json`;
     try {
       const contents = await readFile(filePath);
-      return wardResultContract.parse(JSON.parse(contents));
+      return wardRunResultContract.parse(JSON.parse(contents));
     } catch {
       return null;
     }
@@ -47,7 +47,7 @@ export const storageLoadBroker = async ({
       .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
       .filter(
         (entry) =>
-          wardResultContract.shape.runId.safeParse(
+          wardRunResultContract.shape.runId.safeParse(
             entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length),
           ).success,
       )
@@ -60,7 +60,7 @@ export const storageLoadBroker = async ({
     const latestFile = runFiles[runFiles.length - 1];
     const filePath = `${wardDir}/${latestFile}`;
     const contents = await readFile(filePath);
-    return wardResultContract.parse(JSON.parse(contents));
+    return wardRunResultContract.parse(JSON.parse(contents));
   } catch {
     return null;
   }

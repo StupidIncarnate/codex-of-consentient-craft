@@ -1,7 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { testGuildContract } from './test-guild-contract';
 import type { TestGuild } from './test-guild-contract';
-import { packageJsonContract } from '../package-json/package-json-contract';
+import { testGuildPackageJsonContract } from '../test-guild-package-json/test-guild-package-json-contract';
 import { execResultContract } from '@dungeonmaster/shared/contracts';
 
 export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestGuild => {
@@ -40,7 +40,7 @@ export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestG
     getPackageJson:
       getPackageJson ??
       ((): ReturnType<TestGuild['getPackageJson']> =>
-        packageJsonContract.parse({
+        testGuildPackageJsonContract.parse({
           name: 'test-guild-abc123',
           version: '1.0.0',
           scripts: {

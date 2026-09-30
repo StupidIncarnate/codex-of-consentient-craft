@@ -11,7 +11,7 @@
 
 import { readFile } from '#gateway/node/fs__promises';
 
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
 
 export const readPackageNameOptionalLayerBroker = async ({

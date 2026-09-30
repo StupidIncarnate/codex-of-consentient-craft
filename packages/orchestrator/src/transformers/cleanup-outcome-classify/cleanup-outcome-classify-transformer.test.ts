@@ -1,4 +1,4 @@
-import { CleanupCliAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
+import { CleanupCliAnswerStub } from '../../contracts/cleanup-cli-answer/cleanup-cli-answer.stub';
 import { cleanupOutcomeClassifyTransformer } from './cleanup-outcome-classify-transformer';
 
 describe('cleanupOutcomeClassifyTransformer', () => {

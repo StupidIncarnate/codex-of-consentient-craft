@@ -14,7 +14,7 @@ import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchWithStatus } from '#gateway/browser/fetch';
 
-import { commentBatchResponseContract } from '../../../contracts/comment-batch-response/comment-batch-response-contract';
+import { commentBatchReplyContract } from '../../../contracts/comment-batch-reply/comment-batch-reply-contract';
 import { commentBatchSendResultContract } from '../../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
 import type { CommentBatchSendResult } from '../../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
 import type { CommentQueueEntry } from '../../../contracts/comment-queue-entry/comment-queue-entry-contract';
@@ -45,11 +45,11 @@ export const questCommentBatchBroker = async ({
   // `fetchWithStatus`'s own body is always the raw response text, never parsed — the old
   // `fetchPostWithStatusAdapter` did this same JSON-parse-with-raw-text-fallback centrally; it is
   // now this caller's own job.
-  const parsed = ((): ReturnType<typeof commentBatchResponseContract.safeParse> => {
+  const parsed = ((): ReturnType<typeof commentBatchReplyContract.safeParse> => {
     try {
-      return commentBatchResponseContract.safeParse(JSON.parse(result.body));
+      return commentBatchReplyContract.safeParse(JSON.parse(result.body));
     } catch {
-      return commentBatchResponseContract.safeParse(result.body);
+      return commentBatchReplyContract.safeParse(result.body);
     }
   })();
 

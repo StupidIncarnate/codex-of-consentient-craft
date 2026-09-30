@@ -14,7 +14,7 @@
 
 import { readFile } from '#gateway/node/fs__promises';
 
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 
 export const resolveWorkspaceRootLayerBroker = async ({
   startPath,

@@ -7,7 +7,6 @@
  */
 
 import type { ItemWithId } from '@dungeonmaster/shared/contracts';
-import { itemWithIdContract } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../is-array-of-items-with-id/is-array-of-items-with-id-guard';
 
@@ -25,10 +24,9 @@ export const hasDuplicateIdInArrayGuard = ({ items }: { items?: ItemWithId[] }):
     seen.add(item.id);
 
     for (const key of Object.keys(item)) {
-      const propertyValue = item[key];
-      if (isArrayOfItemsWithIdGuard({ value: propertyValue }) && Array.isArray(propertyValue)) {
-        const nestedItems = propertyValue.map((entry) => itemWithIdContract.parse(entry));
-        if (hasDuplicateIdInArrayGuard({ items: nestedItems })) {
+      const candidate = { value: item[key] };
+      if (isArrayOfItemsWithIdGuard(candidate)) {
+        if (hasDuplicateIdInArrayGuard({ items: candidate.value })) {
           return true;
         }
       }

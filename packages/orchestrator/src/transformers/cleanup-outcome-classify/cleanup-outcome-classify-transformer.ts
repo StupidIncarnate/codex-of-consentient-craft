@@ -13,7 +13,7 @@
  */
 
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
-import type { CleanupCliAnswer } from '../../contracts/cleanup-answer/cleanup-answer-contract';
+import type { CleanupCliAnswer } from '../../contracts/cleanup-cli-answer/cleanup-cli-answer-contract';
 
 export const cleanupOutcomeClassifyTransformer = ({
   answer,

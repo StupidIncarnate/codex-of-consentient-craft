@@ -28,6 +28,24 @@ describe('isArrayOfItemsWithIdGuard', () => {
       expect(result).toBe(false);
     });
 
+    it('INVALID: {value: [{id: 1}]} => returns false', () => {
+      const result = isArrayOfItemsWithIdGuard({ value: [{ id: 1 }] });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {value: [{id: "a", _delete: "yes"}]} => returns false', () => {
+      const result = isArrayOfItemsWithIdGuard({ value: [{ id: 'a', _delete: 'yes' }] });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {value: [{id: "a", _delete: true}]} => returns true', () => {
+      const result = isArrayOfItemsWithIdGuard({ value: [{ id: 'a', _delete: true }] });
+
+      expect(result).toBe(true);
+    });
+
     it('INVALID: {value: [1, 2, 3]} => returns false', () => {
       const result = isArrayOfItemsWithIdGuard({ value: [1, 2, 3] });
 

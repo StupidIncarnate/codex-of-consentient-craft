@@ -58,9 +58,55 @@ describe('packageJsonContract', () => {
 
       expect(result).toStrictEqual({ exports: { '.': './dist/index.js' } });
     });
+
+    it('VALID: devDependencies and peerDependencies records => parses successfully', () => {
+      const pkg = PackageJsonStub({
+        devDependencies: { typescript: '^5.8.3' },
+        peerDependencies: { react: '^18.0.0' },
+      });
+
+      const result = packageJsonContract.parse(pkg);
+
+      expect(result).toStrictEqual({
+        devDependencies: { typescript: '^5.8.3' },
+        peerDependencies: { react: '^18.0.0' },
+      });
+    });
+
+    it('VALID: workspaces list => parses successfully', () => {
+      const pkg = PackageJsonStub({ workspaces: ['packages/*'] });
+
+      const result = packageJsonContract.parse(pkg);
+
+      expect(result).toStrictEqual({ workspaces: ['packages/*'] });
+    });
+
+    it('VALID: scripts record => parses successfully', () => {
+      const pkg = PackageJsonStub({ scripts: { test: 'jest' } });
+
+      const result = packageJsonContract.parse(pkg);
+
+      expect(result).toStrictEqual({ scripts: { test: 'jest' } });
+    });
+
+    it('VALID: {extra fields} => passes unknown keys through', () => {
+      const result = packageJsonContract.parse({ name: 'pkg', version: '1.0.0' });
+
+      expect(result).toStrictEqual({ name: 'pkg', version: '1.0.0' });
+    });
   });
 
   describe('invalid inputs', () => {
+    it('INVALID: {workspaces: "string"} => throws validation error', () => {
+      expect(() => packageJsonContract.parse({ workspaces: 'packages/*' })).toThrow(
+        /expected array/u,
+      );
+    });
+
+    it('INVALID: {name: 42} => throws validation error', () => {
+      expect(() => packageJsonContract.parse({ name: 42 })).toThrow(/expected string/u);
+    });
+
     it('INVALID: non-object input => throws validation error', () => {
       expect(() => {
         packageJsonContract.parse('not-an-object');

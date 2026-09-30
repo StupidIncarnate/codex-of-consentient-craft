@@ -23,10 +23,10 @@ import { dirname, join } from '#gateway/node/path';
 import { runSync } from '#gateway/node/child_process';
 import { randomBytes } from '#gateway/node/crypto';
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
-import { claudeSettingsContract } from '../../../contracts/claude-settings/claude-settings-contract';
-import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
-import { mcpConfigContract } from '../../../contracts/mcp-config/mcp-config-contract';
-import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
+import { testbedClaudeSettingsContract } from '../../../contracts/testbed-claude-settings/testbed-claude-settings-contract';
+import type { TestbedClaudeSettings } from '../../../contracts/testbed-claude-settings/testbed-claude-settings-contract';
+import { testbedMcpConfigContract } from '../../../contracts/testbed-mcp-config/testbed-mcp-config-contract';
+import type { TestbedMcpConfig } from '../../../contracts/testbed-mcp-config/testbed-mcp-config-contract';
 import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -132,7 +132,7 @@ export const installTestbedCreateBroker = ({
         .sort();
     },
 
-    getClaudeSettings: (): ClaudeSettings | null => {
+    getClaudeSettings: (): TestbedClaudeSettings | null => {
       const settingsPath = join(
         projectPath,
         locationsStatics.repoRoot.claude.dir,
@@ -142,16 +142,16 @@ export const installTestbedCreateBroker = ({
         return null;
       }
       const content = readFileSync(settingsPath);
-      return claudeSettingsContract.parse(JSON.parse(content));
+      return testbedClaudeSettingsContract.parse(JSON.parse(content));
     },
 
-    getMcpConfig: (): McpConfig | null => {
+    getMcpConfig: (): TestbedMcpConfig | null => {
       const mcpPath = join(projectPath, locationsStatics.repoRoot.mcpJson);
       if (!existsSync(mcpPath)) {
         return null;
       }
       const content = readFileSync(mcpPath);
-      return mcpConfigContract.parse(JSON.parse(content));
+      return testbedMcpConfigContract.parse(JSON.parse(content));
     },
 
     getDungeonmasterConfig: (): TestbedConfig | null => {

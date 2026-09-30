@@ -13,7 +13,7 @@ import { dungeonmasterConfigContract } from './src/contracts/dungeonmaster-confi
 import { ConfigNotFoundError } from './src/errors/config-not-found/config-not-found-error';
 import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { DevServerE2eProcess } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process-contract';
-import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
+import type { AllowedExternalImports } from './src/contracts/allowed-external-imports/allowed-external-imports-contract';
 import type { FrameworkPreset } from './src/contracts/framework-presets/framework-presets-contract';
 
 export { configResolveBroker, ConfigNotFoundError };

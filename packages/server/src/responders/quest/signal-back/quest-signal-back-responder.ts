@@ -9,7 +9,7 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { signalBackInputContract } from '../../../contracts/signal-back-input/signal-back-input-contract';
+import { signalBackInputContract } from '@dungeonmaster/shared/contracts';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';

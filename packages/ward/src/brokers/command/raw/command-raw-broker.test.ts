@@ -1,4 +1,4 @@
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-run-result/ward-run-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
@@ -10,7 +10,7 @@ import { commandRawBrokerProxy } from './command-raw-broker.proxy';
 describe('commandRawBroker', () => {
   describe('result found with matching check', () => {
     it('VALID: {wardResult, checkType: lint} => writes raw stdout to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -37,7 +37,7 @@ describe('commandRawBroker', () => {
     });
 
     it('VALID: {wardResult with stderr} => writes raw stderr to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'typecheck',
@@ -66,7 +66,7 @@ describe('commandRawBroker', () => {
 
   describe('no matching check', () => {
     it('EMPTY: {wardResult without matching checkType} => writes error to stderr', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [CheckResultStub({ checkType: 'lint', status: 'pass' })],
       });
 

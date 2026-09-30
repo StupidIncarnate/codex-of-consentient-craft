@@ -12,7 +12,10 @@ import { z } from '#gateway/npm/zod';
 
 export const tsconfigCompilerOptionsContract = z.record(
   z.string(),
-  z.union([z.string(), z.array(z.string())]),
+  z.union([
+    z.string().brand<'TsconfigCompilerOptionsValue'>(),
+    z.array(z.string().brand<'TsconfigCompilerOptionsValue'>()),
+  ]),
 );
 
 export type TsconfigCompilerOptions = z.infer<typeof tsconfigCompilerOptionsContract>;

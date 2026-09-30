@@ -8,10 +8,10 @@
 
 import { frameworkPresetsDataStatics } from '../../statics/framework-presets-data/framework-presets-data-statics';
 import { applyOverridesTransformer } from '../apply-overrides/apply-overrides-transformer';
-import { folderConfigContract } from '../../contracts/folder-config/folder-config-contract';
+import { allowedExternalImportsContract } from '../../contracts/allowed-external-imports/allowed-external-imports-contract';
 import { frameworkPresetsContract } from '../../contracts/framework-presets/framework-presets-contract';
 import type { DungeonmasterConfig } from '../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
-import type { AllowedExternalImports } from '../../contracts/folder-config/folder-config-contract';
+import type { AllowedExternalImports } from '../../contracts/allowed-external-imports/allowed-external-imports-contract';
 
 export const computeAllowedImportsTransformer = ({
   config,
@@ -31,7 +31,7 @@ export const computeAllowedImportsTransformer = ({
   const schemaLibraries = Array.isArray(config.schema) ? config.schema : [config.schema];
 
   // Build the computed configuration - parse through contract to validate and brand types
-  const result = folderConfigContract.parse({
+  const result = allowedExternalImportsContract.parse({
     widgets: preset.widgets,
     bindings: preset.bindings,
     state: preset.state,
@@ -48,7 +48,9 @@ export const computeAllowedImportsTransformer = ({
   // Handle routing library for frameworks that need it
   if (config.routing && result.flows) {
     // Parse routing string as PackageName through Zod contract
-    const routingPackage = folderConfigContract.shape.flows.unwrap().element.parse(config.routing);
+    const routingPackage = allowedExternalImportsContract.shape.flows
+      .unwrap()
+      .element.parse(config.routing);
 
     // For frontend frameworks, add routing library to flows
     if (!result.flows.includes(routingPackage)) {

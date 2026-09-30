@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Defines the typed shape of a package.json file used for tech-type detection
+ * PURPOSE: Defines the typed shape of a package.json file: every field any package reads off one
+ * (tech-type detection, dependency extraction, npm-workspaces discovery, script wiring). Every field
+ * is optional and unknown keys pass through, so any real package.json parses.
  *
  * USAGE:
  * packageJsonContract.parse(JSON.parse(rawJson));
- * // Returns a PackageJson object with typed name, bin, dependencies, and exports fields
+ * // Returns a PackageJson object with typed name, bin, dependency maps, exports, workspaces and scripts
  */
 
 import { z } from '#gateway/npm/zod';
@@ -19,7 +21,15 @@ export const packageJsonContract = z
       ])
       .optional(),
     dependencies: z.record(z.string(), z.string().brand<'PackageJsonDependencies'>()).optional(),
+    devDependencies: z
+      .record(z.string(), z.string().brand<'PackageJsonDevDependencies'>())
+      .optional(),
+    peerDependencies: z
+      .record(z.string(), z.string().brand<'PackageJsonPeerDependencies'>())
+      .optional(),
     exports: z.record(z.string(), z.json()).optional(),
+    workspaces: z.array(z.string().brand<'PackageJsonWorkspaces'>()).optional(),
+    scripts: z.record(z.string(), z.string().brand<'PackageJsonScripts'>()).optional(),
   })
   .loose()
   .brand<'PackageJson'>();

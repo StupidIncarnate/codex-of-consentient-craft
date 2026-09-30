@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Validates the wire body of POST /api/quests/:questId/human-verdict in one permissive
  * object, so the broker can safeParse the body once and branch on HTTP status rather than on the
- * body's shape — the same reason `commentBatchResponseContract` is shaped this way.
+ * body's shape — the same reason `commentBatchReplyContract` is shaped this way.
  *
  * USAGE:
  * humanVerdictResponseContract.safeParse({ ok: true });

@@ -18,7 +18,6 @@
  */
 
 import type { ItemWithId } from '@dungeonmaster/shared/contracts';
-import { itemWithIdContract } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 import { questArrayUpsertTransformer } from '../quest-array-upsert/quest-array-upsert-transformer';
@@ -43,17 +42,13 @@ export const questItemDeepMergeTransformer = ({
       continue;
     }
 
-    const existingValue = existing[key];
+    const updateCandidate = { value: updateValue };
 
-    if (isArrayOfItemsWithIdGuard({ value: updateValue }) && Array.isArray(updateValue)) {
-      const updates = updateValue.map((entry) => itemWithIdContract.parse(entry));
-      const existingArray =
-        isArrayOfItemsWithIdGuard({ value: existingValue }) && Array.isArray(existingValue)
-          ? existingValue.map((entry) => itemWithIdContract.parse(entry))
-          : [];
+    if (isArrayOfItemsWithIdGuard(updateCandidate)) {
+      const existingCandidate = { value: existing[key] };
       merged[key] = questArrayUpsertTransformer({
-        existing: existingArray,
-        updates,
+        existing: isArrayOfItemsWithIdGuard(existingCandidate) ? existingCandidate.value : [],
+        updates: updateCandidate.value,
       });
     } else {
       merged[key] = updateValue;

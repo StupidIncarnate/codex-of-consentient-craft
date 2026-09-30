@@ -1,4 +1,4 @@
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-run-result/ward-run-result.stub';
 import { WardListResponderProxy } from './ward-list-responder.proxy';
 
 describe('WardListResponder', () => {
@@ -19,7 +19,7 @@ describe('WardListResponder', () => {
   describe('runId provided', () => {
     it('VALID: {args with runId} => delegates to broker with rootPath and parsed runId and writes result to stdout', async () => {
       const proxy = WardListResponderProxy();
-      proxy.setupWithResult({ content: JSON.stringify(WardResultStub()) });
+      proxy.setupWithResult({ content: JSON.stringify(WardRunResultStub()) });
 
       await proxy.callResponder({
         args: ['node', 'ward', 'list', '1739625600000-a3f1'],

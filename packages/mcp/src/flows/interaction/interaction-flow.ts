@@ -7,11 +7,10 @@
  * // Returns 3 ToolRegistration objects that delegate to InteractionHandleResponder
  */
 
-import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
+import { askUserQuestionContract, signalBackInputContract } from '@dungeonmaster/shared/contracts';
 import { toJSONSchema } from '#gateway/npm/zod';
 
 import { getAgentPromptInputContract } from '../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
-import { signalBackInputContract } from '../../contracts/signal-back-input/signal-back-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { InteractionHandleResponder } from '../../responders/interaction/handle/interaction-handle-responder';

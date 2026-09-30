@@ -1,0 +1,41 @@
+/**
+ * PURPOSE: Defines the input of a signal-back call — the MCP signal-back tool and the env-gated HTTP
+ * signal-back endpoint parse the same shape
+ *
+ * USAGE:
+ * const input = signalBackInputContract.parse({ signal: 'complete', questId, workItemId, operationItemId });
+ * // Returns validated signal-back input — the session-terminal marker
+ */
+import { z } from '#gateway/npm/zod';
+
+import { operationItemContract } from '../operation-item/operation-item-contract';
+import { questContract } from '../quest/quest-contract';
+import { workItemContract } from '../work-item/work-item-contract';
+
+// NOTE: MCP requires inputSchema to have type: "object" at root level.
+// `complete` is the sole signal kind (session-terminal marker). questId + workItemId are required
+// so the broker routes on explicit ids rather than inferring from process state. There is NO note
+// field — the next-session handoff is the git commit message, not the ledger.
+export const signalBackInputContract = z
+  .object({
+    questId: questContract.shape.id.describe('The quest the signalling agent is working on'),
+    workItemId: workItemContract.shape.id.describe(
+      'The work item the signalling agent was dispatched against',
+    ),
+    signal: z.literal('complete').describe('Session-terminal marker — the only signal kind'),
+    operationItemId: operationItemContract.shape.id
+      .describe('The operation item this session worked (from the operations ledger)')
+      .optional(),
+    blockedReason: z
+      .string()
+      .min(1)
+      .brand<'SignalBackInputBlockedReason'>()
+      .describe(
+        'Why this role cannot proceed without the user. Names the wall and what the user must change (e.g. a denied command, a missing credential, an unreachable service)',
+      )
+      .optional(),
+  })
+  .strict()
+  .brand<'SignalBackInput'>();
+
+export type SignalBackInput = z.infer<typeof signalBackInputContract>;

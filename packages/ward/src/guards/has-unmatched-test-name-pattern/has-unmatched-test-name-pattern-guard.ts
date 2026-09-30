@@ -3,19 +3,19 @@
  * individual packages that simply hold no test by that name
  *
  * USAGE:
- * hasUnmatchedTestNamePatternGuard({ wardResult: WardResultStub() });
+ * hasUnmatchedTestNamePatternGuard({ wardResult: WardRunResultStub() });
  * // Returns: true when every project the pattern reached reported 'unmatched'
  *
  * WHEN-TO-USE: Once per run, to decide whether an empty --onlyTests filter is a typo
  * WHEN-NOT-TO-USE: Per package — a package without a matching test is a legitimate skip
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 
 export const hasUnmatchedTestNamePatternGuard = ({
   wardResult,
 }: {
-  wardResult?: WardResult;
+  wardResult?: WardRunResult;
 }): boolean => {
   if (wardResult === undefined) {
     return false;

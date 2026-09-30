@@ -1,7 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { signalBackResultContract } from './signal-back-result-contract';
 import type { SignalBackResult } from './signal-back-result-contract';
-import { SignalBackInputStub } from '../signal-back-input/signal-back-input.stub';
+import { SignalBackInputStub } from '@dungeonmaster/shared/contracts/signal-back-input/signal-back-input.stub';
 
 export const SignalBackResultStub = ({
   ...props

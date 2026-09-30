@@ -10,6 +10,7 @@ import {
   type InstallContext,
   type InstallResult,
   installResultContract,
+  packageJsonContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
@@ -18,7 +19,6 @@ import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers'
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
 import { extractDevDependenciesTransformer } from '../../../transformers/extract-dev-dependencies/extract-dev-dependencies-transformer';
 import { dependencyMapContract } from '../../../contracts/dependency-map/dependency-map-contract';
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';

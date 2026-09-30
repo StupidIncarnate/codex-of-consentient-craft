@@ -1,0 +1,147 @@
+/**
+ * PURPOSE: Validates the MCP-advertised shape of the `quest-work` tool call — the single write
+ * surface every LLM step calls, across its six payload kinds. THIS copy exists only to be fed to
+ * `zodToJsonSchema` for the advertised schema; the orchestrator's own `questWorkInputContract`
+ * (`@dungeonmaster/orchestrator`, not importable from here — that package exports no `./contracts`
+ * subpath) is the one that actually validates. `plan` and `amendment.plan` are deliberately
+ * `z.record(z.string(), z.json())`: the real per-family plan shape lives on `workPlanFieldsContract`
+ * (orchestrator-only). Collapsing this into the orchestrator's contract would change the tool's
+ * published JSON schema.
+ *
+ * USAGE:
+ * mcpQuestWorkInputContract.parse({
+ *   questId: 'add-auth',
+ *   workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+ *   payload: { kind: 'outcome', word: 'done', reason: 'every assigned unit is met' },
+ * });
+ * // Returns: McpQuestWorkInput
+ */
+
+import { z } from '#gateway/npm/zod';
+import {
+  questContract,
+  workItemContract,
+  qaChecklistItemContract,
+  flowContract,
+} from '@dungeonmaster/shared/contracts';
+
+const planPayloadContract = z
+  .object({
+    kind: z.literal('plan'),
+    plan: z
+      .record(z.string(), z.json())
+      .describe(
+        "The pieces and their batches, plus plannerMarks — story 07's whole-plan envelope, minus writtenBy/writtenAt (stamped server-side).",
+      ),
+  })
+  .strict()
+  .brand<'PlanPayload'>();
+
+const observationsPayloadContract = z
+  .object({
+    kind: z.literal('observations'),
+    observations: z
+      .array(
+        z
+          .object({
+            unitId: qaChecklistItemContract.shape.id,
+            mark: z.enum(['met', 'cant-meet', 'unmet']),
+            evidence: z.string().min(1).brand<'ObservationsPayloadObservationsEvidence'>(),
+            toSettle: z
+              .string()
+              .min(1)
+              .brand<'ObservationsPayloadObservationsToSettle'>()
+              .optional(),
+          })
+          .strict()
+          .brand<'ObservationsPayloadObservations'>(),
+      )
+      .min(1)
+      .describe(
+        'Per unit, one of met / cant-meet / unmet, with evidence. toSettle is required on cant-meet and refused elsewhere.',
+      ),
+  })
+  .strict()
+  .brand<'ObservationsPayload'>();
+
+const amendmentPayloadContract = z
+  .object({
+    kind: z.literal('amendment'),
+    reason: z
+      .string()
+      .min(1)
+      .brand<'AmendmentPayloadReason'>()
+      .describe('What the run revealed that makes the plan wrong.'),
+    plan: z
+      .record(z.string(), z.json())
+      .describe(
+        'The WHOLE replacement plan, in the same shape as the plan payload — never a patch.',
+      ),
+  })
+  .strict()
+  .brand<'AmendmentPayload'>();
+
+const outcomePayloadContract = z
+  .object({
+    kind: z.literal('outcome'),
+    word: z.enum(['done', 'unmet', 'empty', 'wall']),
+    reason: z
+      .string()
+      .min(1)
+      .brand<'OutcomePayloadReason'>()
+      .describe('Required on all four words.'),
+  })
+  .strict()
+  .brand<'OutcomePayload'>();
+
+const invalidationPayloadContract = z
+  .object({
+    kind: z.literal('invalidation'),
+    flowId: flowContract.shape.id,
+    reason: z
+      .string()
+      .min(1)
+      .brand<'InvalidationPayloadReason'>()
+      .describe(
+        "What changed underneath the flow's already-recorded marks. Recorded as the walk-reset note detail.",
+      ),
+  })
+  .strict()
+  .brand<'InvalidationPayload'>();
+
+const requestPayloadContract = z
+  .object({
+    kind: z.literal('request'),
+    step: z
+      .string()
+      .min(1)
+      .brand<'RequestPayloadStep'>()
+      .describe("Must be mintableOnRequest: true in the asking work item's own family graph."),
+    reason: z
+      .string()
+      .min(1)
+      .brand<'RequestPayloadReason'>()
+      .describe('Why this step is blocked without it.'),
+  })
+  .strict()
+  .brand<'RequestPayload'>();
+
+export const mcpQuestWorkInputContract = z
+  .object({
+    questId: questContract.shape.id.describe('The ID of the quest this call is against.'),
+    workItemId: workItemContract.shape.id.describe(
+      'The work item you were dispatched against. There is no ambient caller identity over MCP stdio.',
+    ),
+    payload: z.discriminatedUnion('kind', [
+      planPayloadContract,
+      observationsPayloadContract,
+      amendmentPayloadContract,
+      outcomePayloadContract,
+      invalidationPayloadContract,
+      requestPayloadContract,
+    ]),
+  })
+  .strict()
+  .brand<'McpQuestWorkInput'>();
+
+export type McpQuestWorkInput = z.infer<typeof mcpQuestWorkInputContract>;

@@ -8,7 +8,7 @@
  * // Returns { success: true, signal: { questId, workItemId, signal: 'complete', summary: '...' } }
  */
 
-import { signalBackInputContract } from '../../../contracts/signal-back-input/signal-back-input-contract';
+import { signalBackInputContract } from '@dungeonmaster/shared/contracts';
 import { signalBackResultContract } from '../../../contracts/signal-back-result/signal-back-result-contract';
 import type { SignalBackResult } from '../../../contracts/signal-back-result/signal-back-result-contract';
 

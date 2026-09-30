@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Transforms a WardResult into a detailed view showing errors, failures, crashes, and per-project passing test lists
+ * PURPOSE: Transforms a WardRunResult into a detailed view showing errors, failures, crashes, and per-project passing test lists
  *
  * USAGE:
- * resultToDetailTransformer({wardResult: WardResultStub()});
+ * resultToDetailTransformer({wardResult: WardRunResultStub()});
  * // Returns: WardFileDetail with failure details and passing-test blocks per project
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
@@ -18,7 +18,7 @@ export const resultToDetailTransformer = ({
   wardResult,
   filePath,
 }: {
-  wardResult: WardResult;
+  wardResult: WardRunResult;
   filePath?: string;
 }): string => {
   if (filePath) {

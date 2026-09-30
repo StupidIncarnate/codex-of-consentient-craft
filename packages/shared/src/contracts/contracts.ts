@@ -53,6 +53,7 @@ export * from './quest-status/quest-status-contract';
 export * from './base-branch-name/base-branch-name-contract';
 
 export * from './quest-list-item/quest-list-item-contract';
+export * from './signal-back-input/signal-back-input-contract';
 export * from './skipped-quest-file/skipped-quest-file-contract';
 export * from './quest-list-result/quest-list-result-contract';
 
@@ -209,7 +210,7 @@ export * from './mcp-caller-context/mcp-caller-context-contract';
 // Glob Pattern Contracts
 
 // Item With Id Contracts
-export * from './item-with-id/item-with-id-contract';
+export type * from './item-with-id/item-with-id-contract';
 
 // Agent Prompt Result Contracts
 export * from './agent-prompt-result/agent-prompt-result-contract';

@@ -38,10 +38,10 @@ import { integrationEnvironmentTrackingBroker } from '../tracking/integration-en
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
-import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
+import type { TestGuildPackageJson } from '../../../contracts/test-guild-package-json/test-guild-package-json-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
 import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
+import { testGuildPackageJsonContract } from '../../../contracts/test-guild-package-json/test-guild-package-json-contract';
 import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
 
 export const integrationEnvironmentCreateBroker = ({
@@ -123,7 +123,9 @@ export const integrationEnvironmentCreateBroker = ({
         return false;
       }
 
-      const packageJson = packageJsonContract.parse(JSON.parse(readFileSync(packageJsonPath)));
+      const packageJson = testGuildPackageJsonContract.parse(
+        JSON.parse(readFileSync(packageJsonPath)),
+      );
       return Object.entries(packageJson.scripts).some(
         ([key, value]) => key === command && Boolean(value),
       );
@@ -161,10 +163,10 @@ export const integrationEnvironmentCreateBroker = ({
       return testbedConfigContract.parse(JSON.parse(readFileSync(configPath)));
     },
 
-    getPackageJson: (): PackageJson => {
+    getPackageJson: (): TestGuildPackageJson => {
       const packageJsonPath = join(projectPath, 'package.json');
       const content = readFileSync(packageJsonPath);
-      return packageJsonContract.parse(JSON.parse(content));
+      return testGuildPackageJsonContract.parse(JSON.parse(content));
     },
 
     getQuestFiles: ({ subdir }: { subdir?: string }): string[] => {

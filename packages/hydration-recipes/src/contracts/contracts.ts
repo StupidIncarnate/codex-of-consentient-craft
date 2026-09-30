@@ -38,6 +38,6 @@ export * from './recipe-context/recipe-context-contract';
 
 export * from './guild-listing/guild-listing-contract';
 
-export * from './transcript-line/transcript-line-contract';
+export * from './recipe-transcript-line/recipe-transcript-line-contract';
 
 export * from './recipe-catalog-entry/recipe-catalog-entry-contract';

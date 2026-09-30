@@ -1,4 +1,4 @@
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-run-result/ward-run-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
@@ -10,7 +10,7 @@ import { commandListBrokerProxy } from './command-list-broker.proxy';
 describe('commandListBroker', () => {
   describe('result found', () => {
     it('VALID: {wardResult with errors} => writes error list to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',

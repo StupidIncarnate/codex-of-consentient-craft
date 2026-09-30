@@ -10,7 +10,7 @@ import {
   dependencyMapContract,
   type DependencyMap,
 } from '../../contracts/dependency-map/dependency-map-contract';
-import { packageJsonContract } from '../../contracts/package-json/package-json-contract';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 
 export const extractDevDependenciesTransformer = ({
   packageJson,

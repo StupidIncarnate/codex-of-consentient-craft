@@ -6,8 +6,6 @@
  * // Returns: 'Duplicate ID "a" in flows — this ID already exists. Use a unique ID or omit to leave existing unchanged.'
  */
 
-import { itemWithIdContract } from '@dungeonmaster/shared/contracts';
-
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 import { questFindDuplicateIdTransformer } from '../quest-find-duplicate-id/quest-find-duplicate-id-transformer';
 
@@ -17,11 +15,10 @@ export const questDuplicateIdMessageTransformer = ({
   updates: Record<PropertyKey, unknown>;
 }): string | undefined => {
   for (const key of Object.keys(updates)) {
-    const propertyValue = updates[key];
-    if (isArrayOfItemsWithIdGuard({ value: propertyValue }) && Array.isArray(propertyValue)) {
-      const items = propertyValue.map((entry) => itemWithIdContract.parse(entry));
+    const candidate = { value: updates[key] };
+    if (isArrayOfItemsWithIdGuard(candidate)) {
       const duplicate = questFindDuplicateIdTransformer({
-        items,
+        items: candidate.value,
         context: key,
       });
       if (duplicate) {

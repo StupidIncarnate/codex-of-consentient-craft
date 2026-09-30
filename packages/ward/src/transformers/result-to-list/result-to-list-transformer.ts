@@ -1,16 +1,16 @@
 /**
- * PURPOSE: Transforms a WardResult into an errors-by-file list showing all errors and test failures grouped by file path
+ * PURPOSE: Transforms a WardRunResult into an errors-by-file list showing all errors and test failures grouped by file path
  *
  * USAGE:
- * resultToListTransformer({wardResult: WardResultStub()});
+ * resultToListTransformer({wardResult: WardRunResultStub()});
  * // Returns: WardErrorList like "src/app.ts\n  lint  no-unused-vars (line 15)"
  */
 
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 
-export const resultToListTransformer = ({ wardResult }: { wardResult: WardResult }): string => {
+export const resultToListTransformer = ({ wardResult }: { wardResult: WardRunResult }): string => {
   const fileMap = new Map<
     ErrorEntry['filePath'] | TestFailure['suitePath'],
     ErrorEntry['message'][]

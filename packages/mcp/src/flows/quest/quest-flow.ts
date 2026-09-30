@@ -22,7 +22,7 @@ import { getQuestStatusInputContract } from '../../contracts/get-quest-status-in
 import { getQuestSummaryInputContract } from '../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { questWorkInputContract } from '../../contracts/quest-work-input/quest-work-input-contract';
+import { mcpQuestWorkInputContract } from '../../contracts/mcp-quest-work-input/mcp-quest-work-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';
@@ -49,7 +49,7 @@ const getBlightChecklistSchema = toJSONSchema(getBlightChecklistInputContract, j
 const createQuestSchema = toJSONSchema(createQuestInputContract, jsonSchemaOptions);
 const getQuestSummarySchema = toJSONSchema(getQuestSummaryInputContract, jsonSchemaOptions);
 const createWorktreeSchema = toJSONSchema(createWorktreeInputContract, jsonSchemaOptions);
-const questWorkSchema = toJSONSchema(questWorkInputContract, jsonSchemaOptions);
+const questWorkSchema = toJSONSchema(mcpQuestWorkInputContract, jsonSchemaOptions);
 const getQuestWorkSchema = toJSONSchema(getQuestWorkInputContract, jsonSchemaOptions);
 
 export const QuestFlow = (): ToolRegistration[] => [

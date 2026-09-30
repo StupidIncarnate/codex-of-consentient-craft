@@ -5,7 +5,7 @@ import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-run-result/ward-run-result.stub';
 import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-match/test-name-pattern-match-contract';
 import type { PlatformCrossingViolation } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
 import { jestCacheStatics } from '../../../statics/jest-cache/jest-cache-statics';
@@ -205,7 +205,7 @@ export const commandRunBrokerProxy = (): {
           return {
             projectFolder,
             subResultContent: JSON.stringify(
-              WardResultStub({
+              WardRunResultStub({
                 filters: { only: ['unit'] },
                 checks: [
                   CheckResultStub({

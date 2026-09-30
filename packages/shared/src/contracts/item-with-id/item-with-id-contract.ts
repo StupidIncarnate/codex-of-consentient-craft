@@ -6,16 +6,11 @@
  * // Use as constraint for arrays that support id-based upsert
  */
 
-import { z } from '#gateway/npm/zod';
-
-export const itemWithIdContract = z
-  .object({
-    id: z.string(),
-    _delete: z.boolean().optional(),
-  })
-  .loose()
-  .brand<'ItemWithId'>();
-
-// The input type, which carries no brand: this is a generic constraint (`T extends ItemWithId`)
-// that every quest item array must satisfy structurally, not a parsed value.
-export type ItemWithId = z.input<typeof itemWithIdContract>;
+// A structural type, never a parsed value: `ItemWithId` is only a generic constraint
+// (`T extends ItemWithId`) every quest item array satisfies, and a brand would make it unsatisfiable
+// by any owner's own item. `TId` is the owning item's id type.
+export interface ItemWithId<TId extends string = string> {
+  [key: string]: unknown;
+  id: TId;
+  _delete?: boolean | undefined;
+}

@@ -10,7 +10,7 @@ import { stderr, stdout } from '#gateway/node/process';
 
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
-import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../../contracts/ward-run-result/ward-run-result-contract';
 
 export const commandRawBroker = async ({
   rootPath,
@@ -18,7 +18,7 @@ export const commandRawBroker = async ({
   checkType,
 }: {
   rootPath: string;
-  runId: WardResult['runId'];
+  runId: WardRunResult['runId'];
   checkType: CheckType;
 }): Promise<void> => {
   const wardResult = await storageLoadBroker({ rootPath, runId });

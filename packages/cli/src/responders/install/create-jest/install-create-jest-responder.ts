@@ -15,12 +15,12 @@ import {
   type InstallContext,
   type InstallResult,
   installResultContract,
+  packageJsonContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { jestConfigTemplateStatics } from '../../../statics/jest-config-template/jest-config-template-statics';
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 const CONFIG_FILENAME = 'jest.config.js';

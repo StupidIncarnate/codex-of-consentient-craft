@@ -20,7 +20,7 @@ import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-import type { CleanupCliAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
+import type { CleanupCliAnswer } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer-contract';
 import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
 import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
 import { questRepoRootBrokerProxy } from '../../quest/repo-root/quest-repo-root-broker.proxy';

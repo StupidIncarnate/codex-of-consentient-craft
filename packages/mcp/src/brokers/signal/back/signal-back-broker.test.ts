@@ -4,7 +4,7 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 
 import { signalBackBroker } from './signal-back-broker';
 import { signalBackBrokerProxy } from './signal-back-broker.proxy';
-import { SignalBackInputStub } from '../../../contracts/signal-back-input/signal-back-input.stub';
+import { SignalBackInputStub } from '@dungeonmaster/shared/contracts/signal-back-input/signal-back-input.stub';
 
 const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });

@@ -1,4 +1,4 @@
-import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../contracts/ward-run-result/ward-run-result.stub';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
@@ -10,7 +10,7 @@ import { resultToSummaryTransformer } from './result-to-summary-transformer';
 describe('resultToSummaryTransformer', () => {
   describe('empty checks', () => {
     it('VALID: {wardResult: no checks} => returns run line only', () => {
-      const wardResult = WardResultStub({ checks: [] });
+      const wardResult = WardRunResultStub({ checks: [] });
 
       const result = resultToSummaryTransformer({
         wardResult,
@@ -23,7 +23,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('passing checks', () => {
     it('VALID: {wardResult: lint pass with 2 packages} => returns PASS with package and file count', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -57,7 +57,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('zero files warning', () => {
     it('VALID: {wardResult: lint pass with 0 files} => returns WARN for zero files', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -84,7 +84,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('failing checks', () => {
     it('VALID: {wardResult: test fail with errors and test failures} => returns FAIL with detail sections', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -122,7 +122,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: lint errors with cwd matching project} => strips project path prefix', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -157,7 +157,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: test failures with multiline message} => shows first line only', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -191,7 +191,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: cwd is repo root} => paths include package folder', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -228,7 +228,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('useless first line fallback', () => {
     it('VALID: {wardResult: test failure with thrown quote first line} => skips to meaningful line', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -265,7 +265,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('line zero display', () => {
     it('VALID: {error with line=0} => omits line number from detail output', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -303,7 +303,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('typecheck errors elsewhere in the package', () => {
     it('VALID: {wardResult: typecheck fail with a named error and one elsewhere} => lists the named error first, then the other under its own heading', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'typecheck',
@@ -359,7 +359,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: typecheck fail with errors only elsewhere} => shows only the elsewhere heading, no named lines', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'typecheck',
@@ -410,7 +410,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('fail edge cases', () => {
     it('VALID: {wardResult: fail status with 0 total files} => shows FAIL for summary line', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -438,7 +438,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: fail status but no project has errors or failures} => FAIL line shows crash indicator and raw output', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -470,7 +470,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('skipped checks', () => {
     it('VALID: {wardResult: test skip} => omits skipped check from summary', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -497,7 +497,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('multiple check types', () => {
     it('VALID: {wardResult: lint pass + test fail + typecheck pass} => returns all check lines', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -549,7 +549,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('discovery counts', () => {
     it('VALID: {wardResult: lint pass with discoveredCount matching} => includes discovered count', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -577,7 +577,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: integration 0 files run but 12 discovered} => shows DISCOVERY MISMATCH', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'integration',
@@ -608,7 +608,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: file-scoped pass with subset} => suppresses DISCOVERY MISMATCH', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         filters: { passthrough: ['src/brokers/quest/orchestration-loop'] },
         checks: [
           CheckResultStub({
@@ -637,7 +637,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: file-scoped fail with subset} => suppresses DISCOVERY MISMATCH', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         filters: { passthrough: ['src/brokers/quest/orchestration-loop'] },
         checks: [
           CheckResultStub({
@@ -667,7 +667,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: file-scoped 0 files run bad path} => shows DISCOVERY MISMATCH', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         filters: { passthrough: ['src/brokers/quest/nonexistent'] },
         checks: [
           CheckResultStub({
@@ -699,7 +699,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: no passthrough with mismatch} => still shows DISCOVERY MISMATCH', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -727,7 +727,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: lint mismatch with diff files} => shows diff file paths after DISCOVERY MISMATCH', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -758,7 +758,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('check duration display', () => {
     it('VALID: {wardResult: lint pass with durationMs} => appends duration to check line', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -791,7 +791,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('EDGE: {wardResult: lint pass with durationMs=0} => no duration shown (backward compat)', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -819,7 +819,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: unit fail with durationMs} => appends duration to fail line', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -850,7 +850,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('total run duration display', () => {
     it('VALID: {wardResult: durationMs > 0} => appends total duration to run line', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         durationMs: 23400,
         checks: [],
       });
@@ -864,7 +864,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('EDGE: {wardResult: durationMs=0} => no duration on run line (backward compat)', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         durationMs: 0,
         checks: [],
       });
@@ -880,7 +880,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('slow file warnings', () => {
     it('VALID: {two suites over the test threshold} => lists both, slowest test bodies first', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -930,7 +930,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {a file with huge wall and tiny test bodies} => is NOT listed', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -973,7 +973,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('EDGE: {every suite under the test threshold} => no slow files section', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1016,7 +1016,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {slow suites in two packages} => aggregates them into one list', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1066,7 +1066,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {lint, one file over the rule bar} => prints rule time first, wall in brackets', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -1101,7 +1101,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {lint, a file whose wall is all program build} => no slow files section at all', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -1138,7 +1138,7 @@ describe('resultToSummaryTransformer', () => {
 
   describe('open handle reporting', () => {
     it('VALID: {wardResult: no open handles} => omits open handles section', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1165,7 +1165,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: one open handle} => shows open handles section', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1193,7 +1193,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: handle stack with multiple own frames} => renders every own frame, indented', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1226,7 +1226,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: handle with empty stack} => renders the line with no frame after it', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1254,7 +1254,7 @@ describe('resultToSummaryTransformer', () => {
     });
 
     it('VALID: {wardResult: handles from two packages} => each labelled with its own package name', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -1305,8 +1305,8 @@ describe('resultToSummaryTransformer', () => {
       filters,
     }: {
       filters?: { passthrough?: string[]; uncommitted?: boolean };
-    }): ReturnType<typeof WardResultStub> =>
-      WardResultStub({
+    }): ReturnType<typeof WardRunResultStub> =>
+      WardRunResultStub({
         ...(filters === undefined ? {} : { filters }),
         checks: [
           CheckResultStub({

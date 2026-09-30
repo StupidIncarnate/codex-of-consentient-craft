@@ -23,7 +23,7 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
 
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { bundleHashFilesBroker } from '../hash-files/bundle-hash-files-broker';
 import { collectInputsLayerBroker } from './collect-inputs-layer-broker';

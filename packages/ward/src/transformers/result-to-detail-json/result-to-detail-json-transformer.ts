@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Transforms a WardResult into trimmed JSON for the detail blob. Structured rawOutput is
+ * PURPOSE: Transforms a WardRunResult into trimmed JSON for the detail blob. Structured rawOutput is
  * dropped for every project EXCEPT crash projects — a failing project that produced no structured
  * errors and no test failures (a suite that failed to run/compile). For those the (tail-capped)
  * rawOutput rides along so downstream consumers (spiritmender batcher + web UI) have the actual
@@ -10,11 +10,11 @@
  * suppression) is decided HERE via `hasCheckDiscoveryMismatchGuard` — the web only renders it.
  *
  * USAGE:
- * resultToDetailJsonTransformer({ wardResult: WardResultStub() });
+ * resultToDetailJsonTransformer({ wardResult: WardRunResultStub() });
  * // Returns JSON string with checks, errors, testFailures, plus rawOutput on crash projects only
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 import { rawOutputCapStatics } from '../../statics/raw-output-cap/raw-output-cap-statics';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
@@ -24,7 +24,7 @@ const JSON_INDENT_SPACES = 2;
 export const resultToDetailJsonTransformer = ({
   wardResult,
 }: {
-  wardResult: WardResult;
+  wardResult: WardRunResult;
 }): string => {
   const { maxChars } = rawOutputCapStatics.cap;
 

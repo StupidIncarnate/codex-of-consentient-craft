@@ -1,4 +1,4 @@
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-run-result/ward-run-result.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 
 import { storageLoadBroker } from './storage-load-broker';
@@ -6,8 +6,8 @@ import { storageLoadBrokerProxy } from './storage-load-broker.proxy';
 
 describe('storageLoadBroker', () => {
   describe('load by runId', () => {
-    it('VALID: {runId provided, file exists} => returns parsed WardResult', async () => {
-      const wardResult = WardResultStub();
+    it('VALID: {runId provided, file exists} => returns parsed WardRunResult', async () => {
+      const wardResult = WardRunResultStub();
       const rootPath = '/home/user/project';
       const runId = RunIdStub();
       const proxy = storageLoadBrokerProxy();
@@ -31,8 +31,8 @@ describe('storageLoadBroker', () => {
   });
 
   describe('load most recent', () => {
-    it('VALID: {no runId, files exist} => returns most recent WardResult', async () => {
-      const wardResult = WardResultStub({ runId: '1739625700000-b4e2' });
+    it('VALID: {no runId, files exist} => returns most recent WardRunResult', async () => {
+      const wardResult = WardRunResultStub({ runId: '1739625700000-b4e2' });
       const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRun({
@@ -48,7 +48,7 @@ describe('storageLoadBroker', () => {
     });
 
     it('VALID: {no runId, run files with non-RunId names} => returns the latest RunId-named run', async () => {
-      const wardResult = WardResultStub({ runId: '1739625700000-b4e2' });
+      const wardResult = WardRunResultStub({ runId: '1739625700000-b4e2' });
       const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRunByPath({
@@ -76,7 +76,8 @@ describe('storageLoadBroker', () => {
         rootPath,
         entries: ['run-e2e-dispatch-ward-5.json'],
         contents: {
-          '/home/user/project/.ward/run-e2e-dispatch-ward-5.json': JSON.stringify(WardResultStub()),
+          '/home/user/project/.ward/run-e2e-dispatch-ward-5.json':
+            JSON.stringify(WardRunResultStub()),
         },
       });
 

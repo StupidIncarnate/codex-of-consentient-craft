@@ -5,11 +5,14 @@
  *
  * USAGE:
  * const imports = gatewayImportsMapContract.parse({'#gateway/npm/*': '@acme/npm/*'});
- * // Returns validated GatewayImportsMap with plain string keys and values
+ * // Returns validated GatewayImportsMap with plain string keys and branded values
  */
 
 import { z } from '#gateway/npm/zod';
 
-export const gatewayImportsMapContract = z.record(z.string(), z.string());
+export const gatewayImportsMapContract = z.record(
+  z.string(),
+  z.string().brand<'GatewayImportsMapValue'>(),
+);
 
 export type GatewayImportsMap = z.infer<typeof gatewayImportsMapContract>;

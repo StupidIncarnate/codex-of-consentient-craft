@@ -1,17 +1,17 @@
 /**
- * PURPOSE: Runs all requested check types directly against a single project folder and returns WardResult
+ * PURPOSE: Runs all requested check types directly against a single project folder and returns WardRunResult
  *
  * USAGE:
  * const result = await singlePackageLayerBroker({ config: WardConfigStub(), projectFolder: ProjectFolderStub(), rootPath });
- * // Returns WardResult with one ProjectResult per check type
+ * // Returns WardRunResult with one ProjectResult per check type
  */
 
 import { stderr } from '#gateway/node/process';
 
 import {
-  wardResultContract,
-  type WardResult,
-} from '../../../contracts/ward-result/ward-result-contract';
+  wardRunResultContract,
+  type WardRunResult,
+} from '../../../contracts/ward-run-result/ward-run-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
@@ -47,7 +47,7 @@ export const singlePackageLayerBroker = async ({
   projectFolder: ProjectFolder;
   rootPath: string;
   platformDedupeProjectResult?: ProjectResult;
-}): Promise<WardResult> => {
+}): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
 
@@ -144,7 +144,7 @@ export const singlePackageLayerBroker = async ({
       : { extraProjectResult: platformDedupeProjectResult }),
   });
 
-  const wardResult = wardResultContract.parse({
+  const wardResult = wardRunResultContract.parse({
     runId,
     timestamp,
     // THE GIT FLAGS RIDE ALONG BECAUSE `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker`

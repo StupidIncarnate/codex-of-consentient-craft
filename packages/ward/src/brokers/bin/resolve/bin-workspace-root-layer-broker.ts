@@ -11,7 +11,7 @@
 import { readFileSyncIfExists } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 
 export const binWorkspaceRootLayerBroker = ({ dir }: { dir: string }): boolean => {
   const raw = readFileSyncIfExists(join(dir, 'package.json'));

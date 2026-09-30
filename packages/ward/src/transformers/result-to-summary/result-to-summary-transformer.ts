@@ -1,13 +1,13 @@
 /**
- * PURPOSE: Transforms a WardResult into a compact summary string showing pass/fail/skip per check type
+ * PURPOSE: Transforms a WardRunResult into a compact summary string showing pass/fail/skip per check type
  *
  * USAGE:
- * resultToSummaryTransformer({wardResult: WardResultStub()});
+ * resultToSummaryTransformer({wardResult: WardRunResultStub()});
  * // Returns: WardSummary like "run: 1739625600000-a3f1\nlint:      PASS  10 packages"
  */
 
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
 import { qualityGateStatics } from '../../statics/quality-gate/quality-gate-statics';
 import { inlineFailureStatics } from '../../statics/inline-failure/inline-failure-statics';
@@ -31,7 +31,7 @@ export const resultToSummaryTransformer = ({
   wardResult,
   cwd,
 }: {
-  wardResult: WardResult;
+  wardResult: WardRunResult;
   cwd: string;
 }): string => {
   const totalDurationSuffix =

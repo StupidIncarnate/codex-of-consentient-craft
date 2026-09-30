@@ -12,7 +12,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 export const questNewResponseDataContract = z
   .strictObject({
     questId: questContract.shape.id.optional(),
-    chatProcessId: z.string(),
+    chatProcessId: z.string().brand<'QuestNewResponseDataChatProcessId'>(),
   })
   .brand<'QuestNewResponseData'>();
 

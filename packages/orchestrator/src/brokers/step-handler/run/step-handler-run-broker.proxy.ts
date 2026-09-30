@@ -16,7 +16,7 @@
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
-import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
+import { CleanupCliAnswerStub } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer.stub';
 import { stepHandlerCleanupBrokerProxy } from '../cleanup/step-handler-cleanup-broker.proxy';
 import { stepHandlerCommitBrokerProxy } from '../commit/step-handler-commit-broker.proxy';
 import { stepHandlerRiftcarverBrokerProxy } from '../riftcarver/step-handler-riftcarver-broker.proxy';

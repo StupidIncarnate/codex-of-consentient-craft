@@ -8,7 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
-import type { PackageJson } from '../package-json/package-json-contract';
+import type { TestGuildPackageJson } from '../test-guild-package-json/test-guild-package-json-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
 export const testGuildContract = z
@@ -29,7 +29,7 @@ export type TestGuild = TestGuildData & {
   writeFile: ({ fileName, content }: { fileName: string; content: string }) => void;
   deleteFile: ({ fileName }: { fileName: string }) => void;
   getConfig: () => TestbedConfig | null;
-  getPackageJson: () => PackageJson;
+  getPackageJson: () => TestGuildPackageJson;
   getQuestFiles: ({ subdir }: { subdir?: string }) => string[];
   executeCommand: ({ command }: { command: string }) => ExecResult;
   cleanup: () => void;

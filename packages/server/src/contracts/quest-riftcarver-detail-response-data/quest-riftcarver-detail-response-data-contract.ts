@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const questRiftcarverDetailResponseDataContract = z
-  .strictObject({ log: z.string() })
+  .strictObject({ log: z.string().brand<'QuestRiftcarverDetailResponseDataLog'>() })
   .brand<'QuestRiftcarverDetailResponseData'>();
 
 export type QuestRiftcarverDetailResponseData = z.infer<

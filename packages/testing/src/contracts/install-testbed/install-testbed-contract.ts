@@ -8,8 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
-import type { ClaudeSettings } from '../claude-settings/claude-settings-contract';
-import type { McpConfig } from '../mcp-config/mcp-config-contract';
+import type { TestbedClaudeSettings } from '../testbed-claude-settings/testbed-claude-settings-contract';
+import type { TestbedMcpConfig } from '../testbed-mcp-config/testbed-mcp-config-contract';
 
 export const installTestbedContract = z
   .object({
@@ -32,8 +32,8 @@ export type InstallTestbed = InstallTestbedData & {
     targetPath: string;
   }) => void;
   listDir: ({ relativePath }: { relativePath: string }) => readonly string[] | null;
-  getClaudeSettings: () => ClaudeSettings | null;
-  getMcpConfig: () => McpConfig | null;
+  getClaudeSettings: () => TestbedClaudeSettings | null;
+  getMcpConfig: () => TestbedMcpConfig | null;
   getDungeonmasterConfig: () => TestbedConfig | null;
   getEslintConfig: () => string | null;
   runInitCommand: () => { exitCode: number; stdout: string; stderr: string };

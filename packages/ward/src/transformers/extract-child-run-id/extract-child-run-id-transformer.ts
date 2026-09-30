@@ -6,8 +6,8 @@
  * // Returns RunId or null if pattern not found
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
-import { wardResultContract } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-run-result/ward-run-result-contract';
+import { wardRunResultContract } from '../../contracts/ward-run-result/ward-run-result-contract';
 
 // The summary line carries a trailing duration — `run: 1739625600000-a3f1  (23.4s)` — so the id is
 // bounded by whitespace or end-of-line, not by end-of-line alone.
@@ -17,13 +17,13 @@ export const extractChildRunIdTransformer = ({
   output,
 }: {
   output: string;
-}): WardResult['runId'] | null => {
+}): WardRunResult['runId'] | null => {
   const match = RUN_ID_PATTERN.exec(output);
 
   if (match === null) {
     return null;
   }
 
-  const parsed = wardResultContract.shape.runId.safeParse(match[1]);
+  const parsed = wardRunResultContract.shape.runId.safeParse(match[1]);
   return parsed.success ? parsed.data : null;
 };
