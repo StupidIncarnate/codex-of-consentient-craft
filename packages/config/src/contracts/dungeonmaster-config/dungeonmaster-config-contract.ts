@@ -37,7 +37,7 @@ export const dungeonmasterConfigContract = z
       .object({
         overrides: z
           .record(
-            z.string().brand<'FolderName'>(),
+            z.string().brand<'DungeonmasterConfigArchitectureOverrides'>(),
             z.object({ add: z.array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>()).optional() }),
           )
           .optional(),

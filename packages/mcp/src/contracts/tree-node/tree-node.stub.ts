@@ -8,12 +8,11 @@
 import { treeNodeContract } from './tree-node-contract';
 import type { TreeNode } from './tree-node-contract';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { FolderNameStub } from '../folder-name/folder-name.stub';
 import { TreeItemStub } from '../tree-item/tree-item.stub';
 
 export const TreeNodeStub = ({ ...props }: StubArgument<TreeNode> = {}): TreeNode =>
   treeNodeContract.parse({
-    name: FolderNameStub({ value: 'guards' }),
+    name: 'guards',
     items: [TreeItemStub()],
     children: new Map(),
     ...props,

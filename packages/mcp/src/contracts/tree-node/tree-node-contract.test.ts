@@ -1,11 +1,10 @@
 import { treeNodeContract as _treeNodeContract } from './tree-node-contract';
 import { TreeNodeStub } from './tree-node.stub';
-import { FolderNameStub } from '../folder-name/folder-name.stub';
 
 describe('treeNodeContract', () => {
   it('VALID: {name: "guards", children: Map, items: []} => parses successfully', () => {
     const { name, children, items } = TreeNodeStub({
-      name: FolderNameStub({ value: 'guards' }),
+      name: 'guards',
       items: [],
     });
 
@@ -16,7 +15,7 @@ describe('treeNodeContract', () => {
 
   it('VALID: {name: "brokers", children: Map, items: [item]} => parses successfully with items', () => {
     const { name, children, items } = TreeNodeStub({
-      name: FolderNameStub({ value: 'brokers' }),
+      name: 'brokers',
     });
 
     expect(name).toBe('brokers');
@@ -32,7 +31,7 @@ describe('treeNodeContract', () => {
 
   it('VALID: {name: "", children: Map, items: []} => parses successfully with empty name', () => {
     const { name, children, items } = TreeNodeStub({
-      name: FolderNameStub({ value: '' }),
+      name: '',
       items: [],
     });
 

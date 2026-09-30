@@ -17,7 +17,6 @@ import { treeItemContract } from '../../contracts/tree-item/tree-item-contract';
 import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
 import { treeNodeContract } from '../../contracts/tree-node/tree-node-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
-import { folderNameContract } from '../../contracts/folder-name/folder-name-contract';
 import { formatTreeNodeTransformer } from '../format-tree-node/format-tree-node-transformer';
 import { grepHitsCapTransformer } from '../grep-hits-cap/grep-hits-cap-transformer';
 import { pathToTreeRelativeTransformer } from '../path-to-tree-relative/path-to-tree-relative-transformer';
@@ -37,7 +36,7 @@ export const treeFormatterTransformer = ({
 
   // Build tree structure
   const root: TreeNode = treeNodeContract.parse({
-    name: folderNameContract.parse(''),
+    name: '',
     items: [],
     children: new Map(),
   });
@@ -56,7 +55,7 @@ export const treeFormatterTransformer = ({
     // Navigate/create tree nodes
     let currentNode = root;
     for (const segment of pathSegments) {
-      const folderName = folderNameContract.parse(segment);
+      const folderName = segment;
       if (!currentNode.children.has(folderName)) {
         currentNode.children.set(
           folderName,
@@ -67,7 +66,7 @@ export const treeFormatterTransformer = ({
       if (!childNode) {
         throw new Error(`Child node not found for folder: ${folderName}`);
       }
-      currentNode = childNode;
+      currentNode = treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(childNode)));
     }
 
     // Add item to leaf node
@@ -96,7 +95,7 @@ export const treeFormatterTransformer = ({
     .sort(([a], [b]) => String(a).localeCompare(String(b)))
     .map(
       ([folderName, folderNode]) =>
-        `${folderName}/\n${formatTreeNodeTransformer({ node: folderNode, indent: 1, hitRenders })}`,
+        `${folderName}/\n${formatTreeNodeTransformer({ node: treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(folderNode))), indent: 1, hitRenders })}`,
     );
 
   return rootFolders.join('\n\n');
