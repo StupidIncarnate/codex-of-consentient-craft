@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { platformCrossingCheckBroker } from './platform-crossing-check-broker';
@@ -13,7 +13,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
   describe('a browser package reaches the node gateway through a second package', () => {
     it('VALID: {web imports a named broker whose file imports @dungeonmaster/node/fs} => reports the full chain', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-multi-hop' }),
+        baseName: 'platform-crossing-multi-hop',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWebPackage({ testbed });
@@ -65,7 +65,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
   describe('barrel case', () => {
     it('VALID: {web imports only the barrel export that never touches node} => reports nothing for the sibling export that does', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-barrel' }),
+        baseName: 'platform-crossing-barrel',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWebPackage({ testbed });
@@ -112,7 +112,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
   describe('clean case', () => {
     it('VALID: {web only imports react, no gateway anywhere in reach} => reports nothing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-clean' }),
+        baseName: 'platform-crossing-clean',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWebPackage({ testbed });
@@ -135,7 +135,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
   describe('a browser package reaches the node gateway via the #gateway import prefix', () => {
     it('VALID: {web imports "#gateway/node/fs" directly} => reports it naming the real gateway package', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-gateway-prefix-direct' }),
+        baseName: 'platform-crossing-gateway-prefix-direct',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWebPackage({ testbed });
@@ -165,7 +165,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
 
     it('VALID: {web imports a named broker whose file imports "#gateway/node/fs"} => reports the full chain naming the real gateway package', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-gateway-prefix-multi-hop' }),
+        baseName: 'platform-crossing-gateway-prefix-multi-hop',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWebPackage({ testbed });
@@ -217,7 +217,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
   describe('a browser package uses its own gateway folder via #gateway', () => {
     it('VALID: {web imports "#gateway/browser/localStorage"} => reports nothing, browser is not forbidden for a browser package', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-gateway-prefix-allowed' }),
+        baseName: 'platform-crossing-gateway-prefix-allowed',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWebPackage({ testbed });
@@ -246,7 +246,7 @@ describe('platformCrossingCheckBroker (integration)', () => {
   describe('library package skip', () => {
     it('VALID: {a library package with no browser or node signals} => returns no violations even though it imports the gateway', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'platform-crossing-library' }),
+        baseName: 'platform-crossing-library',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeFile({

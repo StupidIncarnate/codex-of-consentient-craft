@@ -8,7 +8,7 @@
  * npm run ward -- --only integration -- packages/orchestrator/src/brokers/planned-work/write/planned-work-write-broker.integration.test.ts
  */
 
-import { BaseNameStub, installTestbedCreateBroker } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -26,7 +26,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
 
   it('VALID: {a plan written then read} => comes back identical, through a real minted quest folder', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'planned-work-roundtrip' }),
+      baseName: 'planned-work-roundtrip',
     });
     const { questId } = await quest.createGuildAndQuest({ testbed });
     const { questPath: questFolderPath } = await questFindQuestPathBroker({ questId });
@@ -44,7 +44,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
 
   it('EMPTY: {a freshly minted quest with no plan ever written} => reading returns null, not a throw and not {}', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'planned-work-missing' }),
+      baseName: 'planned-work-missing',
     });
     const { questId } = await quest.createGuildAndQuest({ testbed });
     const { questPath: questFolderPath } = await questFindQuestPathBroker({ questId });
@@ -60,7 +60,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
 
   it('VALID: {the first write on a fresh quest} => planned-work/ does not exist before the write and exists after', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'planned-work-mkdir' }),
+      baseName: 'planned-work-mkdir',
     });
     const { questId } = await quest.createGuildAndQuest({ testbed });
     const { questPath: questFolderPath } = await questFindQuestPathBroker({ questId });
@@ -80,7 +80,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
 
   it('VALID: {a second write to the same operationItemId} => overwrites cleanly — the mkdir call does not throw on a directory that already exists', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'planned-work-overwrite' }),
+      baseName: 'planned-work-overwrite',
     });
     const { questId } = await quest.createGuildAndQuest({ testbed });
     const { questPath: questFolderPath } = await questFindQuestPathBroker({ questId });
@@ -100,7 +100,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
 
   it('VALID: {the resolved directory} => composes from locationsPlannedWorkPathFindBroker + locationsStatics.quest.plannedWorkDir, not a literal', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'planned-work-resolver' }),
+      baseName: 'planned-work-resolver',
     });
     const { questId } = await quest.createGuildAndQuest({ testbed });
     const { questPath: questFolderPath } = await questFindQuestPathBroker({ questId });
@@ -122,7 +122,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
 
   it('VALID: {a completed write} => no .tmp file survives, and the final json holds the complete, non-truncated plan', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'planned-work-atomic' }),
+      baseName: 'planned-work-atomic',
     });
     const { questId } = await quest.createGuildAndQuest({ testbed });
     const { questPath: questFolderPath } = await questFindQuestPathBroker({ questId });

@@ -7,7 +7,7 @@ import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
@@ -29,7 +29,7 @@ describe('CommentBatchFlow', () => {
   describe('persist gates delivery — real disk, no guild ever resolved on the reject path', () => {
     it('ERROR: {questId with no quest on disk} => rejects with the persist failure, never reaching the chat-resume step', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cbf-no-quest' }),
+        baseName: 'cbf-no-quest',
       });
       const home = envHarness.setupHome({ tempDir: testbed.guildPath });
       const questId = QuestIdStub();
@@ -54,7 +54,7 @@ describe('CommentBatchFlow', () => {
   describe('successful persist — real read-modify-write against the real quest.json', () => {
     it('VALID: {quest already carrying one historic comment, batch of two new comments — node-anchored and observable-anchored, one hostile} => appends both new comments with distinct minted ids alongside the untouched historic one, then reaches the chat-resume step for real', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cbf-persist' }),
+        baseName: 'cbf-persist',
       });
       const home = envHarness.setupHome({ tempDir: testbed.guildPath });
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
@@ -155,7 +155,7 @@ describe('CommentBatchFlow', () => {
   describe('real chat resume — spawns a real (fake) Claude CLI process and records its argv', () => {
     it('VALID: {quest already carrying one historic comment on a node, a fresh 3-comment batch mixing node+observable anchors with hostile text} => the spawned process receives --resume <sessionId> and the exact markdown (quest-side labels, no historic comment, correct dividers) as -p', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cbf-real-spawn-success' }),
+        baseName: 'cbf-real-spawn-success',
       });
       const home = envHarness.setupHome({ tempDir: testbed.guildPath });
       const cli = questHelper.configureFakeClaudeCli();
@@ -258,7 +258,7 @@ describe('CommentBatchFlow', () => {
   describe('real chat resume — persist failure spawns zero real chat processes', () => {
     it('ERROR: {questId with no quest on disk, fake-CLI environment configured for a real spawn} => CommentBatchFlow rejects AND no claude CLI invocation is ever recorded', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cbf-real-spawn-persist-fail' }),
+        baseName: 'cbf-real-spawn-persist-fail',
       });
       const home = envHarness.setupHome({ tempDir: testbed.guildPath });
       const cli = questHelper.configureFakeClaudeCli();

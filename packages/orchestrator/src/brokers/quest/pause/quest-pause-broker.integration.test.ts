@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -49,7 +49,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
 
   it('VALID: {2 concurrent pause calls on the same in_progress quest, one running work item} => both callers get {paused:true}, and the quest lands paused with that work item pending', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'pause-concurrent-double-submit' }),
+      baseName: 'pause-concurrent-double-submit',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -125,7 +125,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
   // duration with nothing on screen to distinguish it from a legitimately running item.
   it("VALID: {an immediate second pause races the resumed dispatch's async re-stamp} => the pause guard misses the mid-transition item, leaving it in_progress with a fresh startedAt under a paused quest", async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'pause-resume-restamp-race' }),
+      baseName: 'pause-resume-restamp-race',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({

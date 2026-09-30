@@ -1,10 +1,5 @@
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
@@ -21,7 +16,7 @@ const ONE_STEP_BATCH = JSON.stringify([{ step: 'goto', path: '/' }]);
 
 describe('SiegelenseRunLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'siegelense-run-layer-flow' }),
+    baseName: 'siegelense-run-layer-flow',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 

@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { duplicateInstallCheckBroker } from './duplicate-install-check-broker';
@@ -10,7 +10,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
   describe('single copy', () => {
     it('VALID: {a dependency installed at exactly one location} => reports nothing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'duplicate-install-single-copy' }),
+        baseName: 'duplicate-install-single-copy',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeGatewayPackage({
@@ -37,7 +37,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
   describe('gateway-nested plus app-nested', () => {
     it('VALID: {same name installed under the gateway package and under an app package} => fails naming both versions', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'duplicate-install-gateway-and-app' }),
+        baseName: 'duplicate-install-gateway-and-app',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeGatewayPackage({
@@ -78,7 +78,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
   describe('root plus gateway-nested', () => {
     it('VALID: {same name installed at the repo root and under the gateway package} => fails naming both versions', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'duplicate-install-root-and-gateway' }),
+        baseName: 'duplicate-install-root-and-gateway',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeGatewayPackage({
@@ -118,7 +118,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
   describe('workspace-package names skipped', () => {
     it('VALID: {a gateway dependency name that is itself a workspace package, installed at two locations} => reports nothing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'duplicate-install-workspace-name-skipped' }),
+        baseName: 'duplicate-install-workspace-name-skipped',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeGatewayPackage({
@@ -154,7 +154,7 @@ describe('duplicateInstallCheckBroker (integration)', () => {
   describe('no gateway folder', () => {
     it('VALID: {a workspaces repo with no packages/@gateway folder} => reports nothing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'duplicate-install-no-gateway' }),
+        baseName: 'duplicate-install-no-gateway',
       });
       await harness.writeWorkspacesRoot({ testbed });
       await harness.writeWorkspacePackage({ testbed, relativePath: 'packages/web', name: 'web' });

@@ -1,10 +1,5 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardFlow } from './ward-flow';
@@ -40,7 +35,7 @@ describe('WardFlow', () => {
 
     it('VALID: {args: ["node", "ward", "detail", runId, filePath]} with existing ward result => routes to WardDetailResponder and resolves', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-flow-detail-result' }),
+        baseName: 'ward-flow-detail-result',
       });
 
       const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
@@ -70,7 +65,7 @@ describe('WardFlow', () => {
 
     it('VALID: {args: ["node", "ward", "list", runId]} with existing ward result => routes to WardListResponder and resolves', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-flow-list-result' }),
+        baseName: 'ward-flow-list-result',
       });
 
       const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
@@ -111,7 +106,7 @@ describe('WardFlow', () => {
 
     it('VALID: {args: ["node", "ward", "raw", runId, checkType]} with existing ward result => routes to WardRawResponder and resolves', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-flow-raw-result' }),
+        baseName: 'ward-flow-raw-result',
       });
 
       const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });

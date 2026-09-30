@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
@@ -15,7 +15,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
 
   it('VALID: {one committed file, one edited tracked file, one brand-new file} => returns the edit and the new file, never the committed one', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-diff-uncommitted' }),
+      baseName: 'ward-diff-uncommitted',
     });
     const repoPath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/repo` });
 
@@ -57,7 +57,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
 
   it('VALID: {an untracked file matched by .gitignore} => the ignored file stays out of scope', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-diff-uncommitted-ignored' }),
+      baseName: 'ward-diff-uncommitted-ignored',
     });
     const repoPath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/repo` });
 

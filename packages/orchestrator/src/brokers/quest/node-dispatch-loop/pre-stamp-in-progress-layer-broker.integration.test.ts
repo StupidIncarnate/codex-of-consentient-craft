@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -42,7 +42,7 @@ describe('preStampInProgressLayerBroker (integration — real disk, real concurr
 
   it("VALID: {a pause's write lands before an in-flight dispatch's pre-stamp} => the pre-stamp is refused and the work item is never re-armed under a paused quest", async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'pre-stamp-pause-race' }),
+      baseName: 'pre-stamp-pause-race',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({

@@ -1,10 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -17,7 +12,7 @@ describe('StartInstall', () => {
     it('VALID: {fresh target} => delegates to the flow and returns the install result', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-wiring' }),
+        baseName: 'siegelense-start-install-wiring',
       });
 
       // The siegelense root is resolved through DUNGEONMASTER_HOME — the same env var
@@ -52,7 +47,7 @@ describe('StartInstall', () => {
     it('VALID: {fresh target} => .dungeonmaster-assets/siegelense-assets exists and resolves to the real siegelense root, not just to something', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-link-resolves' }),
+        baseName: 'siegelense-start-install-link-resolves',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
@@ -91,7 +86,7 @@ describe('StartInstall', () => {
     it('VALID: {install run twice} => the .dungeonmaster-assets/siegelense-assets line appears exactly once', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-gitignore-twice' }),
+        baseName: 'siegelense-start-install-gitignore-twice',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
@@ -131,7 +126,7 @@ describe('StartInstall', () => {
     it('VALID: {fresh target} => packages/hydration-recipes/src holds the starter index.ts, its integration test, and the startup/flows/responders folders', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-empty' }),
+        baseName: 'siegelense-start-install-recipes-empty',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
@@ -164,7 +159,7 @@ describe('StartInstall', () => {
     it('VALID: {recipes folder already holds a file, install run again} => the file is left untouched', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-untouched' }),
+        baseName: 'siegelense-start-install-recipes-untouched',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
@@ -205,7 +200,7 @@ describe('StartInstall', () => {
     it('VALID: {fresh target} => the resolved siegelense root embedded in the result message names the dungeonmaster home, not targetProjectRoot or context.dungeonmasterRoot', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-absolute-path' }),
+        baseName: 'siegelense-start-install-absolute-path',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
@@ -231,7 +226,7 @@ describe('StartInstall', () => {
     it('VALID: {fresh target} => every path the result message hands back is absolute', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-start-install-every-path-absolute' }),
+        baseName: 'siegelense-start-install-every-path-absolute',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;

@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { StartInstall } from './start-install';
@@ -24,7 +19,7 @@ describe('StartInstall', () => {
   describe('wiring to install flow', () => {
     it('VALID: {context} => delegates to flow and returns install result with devDependencies added', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'startup-wiring' }),
+        baseName: 'startup-wiring',
       });
 
       const result = await StartInstall({
@@ -61,7 +56,7 @@ describe('StartInstall', () => {
   describe('scaffolded playwright.config.ts reads devServer.e2e.processes', () => {
     it('VALID: {e2e-eligible target, devServer.e2e.processes with an api and a web entry} => the written config maps each into webServer with tokens substituted', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'playwright-e2e-happy' }),
+        baseName: 'playwright-e2e-happy',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -166,7 +161,7 @@ describe('StartInstall', () => {
 
     it('ERROR: {e2e-eligible target, devServer.e2e.processes still the unedited seeded placeholder} => the written config refuses to load, naming the field to edit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'playwright-e2e-placeholder' }),
+        baseName: 'playwright-e2e-placeholder',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -228,7 +223,7 @@ describe('StartInstall', () => {
 
     it('ERROR: {e2e-eligible target, .dungeonmaster.json has no devServer.e2e} => the written config refuses to load, naming the field to edit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'playwright-e2e-missing-config' }),
+        baseName: 'playwright-e2e-missing-config',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -274,7 +269,7 @@ describe('StartInstall', () => {
 
     it('ERROR: {e2e-eligible target, a process command uses {apiWorkspace}} => the written config refuses to load, naming the unresolvable token', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'playwright-e2e-unresolvable-token' }),
+        baseName: 'playwright-e2e-unresolvable-token',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -335,7 +330,7 @@ describe('StartInstall', () => {
 
     it('ERROR: {e2e-eligible target, a process portRole is neither api nor web} => the written config refuses to load, naming the process', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'playwright-e2e-bad-port-role' }),
+        baseName: 'playwright-e2e-bad-port-role',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),

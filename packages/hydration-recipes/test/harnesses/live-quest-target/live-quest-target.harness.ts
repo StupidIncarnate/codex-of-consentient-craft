@@ -71,7 +71,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { questWriteRouteBroker } from '../../../src/brokers/quest/write-route/quest-write-route-broker';
 import { DmTargetStub } from '../../../src/contracts/dm-target/dm-target.stub';
@@ -107,7 +107,7 @@ export const liveQuestTargetHarness = ({
   return {
     beforeEach: (): void => {
       testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'live-quest-target' }),
+        baseName: 'live-quest-target',
       });
       savedDungeonmasterHome = getEnv(DUNGEONMASTER_HOME_ENV_VAR);
       setEnv(DUNGEONMASTER_HOME_ENV_VAR, testbed.guildPath);

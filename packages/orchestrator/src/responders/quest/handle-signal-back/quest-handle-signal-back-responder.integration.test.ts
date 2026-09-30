@@ -1,5 +1,5 @@
 import { randomUUID } from '#gateway/node/crypto';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
@@ -59,7 +59,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
 
   it('VALID: {codeweaver done, every unit across BOTH round commits dispositioned} => the gate clears and quest.json records the completion with NO review item appended', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-review-clear' }),
+      baseName: 'sb-review-clear',
     });
     envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -183,7 +183,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     "VALID: {codeweaver done, every unit dispositioned '%s'} => accepted exactly as 'reviewed' would be",
     async (disposition) => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: `sb-review-${disposition}` }),
+        baseName: `sb-review-${disposition}`,
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -293,7 +293,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
   // relay must not wedge on a work item that could never satisfy the gate.
   it('EMPTY: {codeweaver done, work item carrying NO startRef} => signals fine even with an empty blightLedger', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-review-nostart' }),
+      baseName: 'sb-review-nostart',
     });
     envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -354,7 +354,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
   // review, exactly as `git commit --allow-empty` satisfies the commit gate above.
   it('EMPTY: {codeweaver done, startRef equal to HEAD so the range holds no commits} => accepted with an empty blightLedger', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-review-emptyrange' }),
+      baseName: 'sb-review-emptyrange',
     });
     envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -452,7 +452,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
   it('VALID: {codeweaver done, worktree carrying an uncommitted net-new file} => the signal succeeds and the outcome applies', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-dirty-tree' }),
+      baseName: 'sb-dirty-tree',
     });
     envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -550,7 +550,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
   it('VALID: {codeweaver done, freshly carved worktree with nothing uncommitted} => also succeeds — a clean tree was never required either', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-clean-tree' }),
+      baseName: 'sb-clean-tree',
     });
     envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -647,7 +647,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
   describe("flowrider: 'done' succeeds whatever the flow holds, because the work item carries no assigned units to mark", () => {
     it('VALID: {done, a two-node RUNTIME flow, work item assigned no units} => accepted, operation + work item complete', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'sb-flowrider-admit' }),
+        baseName: 'sb-flowrider-admit',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -732,7 +732,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
 
     it('VALID: {done, every flow OPERATIONAL} => accepted, because nothing gates on a sign-off column any more — not because of a runtime-only filter', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'sb-flowrider-operational' }),
+        baseName: 'sb-flowrider-operational',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -809,7 +809,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
   describe("siegemaster: 'done' succeeds whatever the flow's off-map signoffs hold, because the work item carries no assigned units to mark", () => {
     it("VALID: {siegemaster 'done', the flow's off-map families are all recorded} => the gate clears", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'sb-tracks-both-signed' }),
+        baseName: 'sb-tracks-both-signed',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -908,7 +908,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
 
   it("VALID: {merging quest with a real worktree + branch, warpgate work item signals done} => quest.json derives to 'merged', the worktree directory still exists, and the quest branch still resolves", async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-warpgate-worktree' }),
+      baseName: 'sb-warpgate-worktree',
     });
     envHarness.setupHome({ tempDir: testbed.guildPath });
 

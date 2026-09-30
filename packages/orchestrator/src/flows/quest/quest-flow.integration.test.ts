@@ -1,5 +1,5 @@
 import { randomUUID } from '#gateway/node/crypto';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
 import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts/comment-batch-entry/comment-batch-entry.stub';
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
@@ -47,7 +47,7 @@ describe('QuestFlow', () => {
   describe('getSummary — verification state of a persisted quest', () => {
     it('VALID: {runtime flow with one siegemaster-added observable, an operational flow and two notes} => coverage, drift, debt and note groups all come back off disk', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-get-summary' }),
+        baseName: 'qf-get-summary',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -182,7 +182,7 @@ describe('QuestFlow', () => {
   describe('package tags at the flows_approved gate', () => {
     it("INVALID: {node tags a package absent from packagesAffected} => refused as 'Node Package Coverage' naming node, flow, package and the entry shape to add; the quest stays at review_flows", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-node-coverage' }),
+        baseName: 'qf-gate-node-coverage',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -247,7 +247,7 @@ describe('QuestFlow', () => {
 
     it("INVALID: {edge whose endpoints share no package} => refused as 'No Unglued Seam' naming the edge, both endpoints and their tags; the quest stays at review_flows", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-unglued-seam' }),
+        baseName: 'qf-gate-unglued-seam',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -335,7 +335,7 @@ describe('QuestFlow', () => {
     // asserts the refusal an agent actually gets, and that the untagged node never lands.
     it('INVALID: {agent adds a node carrying no packages} => the write is refused before the gate and the flow on disk keeps only its tagged node', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-untagged-node' }),
+        baseName: 'qf-gate-untagged-node',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -404,7 +404,7 @@ describe('QuestFlow', () => {
     // refusals alone passes just as well against a gate that refuses everything.
     it('VALID: {flows and packagesAffected authored in one write, every tag declared and the seam glued} => the gate admits it and the tags survive on disk', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-flows-approved-ok' }),
+        baseName: 'qf-gate-flows-approved-ok',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
       await envHarness.seedQuestRepoPackages({
@@ -512,7 +512,7 @@ describe('QuestFlow', () => {
   describe('package tags at the approved gate', () => {
     it("INVALID: {glue node whose observables cover only one of its two packages} => refused as 'Observable Package Attribution' naming the uncovered package; the quest stays at review_observables", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-attribution' }),
+        baseName: 'qf-gate-attribution',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -609,7 +609,7 @@ describe('QuestFlow', () => {
 
     it("INVALID: {authored contract whose source sits under no declared package} => refused as 'Contract Source Coverage' naming the contract and its unroutable source", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-contract-source' }),
+        baseName: 'qf-gate-contract-source',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -724,7 +724,7 @@ describe('QuestFlow', () => {
     // reaches no session on either quest type.
     it("INVALID: {bug-hunt quest whose contract source resolves nowhere} => refused as 'Contract Source Coverage', same as a feature quest", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-bug-hunt-contract-source' }),
+        baseName: 'qf-gate-bug-hunt-contract-source',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -838,7 +838,7 @@ describe('QuestFlow', () => {
     // admits it, and without it both `web` and `server` would be named.
     it('VALID: {multi-package decision node carrying no observables and no edges} => exempt from attribution, the gate admits it', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-zero-observable-node' }),
+        baseName: 'qf-gate-zero-observable-node',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -938,7 +938,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {glue node whose observables cover both sides and a ledger claiming both packages} => the gate admits it and the resolved observable packages survive on disk', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-gate-approved-ok' }),
+        baseName: 'qf-gate-approved-ok',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -1055,7 +1055,7 @@ describe('QuestFlow', () => {
     // stub default.
     it('VALID: {observables written through modify-quest with no package onto single-package nodes} => the save resolves each from its owning node and the value lands on disk', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-observable-package-resolve' }),
+        baseName: 'qf-observable-package-resolve',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -1162,7 +1162,7 @@ describe('QuestFlow', () => {
 
     it("INVALID: {observable written through modify-quest with no package onto a two-package node} => refused as 'Observable Package Resolution' naming both tags, and the observable never reaches disk", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-observable-package-unresolvable' }),
+        baseName: 'qf-observable-package-unresolvable',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -1269,7 +1269,7 @@ describe('QuestFlow', () => {
     // gate reads. So the very next thing get-next-step dispatches is the SEEDED flowrider item.
     it('VALID: {codeweaver signals complete/done} => operation completes, no review item is appended, and get-next-step dispatches the seeded flowrider', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-relay-done' }),
+        baseName: 'qf-relay-done',
       });
       envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
@@ -1380,7 +1380,7 @@ describe('QuestFlow', () => {
   describe('operations relay — a stepped scope advances through its step graph', () => {
     it('VALID: {codeweaver at step `plan` signals complete} => the scope stays in_progress, the scan mints its `work` step on the SAME scope, and the flowrider family is never opened', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-relay-stepped' }),
+        baseName: 'qf-relay-stepped',
       });
       envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
@@ -1506,7 +1506,7 @@ describe('QuestFlow', () => {
   describe('comment integrity — the comment-batch route writes comments the MCP agent path blocks', () => {
     it('VALID: {CommentBatchResponder persists one comment} => the real persisted quest.comments carries it on the very next read', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-comment-batch-write' }),
+        baseName: 'qf-comment-batch-write',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -1543,7 +1543,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {no covering guild registered} => auto-creates a guild at the repo root, creates its quests dir, persists the quest, and returns { questId, guildSlug }', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-mcp-autocreate' }),
+        baseName: 'qf-mcp-autocreate',
       });
       // tempDir doubles as DUNGEONMASTER_HOME AND the repo root the cwd resolves to:
       // the guild gets path === repo root === testbed dir.
@@ -1588,7 +1588,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {a guild already covers the repo root} => reuses it, appends no new guild, returns the existing guild slug', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-mcp-reuse' }),
+        baseName: 'qf-mcp-reuse',
       });
       const repoRoot = GuildPathStub({ value: testbed.guildPath });
       envHarness.setupHome({ tempDir: repoRoot });
@@ -1632,7 +1632,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {cwd is a subfolder of an already-registered guild} => reuses the ancestor guild (matches repo root, not the literal subfolder cwd)', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-mcp-subfolder' }),
+        baseName: 'qf-mcp-subfolder',
       });
       const repoRoot = GuildPathStub({ value: testbed.guildPath });
       envHarness.setupHome({ tempDir: repoRoot });
@@ -1677,7 +1677,7 @@ describe('QuestFlow', () => {
 
     it('EDGE: {no .dungeonmaster.json anywhere up the tree AND no covering guild} => cwdResolveBroker rejects, broker falls back to literal cwd, auto-creates a guild there, and still returns { questId, guildSlug }', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-mcp-fallback' }),
+        baseName: 'qf-mcp-fallback',
       });
       const repoRoot = GuildPathStub({ value: testbed.guildPath });
       // setupHome writes config.json but NO .dungeonmaster.json — and /tmp has none up the tree,

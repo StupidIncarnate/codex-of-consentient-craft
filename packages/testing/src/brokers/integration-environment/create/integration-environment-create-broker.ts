@@ -49,7 +49,6 @@ import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
 import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
-import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
 
@@ -57,7 +56,7 @@ export const integrationEnvironmentCreateBroker = ({
   baseName,
   options,
 }: {
-  baseName: BaseName;
+  baseName: string;
   options?: {
     createPackageJson?: boolean;
     setupEslint?: boolean; // Copy tsconfig/eslint from project for type-aware linting

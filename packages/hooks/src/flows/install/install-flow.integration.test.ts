@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { freshProjectHarness } from '../../../test/harnesses/fresh-project/fresh-project.harness';
@@ -7,7 +7,7 @@ describe('InstallFlow', () => {
   describe('delegation to responder', () => {
     it('VALID: {context: no existing settings} => delegates to responder and creates settings', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'hooks-flow-create' }),
+        baseName: 'hooks-flow-create',
       });
 
       const result = await InstallFlow({

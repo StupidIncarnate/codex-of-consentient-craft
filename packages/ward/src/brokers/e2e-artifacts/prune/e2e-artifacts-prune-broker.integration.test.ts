@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { e2eArtifactsHarness } from '../../../../test/harnesses/e2e-artifacts/e2e-artifacts.harness';
@@ -22,7 +22,7 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
 
   it('VALID: {stale cache, fresh cache, traces of both ages, another project’s folder} => takes only what it owns, only past its own window', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-e2e-artifacts' }),
+      baseName: 'ward-e2e-artifacts',
     });
     const packageRoot = AbsoluteFilePathStub({ value: testbed.guildPath });
 
@@ -75,7 +75,7 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
 
   it('EMPTY: {a package with no node_modules and no test-results} => succeeds and changes nothing', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-e2e-artifacts-bare' }),
+      baseName: 'ward-e2e-artifacts-bare',
     });
     const packageRoot = AbsoluteFilePathStub({ value: testbed.guildPath });
 

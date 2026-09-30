@@ -32,12 +32,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -76,7 +71,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
   const ALIVE_POPULATED_ID = store.mintInstanceId();
 
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'siegelense-snapshots-layer-flow' }),
+    baseName: 'siegelense-snapshots-layer-flow',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 

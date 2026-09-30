@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
@@ -54,7 +54,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
       'ERROR: {status: %s} => rejects and quest.json is byte-identical before and after',
       async (status) => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: `osr-bad-status-${status}` }),
+          baseName: `osr-bad-status-${status}`,
         });
         envHarness.setupHome({ tempDir: testbed.guildPath });
         const questId = QuestIdStub({ value: `bad-status-${status}` });
@@ -106,7 +106,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
     // is why this is the one case in the block that registers a real guild.
     it('VALID: {status: approved, worktree already recorded} => the SAME route starts successfully, proving the guard rejects only non-startable statuses', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'osr-bad-status-counterexample' }),
+        baseName: 'osr-bad-status-counterexample',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
       const { guild } = await questHelper.createGuildAndQuest({ testbed });
@@ -141,7 +141,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
   describe('Start leaves the repository untouched and seeds the carve onto the relay', () => {
     it('VALID: {a branch already owns the exact name the carve will compute, pinned at an earlier commit than the advanced base} => Start succeeds, the branch sha is unchanged, and no worktree exists on disk', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'osr-name-taken' }),
+        baseName: 'osr-name-taken',
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
       const { guild } = await questHelper.createGuildAndQuest({ testbed });

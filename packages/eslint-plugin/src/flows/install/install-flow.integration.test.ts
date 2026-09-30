@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 
@@ -6,7 +6,7 @@ describe('InstallFlow', () => {
   describe('delegation to responder', () => {
     it('VALID: {context: no existing config} => delegates to responder and creates eslint.config.js', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-create-eslint-config' }),
+        baseName: 'flow-create-eslint-config',
       });
 
       const result = InstallFlow({

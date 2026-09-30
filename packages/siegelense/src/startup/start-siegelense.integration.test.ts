@@ -1,6 +1,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
@@ -9,7 +9,7 @@ import { StartSiegelense } from './start-siegelense';
 
 describe('StartSiegelense', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'start-siegelense' }),
+    baseName: 'start-siegelense',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 

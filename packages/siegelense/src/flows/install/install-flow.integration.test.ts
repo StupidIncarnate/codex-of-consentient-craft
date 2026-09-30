@@ -1,5 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -12,7 +12,7 @@ describe('InstallFlow', () => {
     it('VALID: {fresh target} => creates the link, the gitignore entry, and the empty recipes package', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-flow-fresh' }),
+        baseName: 'siegelense-flow-fresh',
       });
 
       // The siegelense root is resolved through DUNGEONMASTER_HOME — the same env var
@@ -73,7 +73,7 @@ describe('InstallFlow', () => {
     it('VALID: {flow run twice} => every responder reports skipped and the overall result still reads as a success', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-flow-twice' }),
+        baseName: 'siegelense-flow-twice',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
@@ -131,7 +131,7 @@ describe('InstallFlow', () => {
     it('VALID: {a flat legacy .siegelense symlink from a pre-nesting install} => removes it and still creates the nested link', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-flow-legacy-link' }),
+        baseName: 'siegelense-flow-legacy-link',
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;

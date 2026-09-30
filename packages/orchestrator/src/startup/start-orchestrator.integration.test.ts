@@ -1,7 +1,7 @@
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
@@ -20,7 +20,7 @@ describe('StartOrchestrator', () => {
     // proves that void call via its sibling stopChat.
     it('VALID: {called twice} => starts the passive watchers; getExecutionQueue still resolves', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-orch-bootstrap' }),
+        baseName: 'start-orch-bootstrap',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -37,7 +37,7 @@ describe('StartOrchestrator', () => {
   describe('guild wiring', () => {
     it('VALID: {listGuilds} => delegates to GuildFlow.list and returns array', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-orch-list' }),
+        baseName: 'start-orch-list',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -52,7 +52,7 @@ describe('StartOrchestrator', () => {
   describe('quest wiring', () => {
     it('VALID: {nonexistent questId} => getQuest delegates to QuestFlow.get and returns error', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-orch-quest' }),
+        baseName: 'start-orch-quest',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -75,7 +75,7 @@ describe('StartOrchestrator', () => {
 
     it('ERROR: {nonexistent questId} => pauseQuest delegates to OrchestrationFlow.pause and throws', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-orch-pause' }),
+        baseName: 'start-orch-pause',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const questId = QuestIdStub({ value: 'nonexistent-quest-id' });
@@ -92,7 +92,7 @@ describe('StartOrchestrator', () => {
 
     it('ERROR: {nonexistent questId} => abandonQuest delegates to OrchestrationFlow.abandon and throws', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-orch-abandon' }),
+        baseName: 'start-orch-abandon',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const questId = QuestIdStub({ value: 'nonexistent-quest-id' });

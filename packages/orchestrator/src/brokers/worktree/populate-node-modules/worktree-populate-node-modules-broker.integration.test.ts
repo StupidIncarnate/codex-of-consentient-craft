@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -21,7 +21,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
 
   it('VALID: {fresh worktree off a real 2-package repo} => workspace links, third-party deps, bin shims and per-package hoisted deps all exist for real', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpnm-fresh' }),
+      baseName: 'wpnm-fresh',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
@@ -109,7 +109,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
 
   it('VALID: {run twice over the same worktree} => the second run resolves rather than dying on EEXIST, skips every populated root, and leaves the links resolving where they were', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpnm-rerun' }),
+      baseName: 'wpnm-rerun',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 

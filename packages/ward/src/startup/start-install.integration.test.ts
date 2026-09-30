@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { StartInstall } from './start-install';
@@ -12,7 +7,7 @@ describe('start-install integration', () => {
   describe('StartInstall', () => {
     it('VALID: {context} => delegates to flow and returns combined install result', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-startup-wiring' }),
+        baseName: 'ward-startup-wiring',
       });
 
       testbed.writeFile({

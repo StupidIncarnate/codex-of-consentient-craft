@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 
@@ -11,7 +6,7 @@ describe('install-flow integration', () => {
   describe('InstallFlow', () => {
     it('VALID: {context: no existing config} => creates .dungeonmaster.json config', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'create-config' }),
+        baseName: 'create-config',
       });
 
       const result = await InstallFlow({
@@ -71,7 +66,7 @@ describe('install-flow integration', () => {
 
     it('VALID: {context: existing config already has devServer.e2e and gateway} => skips, leaving the file untouched', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'skip-config-has-e2e' }),
+        baseName: 'skip-config-has-e2e',
       });
       const existingContent = JSON.stringify(
         {
@@ -120,7 +115,7 @@ describe('install-flow integration', () => {
 
     it('VALID: {context: existing config with a devServer block, no e2e} => adds the placeholder and keeps every other key', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'merge-config-with-devserver' }),
+        baseName: 'merge-config-with-devserver',
       });
 
       testbed.writeFile({
@@ -197,7 +192,7 @@ describe('install-flow integration', () => {
 
     it('VALID: {context: existing config with no devServer at all} => creates devServer and adds the placeholder', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'merge-config-no-devserver' }),
+        baseName: 'merge-config-no-devserver',
       });
 
       testbed.writeFile({
@@ -251,7 +246,7 @@ describe('install-flow integration', () => {
 
     it('INVALID: {context: existing .dungeonmaster.json is not valid JSON} => leaves it untouched and reports why', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'skip-config-invalid-json' }),
+        baseName: 'skip-config-invalid-json',
       });
       const existingContent = '{ not valid json';
 
@@ -286,7 +281,7 @@ describe('install-flow integration', () => {
 
     it('INVALID: {context: existing .dungeonmaster.json fails the config contract} => leaves it untouched and reports why', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'skip-config-fails-contract' }),
+        baseName: 'skip-config-fails-contract',
       });
       const existingContent = JSON.stringify({ framework: 'custom', schema: 'yup' }, null, 2);
 

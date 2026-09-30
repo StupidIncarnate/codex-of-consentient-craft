@@ -1,7 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 
 import { laneApiHarness } from '../../../../test/harnesses/lane-api/lane-api.harness';
 import { transcriptHarness } from '../../../../test/harnesses/transcript/transcript.harness';
@@ -19,7 +19,7 @@ describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () 
 
   it('VALID: {a real guild path} => the three files land under THAT guild and read back as a nested chain', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'siege-recipe-session' }),
+      baseName: 'siege-recipe-session',
     });
     const guildPath = `${testbed.guildPath}/siege-repo`;
     laneApi.serveGuild({ id: GUILD_ID, path: guildPath, urlSlug: 'siege-guild' });
@@ -89,7 +89,7 @@ describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () 
 
   it('VALID: {run twice} => produces byte-identical files, because nothing in it reads a clock', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'siege-recipe-session-twice' }),
+      baseName: 'siege-recipe-session-twice',
     });
     const guildPath = `${testbed.guildPath}/siege-repo`;
     laneApi.serveGuild({ id: GUILD_ID, path: guildPath, urlSlug: 'siege-guild' });

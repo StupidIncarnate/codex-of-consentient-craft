@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
@@ -34,7 +29,7 @@ describe('CliFlow', () => {
     it('VALID: {command: "init"} => routes to init responder and runs package installers', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-init' }),
+        baseName: 'cli-flow-init',
       });
 
       await CliFlow({
@@ -94,7 +89,7 @@ describe('CliFlow', () => {
 
     it('VALID: {command: "statusline-tap", stdin: full payload} => writes snapshot.json + history.jsonl and echoes stdin to stdout', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-statusline-tap-write' }),
+        baseName: 'cli-flow-statusline-tap-write',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
       const inputData = FileContentsStub({
@@ -141,7 +136,7 @@ describe('CliFlow', () => {
 
     it('EDGE: {command: "statusline-tap", second call within throttle window} => stdout passthrough succeeds, snapshot file unchanged, history line not appended', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-statusline-tap-throttle' }),
+        baseName: 'cli-flow-statusline-tap-throttle',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
       const inputData = FileContentsStub({
@@ -190,7 +185,7 @@ describe('CliFlow', () => {
 
     it('ERROR: {command: "statusline-tap", malformed JSON stdin} => stdout passthrough succeeds, no snapshot file written, exits cleanly', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-statusline-tap-malformed' }),
+        baseName: 'cli-flow-statusline-tap-malformed',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
       const inputData = FileContentsStub({ value: 'not json at all' });
@@ -224,7 +219,7 @@ describe('CliFlow', () => {
 
     it('VALID: {command: "create-package", args: --name/--type} => writes the package and registers it in the root package.json', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-create-package' }),
+        baseName: 'cli-flow-create-package',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -265,7 +260,7 @@ describe('CliFlow', () => {
 
     it('INVALID: {command: "create-package", args: --type only} => throws naming the missing --name flag and writes nothing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-create-package-missing-name' }),
+        baseName: 'cli-flow-create-package-missing-name',
       });
       const stdout = harness.captureStdout();
 
@@ -309,7 +304,7 @@ describe('CliFlow', () => {
 
     it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-flow-siegelense-bare' }),
+        baseName: 'cli-flow-siegelense-bare',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
       const stdout = harness.captureStdout();
@@ -353,7 +348,7 @@ describe('CliFlow', () => {
       "VALID: {command: \"siegelense\", args: ['%s', '--help']} => routes through the real dynamic import to that call's help page",
       async (call) => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: `cli-flow-siegelense-help-${call}` }),
+          baseName: `cli-flow-siegelense-help-${call}`,
         });
         const env = harness.setupHome({ tempDir: testbed.guildPath });
         const stdout = harness.captureStdout();

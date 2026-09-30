@@ -18,12 +18,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
@@ -59,7 +54,7 @@ const EMPTY_FLEET_STATUS_JSON = `${JSON.stringify(
 
 describe('SiegelenseFlow', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'siegelense-flow' }),
+    baseName: 'siegelense-flow',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 

@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
@@ -14,7 +9,7 @@ describe('InstallFlow', () => {
   describe('add-dev-deps + create-playwright', () => {
     it('VALID: {context: no devDependencies, no playwright config, e2e-eligible target} => adds devDependencies and creates playwright.config.ts', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-add-devdeps' }),
+        baseName: 'flow-add-devdeps',
       });
 
       // create-playwright now gates on e2e eligibility — give this testbed the widgets+react
@@ -69,7 +64,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {context: all devDependencies present, e2e-eligible target, playwright config exists} => skips those four steps without overwriting, though the gateway step still scaffolds on a bare testbed', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-skip-devdeps' }),
+        baseName: 'flow-skip-devdeps',
       });
 
       // e2e-eligible (widgets+react) so the skip below is actually exercising "config already
@@ -131,7 +126,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {context: target has no widgets/react or ink signals} => skips playwright.config.ts without writing it', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-not-e2e-eligible' }),
+        baseName: 'flow-not-e2e-eligible',
       });
       // No src/widgets, no react dependency — installTestbedCreateBroker's default package.json
       // (name + version only) already represents a non-eligible target.
@@ -161,7 +156,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {context: target has npm workspaces} => skips jest.config.js without writing it', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-workspaces-root' }),
+        baseName: 'flow-workspaces-root',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
@@ -201,7 +196,7 @@ describe('InstallFlow', () => {
   describe('setup-gateway', () => {
     it('VALID: {scoped root name, two packages — one with a build config and its own paths, one with an existing imports entry} => scaffolds the four gateway packages, wires every package in, and a second run changes nothing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-gateway-scoped' }),
+        baseName: 'flow-gateway-scoped',
       });
 
       testbed.writeFile({
@@ -528,7 +523,7 @@ export {};
 
     it('VALID: {unscoped root name} => names the gateway packages from a scope built off that name', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-gateway-unscoped' }),
+        baseName: 'flow-gateway-unscoped',
       });
 
       testbed.writeFile({

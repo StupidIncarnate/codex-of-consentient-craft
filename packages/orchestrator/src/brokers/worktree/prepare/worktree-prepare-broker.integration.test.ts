@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
@@ -20,7 +20,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
   it('VALID: {new worktree off a real 2-branch repo} => the worktree directory and quest branch exist for real, both pinned at the base branch tip', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpb-success' }),
+      baseName: 'wpb-success',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
@@ -97,7 +97,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
   it('VALID: {repo root checkout has an uncommitted edit before prepare runs} => the worktree gets the COMMITTED contents, not the dirty ones, and starts with an empty status', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpb-no-leak' }),
+      baseName: 'wpb-no-leak',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
@@ -152,7 +152,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
   // with "already exists", which is what used to lock the quest out permanently.
   it('VALID: {quest branch already exists with no worktree} => attaches a real worktree to it without moving its tip', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wpb-reattach' }),
+      baseName: 'wpb-reattach',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 

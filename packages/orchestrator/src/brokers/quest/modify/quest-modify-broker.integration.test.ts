@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -44,7 +44,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
   it('VALID: {12 concurrent modify calls, each writing a DIFFERENT blightLedger itemId} => every entry survives on real disk, none lost to a real write race', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'modify-concurrent-distinct-items' }),
+      baseName: 'modify-concurrent-distinct-items',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -96,7 +96,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
   it('VALID: {10 concurrent modify calls, all writing the SAME blightLedger itemId} => exactly one entry survives, and it is one of the submitted dispositions (last-write-wins, never duplicated)', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'modify-concurrent-same-item' }),
+      baseName: 'modify-concurrent-same-item',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -154,7 +154,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
   it('VALID: {an already-persisted entry, then 10 concurrent writes of NEW distinct itemIds} => the earlier entry survives alongside every new one — a concurrent batch does not drop prior state', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'modify-concurrent-preserves-earlier' }),
+      baseName: 'modify-concurrent-preserves-earlier',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -227,7 +227,7 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
 
   it('VALID: {concurrent questModifyBroker planningNotes write and questOperationsUpdateBroker branchName write} => both fields survive on real disk, neither writer clobbers the other', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'modify-vs-operations-update-race' }),
+      baseName: 'modify-vs-operations-update-race',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -303,7 +303,7 @@ describe('questModifyBroker vs the dedicated pause pipeline (integration — rea
 
   it('VALID: {bare status:"paused" write on a quest with an active in_progress work item} => the write succeeds but leaves the active work item running, so the quest reads paused while its row does not', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'modify-bare-pause-leaves-item-running' }),
+      baseName: 'modify-bare-pause-leaves-item-running',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({

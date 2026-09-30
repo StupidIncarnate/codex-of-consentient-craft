@@ -26,12 +26,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -127,7 +122,7 @@ const LAST_BEAT_PLACEHOLDER = 'last beat <n>s ago';
 
 describe('SiegelensePruneLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'siegelense-prune-layer-flow' }),
+    baseName: 'siegelense-prune-layer-flow',
   });
   const age = evidenceAgeHarness();
   const originalHome = getEnv('DUNGEONMASTER_HOME');

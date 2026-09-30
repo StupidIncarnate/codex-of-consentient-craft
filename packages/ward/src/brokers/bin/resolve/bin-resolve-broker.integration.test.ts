@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { binResolveHarness } from '../../../../test/harnesses/bin-resolve/bin-resolve.harness';
@@ -14,7 +14,7 @@ describe('binResolveBroker (integration)', () => {
 
   it('VALID: {jest in the workspace root .bin, a different jest first on PATH, package has no .bin} => returns the root .bin path, never the bare name', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-bin-resolve' }),
+      baseName: 'ward-bin-resolve',
     });
     const root = AbsoluteFilePathStub({ value: testbed.guildPath });
     await harness.seedFile({
@@ -49,7 +49,7 @@ describe('binResolveBroker (integration)', () => {
 
   it('VALID: {package has its own jest .bin and the root has one too} => the package copy wins', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-bin-resolve-own' }),
+      baseName: 'ward-bin-resolve-own',
     });
     const root = AbsoluteFilePathStub({ value: testbed.guildPath });
     await harness.seedFile({
@@ -78,7 +78,7 @@ describe('binResolveBroker (integration)', () => {
 
   it('VALID: {no .bin anywhere in the tree, decoy on PATH} => returns the bare name', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-bin-resolve-bare' }),
+      baseName: 'ward-bin-resolve-bare',
     });
     const root = AbsoluteFilePathStub({ value: testbed.guildPath });
     await harness.seedFile({

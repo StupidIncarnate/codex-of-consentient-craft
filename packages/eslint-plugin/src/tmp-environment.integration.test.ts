@@ -2,12 +2,7 @@ import { existsSync, readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { execSync } from '#gateway/node/child_process';
 import { envSnapshot } from '#gateway/node/process';
-import {
-  integrationEnvironmentCreateBroker,
-  BaseNameStub,
-  FileNameStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { integrationEnvironmentCreateBroker, FileNameStub, FileContentStub } from '@dungeonmaster/testing';
 
 /**
  * Integration test to prove that integration test environments can work in /tmp
@@ -30,7 +25,7 @@ describe('Tmp Environment Integration', () => {
   describe('file operations in /tmp', () => {
     it('VALID: can create and read files in /tmp', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'file-ops-test' }),
+        baseName: 'file-ops-test',
         options: { createPackageJson: false },
       });
 
@@ -47,7 +42,7 @@ describe('Tmp Environment Integration', () => {
 
     it('VALID: can create nested directory structure', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'nested-dirs' }),
+        baseName: 'nested-dirs',
         options: { createPackageJson: false },
       });
 
@@ -72,7 +67,7 @@ describe('Tmp Environment Integration', () => {
   describe('executing TypeScript files in /tmp', () => {
     it('VALID: can run tsx on files in /tmp', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'tsx-execution' }),
+        baseName: 'tsx-execution',
         options: { createPackageJson: false },
       });
 
@@ -94,7 +89,7 @@ console.log(greeting);`,
 
     it('VALID: can run Node.js scripts that import from other files', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'module-imports' }),
+        baseName: 'module-imports',
         options: { createPackageJson: false },
       });
 
@@ -125,7 +120,7 @@ console.log(add(2, 3));`,
   describe('CLI tool testing in /tmp', () => {
     it('VALID: can test a CLI tool that reads files from /tmp', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'cli-tool-test' }),
+        baseName: 'cli-tool-test',
         options: { createPackageJson: false },
       });
 
@@ -145,7 +140,7 @@ console.log(add(2, 3));`,
 
     it('VALID: can test file existence checks in /tmp', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'file-checks' }),
+        baseName: 'file-checks',
         options: { createPackageJson: false },
       });
 
@@ -167,7 +162,7 @@ console.log(add(2, 3));`,
   describe('automatic cleanup', () => {
     it('VALID: environments are automatically cleaned up after each test', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'cleanup-test' }),
+        baseName: 'cleanup-test',
         options: { createPackageJson: false },
       });
 
@@ -197,7 +192,7 @@ console.log(add(2, 3));`,
   describe('running ESLint in /tmp WITH setupEslint option', () => {
     it('VALID: setupEslint creates exact tsconfig.json', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'eslint-tsconfig' }),
+        baseName: 'eslint-tsconfig',
         options: {
           createPackageJson: false,
           setupEslint: true,
@@ -227,7 +222,7 @@ console.log(add(2, 3));`,
 
     it('VALID: setupEslint creates exact eslint.config.js', () => {
       const env = integrationEnvironmentCreateBroker({
-        baseName: BaseNameStub({ value: 'eslint-config-js' }),
+        baseName: 'eslint-config-js',
         options: {
           createPackageJson: false,
           setupEslint: true,

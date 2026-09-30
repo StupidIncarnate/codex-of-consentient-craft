@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { installScriptsStatics } from '../../statics/install-scripts/install-scripts-statics';
@@ -12,7 +7,7 @@ describe('InstallFlow', () => {
   describe('delegation to responders', () => {
     it('VALID: {no .gitignore, package.json present} => creates .gitignore and adds ward scripts', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-flow-create' }),
+        baseName: 'ward-flow-create',
       });
 
       testbed.writeFile({
@@ -58,7 +53,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {.gitignore has .ward/, all scripts present} => skips both', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-flow-skip' }),
+        baseName: 'ward-flow-skip',
       });
 
       testbed.writeFile({

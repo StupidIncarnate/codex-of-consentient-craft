@@ -1,7 +1,7 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
@@ -19,7 +19,7 @@ describe('ChatReplayFlow', () => {
   describe('delegation to responder', () => {
     it('ERROR: {guildId: nonexistent} => rejects with guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'chat-replay-1' }),
+        baseName: 'chat-replay-1',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const sessionId = SessionIdStub({ value: 'session-replay-integration' });
@@ -36,7 +36,7 @@ describe('ChatReplayFlow', () => {
 
     it('ERROR: {guildId: nonexistent, chatProcessId: provided} => rejects with guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'chat-replay-2' }),
+        baseName: 'chat-replay-2',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const sessionId = SessionIdStub({ value: 'session-replay-with-process' });
@@ -58,7 +58,7 @@ describe('ChatReplayFlow', () => {
   describe('chatProcessId passthrough', () => {
     it('ERROR: {chatProcessId: omitted} => auto-generates process id and still rejects with guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'chat-replay-3' }),
+        baseName: 'chat-replay-3',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const sessionId = SessionIdStub({ value: 'session-no-process-id' });

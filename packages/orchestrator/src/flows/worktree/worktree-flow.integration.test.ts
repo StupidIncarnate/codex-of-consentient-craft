@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { WorktreeFlow } from './worktree-flow';
 import { chdir, cwd } from '#gateway/node/process';
@@ -16,7 +16,7 @@ describe('WorktreeFlow', () => {
     // the REAL responder rather than something stubbed in front of it.
     it('ERROR: {cwd in a directory with no .dungeonmaster.json above it} => throws ProjectRootNotFoundError from the real responder', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'worktree-flow-1' }),
+        baseName: 'worktree-flow-1',
       });
       const previousCwd = cwd();
       chdir(testbed.guildPath);

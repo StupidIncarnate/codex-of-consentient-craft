@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { scanFixtureHarness } from '../../../../test/harnesses/scan-fixture/scan-fixture.harness';
@@ -15,7 +15,7 @@ describe('scanRunBroker (integration)', () => {
 
   it('VALID: {no-debugger registered off in the config, no paths} => reports its three hits in the app package, none for console.log, and a clean lib package', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-scan-run' }),
+      baseName: 'ward-scan-run',
     });
     await harness.writeWorkspace({ testbed });
 
@@ -59,7 +59,7 @@ describe('scanRunBroker (integration)', () => {
 
   it('VALID: {a path naming one file} => scans only that file in its package and skips the other package', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-scan-run-path' }),
+      baseName: 'ward-scan-run-path',
     });
     await harness.writeWorkspace({ testbed });
 
@@ -95,7 +95,7 @@ describe('scanRunBroker (integration)', () => {
 
   it('VALID: {plugin rule registered off for the app package only} => reports the app hits and scans lib without dying on the missing plugin', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-scan-run-plugin' }),
+      baseName: 'ward-scan-run-plugin',
     });
     await harness.writeWorkspace({ testbed });
 
@@ -126,7 +126,7 @@ describe('scanRunBroker (integration)', () => {
 
   it('ERROR: {a plugin no config object registers} => rejects with the wrapper failure naming the plugin', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-scan-run-noplugin' }),
+      baseName: 'ward-scan-run-noplugin',
     });
     await harness.writeWorkspace({ testbed });
 
@@ -150,7 +150,7 @@ describe('scanRunBroker (integration)', () => {
 
   it('ERROR: {a rule eslint does not know} => rejects with the eslint failure', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-scan-run-unknown' }),
+      baseName: 'ward-scan-run-unknown',
     });
     await harness.writeWorkspace({ testbed });
 

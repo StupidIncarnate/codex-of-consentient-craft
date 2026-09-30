@@ -23,7 +23,7 @@ import {
 } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import type { FileContentStub } from '@dungeonmaster/testing';
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
@@ -51,7 +51,7 @@ export const fileTargetHarness = (): FileTargetHarness => {
   return {
     beforeEach: (): void => {
       testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'hydration-runner' }),
+        baseName: 'hydration-runner',
       });
       deniedPaths.length = 0;
     },

@@ -5,12 +5,7 @@
  * back as TWO groups with their own numbers, never one blended row.
  */
 
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -39,7 +34,7 @@ const SETTLE_MS = profileStatics.settle.afterMs;
 
 describe('the profile sample-write path, against a real tree', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'profile-sample-record' }),
+    baseName: 'profile-sample-record',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
   const originalCwd = cwd();

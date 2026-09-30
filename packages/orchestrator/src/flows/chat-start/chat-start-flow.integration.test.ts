@@ -1,7 +1,7 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
@@ -21,7 +21,7 @@ describe('ChatStartFlow', () => {
   describe('delegation to responder', () => {
     it('ERROR: {guildId: nonexistent, message} => throws guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'chat-start-1' }),
+        baseName: 'chat-start-1',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
@@ -39,7 +39,7 @@ describe('ChatStartFlow', () => {
 
     it('ERROR: {guildId: nonexistent, message, sessionId} => with optional sessionId, throws guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'chat-start-2' }),
+        baseName: 'chat-start-2',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
@@ -68,7 +68,7 @@ describe('ChatStartFlow', () => {
   describe('existingQuestId — resolves into the SAME quest, never mints a new one', () => {
     it('VALID: {existingQuestId names a real quest whose chaoswhisperer item is complete with no sessionId} => ChatStartFlow resolves questId to the SAME quest', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'chat-start-existing-quest-id' }),
+        baseName: 'chat-start-existing-quest-id',
       });
       const home = envHarness.setupHome({ tempDir: testbed.guildPath });
       const cli = questHelper.configureFakeClaudeCli();

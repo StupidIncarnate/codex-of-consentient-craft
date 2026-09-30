@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
@@ -12,7 +7,7 @@ describe('InstallRepoScaffoldResponder', () => {
   describe('real filesystem, fresh repo', () => {
     it('VALID: {no worktrees dir, no .gitignore} => .gitignore holds both lines and only worktrees/ is created', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-repo-scaffold-fresh' }),
+        baseName: 'orchestrator-repo-scaffold-fresh',
       });
 
       const result = await InstallRepoScaffoldResponder({
@@ -53,7 +48,7 @@ describe('InstallRepoScaffoldResponder', () => {
   describe('real filesystem, repo already carrying one entry', () => {
     it('VALID: {.gitignore ignores worktrees/ only} => the second entry is appended and the first is not duplicated', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-repo-scaffold-partial' }),
+        baseName: 'orchestrator-repo-scaffold-partial',
       });
 
       testbed.writeFile({
@@ -90,7 +85,7 @@ describe('InstallRepoScaffoldResponder', () => {
   describe('real filesystem, run twice', () => {
     it('VALID: {responder run twice} => .gitignore holds each entry exactly once and the second run reports it skipped', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-repo-scaffold-twice' }),
+        baseName: 'orchestrator-repo-scaffold-twice',
       });
 
       await InstallRepoScaffoldResponder({
@@ -133,7 +128,7 @@ describe('InstallRepoScaffoldResponder', () => {
   describe('real filesystem, leading whitespace on an entry', () => {
     it('EDGE: {.gitignore has "   worktrees/" with LEADING whitespace} => a real worktrees/ line is appended below it', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-repo-scaffold-leading-ws' }),
+        baseName: 'orchestrator-repo-scaffold-leading-ws',
       });
 
       testbed.writeFile({

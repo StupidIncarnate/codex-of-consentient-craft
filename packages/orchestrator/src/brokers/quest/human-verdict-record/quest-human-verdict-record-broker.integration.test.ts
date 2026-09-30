@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
@@ -69,7 +69,7 @@ describe('questHumanVerdictRecordBroker (integration — real disk)', () => {
 
   it('VALID: {a real testbed quest carrying a verifyByHuman observable} => the verdict round-trips through questGetBroker as a human-verdict note', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'human-verdict-round-trip' }),
+      baseName: 'human-verdict-round-trip',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -122,7 +122,7 @@ describe('questHumanVerdictRecordBroker (integration — real disk)', () => {
 
   it('VALID: {a second verdict on the same unit, on real disk} => REPLACES the first note rather than appending a second', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'human-verdict-second-verdict-replaces' }),
+      baseName: 'human-verdict-second-verdict-replaces',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({

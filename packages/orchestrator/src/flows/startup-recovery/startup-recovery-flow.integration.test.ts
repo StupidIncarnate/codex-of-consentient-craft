@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
@@ -16,7 +16,7 @@ describe('StartupRecoveryFlow', () => {
   describe('recovery with no guilds', () => {
     it('VALID: {no configured guilds} => returns empty array', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'startup-recovery' }),
+        baseName: 'startup-recovery',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 

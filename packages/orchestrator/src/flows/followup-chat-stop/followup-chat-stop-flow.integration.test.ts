@@ -1,5 +1,5 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
@@ -17,7 +17,7 @@ describe('FollowupChatStopFlow', () => {
   describe('delegation to responder', () => {
     it('ERROR: {questId: nonexistent} => throws quest not found, proving the flow reached the real responder', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'followup-chat-stop-1' }),
+        baseName: 'followup-chat-stop-1',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const questId = QuestIdStub({ value: 'nonexistent-quest' });

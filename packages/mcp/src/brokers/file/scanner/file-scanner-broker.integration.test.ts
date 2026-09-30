@@ -1,6 +1,6 @@
 import { fileScannerBroker } from './file-scanner-broker';
 import { resolvePackageRoot } from '#gateway/node/module';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
@@ -13,7 +13,7 @@ describe('fileScannerBroker (integration: real shared package resolution)', () =
 
   it('VALID: {broad glob over an empty project root} => surfaces real files from the resolved shared package as @dungeonmaster/shared paths', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'file-scanner-shared' }),
+      baseName: 'file-scanner-shared',
     });
 
     const results = await fileScannerBroker({

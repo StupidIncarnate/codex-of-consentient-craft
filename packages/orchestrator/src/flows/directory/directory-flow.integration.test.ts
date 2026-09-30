@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { homeDirectoryMarkerHarness } from '../../../test/harnesses/home-directory-marker/home-directory-marker.harness';
@@ -13,7 +8,7 @@ describe('DirectoryFlow', () => {
   describe('return shape', () => {
     it('VALID: {path: directory with one subdirectory} => returns entry with name, path, and isDirectory', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'dir-flow-shape' }),
+        baseName: 'dir-flow-shape',
       });
 
       testbed.writeFile({
@@ -38,7 +33,7 @@ describe('DirectoryFlow', () => {
   describe('hidden directories excluded', () => {
     it('VALID: {path: directory with hidden and visible subdirs} => hidden directories are excluded', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'dir-flow-hidden' }),
+        baseName: 'dir-flow-hidden',
       });
 
       testbed.writeFile({
@@ -67,7 +62,7 @@ describe('DirectoryFlow', () => {
   describe('files excluded', () => {
     it('VALID: {path: directory with subdirectory and file} => only directories returned, files excluded', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'dir-flow-files-excluded' }),
+        baseName: 'dir-flow-files-excluded',
       });
 
       testbed.writeFile({
@@ -96,7 +91,7 @@ describe('DirectoryFlow', () => {
   describe('empty directory', () => {
     it('VALID: {path: empty directory} => returns empty array', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'dir-flow-empty' }),
+        baseName: 'dir-flow-empty',
       });
 
       const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
@@ -110,7 +105,7 @@ describe('DirectoryFlow', () => {
   describe('alphabetical sorting', () => {
     it('VALID: {path: directory with multiple subdirectories} => entries sorted alphabetically by name', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'dir-flow-sorted' }),
+        baseName: 'dir-flow-sorted',
       });
 
       testbed.writeFile({
@@ -141,7 +136,7 @@ describe('DirectoryFlow', () => {
   describe('combined filtering and sorting', () => {
     it('VALID: {path: directory with subdirs, hidden dirs, and files} => returns only visible subdirs sorted alphabetically', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'dir-flow-combined' }),
+        baseName: 'dir-flow-combined',
       });
 
       testbed.writeFile({

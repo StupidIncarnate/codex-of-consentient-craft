@@ -62,7 +62,7 @@ import { chmodSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import type { AbsoluteFilePath, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -101,7 +101,7 @@ export const fileTargetHarness = (): {
   return {
     beforeEach: (): void => {
       testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'recipes-file-target' }),
+        baseName: 'recipes-file-target',
       });
       savedDungeonmasterHome = getEnv(DUNGEONMASTER_HOME_ENV_VAR);
       setEnv(DUNGEONMASTER_HOME_ENV_VAR, testbed.guildPath);

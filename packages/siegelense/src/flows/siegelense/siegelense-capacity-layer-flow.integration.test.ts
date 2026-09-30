@@ -24,12 +24,7 @@
 
 import { chdir, cwd, deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -50,7 +45,7 @@ const CPU_CLAUSE_PATTERN =
 
 describe('SiegelenseCapacityLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'siegelense-capacity-layer-flow' }),
+    baseName: 'siegelense-capacity-layer-flow',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
   const originalCwd = cwd();

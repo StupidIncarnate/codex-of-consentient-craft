@@ -34,7 +34,6 @@ export { MockProcessBehaviorStub } from './contracts/mock-process-behavior/mock-
 export { TestGuildStub } from './contracts/test-guild/test-guild.stub';
 export { TestbedConfigStub } from './contracts/testbed-config/testbed-config.stub';
 export { InstallTestbedStub } from './contracts/install-testbed/install-testbed.stub';
-export { BaseNameStub } from './contracts/base-name/base-name.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
 export { FileContentStub } from './contracts/file-content/file-content.stub';
 export { RelativePathStub } from './contracts/relative-path/relative-path.stub';

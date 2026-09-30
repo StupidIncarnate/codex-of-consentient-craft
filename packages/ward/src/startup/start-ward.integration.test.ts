@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { chdir, cwd, stdout } from '#gateway/node/process';
 
@@ -28,7 +23,7 @@ describe('StartWard', () => {
   describe('detail subcommand', () => {
     it('VALID: {args: ["node", "ward", "detail", runId, filePath]} => completes without throwing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-ward-detail' }),
+        baseName: 'start-ward-detail',
       });
 
       const wardResultRelativePath = RelativePathStub({
@@ -70,7 +65,7 @@ describe('StartWard', () => {
     // exact JSON it printed proves cwd() drove the real lookup, not just that nothing threw.
     it('VALID: {args: ["node", "ward", "detail", runId, "--json"], real cwd chdir\'d to the testbed} => prints the stored result read from that exact directory', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-ward-detail-json' }),
+        baseName: 'start-ward-detail-json',
       });
 
       const wardResultRelativePath = RelativePathStub({

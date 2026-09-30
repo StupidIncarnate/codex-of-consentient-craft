@@ -12,7 +12,7 @@
  * explicit "everything up to this instant" form the parser accepts for exactly this.
  */
 
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { ensureDir, statIfExists, writeFile } from '#gateway/node/fs__promises';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
@@ -53,7 +53,7 @@ const SHOT_TEXT = 'PNG';
 const TREE_BYTES = LOG_BYTES + TRANSCRIPT_TEXT.length + SHOT_TEXT.length;
 
 describe('prune, against a real evidence tree', () => {
-  const testbed = installTestbedCreateBroker({ baseName: BaseNameStub({ value: 'prune-run' }) });
+  const testbed = installTestbedCreateBroker({ baseName: 'prune-run' });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
   const nowMs = Date.now();
   const worktreePath = `${testbed.guildPath}/worktree`;

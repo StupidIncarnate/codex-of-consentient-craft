@@ -30,12 +30,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -152,7 +147,7 @@ const SINCE_ALIAS_CASES = [
 
 describe('SiegelenseStatusLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'siegelense-status-layer-flow' }),
+    baseName: 'siegelense-status-layer-flow',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 

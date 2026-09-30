@@ -1,12 +1,12 @@
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
 import { StartSiegelenseDriver } from './start-siegelense-driver';
 
 describe('StartSiegelenseDriver', () => {
   const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'start-siegelense-driver' }),
+    baseName: 'start-siegelense-driver',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 

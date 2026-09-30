@@ -41,7 +41,7 @@ import { writeFileBytes } from '#gateway/node/fs__promises';
 import { deleteEnv, getEnv, kill, setEnv, stderr } from '#gateway/node/process';
 import { PNG } from '#gateway/npm/pngjs';
 
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
@@ -554,7 +554,7 @@ export const evidenceTreeHarness = (): {
   const beforeEach = async (): Promise<void> => {
     originalHome = getEnv('DUNGEONMASTER_HOME');
     const freshTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'evidence-tree' }),
+      baseName: 'evidence-tree',
     });
     testbed = freshTestbed;
     setEnv('DUNGEONMASTER_HOME', freshTestbed.guildPath);

@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { StartInstall } from './start-install';
 
@@ -11,7 +6,7 @@ describe('start-install integration', () => {
   describe('StartInstall', () => {
     it('VALID: {context: no existing settings} => creates settings.json with hooks', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'create-hooks' }),
+        baseName: 'create-hooks',
       });
 
       const result = await StartInstall({
@@ -237,7 +232,7 @@ describe('start-install integration', () => {
 
     it('VALID: {context: existing settings without dungeonmaster} => merges hooks into existing settings', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'merge-hooks' }),
+        baseName: 'merge-hooks',
       });
 
       testbed.writeFile({
@@ -471,7 +466,7 @@ describe('start-install integration', () => {
 
     it('VALID: {context: settings already has prior dungeonmaster hooks} => prior entries stripped, freshly-generated set re-appended including new hook types', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'reinstall-hooks' }),
+        baseName: 'reinstall-hooks',
       });
 
       testbed.writeFile({
@@ -716,7 +711,7 @@ describe('start-install integration', () => {
 
     it('VALID: {context: existing settings with other hooks} => preserves existing hooks when merging', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'preserve-hooks' }),
+        baseName: 'preserve-hooks',
       });
 
       testbed.writeFile({
@@ -961,7 +956,7 @@ describe('start-install integration', () => {
     describe('Antigravity setup', () => {
       it('VALID: creates .agents/hooks.json, skills.json, plugins/dungeonmaster/rules/AGENTS.md and writes AGENTS.md', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'agents-setup' }),
+          baseName: 'agents-setup',
         });
 
         testbed.writeFile({

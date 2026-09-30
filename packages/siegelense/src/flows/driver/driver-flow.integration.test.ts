@@ -1,6 +1,6 @@
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
@@ -11,7 +11,7 @@ import { driverFleetHarness } from '../../../test/harnesses/driver-fleet/driver-
 import { DriverFlow } from './driver-flow';
 
 describe('DriverFlow', () => {
-  const testbed = installTestbedCreateBroker({ baseName: BaseNameStub({ value: 'driver-flow' }) });
+  const testbed = installTestbedCreateBroker({ baseName: 'driver-flow' });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
 
   beforeAll(() => {
@@ -82,7 +82,7 @@ describe('driver teardown', () => {
   if (DRIVER_BOOT_BLOCKER.length === 0) {
     describe('a single instance is torn down cleanly by kill', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'driver-teardown-single' }),
+        baseName: 'driver-teardown-single',
       });
       const fleet = driverFleetHarness();
       const originalHome = getEnv('DUNGEONMASTER_HOME');
@@ -199,7 +199,7 @@ describe('driver teardown', () => {
   if (DRIVER_BOOT_BLOCKER.length === 0) {
     describe("a SIGKILLed driver's orphans are reaped by a second process's kill", () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'driver-teardown-sigkill' }),
+        baseName: 'driver-teardown-sigkill',
       });
       const fleet = driverFleetHarness();
       const originalHome = getEnv('DUNGEONMASTER_HOME');
@@ -269,7 +269,7 @@ describe('driver teardown', () => {
   if (DRIVER_BOOT_BLOCKER.length === 0) {
     describe('killing one of three parallel instances leaves the other two untouched', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'driver-teardown-parallel' }),
+        baseName: 'driver-teardown-parallel',
       });
       const fleet = driverFleetHarness();
       const originalHome = getEnv('DUNGEONMASTER_HOME');
@@ -365,7 +365,7 @@ describe('driver teardown', () => {
       // groups its heartbeat named were still alive minutes later, when only `kill` finally reaped
       // them.
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'driver-teardown-idle' }),
+        baseName: 'driver-teardown-idle',
       });
       const fleet = driverFleetHarness();
       const originalHome = getEnv('DUNGEONMASTER_HOME');
@@ -461,7 +461,7 @@ describe('driver teardown', () => {
       // leak, and asserting it here would make this test flaky against nothing more than that
       // encode time.
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'driver-teardown-idle-browsered' }),
+        baseName: 'driver-teardown-idle-browsered',
       });
       const fleet = driverFleetHarness();
       const originalHome = getEnv('DUNGEONMASTER_HOME');

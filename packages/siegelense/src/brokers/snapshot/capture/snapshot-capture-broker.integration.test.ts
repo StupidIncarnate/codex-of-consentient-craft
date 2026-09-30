@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
@@ -16,7 +11,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
   describe('the automatic pair across two runs', () => {
     it('VALID: {four captures} => the index reads back run_1:start, run_1:end, run_2:start and run_2:end, every one manual false', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-capture-pair' }),
+        baseName: 'snapshot-capture-pair',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
@@ -84,7 +79,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
   describe('what the payload actually holds', () => {
     it('VALID: {a home holding a quest file} => the payload holds that file, byte for byte', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-capture-payload' }),
+        baseName: 'snapshot-capture-payload',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
@@ -111,7 +106,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
     it('VALID: {a second capture} => the payload never contains the snapshot store itself', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-capture-no-recursion' }),
+        baseName: 'snapshot-capture-no-recursion',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
@@ -143,7 +138,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
     it('VALID: {the home mutated between two captures} => the two payloads hold different contents', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-capture-mutation' }),
+        baseName: 'snapshot-capture-mutation',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
@@ -186,7 +181,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
   describe('resolving a name against a real index', () => {
     it('VALID: {name: run_1:start} => resolves to the record pointing at payload directory 1', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-resolve-hit' }),
+        baseName: 'snapshot-resolve-hit',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
@@ -221,7 +216,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
 
     it('ERROR: {name: run_1:strt} => throws naming the miss and listing both real names, never falling back to the nearest', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-resolve-miss' }),
+        baseName: 'snapshot-resolve-miss',
       });
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
@@ -256,7 +251,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
   describe('an instance whose home was removed, the way kill removes it', () => {
     it('EMPTY: {no home at all} => the index reads back empty rather than throwing', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'snapshot-index-gone' }),
+        baseName: 'snapshot-index-gone',
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/never-booted` });
 

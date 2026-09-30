@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -20,7 +15,7 @@ import { checkRunTypecheckBroker } from './check-run-typecheck-broker';
 describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs tsconfig.build.json', () => {
   it('VALID: {tsconfig.build.json sets rootDir, outside.ts sits outside it} => tsconfig.json passes but the build config fails, and the run reports it', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-typecheck-build-config-fail' }),
+      baseName: 'ward-typecheck-build-config-fail',
     });
 
     testbed.writeFile({
@@ -113,7 +108,7 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
 
   it('VALID: {tsconfig.build.json exists and is also clean} => status stays pass, both configs run', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-typecheck-build-config-pass' }),
+      baseName: 'ward-typecheck-build-config-pass',
     });
 
     const cleanTsconfig = JSON.stringify({

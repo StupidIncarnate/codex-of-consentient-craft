@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { StartInstall } from './start-install';
 
@@ -6,7 +6,7 @@ describe('start-install integration', () => {
   describe('StartInstall', () => {
     it('VALID: {context: no existing config} => delegates to flow and creates config', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'startup-delegate' }),
+        baseName: 'startup-delegate',
       });
 
       const result = await StartInstall({

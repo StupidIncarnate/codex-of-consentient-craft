@@ -35,7 +35,6 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { findRepoRootLayerBroker } from './find-repo-root-layer-broker';
-import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 import type { RelativePath } from '../../../contracts/relative-path/relative-path-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
@@ -48,7 +47,7 @@ export const installTestbedCreateBroker = ({
   baseName,
   baseDir,
 }: {
-  baseName: BaseName;
+  baseName: string;
   baseDir?: FilePath;
 }): InstallTestbed => {
   const testId = randomBytes(integrationEnvironmentStatics.constants.randomBytesLength).toString(

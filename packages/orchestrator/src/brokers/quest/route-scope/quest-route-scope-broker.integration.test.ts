@@ -10,7 +10,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -75,7 +75,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('work — unmet mints a fresh work item, grouped by the originating piece', () => {
     it('VALID: {a `work` item drains with its one unit unmet, claimed by a plan piece} => mints a fresh `work` item carrying exactly that unit — grouped THROUGH the piece (`mintedBy`), never onto a `pieceId` field of its own', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-work-unmet' }),
+        baseName: 'rsb-cw-work-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -169,7 +169,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('work — done mints review', () => {
     it("VALID: {a `work` item drains done} => mints `review`, assigned the STEP'S WHOLE in-scope set (a terminal unit alongside the observable `work` touched), not only the unit `work` marked", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-work-done' }),
+        baseName: 'rsb-cw-work-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -233,7 +233,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('review — unmet mints work', () => {
     it('VALID: {a `review` item drains with one of its two units unmet} => mints `work`, carrying only the unmet unit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-review-unmet' }),
+        baseName: 'rsb-cw-review-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -300,7 +300,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('review — done mints commit', () => {
     it('VALID: {a `review` item drains done on its whole in-scope set} => mints `commit`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-review-done' }),
+        baseName: 'rsb-cw-review-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -360,7 +360,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('commit — done and empty both mint ward', () => {
     it('VALID: {a `commit` item drains done} => mints `ward`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-commit-done' }),
+        baseName: 'rsb-cw-commit-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -407,7 +407,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
 
     it('VALID: {a `commit` item drains empty — a clean tree, nothing to commit} => mints `ward` too, per CLOSE_OUT.commit\'s own comment ("it still wards — the branch may be red from an earlier scope")', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-commit-empty' }),
+        baseName: 'rsb-cw-commit-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -452,7 +452,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('ward — unmet mints repair', () => {
     it("VALID: {a `ward` item drains unmet} => mints `repair` — a deterministic step carries no units, so this is a DECLARED forward route (question 4), never question 2's mark-mint, and the minted item carries `mintedBy` naming the ward item, because `repair` declares no `done` route of its own and needs the return edge's fuel", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-ward-unmet' }),
+        baseName: 'rsb-cw-ward-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -534,7 +534,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('NOTE 1 — a finished repair off a ward `unmet` route returns to a FRESH ward item', () => {
     it("VALID: {a repair item minted off ward's `unmet` route drains with no declaredWord} => the router folds it to `done` (the no-units default), follows `mintedBy` back to the ward item that routed it here, and mints a FRESH `ward` item — the gate re-runs rather than the quest blocking", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-ward-repair-return' }),
+        baseName: 'rsb-cw-ward-repair-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -619,7 +619,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('maxVisits — the ward/repair fixpoint blocks rather than looping forever', () => {
     it("ERROR: {ward and repair have already alternated three times, spending ward's whole `maxVisits`} => a repair draining `done` (undeclared) tries to return a FOURTH ward and blocks with reason `max-visits`, naming `ward`", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-ward-repair-fixpoint-maxvisits' }),
+        baseName: 'rsb-cw-ward-repair-fixpoint-maxvisits',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -736,7 +736,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   describe('maxVisits — a spent budget on repair blocks the quest', () => {
     it('ERROR: {repair already entered 3 times — its whole `maxVisits` — and folds to `unmet` again} => blocks with reason `max-visits`, naming the step, the family and the spent budget', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-cw-repair-maxvisits' }),
+        baseName: 'rsb-cw-repair-maxvisits',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -836,7 +836,7 @@ describe('siegemaster', () => {
   describe('sweepIn — done and empty both mint plan', () => {
     it('VALID: {a `sweepIn` item drains done} => mints `plan`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-sweepin-done' }),
+        baseName: 'rsb-sm-sweepin-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -883,7 +883,7 @@ describe('siegemaster', () => {
 
     it('VALID: {a `sweepIn` item drains empty} => mints `plan` too — sweepIn has no separate empty edge', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-sweepin-empty' }),
+        baseName: 'rsb-sm-sweepin-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -928,7 +928,7 @@ describe('siegemaster', () => {
   describe('plan — done mints happyWalk, empty mints sweepOut', () => {
     it("VALID: {a `plan` item drains done} => mints `happyWalk`, assigned the step's WHOLE in-scope set — the same reviewer-entry shape codeweaver's `review` uses", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-plan-done' }),
+        baseName: 'rsb-sm-plan-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -979,7 +979,7 @@ describe('siegemaster', () => {
 
     it('VALID: {a `plan` item drains empty — nothing to walk} => mints `sweepOut`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-plan-empty' }),
+        baseName: 'rsb-sm-plan-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1026,7 +1026,7 @@ describe('siegemaster', () => {
   describe('happyWalk — unmet mints fixHappy', () => {
     it('VALID: {a `happyWalk` item drains with one of its two units unmet} => mints `fixHappy`, carrying only the unmet unit — each walker has its OWN fixer', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-happywalk-unmet' }),
+        baseName: 'rsb-sm-happywalk-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1088,7 +1088,7 @@ describe('siegemaster', () => {
   describe('fixHappy — unmet loops back to fixHappy', () => {
     it('VALID: {a `fixHappy` item drains with its one unit still unmet} => mints a fresh `fixHappy`, carrying that same unit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-fixhappy-unmet' }),
+        baseName: 'rsb-sm-fixhappy-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1145,7 +1145,7 @@ describe('siegemaster', () => {
   describe('fixHappy — a finished fixer returns to happyWalk as a FRESH item', () => {
     it("VALID: {a `fixHappy` item minted off happyWalk's `unmet` route drains with its unit now met} => the router folds it to `done`, follows `mintedBy` back to the walker that routed it here, and mints a FRESH `happyWalk` item carrying the step's WHOLE in-scope set — never a resume of the fixer's own narrower assignment", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-fixhappy-return' }),
+        baseName: 'rsb-sm-fixhappy-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1237,7 +1237,7 @@ describe('siegemaster', () => {
   describe('happyWalk — the phase rule: `done` fires only once every piece at this step has drained', () => {
     it("VALID: {two `happyWalk` pieces have BOTH drained done} => mints `adversarial` — the phase edge an antagonist's baseline depends on. `adversarial`'s own in-scope set is `off-map`-only (stepScopeStatics), so the fresh entry is assigned exactly the seven off-map probe units `qaUnitEnumerateTransformer` mints for every flow, never this flow's own terminal/observable units", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-happywalk-phase-drained' }),
+        baseName: 'rsb-sm-happywalk-phase-drained',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1304,7 +1304,7 @@ describe('siegemaster', () => {
 
     it('VALID: {one `happyWalk` piece has drained done, but a sibling piece at the same step is still pending} => nothing routes — the phase rule holds question 4 back until every piece drains', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-happywalk-phase-capped' }),
+        baseName: 'rsb-sm-happywalk-phase-capped',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1369,7 +1369,7 @@ describe('siegemaster', () => {
   describe('happyWalk — empty mints adversarial, like done', () => {
     it("VALID: {a `happyWalk` item is assigned no units and drains empty} => mints `adversarial` — a happy path with nothing to walk still gets attacked, the same forward edge `plan`'s `empty` takes to `sweepOut`", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-happywalk-empty' }),
+        baseName: 'rsb-sm-happywalk-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1420,7 +1420,7 @@ describe('siegemaster', () => {
   describe('adversarial — unmet mints fixAdversarial', () => {
     it('VALID: {an `adversarial` item drains with one of its two units unmet} => mints `fixAdversarial`, carrying only the unmet unit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-adversarial-unmet' }),
+        baseName: 'rsb-sm-adversarial-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1482,7 +1482,7 @@ describe('siegemaster', () => {
   describe('fixAdversarial — unmet loops back to fixAdversarial', () => {
     it('VALID: {a `fixAdversarial` item drains with its one unit still unmet} => mints a fresh `fixAdversarial`, carrying that same unit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-fixadversarial-unmet' }),
+        baseName: 'rsb-sm-fixadversarial-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1539,7 +1539,7 @@ describe('siegemaster', () => {
   describe('fixAdversarial — a finished fixer returns to adversarial as a FRESH item', () => {
     it("VALID: {a `fixAdversarial` item minted off adversarial's `unmet` route drains with its unit now met} => the router folds it to `done`, follows `mintedBy` back to the walker that routed it here, and mints a FRESH `adversarial` item — assigned exactly the seven off-map probe units (`adversarial`'s own in-scope set is `off-map`-only), never the two flow units the fixer itself was seeded with, and never happyWalk's own terminal+observable pair either", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-fixadversarial-return' }),
+        baseName: 'rsb-sm-fixadversarial-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1636,7 +1636,7 @@ describe('siegemaster', () => {
   describe('adversarial — done mints commit', () => {
     it('VALID: {an `adversarial` item drains done on its whole in-scope set} => mints `commit`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-adversarial-done' }),
+        baseName: 'rsb-sm-adversarial-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1688,7 +1688,7 @@ describe('siegemaster', () => {
   describe('ward (siege override) — done and empty both mint sweepOut, never `@done` directly', () => {
     it('VALID: {a siege `ward` item drains done} => mints `sweepOut`, not `@done` — the pass is not over until the siegelense instances are swept', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-ward-done' }),
+        baseName: 'rsb-sm-ward-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1737,7 +1737,7 @@ describe('siegemaster', () => {
 
     it('VALID: {a siege `ward` item drains empty} => mints `sweepOut` too', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-ward-empty' }),
+        baseName: 'rsb-sm-ward-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1782,7 +1782,7 @@ describe('siegemaster', () => {
   describe('ward (siege override) — unmet mints repair, and a finished repair returns to a FRESH ward', () => {
     it("VALID: {a siege `ward` item drains unmet} => mints `repair` carrying `mintedBy`; once the repair session finishes with no declaredWord, the router folds it to `done` (the no-units default), follows `mintedBy` back to the ward item, and mints a FRESH `ward` item — the gate re-runs rather than the quest blocking, exactly as codeweaver's own ward/repair fixpoint does", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-ward-repair-return' }),
+        baseName: 'rsb-sm-ward-repair-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1856,7 +1856,7 @@ describe('siegemaster', () => {
   describe('sweepOut — done and empty both complete the scope, cascading the family graph onward to wardFull', () => {
     it("VALID: {a `sweepOut` item drains done, the family's only scope} => completes the siegemaster operation item and mints wardFull's own scope — `questFlowStatics.feature.families.siegemaster.routes.done` is 'wardFull'", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-sweepout-done' }),
+        baseName: 'rsb-sm-sweepout-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1904,7 +1904,7 @@ describe('siegemaster', () => {
 
     it('VALID: {a `sweepOut` item drains empty} => completes the scope too, the same as done — both outcomes route to `wardFull`', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-sweepout-empty' }),
+        baseName: 'rsb-sm-sweepout-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1952,7 +1952,7 @@ describe('siegemaster', () => {
   describe('recipe — mintable on request, and returns to the requester regardless of what it folds to', () => {
     it("VALID: {a `plan` item requests `recipe`} => mints `recipe`, carrying the request's reason and naming the plan item as `mintedBy`; once the recipe item drains holding no units and no declaredWord, the router folds it to `empty` (a planner's no-plan default) and — since `recipe` declares no route for `empty` either — returns a FRESH `plan` item to the requester", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-recipe-request-return' }),
+        baseName: 'rsb-sm-recipe-request-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2039,7 +2039,7 @@ describe('siegemaster', () => {
   describe('read — mintable on request, and returns to the requester as a FRESH full-scope item', () => {
     it("VALID: {a `happyWalk` item requests `read` mid-pass} => mints `read`, naming the walker as `mintedBy`; once it drains holding no units, the router folds it to `done` (a worker's default) and — since `read` declares no route for `done` either — returns a FRESH `happyWalk` item carrying the step's WHOLE in-scope set", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-read-request-return' }),
+        baseName: 'rsb-sm-read-request-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2146,7 +2146,7 @@ describe('flowrider', () => {
   describe('recipe — mintable on request, and returns to the requester regardless of what it folds to', () => {
     it("VALID: {a `plan` item requests `recipe`} => mints `recipe`, carrying the request's reason and naming the plan item as `mintedBy`; once the recipe item drains holding no units and no declaredWord, the router folds it to `empty` (a planner's no-plan default) and — since `recipe` declares no route for `empty` either — returns a FRESH `plan` item to the requester", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-recipe-request-return' }),
+        baseName: 'rsb-fr-recipe-request-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2233,7 +2233,7 @@ describe('flowrider', () => {
   describe('plan — done mints work', () => {
     it("VALID: {a `plan` item drains done} => mints `work`, assigned nothing — `work` is a `worker` step with no plan on disk, unlike siege's `happyWalk` reviewer-entry whole-scope assignment", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-plan-done' }),
+        baseName: 'rsb-fr-plan-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2286,7 +2286,7 @@ describe('flowrider', () => {
   describe('plan — empty completes the scope, cascading the family graph onward to siegemaster', () => {
     it("VALID: {a `plan` item drains empty} => completes the flowrider operation item and mints siegemaster's own scope — `questFlowStatics.feature.families.flowrider.routes.empty` is 'siegemaster', the same target as `done`", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-plan-empty' }),
+        baseName: 'rsb-fr-plan-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2338,7 +2338,7 @@ describe('flowrider', () => {
   describe('work — unmet loops back to work', () => {
     it('VALID: {a `work` item drains with its one unit still unmet} => mints a fresh `work` item, carrying that same unit and naming the draining item as `mintedBy`', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-work-unmet' }),
+        baseName: 'rsb-fr-work-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2395,7 +2395,7 @@ describe('flowrider', () => {
   describe('work — done mints review', () => {
     it("VALID: {a `work` item drains done} => mints `review`, assigned the step's WHOLE in-scope set (the flow's terminal alongside its observable), not only the unit `work` marked", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-work-done' }),
+        baseName: 'rsb-fr-work-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2455,7 +2455,7 @@ describe('flowrider', () => {
   describe('review — unmet mints work', () => {
     it('VALID: {a `review` item drains with one of its two units unmet} => mints `work`, carrying only the unmet unit', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-review-unmet' }),
+        baseName: 'rsb-fr-review-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2517,7 +2517,7 @@ describe('flowrider', () => {
   describe('review — done mints commit', () => {
     it('VALID: {a `review` item drains done on its whole in-scope set} => mints `commit`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-review-done' }),
+        baseName: 'rsb-fr-review-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2575,7 +2575,7 @@ describe('flowrider', () => {
   describe('commit — done and empty both mint ward', () => {
     it('VALID: {a `commit` item drains done} => mints `ward`, a deterministic entry assigned no units', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-commit-done' }),
+        baseName: 'rsb-fr-commit-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2622,7 +2622,7 @@ describe('flowrider', () => {
 
     it('VALID: {a `commit` item drains empty — a clean tree} => mints `ward` too, per CLOSE_OUT.commit\'s own comment ("it still wards — the branch may be red from an earlier scope")', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-commit-empty' }),
+        baseName: 'rsb-fr-commit-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2667,7 +2667,7 @@ describe('flowrider', () => {
   describe('ward — done and empty both complete the scope, cascading the family graph onward to siegemaster', () => {
     it("VALID: {a flowrider `ward` item drains done} => completes the flowrider operation item and mints siegemaster's own scope", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-ward-done' }),
+        baseName: 'rsb-fr-ward-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2715,7 +2715,7 @@ describe('flowrider', () => {
 
     it('VALID: {a flowrider `ward` item drains empty} => completes the scope too, the same as done', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-ward-empty' }),
+        baseName: 'rsb-fr-ward-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2763,7 +2763,7 @@ describe('flowrider', () => {
   describe('ward — unmet mints repair, and a finished repair returns to a FRESH ward', () => {
     it('VALID: {a flowrider `ward` item drains unmet} => mints `repair` carrying `mintedBy`; once the repair session finishes with no declaredWord, the router folds it to `done` (the no-units default), follows `mintedBy` back to the ward item, and mints a FRESH `ward` item — the gate re-runs rather than the quest blocking, the exact fix `ba5f48c5e` made for every family sharing CLOSE_OUT.repair', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-fr-ward-repair-return' }),
+        baseName: 'rsb-fr-ward-repair-return',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2889,7 +2889,7 @@ describe('wardFull, riftcarver and warpgate', () => {
   describe('wardFull.gate — done and empty both complete the scope, and wardFull mints no further family', () => {
     it("VALID: {a `gate` item drains done} => completes the wardFull operation item — `questFlowStatics.feature.families.wardFull.routes.done` is `@complete`, so no next family's scopes appear", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-wf-gate-done' }),
+        baseName: 'rsb-wf-gate-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2932,7 +2932,7 @@ describe('wardFull, riftcarver and warpgate', () => {
 
     it('VALID: {a `gate` item drains empty — a 0-file scope} => completes the scope too, the same as done', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-wf-gate-empty' }),
+        baseName: 'rsb-wf-gate-empty',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -2977,7 +2977,7 @@ describe('wardFull, riftcarver and warpgate', () => {
   describe('wardFull.gate — unmet mints repair, whose own `done: commit` forwards to commit, whose own `done` re-enters a FRESH gate', () => {
     it("VALID: {a `gate` item drains unmet} => mints `repair` (no `mintedBy` — `repair` declares its own `done` route, unlike the family repair); the repair finishes undeclared and folds to `done`, taking its DECLARED `done: 'commit'` edge onward (still no `mintedBy` — a forward route, not a return); `commit` then drains done and re-enters a FRESH `gate` (no `mintedBy` either) — three plain declared hops, never a return-to-minter", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-wf-gate-repair-commit-gate' }),
+        baseName: 'rsb-wf-gate-repair-commit-gate',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -3075,7 +3075,7 @@ describe('wardFull, riftcarver and warpgate', () => {
   describe('riftcarver.carve — unmet mints repair, whose own `done: commit` forwards to commit, whose own `done` re-enters a FRESH carve', () => {
     it("VALID: {a `carve` item drains unmet} => the identical three-hop shape as wardFull's own gate/repair/commit fixpoint above — `riftcarver.repair` and `riftcarver.commit` declare the same `done: 'commit'` / `done: 'carve'` forward edges, so no hop here carries `mintedBy` either", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-rc-carve-repair-commit-carve' }),
+        baseName: 'rsb-rc-carve-repair-commit-carve',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -3171,7 +3171,7 @@ describe('wardFull, riftcarver and warpgate', () => {
   describe('riftcarver.carve — done completes the scope and mints the next family', () => {
     it("VALID: {a `carve` item drains done} => completes the riftcarver operation item and mints codeweaver's own scope — `questFlowStatics.feature.families.riftcarver.routes.done` is 'codeweaver', unlike wardFull's and warpgate's own `done` routes, which are terminal", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-rc-carve-done' }),
+        baseName: 'rsb-rc-carve-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -3225,7 +3225,7 @@ describe('wardFull, riftcarver and warpgate', () => {
   describe('warpgate.merge — unmet loops back to merge', () => {
     it("VALID: {a `merge` item drains unmet} => mints a fresh `merge` item, no `mintedBy` — `merge` declares its own `done` route ('@done'), so this self-loop is a plain declared route the same way `work`'s self-loop is, never a mark-mint", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-wg-merge-unmet' }),
+        baseName: 'rsb-wg-merge-unmet',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -3276,7 +3276,7 @@ describe('wardFull, riftcarver and warpgate', () => {
   describe('warpgate.merge — done completes the scope, and no family follows', () => {
     it('VALID: {a `merge` item drains done} => completes the warpgate operation item — `questFlowStatics.feature.families.warpgate.routes.done` is `@complete`, and `mintNextFamilyLayerBroker` mints nothing for a target that names no family', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-wg-merge-done' }),
+        baseName: 'rsb-wg-merge-done',
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 

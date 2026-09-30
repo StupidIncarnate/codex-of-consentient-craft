@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
@@ -14,7 +14,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
   it('VALID: {multiple quests, one matches questSource} => deletes only the matching quest and returns deletedCount 1', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'clear-prior-quests-mcp' }),
+      baseName: 'clear-prior-quests-mcp',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedRepoRootGuild({ tempDir: testbed.guildPath });
@@ -73,7 +73,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
   it('VALID: {no matching quests} => returns deletedCount 0 without side effects', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'clear-prior-quests-empty' }),
+      baseName: 'clear-prior-quests-empty',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedRepoRootGuild({ tempDir: testbed.guildPath });
@@ -114,7 +114,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
   it('VALID: {two matching quests for smoketest-mcp} => deletes both and returns deletedCount 2', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'clear-prior-quests-two-mcp' }),
+      baseName: 'clear-prior-quests-two-mcp',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedRepoRootGuild({ tempDir: testbed.guildPath });

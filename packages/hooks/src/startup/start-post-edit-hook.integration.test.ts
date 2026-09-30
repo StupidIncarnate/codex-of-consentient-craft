@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
@@ -35,7 +30,7 @@ describe('post-edit-hook', () => {
   // paying it here is what makes ward's slow-test gate read test bodies. See the harness header.
   beforeAll(async () => {
     const warmupTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'warmup' }),
+      baseName: 'warmup',
       baseDir: BASE_DIR,
     });
 
@@ -87,7 +82,7 @@ describe('post-edit-hook', () => {
       },
     ])('$scenario', async ({ baseName, fileContent, stderrPattern }) => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: baseName }),
+        baseName: baseName,
         baseDir: BASE_DIR,
       });
 
@@ -134,7 +129,7 @@ describe('post-edit-hook', () => {
       },
     ])('$scenario', async ({ baseName, initialContent, newContent, stderrPattern }) => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: baseName }),
+        baseName: baseName,
         baseDir: BASE_DIR,
       });
 
@@ -199,7 +194,7 @@ describe('post-edit-hook', () => {
   describe('auto-fix behavior', () => {
     it('VALID: {content: multiple fixable violations} => auto-fixes all and writes to disk', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'autofix-multiple' }),
+        baseName: 'autofix-multiple',
         baseDir: BASE_DIR,
       });
 
@@ -257,7 +252,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
 
     it('EDGE: {content: implementation without test} => reports colocation error', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'non-fixable-colocation' }),
+        baseName: 'non-fixable-colocation',
         baseDir: BASE_DIR,
       });
 
@@ -321,7 +316,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
   describe('edge cases', () => {
     it('EDGE: {tool_input: non-TypeScript file} => returns exit code 0', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'non-ts-file' }),
+        baseName: 'non-ts-file',
         baseDir: BASE_DIR,
       });
 
@@ -366,7 +361,7 @@ function test(): void {
 
     it('EDGE: {file_path: non-existent file} => returns exit code 0', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'non-existent-edit' }),
+        baseName: 'non-existent-edit',
         baseDir: BASE_DIR,
       });
 

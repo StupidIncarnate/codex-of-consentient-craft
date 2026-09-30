@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import type { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
@@ -44,7 +39,7 @@ describe('pre-edit-lint', () => {
 
   beforeAll(async () => {
     const warmupTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'warmup' }),
+      baseName: 'warmup',
       baseDir: BASE_DIR,
     });
 
@@ -62,7 +57,7 @@ describe('pre-edit-lint', () => {
     warmupTestbed.cleanup();
 
     const successTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'smoke-success' }),
+      baseName: 'smoke-success',
       baseDir: BASE_DIR,
     });
 
@@ -80,7 +75,7 @@ describe('pre-edit-lint', () => {
     successTestbed.cleanup();
 
     const failureTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'smoke-failure' }),
+      baseName: 'smoke-failure',
       baseDir: BASE_DIR,
     });
 
@@ -149,7 +144,7 @@ describe('pre-edit-lint', () => {
         },
       ])('$label => returns exit code 0', async ({ baseName, content }) => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: baseName }),
+          baseName: baseName,
           baseDir: BASE_DIR,
         });
 
@@ -176,7 +171,7 @@ describe('pre-edit-lint', () => {
 
       it('VALID: {content: overwrites existing file with same violations} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'overwrite-same-violations' }),
+          baseName: 'overwrite-same-violations',
           baseDir: BASE_DIR,
         });
 
@@ -211,7 +206,7 @@ describe('pre-edit-lint', () => {
     describe('failure cases', () => {
       it('INVALID: {content: new explicit any type} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'any-violation-write' }),
+          baseName: 'any-violation-write',
           baseDir: BASE_DIR,
         });
 
@@ -262,7 +257,7 @@ console.log('test');`,
         },
       ])('$label => returns exit code 2', async ({ baseName, content, expectedPattern }) => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: baseName }),
+          baseName: baseName,
           baseDir: BASE_DIR,
         });
 
@@ -294,7 +289,7 @@ console.log('test');`,
 
       it('INVALID: {content: multiple violations} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'multiple-violations-write' }),
+          baseName: 'multiple-violations-write',
           baseDir: BASE_DIR,
         });
 
@@ -330,7 +325,7 @@ export function dirty({ param }: { param: any }): any {
     describe('success cases', () => {
       it('VALID: {old_string: clean code, new_string: clean code} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'clean-edit' }),
+          baseName: 'clean-edit',
           baseDir: BASE_DIR,
         });
 
@@ -370,7 +365,7 @@ export function dirty({ param }: { param: any }): any {
 
       it('VALID: {old_string: existing violation, new_string: same violation} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'preserve-violation-edit' }),
+          baseName: 'preserve-violation-edit',
           baseDir: BASE_DIR,
         });
 
@@ -407,7 +402,7 @@ export function newFunc(): void {}`,
 
       it('VALID: {old_string: text, new_string: text with "any" in string} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'string-any-edit' }),
+          baseName: 'string-any-edit',
           baseDir: BASE_DIR,
         });
 
@@ -441,7 +436,7 @@ export function newFunc(): void {}`,
 
       it('EDGE: {old_string: code, new_string: whitespace change only} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'whitespace-edit' }),
+          baseName: 'whitespace-edit',
           baseDir: BASE_DIR,
         });
 
@@ -518,7 +513,7 @@ console.log('test');`,
         '$label => returns exit code 2',
         async ({ baseName, initialContent, oldString, newString, expectedPattern }) => {
           const testbed = installTestbedCreateBroker({
-            baseName: BaseNameStub({ value: baseName }),
+            baseName: baseName,
             baseDir: BASE_DIR,
           });
 
@@ -557,7 +552,7 @@ console.log('test');`,
 
       it('ERROR: {old_string: existing violation, new_string: adds second violation} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'add-second-violation-edit' }),
+          baseName: 'add-second-violation-edit',
           baseDir: BASE_DIR,
         });
 
@@ -597,7 +592,7 @@ export function test({ param }: { param: any }): void {}`,
     describe('edge cases', () => {
       it('EDGE: {file_path: non-existent file} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'non-existent-edit' }),
+          baseName: 'non-existent-edit',
           baseDir: BASE_DIR,
         });
 
@@ -629,7 +624,7 @@ export function test({ param }: { param: any }): void {}`,
     describe('success cases', () => {
       it('VALID: {edits: multiple clean changes} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'clean-multiedit' }),
+          baseName: 'clean-multiedit',
           baseDir: BASE_DIR,
         });
 
@@ -679,7 +674,7 @@ export function test({ param }: { param: any }): void {}`,
 
       it('VALID: {edits: preserves existing violations without adding new ones} => returns exit code 0', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'preserve-violations-multiedit' }),
+          baseName: 'preserve-violations-multiedit',
           baseDir: BASE_DIR,
         });
 
@@ -733,7 +728,7 @@ export class Calculator {
     describe('failure cases', () => {
       it('INVALID: {edits: one edit adds any violation} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'add-any-multiedit' }),
+          baseName: 'add-any-multiedit',
           baseDir: BASE_DIR,
         });
 
@@ -783,7 +778,7 @@ export class Calculator {
 
       it('INVALID: {edits: multiple edits add different violations} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'multiple-violations-multiedit' }),
+          baseName: 'multiple-violations-multiedit',
           baseDir: BASE_DIR,
         });
 
@@ -831,7 +826,7 @@ export class Calculator {
 
       it('EDGE: {edits: replace_all adds violations} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'replace-all-violations-multiedit' }),
+          baseName: 'replace-all-violations-multiedit',
           baseDir: BASE_DIR,
         });
 
@@ -910,7 +905,7 @@ function test({ param }: { param: any }): void {
       },
     ])('$label', async ({ baseName, fileName, content }) => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: baseName }),
+        baseName: baseName,
         baseDir: BASE_DIR,
       });
 
@@ -937,7 +932,7 @@ function test({ param }: { param: any }): void {
 
     it('ERROR: {tool_input: violations in string literals and code} => detects only code violations', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'mixed-violations' }),
+        baseName: 'mixed-violations',
         baseDir: BASE_DIR,
       });
 
@@ -970,7 +965,7 @@ export const handler: any = getValue();`,
 
     it('EDGE: {tool_input: very large file with violations} => detects violations', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'large-file-violations' }),
+        baseName: 'large-file-violations',
         baseDir: BASE_DIR,
       });
 
@@ -1006,7 +1001,7 @@ export const handler: any = processData;`;
 
     it('EMPTY: {tool_input: empty old_string to empty new_string} => returns exit code 0', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'empty-to-empty' }),
+        baseName: 'empty-to-empty',
         baseDir: BASE_DIR,
       });
 

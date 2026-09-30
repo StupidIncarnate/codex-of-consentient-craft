@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
@@ -16,10 +16,10 @@ describe('guildAddBroker â€” a supplied home confines every write (integration â
 
   it('VALID: {home} => registers into the supplied home and leaves the env home empty', async () => {
     const envTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'guild-add-env-home' }),
+      baseName: 'guild-add-env-home',
     });
     const targetTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'guild-add-target-home' }),
+      baseName: 'guild-add-target-home',
     });
     const { restore } = envHarness.setupHome({ tempDir: envTestbed.guildPath });
     await envHarness.seedHome({ tempDir: targetTestbed.guildPath });
@@ -67,10 +67,10 @@ describe('guildAddBroker â€” a supplied home confines every write (integration â
 
   it('VALID: {no home} => registers into the env home, leaving the other directory empty', async () => {
     const envTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'guild-add-default-env-home' }),
+      baseName: 'guild-add-default-env-home',
     });
     const otherTestbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'guild-add-default-other-home' }),
+      baseName: 'guild-add-default-other-home',
     });
     const { restore } = envHarness.setupHome({ tempDir: envTestbed.guildPath });
     await envHarness.seedHome({ tempDir: otherTestbed.guildPath });

@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../../statics/slash-commands/slash-commands-statics';
 import { InstallFlow } from './install-flow';
@@ -12,7 +7,7 @@ describe('InstallFlow', () => {
   describe('delegation to responders', () => {
     it('VALID: {context} => writes dumpster slash commands and returns install result', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-flow-commands' }),
+        baseName: 'orchestrator-flow-commands',
       });
 
       const result = await InstallFlow({
@@ -51,7 +46,7 @@ describe('InstallFlow', () => {
   describe('repo scaffold', () => {
     it('VALID: {no worktrees dir, no .gitignore} => creates an empty worktrees/ and a .gitignore ignoring it and .quest-plans/', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-flow-scaffold-fresh' }),
+        baseName: 'orchestrator-flow-scaffold-fresh',
       });
 
       await InstallFlow({
@@ -76,7 +71,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {worktrees dir already holds quest checkouts, no gitignore entry} => appends the entry and leaves the checkouts untouched', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-flow-scaffold-preexisting' }),
+        baseName: 'orchestrator-flow-scaffold-preexisting',
       });
 
       // Written in reverse-alphabetical order so the listing below asserts sorted entries
@@ -128,7 +123,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {flow run twice} => .gitignore holds exactly one line per entry and the second run reports them skipped', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-flow-scaffold-twice' }),
+        baseName: 'orchestrator-flow-scaffold-twice',
       });
 
       testbed.writeFile({

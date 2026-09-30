@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -13,7 +13,7 @@ describe('GuildFlow', () => {
   describe('delegation to responders', () => {
     it('VALID: {name, path} => add delegates to GuildAddResponder and returns new guild', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-add' }),
+        baseName: 'guild-flow-add',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -36,7 +36,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {guildId: existing} => get delegates to GuildGetResponder and returns guild', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-get' }),
+        baseName: 'guild-flow-get',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -62,7 +62,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {no guilds} => list delegates to GuildListResponder and returns empty array', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-list-empty' }),
+        baseName: 'guild-flow-list-empty',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -76,7 +76,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {one guild added} => list delegates to GuildListResponder and returns that guild', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-list-one' }),
+        baseName: 'guild-flow-list-one',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -105,7 +105,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {multiple guilds added} => list returns all guilds in insertion order', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-list-many' }),
+        baseName: 'guild-flow-list-many',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -147,7 +147,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {guildId: existing, new name} => update delegates to GuildUpdateResponder and returns updated guild', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-update-name' }),
+        baseName: 'guild-flow-update-name',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -174,7 +174,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {guildId: existing, new path} => update delegates to GuildUpdateResponder and returns updated guild', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-update-path' }),
+        baseName: 'guild-flow-update-path',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -201,7 +201,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {guildId: existing} => remove delegates to GuildRemoveResponder and guild is gone from list', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-remove' }),
+        baseName: 'guild-flow-remove',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -223,7 +223,7 @@ describe('GuildFlow', () => {
 
     it('VALID: {add two, remove one} => full lifecycle delegates through flow and remaining guild is correct', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-lifecycle' }),
+        baseName: 'guild-flow-lifecycle',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -258,7 +258,7 @@ describe('GuildFlow', () => {
 
     it('ERROR: {guildId: nonexistent} => get throws guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-get-error' }),
+        baseName: 'guild-flow-get-error',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -275,7 +275,7 @@ describe('GuildFlow', () => {
 
     it('ERROR: {guildId: nonexistent} => remove throws guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-remove-error' }),
+        baseName: 'guild-flow-remove-error',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -292,7 +292,7 @@ describe('GuildFlow', () => {
 
     it('ERROR: {guildId: nonexistent} => update throws guild not found', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-update-error' }),
+        baseName: 'guild-flow-update-error',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -309,7 +309,7 @@ describe('GuildFlow', () => {
 
     it('ERROR: {duplicate path} => add throws duplicate path error', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'guild-flow-duplicate' }),
+        baseName: 'guild-flow-duplicate',
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 

@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../statics/slash-commands/slash-commands-statics';
 import { StartInstall } from './start-install';
@@ -7,7 +7,7 @@ describe('StartInstall', () => {
   describe('wiring to install flow', () => {
     it('VALID: {context} => delegates to flow, writes commands, scaffolds the repo root, and returns install result', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orchestrator-start-install' }),
+        baseName: 'orchestrator-start-install',
       });
 
       const result = await StartInstall({

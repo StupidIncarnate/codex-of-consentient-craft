@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
 import { StartInstall } from './start-install';
@@ -7,7 +7,7 @@ describe('start-install integration', () => {
   describe('StartInstall', () => {
     it('VALID: {context: no existing config} => delegates to install flow and creates config', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-install-wiring' }),
+        baseName: 'start-install-wiring',
       });
 
       const result = await StartInstall({

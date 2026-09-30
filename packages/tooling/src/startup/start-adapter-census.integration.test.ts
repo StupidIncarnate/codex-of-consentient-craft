@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { adapterCensusHarness } from '../../test/harnesses/adapter-census/adapter-census.harness';
 
@@ -9,7 +9,7 @@ describe('StartAdapterCensus', () => {
     'VALID: {argv: --cwd, --format=json, --package=lib} => the bin hands process.argv past the node and script names to the flow',
     () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'census-startup' }),
+        baseName: 'census-startup',
       });
       harness.installFixture({ testbed });
 

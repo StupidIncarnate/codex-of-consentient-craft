@@ -1,10 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  FileContentStub,
-  RelativePathStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -19,7 +14,7 @@ describe('InstallFinalizeFlow', () => {
     // below drains what it marks before finishing, so this stays true whichever test runs next.
     it('VALID: {InstallFlow never ran this process} => skipped, no npm command runs', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'install-finalize-flow-noop' }),
+        baseName: 'install-finalize-flow-noop',
       });
 
       const result = await InstallFinalizeFlow({
@@ -44,7 +39,7 @@ describe('InstallFinalizeFlow', () => {
     it('VALID: {InstallFlow scaffolded packages/hydration-recipes/, then InstallFinalizeFlow runs} => reports the finished build', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'install-finalize-flow-scaffolded' }),
+        baseName: 'install-finalize-flow-scaffolded',
       });
 
       // The scaffold scopes its package off the root package.json's `name`, so the testbed names

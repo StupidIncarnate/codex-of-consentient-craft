@@ -11,7 +11,7 @@
  * scoping.
  */
 
-import { BaseNameStub, installTestbedCreateBroker } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -62,7 +62,7 @@ describe('AgentPromptFlow', () => {
     // codeweaver-planner dispatch always carries.
     it("VALID: {agent: codeweaver-planner, questId, workItemId, work item AT THE PLAN STEP} => returns the four-id operation-relay context and the step's own model, resolved from the persisted quest.json", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-codeweaver' }),
+        baseName: 'agent-prompt-flow-codeweaver',
       });
       const env = envHarness.setupHome({ tempDir: testbed.guildPath });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4222-9333-444444444444' });
@@ -115,7 +115,7 @@ describe('AgentPromptFlow', () => {
   describe('error cases', () => {
     it('ERROR: {agent: invalid name} => throws ZodError for unrecognized agent', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-invalid' }),
+        baseName: 'agent-prompt-flow-invalid',
       });
       const env = envHarness.setupHome({ tempDir: testbed.guildPath });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
@@ -138,7 +138,7 @@ describe('AgentPromptFlow', () => {
 
     it('ERROR: {agent: spiritmender, questId, workItemId, no operations reference} => rejects naming the work item that carries no operations/<id> ref', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-no-op-ref' }),
+        baseName: 'agent-prompt-flow-no-op-ref',
       });
       const env = envHarness.setupHome({ tempDir: testbed.guildPath });
       const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' });

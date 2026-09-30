@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
@@ -19,7 +19,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
   const git = gitWorktreeFixtureHarness();
 
   it('VALID: {worktree drifted onto a stray branch, kind: worktree} => the worktree really is back on the quest branch afterwards', async () => {
-    const testbed = installTestbedCreateBroker({ baseName: BaseNameStub({ value: 'weqb-drift' }) });
+    const testbed = installTestbedCreateBroker({ baseName: 'weqb-drift' });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
     await git.initRepoWithPackages({
@@ -73,7 +73,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     // ran" is a claim about this broker's gate rather than about a fixture that could never have
     // moved anyway.
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'weqb-skip' }),
+      baseName: 'weqb-skip',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
@@ -122,7 +122,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
   it('EDGE: {non-ASCII quest branch name, worktree directory carrying spaces and parens} => the exact name is what the worktree ends up on', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'weqb-hostile' }),
+      baseName: 'weqb-hostile',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 

@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -16,7 +16,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {targetStatus: explore_flows} => quest walks from created to explore_flows', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-explore-flows' }),
+      baseName: 'hydrate-explore-flows',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -48,7 +48,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {questSource: "smoketest-orchestration"} => persists questSource onto the hydrated quest', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-quest-source' }),
+      baseName: 'hydrate-quest-source',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -74,7 +74,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {no questSource} => hydrated quest has questSource undefined', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-no-quest-source' }),
+      baseName: 'hydrate-no-quest-source',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -96,7 +96,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {smoketestBlueprintsStatics.minimal} => hydrates to in_progress, seeding the operations relay tail and ONE codeweaver work item', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-minimal-in-progress' }),
+      baseName: 'hydrate-minimal-in-progress',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -147,7 +147,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {smoketestBlueprintsStatics.minimal} => seeds NO later-family scopes and no minion/ward work items (roles summon minions as sub-agents)', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-verify-tail' }),
+      baseName: 'hydrate-verify-tail',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -196,7 +196,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {blueprint.fixedWorkItemId} => the first work item lands on disk with exactly that id', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-fixed-work-item-id' }),
+      baseName: 'hydrate-fixed-work-item-id',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -228,7 +228,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {no blueprint.fixedWorkItemId} => two hydrates mint two different real uuids', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-mints-work-item-id' }),
+      baseName: 'hydrate-mints-work-item-id',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -273,7 +273,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {createdAt, updatedAt} => the work item createdAt and quest updatedAt land on disk exactly as supplied', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-fixed-clocks' }),
+      baseName: 'hydrate-fixed-clocks',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({
@@ -314,7 +314,7 @@ describe('questHydrateBroker', () => {
 
   it('VALID: {no createdAt, no updatedAt} => both still mint from the real clock at call time', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-mints-clocks' }),
+      baseName: 'hydrate-mints-clocks',
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
     await envHarness.seedQuestRepoPackages({

@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { StartInstallFinalize } from './start-install-finalize';
@@ -7,7 +7,7 @@ describe('StartInstallFinalize', () => {
   describe('wiring to install finalize flow', () => {
     it('VALID: {nothing scaffolded this process} => delegates to the flow and returns its skipped result', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-install-finalize-wiring' }),
+        baseName: 'start-install-finalize-wiring',
       });
 
       const result = await StartInstallFinalize({

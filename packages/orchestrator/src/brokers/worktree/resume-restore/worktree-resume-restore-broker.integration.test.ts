@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -17,7 +17,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
   const git = gitWorktreeFixtureHarness();
 
   it('VALID: {worktree was left checked out on a different branch} => resume checks it back out onto the quest branch', async () => {
-    const testbed = installTestbedCreateBroker({ baseName: BaseNameStub({ value: 'wrr-drift' }) });
+    const testbed = installTestbedCreateBroker({ baseName: 'wrr-drift' });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 
     await git.initRepoWithPackages({
@@ -64,7 +64,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
 
   it('VALID: {worktree already on its quest branch, an uncommitted edit sits in it} => resume leaves the dirty file exactly as it was — no stash, no reset', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'wrr-preserve' }),
+      baseName: 'wrr-preserve',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
 

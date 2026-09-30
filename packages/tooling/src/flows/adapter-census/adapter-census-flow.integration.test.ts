@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { adapterCensusHarness } from '../../../test/harnesses/adapter-census/adapter-census.harness';
 
@@ -10,7 +10,7 @@ describe('AdapterCensusFlow', () => {
       'VALID: {--format=json} => the full census: shapes, gateway match, callers, proxy chain and catch-all sites',
       () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'census-json' }),
+          baseName: 'census-json',
         });
         harness.installFixture({ testbed });
 
@@ -125,7 +125,7 @@ describe('AdapterCensusFlow', () => {
       'VALID: {no --format} => the table with both packages and the totals line',
       () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'census-table' }),
+          baseName: 'census-table',
         });
         harness.installFixture({ testbed });
 
@@ -157,7 +157,7 @@ describe('AdapterCensusFlow', () => {
       'VALID: {--package=lib} => only the lib package, with its caller in app, and totals over what is reported',
       () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'census-filter' }),
+          baseName: 'census-filter',
         });
         harness.installFixture({ testbed });
 
@@ -214,7 +214,7 @@ describe('AdapterCensusFlow', () => {
       'ERROR: {--cwd with no package.json} => exit code 1 and the path in the error',
       () => {
         const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'census-empty' }),
+          baseName: 'census-empty',
         });
         testbed.cleanup();
 

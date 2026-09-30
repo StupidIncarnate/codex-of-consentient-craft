@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitBranchNameStub } from '../../../contracts/git-branch-name/git-branch-name.stub';
@@ -20,7 +20,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
 
   it('VALID: {a file committed only in the repo-root checkout, different files committed only in the worktree} => the diff computed with cwd at the worktree contains only the worktree files', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-diff-worktree-scope' }),
+      baseName: 'ward-diff-worktree-scope',
     });
     const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
     await git.initRepo({ repoPath });
@@ -73,7 +73,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
   // remote ref wins needs a real remote whose default branch is genuinely behind the local one.
   it('VALID: {local main ahead of origin/main, both real} => measures from origin/main, so the local-only commit is IN scope', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'ward-diff-committed-origin-base' }),
+      baseName: 'ward-diff-committed-origin-base',
     });
     const repoPath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/repo` });
     const remotePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/origin.git` });

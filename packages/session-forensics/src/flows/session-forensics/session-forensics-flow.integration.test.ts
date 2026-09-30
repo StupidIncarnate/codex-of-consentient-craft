@@ -1,9 +1,4 @@
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -94,7 +89,7 @@ describe('SessionForensicsFlow', () => {
 
     it('VALID: {argv: [coverage, target]} => routes to DigestRunResponder and renders the real quest.json on disk', () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'session-forensics-flow-coverage' }),
+        baseName: 'session-forensics-flow-coverage',
       });
       const questId = QuestIdStub({ value: 'flow-coverage-quest' });
       const flow = FlowStub({ id: 'bare-flow', flowType: 'runtime', nodes: [], edges: [] });
@@ -131,7 +126,7 @@ describe('SessionForensicsFlow', () => {
 
     it('VALID: {argv: [quest, questId]} => routes to DigestRunResponder, joining the real quest.json to a real transcript and sub-agent', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'session-forensics-flow-quest' }),
+        baseName: 'session-forensics-flow-quest',
       });
       const questId = QuestIdStub({ value: 'flow-quest-command-quest' });
       const target = SessionIdStub({ value: 'session-flow-quest-command' });

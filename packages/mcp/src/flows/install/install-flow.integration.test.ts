@@ -5,12 +5,7 @@
  * npm run ward -- --only test -- packages/mcp/src/flows/install/install-flow.integration.test.ts
  */
 
-import {
-  installTestbedCreateBroker,
-  BaseNameStub,
-  RelativePathStub,
-  FileContentStub,
-} from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallFlow } from './install-flow';
@@ -19,7 +14,7 @@ describe('InstallFlow', () => {
   describe('delegation to responder', () => {
     it('VALID: {context: no existing config} => delegates to responder and creates .mcp.json', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-create-mcp-config' }),
+        baseName: 'flow-create-mcp-config',
       });
 
       const result = await InstallFlow({
@@ -114,7 +109,7 @@ describe('InstallFlow', () => {
 
     it('VALID: {context: config exists with dungeonmaster} => returns skipped', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'flow-skip-mcp-config' }),
+        baseName: 'flow-skip-mcp-config',
       });
 
       testbed.writeFile({

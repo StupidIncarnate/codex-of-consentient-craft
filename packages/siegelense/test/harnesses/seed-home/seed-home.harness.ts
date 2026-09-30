@@ -40,7 +40,7 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import type { RecipeNameStub } from '../../../src/contracts/recipe-name/recipe-name.stub';
 import { SeedResultStub } from '../../../src/contracts/seed-result/seed-result.stub';
@@ -69,7 +69,7 @@ export const seedHomeHarness = (): {
   return {
     beforeEach: (): void => {
       testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'siegelense-seed-seam' }),
+        baseName: 'siegelense-seed-seam',
       });
       writeFileSync(
         join(testbed.guildPath, dungeonmasterHomeStatics.paths.configFile),
