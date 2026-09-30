@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const purpose = folderPurposeTransformer({ folderType: FolderTypeStub({ value: 'brokers' }) });
- * // Returns 'Business logic orchestration. Compose adapters, guards, transformers...'
+ * // Returns 'Business logic orchestration. Compose gateway wrappers, guards, transformers...'
  */
 
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';

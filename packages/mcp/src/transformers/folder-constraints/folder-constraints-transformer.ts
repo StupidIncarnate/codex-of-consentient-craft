@@ -20,19 +20,19 @@ export const folderConstraintsTransformer = ({
 
   // Universal constraints
   const universalConstraints =
-    '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation';
+    '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n- Import an outside package, type or value, only through `#gateway/<folder>/<subpath>`\n- Return `void` from an exported function only when every gateway or broker call it discards also returned void';
   constraints.push(universalConstraints);
 
   // Folder-specific constraints
   if (config.requireProxy) {
     const proxyConstraints =
-      '\n**MUST (Testing):**\n- Create `.proxy.ts` file for test setup\n- Mock only I/O boundaries (adapters)\n- All business logic runs real in tests';
+      "\n**MUST (Testing):**\n- Create `.proxy.ts` file for test setup\n- Mock only what the I/O trap or MSW catches, through the gateway wrapper's proxy\n- All business logic runs real in tests";
     constraints.push(proxyConstraints);
   }
 
   if (config.disallowAdhocTypes) {
     const typeConstraints =
-      '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/';
+      "\n**MUST NOT:**\n- Define inline types or interfaces\n- A field of an object contract is branded; a loose string or number in a signature or local stays plain, except a parameter that holds another object's field, which takes `Owner['key']`\n- Our own types come from contracts/; a library's types are imported from the library";
     constraints.push(typeConstraints);
   }
 

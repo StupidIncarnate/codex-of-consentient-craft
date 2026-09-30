@@ -187,6 +187,54 @@ describe('architectureFolderDetailBroker', () => {
     });
   });
 
+  describe('gateway import sentence', () => {
+    it('VALID: {folderType: "brokers"} => closes the import list with the gateway sentence', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'brokers',
+      });
+      const section = result.slice(
+        result.indexOf('## Import Rules'),
+        result.indexOf('## Required Files'),
+      );
+
+      expect(section).toMatch(
+        /^An outside package is imported only through `#gateway\/<folder>\/<subpath>`\.$/mu,
+      );
+    });
+
+    it('EMPTY: {folderType: "errors"} => imports nothing, so the section holds no gateway sentence', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'errors',
+      });
+      const section = result.slice(
+        result.indexOf('## Import Rules'),
+        result.indexOf('## Required Files'),
+      );
+
+      expect(section).toBe(
+        '## Import Rules\n\n**Cannot import from any other layers** - Pure domain entities\n\n\n',
+      );
+    });
+  });
+
+  describe('ad-hoc type sentence', () => {
+    it('VALID: {folderType: "brokers"} => says our types come from contracts and a library keeps its own', () => {
+      architectureFolderDetailBrokerProxy();
+
+      const result = architectureFolderDetailBroker({
+        folderType: 'brokers',
+      });
+
+      expect(result).toMatch(
+        /^\*\*Ad-hoc Types Forbidden:\*\* Our own types come from contracts\/, and a library's types from the library$/mu,
+      );
+    });
+  });
+
   describe('unknown folder type', () => {
     it('VALID: {folderType: "unknown-type"} => returns error message', () => {
       architectureFolderDetailBrokerProxy();

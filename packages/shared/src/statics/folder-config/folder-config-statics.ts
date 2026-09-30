@@ -52,7 +52,7 @@ export const folderConfigStatics = {
     requireStub: true,
     meta: {
       purpose:
-        'Type definitions and validation schemas using Zod. All data structures must be defined here with branded types.',
+        'Type definitions and validation schemas for the data we define. Every object and every field in it is branded.',
       whenToUse: 'Define data structure with validation',
     },
   },
@@ -166,7 +166,7 @@ export const folderConfigStatics = {
     meta: {
       purpose:
         'Request/response transformation layer. Authentication, logging, validation pipelines.',
-      whenToUse: 'Combine adapters for infrastructure',
+      whenToUse: 'Combine gateway wrappers for infrastructure',
     },
   },
   brokers: {
@@ -193,7 +193,7 @@ export const folderConfigStatics = {
     requireStub: false,
     meta: {
       purpose:
-        'Business logic orchestration. Compose adapters, guards, transformers to implement domain operations.',
+        'Business logic orchestration. Compose gateway wrappers, guards, transformers to implement domain operations.',
       whenToUse: 'Business logic operations',
     },
   },
