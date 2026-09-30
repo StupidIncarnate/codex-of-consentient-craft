@@ -55,13 +55,13 @@ export const EnqueueBundledSuiteLayerResponder = async ({
   // get-quest-status MCP probe has a live id to query at runtime.
   const processId = `proc-${randomUUID()}`;
   orchestrationProcessesState.register({
-    orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
+    orchestrationProcess: orchestrationProcessContract.parse({
       processId,
       questId,
       kill: (): void => {
         questExecutionQueueState.removeByQuestId({ questId });
       },
-    }))),
+    }),
   });
 
   const substitutedWorkItems = smoketestSubstituteWorkItemPlaceholdersTransformer({

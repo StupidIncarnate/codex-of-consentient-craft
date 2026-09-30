@@ -7,7 +7,7 @@ import { instanceStateResolveBrokerProxy } from './instance-state-resolve-broker
 
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const OTHER_INSTANCE_ID = InstanceIdStub({ value: 'inst_00000000' });
-const LAST_BEAT_MS = 1_700_000_000_000.valueOf();
+const LAST_BEAT_MS = 1_700_000_000_000;
 
 describe('instanceStateResolveBroker', () => {
   it('EMPTY: {no registry row for this instance id} => returns unknown with a null entry', async () => {

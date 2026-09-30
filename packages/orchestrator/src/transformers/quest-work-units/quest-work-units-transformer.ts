@@ -56,7 +56,7 @@ export const questWorkUnitsTransformer = ({
 
   const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
-  unitObservationFieldsContract.shape.at.parse(return) unitIds.flatMap((unitId) => {
+  return unitIds.flatMap((unitId) => {
     const item = itemsById.get(String(unitId));
 
     if (item === undefined) {

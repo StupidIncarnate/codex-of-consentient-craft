@@ -60,7 +60,7 @@ export const resultToDetailTransformer = ({
           rawOutput: rawText,
         });
         if (networkLog.length > 0) {
-          entries.push(errorEntryContract.shape.message.parse(`\n  Network Log:\n    ${networkLog}`));
+          entries.push(`\n  Network Log:\n    ${networkLog}`);
         }
       }
     }
@@ -80,7 +80,7 @@ export const resultToDetailTransformer = ({
         const locationPart =
           error.line === 0 ? '' : ` (line ${String(error.line)}, col ${String(error.column)})`;
         sections.push(
-          errorEntryContract.shape.message.parse(`${error.filePath}\n  ${check.checkType}${rulePart}${locationPart}\n    ${error.message}`),
+          `${error.filePath}\n  ${check.checkType}${rulePart}${locationPart}\n    ${error.message}`,
         );
       }
 
@@ -93,7 +93,7 @@ export const resultToDetailTransformer = ({
         const networkPart =
           networkLogForFailure.length > 0 ? `\n\n  Network Log:\n    ${networkLogForFailure}` : '';
         sections.push(
-          errorEntryContract.shape.message.parse(`${failure.suitePath}\n  FAIL  "${failure.testName}"\n    ${failure.message}${stackPart}${networkPart}`),
+          `${failure.suitePath}\n  FAIL  "${failure.testName}"\n    ${failure.message}${stackPart}${networkPart}`,
         );
       }
 
@@ -105,11 +105,11 @@ export const resultToDetailTransformer = ({
         const rawText = project.rawOutput.stderr || project.rawOutput.stdout;
         if (rawText.length > 0) {
           sections.push(
-            errorEntryContract.shape.message.parse(`${project.projectFolder.name}\n  (crash) ${check.checkType}\n    ${rawText}`),
+            `${project.projectFolder.name}\n  (crash) ${check.checkType}\n    ${rawText}`,
           );
         } else {
           sections.push(
-            errorEntryContract.shape.message.parse(`${project.projectFolder.name}\n  (crash) ${check.checkType}\n    no output captured`),
+            `${project.projectFolder.name}\n  (crash) ${check.checkType}\n    no output captured`,
           );
         }
       }
@@ -131,7 +131,7 @@ export const resultToDetailTransformer = ({
             Number(passing.durationMs) > 0 ? ` (${String(passing.durationMs)}ms)` : '';
           return `    ✓ ${passing.suitePath} › ${passing.testName}${testDurationPart}`;
         });
-        sections.push(errorEntryContract.shape.message.parse([header, ...testLines].join('\n')));
+        sections.push([header, ...testLines].join('\n'));
       }
 
       // A RUN THE CALLER SCOPED TO FILES GETS NO `not run` SECTION AT ALL. `onlyDiscovered` is every
@@ -147,7 +147,7 @@ export const resultToDetailTransformer = ({
         !isCallerFileScopeGuard({ filters: wardResult.filters })
       ) {
         sections.push(
-          errorEntryContract.shape.message.parse(`not run (${String(project.onlyDiscovered.length)} files):\n  ${project.onlyDiscovered.join('\n  ')}`),
+          `not run (${String(project.onlyDiscovered.length)} files):\n  ${project.onlyDiscovered.join('\n  ')}`,
         );
       }
     }

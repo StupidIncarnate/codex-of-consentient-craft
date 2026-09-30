@@ -80,7 +80,7 @@ export const mcpDiscoverBroker = async ({
     ...(file.hits && { hits: file.hits }),
   }));
 
-  const treeOutput = treeFormatterTransformer({ items: treeItemContract.shape.path.parse(treeItemContract.shape.path.parse(treeItemContract.shape.path.parse(treeItems))) });
+  const treeOutput = treeFormatterTransformer({ items: treeItems });
 
   // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {

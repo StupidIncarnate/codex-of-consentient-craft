@@ -46,7 +46,7 @@ export const McpServerFlow = async ({
   }));
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-    const handler = handlerMap.get(toolRegistrationContract.shape.name.parse(request.params.name));
+    const handler = handlerMap.get(request.params.name);
     if (!handler) {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }

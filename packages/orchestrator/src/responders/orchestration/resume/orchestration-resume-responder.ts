@@ -207,13 +207,13 @@ export const OrchestrationResumeResponder = async ({
   const abortController = new AbortController();
 
   orchestrationProcessesState.register({
-    orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
+    orchestrationProcess: orchestrationProcessContract.parse({
       processId,
       questId: reloaded.id,
       kill: (): void => {
         abortController.abort();
       },
-    }))),
+    }),
   });
 
   // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.

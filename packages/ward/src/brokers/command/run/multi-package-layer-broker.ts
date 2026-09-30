@@ -214,7 +214,7 @@ export const multiPackageLayerBroker = async ({
     const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
     return checkResultBuildTransformer({
       checkType,
-      projectResults: fileTimingContract.shape.durationMs.parse(projectResults),
+      projectResults: projectResults,
       durationMs: aggregatedDurationMs,
     });
   });

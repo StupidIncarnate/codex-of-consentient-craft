@@ -392,12 +392,12 @@ export const ChatStartResponder = async ({
       // output buffer's race-prevention semantics keep working — early emits buffer
       // until `onQuestCreated` populates the closure.
       orchestrationProcessesState.register({
-        orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
+        orchestrationProcess: orchestrationProcessContract.parse({
           processId,
           questId: launcherQuestId,
           questWorkItemId,
           kill,
-        }))),
+        }),
       });
     },
     recordActivity: ({ processId }) => {

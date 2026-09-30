@@ -67,7 +67,7 @@ export const ownerIndexFromSourcesTransformer = ({
     );
   }
 
-  const ownerIndexFieldContract.shape.key.parse(owners): OwnerIndexOwner[] = reads
+  const owners: OwnerIndexOwner[] = reads
     .flatMap((read) => read.owners)
     .map((owner) => ({
       ...owner,

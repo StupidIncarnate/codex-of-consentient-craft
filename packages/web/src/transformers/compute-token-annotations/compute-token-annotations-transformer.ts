@@ -52,9 +52,9 @@ export const computeTokenAnnotationsTransformer = ({
         const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
         cumulativeContext = totalContext;
         contextDelta =
-          tokenAnnotationContract.shape.contextDelta.parse(prevContext === null
+          prevContext === null
             ? null
-            : (Number(totalContext) - Number(prevContext)));
+            : (Number(totalContext) - Number(prevContext));
 
         if (source === 'subagent') {
           prevSubagentContext = totalContext;

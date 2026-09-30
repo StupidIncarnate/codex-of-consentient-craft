@@ -43,7 +43,7 @@ const sessionWithNestedSubagentMeta = recipeCatalogEntryContract.parse({
 
 export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildEmptyBroker.recipeName),
+    recipeName: recipesGuildEmptyBroker.recipeName,
     description: recipesGuildEmptyBroker.description,
     probeListing: () => {
       const plan = recipesGuildEmptyBroker();
@@ -65,7 +65,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildWithThreeQuestsBroker.recipeName),
+    recipeName: recipesGuildWithThreeQuestsBroker.recipeName,
     description: recipesGuildWithThreeQuestsBroker.description,
     probeListing: () => {
       const plan = recipesGuildWithThreeQuestsBroker();
@@ -87,7 +87,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildMidExecutionBroker.recipeName),
+    recipeName: recipesGuildMidExecutionBroker.recipeName,
     description: recipesGuildMidExecutionBroker.description,
     probeListing: () => {
       const plan = recipesGuildMidExecutionBroker();
@@ -109,7 +109,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesQuestAdvancesOneStepBroker.recipeName),
+    recipeName: recipesQuestAdvancesOneStepBroker.recipeName,
     description: recipesQuestAdvancesOneStepBroker.description,
     inputs: recipesQuestAdvancesOneStepBroker.inputs,
     probeListing: () => {
@@ -144,7 +144,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesQuestCompletedBroker.recipeName),
+    recipeName: recipesQuestCompletedBroker.recipeName,
     description: recipesQuestCompletedBroker.description,
     probeListing: () => {
       const plan = recipesQuestCompletedBroker();
@@ -166,7 +166,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesSessionSingleTurnBroker.recipeName),
+    recipeName: recipesSessionSingleTurnBroker.recipeName,
     description: recipesSessionSingleTurnBroker.description,
     inputs: recipesSessionSingleTurnBroker.inputs,
     probeListing: () => {
@@ -201,7 +201,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesSessionWithNestedChainBroker.recipeName),
+    recipeName: recipesSessionWithNestedChainBroker.recipeName,
     description: recipesSessionWithNestedChainBroker.description,
     inputs: recipesSessionWithNestedChainBroker.inputs,
     probeListing: () => {
@@ -236,7 +236,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
     },
   }),
   recipeCatalogEntryContract.parse({
-    recipeName: recipeCatalogEntryContract.shape.recipeName.parse(recipesGuildActiveSuiteBroker.recipeName),
+    recipeName: recipesGuildActiveSuiteBroker.recipeName,
     description: recipesGuildActiveSuiteBroker.description,
     probeListing: () => {
       const plan = recipesGuildActiveSuiteBroker();

@@ -64,7 +64,7 @@ export const OrchestrationDispatchBootstrapResponder = (): void => {
         },
         registerProcess: ({ processId, questId, questWorkItemId, kill }): void => {
           orchestrationProcessesState.register({
-            orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({ processId, questId, questWorkItemId, kill }))),
+            orchestrationProcess: orchestrationProcessContract.parse({ processId, questId, questWorkItemId, kill }),
           });
         },
         // Every spawned child gets removed from the registry when it exits. Leaving entries behind

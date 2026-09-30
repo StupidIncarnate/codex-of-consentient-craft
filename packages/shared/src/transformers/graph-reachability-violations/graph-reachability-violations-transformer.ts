@@ -59,14 +59,14 @@ export const graphReachabilityViolationsTransformer = ({
       continue;
     }
     for (const target of Object.values(currentNode.routes)) {
-      if (nodesMap.has(target) && !reachableFromEntry.has(routedGraphContract.shape.entry.parse(target))) {
-        reachableFromEntry.add(routedGraphContract.shape.entry.parse(target));
-        reachabilityQueue.push(routedGraphContract.shape.entry.parse(target));
+      if (nodesMap.has(target) && !reachableFromEntry.has(target)) {
+        reachableFromEntry.add(target);
+        reachabilityQueue.push(target);
       }
     }
   }
   for (const [stepKey, node] of nodesMap) {
-    if (!reachableFromEntry.has(routedGraphContract.shape.entry.parse(stepKey)) && node[exemptFlag] !== true) {
+    if (!reachableFromEntry.has(stepKey) && node[exemptFlag] !== true) {
       violations.push(
         `Step '${stepKey}' in the '${graph.graphName}' graph is reached by no route from '${graph.entry}'. Route something to it, or declare mintableOnRequest: true if a running session asks for it. A step nothing reaches is a prompt that is never dispatched, and the quest that needed it stalls with no error.`,
       );

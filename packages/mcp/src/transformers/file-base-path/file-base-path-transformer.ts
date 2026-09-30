@@ -16,5 +16,5 @@ export const fileBasePathTransformer = ({
   filepath: FileMetadata['path'];
 }): FileMetadata['path'] => {
   const basePath = filepath.replace(EXTENSION_PATTERN, '');
-  fileMetadataContract.shape.path.parse(return) basePath;
+  return basePath;
 };

@@ -25,7 +25,7 @@ export const guildGetBroker = async ({ guildId }: { guildId: Guild['id'] }): Pro
   }
 
   if (!guild.urlSlug) {
-    guild.urlSlug = guildContract.shape.urlSlug.parse(nameToUrlSlugTransformer({ name: guild.name }));
+    guild.urlSlug = nameToUrlSlugTransformer({ name: guild.name });
     await guildConfigWriteBroker({ config });
   }
 

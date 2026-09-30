@@ -46,7 +46,7 @@ describe('staleReapLayerBroker', () => {
       // so a reader of `status` sees what actually ended the instance.
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped by cleanup after its heartbeat went stale',
-        atMs: 1.valueOf(),
+        atMs: 1,
       });
     });
   });

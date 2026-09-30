@@ -52,7 +52,7 @@ export const createPackageArgsParseTransformer = ({
             `argument cannot itself start with "--".\n\n${USAGE}`,
         );
       }
-      parsed.name = createPackageArgsContract.shape.name.parse(value);
+      parsed.name = value;
       i++;
       continue;
     }
@@ -85,7 +85,7 @@ export const createPackageArgsParseTransformer = ({
             `argument cannot itself start with "--".\n\n${USAGE}`,
         );
       }
-      parsed.description = createPackageArgsContract.shape.description.parse(value);
+      parsed.description = value;
       i++;
       continue;
     }
@@ -98,7 +98,7 @@ export const createPackageArgsParseTransformer = ({
             `argument cannot itself start with "--".\n\n${USAGE}`,
         );
       }
-      parsed.packagesDir = createPackageArgsContract.shape.packagesDir.parse(value);
+      parsed.packagesDir = value;
       i++;
       continue;
     }

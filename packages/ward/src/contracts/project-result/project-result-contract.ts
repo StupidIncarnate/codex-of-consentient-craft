@@ -51,7 +51,7 @@ export const projectResultContract = z.object({
   // that one is the whole check across every package (see multi-package-layer-broker). Defaults
   // to 0 so parses that predate this field (saved .ward/ results, precomputed typecheck results with
   // no per-package split) keep working.
-  durationMs: z.number().nonnegative().brand<'ProjectResultDurationMs'>().default(projectResultContract.shape.durationMs.parse(0)),
+  durationMs: z.number().nonnegative().brand<'ProjectResultDurationMs'>().default(0),
 }).brand<'ProjectResult'>();
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

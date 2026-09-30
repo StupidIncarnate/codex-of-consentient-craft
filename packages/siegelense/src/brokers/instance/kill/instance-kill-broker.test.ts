@@ -118,7 +118,7 @@ describe('instanceKillBroker', () => {
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped 2 orphaned process groups outside the idle timeout',
-        atMs: 1.valueOf(),
+        atMs: 1,
       });
     });
 
@@ -146,7 +146,7 @@ describe('instanceKillBroker', () => {
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped by cleanup after its heartbeat went stale',
-        atMs: 1.valueOf(),
+        atMs: 1,
       });
     });
 

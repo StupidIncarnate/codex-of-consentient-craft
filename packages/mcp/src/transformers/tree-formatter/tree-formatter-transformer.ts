@@ -66,7 +66,7 @@ export const treeFormatterTransformer = ({
       if (!childNode) {
         throw new Error(`Child node not found for folder: ${folderName}`);
       }
-      currentNode = treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(childNode)));
+      currentNode = childNode;
     }
 
     // Add item to leaf node
@@ -95,7 +95,7 @@ export const treeFormatterTransformer = ({
     .sort(([a], [b]) => String(a).localeCompare(String(b)))
     .map(
       ([folderName, folderNode]) =>
-        `${folderName}/\n${formatTreeNodeTransformer({ node: treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(folderNode))), indent: 1, hitRenders })}`,
+        `${folderName}/\n${formatTreeNodeTransformer({ node: folderNode, indent: 1, hitRenders })}`,
     );
 
   return rootFolders.join('\n\n');

@@ -16,5 +16,5 @@ export const pathToBasenameTransformer = ({
   const parts = filepath.split('/');
   const basename = parts[parts.length - 1] ?? filepath;
 
-  fileMetadataContract.shape.path.parse(return) basename;
+  return basename;
 };

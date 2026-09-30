@@ -242,7 +242,7 @@ export const instanceKillBrokerProxy = (): {
     }: {
       evidencePath: string;
     }): void => {
-      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: 1.valueOf() });
+      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: 1 });
     },
 
     getWrittenShutdownReason: ({

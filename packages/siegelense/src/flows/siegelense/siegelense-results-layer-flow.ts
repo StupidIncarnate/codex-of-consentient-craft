@@ -25,5 +25,5 @@ export const SiegelenseResultsLayerFlow = async ({
   callArgs: readonly string[];
 }): Promise<void> => {
   const { isJson, ...query } = resultsArgsParseTransformer({ args: callArgs });
-  return SiegelenseResultsResponder({ query: resultsQueryContract.shape.step.parse(resultsQueryContract.shape.step.parse(resultsQueryContract.shape.step.parse(query))), isJson });
+  return SiegelenseResultsResponder({ query: query, isJson });
 };

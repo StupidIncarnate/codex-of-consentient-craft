@@ -65,7 +65,7 @@ describe('instanceStartBroker', () => {
       expect(proxy.getWrittenBootLock()).toStrictEqual({
         heldBy: instanceId,
         heldByPid: '31337',
-        acquiredAtMs: 1.valueOf(),
+        acquiredAtMs: 1,
       });
     });
   });
@@ -474,7 +474,7 @@ describe('instanceStartBroker', () => {
         // EpochMsStub()'s own default value (1_700_000_000_000), which is what this proxy's
         // sticky Date.now() default answers every unstaged call with.
         reservedAtMs: EpochMsStub({
-          value: 1.valueOf() - instanceLifecycleStatics.reservation.staleAfterMs - 1,
+          value: 1 - instanceLifecycleStatics.reservation.staleAfterMs - 1,
         }),
       });
       const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: 1 });
@@ -693,7 +693,7 @@ describe('instanceStartBroker', () => {
       expect(proxy.getWrittenShutdownReason({ evidencePath: UNOWNED_EVIDENCE_PATH })).toStrictEqual(
         {
           reason: `--seed ${seed} failed: RecipesPackageMissingError: ${missingMessage}`,
-          atMs: 1.valueOf(),
+          atMs: 1,
         },
       );
     });

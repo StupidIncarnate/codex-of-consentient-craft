@@ -61,10 +61,10 @@ export const sourceFactsExtractStatementsLayerBroker = ({
           isStar: clause === undefined,
         });
       } else {
-        exportNames.push(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(...names))));
+        exportNames.push(...names);
       }
     } else if (ts.isExportAssignment(statement)) {
-      exportNames.push(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse('default'))));
+      exportNames.push('default');
     } else if (
       ts.canHaveModifiers(statement) &&
       (ts.getModifiers(statement) ?? []).some((mod) => mod.kind === ts.SyntaxKind.ExportKeyword)
@@ -80,7 +80,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
         ts.isEnumDeclaration(statement)
           ? [statement.name?.text ?? 'default']
           : [];
-      exportNames.push(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(...[...declared, ...named].map((name) => name)))));
+      exportNames.push(...[...declared, ...named].map((name) => name));
     }
   }
 

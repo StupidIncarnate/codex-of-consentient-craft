@@ -244,7 +244,7 @@ export const relayTailFanOutTransformer = ({
     // because `operation.text` is what the execution panel renders verbatim as the row name — a
     // text naming only the package would render two identical rows for a package's two cells.
     if (ordered.length > 0) {
-      operationItemContract.shape.packageNames.parse(return) ordered.flatMap((slice) =>
+      return ordered.flatMap((slice) =>
         slice.flowIds.length === 0
           ? [
               {

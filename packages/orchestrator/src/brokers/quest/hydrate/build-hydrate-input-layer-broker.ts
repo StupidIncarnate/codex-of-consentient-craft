@@ -51,7 +51,7 @@ export const buildHydrateInputLayerBroker = ({
     {},
   );
 
-  const flowNodeContract.shape.packages.parse(flowsAdditions): Partial<ModifyQuestInput> =
+  const flowsAdditions: Partial<ModifyQuestInput> =
     strategy.flowsMode === 'full' ? { flows: blueprint.flows } : {};
 
   return modifyQuestInputContract.parse({

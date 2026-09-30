@@ -142,7 +142,7 @@ export const laneBootBroker = async ({
       }),
     );
     const substitutedProcessEnv = laneEnvSubstituteTransformer({
-      env: laneSpecContract.shape.env.parse(laneProcess.env),
+      env: laneProcess.env,
       ports,
       home: homePath,
       claudeQueueDir,

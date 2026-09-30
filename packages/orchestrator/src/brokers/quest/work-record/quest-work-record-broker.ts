@@ -159,7 +159,7 @@ export const questWorkRecordBroker = async ({
         questFilePath,
         questId,
         workItemId,
-        patch: { requestedStep: workItemContract.shape.requestedStep.parse(payload.step), requestedReason: payload.reason },
+        patch: { requestedStep: payload.step, requestedReason: payload.reason },
         nowAt,
       });
 

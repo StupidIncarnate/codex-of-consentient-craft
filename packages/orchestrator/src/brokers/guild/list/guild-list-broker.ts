@@ -26,7 +26,7 @@ export const guildListBroker = async (): Promise<GuildListItem[]> => {
 
   for (const guild of config.guilds) {
     if (!guild.urlSlug) {
-      guild.urlSlug = guildContract.shape.urlSlug.parse(nameToUrlSlugTransformer({ name: guild.name }));
+      guild.urlSlug = nameToUrlSlugTransformer({ name: guild.name });
       needsPersist = true;
     }
   }

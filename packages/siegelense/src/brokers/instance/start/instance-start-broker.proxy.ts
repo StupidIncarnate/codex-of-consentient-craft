@@ -260,7 +260,7 @@ export const instanceStartBrokerProxy = (): {
   // capacity's) sees the fleet WITHOUT that row, as it does for real.
   const preReserveRegistry: { json: string | null } = { json: null };
   const stageRegistryAndLocks = ({ registry }: { registry: Registry }): void => {
-    clockProxy.setupNow({ ms: 1.valueOf() });
+    clockProxy.setupNow({ ms: 1 });
     registryReadProxy.setupPresentRegistry({ content: JSON.stringify(registry) });
     reserveProxy.setupRegistry({ json: JSON.stringify(registry) });
     const withoutOwnRow = JSON.stringify({
@@ -320,7 +320,7 @@ export const instanceStartBrokerProxy = (): {
       rootPath: ROOT_PATH_FILE,
       profilesPath: `${ROOT_PATH_VALUE}/profiles/${DEFAULT_SPEC_HASH_VALUE}`,
       instanceId,
-      nowMs: 1.valueOf(),
+      nowMs: 1,
     });
 
     // Must mirror the real cliPackageBinResolveBroker's own require.resolve('@dungeonmaster/cli') +

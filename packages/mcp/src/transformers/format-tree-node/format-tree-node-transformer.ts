@@ -38,7 +38,7 @@ export const formatTreeNodeTransformer = ({
   // Render children (folders)
   for (const [childName, childNode] of sortedChildren) {
     lines.push(`${indentStr}${childName}/`);
-    lines.push(formatTreeNodeTransformer({ node: treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(treeNodeContract.shape.name.parse(childNode))), indent: indent + 1, hitRenders }));
+    lines.push(formatTreeNodeTransformer({ node: childNode, indent: indent + 1, hitRenders }));
   }
 
   // Render items (files)

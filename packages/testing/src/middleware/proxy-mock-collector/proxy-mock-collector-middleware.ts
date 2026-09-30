@@ -77,7 +77,7 @@ export const proxyMockCollectorMiddleware = ({
       return { ...mock, moduleName: absoluteModuleName };
     });
 
-    mockCalls.push(mockCallContract.shape.factory.parse(mockCallContract.shape.factory.parse(mockCallContract.shape.factory.parse(mockCallContract.shape.sourceFile.parse(mockCallContract.shape.sourceFile.parse(mockCallContract.shape.sourceFile.parse(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(...resolvedMocks))))))))));
+    mockCalls.push(...resolvedMocks);
 
     const edges = astProxyImportsTransformer({ sourceFile });
     for (const edge of edges) {
@@ -114,7 +114,7 @@ export const proxyMockCollectorMiddleware = ({
         continue;
       }
 
-      const overlap = edge.names.filter((name) => entry.requestedNames?.includes(proxyMockQueueEntryContract.shape.requestedNames.parse(proxyMockQueueEntryContract.shape.requestedNames.parse(proxyMockQueueEntryContract.shape.requestedNames.parse(name)))));
+      const overlap = edge.names.filter((name) => entry.requestedNames?.includes(name));
       if (overlap.length > 0) {
         filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: overlap }));
       }

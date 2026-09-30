@@ -22,5 +22,5 @@ export const pathToRelativeTransformer = ({
     ? filepath.slice(cwd.length).replace(LEADING_SLASH_PATTERN, '')
     : filepath;
 
-  fileMetadataContract.shape.path.parse(return) relative;
+  return relative;
 };

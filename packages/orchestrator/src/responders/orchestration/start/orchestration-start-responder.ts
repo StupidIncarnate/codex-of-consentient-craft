@@ -178,13 +178,13 @@ export const OrchestrationStartResponder = async ({
   // paused quest must STAY queued so resume/dispatch can pick it back up. Queue-entry removal is
   // owned by the sync listener (terminal status / delete).
   orchestrationProcessesState.register({
-    orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
+    orchestrationProcess: orchestrationProcessContract.parse({
       processId,
       questId,
       kill: (): void => {
         // No-op — nothing was spawned at start.
       },
-    }))),
+    }),
   });
 
   questExecutionQueueState.enqueue({ entry });

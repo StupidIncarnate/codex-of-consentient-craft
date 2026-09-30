@@ -23,7 +23,7 @@ const EVERY_KIND = resultsStatics.kinds.all;
 const INSTANCE_ID = InstanceIdStub();
 const RUN_1 = RunIdStub({ value: 'run_1' });
 const RUN_2 = RunIdStub({ value: 'run_2' });
-const LAST_BEAT_MS = 1_700_000_000_000.valueOf();
+const LAST_BEAT_MS = 1_700_000_000_000;
 
 const networkText = ({
   method,
