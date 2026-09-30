@@ -10,14 +10,14 @@
  * // Returns: QuestWorkResult
  */
 
-import { operationItemIdContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { questWorkRecordResultContract } from '../quest-work-record-result/quest-work-record-result-contract';
 
 export const questWorkResultContract = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('plan'), operationItemId: operationItemIdContract }),
-  z.object({ kind: z.literal('amendment'), operationItemId: operationItemIdContract }),
+  z.object({ kind: z.literal('plan'), operationItemId: operationItemContract.shape.id }),
+  z.object({ kind: z.literal('amendment'), operationItemId: operationItemContract.shape.id }),
   ...questWorkRecordResultContract.options,
 ]);
 

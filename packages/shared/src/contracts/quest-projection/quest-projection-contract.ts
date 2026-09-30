@@ -59,7 +59,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { operationItemContract } from '../operation-item/operation-item-contract';
-import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
@@ -103,7 +102,7 @@ const questProjectionStepContract = z
 
 const questProjectionScopeContract = z
   .object({
-    operationId: operationItemIdContract,
+    operationId: operationItemContract.shape.id,
     role: workItemRoleContract,
     text: operationItemContract.shape.text,
     status: operationItemContract.shape.status,

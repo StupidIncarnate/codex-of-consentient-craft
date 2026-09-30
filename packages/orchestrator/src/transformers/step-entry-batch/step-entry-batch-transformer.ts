@@ -30,7 +30,7 @@
  * an empty batch is `cause: 'capped'` and means something else entirely.
  */
 
-import type { OperationItemId, Quest, StepName } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, OperationItem } from '@dungeonmaster/shared/contracts';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
 import type { MintedWorkItem } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -52,7 +52,7 @@ export const stepEntryBatchTransformer = ({
 }: {
   quest: Quest;
   plan: WorkPlan | null;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
   step: StepName;
   itemRole: MintedWorkItem['role'];
   stepRole: string;

@@ -18,20 +18,14 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 
 export const getQuestWorkInputContract = z
   .object({
     questId: questContract.shape.id,
     workItemId: workItemContract.shape.id
       .optional(),
-    operationItemId: z
-      .string()
-      .min(1)
-      .describe(
-        'The operation item whose PLAN you want to read, as markdown: the batches in the order they will execute, each piece with the units it claims, and the coverage table naming every in-scope unit no piece claims. That last row is the defect a planner most needs to see and the one a JSON plan cannot show. Never pass it alongside workItemId — a work item asks what THIS session runs, and the two are different questions.',
-      )
-      .brand<'OperationItemId'>()
+    operationItemId: operationItemContract.shape.id
       .optional(),
   })
   .strict()

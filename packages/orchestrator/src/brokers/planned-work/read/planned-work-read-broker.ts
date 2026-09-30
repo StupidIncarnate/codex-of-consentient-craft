@@ -11,7 +11,7 @@
 
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
@@ -25,7 +25,7 @@ export const plannedWorkReadBroker = async ({
   operationItemId,
 }: {
   questFolderPath: AbsoluteFilePath;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
 }): Promise<WorkPlan | null> => {
   const dirPath = locationsPlannedWorkPathFindBroker({ questFolderPath });
   const filePath = filePathContract.parse(

@@ -8,7 +8,7 @@
  * const result = await QuestGetQuestWorkResponder({ questId, workItemId });
  */
 
-import type { OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetQuestWorkBrokerProxy } from '../../../brokers/quest/get-quest-work/quest-get-quest-work-broker.proxy';
@@ -17,8 +17,8 @@ import { questGetWorkPlanBrokerProxy } from '../../../brokers/quest/get-work-pla
 type Quest = ReturnType<typeof QuestStub>;
 
 export const QuestGetQuestWorkResponderProxy = (): {
-  setupWorkItemView: (params: { quest: Quest; operationItemId: OperationItemId }) => void;
-  setupPlanRender: (params: { quest: Quest; operationItemId: OperationItemId }) => void;
+  setupWorkItemView: (params: { quest: Quest; operationItemId: OperationItem['id'] }) => void;
+  setupPlanRender: (params: { quest: Quest; operationItemId: OperationItem['id'] }) => void;
 } => {
   const viewProxy = questGetQuestWorkBrokerProxy();
   const planProxy = questGetWorkPlanBrokerProxy();

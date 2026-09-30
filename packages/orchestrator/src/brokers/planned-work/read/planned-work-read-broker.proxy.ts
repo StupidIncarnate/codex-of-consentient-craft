@@ -8,7 +8,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
@@ -30,7 +30,7 @@ const filePathFor = ({
   operationItemId,
 }: {
   questFolderPath: AbsoluteFilePath;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
 }): FilePath =>
   filePathContract.parse(
     `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`,
@@ -39,16 +39,16 @@ const filePathFor = ({
 export const plannedWorkReadBrokerProxy = (): {
   setupPlanFound: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     plan: WorkPlan;
   }) => void;
   setupPlanMissing: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }) => void;
   setupReadFailure: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     error: FsError;
   }) => void;
 } => {
@@ -61,7 +61,7 @@ export const plannedWorkReadBrokerProxy = (): {
     operationItemId,
   }: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }): FilePath => {
     const dirPath = dirPathFor({ questFolderPath });
     locationsProxy.setupPlannedWorkPath({ plannedWorkPath: dirPath });

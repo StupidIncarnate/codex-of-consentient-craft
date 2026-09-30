@@ -33,7 +33,7 @@
  * units and its absent mark is then the state.
  */
 
-import type { OperationItemId, Quest, StepName, UnitId } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, UnitId, OperationItem } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -58,7 +58,7 @@ export const mintNextActionTransformer = ({
   outcome,
 }: {
   quest: Quest;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
   family: string;
   step: StepName;
   batch: readonly MintedWorkItem[];

@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowRecipeNameContract, operationItemContract, operationItemIdContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -56,7 +56,7 @@ import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contra
 const questWorkScope = z.object({
   flowId: flowIdContract.nullable(),
   packageNames: z.array(packageNameContract).default([]),
-  operationItemId: operationItemIdContract,
+  operationItemId: operationItemContract.shape.id,
   operationItemText: operationItemContract.shape.text,
 });
 

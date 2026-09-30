@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
@@ -426,7 +426,7 @@ export const StartOrchestrator = {
     questId: Quest['id'];
     workItemId: WorkItem['id'];
     signal: 'complete';
-    operationItemId?: OperationItemId;
+    operationItemId?: OperationItem['id'];
     blockedReason?: BlockedReason;
   }): Promise<void> =>
     QuestFlow.handleSignalBack({ questId, workItemId, signal, ...operationOutcome }),

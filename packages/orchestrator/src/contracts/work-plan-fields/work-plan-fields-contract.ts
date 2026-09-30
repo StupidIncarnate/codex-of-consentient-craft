@@ -47,14 +47,14 @@
  * needs `.omit()`/`.shape` on a mark, so the reason that split exists does not apply at this field.
  */
 
-import { flowIdContract, operationItemIdContract, packageNameContract, unitObservationContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { flowIdContract, packageNameContract, unitObservationContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { workPlanBatchContract } from '../work-plan-batch/work-plan-batch-contract';
 
 export const workPlanFieldsContract = z.object({
-  operationItemId: operationItemIdContract,
+  operationItemId: operationItemContract.shape.id,
   family: z
     .enum(['codeweaver', 'flowrider', 'siegemaster'])
     .describe('Which step graph this plan’s pieces resolve their `step` against.'),

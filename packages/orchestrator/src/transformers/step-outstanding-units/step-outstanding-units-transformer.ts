@@ -33,7 +33,7 @@
  * session that marked a unit it was not handed, and every work item minted before payloads existed.
  */
 
-import type { OperationItemId, Quest, StepName, UnitId } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, UnitId, OperationItem } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
@@ -49,7 +49,7 @@ export const stepOutstandingUnitsTransformer = ({
 }: {
   quest: Quest;
   plan: WorkPlan;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
   step: StepName;
 }): UnitId[] => {
   // Resolved here as well as inside the in-scope call, so the message names the transformer the

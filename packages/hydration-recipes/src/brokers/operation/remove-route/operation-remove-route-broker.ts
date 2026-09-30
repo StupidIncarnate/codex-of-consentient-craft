@@ -9,11 +9,7 @@
  * // Drops the matched item from the quest's operations ledger
  */
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import {
-  fileContentsContract,
-  filePathContract,
-  operationItemIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 
 import { operationOwningQuestFindBroker } from '../owning-quest-find/operation-owning-quest-find-broker';
 import { questFolderPathResolveBroker } from '../../quest/folder-path-resolve/quest-folder-path-resolve-broker';
@@ -27,7 +23,7 @@ export const operationRemoveRouteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<void> => {
-  const operationItemId = operationItemIdContract.parse(record.id);
+  const operationItemId = operationItemContract.shape.id.parse(record.id);
   const quest = await operationOwningQuestFindBroker({ operationItemId });
 
   const updatedQuest = {

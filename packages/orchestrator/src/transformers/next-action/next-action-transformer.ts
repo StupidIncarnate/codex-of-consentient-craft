@@ -60,7 +60,7 @@
  * the minted step's `done` returns to the session that asked for it.
  */
 
-import type { FlowId, OperationItemId, Quest, StepName, UnitId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { FlowId, Quest, StepName, UnitId, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import { stepNameContract, unitIdContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -92,7 +92,7 @@ export const nextActionTransformer = ({
 }: {
   quest: Quest;
   plan: WorkPlan | null;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
   agentFlowStatics: Readonly<
     Record<
       string,

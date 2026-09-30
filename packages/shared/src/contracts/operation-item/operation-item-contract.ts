@@ -24,12 +24,11 @@
 import { z } from '#gateway/npm/zod';
 
 import { flowIdContract } from '../flow-id/flow-id-contract';
-import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 
 export const operationItemContract = z.object({
-  id: operationItemIdContract,
+  id: z.uuid().brand<'OperationItemId'>(),
   role: workItemRoleContract,
   text: z.string().min(1).brand<'OperationText'>().describe('Prose description of the operation.'),
   status: z.enum(['pending', 'in_progress', 'complete']),

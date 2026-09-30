@@ -11,7 +11,7 @@
 import { existsSync, readFileSync } from '#gateway/node/fs';
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 const JSON_EXTENSION = '.json';
@@ -22,7 +22,7 @@ const finalPathFor = ({
   operationItemId,
 }: {
   questFolderPath: AbsoluteFilePath;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
 }): FilePath =>
   filePathContract.parse(
     `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}/${String(operationItemId)}${JSON_EXTENSION}`,
@@ -32,15 +32,15 @@ export const plannedWorkDiskHarness = (): {
   dirExists: (params: { questFolderPath: AbsoluteFilePath }) => boolean;
   finalFileExists: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }) => boolean;
   tmpFileExists: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }) => boolean;
   readFinalFileRaw: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }) => unknown;
 } => ({
   dirExists: ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): boolean =>
@@ -53,7 +53,7 @@ export const plannedWorkDiskHarness = (): {
     operationItemId,
   }: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }): boolean => existsSync(finalPathFor({ questFolderPath, operationItemId })),
 
   tmpFileExists: ({
@@ -61,7 +61,7 @@ export const plannedWorkDiskHarness = (): {
     operationItemId,
   }: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }): boolean =>
     existsSync(
       filePathContract.parse(`${finalPathFor({ questFolderPath, operationItemId })}${TMP_SUFFIX}`),
@@ -72,7 +72,7 @@ export const plannedWorkDiskHarness = (): {
     operationItemId,
   }: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }): unknown =>
     JSON.parse(readFileSync(finalPathFor({ questFolderPath, operationItemId }))) as unknown,
 });

@@ -47,7 +47,6 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
-import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
@@ -187,7 +186,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullOperationItem,
           fullOperationItem.partial().required({ id: true }),
-          z.object({ id: operationItemIdContract, _delete: deleteMarker }),
+          z.object({ id: operationItemContract.shape.id, _delete: deleteMarker }),
         ]),
       )
       .describe(

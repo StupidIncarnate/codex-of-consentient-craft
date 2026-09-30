@@ -26,7 +26,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract, getQuestInputContract, operationItemIdContract, relatedDataItemContract, workItemContract, questContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract, getQuestInputContract, relatedDataItemContract, workItemContract, questContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
@@ -49,7 +49,7 @@ export const questWorkItemAttachBroker = async ({
   // `operationId`'s declared type is `OperationItemId | SavedRef` (Q3's ruling — the args contract
   // types the pre-resolve chain call too), but `opExtraApplyLayerBroker` already resolved it
   // through `fieldValuesResolveTransformer` before calling here, so it is always a real id by now.
-  const operationId = operationItemIdContract.parse(parsedArgs.operationId);
+  const operationId = operationItemContract.shape.id.parse(parsedArgs.operationId);
   const questId = questContract.shape.id.parse(record.id);
 
   const getResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });

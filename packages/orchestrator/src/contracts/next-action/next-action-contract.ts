@@ -26,7 +26,7 @@
  * lies. `route`'s own `.min(1)` is what stops an empty batch reading as a phase transition.
  */
 
-import { operationItemIdContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import { stepNameContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { mintedWorkItemContract } from '../minted-work-item/minted-work-item-contract';
@@ -35,7 +35,7 @@ import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 export const nextActionContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('mint'),
-    operationItemId: operationItemIdContract,
+    operationItemId: operationItemContract.shape.id,
     step: stepNameContract.describe(
       'Every item in `batch` sits at THIS step — the outcome fold is per step.',
     ),
@@ -44,7 +44,7 @@ export const nextActionContract = z.discriminatedUnion('kind', [
   }),
   z.object({
     kind: z.literal('route'),
-    operationItemId: operationItemIdContract,
+    operationItemId: operationItemContract.shape.id,
     from: stepNameContract,
     outcome: stepOutcomeContract,
     step: stepNameContract.describe('The ROUTE TARGET. `batch` sits here.'),
@@ -52,12 +52,12 @@ export const nextActionContract = z.discriminatedUnion('kind', [
   }),
   z.object({
     kind: z.literal('complete'),
-    operationItemId: operationItemIdContract,
+    operationItemId: operationItemContract.shape.id,
     outcome: stepOutcomeContract.describe('`done` or `empty` — the word that reached `@done`.'),
   }),
   z.object({
     kind: z.literal('block'),
-    operationItemId: operationItemIdContract,
+    operationItemId: operationItemContract.shape.id,
     family: z.string().min(1).brand<'AgentFamilyName'>(),
     step: stepNameContract,
     reason: z.enum(['wall', 'max-visits', 'unknown-step', 'unknown-route-target', 'no-minter']),

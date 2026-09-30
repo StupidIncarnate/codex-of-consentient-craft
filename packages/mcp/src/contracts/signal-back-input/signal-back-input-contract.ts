@@ -7,7 +7,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { blockedReasonContract, operationItemIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { blockedReasonContract, questContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 
 // NOTE: MCP requires inputSchema to have type: "object" at root level.
 // `complete` is the sole signal kind (session-terminal marker). questId + workItemId are required
@@ -20,7 +20,7 @@ export const signalBackInputContract = z
       'The work item the signalling agent was dispatched against',
     ),
     signal: z.literal('complete').describe('Session-terminal marker — the only signal kind'),
-    operationItemId: operationItemIdContract
+    operationItemId: operationItemContract.shape.id
       .describe('The operation item this session worked (from the operations ledger)')
       .optional(),
     blockedReason: blockedReasonContract

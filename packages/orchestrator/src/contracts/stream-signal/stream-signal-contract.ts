@@ -8,7 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { blockedReasonContract, operationItemIdContract } from '@dungeonmaster/shared/contracts';
+import { blockedReasonContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 
 // Mirrors the shape of a `signal-back` tool_use call AS EMITTED into an agent's own session
 // stream — a JSONL transcript already on disk may carry an older call shape, so this parser stays
@@ -19,7 +19,7 @@ import { blockedReasonContract, operationItemIdContract } from '@dungeonmaster/s
 // step-less item.
 export const streamSignalContract = z.object({
   signal: z.literal('complete'),
-  operationItemId: operationItemIdContract.optional(),
+  operationItemId: operationItemContract.shape.id.optional(),
   operationStatus: z.enum(['done', 'partial', 'blocked']).optional(),
   blockedReason: blockedReasonContract.optional(),
 });

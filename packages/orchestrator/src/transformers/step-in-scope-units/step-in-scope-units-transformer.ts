@@ -31,7 +31,7 @@
  * derived from the graph, so a second derivation drifts and nothing reports it.
  */
 
-import type { OperationItemId, Quest, StepName, UnitId } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, UnitId, OperationItem } from '@dungeonmaster/shared/contracts';
 import { unitIdContract } from '@dungeonmaster/shared/contracts';
 
 import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
@@ -53,7 +53,7 @@ export const stepInScopeUnitsTransformer = ({
   step,
 }: {
   quest: Quest;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
   step: StepName;
 }): UnitId[] => {
   const operationItem = quest.operations.find((item) => item.id === operationItemId);

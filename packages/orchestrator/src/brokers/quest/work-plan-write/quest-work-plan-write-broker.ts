@@ -17,7 +17,7 @@
 
 import { join } from '#gateway/node/path';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { OperationItemId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
@@ -39,10 +39,10 @@ export const questWorkPlanWriteBroker = async ({
   questId: Quest['id'];
   workItemId: WorkItem['id'];
   plan: PlanEnvelope;
-}): Promise<{ operationItemId: OperationItemId }> =>
+}): Promise<{ operationItemId: OperationItem['id'] }> =>
   questWithModifyLockBroker({
     questId,
-    run: async (): Promise<{ operationItemId: OperationItemId }> => {
+    run: async (): Promise<{ operationItemId: OperationItem['id'] }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
         join(questPath, locationsStatics.quest.questFile),

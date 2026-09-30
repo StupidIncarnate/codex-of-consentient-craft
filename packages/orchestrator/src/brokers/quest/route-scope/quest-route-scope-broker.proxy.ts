@@ -27,7 +27,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { OperationItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -69,7 +69,7 @@ export const questRouteScopeBrokerProxy = (): {
   setupQuest: (params: { quest: QuestInput }) => void;
   setupPlan: (params: {
     quest: QuestInput;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     plan: WorkPlan;
   }) => void;
   getPersistedQuest: () => Quest;
@@ -146,7 +146,7 @@ export const questRouteScopeBrokerProxy = (): {
       plan,
     }: {
       quest: QuestInput;
-      operationItemId: OperationItemId;
+      operationItemId: OperationItem['id'];
       plan: WorkPlan;
     }): void => {
       planProxy.setupPlanFound({

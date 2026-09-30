@@ -8,12 +8,7 @@
  * // Returns the updated OperationItem
  */
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import {
-  fileContentsContract,
-  filePathContract,
-  operationItemContract,
-  operationItemIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
 
 import { operationOwningQuestFindBroker } from '../owning-quest-find/operation-owning-quest-find-broker';
@@ -30,7 +25,7 @@ export const operationUpdateRouteBroker = async ({
   record: Record<string, unknown>;
   fields: Record<string, unknown>;
 }): Promise<OperationItem> => {
-  const operationItemId = operationItemIdContract.parse(record.id);
+  const operationItemId = operationItemContract.shape.id.parse(record.id);
   const quest = await operationOwningQuestFindBroker({ operationItemId });
 
   const updatedItem = operationItemContract.parse({ ...record, ...fields });

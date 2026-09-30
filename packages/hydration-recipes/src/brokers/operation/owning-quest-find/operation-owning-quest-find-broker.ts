@@ -24,12 +24,12 @@ import {
   questListBroker,
 } from '@dungeonmaster/orchestrator/brokers';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { OperationItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 
 export const operationOwningQuestFindBroker = async ({
   operationItemId,
 }: {
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
 }): Promise<Quest> => {
   const guilds = await guildListBroker();
 

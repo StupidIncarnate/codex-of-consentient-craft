@@ -20,7 +20,7 @@ import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -39,10 +39,10 @@ const HOME_DIR = '/home/testuser';
 export const questGetWorkPlanBrokerProxy = (): {
   setupPlanFound: (params: {
     quest: Quest;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     plan: WorkPlan;
   }) => void;
-  setupPlanMissing: (params: { quest: Quest; operationItemId: OperationItemId }) => void;
+  setupPlanMissing: (params: { quest: Quest; operationItemId: OperationItem['id'] }) => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle = registerMock({ fn: join });

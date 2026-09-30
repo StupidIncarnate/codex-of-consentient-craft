@@ -34,7 +34,7 @@
  * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete', operationItemId });
  */
 
-import type { BlockedReason, OperationItemId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { BlockedReason, Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import {
   errorMessageContract,
   getQuestInputContract,
@@ -58,7 +58,7 @@ export const QuestHandleSignalBackResponder = async ({
   questId: Quest['id'];
   workItemId: WorkItem['id'];
   signal: 'complete';
-  operationItemId?: OperationItemId;
+  operationItemId?: OperationItem['id'];
   blockedReason?: BlockedReason;
 }): Promise<void> => {
   const input = getQuestInputContract.parse({ questId });

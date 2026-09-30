@@ -21,7 +21,7 @@
  * `workPlanValidationCheckStatics` as not-yet-checkable, never silently dropped from the list.
  */
 
-import { operationItemIdContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { workPlanContract } from '../../contracts/work-plan/work-plan-contract';
@@ -69,7 +69,7 @@ export const workPlanValidateTransformer = ({
   const workItemOperationItemId =
     operationRef === undefined
       ? undefined
-      : operationItemIdContract.parse(operationRef.slice(OPERATIONS_REF_PREFIX.length));
+      : operationItemContract.shape.id.parse(operationRef.slice(OPERATIONS_REF_PREFIX.length));
 
   // Check 1: operationItemId matches the submitting work item's own operations/<id> ref.
   if (

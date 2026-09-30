@@ -7,7 +7,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
@@ -28,7 +28,7 @@ const filePathFor = ({
   operationItemId,
 }: {
   questFolderPath: AbsoluteFilePath;
-  operationItemId: OperationItemId;
+  operationItemId: OperationItem['id'];
 }): FilePath =>
   filePathContract.parse(
     `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`,
@@ -37,26 +37,26 @@ const filePathFor = ({
 export const plannedWorkWriteBrokerProxy = (): {
   setupWriteSucceeds: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }) => void;
   setupMkdirFailure: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     error: FsError;
   }) => void;
   setupWriteFailure: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     error: Error;
   }) => void;
   setupRenameFailure: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
     error: Error;
   }) => void;
   getWrittenContent: (params: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }) => unknown;
   getAllRenames: () => readonly { from: unknown; to: unknown }[];
 } => {
@@ -73,7 +73,7 @@ export const plannedWorkWriteBrokerProxy = (): {
     operationItemId,
   }: {
     questFolderPath: AbsoluteFilePath;
-    operationItemId: OperationItemId;
+    operationItemId: OperationItem['id'];
   }): { dirPath: FilePath; tmpPath: FilePath; filePath: FilePath } => {
     const dirPath = dirPathFor({ questFolderPath });
     locationsProxy.setupPlannedWorkPath({ plannedWorkPath: dirPath });

@@ -105,7 +105,6 @@ export * from './install-context/install-context-contract';
 
 export * from './observable-id/observable-id-contract';
 
-export * from './operation-item-id/operation-item-id-contract';
 
 export * from './session-id/session-id-contract';
 
