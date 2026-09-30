@@ -40,7 +40,6 @@ import { draftImagesLoadBroker } from '../../brokers/draft-images/load/draft-ima
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/pasted-image-attach-broker';
 import type { ComposerAttachment } from '../../contracts/composer-attachment/composer-attachment-contract';
-import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 import { composerSendPayloadContract } from '../../contracts/composer-send-payload/composer-send-payload-contract';
 import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
 import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
@@ -125,7 +124,7 @@ export const ChatInputWidget = ({
   // they differ. `null` means nothing has been restored yet (a genuinely fresh mount), which must
   // NOT clear: the editor is already empty and a user who typed into it before the first restore
   // settled would lose that. See restoreDraft.
-  const restoredScopeRef = useRef<ComposerScopeKey | null>(null);
+  const restoredScopeRef = useRef<string | null>(null);
   // Mirrors `isSending` for a synchronous read. React state updates are not visible to a second
   // synchronous call in the SAME tick — two clicks fired back-to-back with no await between them
   // both close over the render that was current when the burst started, so a state-only guard lets

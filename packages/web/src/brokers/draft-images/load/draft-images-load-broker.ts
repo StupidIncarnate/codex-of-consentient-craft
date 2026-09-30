@@ -26,7 +26,6 @@ import { console } from '#gateway/browser/console';
 
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
-import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import type { PastedImageDraft } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
 import { base64ByteLengthTransformer } from '../../../transformers/base64-byte-length/base64-byte-length-transformer';
 import { dataUrlBuildTransformer } from '../../../transformers/data-url-build/data-url-build-transformer';
@@ -36,7 +35,7 @@ import { draftImagesReadBroker } from '../read/draft-images-read-broker';
 export const draftImagesLoadBroker = async ({
   scopeKey,
 }: {
-  scopeKey: ComposerScopeKey;
+  scopeKey: string;
 }): Promise<readonly (ComposerAttachment | undefined)[]> => {
   const drafts: readonly (PastedImageDraft | undefined)[] = await draftImagesReadBroker({
     scopeKey,

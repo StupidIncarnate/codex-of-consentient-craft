@@ -1,5 +1,4 @@
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
-import { ComposerScopeKeyStub } from '../../../contracts/composer-scope-key/composer-scope-key.stub';
 import { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 
 import { draftImagesSaveBroker } from './draft-images-save-broker';
@@ -16,7 +15,7 @@ describe('draftImagesSaveBroker', () => {
       });
 
       await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
         attachments: [attachment],
       });
 
@@ -49,7 +48,7 @@ describe('draftImagesSaveBroker', () => {
       });
 
       await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
         attachments: [attachmentA, attachmentB, attachmentC],
       });
 
@@ -88,7 +87,7 @@ describe('draftImagesSaveBroker', () => {
       });
 
       await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
         attachments: [],
       });
 
@@ -117,7 +116,7 @@ describe('draftImagesSaveBroker', () => {
       });
 
       await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
         attachments: [attachmentB],
       });
 
@@ -147,7 +146,7 @@ describe('draftImagesSaveBroker', () => {
       });
 
       await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
         attachments: [attachmentA],
       });
 
@@ -172,7 +171,7 @@ describe('draftImagesSaveBroker', () => {
 
       await expect(
         draftImagesSaveBroker({
-          scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+          scopeKey: 'quest-a',
           attachments: [],
         }),
       ).resolves.toBe(undefined);
@@ -186,7 +185,7 @@ describe('draftImagesSaveBroker', () => {
 
       await expect(
         draftImagesSaveBroker({
-          scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+          scopeKey: 'quest-a',
           attachments: [],
         }),
       ).rejects.toThrow(/draftImagesSaveBroker/u);
@@ -204,7 +203,7 @@ describe('draftImagesSaveBroker', () => {
 
       await expect(
         draftImagesSaveBroker({
-          scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+          scopeKey: 'quest-a',
           attachments: [attachment],
         }),
       ).rejects.toThrow(/draftImagesSaveBroker/u);
@@ -221,7 +220,7 @@ describe('draftImagesSaveBroker', () => {
       });
 
       await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
         attachments: [attachment],
       });
 

@@ -11,14 +11,13 @@
  * // record with no scopeKey field at all)
  */
 
-import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 
 export const isComposerScopeMatchGuard = ({
   record,
   scopeKey,
 }: {
   record?: unknown;
-  scopeKey?: ComposerScopeKey;
+  scopeKey?: string;
 }): boolean => {
   if (typeof record !== 'object' || record === null) return false;
   return 'scopeKey' in record && Reflect.get(record, 'scopeKey') === scopeKey;

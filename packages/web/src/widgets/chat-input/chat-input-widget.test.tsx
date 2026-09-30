@@ -16,7 +16,6 @@ import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/manti
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
-import { ComposerScopeKeyStub } from '../../contracts/composer-scope-key/composer-scope-key.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { base64ByteLengthTransformer } from '../../transformers/base64-byte-length/base64-byte-length-transformer';
 import { ChatInputWidget } from './chat-input-widget';
@@ -32,7 +31,7 @@ type OnSendMessageParams = Parameters<ChatInputWidgetProps['onSendMessage']>[0];
 // <MemoryRouter>; every other render in this file leaves its useParams() call resolving questId to
 // undefined — the same as a real render on the bare /:guildSlug/quest create route — and so
 // reads/writes under this ONE scope.
-const SCOPE_KEY = ComposerScopeKeyStub({ value: chatComposerStatics.draftScope.createScopeKey });
+const SCOPE_KEY = chatComposerStatics.draftScope.createScopeKey;
 const DRAFT_STORAGE_KEY = `${chatComposerStatics.draftStorageKeyPrefix}:${SCOPE_KEY}`;
 const DISPATCHED_STAMP_KEY = `${chatComposerStatics.draftDispatchedKeyPrefix}:${SCOPE_KEY}`;
 
@@ -41,10 +40,8 @@ const DISPATCHED_STAMP_KEY = `${chatComposerStatics.draftDispatchedKeyPrefix}:${
 // real scope change with no navigation involved, which is exactly the shape the create-surface
 // composer hits when the route gains a questId under it.
 const SCOPE_CHANGE_QUEST_ID = '7f000000-0000-4000-8000-000000000001';
-const MAIN_SCOPE_KEY = ComposerScopeKeyStub({ value: SCOPE_CHANGE_QUEST_ID });
-const FOLLOWUP_SCOPE_KEY = ComposerScopeKeyStub({
-  value: `${SCOPE_CHANGE_QUEST_ID}${chatComposerStatics.draftScope.followupSuffix}`,
-});
+const MAIN_SCOPE_KEY = SCOPE_CHANGE_QUEST_ID;
+const FOLLOWUP_SCOPE_KEY = `${SCOPE_CHANGE_QUEST_ID}${chatComposerStatics.draftScope.followupSuffix}`;
 const MAIN_DRAFT_STORAGE_KEY = `${chatComposerStatics.draftStorageKeyPrefix}:${MAIN_SCOPE_KEY}`;
 const FOLLOWUP_DRAFT_STORAGE_KEY = `${chatComposerStatics.draftStorageKeyPrefix}:${FOLLOWUP_SCOPE_KEY}`;
 

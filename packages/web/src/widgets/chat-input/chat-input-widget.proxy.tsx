@@ -22,7 +22,6 @@ import { draftImagesLoadBrokerProxy } from '../../brokers/draft-images/load/draf
 import { draftImagesSaveBrokerProxy } from '../../brokers/draft-images/save/draft-images-save-broker.proxy';
 import { pastedImageAttachBrokerProxy } from '../../brokers/pasted-image/attach/pasted-image-attach-broker.proxy';
 import type { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
-import { ComposerScopeKeyStub } from '../../contracts/composer-scope-key/composer-scope-key.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { ImageOverlayWidgetProxy } from '../image-overlay/image-overlay-widget.proxy';
 import { UploadProgressBarWidgetProxy } from '../upload-progress-bar/upload-progress-bar-widget.proxy';
@@ -33,9 +32,7 @@ import { UploadProgressBarWidgetProxy } from '../upload-progress-bar/upload-prog
 // EVERY test in that file. Restated (not imported) because a real render's own useParams() is what
 // actually decides scope; this proxy is naming the value it independently knows every ChatInputWidget
 // test resolves to, not deriving it.
-const WIDGET_TEST_SCOPE = ComposerScopeKeyStub({
-  value: chatComposerStatics.draftScope.createScopeKey,
-});
+const WIDGET_TEST_SCOPE = chatComposerStatics.draftScope.createScopeKey;
 
 const THUMBNAIL_SELECTOR = `img[${chatComposerStatics.thumbnail.attributeName}]`;
 

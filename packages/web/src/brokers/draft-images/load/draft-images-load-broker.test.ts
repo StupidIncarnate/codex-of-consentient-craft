@@ -1,5 +1,4 @@
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
-import { ComposerScopeKeyStub } from '../../../contracts/composer-scope-key/composer-scope-key.stub';
 import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 import { draftImagesSaveBroker } from '../save/draft-images-save-broker';
@@ -7,7 +6,7 @@ import { draftImagesSaveBroker } from '../save/draft-images-save-broker';
 import { draftImagesLoadBroker } from './draft-images-load-broker';
 import { draftImagesLoadBrokerProxy } from './draft-images-load-broker.proxy';
 
-const QUEST_A_SCOPE = ComposerScopeKeyStub({ value: 'quest-a' });
+const QUEST_A_SCOPE = 'quest-a';
 
 describe('draftImagesLoadBroker', () => {
   describe('restoring stored drafts', () => {

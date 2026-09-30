@@ -16,7 +16,6 @@
 import { openStore, replaceAll } from '#gateway/browser/indexedDB';
 
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
-import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import { pastedImageDraftContract } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
 import { isComposerScopeMatchGuard } from '../../../guards/is-composer-scope-match/is-composer-scope-match-guard';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
@@ -26,7 +25,7 @@ export const draftImagesSaveBroker = async ({
   scopeKey,
   attachments,
 }: {
-  scopeKey: ComposerScopeKey;
+  scopeKey: string;
   attachments: readonly ComposerAttachment[];
 }): Promise<void> => {
   // The text draft's [Pasted Image N] placeholders are the only source of truth for ORDER, and a

@@ -20,7 +20,6 @@ import {
   pastedImageUploadContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { composerScopeKeyContract } from '../composer-scope-key/composer-scope-key-contract';
 import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
 export const pastedImageDraftContract = z.object({
@@ -31,7 +30,7 @@ export const pastedImageDraftContract = z.object({
   mediaType: pastedImageMediaTypeContract,
   dataBase64: pastedImageUploadContract.shape.dataBase64,
   // Which composer this record belongs to — see the PURPOSE note above.
-  scopeKey: composerScopeKeyContract,
+  scopeKey: z.string().min(1).brand<'PastedImageDraftScopeKey'>(),
 });
 
 export type PastedImageDraft = z.infer<typeof pastedImageDraftContract>;

@@ -14,8 +14,6 @@
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-import { composerScopeKeyContract } from '../../contracts/composer-scope-key/composer-scope-key-contract';
-import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 
 export type ComposerSurface = 'main' | 'followup';
@@ -26,16 +24,14 @@ export const composerScopeKeyTransformer = ({
 }: {
   questId: Quest['id'] | null;
   surface: ComposerSurface;
-}): ComposerScopeKey => {
+}): string => {
   if (questId === null) {
-    return composerScopeKeyContract.parse(chatComposerStatics.draftScope.createScopeKey);
+    return chatComposerStatics.draftScope.createScopeKey;
   }
 
   if (surface === 'followup') {
-    return composerScopeKeyContract.parse(
-      `${questId}${chatComposerStatics.draftScope.followupSuffix}`,
-    );
+    return `${questId}${chatComposerStatics.draftScope.followupSuffix}`;
   }
 
-  return composerScopeKeyContract.parse(questId);
+  return questId;
 };

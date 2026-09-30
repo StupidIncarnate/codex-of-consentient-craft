@@ -1,4 +1,3 @@
-import { ComposerScopeKeyStub } from '../../../contracts/composer-scope-key/composer-scope-key.stub';
 import { PastedImageDraftStub } from '../../../contracts/pasted-image-draft/pasted-image-draft.stub';
 
 import { draftImagesReadBroker } from './draft-images-read-broker';
@@ -7,7 +6,7 @@ import { draftImagesReadBrokerProxy } from './draft-images-read-broker.proxy';
 describe('draftImagesReadBroker', () => {
   it('VALID: {seeded store holding [first, second], same scope} => returns them in order', async () => {
     const proxy = draftImagesReadBrokerProxy();
-    const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
+    const scopeKey = 'quest-a';
     const first = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
       scopeKey: 'quest-a',
@@ -27,7 +26,7 @@ describe('draftImagesReadBroker', () => {
     draftImagesReadBrokerProxy();
 
     const result = await draftImagesReadBroker({
-      scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+      scopeKey: 'quest-a',
     });
 
     expect(result).toStrictEqual([]);
@@ -35,7 +34,7 @@ describe('draftImagesReadBroker', () => {
 
   it('EDGE: {seeded record with a malformed attachmentId, same scope} => occupies a hole at its own position, valid ones stay at theirs', async () => {
     const proxy = draftImagesReadBrokerProxy();
-    const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
+    const scopeKey = 'quest-a';
     const first = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
       scopeKey: 'quest-a',
@@ -64,7 +63,7 @@ describe('draftImagesReadBroker', () => {
 
   it('EDGE: {seeded [contract-invalid dataBase64, good], same scope} => the bad record is a hole at index 0, the good one still lands at index 1', async () => {
     const proxy = draftImagesReadBrokerProxy();
-    const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
+    const scopeKey = 'quest-a';
     const good = PastedImageDraftStub({
       attachmentId: '22222222-2222-4222-8222-222222222222',
       scopeKey: 'quest-a',
@@ -88,7 +87,7 @@ describe('draftImagesReadBroker', () => {
 
   it('EDGE: {seeded [good1, contract-invalid dataBase64, good2], same scope} => the hole sits at index 1, good2 lands at its OWN index 2, not index 1', async () => {
     const proxy = draftImagesReadBrokerProxy();
-    const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
+    const scopeKey = 'quest-a';
     const good1 = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
       scopeKey: 'quest-a',
@@ -128,7 +127,7 @@ describe('draftImagesReadBroker', () => {
     proxy.seed({ drafts: [questA, questB] });
 
     const result = await draftImagesReadBroker({
-      scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+      scopeKey: 'quest-a',
     });
 
     expect(result).toStrictEqual([questA]);
@@ -147,7 +146,7 @@ describe('draftImagesReadBroker', () => {
     proxy.seed({ drafts: [questA, questB] });
 
     const result = await draftImagesReadBroker({
-      scopeKey: ComposerScopeKeyStub({ value: 'quest-b' }),
+      scopeKey: 'quest-b',
     });
 
     expect(result).toStrictEqual([questB]);
@@ -167,7 +166,7 @@ describe('draftImagesReadBroker', () => {
       });
 
       const result = await draftImagesReadBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'create' }),
+        scopeKey: 'create',
       });
 
       expect(result).toStrictEqual([
@@ -186,7 +185,7 @@ describe('draftImagesReadBroker', () => {
           },
         ],
       });
-      const scopeKey = ComposerScopeKeyStub({ value: 'create' });
+      const scopeKey = 'create';
       await draftImagesReadBroker({ scopeKey });
 
       const result = await draftImagesReadBroker({ scopeKey });
@@ -209,7 +208,7 @@ describe('draftImagesReadBroker', () => {
       });
 
       const result = await draftImagesReadBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
       });
 
       expect(result).toStrictEqual([]);
@@ -227,11 +226,11 @@ describe('draftImagesReadBroker', () => {
         ],
       });
       await draftImagesReadBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'create' }),
+        scopeKey: 'create',
       });
 
       const result = await draftImagesReadBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+        scopeKey: 'quest-a',
       });
 
       expect(result).toStrictEqual([]);
@@ -243,7 +242,7 @@ describe('draftImagesReadBroker', () => {
     proxy.openFails({ error: new Error('blocked') });
 
     await expect(
-      draftImagesReadBroker({ scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }) }),
+      draftImagesReadBroker({ scopeKey: 'quest-a' }),
     ).rejects.toThrow(/openStore: failed to open/u);
   });
 });

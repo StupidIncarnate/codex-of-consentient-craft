@@ -25,14 +25,13 @@ import { getAll, openStore } from '#gateway/browser/indexedDB';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
 import { pastedImageDraftContract } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
 import type { PastedImageDraft } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
-import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import { isComposerScopeMatchGuard } from '../../../guards/is-composer-scope-match/is-composer-scope-match-guard';
 import { migrateLegacyRecordsLayerBroker } from './migrate-legacy-records-layer-broker';
 
 export const draftImagesReadBroker = async ({
   scopeKey,
 }: {
-  scopeKey: ComposerScopeKey;
+  scopeKey: string;
 }): Promise<readonly (PastedImageDraft | undefined)[]> => {
   const { name, version, storeName } = chatComposerStatics.draftDatabase;
 
