@@ -14,7 +14,6 @@
  * // Returns 600 — the anchor drifted 200px down the scrollport, so the scrollport follows it
  */
 
-import type { ScrollOffsetPx } from '../../contracts/scroll-offset-px/scroll-offset-px-contract';
 
 export const computeAnchorScrollTopTransformer = ({
   currentScrollTop,
@@ -23,8 +22,8 @@ export const computeAnchorScrollTopTransformer = ({
   maxScrollTop,
 }: {
   currentScrollTop: number;
-  anchorOffset: ScrollOffsetPx;
-  heldOffset: ScrollOffsetPx;
+  anchorOffset: number;
+  heldOffset: number;
   maxScrollTop: number;
 }): number => {
   const target = Number(currentScrollTop) + (Number(anchorOffset) - Number(heldOffset));
