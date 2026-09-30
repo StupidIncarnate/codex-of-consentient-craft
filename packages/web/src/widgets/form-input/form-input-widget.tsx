@@ -9,7 +9,6 @@
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import type { CssDimension } from '../../contracts/css-dimension/css-dimension-contract';
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
-import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -18,8 +17,8 @@ const BORDER_RADIUS = 2;
 const PADDING = '2px 6px';
 
 export interface FormInputWidgetProps {
-  value: FormInputValue;
-  onChange: (value: FormInputValue) => void;
+  value: string;
+  onChange: (value: string) => void;
   placeholder?: FormPlaceholder;
   width?: CssDimension;
   mt?: CssSpacing;
@@ -43,7 +42,7 @@ export const FormInputWidget = ({
       data-testid="FORM_INPUT"
       value={value}
       onChange={(event) => {
-        onChange(event.target.value as FormInputValue);
+        onChange(event.target.value as string);
       }}
       placeholder={placeholder}
       autoFocus={autoFocus}

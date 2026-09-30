@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import type { AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
-import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { ClarifyOptionLayerWidgetProxy } from './clarify-option-layer-widget.proxy';
@@ -12,7 +11,7 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 export const QuestClarifyPanelWidgetProxy = (): {
   clickOption: (params: { label: AskUserQuestionOption['label'] }) => Promise<void>;
   clickOther: () => Promise<void>;
-  typeFreeform: (params: { text: FormInputValue }) => Promise<void>;
+  typeFreeform: (params: { text: string }) => Promise<void>;
   submitFreeform: () => Promise<void>;
   getQuestionText: () => HTMLElement['textContent'];
   getCounter: () => HTMLElement['textContent'];
@@ -33,7 +32,7 @@ export const QuestClarifyPanelWidgetProxy = (): {
     clickOther: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('CLARIFY_OTHER_BTN'), userEventStatics.options);
     },
-    typeFreeform: async ({ text }: { text: FormInputValue }): Promise<void> => {
+    typeFreeform: async ({ text }: { text: string }): Promise<void> => {
       await formInputProxy.changeValue({ value: text });
     },
     submitFreeform: async (): Promise<void> => {

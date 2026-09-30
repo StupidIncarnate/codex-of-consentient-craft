@@ -14,7 +14,6 @@ import { Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { AskUserQuestionItem, AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormInputWidget } from '../form-input/form-input-widget';
@@ -46,7 +45,7 @@ export const QuestClarifyPanelWidget = ({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [collectedAnswers, setCollectedAnswers] = useState<ClarifyAnswer[]>([]);
   const [showFreeform, setShowFreeform] = useState(false);
-  const [freeformValue, setFreeformValue] = useState('' as FormInputValue);
+  const [freeformValue, setFreeformValue] = useState('' as string);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -100,7 +99,7 @@ export const QuestClarifyPanelWidget = ({
                   setCollectedAnswers(updated);
                   setCurrentQuestionIndex(currentQuestionIndex + 1);
                   setShowFreeform(false);
-                  setFreeformValue('' as FormInputValue);
+                  setFreeformValue('' as string);
                 } else {
                   onSubmitAnswers({ answers: updated });
                 }
@@ -111,7 +110,7 @@ export const QuestClarifyPanelWidget = ({
             <Stack data-testid="CLARIFY_FREEFORM" gap={6}>
               <FormInputWidget
                 value={freeformValue}
-                onChange={(value: FormInputValue): void => {
+                onChange={(value: string): void => {
                   setFreeformValue(value);
                 }}
                 placeholder={'Type your answer...' as FormPlaceholder}
@@ -133,7 +132,7 @@ export const QuestClarifyPanelWidget = ({
                       setCollectedAnswers(updated);
                       setCurrentQuestionIndex(currentQuestionIndex + 1);
                       setShowFreeform(false);
-                      setFreeformValue('' as FormInputValue);
+                      setFreeformValue('' as string);
                     } else {
                       onSubmitAnswers({ answers: updated });
                     }
