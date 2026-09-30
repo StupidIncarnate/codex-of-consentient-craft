@@ -9,10 +9,8 @@
  * stripJsonlExtensionTransformer({ filename: 'seed-session-1.jsonl' });
  * // Returns 'seed-session-1' as a branded FileStem
  */
-import { fileStemContract } from '../../contracts/file-stem/file-stem-contract';
-import type { FileStem } from '../../contracts/file-stem/file-stem-contract';
 
 const JSONL_EXTENSION_PATTERN = /\.jsonl$/u;
 
-export const stripJsonlExtensionTransformer = ({ filename }: { filename: string }): FileStem =>
-  fileStemContract.parse(filename.replace(JSONL_EXTENSION_PATTERN, ''));
+export const stripJsonlExtensionTransformer = ({ filename }: { filename: string }): string =>
+  filename.replace(JSONL_EXTENSION_PATTERN, '');

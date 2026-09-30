@@ -12,7 +12,6 @@ export * from './dm-quest-outbox-line/dm-quest-outbox-line-contract';
 
 export * from './dm-target/dm-target-contract';
 
-export * from './file-stem/file-stem-contract';
 
 export * from './guild-fields/guild-fields-contract';
 
