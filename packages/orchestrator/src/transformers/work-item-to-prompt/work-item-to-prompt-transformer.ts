@@ -66,7 +66,7 @@
  * // ClaudeModel this same work item is dispatched on
  */
 
-import { agentPromptResultContract, workItemPayloadKeyContract, workItemRoleContract, type AgentPromptResult, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
+import { agentPromptResultContract, workItemRoleContract, type AgentPromptResult, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
@@ -226,7 +226,7 @@ export const workItemToPromptTransformer = ({
   // `Base branch`'s own guard above exists to avoid.
   if (workItem.needsLane === true) {
     const parsedInstance = questWorkInstanceContract.safeParse(
-      workItem.payload?.[workItemPayloadKeyContract.parse('instance')],
+      workItem.payload?.['instance'],
     );
     if (parsedInstance.success) {
       parts.push(

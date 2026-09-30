@@ -13,7 +13,6 @@ import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { unitObservationContract } from '../unit-observation/unit-observation-contract';
-import { workItemPayloadKeyContract } from '../work-item-payload-key/work-item-payload-key-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
@@ -105,7 +104,7 @@ export const workItemContract = z.object({
   // amendment cannot rewrite what a session already ran against. A reader of a known key (e.g.
   // `'instance'`) re-parses it through the exported `workItemPayloadKeyContract` to index this
   // branded Record — see that contract's own header.
-  payload: z.record(workItemPayloadKeyContract, z.unknown()).optional(),
+  payload: z.record(z.string().brand<'WorkItemPayload'>(), z.unknown()).optional(),
   // Set by `quest-work`'s `outcome` payload — legal ONLY on a work item holding no assigned units,
   // where there is nothing for the record to derive an outcome FROM. `nextActionTransformer` takes
   // this as its `declaredWord`/`hitWall` arguments rather than deriving them, because it is pure and

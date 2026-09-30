@@ -30,7 +30,6 @@
  * the antagonist's absence claim has nothing behind it.
  */
 
-import { workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
 import type { QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -62,7 +61,7 @@ export const pieceBriefPayloadTransformer = ({
 
   return {
     ...carried,
-    [workItemPayloadKeyContract.parse('pieceName')]: piece.pieceName,
+    ['pieceName']: piece.pieceName,
     ...('units' in carried && assignment.success
       ? { units: assignment.data.units.filter((unit) => retained.has(String(unit.unitId))) }
       : {}),

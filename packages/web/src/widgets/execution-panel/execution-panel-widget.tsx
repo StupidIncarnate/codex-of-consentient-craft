@@ -22,7 +22,7 @@ import type { Quest, QuestStatus, WorkItem, ChatEntry, CompletedCount, PastedIma
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import { completedCountContract, workItemPayloadKeyContract, totalCountContract } from '@dungeonmaster/shared/contracts';
+import { completedCountContract, totalCountContract } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
@@ -361,7 +361,7 @@ export const ExecutionPanelWidget = ({
       // under the sentinel.
       const pieceGroups = new Map<string, WorkItem[]>();
       stepGroup.forEach((wi) => {
-        const payloadPieceName = wi.payload?.[workItemPayloadKeyContract.parse('pieceName')];
+        const payloadPieceName = wi.payload?.['pieceName'];
         const pieceLabel =
           wi.pieceId === undefined
             ? undefined

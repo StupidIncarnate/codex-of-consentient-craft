@@ -16,7 +16,7 @@
  * the session fixes what the message names and calls again.
  */
 
-import { unitObservationContract, workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
+import { unitObservationContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -107,7 +107,7 @@ export const questWorkRecordBroker = async ({
         // and its own instance.
         if (workItem.needsLane === true) {
           const parsedInstance = questWorkInstanceContract.safeParse(
-            workItem.payload?.[workItemPayloadKeyContract.parse('instance')],
+            workItem.payload?.['instance'],
           );
           if (parsedInstance.success) {
             await laneKillBroker({ instanceId: parsedInstance.data.instanceId });

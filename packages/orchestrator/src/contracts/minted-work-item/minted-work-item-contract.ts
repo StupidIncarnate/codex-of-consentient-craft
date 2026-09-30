@@ -23,7 +23,7 @@
  * nothing to copy from, and synthesising a payload for it would invent a brief nobody wrote.
  */
 
-import { pieceIdContract, stepNameContract, workItemPayloadKeyContract, workItemRoleContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import { pieceIdContract, stepNameContract, workItemRoleContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const mintedWorkItemContract = z.object({
@@ -34,7 +34,7 @@ export const mintedWorkItemContract = z.object({
   assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
   pieceId: pieceIdContract.optional(),
   payload: z
-    .record(workItemPayloadKeyContract, z.unknown())
+    .record(z.string().brand<'MintedWorkItemPayload'>(), z.unknown())
     .optional()
     .describe("The piece's own brief, or the copy inherited from the piece that first claimed."),
   mintedBy: workItemContract.shape.id

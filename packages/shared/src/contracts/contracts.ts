@@ -205,7 +205,6 @@ export * from './work-item-status/work-item-status-contract';
 
 export * from './work-item-role/work-item-role-contract';
 
-export * from './work-item-payload-key/work-item-payload-key-contract';
 
 export * from './spawner-type/spawner-type-contract';
 

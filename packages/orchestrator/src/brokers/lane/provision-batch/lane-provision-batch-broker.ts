@@ -34,7 +34,6 @@
  * // Returns the NextStep unchanged for a non-lane batch, or trimmed + lane-started for a lane one
  */
 
-import { workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 
@@ -103,7 +102,7 @@ export const laneProvisionBatchBroker = async ({
 
       if (
         workItem === undefined ||
-        workItem.payload?.[workItemPayloadKeyContract.parse('instance')] !== undefined
+        workItem.payload?.['instance'] !== undefined
       ) {
         return;
       }
