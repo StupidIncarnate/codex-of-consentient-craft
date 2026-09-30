@@ -4,7 +4,6 @@ import { ProjectResultStub } from '../../contracts/project-result/project-result
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
 import { PassingTestStub } from '../../contracts/passing-test/passing-test.stub';
-import { WardFileDetailStub } from '../../contracts/ward-file-detail/ward-file-detail.stub';
 import { resultToDetailTransformer } from './result-to-detail-transformer';
 
 describe('resultToDetailTransformer', () => {
@@ -15,7 +14,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath });
 
-      expect(result).toBe(WardFileDetailStub({ value: 'src/index.ts' }));
+      expect(result).toBe('src/index.ts');
     });
 
     it('EMPTY: {wardResult: errors in different file} => returns file path only', () => {
@@ -37,7 +36,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath });
 
-      expect(result).toBe(WardFileDetailStub({ value: 'src/target.ts' }));
+      expect(result).toBe('src/target.ts');
     });
   });
 
@@ -70,9 +69,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'src/app.ts\n  lint no-unused-vars (line 15, col 3)\n    Unused variable x',
-        }),
+        'src/app.ts\n  lint no-unused-vars (line 15, col 3)\n    Unused variable x',
       );
     });
   });
@@ -105,9 +102,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'src/index.ts\n  typecheck (line 23, col 10)\n    TS2345: Argument not assignable',
-        }),
+        'src/index.ts\n  typecheck (line 23, col 10)\n    TS2345: Argument not assignable',
       );
     });
   });
@@ -139,9 +134,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: suitePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'src/app.test.tsx\n  FAIL  "should render"\n    Expected true, received false',
-        }),
+        'src/app.test.tsx\n  FAIL  "should render"\n    Expected true, received false',
       );
     });
 
@@ -176,9 +169,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: suitePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: `src/app.test.tsx\n  FAIL  "should render"\n    ${fullMessage}`,
-        }),
+        `src/app.test.tsx\n  FAIL  "should render"\n    ${fullMessage}`,
       );
     });
 
@@ -215,9 +206,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: suitePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: `src/app.test.tsx\n  FAIL  "should render"\n    ${message}`,
-        }),
+        `src/app.test.tsx\n  FAIL  "should render"\n    ${message}`,
       );
     });
   });
@@ -251,9 +240,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'src/broken.ts\n  lint\n    Parsing error: Unexpected token',
-        }),
+        'src/broken.ts\n  lint\n    Parsing error: Unexpected token',
       );
     });
   });
@@ -291,9 +278,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: `${String(queryPath)}\n  lint no-unused-vars (line 5, col 1)\n    Unused variable`,
-        }),
+        `${String(queryPath)}\n  lint no-unused-vars (line 5, col 1)\n    Unused variable`,
       );
     });
 
@@ -329,9 +314,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: `${String(queryPath)}\n  lint no-any (line 10, col 3)\n    No any allowed`,
-        }),
+        `${String(queryPath)}\n  lint no-any (line 10, col 3)\n    No any allowed`,
       );
     });
 
@@ -366,9 +349,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: `${String(queryPath)}\n  typecheck (line 7, col 2)\n    TS2345: Argument not assignable`,
-        }),
+        `${String(queryPath)}\n  typecheck (line 7, col 2)\n    TS2345: Argument not assignable`,
       );
     });
 
@@ -402,9 +383,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: `${String(queryPath)}\n  FAIL  "should validate"\n    Expected true, received false`,
-        }),
+        `${String(queryPath)}\n  FAIL  "should validate"\n    Expected true, received false`,
       );
     });
 
@@ -439,7 +418,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
 
-      expect(result).toBe(WardFileDetailStub({ value: String(queryPath) }));
+      expect(result).toBe(String(queryPath));
     });
   });
 
@@ -449,7 +428,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult });
 
-      expect(result).toBe(WardFileDetailStub({ value: 'No errors found' }));
+      expect(result).toBe('No errors found');
     });
 
     it('VALID: {wardResult: lint + test errors, no filePath} => returns all errors grouped by file', () => {
@@ -486,10 +465,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value:
-            'src/app.ts\n  lint no-unused-vars (line 5, col 1)\n    Unused variable x\n\nsrc/app.test.ts\n  FAIL  "should work"\n    Expected true',
-        }),
+        'src/app.ts\n  lint no-unused-vars (line 5, col 1)\n    Unused variable x\n\nsrc/app.test.ts\n  FAIL  "should work"\n    Expected true',
       );
     });
   });
@@ -523,8 +499,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: [
+        [
             'packages/web/src/flows/quest-chat/quest.e2e.ts',
             '  FAIL  "Quest › fails"',
             '    Error: timeout exceeded',
@@ -533,7 +508,6 @@ describe('resultToDetailTransformer', () => {
             'not run (1 files):',
             '  packages/web/src/flows/app/visual.e2e.ts',
           ].join('\n'),
-        }),
       );
     });
 
@@ -558,9 +532,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'ward\n  (crash) e2e\n    no output captured',
-        }),
+        'ward\n  (crash) e2e\n    no output captured',
       );
     });
   });
@@ -601,10 +573,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value:
-            'src/app.ts\n  lint no-unused-vars (line 5, col 1)\n    Unused\n  lint no-any (line 10, col 2)\n    No any',
-        }),
+        'src/app.ts\n  lint no-unused-vars (line 5, col 1)\n    Unused\n  lint no-any (line 10, col 2)\n    No any',
       );
     });
   });
@@ -642,14 +611,12 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: [
+        [
             'ward',
             '  unit  PASS  (1 files, 2 tests)',
             '    ✓ src/foo.test.ts › VALID: {a} => b (15ms)',
             '    ✓ src/foo.test.ts › VALID: {c} => d (7ms)',
           ].join('\n'),
-        }),
       );
     });
 
@@ -672,7 +639,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult });
 
-      expect(result).toBe(WardFileDetailStub({ value: 'No errors found' }));
+      expect(result).toBe('No errors found');
     });
 
     it('VALID: {e2e pass with single file and cumulative duration} => reports total duration', () => {
@@ -707,14 +674,12 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: [
+        [
             'testing',
             '  e2e  PASS  (1 files, 2 tests, 7.0s)',
             '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › renders (6000ms)',
             '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › does something else (1000ms)',
           ].join('\n'),
-        }),
       );
     });
 
@@ -751,9 +716,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'src/app.test.ts\n  FAIL  "fails"\n    boom',
-        }),
+        'src/app.test.ts\n  FAIL  "fails"\n    boom',
       );
     });
   });
@@ -785,9 +748,7 @@ describe('resultToDetailTransformer', () => {
       const result = resultToDetailTransformer({ wardResult, filePath });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: 'src/foo.test.ts\n  PASS  "VALID: {a} => b" (15ms)',
-        }),
+        'src/foo.test.ts\n  PASS  "VALID: {a} => b" (15ms)',
       );
     });
 
@@ -816,7 +777,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath });
 
-      expect(result).toBe(WardFileDetailStub({ value: String(filePath) }));
+      expect(result).toBe(String(filePath));
     });
   });
 
@@ -865,13 +826,11 @@ describe('resultToDetailTransformer', () => {
       });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: [
+        [
             'packages/ward/src/mine.test.ts',
             '  FAIL  "mine › fails"',
             '    Error: boom',
           ].join('\n'),
-        }),
       );
     });
 
@@ -882,8 +841,7 @@ describe('resultToDetailTransformer', () => {
       });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: [
+        [
             'packages/ward/src/mine.test.ts',
             '  FAIL  "mine › fails"',
             '    Error: boom',
@@ -892,7 +850,6 @@ describe('resultToDetailTransformer', () => {
             '  src/transformers/a/a-transformer.test.ts',
             '  src/transformers/b/b-transformer.test.ts',
           ].join('\n'),
-        }),
       );
     });
 
@@ -905,8 +862,7 @@ describe('resultToDetailTransformer', () => {
       });
 
       expect(result).toBe(
-        WardFileDetailStub({
-          value: [
+        [
             'packages/ward/src/mine.test.ts',
             '  FAIL  "mine › fails"',
             '    Error: boom',
@@ -915,7 +871,6 @@ describe('resultToDetailTransformer', () => {
             '  src/transformers/a/a-transformer.test.ts',
             '  src/transformers/b/b-transformer.test.ts',
           ].join('\n'),
-        }),
       );
     });
   });

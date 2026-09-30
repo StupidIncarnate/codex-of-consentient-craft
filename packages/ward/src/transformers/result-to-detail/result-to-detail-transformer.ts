@@ -11,8 +11,6 @@ import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
-import type { WardFileDetail } from '../../contracts/ward-file-detail/ward-file-detail-contract';
-import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
@@ -26,7 +24,7 @@ export const resultToDetailTransformer = ({
 }: {
   wardResult: WardResult;
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
-}): WardFileDetail => {
+}): string => {
   if (filePath) {
     const entries: ErrorEntry['message'][] = [];
 
@@ -70,7 +68,7 @@ export const resultToDetailTransformer = ({
     const raw = entries.length > 0 ? `${filePath}\n${entries.join('\n')}` : String(filePath);
     const output = stripAnsiCodesTransformer({ text: errorMessageContract.parse(raw) });
 
-    return wardFileDetailContract.parse(output);
+    return output;
   }
 
   const sections: ErrorEntry['message'][] = [];
@@ -168,5 +166,5 @@ export const resultToDetailTransformer = ({
   const raw = sections.length > 0 ? sections.join('\n\n') : 'No errors found';
   const output = stripAnsiCodesTransformer({ text: errorMessageContract.parse(raw) });
 
-  return wardFileDetailContract.parse(output);
+  return output;
 };
