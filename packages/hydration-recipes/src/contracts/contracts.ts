@@ -33,7 +33,6 @@ export * from './subagent-fields/subagent-fields-contract';
 
 export * from './subagent-record/subagent-record-contract';
 
-export * from './task-description/task-description-contract';
 
 export * from './tool-use-id/tool-use-id-contract';
 

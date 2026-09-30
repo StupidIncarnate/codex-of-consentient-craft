@@ -26,9 +26,8 @@
 import { agentContract } from '@dungeonmaster/shared/contracts';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
-import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
+import { subagentFieldsContract, subagentFieldsShape } from '../../../contracts/subagent-fields/subagent-fields-contract';
 import { subagentRecordContract } from '../../../contracts/subagent-record/subagent-record-contract';
-import { taskDescriptionContract } from '../../../contracts/task-description/task-description-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { subagentQueryRouteBroker } from '../query-route/subagent-query-route-broker';
 import { subagentRemoveRouteBroker } from '../remove-route/subagent-remove-route-broker';
@@ -50,7 +49,7 @@ export const subagentIngredientBroker = ingredient({
   defaults: (index: number): Partial<SubagentFields> => ({
     agentId: agentContract.shape.id.parse(`seed-agent-${index + 1}`),
     toolUseId: toolUseIdContract.parse(`toolu_seed${index + 1}`),
-    taskDescription: taskDescriptionContract.parse(`Seeded task ${index + 1}`),
+    taskDescription: subagentFieldsShape.shape.taskDescription.parse(`Seeded task ${index + 1}`),
     completed: true,
   }),
   routes: {

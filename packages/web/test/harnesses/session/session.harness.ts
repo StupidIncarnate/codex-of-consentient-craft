@@ -12,13 +12,7 @@ import { appendFile, ensureDir, readdir, rm, unlink } from '#gateway/node/fs__pr
 import * as path from '#gateway/node/path';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
-import {
-  dmTargetContract,
-  sessionFieldsContract,
-  subagentFieldsContract,
-  taskDescriptionContract,
-  toolUseIdContract,
-} from '@dungeonmaster/hydration-recipes/contracts';
+import { dmTargetContract, sessionFieldsContract, subagentFieldsContract, toolUseIdContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import {
   AskUserQuestionToolResultStreamLineStub,
@@ -1106,7 +1100,7 @@ export const sessionHarness = ({
       sessionId,
       agentId,
       toolUseId: toolUseIdContract.parse(`toolu_tail_${agentId}`),
-      taskDescription: taskDescriptionContract.parse('Sub-agent tail only'),
+      taskDescription: 'Sub-agent tail only',
       taskPrompt: 'Tail-only fixture',
       lines: subagentLines,
     });
@@ -1127,7 +1121,7 @@ export const sessionHarness = ({
       sessionId,
       agentId,
       toolUseId: toolUseIdContract.parse(`toolu_tail_${agentId}`),
-      taskDescription: taskDescriptionContract.parse('Sub-agent tail only'),
+      taskDescription: 'Sub-agent tail only',
       taskPrompt: 'Tail-only fixture',
       lines,
     });
