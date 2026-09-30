@@ -33,7 +33,6 @@ import type { DisplayLabel } from '../../contracts/display-label/display-label-c
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
@@ -55,7 +54,7 @@ import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
   // Omitted for a step row nested under an operation header — the header alone is numbered.
-  order?: RowOrder;
+  order?: number;
   name: DisplayLabel;
   role: ExecutionRole;
   status: ExecutionStepStatus;

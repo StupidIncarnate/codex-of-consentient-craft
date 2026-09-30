@@ -46,7 +46,6 @@ import { displayLabelContract } from '../../contracts/display-label/display-labe
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 
@@ -63,7 +62,7 @@ const CROSS_SCOPE_DEPENDENCY_SEPARATOR = ' › ';
 
 export interface ExecutionWorkItemRowLayerWidgetProps {
   // Omitted for a step row nested under an operation header — the header alone is numbered.
-  order?: RowOrder;
+  order?: number;
   workItem: WorkItem;
   questId: QuestId;
   now?: IsoTimestamp;
