@@ -9,8 +9,6 @@
  */
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { openHandleDisplayContract } from '../../contracts/open-handle-display/open-handle-display-contract';
-import type { OpenHandleDisplay } from '../../contracts/open-handle-display/open-handle-display-contract';
 import type { OpenHandle } from '../../contracts/open-handle/open-handle-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
@@ -23,7 +21,7 @@ export const openHandleDisplayTransformer = ({
   packageName: ProjectFolder['name'];
   handle: OpenHandle;
   cwd: AbsoluteFilePath;
-}): OpenHandleDisplay => {
+}): string => {
   const prefix = `${String(cwd)}/`;
   const frames = String(handle.stack)
     .split('\n')
@@ -50,5 +48,5 @@ export const openHandleDisplayTransformer = ({
   const where = shown.map((line) => `\n      ${line.split(prefix).join('')}`).join('');
   const message = String(handle.message).split(prefix).join('');
 
-  return openHandleDisplayContract.parse(`  ${String(packageName)}  ${message}${where}`);
+  return `  ${String(packageName)}  ${message}${where}`;
 };
