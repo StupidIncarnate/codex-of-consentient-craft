@@ -15,7 +15,6 @@ import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
 
 import { filter, take, timeout } from '#gateway/npm/rxjs__operators';
-import { takeCountContract } from '../../contracts/take-count/take-count-contract';
 import { timeoutMsContract } from '../../contracts/timeout-ms/timeout-ms-contract';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
@@ -25,7 +24,7 @@ type WardResultId = WardResult['id'];
 const WARD_DETAIL_TIMEOUT_MS = timeoutMsContract.parse(
   webConfigStatics.websocket.wardDetailTimeoutMs,
 );
-const ONE_EMISSION = takeCountContract.parse(1);
+const ONE_EMISSION = 1;
 
 export const useWardDetailBinding = ({
   questId,
