@@ -13,8 +13,6 @@
  * // Returns '/home/me/projects/…/file.ts'
  */
 
-import { shortenedPathTextContract } from '../../contracts/shortened-path-text/shortened-path-text-contract';
-import type { ShortenedPathText } from '../../contracts/shortened-path-text/shortened-path-text-contract';
 import { pathShorteningStatics } from '../../statics/path-shortening/path-shortening-statics';
 
 // The `/…/` that replaces whatever was dropped costs the ellipsis plus a separator either side.
@@ -28,9 +26,9 @@ export const elideMiddleTransformer = ({
 }: {
   text: string;
   limit: number;
-}): ShortenedPathText => {
+}): string => {
   if (text.length <= limit) {
-    return shortenedPathTextContract.parse(text);
+    return text;
   }
 
   const segments = text.split(pathShorteningStatics.separator);
@@ -55,11 +53,9 @@ export const elideMiddleTransformer = ({
   );
 
   if (head.length > 0) {
-    return shortenedPathTextContract.parse(
-      [head.join(pathShorteningStatics.separator), pathShorteningStatics.ellipsis, tail].join(
+    return [head.join(pathShorteningStatics.separator), pathShorteningStatics.ellipsis, tail].join(
         pathShorteningStatics.separator,
-      ),
-    );
+      );
   }
 
   // No separator to cut on, or a tail already wider than the budget. Take the same bite out of the
@@ -67,7 +63,5 @@ export const elideMiddleTransformer = ({
   // which is the whole reason to cut here rather than at the end.
   const half = Math.floor((limit - pathShorteningStatics.ellipsis.length) / HALVES);
 
-  return shortenedPathTextContract.parse(
-    `${text.slice(0, half)}${pathShorteningStatics.ellipsis}${text.slice(-half)}`,
-  );
+  return `${text.slice(0, half)}${pathShorteningStatics.ellipsis}${text.slice(-half)}`;
 };

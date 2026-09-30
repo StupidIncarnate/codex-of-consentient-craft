@@ -12,17 +12,14 @@
  * // Returns 'web/…/tool-row-widget.tsx'
  */
 
-import { shortenedPathTextContract } from '../../contracts/shortened-path-text/shortened-path-text-contract';
-import type { ShortenedPathText } from '../../contracts/shortened-path-text/shortened-path-text-contract';
 import { pathShorteningStatics } from '../../statics/path-shortening/path-shortening-statics';
 
 const SPLIT_KEEPING_WHITESPACE = /(\s+)/u;
 const WILDCARD_ONLY = /^\*+$/u;
 const URL_SCHEME = '://';
 
-export const shortenPathsTransformer = ({ text }: { text: string }): ShortenedPathText =>
-  shortenedPathTextContract.parse(
-    text
+export const shortenPathsTransformer = ({ text }: { text: string }): string =>
+  text
       .split(SPLIT_KEEPING_WHITESPACE)
       .map((token) => {
         if (!token.includes(pathShorteningStatics.separator) || token.includes(URL_SCHEME)) {
@@ -61,5 +58,4 @@ export const shortenPathsTransformer = ({ text }: { text: string }): ShortenedPa
 
         return `${prefix}${[anchor, ...(elided ? [pathShorteningStatics.ellipsis] : []), ...tail].join(pathShorteningStatics.separator)}`;
       })
-      .join(''),
-  );
+      .join('');

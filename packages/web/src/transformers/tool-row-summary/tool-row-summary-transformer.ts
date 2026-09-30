@@ -10,8 +10,6 @@
  * // Returns 'web/…/b.ts'
  */
 
-import { shortenedPathTextContract } from '../../contracts/shortened-path-text/shortened-path-text-contract';
-import type { ShortenedPathText } from '../../contracts/shortened-path-text/shortened-path-text-contract';
 import { toolDisplayLabelStatics } from '../../statics/tool-display-label/tool-display-label-statics';
 import { toolRowSummaryStatics } from '../../statics/tool-row-summary/tool-row-summary-statics';
 import { formatToolInputTransformer } from '../format-tool-input/format-tool-input-transformer';
@@ -23,7 +21,7 @@ export const toolRowSummaryTransformer = ({
 }: {
   toolName: string;
   toolInput: string;
-}): ShortenedPathText => {
+}): string => {
   const formatted = formatToolInputTransformer({ toolName, toolInput });
   const isSkill = toolName === toolDisplayLabelStatics.skillToolName;
 
@@ -57,9 +55,7 @@ export const toolRowSummaryTransformer = ({
   // several arguments where the raw form would have been cut off inside the first one.
   const shortened = String(shortenPathsTransformer({ text: raw }));
 
-  return shortenedPathTextContract.parse(
-    shortened.length > toolRowSummaryStatics.inlineSummaryLimit
+  return (shortened.length > toolRowSummaryStatics.inlineSummaryLimit
       ? `${shortened.slice(0, toolRowSummaryStatics.inlineSummaryLimit)}${toolRowSummaryStatics.truncationSuffix}`
-      : shortened,
-  );
+      : shortened);
 };
