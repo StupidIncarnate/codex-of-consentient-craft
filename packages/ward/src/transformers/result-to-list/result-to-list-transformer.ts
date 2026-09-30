@@ -9,14 +9,12 @@
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
-import type { WardErrorList } from '../../contracts/ward-error-list/ward-error-list-contract';
-import { wardErrorListContract } from '../../contracts/ward-error-list/ward-error-list-contract';
 
 export const resultToListTransformer = ({
   wardResult,
 }: {
   wardResult: WardResult;
-}): WardErrorList => {
+}): string => {
   const fileMap = new Map<
     ErrorEntry['filePath'] | TestFailure['suitePath'],
     ErrorEntry['message'][]
@@ -47,5 +45,5 @@ export const resultToListTransformer = ({
     ([filePath, fileEntries]) => `${filePath}\n${fileEntries.join('\n')}`,
   );
 
-  return wardErrorListContract.parse(sections.join('\n'));
+  return sections.join('\n');
 };

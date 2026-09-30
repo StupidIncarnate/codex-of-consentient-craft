@@ -3,7 +3,6 @@ import { CheckResultStub } from '../../contracts/check-result/check-result.stub'
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
-import { WardErrorListStub } from '../../contracts/ward-error-list/ward-error-list.stub';
 import { resultToListTransformer } from './result-to-list-transformer';
 
 describe('resultToListTransformer', () => {
@@ -13,7 +12,7 @@ describe('resultToListTransformer', () => {
 
       const result = resultToListTransformer({ wardResult });
 
-      expect(result).toBe(WardErrorListStub({ value: '' }));
+      expect(result).toBe('');
     });
 
     it('EMPTY: {wardResult: passing check with no errors} => returns empty string', () => {
@@ -29,7 +28,7 @@ describe('resultToListTransformer', () => {
 
       const result = resultToListTransformer({ wardResult });
 
-      expect(result).toBe(WardErrorListStub({ value: '' }));
+      expect(result).toBe('');
     });
   });
 
@@ -66,10 +65,7 @@ describe('resultToListTransformer', () => {
       const result = resultToListTransformer({ wardResult });
 
       expect(result).toBe(
-        WardErrorListStub({
-          value:
-            'src/app.ts\n  lint no-unused-vars (line 15)\n    Unused var\n  lint @typescript-eslint/no-explicit-any (line 20)\n    No any',
-        }),
+        'src/app.ts\n  lint no-unused-vars (line 15)\n    Unused var\n  lint @typescript-eslint/no-explicit-any (line 20)\n    No any',
       );
     });
   });
@@ -94,7 +90,7 @@ describe('resultToListTransformer', () => {
       const result = resultToListTransformer({ wardResult });
 
       expect(result).toBe(
-        WardErrorListStub({ value: 'src/index.ts\n  typecheck (line 23)\n    TS2345' }),
+        'src/index.ts\n  typecheck (line 23)\n    TS2345',
       );
     });
   });
@@ -130,10 +126,7 @@ describe('resultToListTransformer', () => {
       const result = resultToListTransformer({ wardResult });
 
       expect(result).toBe(
-        WardErrorListStub({
-          value:
-            'src/app.test.tsx\n  FAIL  "should render guild list" - Expected true, received false\n  FAIL  "should navigate to quest" - Element not found',
-        }),
+        'src/app.test.tsx\n  FAIL  "should render guild list" - Expected true, received false\n  FAIL  "should navigate to quest" - Element not found',
       );
     });
   });
@@ -166,7 +159,7 @@ describe('resultToListTransformer', () => {
       const result = resultToListTransformer({ wardResult });
 
       expect(result).toBe(
-        WardErrorListStub({ value: 'src/broken.ts\n  lint\n    Parsing error: Unexpected token' }),
+        'src/broken.ts\n  lint\n    Parsing error: Unexpected token',
       );
     });
   });
@@ -214,10 +207,7 @@ describe('resultToListTransformer', () => {
       const result = resultToListTransformer({ wardResult });
 
       expect(result).toBe(
-        WardErrorListStub({
-          value:
-            'src/app.ts\n  lint no-unused-vars (line 15)\n    Unused\nsrc/app.test.ts\n  FAIL  "should work" - Failed',
-        }),
+        'src/app.ts\n  lint no-unused-vars (line 15)\n    Unused\nsrc/app.test.ts\n  FAIL  "should work" - Failed',
       );
     });
   });
