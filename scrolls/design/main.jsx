@@ -6,8 +6,10 @@ import { ThemeProvider, useTheme, schemes } from './themes.jsx';
 import { LandingPage } from './pages/landing.jsx';
 import { ColorSchemePage } from './pages/color-scheme.jsx';
 import { QuestDetailPage, ExecuteQuestPage } from './pages/quest-detail.jsx';
+import { CommandCenterPage } from './pages/command-center.jsx';
 
 const pages = [
+  { id: 'command', label: 'Command Center' },
   { id: 'landing', label: 'App' },
   { id: 'quest', label: 'Define Quest' },
   { id: 'execute', label: 'Execute Quest' },
@@ -15,6 +17,7 @@ const pages = [
 ];
 
 const scenarios = {
+  command: [],
   landing: [
     { value: 'with-guilds', label: 'With Guilds' },
     { value: 'no-guilds', label: 'No Guilds' },
@@ -40,8 +43,8 @@ const scenarios = {
 const themeOptions = Object.entries(schemes).map(([id, s]) => ({ value: id, label: s.name }));
 
 function Shell() {
-  const [page, setPage] = useState('landing');
-  const [scenario, setScenario] = useState(() => scenarios['landing']?.[0]?.value || 'default');
+  const [page, setPage] = useState('command');
+  const [scenario, setScenario] = useState('default');
   const { themeId, setThemeId, theme } = useTheme();
   const pageScenarios = scenarios[page] || [];
 
@@ -123,6 +126,7 @@ function Shell() {
       </Group>
 
       <div style={{ background: theme.colors['bg-deep'], minHeight: '100vh' }}>
+        {page === 'command' && <CommandCenterPage />}
         {page === 'landing' && (
           <LandingPage
             scenario={scenario}

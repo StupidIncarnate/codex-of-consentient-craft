@@ -72,3 +72,26 @@ export function ThemeProvider({ children }) {
 export function useTheme() {
   return useContext(ThemeContext);
 }
+
+// Quest status -> colour key, copied from packages/web quest-row-layer-widget STATUS_COLOR_MAP.
+export const questStatusColorKey = {
+  created: 'warning',
+  pending: 'warning',
+  explore_flows: 'warning',
+  flows_approved: 'warning',
+  explore_observables: 'warning',
+  review_flows: 'loot-gold',
+  review_observables: 'loot-gold',
+  approved: 'loot-rare',
+  in_progress: 'primary',
+  paused: 'warning',
+  merging: 'primary',
+  complete: 'success',
+  merged: 'success',
+  blocked: 'danger',
+  abandoned: 'text-dim',
+};
+
+// packages/web AppRootWidget global CSS: selection is primary fill / bg-deep glyphs.
+export const globalCss = (colors) =>
+  `::selection { background-color: ${colors['primary']}; color: ${colors['bg-deep']}; }`;
