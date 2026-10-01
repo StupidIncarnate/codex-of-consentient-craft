@@ -64,6 +64,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         './*.proxy': {
           'npm-own-source': './src/*.proxy.ts',
           'gateway-dist': './dist/*.proxy.d.ts',
+          'gateway-source': './src/*.proxy.ts',
           source: './src/*.proxy.ts',
           types: './dist/*.proxy.d.ts',
           import: './dist/*.proxy.js',
@@ -72,6 +73,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         './*.stub': {
           'npm-own-source': './src/*.stub.ts',
           'gateway-dist': './dist/*.stub.d.ts',
+          'gateway-source': './src/*.stub.ts',
           source: './src/*.stub.ts',
           types: './dist/*.stub.d.ts',
           import: './dist/*.stub.js',
@@ -80,6 +82,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         './*': {
           'npm-own-source': './src/*/*.ts',
           'gateway-dist': './dist/*/*.d.ts',
+          'gateway-source': './src/*/*.ts',
           source: './src/*/*.ts',
           types: './dist/*/*.d.ts',
           import: './dist/*/*.js',
@@ -129,6 +132,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         './*.proxy': {
           'browser-own-source': './src/*.proxy.ts',
           'gateway-dist': './dist/*.proxy.d.ts',
+          'gateway-source': './src/*.proxy.ts',
           source: './src/*.proxy.ts',
           types: './dist/*.proxy.d.ts',
           import: './dist/*.proxy.js',
@@ -137,6 +141,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         './*.stub': {
           'browser-own-source': './src/*.stub.ts',
           'gateway-dist': './dist/*.stub.d.ts',
+          'gateway-source': './src/*.stub.ts',
           source: './src/*.stub.ts',
           types: './dist/*.stub.d.ts',
           import: './dist/*.stub.js',
@@ -145,6 +150,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         './*': {
           'browser-own-source': './src/*/*.ts',
           'gateway-dist': './dist/*/*.d.ts',
+          'gateway-source': './src/*/*.ts',
           source: './src/*/*.ts',
           types: './dist/*/*.d.ts',
           import: './dist/*/*.js',
@@ -216,23 +222,32 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
     });
   });
 
-  it('VALID: {folder: "node"} => jest.config.js spreads the published @dungeonmaster/testing base', () => {
-    const files = gatewayPackageScaffoldFilesTransformer({
-      scope: '@acme',
-      folder: 'node',
-    });
+  it.each(['node', 'bin'] as const)(
+    'VALID: {folder: "%s"} => jest.config.js spreads the published @dungeonmaster/testing base and resolves gateway-source beside the Node defaults',
+    (folder) => {
+      const files = gatewayPackageScaffoldFilesTransformer({
+        scope: '@acme',
+        folder,
+      });
 
-    expect(String(fileNamed({ files, relativePath: 'jest.config.js' })?.contents)).toBe(
-      `const base = require('@dungeonmaster/testing/jest-config-base');
+      expect(String(fileNamed({ files, relativePath: 'jest.config.js' })?.contents)).toBe(
+        `const base = require('@dungeonmaster/testing/jest-config-base');
 
 module.exports = {
   ...base,
+  // \`gateway-source\` points another gateway package at its TypeScript source, which ts-jest
+  // transforms, so a test here never reads that gateway's last build. Only the gateway packages'
+  // \`exports\` carry it. \`source\` stays out: it would point @dungeonmaster/testing's own entry at its
+  // \`src/\` while the base's setup file loads \`dist/\`, so a test would stage responses on a second
+  // MSW server that never answers. \`node\` and \`node-addons\` are the Node environment's defaults.
+  testEnvironmentOptions: { customExportConditions: ['gateway-source', 'node', 'node-addons'] },
 };
 `,
-    );
-  });
+      );
+    },
+  );
 
-  it('VALID: {folder: "npm"} => jest.config.js resolves node, require and default, never browser or source, and adds the jsdom polyfill to the base setupFiles', () => {
+  it('VALID: {folder: "npm"} => jest.config.js resolves gateway-source, node, require and default, never browser or source, and adds the jsdom polyfill to the base setupFiles', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: '@acme',
       folder: 'npm',
@@ -248,17 +263,20 @@ module.exports = {
   ...base,
   // jsdom resolves packages with the \`browser\` condition unless told otherwise. The base loads MSW's
   // Node server in \`setupFilesAfterEnv\`, and under \`browser\` it pulls @mswjs/interceptors' ES-module
-  // browser build, which Jest cannot load. \`source\` stays out: it would point
-  // @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads \`dist/\`, so
-  // a test would stage responses on a second MSW server that never answers.
-  testEnvironmentOptions: { customExportConditions: ['node', 'require', 'default'] },
+  // browser build, which Jest cannot load. \`gateway-source\` points another gateway package at its
+  // TypeScript source, and only the gateway packages' \`exports\` carry it. \`source\` stays out: it
+  // would point @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads
+  // \`dist/\`, so a test would stage responses on a second MSW server that never answers.
+  testEnvironmentOptions: {
+    customExportConditions: ['gateway-source', 'node', 'require', 'default'],
+  },
   setupFiles: [...(base.setupFiles ?? []), '@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
     );
   });
 
-  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the testing package\'s polyfill, resolving node, require and default, never browser or source', () => {
+  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the testing package\'s polyfill, resolving gateway-source, node, require and default, never browser or source', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: '@acme',
       folder: 'browser',
@@ -275,10 +293,12 @@ module.exports = {
   testEnvironmentOptions: {
     // jsdom resolves packages with the \`browser\` condition unless told otherwise. The base loads
     // MSW's Node server in \`setupFilesAfterEnv\`, and under \`browser\` it pulls @mswjs/interceptors'
-    // ES-module browser build, which Jest cannot load. \`source\` stays out: it would point
-    // @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads \`dist/\`,
-    // so a test would stage responses on a second MSW server that never answers.
-    customExportConditions: ['node', 'require', 'default'],
+    // ES-module browser build, which Jest cannot load. \`gateway-source\` points another gateway
+    // package at its TypeScript source, and only the gateway packages' \`exports\` carry it.
+    // \`source\` stays out: it would point @dungeonmaster/testing's own entry at its \`src/\` while the
+    // base's setup file loads \`dist/\`, so a test would stage responses on a second MSW server that
+    // never answers.
+    customExportConditions: ['gateway-source', 'node', 'require', 'default'],
     url: 'http://localhost',
   },
   setupFiles: ['@dungeonmaster/testing/jsdom-polyfills'],

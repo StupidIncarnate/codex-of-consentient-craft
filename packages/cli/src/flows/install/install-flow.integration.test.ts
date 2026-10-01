@@ -307,6 +307,7 @@ describe('InstallFlow', () => {
           './*.proxy': {
             'npm-own-source': './src/*.proxy.ts',
             'gateway-dist': './dist/*.proxy.d.ts',
+            'gateway-source': './src/*.proxy.ts',
             source: './src/*.proxy.ts',
             import: './dist/*.proxy.js',
             require: './dist/*.proxy.js',
@@ -315,6 +316,7 @@ describe('InstallFlow', () => {
           './*.stub': {
             'npm-own-source': './src/*.stub.ts',
             'gateway-dist': './dist/*.stub.d.ts',
+            'gateway-source': './src/*.stub.ts',
             source: './src/*.stub.ts',
             import: './dist/*.stub.js',
             require: './dist/*.stub.js',
@@ -323,6 +325,7 @@ describe('InstallFlow', () => {
           './*': {
             'npm-own-source': './src/*/*.ts',
             'gateway-dist': './dist/*/*.d.ts',
+            'gateway-source': './src/*/*.ts',
             source: './src/*/*.ts',
             import: './dist/*/*.js',
             require: './dist/*/*.js',
@@ -570,6 +573,7 @@ export {};
           './*.proxy': {
             'npm-own-source': './src/*.proxy.ts',
             'gateway-dist': './dist/*.proxy.d.ts',
+            'gateway-source': './src/*.proxy.ts',
             source: './src/*.proxy.ts',
             import: './dist/*.proxy.js',
             require: './dist/*.proxy.js',
@@ -578,6 +582,7 @@ export {};
           './*.stub': {
             'npm-own-source': './src/*.stub.ts',
             'gateway-dist': './dist/*.stub.d.ts',
+            'gateway-source': './src/*.stub.ts',
             source: './src/*.stub.ts',
             import: './dist/*.stub.js',
             require: './dist/*.stub.js',
@@ -586,6 +591,7 @@ export {};
           './*': {
             'npm-own-source': './src/*/*.ts',
             'gateway-dist': './dist/*/*.d.ts',
+            'gateway-source': './src/*/*.ts',
             source: './src/*/*.ts',
             import: './dist/*/*.js',
             require: './dist/*/*.js',

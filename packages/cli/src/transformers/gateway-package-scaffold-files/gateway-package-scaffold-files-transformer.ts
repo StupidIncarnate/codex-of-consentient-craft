@@ -3,7 +3,7 @@
  * `packages/@gateway/<folder>` — matching what `packages/@gateway/{npm,node,browser,bin}` carry in
  * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports` (`./package.json`
  * and three pattern keys — `./*.proxy` to `./src/*.proxy.ts`, `./*.stub` to `./src/*.stub.ts`, and the barrel key `./*`
- * to `./src/*\/*.ts`, each led by `<folder>-own-source` then `gateway-dist`; there is no `_test_` key,
+ * to `./src/*\/*.ts`, each led by `<folder>-own-source`, `gateway-dist` and `gateway-source`; there is no `_test_` key,
  * since a test imports each stub and proxy from its own file) and `sideEffects: false`, both
  * tsconfigs, and a Jest config. node and browser get their source copied in afterwards
  * (`gatewaySourceCopyBroker`); npm and bin start with no subpath, so they get the placeholder
@@ -16,6 +16,12 @@
  * resolve through `gateway-dist` to this package's own already-built `dist/*.d.ts`, which collides with
  * the build's own output (TS5055) on a second, warm build. A different gateway's build never activates
  * this folder's condition, so it still resolves this package's exports through `gateway-dist`.
+ *
+ * `gateway-source` points every key at this package's TypeScript source, and only the gateway Jest
+ * configs name it. A test in one gateway that imports another then reads that gateway's source,
+ * while `@dungeonmaster/testing` and every other installed package still resolve to `dist/`.
+ * The plain `source` condition cannot do this job: it would also point `@dungeonmaster/testing` at
+ * its `src/` while the published Jest base's MSW setup file loads its `dist/`.
  *
  * USAGE:
  * gatewayPackageScaffoldFilesTransformer({ scope: '@acme', folder: 'npm' });
@@ -57,6 +63,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       './*.proxy': {
         [ownSourceCondition]: './src/*.proxy.ts',
         'gateway-dist': './dist/*.proxy.d.ts',
+        'gateway-source': './src/*.proxy.ts',
         source: './src/*.proxy.ts',
         types: './dist/*.proxy.d.ts',
         import: './dist/*.proxy.js',
@@ -65,6 +72,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       './*.stub': {
         [ownSourceCondition]: './src/*.stub.ts',
         'gateway-dist': './dist/*.stub.d.ts',
+        'gateway-source': './src/*.stub.ts',
         source: './src/*.stub.ts',
         types: './dist/*.stub.d.ts',
         import: './dist/*.stub.js',
@@ -73,6 +81,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       './*': {
         [ownSourceCondition]: './src/*/*.ts',
         'gateway-dist': './dist/*/*.d.ts',
+        'gateway-source': './src/*/*.ts',
         source: './src/*/*.ts',
         types: './dist/*/*.d.ts',
         import: './dist/*/*.js',
