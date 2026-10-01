@@ -25,7 +25,7 @@ links back to it.
 - **Longer context stays where it was written.** A file links to the original doc's section when that
   doc holds more than the file needs to repeat.
 
-Next free numbers: **DEF-271** and **CHG-5**.
+Next free numbers: **DEF-272** and **CHG-5**.
 
 ## Status values
 
@@ -144,6 +144,7 @@ Sorted by package, then ID.
 | [DEF-233](cli/DEF-233-cli-install-test-slow-under-load.md)                                 | cli               | defect | ward slow-test gate flags the cli install integration test under full-suite load                                   | suspected      |
 | [DEF-234](cli/DEF-234-init-looks-for-packages-in-wrong-place-in-consumer.md)               | cli               | defect | dungeonmaster init in a consumer may look for dungeonmaster's packages in the wrong directory                      | suspected      |
 | [DEF-231](config/DEF-231-config-knobs-never-read.md)                                       | config            | defect | three config knobs are defined and validated but nothing reads them                                                | ready          |
+| [DEF-271](cross-cutting/DEF-271-typescript-5-8-pinned-below-current-major.md)              | cross-cutting     | defect | dungeonmaster and assayer are pinned to TypeScript 5.8, two majors behind, and ts-jest blocks the upgrade          | needs decision |
 | [DEF-59](cross-cutting/DEF-059-recipes-inputs-and-returns.md)                              | cross-cutting     | defect | `recipes` does not list input meanings or returned fields, so an agent cannot chain seeds                          | ready          |
 | [DEF-200](cross-cutting/DEF-200-unreadable-quests-retired-signoff-keys.md)                 | cross-cutting     | defect | Three quests show UNREADABLE because their flow nodes carry sign-off keys the strict contract no longer knows      | ready          |
 | [DEF-262](cross-cutting/DEF-262-testing-and-shared-claude-md-stale-adapter-sections.md)    | cross-cutting     | defect | `testing` and `shared` CLAUDE.md files keep whole sections about adapters                                          | ready          |
