@@ -51,6 +51,25 @@ describe('stepHandlerWardBroker', () => {
 
       expect(result.resultRef).toBe('wardResults/f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0');
     });
+
+    it('VALID: {exit 1, run: <id>} => writes the printed output beside the blob as ward-results/<id>.log', async () => {
+      const proxy = stepHandlerWardBrokerProxy();
+      proxy.wardExits({
+        questId: QUEST_ID,
+        exitCode: wardExitCodeStatics.exitCodes.failing,
+        runId: '1780108054226-a080',
+        detailJson: '{"checks":[]}',
+      });
+
+      await stepHandlerWardBroker({
+        args: [],
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+        onLine: () => undefined,
+      });
+
+      expect(proxy.getWrittenOutputLog()).toBe('run: 1780108054226-a080\nlint: PASS');
+    });
   });
 
   describe('exit 0 with NO run id — the row that proves it is the run id, not the message', () => {

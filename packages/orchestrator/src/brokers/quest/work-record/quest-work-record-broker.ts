@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Applies one of `quest-work`'s four record-bearing payloads — `observations`, `outcome`,
- * `invalidation`, `request` — to `quest.json`, under the quest's own modify lock. `plan` and
+ * PURPOSE: Applies one of `quest-work`'s three record-bearing payloads — `observations`, `outcome`,
+ * `request` — to `quest.json`, under the quest's own modify lock. `plan` and
  * `amendment` never reach here: they write a separate file, through `questWorkPlanWriteBroker`.
  *
  * USAGE:
@@ -16,12 +16,7 @@
  * the session fixes what the message names and calls again.
  */
 
-import {
-  flowContract,
-  questNoteContract,
-  unitObservationContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { unitObservationContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -39,7 +34,6 @@ import { laneKillBroker } from '../../lane/kill/lane-kill-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify-lock-broker';
-import { invalidationApplyLayerBroker } from './invalidation-apply-layer-broker';
 import { workItemPatchLayerBroker } from './work-item-patch-layer-broker';
 
 // The INPUT side of the payload union: plain strings in, parsed into each owner's field where the
@@ -67,12 +61,8 @@ export const questWorkRecordBroker = async ({
 
       const workItem = quest.workItems.find((item) => item.id === workItemId);
       if (workItem === undefined) {
-        // `invalidation` says "nothing was reset" because a reset is what it would have performed;
-        // the other kinds read "recorded", which is what they write.
         throw new Error(
-          payload.kind === 'invalidation'
-            ? `quest-work: work item ${workItemId} is not on quest ${questId} — nothing was reset`
-            : `quest-work: work item ${workItemId} is not on quest ${questId} — nothing was recorded`,
+          `quest-work: work item ${workItemId} is not on quest ${questId} — nothing was recorded`,
         );
       }
 
@@ -129,19 +119,6 @@ export const questWorkRecordBroker = async ({
         }
 
         return questWorkRecordResultContract.parse({ kind: 'outcome', word: derived });
-      }
-
-      if (payload.kind === 'invalidation') {
-        return invalidationApplyLayerBroker({
-          quest,
-          workItem,
-          workItemId,
-          questId,
-          questFilePath,
-          flowId: flowContract.shape.id.parse(payload.flowId),
-          reason: questNoteContract.shape.detail.parse(payload.reason),
-          nowAt,
-        });
       }
 
       // payload.kind === 'request'

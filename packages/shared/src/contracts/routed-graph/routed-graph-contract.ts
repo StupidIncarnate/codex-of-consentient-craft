@@ -21,7 +21,6 @@ const routedGraphNodeContract = z
     // `pass:` / `green:` / `rework:`. Narrow this to the union and the bad key is refused before
     // the check runs, so rule 5 could only ever fire on a fixture — never on a real graph.
     routes: z.record(z.string(), z.string().min(1).brand<'RoutedGraphNodeRoutes'>()),
-    maxVisits: z.number().int().positive().brand<'RoutedGraphNodeMaxVisits'>().optional(),
     prompt: z.string().brand<'RoutedGraphNodePrompt'>().optional(),
     handler: z.string().brand<'RoutedGraphNodeHandler'>().optional(),
     mintableOnRequest: z.literal(true).optional(),

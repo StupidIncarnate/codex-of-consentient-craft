@@ -43,20 +43,20 @@
  * never "there was work and I chose to cut none": a planner holding units and cutting no work
  * declares `done` and marks each one `cant-meet` with a `toSettle`.
  *
- * `maxVisits` IS A CEILING ON A COUNT NOTHING STORES. It is derived where the router is about to
- * mint — the work items on this scope whose `step` equals this step's key — so no visit counter
- * field exists on the work item and none is to be added. Riftcarver's own retry bound is no
- * exception: `carve` and `repair` each cap at `maxVisits: 3`, the same per-step ceiling every step
- * in every family declares. This file declares the ceiling and nothing else: enforcement is the
- * router's.
+ * NO STEP CARRIES A VISIT BUDGET. A step runs as many times as its work needs — a plan of any size,
+ * any number of review rounds — and a quest halts only on a WALL or on a gate loop that has stopped
+ * making progress. `requiresProgress` marks the three `repair` steps that loop against a gate: before
+ * the router mints another one, the scope's latest repair must have moved the worktree's HEAD past
+ * the `startRef` it began at. A repair that committed nothing cannot be told apart from the next one,
+ * so the router blocks with `no-progress` instead of minting it.
  *
- * `mintableOnRequest`, `needsLane` AND `maxConcurrent` EACH HAVE EXACTLY ONE READER, and a field
+ * `mintableOnRequest`, `needsLane`, `maxConcurrent` AND `requiresProgress` EACH HAVE EXACTLY ONE READER, and a field
  * nobody reads silently means nothing. The first tells the reachability check that a step nothing
  * routes to is still reachable, because a running session asks for it. The second means the ROUTER
  * starts a siegelense instance before dispatching that work item and kills it when the item
  * records; the step declares no number, because how many may run at once is measured off
  * `siegelense capacity` rather than guessed. The third is a machine-load cap, counted over pieces
- * carrying a `browser` unit.
+ * carrying a `browser` unit. The fourth is the router's no-progress check, above.
  *
  * NO ZOD CONTRACT VALIDATES THIS FILE, AND NONE IS TO BE ADDED. Three things hold the shape: the
  * `as const`, the colocated pin test, and the graph checker that walks these routes. A contract
@@ -75,7 +75,6 @@ const CLOSE_OUT = {
     role: 'worker',
     kind: 'deterministic',
     handler: 'commit',
-    maxVisits: 3,
     // `empty` is a clean tree: every piece marked `cant-meet`, or a review-only pass.
     // It still wards — the branch may be red from an earlier scope.
     routes: { done: 'ward', empty: 'ward', wall: '@blocked' },
@@ -85,7 +84,6 @@ const CLOSE_OUT = {
     kind: 'deterministic',
     handler: 'ward',
     args: ['--committed', '--uncommitted'],
-    maxVisits: 3,
     // `empty` is a 0-file scope: green by exit code, but nothing was graded.
     // `wall` is a CRASH — ward never reported on the code, so a spiritmender has nothing
     // to fix and the next run crashes the same way. step-handler-ward-broker.ts classifies
@@ -98,7 +96,7 @@ const CLOSE_OUT = {
     kind: 'prompt',
     prompt: 'spiritmender',
     model: 'sonnet',
-    maxVisits: 3,
+    requiresProgress: true,
     routes: { unmet: 'repair', wall: '@blocked' },
   },
 } as const;
@@ -112,7 +110,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'codeweaver-planner',
         model: 'opus',
-        maxVisits: 5,
         routes: { done: 'work', empty: '@done', wall: '@blocked' },
       },
       work: {
@@ -120,7 +117,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'codeweaver-worker',
         model: 'sonnet',
-        maxVisits: 40,
         routes: { done: 'review', unmet: 'work', wall: '@blocked' },
       },
       review: {
@@ -128,7 +124,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'codeweaver-reviewer',
         model: 'opus',
-        maxVisits: 10,
         routes: { done: 'commit', unmet: 'work', wall: '@blocked' },
       },
       ...CLOSE_OUT,
@@ -147,7 +142,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'recipe-maker',
         model: 'opus',
-        maxVisits: 5,
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },
@@ -157,7 +151,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'write-ingredient',
         model: 'opus',
-        maxVisits: 10,
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },
@@ -166,7 +159,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'flowrider-planner',
         model: 'opus',
-        maxVisits: 5,
         routes: { done: 'work', empty: '@done', wall: '@blocked' },
       },
       work: {
@@ -174,7 +166,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'flowrider-worker',
         model: 'sonnet',
-        maxVisits: 40,
         // A browser walk boots Playwright through ward — NOT a siegelense lane, so this is
         // a different budget from the siege walkers' and capacity cannot see it. Four at
         // once is a machine-load cap, not a correctness one: ward gives each run its own
@@ -187,7 +178,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'flowrider-reviewer',
         model: 'opus',
-        maxVisits: 10,
         routes: { done: 'commit', unmet: 'work', wall: '@blocked' },
       },
       ...CLOSE_OUT,
@@ -207,7 +197,6 @@ export const agentFlowStatics = {
         role: 'worker',
         kind: 'deterministic',
         handler: 'cleanup',
-        maxVisits: 3,
         routes: { done: 'plan', empty: 'plan', wall: '@blocked' },
       },
       // The same prompt flowrider uses, requested the same way. A recipe is flow-scoped,
@@ -217,7 +206,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'recipe-maker',
         model: 'opus',
-        maxVisits: 5,
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },
@@ -227,7 +215,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'write-ingredient',
         model: 'opus',
-        maxVisits: 10,
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },
@@ -239,7 +226,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'siegemaster-reader',
         model: 'sonnet',
-        maxVisits: 10,
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },
@@ -248,7 +234,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'siege-planner',
         model: 'opus',
-        maxVisits: 5,
         routes: { done: 'happyWalk', empty: 'sweepOut', wall: '@blocked' },
       },
       // Each walker has its OWN fixer, and each fixer routes back to the walker that
@@ -264,7 +249,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'siege-happy-walker',
         model: 'sonnet',
-        maxVisits: 40,
         // A lane IS a siegelense instance. How many may run at once is measured, not
         // declared, and the ROUTER starts and stops them. Both walkers draw on the one pool.
         needsLane: true,
@@ -276,7 +260,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'siege-happy-fixer',
         model: 'sonnet',
-        maxVisits: 40,
         routes: { unmet: 'fixHappy', wall: '@blocked' },
       },
       adversarial: {
@@ -284,7 +267,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'siege-adversarial-walker',
         model: 'sonnet',
-        maxVisits: 40,
         needsLane: true,
         routes: { done: 'commit', empty: 'commit', unmet: 'fixAdversarial', wall: '@blocked' },
       },
@@ -293,7 +275,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'siege-adversarial-fixer',
         model: 'sonnet',
-        maxVisits: 40,
         routes: { unmet: 'fixAdversarial', wall: '@blocked' },
       },
       ...CLOSE_OUT,
@@ -308,7 +289,6 @@ export const agentFlowStatics = {
         role: 'worker',
         kind: 'deterministic',
         handler: 'cleanup',
-        maxVisits: 3,
         routes: { done: '@done', empty: '@done', wall: '@blocked' },
       },
     },
@@ -325,7 +305,6 @@ export const agentFlowStatics = {
         kind: 'deterministic',
         handler: 'ward',
         args: [],
-        maxVisits: 3,
         routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
       },
       // A repair here writes code, and this graph has no CLOSE_OUT, so it needs its own
@@ -336,14 +315,13 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'spiritmender',
         model: 'sonnet',
-        maxVisits: 3,
+        requiresProgress: true,
         routes: { done: 'commit', unmet: 'repair', wall: '@blocked' },
       },
       commit: {
         role: 'worker',
         kind: 'deterministic',
         handler: 'commit',
-        maxVisits: 3,
         routes: { done: 'gate', empty: 'gate', wall: '@blocked' },
       },
     },
@@ -359,7 +337,6 @@ export const agentFlowStatics = {
         kind: 'deterministic',
         handler: 'riftcarver',
         args: [],
-        maxVisits: 3,
         routes: { done: '@done', unmet: 'repair', wall: '@blocked' },
       },
       // Same reason as wardFull's: a repair writes code and this graph has no CLOSE_OUT.
@@ -368,14 +345,13 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'spiritmender',
         model: 'sonnet',
-        maxVisits: 3,
+        requiresProgress: true,
         routes: { done: 'commit', unmet: 'repair', wall: '@blocked' },
       },
       commit: {
         role: 'worker',
         kind: 'deterministic',
         handler: 'commit',
-        maxVisits: 3,
         routes: { done: 'carve', empty: 'carve', wall: '@blocked' },
       },
     },
@@ -389,7 +365,6 @@ export const agentFlowStatics = {
         kind: 'prompt',
         prompt: 'warpgate',
         model: 'opus',
-        maxVisits: 3,
         routes: { done: '@done', unmet: 'merge', wall: '@blocked' },
       },
     },

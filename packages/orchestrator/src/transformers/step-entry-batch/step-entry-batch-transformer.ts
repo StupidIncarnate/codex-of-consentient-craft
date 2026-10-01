@@ -26,8 +26,10 @@
  * session units already `met` is how a step re-marks work nobody asked it to re-do.
  *
  * A WORKER STEP WITH NO UNSTARTED PIECE still mints one item, assigned that step's OUTSTANDING units
- * — the `repair` case, where the fix is real work nobody cut a piece for. It is not an empty answer:
- * an empty batch is `cause: 'capped'` and means something else entirely.
+ * — whatever its declared scope holds that nothing has settled. A `repair` declares `none`, so it
+ * mints with no unit at all: it fixes a gate's red, and every unit is already the reviewer's to
+ * mark. It is not an empty answer: an empty batch is `cause: 'capped'` and means something else
+ * entirely.
  */
 
 import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';

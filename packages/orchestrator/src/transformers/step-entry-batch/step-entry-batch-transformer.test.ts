@@ -396,6 +396,33 @@ describe('stepEntryBatchTransformer', () => {
     });
   });
 
+  describe('a repair step', () => {
+    it('VALID: {repair, a plan, seven off-map units outstanding} => one item assigned NOTHING — a spiritmender fixes the gate red, never units', () => {
+      const quest = QuestStub({ flows: [SIEGE_FLOW], operations: [SIEGE_OPERATION_ITEM] });
+      const plan = WorkPlanStub({
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        family: 'siegemaster',
+        flowId: 'send-flow',
+        batches: [],
+      });
+
+      const batch = stepEntryBatchTransformer({
+        quest,
+        plan,
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        step: 'repair',
+        itemRole: 'siegemaster',
+        stepRole: 'worker',
+        deterministic: false,
+        needsLane: false,
+      });
+
+      expect(batch).toStrictEqual([
+        { step: 'repair', role: 'siegemaster', assignedUnitIds: [], needsLane: false },
+      ]);
+    });
+  });
+
   describe('a worker step on a scope whose planner has not run', () => {
     it('EMPTY: {plan: null} => one item assigned nothing', () => {
       const quest = QuestStub({ flows: [SIEGE_FLOW], operations: [SIEGE_OPERATION_ITEM] });

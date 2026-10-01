@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Validates and applies ONE `quest-work` call — the single MCP write surface every LLM
- * step calls, across its six payload kinds. `plan` and `amendment` write a plan file through
- * `questWorkPlanWriteBroker`; `observations`, `outcome`, `invalidation` and `request` mutate
+ * step calls, across its five payload kinds. `plan` and `amendment` write a plan file through
+ * `questWorkPlanWriteBroker`; `observations`, `outcome` and `request` mutate
  * `quest.json` through `questWorkRecordBroker`.
  *
  * USAGE:

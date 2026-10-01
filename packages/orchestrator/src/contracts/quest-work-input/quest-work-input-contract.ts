@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Validates the ONE MCP write surface every LLM step calls — `quest-work` — across its six
- * payload kinds (`plan`, `observations`, `amendment`, `outcome`, `invalidation`, `request`). Lives
+ * PURPOSE: Validates the ONE MCP write surface every LLM step calls — `quest-work` — across its five
+ * payload kinds (`plan`, `observations`, `amendment`, `outcome`, `request`). Lives
  * in the orchestrator rather than `shared` because the `plan` payload embeds `workPlanContract`
  * (story 07), and `shared` may not depend on the orchestrator.
  *
@@ -11,7 +11,7 @@
  *   payload: { kind: 'outcome', word: 'done', reason: 'every assigned unit is met' },
  * });
  * // Returns: QuestWorkInput — the discriminator lives on `payload.kind`, never at the top level,
- * // because the envelope (questId, workItemId) is common to all six and the union is what varies
+ * // because the envelope (questId, workItemId) is common to all five and the union is what varies
  *
  * `writtenBy` and `writtenAt` are `.omit()`ed from both plan-bearing payloads (`plan`, `amendment`)
  * and stamped server-side in the broker, exactly as `questInputServerTimestampsTransformer` already
@@ -31,12 +31,10 @@
 import { z } from '#gateway/npm/zod';
 
 import {
-  questNoteContract,
   unitObservationContract,
   unitObservationFieldsContract,
   questContract,
   workItemContract,
-  flowContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
@@ -97,15 +95,6 @@ const outcomePayloadContract = z
   .strict()
   .brand<'OutcomePayload'>();
 
-const invalidationPayloadContract = z
-  .object({
-    kind: z.literal('invalidation'),
-    flowId: flowContract.shape.id,
-    reason: questNoteContract.shape.detail,
-  })
-  .strict()
-  .brand<'InvalidationPayload'>();
-
 const requestPayloadContract = z
   .object({
     kind: z.literal('request'),
@@ -124,7 +113,6 @@ export const questWorkInputContract = z
       observationsPayloadContract,
       amendmentPayloadContract,
       outcomePayloadContract,
-      invalidationPayloadContract,
       requestPayloadContract,
     ]),
   })

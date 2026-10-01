@@ -10,7 +10,6 @@ import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-pa
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-modify-lock-broker.proxy';
-import { invalidationApplyLayerBrokerProxy } from './invalidation-apply-layer-broker.proxy';
 import { workItemPatchLayerBrokerProxy } from './work-item-patch-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -37,13 +36,7 @@ export const questWorkRecordBrokerProxy = (): {
   const loadProxy = questLoadBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
-  // Both layer proxies mock the SAME underlying `questPersistBroker` function — `registerMock`
-  // state is shared per function across every proxy mocking it, so either one's own
-  // `getPersistedQuests()` already sees every persist call regardless of which layer made it.
-  // Constructing both keeps `enforce-proxy-child-creation` satisfied for each layer this parent
-  // can dispatch to; only the first's accessor is read from below.
   const patchProxy = workItemPatchLayerBrokerProxy();
-  const invalidationProxy = invalidationApplyLayerBrokerProxy();
   const killProxy = laneKillBrokerProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
@@ -70,7 +63,6 @@ export const questWorkRecordBrokerProxy = (): {
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
       patchProxy.setupPersistSucceeds({ questFilePath });
-      invalidationProxy.setupPersistSucceeds({ questFilePath });
     },
 
     queueNextQuestRead: ({ quest }: { quest: Quest }): void => {

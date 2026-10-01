@@ -2,7 +2,7 @@
  * PURPOSE: The operation item a work item's `operations/<id>` ref points at, or `undefined` when
  * the work item carries no such ref (a chat role, or a work item minted before this invariant). The
  * SAME lookup `questResetFlowSignoffsBroker` and `questHandleSignalBackResponder` each repeat inline
- * — pulled out here so `quest-work`'s `invalidation` and `request` payloads share it.
+ * — pulled out here for `quest-work`'s `request` payload.
  *
  * USAGE:
  * workItemLinkedOperationResolveTransformer({ quest: QuestStub(), workItem: WorkItemStub() });

@@ -177,20 +177,12 @@ judgment once the quest is done: on an OBSERVABLE, set \`verifyByHuman: true\` o
 carries no such field, \`cant-meet\` is the honest mark — name the person's check as its \`toSettle\`.**
 See the \`verifyByHuman\` rule further down this page for the whole picture.
 
-### 9. Where the fix moved behaviour nobody can enumerate, invalidate the flow
+### 9. A change that reaches past your units is the walker's to catch
 
-A change to shared code can move behaviour an earlier walk already cleared, in a way no unit id on
-your own list names. Where that happened:
-
-\`\`\`
-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID',
-  payload: { kind: 'invalidation', flowId: '<the flow id>',
-             reason: '<what changed, and every unit it could have moved>' } })
-\`\`\`
-
-This re-opens every unit on that flow onto a fresh session. Nothing is edited and nothing is erased —
-it is the bulk lever a full re-walk used to be, spent only where the reach of your change is wider than
-the units you were handed.
+You do not re-open anything. When you finish, the walker that sent you here walks this flow again on
+a fresh session, and that session starts with every unit it is handed unmarked — an earlier \`met\`
+does not carry over. Where your change could move behaviour beyond the units you hold, say so in the
+evidence of the mark you record, naming what else it touches, so that walk knows where to look.
 
 ### 10. Ward your own paths, and nothing wider
 

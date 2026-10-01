@@ -616,8 +616,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
     }, 30_000);
   });
 
-  describe('maxVisits — the ward/repair fixpoint blocks rather than looping forever', () => {
-    it("ERROR: {ward and repair have already alternated three times, spending ward's whole `maxVisits`} => a repair draining `done` (undeclared) tries to return a FOURTH ward and blocks with reason `max-visits`, naming `ward`", async () => {
+  describe('no visit budget — the ward/repair fixpoint keeps looping while repairs make progress', () => {
+    it('VALID: {ward and repair have already alternated three times} => a repair draining `done` (undeclared) returns to a FOURTH ward — no count halts it', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'rsb-cw-ward-repair-fixpoint-maxvisits',
       });
@@ -637,10 +637,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       // exists to prove), and each `ward` after the first carries `mintedBy` for the `repair`
       // that returned to it — the SAME propagation `next-action-transformer.ts`'s
       // return-to-minter branch already does for a worker step.
-      // `agentFlowStatics.codeweaver.steps.ward` (CLOSE_OUT.ward) declares `maxVisits: 3`, so
-      // `ward` has already spent its whole budget by the third cycle. The LAST item is the third
-      // repair, drained with no declaredWord: its undeclared `done` return would mint a FOURTH
-      // `ward` — one past the budget.
+      // The LAST item is the third repair, drained with no declaredWord: its undeclared `done`
+      // returns to the gate that minted it, a FOURTH `ward`. No step carries a visit count.
       await quest.seedInProgressRelay({
         questId,
         flows: [SEND_FLOW],
@@ -716,25 +714,166 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       expect({
         result,
         questStatus: after.status,
-        // No fourth `ward` item was minted — the budget check runs before the mint.
         workItemCount: after.workItems.length,
+        mintedStep: after.workItems.at(-1)?.step,
         lastRepairStatus: lastRepairAfter?.status,
-        lastRepairErrorMessage: lastRepairAfter?.errorMessage,
       }).toStrictEqual({
-        result: { routed: false, blocked: true },
-        questStatus: 'blocked',
-        workItemCount: 6,
-        lastRepairStatus: 'failed',
-        lastRepairErrorMessage:
-          'maxVisits spent: step `ward` in family `codeweaver` has been entered 3 times for ' +
-          `operation item ${opId}, and its whole budget is 3 — the loop is not converging and ` +
-          'another session would find the same thing. Still unmet: none.',
+        result: { routed: true, blocked: false },
+        questStatus: 'in_progress',
+        workItemCount: 7,
+        mintedStep: 'ward',
+        lastRepairStatus: 'complete',
       });
     }, 30_000);
   });
 
-  describe('maxVisits — a spent budget on repair blocks the quest', () => {
-    it('ERROR: {repair already entered 3 times — its whole `maxVisits` — and folds to `unmet` again} => blocks with reason `max-visits`, naming the step, the family and the spent budget', async () => {
+  describe('repair → repair keeps the return edge on the ward', () => {
+    it('VALID: {repair minted by a red ward declares unmet with no units} => mints ONE fresh repair, assigned nothing, whose mintedBy still names the WARD', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'rsb-cw-repair-self-loop',
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = randomUUID();
+      const wardId = QuestWorkItemIdStub({ value: randomUUID() });
+      const repairId = QuestWorkItemIdStub({ value: randomUUID() });
+      const relatedDataItems = [`operations/${opId}`];
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [codeweaverScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: wardId,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: repairId,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            mintedBy: wardId,
+            relatedDataItems,
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.at(-1);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        workItemCount: after.workItems.length,
+        mintedStep: minted?.step,
+        mintedAssignedUnitIds: minted?.assignedUnitIds,
+        mintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        workItemCount: 3,
+        mintedStep: 'repair',
+        mintedAssignedUnitIds: [],
+        mintedBy: wardId,
+      });
+    }, 30_000);
+  });
+
+  // The ledger shape a quest blocked by the old unit-bearing repair carries into a resume: its repair
+  // was handed seven off-map probes and marked one `met` and six `unmet`. A repair settles no
+  // unit, so none is carried forward.
+  describe('a repair still holding off-map units from before repair measured nothing', () => {
+    it('VALID: {repair holds seven off-map units, six marked unmet} => mints ONE fresh repair assigned nothing, returning to the ward — never one per unit, never a block', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'rsb-cw-repair-stale-units',
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = randomUUID();
+      const wardId = QuestWorkItemIdStub({ value: randomUUID() });
+      const repairId = QuestWorkItemIdStub({ value: randomUUID() });
+      const relatedDataItems = [`operations/${opId}`];
+      const metUnit = 'send-flow:off-map:hostile-input';
+      const unmetUnits = [
+        'send-flow:off-map:re-entry',
+        'send-flow:off-map:concurrency',
+        'send-flow:off-map:interruption',
+        'send-flow:off-map:staleness',
+        'send-flow:off-map:configuration',
+        'send-flow:off-map:perf',
+      ];
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [codeweaverScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: wardId,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: repairId,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            assignedUnitIds: [metUnit, ...unmetUnits],
+            observations: [
+              UnitObservationStub({ unitId: metUnit, mark: 'met', evidence: 'recorded from ward' }),
+              ...unmetUnits.map((unitId) =>
+                UnitObservationStub({ unitId, mark: 'unmet', evidence: 'not probed in repair' }),
+              ),
+            ],
+            mintedBy: wardId,
+            relatedDataItems,
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.at(-1);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        questStatus: after.status,
+        workItemCount: after.workItems.length,
+        mintedStep: minted?.step,
+        mintedAssignedUnitIds: minted?.assignedUnitIds,
+        mintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        questStatus: 'in_progress',
+        workItemCount: 3,
+        mintedStep: 'repair',
+        mintedAssignedUnitIds: [],
+        mintedBy: wardId,
+      });
+    }, 30_000);
+  });
+
+  describe('no visit budget — a repair loop with no worktree to measure keeps going', () => {
+    it('VALID: {repair already entered 3 times and folds to `unmet` again, on a quest with no worktree} => mints a fourth repair — progress cannot be measured, so nothing blocks', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'rsb-cw-repair-maxvisits',
       });
@@ -750,9 +889,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
         flows: [SEND_FLOW],
         packagesAffected: [WEB_PACKAGE],
         operations: [codeweaverScope({ opId })],
-        // `agentFlowStatics.codeweaver.steps.repair` (CLOSE_OUT.repair) declares `maxVisits: 3`.
-        // Three prior visits already spent the whole budget; this scan's attempt at a fourth is
-        // what `mint-next-action-transformer.ts` checks BEFORE minting anything.
+        // No worktree on this quest, so the route broker reads no HEAD and the no-progress check
+        // has nothing to compare: the fourth repair mints.
         workItems: repairIds.map((id) =>
           WorkItemStub({
             id,
@@ -778,18 +916,14 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
         result,
         questStatus: after.status,
         workItemCount: after.workItems.length,
+        mintedStep: after.workItems.at(-1)?.step,
         lastRepairStatus: lastRepairAfter?.status,
-        lastRepairErrorMessage: lastRepairAfter?.errorMessage,
       }).toStrictEqual({
-        result: { routed: false, blocked: true },
-        questStatus: 'blocked',
-        // No fourth work item was minted — the budget check runs before the mint.
-        workItemCount: 3,
-        lastRepairStatus: 'failed',
-        lastRepairErrorMessage:
-          'maxVisits spent: step `repair` in family `codeweaver` has been entered 3 times for ' +
-          `operation item ${opId}, and its whole budget is 3 — the loop is not converging and ` +
-          'another session would find the same thing. Still unmet: none.',
+        result: { routed: true, blocked: false },
+        questStatus: 'in_progress',
+        workItemCount: 4,
+        mintedStep: 'repair',
+        lastRepairStatus: 'complete',
       });
     }, 30_000);
   });

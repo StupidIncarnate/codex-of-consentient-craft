@@ -27,6 +27,7 @@
 
 import { questRouteScopeResultContract } from '../../../contracts/quest-route-scope-result/quest-route-scope-result-contract';
 import type { QuestRouteScopeResult } from '../../../contracts/quest-route-scope-result/quest-route-scope-result-contract';
+import { headSha } from '#gateway/bin/git';
 import { randomUUID } from '#gateway/node/crypto';
 import { join } from '#gateway/node/path';
 import { operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
@@ -96,6 +97,19 @@ export const questRouteScopeBroker = async ({
     operationItemId: candidate.id,
   });
 
+  // The worktree's HEAD, for the router's no-progress check on a `repair` loop. Read only where that
+  // check can fire — the quest has a worktree and some item on this scope recorded a `startRef` — so
+  // a hydrated or worktree-less quest never spawns git. `null` (no commits, no git) reads as unknown.
+  const { worktreePath } = scanned;
+  const candidateRef = `${OPERATIONS_REF_PREFIX}${String(candidate.id)}`;
+  const anyStartRef = scanned.workItems.some(
+    (item) =>
+      item.startRef !== undefined &&
+      item.relatedDataItems.map((ref) => String(ref)).includes(candidateRef),
+  );
+  const head =
+    worktreePath !== undefined && anyStartRef ? await headSha({ cwd: worktreePath }) : null;
+
   // An object holder, not a bare `let`: the values are assigned inside the update callback, which
   // TypeScript's flow analysis cannot see through.
   const halt: { workItemId?: WorkItem['id']; reason?: string } = {};
@@ -136,8 +150,8 @@ export const questRouteScopeBroker = async ({
         operationItemId: operation.id,
         agentFlowStatics,
         questFlowStatics,
-        // The four values a pure function cannot go and look for. `quest-work` writes each of them
-        // onto the work item and this reads them straight back.
+        // The values a pure function cannot go and look for. `quest-work` writes the request and the
+        // word onto the work item and this reads them straight back; HEAD was read above the lock.
         ...(last.requestedStep === undefined || last.requestedReason === undefined
           ? {}
           : {
@@ -148,6 +162,7 @@ export const questRouteScopeBroker = async ({
               },
             }),
         ...(last.declaredWord === undefined ? {} : { declaredWord: last.declaredWord }),
+        ...(head === null ? {} : { headSha: head }),
         hitWall: last.declaredWord === 'wall',
       });
 

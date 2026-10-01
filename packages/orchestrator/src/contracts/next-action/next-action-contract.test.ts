@@ -96,14 +96,14 @@ describe('nextActionContract', () => {
   });
 
   describe('the block variant', () => {
-    it('VALID: {reason: max-visits} => round-trips the family, step and message', () => {
+    it('VALID: {reason: no-progress} => round-trips the family, step and message', () => {
       const action = nextActionContract.parse({
         kind: 'block',
         operationItemId: OPERATION_ITEM_ID,
         family: 'codeweaver',
         step: 'work',
-        reason: 'max-visits',
-        message: 'maxVisits spent',
+        reason: 'no-progress',
+        message: 'no progress',
       });
 
       expect(action).toStrictEqual({
@@ -111,8 +111,8 @@ describe('nextActionContract', () => {
         operationItemId: OPERATION_ITEM_ID,
         family: 'codeweaver',
         step: 'work',
-        reason: 'max-visits',
-        message: 'maxVisits spent',
+        reason: 'no-progress',
+        message: 'no progress',
       });
     });
 

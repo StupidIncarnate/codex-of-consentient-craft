@@ -42,14 +42,7 @@ export const nextActionContract = z.discriminatedUnion('kind', [
         .min(1)
         .brand<'NextActionStep'>()
         .describe('Every item in `batch` sits at THIS step — the outcome fold is per step.'),
-      cause: z.enum([
-        'request',
-        'unmet',
-        'plan-batch',
-        'return-to-minter',
-        'invalidation',
-        'capped',
-      ]),
+      cause: z.enum(['request', 'unmet', 'plan-batch', 'return-to-minter', 'capped']),
       batch: z.array(mintedWorkItemContract),
     })
     .brand<'NextAction'>(),
@@ -80,7 +73,7 @@ export const nextActionContract = z.discriminatedUnion('kind', [
       operationItemId: operationItemContract.shape.id,
       family: z.string().min(1).brand<'NextActionFamily'>(),
       step: z.string().min(1).brand<'NextActionStep'>(),
-      reason: z.enum(['wall', 'max-visits', 'unknown-step', 'unknown-route-target', 'no-minter']),
+      reason: z.enum(['wall', 'no-progress', 'unknown-step', 'unknown-route-target', 'no-minter']),
       message: z.string().min(1).brand<'NextActionMessage'>(),
     })
     .brand<'NextAction'>(),

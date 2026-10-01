@@ -17,8 +17,7 @@
  *
  * The grammar can express a back-edge, and a `siegemaster` route back to `codeweaver` would be an
  * edit here rather than a code change. Nothing declares one: a scope only ever ends `@done` or
- * `@blocked`, so no family produces an outcome a back-edge fires on. The graph is acyclic and needs
- * no family-level `maxVisits`.
+ * `@blocked`, so no family produces an outcome a back-edge fires on. The graph is acyclic.
  *
  * A family's `done` fires once EVERY one of its fanned-out scopes is complete — codeweaver with nine
  * cells routes to flowrider ONCE, on the ninth. `empty` is the same edge for a family that fanned

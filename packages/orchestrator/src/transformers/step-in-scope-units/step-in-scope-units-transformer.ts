@@ -19,6 +19,10 @@
  * caller bug, and returning `[]` for it is indistinguishable from a genuinely empty scope, which is
  * the reading that turns a gate off silently.
  *
+ * A STEP OF THE THREE FAMILIES THAT `stepScopeStatics` DECLARES IN NEITHER TABLE THROWS. An undeclared
+ * step falling through to the unfiltered set is how a spiritmender `repair` was assigned off-map
+ * probes only a siege walker can settle; `unscopedByFamilyStep` says `all` or `none` out loud instead.
+ *
  * THE FLOW NARROWING READS `stepScopeStatics`'s OWN `flowTypes`, per (family, step) rather than per
  * track. Both siege STEPS carry `['runtime']` alone, narrower than codeweaver's and flowrider's
  * `['runtime', 'operational']`, because an operational flow's siege units settle in codeweaver's
@@ -74,12 +78,22 @@ export const stepInScopeUnitsTransformer = ({
 
   const family: StepFamily = operationItem.role;
   const familySteps: Record<string, StepScope> = stepScopeStatics.byFamilyStep[family];
+  const unscopedSteps: Record<string, 'all' | 'none'> =
+    stepScopeStatics.unscopedByFamilyStep[family];
   const declaredScope = familySteps[step];
+  const unscoped = unscopedSteps[step];
 
-  // A step with NO declared scope inherits its family's whole in-scope set UNFILTERED. Every
-  // `worker` step and every `planner` step is deliberately absent from `byFamilyStep` — a worker is
-  // handed the units its piece assigns and a planner is assigned none — so `undefined` here is that
-  // documented case rather than a lookup miss, and `null` below reads as "no filter".
+  if (declaredScope === undefined && unscoped === undefined) {
+    throw new Error(
+      `stepInScopeUnitsTransformer: step '${step}' of family '${family}' is declared in neither stepScopeStatics.byFamilyStep nor stepScopeStatics.unscopedByFamilyStep`,
+    );
+  }
+
+  if (unscoped === 'none') {
+    return [];
+  }
+
+  // `null` reads as "no filter" — the `all` declaration, a planner reading its family's whole set.
   const eligible =
     declaredScope === undefined
       ? null

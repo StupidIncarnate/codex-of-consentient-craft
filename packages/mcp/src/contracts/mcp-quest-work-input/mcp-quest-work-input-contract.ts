@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Validates the MCP-advertised shape of the `quest-work` tool call — the single write
- * surface every LLM step calls, across its six payload kinds. THIS copy exists only to be fed to
+ * surface every LLM step calls, across its five payload kinds. THIS copy exists only to be fed to
  * `zodToJsonSchema` for the advertised schema; the orchestrator's own `questWorkInputContract`
  * (`@dungeonmaster/orchestrator`, not importable from here — that package exports no `./contracts`
  * subpath) is the one that actually validates. `plan` and `amendment.plan` are deliberately
@@ -22,7 +22,6 @@ import {
   questContract,
   workItemContract,
   qaChecklistItemContract,
-  flowContract,
 } from '@dungeonmaster/shared/contracts';
 
 const planPayloadContract = z
@@ -94,21 +93,6 @@ const outcomePayloadContract = z
   .strict()
   .brand<'OutcomePayload'>();
 
-const invalidationPayloadContract = z
-  .object({
-    kind: z.literal('invalidation'),
-    flowId: flowContract.shape.id,
-    reason: z
-      .string()
-      .min(1)
-      .brand<'InvalidationPayloadReason'>()
-      .describe(
-        "What changed underneath the flow's already-recorded marks. Recorded as the walk-reset note detail.",
-      ),
-  })
-  .strict()
-  .brand<'InvalidationPayload'>();
-
 const requestPayloadContract = z
   .object({
     kind: z.literal('request'),
@@ -137,7 +121,6 @@ export const mcpQuestWorkInputContract = z
       observationsPayloadContract,
       amendmentPayloadContract,
       outcomePayloadContract,
-      invalidationPayloadContract,
       requestPayloadContract,
     ]),
   })

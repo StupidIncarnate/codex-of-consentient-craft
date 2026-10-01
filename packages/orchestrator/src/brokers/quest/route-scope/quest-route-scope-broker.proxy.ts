@@ -24,6 +24,7 @@
  * body, and a caller's suite that imports this file sees them exactly as if it were not there.
  */
 
+import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
@@ -71,6 +72,8 @@ export const questRouteScopeBrokerProxy = (): {
     operationItemId: OperationItem['id'];
     plan: WorkPlan;
   }) => void;
+  // Stages the worktree's `git rev-parse HEAD` answer the no-progress check reads.
+  setupWorktreeHead: (params: { sha: string }) => void;
   getPersistedQuest: () => Quest;
   getBlockCalls: () => readonly BlockCall[];
 } => {
@@ -87,6 +90,7 @@ export const questRouteScopeBrokerProxy = (): {
   questLoadBrokerProxy();
   const updateProxy = questOperationsUpdateBrokerProxy();
   mintNextFamilyLayerBrokerProxy();
+  const gitHeadProxy = headShaProxy();
 
   const uuidCounter = { value: 0 };
 
@@ -151,6 +155,10 @@ export const questRouteScopeBrokerProxy = (): {
         operationItemId,
         plan,
       });
+    },
+
+    setupWorktreeHead: ({ sha }: { sha: string }): void => {
+      gitHeadProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
 
     getPersistedQuest: (): Quest => updateProxy.getLastPersistedQuest(),

@@ -98,7 +98,7 @@ export const scanOnceLayerBroker = async ({
   if (step === null) {
     const routing = await questRouteScopeBroker({ questId: quest.id });
 
-    // The router routed a step to `@blocked` — an environment wall, a spent `maxVisits`, an
+    // The router routed a step to `@blocked` — an environment wall, a repair that made no progress, an
     // outcome with neither a route nor a minter — and the halt has already landed. Stop for the
     // same reason orphan recovery's does: everything below would act on a quest that just stopped.
     if (routing.blocked) {

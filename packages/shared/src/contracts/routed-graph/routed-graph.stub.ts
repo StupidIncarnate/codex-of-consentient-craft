@@ -7,6 +7,6 @@ export const RoutedGraphStub = ({ ...props }: StubArgument<RoutedGraph> = {}): R
   routedGraphContract.parse({
     graphName: 'codeweaver',
     entry: 'plan',
-    nodes: { plan: { routes: { done: '@done' }, maxVisits: 5 } },
+    nodes: { plan: { routes: { done: '@done' } } },
     ...props,
   });

@@ -11,11 +11,19 @@
  * stepScopeStatics.byFamilyStep.siegemaster.adversarial.unitKinds;
  * // Returns ['off-map'] — the family it was allocated, and nothing else
  *
- * A STEP WITH NO DECLARED SCOPE INHERITS ITS FAMILY'S WHOLE IN-SCOPE SET UNFILTERED. Every `worker`
- * step and every `planner` step in `agentFlowStatics` is absent from `byFamilyStep` for exactly that
- * reason — a worker is handed the units its piece assigns, not a scope, and a planner is assigned
- * none, so neither has a filter to declare. Absence here is not an omission to fill in: a scope keyed
- * to a step nobody declared is a filter that can never fire.
+ * EVERY STEP OF THE THREE UNIT-BEARING FAMILIES IS DECLARED, IN EXACTLY ONE OF THE TWO TABLES, and
+ * `stepInScopeUnitsTransformer` throws on a step in neither. `byFamilyStep` holds the steps measured
+ * over a real filter. `unscopedByFamilyStep` holds the rest as one of two words: `all` is the family's
+ * whole in-scope set unfiltered — a planner, which reads everything to cut pieces and is assigned
+ * none — and `none` is the empty set — a step that settles no unit at all (`commit`, `ward`, the
+ * spiritmender `repair`, the sweeps and the on-request helpers). A silent "missing means unfiltered"
+ * is what handed a codeweaver `repair` seven siegemaster-only off-map probes it could never settle.
+ *
+ * A WORKER CARRIES ITS REVIEWER'S SCOPE. `codeweaver.work` and `flowrider.work` restate their
+ * `review`'s scope, because a worker can only settle what its own reviewer measures — a pieceless
+ * worker handed anything wider holds units no session in its family can ever sign. Both siege fixers
+ * restate `happyWalk`'s, the widest scope siege settles: an adversarial walker records a measured
+ * defect as a NEW observable, so `fixAdversarial` has to be able to carry one, not off-map alone.
  *
  * `flowScope` AND `packageScope` HAVE NO FIELD HERE, and dropping both costs nothing. Neither rule is
  * read by any production file: `qaUnitsInPackageScopeTransformer` hardcodes the intersection rule in
@@ -71,9 +79,43 @@ export const stepScopeStatics = {
         ],
         observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
       },
+      work: {
+        flowTypes: ['runtime', 'operational'],
+        verificationMethods: ['test', 'reading'] as readonly VerificationMethod[],
+        unitKinds: ['terminal', 'branch', 'observable'],
+        packageTypes: [
+          'http-backend',
+          'mcp-server',
+          'frontend-react',
+          'frontend-ink',
+          'hook-handlers',
+          'eslint-plugin',
+          'cli-tool',
+          'programmatic-service',
+          'library',
+        ],
+        observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+      },
     },
     flowrider: {
       review: {
+        flowTypes: ['runtime'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
+        unitKinds: ['terminal', 'branch', 'observable'],
+        packageTypes: [
+          'http-backend',
+          'mcp-server',
+          'frontend-react',
+          'frontend-ink',
+          'hook-handlers',
+          'eslint-plugin',
+          'cli-tool',
+          'programmatic-service',
+          'library',
+        ],
+        observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+      },
+      work: {
         flowTypes: ['runtime'],
         verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable'],
@@ -96,6 +138,30 @@ export const stepScopeStatics = {
         // 'runtime' alone, never 'operational': operational units move to codeweaver's reviewer,
         // the only family that can settle them — an operational flow is a one-time task sequence
         // with no repeatable walk for a siege lane to drive.
+        flowTypes: ['runtime'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
+        unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
+        packageTypes: [
+          'http-backend',
+          'mcp-server',
+          'frontend-react',
+          'frontend-ink',
+          'hook-handlers',
+          'eslint-plugin',
+          'cli-tool',
+          'programmatic-service',
+          'library',
+        ],
+        observableOrigins: [
+          'spec',
+          'chaoswhisperer',
+          'codeweaver',
+          'flowrider',
+          'siegemaster',
+          'operator',
+        ],
+      },
+      fixHappy: {
         flowTypes: ['runtime'],
         verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
@@ -145,6 +211,52 @@ export const stepScopeStatics = {
           'operator',
         ],
       },
+      fixAdversarial: {
+        flowTypes: ['runtime'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
+        unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
+        packageTypes: [
+          'http-backend',
+          'mcp-server',
+          'frontend-react',
+          'frontend-ink',
+          'hook-handlers',
+          'eslint-plugin',
+          'cli-tool',
+          'programmatic-service',
+          'library',
+        ],
+        observableOrigins: [
+          'spec',
+          'chaoswhisperer',
+          'codeweaver',
+          'flowrider',
+          'siegemaster',
+          'operator',
+        ],
+      },
+    },
+  },
+  unscopedByFamilyStep: {
+    codeweaver: { plan: 'all', commit: 'none', ward: 'none', repair: 'none' },
+    flowrider: {
+      recipe: 'none',
+      writeIngredient: 'none',
+      plan: 'all',
+      commit: 'none',
+      ward: 'none',
+      repair: 'none',
+    },
+    siegemaster: {
+      sweepIn: 'none',
+      recipe: 'none',
+      writeIngredient: 'none',
+      read: 'none',
+      plan: 'all',
+      commit: 'none',
+      ward: 'none',
+      repair: 'none',
+      sweepOut: 'none',
     },
   },
 } as const;
