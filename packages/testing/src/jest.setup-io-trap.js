@@ -12,7 +12,7 @@
 // Every trapped call throws when made, unless:
 //   - its first argument is a path inside node_modules (a package loading its own files), or
 //   - it READS a fixture under a package's own `test/` directory, or
-//   - it is a READ made by the TypeScript compiler itself, or
+//   - it is a READ made by a TypeScript compiler itself (`typescript`, or ts-morph's copy of it), or
 //   - the first repo frame on the call stack is test infrastructure (.test/.proxy/.stub/.harness, or
 //     a file under `test/`) — that is how a proxy's data is recorded from the real thing.
 // Implementation code reaching real I/O unstaged is what it catches.
@@ -96,7 +96,10 @@ const COMPILER_TOOLCHAIN_FRAME = /[\\/]node_modules[\\/](tsx|ts-jest|esbuild)[\\
 // a real TypeScript compile over fixtures reads them from inside node_modules. Reads only: nothing
 // may write into the checkout's fixtures.
 const TEST_FIXTURE_PATH = /[\\/]packages[\\/][^\\/]+[\\/]test[\\/]/u;
-const TYPESCRIPT_COMPILER_FRAME = /[\\/]node_modules[\\/]typescript[\\/]/u;
+// A frame inside a TypeScript compiler. ts-morph ships its own copy of the compiler and its own
+// file system host in `@ts-morph/common`, so every read a ts-morph `Project` makes (its tsconfig,
+// the source files, the `lib.*.d.ts` files) arrives from there and never from `typescript/`.
+const TYPESCRIPT_COMPILER_FRAME = /[\\/]node_modules[\\/](?:typescript|@ts-morph[\\/]common)[\\/]/u;
 // A frame inside one of the gateway wrapper packages (`packages/@gateway/*`), in this repo or a
 // consumer's copy of it. Never widened to a bare `@gateway` segment, which would also swallow a
 // path like `packages/foo/src/uses-at-gateway/…`.
