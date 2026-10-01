@@ -20,7 +20,7 @@
  *
  * USAGE:
  * await cleanupRunBroker();
- * // Returns { reaped, portsReleased, lockReleased, assetsAged, leftAlone }
+ * // Returns { reaped, portsReleased, lockReleaseOutcome, assetsAged, leftAlone }
  */
 
 import { now } from '#gateway/node/Date';
@@ -75,7 +75,7 @@ export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
     staleEntries.map(async (entry) => staleReapLayerBroker({ entry, nowMs })),
   );
 
-  const { lockReleased } = await lockReleaseLayerBroker({ nowMs });
+  const { lockReleaseOutcome } = await lockReleaseLayerBroker({ nowMs });
 
   // Ageing runs over every row this pass did not already leave alone — a reaped instance's
   // evidence outlives its processes, so its assets are in scope the moment the reap is done.
@@ -88,7 +88,7 @@ export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
   return cleanupAnswerContract.parse({
     reaped: reapResults.map((result) => result.reaped),
     portsReleased: reapResults.flatMap((result) => result.portsReleased),
-    lockReleased,
+    lockReleaseOutcome,
     assetsAged: { instances: assetsAged.instances, freedMB: assetsAged.freedMB },
     leftAlone: [
       ...leftAlone,

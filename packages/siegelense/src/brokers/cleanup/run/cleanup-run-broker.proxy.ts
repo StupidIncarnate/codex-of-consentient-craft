@@ -22,6 +22,9 @@ export const cleanupRunBrokerProxy = (): {
   >['setupShutdownReasonWriteSucceeds'];
   setupNoLocks: ReturnType<typeof lockReleaseLayerBrokerProxy>['setupNoLocks'];
   setupBootLockStale: ReturnType<typeof lockReleaseLayerBrokerProxy>['setupBootLockStale'];
+  setupBootLockUnlinkFails: ReturnType<
+    typeof lockReleaseLayerBrokerProxy
+  >['setupBootLockUnlinkFails'];
   getReleasedRegistry: ReturnType<typeof staleReapLayerBrokerProxy>['getReleasedRegistry'];
   setupEvidenceTree: ReturnType<typeof assetsAgeLayerBrokerProxy>['setupEvidenceTree'];
   setupDir: ReturnType<typeof assetsAgeLayerBrokerProxy>['setupDir'];
@@ -57,6 +60,7 @@ export const cleanupRunBrokerProxy = (): {
     },
     setupNoLocks: lockProxy.setupNoLocks,
     setupBootLockStale: lockProxy.setupBootLockStale,
+    setupBootLockUnlinkFails: lockProxy.setupBootLockUnlinkFails,
     getReleasedRegistry: reapProxy.getReleasedRegistry,
     setupEvidenceTree: ageProxy.setupEvidenceTree,
     setupDir: ageProxy.setupDir,

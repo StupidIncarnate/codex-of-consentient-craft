@@ -11,12 +11,14 @@
  *
  * USAGE:
  * await lockReleaseLayerBroker({ nowMs: 1_700_000_000_000 });
- * // Both locks absent or fresh: { lockReleased: false }.
- * // Either past its own TTL: unlinks it, { lockReleased: true }.
+ * // Both locks absent or fresh: { lockReleaseOutcome: 'none-held' }.
+ * // Either past its own TTL: unlinks it, { lockReleaseOutcome: 'released' }.
+ * // If unlinking a stale lock throws: { lockReleaseOutcome: 'failed' }.
  */
 
 import { readFileIfExists, unlink } from '#gateway/node/fs__promises';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
+import type { LockReleaseOutcome } from '../../../contracts/lock-release-outcome/lock-release-outcome-contract';
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
 import { locationsRegistryLockPathFindBroker } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -25,22 +27,26 @@ export const lockReleaseLayerBroker = async ({
   nowMs,
 }: {
   nowMs: number;
-}): Promise<{ lockReleased: boolean }> => {
+}): Promise<{ lockReleaseOutcome: LockReleaseOutcome }> => {
   const bootLockPath = locationsBootLockPathFindBroker();
-  let bootLockReleased = false;
+  let anyReleased = false;
+  let anyFailed = false;
 
   const bootLockContents = await readFileIfExists(bootLockPath);
   if (bootLockContents !== null) {
     const { acquiredAtMs } = bootLockContract.parse(JSON.parse(bootLockContents));
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.bootLock.ttlMs) {
-      await unlink(bootLockPath);
-      bootLockReleased = true;
+      try {
+        await unlink(bootLockPath);
+        anyReleased = true;
+      } catch {
+        anyFailed = true;
+      }
     }
   }
 
   const registryLockPath = locationsRegistryLockPathFindBroker();
-  let registryLockReleased = false;
 
   // registryLockAcquireBroker writes this file as a bare millisecond string, never JSON — see
   // its own PURPOSE header.
@@ -49,10 +55,22 @@ export const lockReleaseLayerBroker = async ({
     const acquiredAtMs = Number(registryLockContents);
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.registryLock.ttlMs) {
-      await unlink(registryLockPath);
-      registryLockReleased = true;
+      try {
+        await unlink(registryLockPath);
+        anyReleased = true;
+      } catch {
+        anyFailed = true;
+      }
     }
   }
 
-  return { lockReleased: bootLockReleased || registryLockReleased };
+  if (anyFailed) {
+    return { lockReleaseOutcome: 'failed' };
+  }
+
+  if (anyReleased) {
+    return { lockReleaseOutcome: 'released' };
+  }
+
+  return { lockReleaseOutcome: 'none-held' };
 };

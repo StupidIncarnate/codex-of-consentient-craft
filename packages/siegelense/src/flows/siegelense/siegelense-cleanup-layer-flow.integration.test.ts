@@ -82,7 +82,7 @@ describe('SiegelenseCleanupLayerFlow', () => {
           },
         ],
         portsReleased: [40_021, 40_022],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [
           {

@@ -1,5 +1,6 @@
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { FsError } from '#gateway/node/fs';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
@@ -19,9 +20,11 @@ export const lockReleaseLayerBrokerProxy = (): {
   setupNoLocks: () => void;
   setupBootLockFresh: (params: { acquiredAtMs: EpochMs }) => void;
   setupBootLockStale: (params: { acquiredAtMs: EpochMs }) => void;
+  setupBootLockUnlinkFails: (params: { acquiredAtMs: EpochMs }) => void;
   setupBootLockReadFailsForNonAbsenceReason: () => void;
   setupRegistryLockFresh: (params: { acquiredAtMs: EpochMs }) => void;
   setupRegistryLockStale: (params: { acquiredAtMs: EpochMs }) => void;
+  setupRegistryLockUnlinkFails: (params: { acquiredAtMs: EpochMs }) => void;
   getDeletedPaths: () => unknown[];
 } => {
   const bootLockPath = BOOT_LOCK_VALUE;
@@ -70,6 +73,20 @@ export const lockReleaseLayerBrokerProxy = (): {
       readProxy.missing({ path: registryLockPath });
     },
 
+    setupBootLockUnlinkFails: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
+      const lock = BootLockStub({ acquiredAtMs });
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
+      });
+      deleteProxy.rejects({
+        path: bootLockPath,
+        error: FsErrorStub({ code: 'EPERM', syscall: 'unlink', path: bootLockPath }),
+      });
+      readProxy.missing({ path: registryLockPath });
+    },
+
     setupBootLockReadFailsForNonAbsenceReason: (): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       readProxy.throwsMatchingPath({
@@ -97,6 +114,19 @@ export const lockReleaseLayerBrokerProxy = (): {
         contents: String(acquiredAtMs),
       });
       deleteProxy.succeeds({ path: registryLockPath });
+    },
+
+    setupRegistryLockUnlinkFails: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
+      readProxy.missing({ path: bootLockPath });
+      readProxy.returns({
+        path: registryLockPath,
+        contents: String(acquiredAtMs),
+      });
+      deleteProxy.rejects({
+        path: registryLockPath,
+        error: FsErrorStub({ code: 'EPERM', syscall: 'unlink', path: registryLockPath }),
+      });
     },
 
     getDeletedPaths: (): unknown[] =>
