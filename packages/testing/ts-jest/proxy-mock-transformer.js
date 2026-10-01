@@ -19,6 +19,7 @@ const path = require('path');
 const {
   typescriptProxyMockTransformerMiddleware,
 } = require('../src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
+const { consumerPackagesRoot } = require('./consumer-packages-root');
 
 // Compute version from shared's package.json (its `./*.proxy` and `./*.stub` export keys decide which files
 // a per-file test import reaches) AND all proxy files across the monorepo,
@@ -60,6 +61,20 @@ const computeVersion = () => {
       const fullPath = path.join(packagesRoot, keyFile);
       hash.update(keyFile);
       hash.update(fs.readFileSync(fullPath, 'utf-8'));
+    }
+
+    // The repo under test, when it is not dungeonmaster itself: its own proxies and manifests decide
+    // what hoists in its own tests.
+    const consumerRoot = consumerPackagesRoot({ startDir: process.cwd() });
+    if (consumerRoot !== null && consumerRoot !== packagesRoot) {
+      const consumerKeyFiles = globSync(
+        ['*/src/**/*.proxy.ts', '@gateway/*/src/**/*.proxy.ts', '*/package.json', '@gateway/*/package.json'],
+        { cwd: consumerRoot, ignore: ['**/*.test.ts', '**/node_modules/**'] },
+      ).sort();
+      for (const keyFile of consumerKeyFiles) {
+        hash.update(`consumer:${keyFile}`);
+        hash.update(fs.readFileSync(path.join(consumerRoot, keyFile), 'utf-8'));
+      }
     }
 
     return hash.digest('hex').slice(0, 8);

@@ -20,17 +20,28 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
+const { consumerPackagesRoot } = require('./consumer-packages-root');
 
-// Compute version from all harness files so cache invalidates when harnesses change
+// Compute version from all harness files so cache invalidates when harnesses change. Hashes
+// dungeonmaster's own packages, and the repo under test when that is a different repo: through a
+// `file:` link or an install this file never sits inside the repo whose harnesses it transforms.
 const computeVersion = () => {
   try {
     const { globSync } = require('glob');
-    const packagesRoot = path.resolve(__dirname, '../../');
+    const ownPackagesRoot = path.resolve(__dirname, '../../');
+    const consumerRoot = consumerPackagesRoot({ startDir: process.cwd() });
+    const packagesRoots =
+      consumerRoot === null || consumerRoot === ownPackagesRoot
+        ? [ownPackagesRoot]
+        : [ownPackagesRoot, consumerRoot];
     const hash = crypto.createHash('md5');
 
-    const harnessFiles = globSync('*/test/**/*.harness.ts', { cwd: packagesRoot }).sort();
-    for (const harnessFile of harnessFiles) {
-      const fullPath = path.join(packagesRoot, harnessFile);
+    const harnessFiles = packagesRoots.flatMap((packagesRoot) =>
+      globSync('*/test/**/*.harness.ts', { cwd: packagesRoot })
+        .sort()
+        .map((harnessFile) => path.join(packagesRoot, harnessFile)),
+    );
+    for (const fullPath of harnessFiles) {
       hash.update(fs.readFileSync(fullPath, 'utf-8'));
     }
 
