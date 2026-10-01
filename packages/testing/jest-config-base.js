@@ -77,7 +77,9 @@ module.exports = {
     // Own TypeScript source, anywhere — including inside `node_modules/@dungeonmaster/testing`,
     // where this base's own `globalSetup`/`setupFilesAfterEnv` files `require()` sibling `.ts`
     // broker files by relative path in a real consumer install (see this file's own header above).
-    '^.+\\.tsx?$': ['ts-jest', dungeonmasterTsJestOptions],
+    // `ts-source-transformer.js` is ts-jest with a cache key that also covers the mocks hoisted out
+    // of the proxy files a test imports — see that file's header.
+    '^.+\\.tsx?$': [path.join(__dirname, 'ts-jest', 'ts-source-transformer.js'), dungeonmasterTsJestOptions],
     // Anchored to `node_modules`, not `.[cm]?[jt]s$` everywhere as this used to read:
     // `transformIgnorePatterns` above is `[]` because msw's OWN transitive dependency graph is too
     // deep and too volatile to enumerate by name (see this file's own header) — every node_modules

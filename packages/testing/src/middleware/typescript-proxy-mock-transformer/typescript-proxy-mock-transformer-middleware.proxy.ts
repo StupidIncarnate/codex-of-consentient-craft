@@ -8,22 +8,20 @@
  * proxy.setupFilesOnDisk({ filePaths: ['/repo/a.proxy.ts'] });
  */
 
-import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
-import { proxyMockCollectorMiddlewareProxy } from '../proxy-mock-collector/proxy-mock-collector-middleware.proxy';
+import { proxyMockCallsCollectMiddlewareProxy } from '../proxy-mock-calls-collect/proxy-mock-calls-collect-middleware.proxy';
 
 export const typescriptProxyMockTransformerMiddlewareProxy = (): {
   setupFileContains: ({ filePath, content }: { filePath: string; content: string }) => void;
   setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }) => void;
 } => {
-  const importPathProxy = importPathResolverMiddlewareProxy();
-  const collectorProxy = proxyMockCollectorMiddlewareProxy();
+  const collectProxy = proxyMockCallsCollectMiddlewareProxy();
 
   return {
     setupFileContains: ({ filePath, content }: { filePath: string; content: string }): void => {
-      collectorProxy.setupFileContains({ filePath, content });
+      collectProxy.setupFileContains({ filePath, content });
     },
     setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }): void => {
-      importPathProxy.setupFilesOnDisk({ filePaths });
+      collectProxy.setupFilesOnDisk({ filePaths });
     },
   };
 };

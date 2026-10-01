@@ -23,6 +23,7 @@ const TRANSFORM_PATH_FILES = [
   'ts-jest/proxy-mock-transformer.js',
   'ts-jest/harness-lifecycle-transformer.js',
   'ts-jest/node-modules-transformer.js',
+  'ts-jest/ts-source-transformer.js',
   'src/jest.setup.js',
 ] as const;
 
