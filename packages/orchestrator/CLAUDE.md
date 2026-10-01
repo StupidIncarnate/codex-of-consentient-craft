@@ -1570,6 +1570,19 @@ The barrel import in `index.test.ts` is STATIC. `./index` pulls the whole packag
 reads a compile as a slow test — measured at 13.1s on a cold cache against 5ms warm, the same work
 either way. A static import is transformed when jest requires the test file, before any test starts.
 
+## Dungeonmaster's own tools start from the run folder's install
+
+**The orchestrator never spawns `dungeonmaster-ward` or `dungeonmaster` by bare name.** `PATH` resolves a bare name to
+the main checkout's globally linked copy inside a quest worktree, and to nothing in a consumer with only a local install.
+The quest `ward` step, `wardDetailBroker`, riftcarver's preflight typecheck and the siege `cleanup` step resolve through
+`dungeonmasterBinResolveBroker`, which walks up from the run's folder to the nearest `node_modules/<owning package>`
+(`dungeonmasterBinStatics`) and runs `node <its bin entry>`, falling back to the bare name only when nothing is installed
+locally. An env override (`WARD_CLI_PATH`, `DUNGEONMASTER_CLI_PATH`) still wins, with no leading arguments.
+
+**Every headless agent child starts with `<cwd>/node_modules/.bin` first on its `PATH`**
+(`agentSpawnStreamJsonBroker`), so a prompt telling an agent to run `dungeonmaster siegelense …` reaches the run
+folder's own install.
+
 ## Headless spawns get no browser tools
 
 Claude Code attaches the Claude-in-Chrome MCP only when a session passes `--chrome` (or ran the

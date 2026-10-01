@@ -1,3 +1,4 @@
+import { execPath } from '#gateway/node/process';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
@@ -106,6 +107,39 @@ describe('stepHandlerCleanupBroker', () => {
       });
 
       expect(proxy.getSpawnedCwd()).toBe('/repo');
+    });
+  });
+
+  describe('a local @dungeonmaster/cli install at the repo root', () => {
+    it('VALID: {cli installed locally} => spawns node on the installed entry script', async () => {
+      const proxy = stepHandlerCleanupBrokerProxy();
+      proxy.cleanupExitsViaLocalCli({
+        questId: QUEST_ID,
+        exitCode: 0,
+        answer: CleanupCliAnswerStub(),
+        installedAt: '/repo',
+        manifestJson: JSON.stringify({
+          name: '@dungeonmaster/cli',
+          bin: { dungeonmaster: './dist/bin/dungeonmaster.js' },
+        }),
+      });
+
+      await stepHandlerCleanupBroker({
+        args: [],
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+        onLine: () => undefined,
+      });
+
+      expect({ command: proxy.getSpawnedCommand(), args: proxy.getSpawnedArgs() }).toStrictEqual({
+        command: execPath,
+        args: [
+          '/repo/node_modules/@dungeonmaster/cli/dist/bin/dungeonmaster.js',
+          'siegelense',
+          'cleanup',
+          '--json',
+        ],
+      });
     });
   });
 

@@ -79,6 +79,7 @@ export const buildSpawnInstructionLayerBroker = ({
     role,
     workItemId: workItem.id,
     model,
+    promptName: promptToFetch,
     taskPrompt:
       override ??
       agentTaskPromptTransformer({

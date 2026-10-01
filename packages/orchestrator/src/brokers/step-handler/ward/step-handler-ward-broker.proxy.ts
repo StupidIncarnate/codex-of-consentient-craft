@@ -20,6 +20,7 @@
  * const result = await stepHandlerWardBroker({ args: [], questId, workItemId, onLine });
  */
 
+import { execPath } from '#gateway/node/process';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
@@ -39,6 +40,7 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
+import { dungeonmasterBinResolveBrokerProxy } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker.proxy';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
@@ -68,8 +70,14 @@ export const stepHandlerWardBrokerProxy = (): {
     detailJson: string;
   }) => void;
   wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: number }) => void;
+  wardInstalledLocally: (params: {
+    questId: Quest['id'];
+    exitCode: number;
+    manifestJson: string;
+  }) => void;
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
+  getSpawnedLocalWardArgs: () => unknown;
 } => {
   getEnvProxy();
   // `join` has no dedicated proxy (a plain pass-through re-export — see `#gateway/node/path`'s own
@@ -98,6 +106,10 @@ export const stepHandlerWardBrokerProxy = (): {
   questModifyBrokerProxy();
   RunNotFoundErrorProxy();
   const wardSpawn = streamLinesProxy();
+  // The resolver reads the same manifest mock `wardDetailBrokerProxy`'s own composed resolver
+  // stages; both stagings are addressed by the identical manifest-path suffix, so the second
+  // `setupNotInstalledAnywhere` re-registers an equal answer rather than competing with the first.
+  const binProxy = dungeonmasterBinResolveBrokerProxy();
 
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
@@ -160,6 +172,7 @@ export const stepHandlerWardBrokerProxy = (): {
       detailJson: string;
     }): void => {
       stageQuest({ questId });
+      binProxy.setupNotInstalledAnywhere({ binName: WARD_COMMAND });
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
@@ -177,6 +190,7 @@ export const stepHandlerWardBrokerProxy = (): {
       exitCode: number;
     }): void => {
       stageQuest({ questId });
+      binProxy.setupNotInstalledAnywhere({ binName: WARD_COMMAND });
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
@@ -184,6 +198,34 @@ export const stepHandlerWardBrokerProxy = (): {
         stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
       });
     },
+
+    // A ward installed in the quest worktree itself: the spawn is `node <entry script> run ...`, and
+    // the empty output carries no run id, so the detail broker is never reached.
+    wardInstalledLocally: ({
+      questId,
+      exitCode,
+      manifestJson,
+    }: {
+      questId: Quest['id'];
+      exitCode: number;
+      manifestJson: string;
+    }): void => {
+      stageQuest({ questId });
+      binProxy.setupInstalled({
+        cwd: DEFAULT_WORKTREE_PATH,
+        binName: WARD_COMMAND,
+        installedAt: DEFAULT_WORKTREE_PATH,
+        manifestJson,
+      });
+      wardSpawn.setupSuccess({
+        command: execPath,
+        cwd: DEFAULT_WORKTREE_PATH,
+        exitCode,
+        stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
+      });
+    },
+
+    getSpawnedLocalWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: execPath }),
 
     getSpawnedWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: WARD_COMMAND }),
 

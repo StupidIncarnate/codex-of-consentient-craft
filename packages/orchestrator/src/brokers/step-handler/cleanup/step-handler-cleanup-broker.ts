@@ -36,6 +36,7 @@ import { stepHandlerResultContract } from '../../../contracts/step-handler-resul
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
 import { cleanupOutcomeClassifyTransformer } from '../../../transformers/cleanup-outcome-classify/cleanup-outcome-classify-transformer';
+import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
 import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
@@ -55,9 +56,15 @@ export const stepHandlerCleanupBroker = async ({
   const repoRoot = await questRepoRootBroker({ questId });
   const cwd = repoRoot;
 
+  const cliOverride = getEnv('DUNGEONMASTER_CLI_PATH');
+  const cli =
+    cliOverride === undefined
+      ? await dungeonmasterBinResolveBroker({ binName: cleanupCliCallStatics.call.bin, cwd })
+      : { command: cliOverride, leadingArgs: [] };
+
   const { exitCode, output } = await streamLines({
-    command: getEnv('DUNGEONMASTER_CLI_PATH') ?? cleanupCliCallStatics.call.bin,
-    args: [...cleanupCliCallStatics.call.args],
+    command: cli.command,
+    args: [...cli.leadingArgs, ...cleanupCliCallStatics.call.args],
     cwd,
     onLine,
   }).catch((error: unknown) => {

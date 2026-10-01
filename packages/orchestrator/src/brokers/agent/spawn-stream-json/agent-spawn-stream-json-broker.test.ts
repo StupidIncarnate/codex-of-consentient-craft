@@ -1,4 +1,6 @@
 import { readFile } from '#gateway/node/fs__promises';
+import { delimiter } from '#gateway/node/path';
+import { envSnapshot } from '#gateway/node/process';
 import { setImmediate } from '#gateway/node/setImmediate';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
@@ -261,6 +263,49 @@ describe('agentSpawnStreamJsonBroker', () => {
   });
 
   describe('environment', () => {
+    it('VALID: {cwd: /repo, inherited PATH} => PATH is <cwd>/node_modules/.bin, the delimiter, then the inherited PATH', () => {
+      const proxy = agentSpawnStreamJsonBrokerProxy();
+      proxy.setupInheritedPath({ value: '/usr/local/bin:/usr/bin' });
+      proxy.setupSpawn();
+
+      agentSpawnStreamJsonBroker({
+        prompt: 'Hello',
+        cwd: '/repo',
+        model: 'sonnet',
+      });
+
+      expect(proxy.getSpawnedEnvValue({ name: 'PATH' })).toBe(
+        `/repo/node_modules/.bin${delimiter}/usr/local/bin:/usr/bin`,
+      );
+    });
+
+    it('EMPTY: {cwd: /repo, PATH unset} => PATH is only <cwd>/node_modules/.bin', () => {
+      const proxy = agentSpawnStreamJsonBrokerProxy();
+      proxy.setupInheritedPath({ value: undefined });
+      proxy.setupSpawn();
+
+      agentSpawnStreamJsonBroker({
+        prompt: 'Hello',
+        cwd: '/repo',
+        model: 'sonnet',
+      });
+
+      expect(proxy.getSpawnedEnvValue({ name: 'PATH' })).toBe('/repo/node_modules/.bin');
+    });
+
+    it('EMPTY: {cwd omitted, inherited PATH} => PATH is the inherited one, untouched', () => {
+      const proxy = agentSpawnStreamJsonBrokerProxy();
+      proxy.setupInheritedPath({ value: '/usr/bin' });
+      proxy.setupSpawn();
+
+      agentSpawnStreamJsonBroker({
+        prompt: 'Hello',
+        model: 'sonnet',
+      });
+
+      expect(proxy.getSpawnedEnvValue({ name: 'PATH' })).toBe(envSnapshot().PATH);
+    });
+
     it('VALID: {any spawn} => env pins CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS to "0"', () => {
       const proxy = agentSpawnStreamJsonBrokerProxy();
       proxy.setupSpawn();

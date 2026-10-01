@@ -2,6 +2,8 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 
+import { dungeonmasterBinResolveBrokerProxy } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker.proxy';
+
 // Matches wardDetailBroker's own WARD_COMMAND — the real command `run` is invoked with, so the
 // underlying spawn mock's command-addressed staging matches.
 const WARD_COMMAND = 'dungeonmaster-ward';
@@ -17,13 +19,17 @@ export const wardDetailBrokerProxy = (): {
   // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
   RunNotFoundErrorProxy();
   getEnvProxy();
+  const binProxy = dungeonmasterBinResolveBrokerProxy();
 
   return {
+    // No local ward is installed in these scenarios, so the spawn uses the bare name.
     setupSuccess: ({ output }: { output: string }): void => {
+      binProxy.setupNotInstalledAnywhere({ binName: WARD_COMMAND });
       run.setupSuccess({ command: WARD_COMMAND, exitCode: 0, stdout: output, stderr: '' });
     },
 
     setupFailure: (): void => {
+      binProxy.setupNotInstalledAnywhere({ binName: WARD_COMMAND });
       run.setupSuccess({ command: WARD_COMMAND, exitCode: 1, stdout: '', stderr: '' });
     },
 
