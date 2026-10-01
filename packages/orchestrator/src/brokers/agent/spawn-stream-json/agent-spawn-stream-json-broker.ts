@@ -20,8 +20,8 @@
 
 import { spawnStreamJson } from '#gateway/bin/claude';
 import { readFileSyncIfExists } from '#gateway/node/fs';
-import { join } from '#gateway/node/path';
-import { envSnapshot, stderr } from '#gateway/node/process';
+import { delimiter, join } from '#gateway/node/path';
+import { envSnapshot, getEnv, stderr } from '#gateway/node/process';
 import { lineReader } from '#gateway/node/readline';
 import type { Session } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -64,12 +64,26 @@ export const agentSpawnStreamJsonBroker = ({
           ),
         ) ?? '');
 
+  // The child's Bash tool has no `node_modules/.bin` on PATH, so `dungeonmaster siegelense …` in an
+  // agent prompt resolves to a global link or to nothing. The cwd's own bin dir goes FIRST.
+  const inheritedPath = getEnv('PATH');
+  const baseEnv =
+    cwd === undefined
+      ? envSnapshot()
+      : {
+          ...envSnapshot(),
+          PATH: [
+            join(cwd, locationsStatics.repoRoot.nodeModulesBin),
+            ...(inheritedPath === undefined ? [] : [inheritedPath]),
+          ].join(delimiter),
+        };
+
   const { args, env } = claudeSpawnCommandBuildTransformer({
     prompt,
     model,
     settingsJson,
     disableToolSearch,
-    baseEnv: envSnapshot(),
+    baseEnv,
     ...(resumeSessionId !== undefined && { resumeSessionId }),
     ...(addDir !== undefined && { addDir }),
   });

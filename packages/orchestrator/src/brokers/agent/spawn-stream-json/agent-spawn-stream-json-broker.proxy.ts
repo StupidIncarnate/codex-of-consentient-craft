@@ -2,6 +2,7 @@ import { spawnStreamJsonProxy } from '#gateway/bin/claude/spawn-stream-json/spaw
 import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-exists/read-file-sync-if-exists.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { join } from '#gateway/node/path';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
@@ -32,6 +33,7 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
   emitStdoutLines: (params: { lines: readonly string[] }) => void;
   isSpawnedStdout: (value: unknown) => boolean;
   isSpawnedStderr: (value: unknown) => boolean;
+  setupInheritedPath: (params: { value: string | undefined }) => void;
   setupSettingsNotFound: () => void;
   setupSettingsJson: (params: { json: string }) => void;
   getSpawnedArgs: () => unknown;
@@ -51,6 +53,7 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
   const stderrRecorder = stderrProxy();
   // The broker reads the real environment; composed because it imports envSnapshot.
   envSnapshotProxy();
+  const pathEnvProxy = getEnvProxy();
   const settingsProxy = readFileSyncIfExistsProxy();
   settingsProxy.returnsMatchingPath({ path: isSettingsFilePath, contents: SETTINGS_JSON_DEFAULT });
 
@@ -70,6 +73,13 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
       (segment: unknown): boolean => typeof segment === 'string',
       isClaudeDirSegment,
       isSettingsFileSegment,
+    ])
+    .implement((...segments: never[]) => realJoin.join(...segments));
+  // The child's PATH entry: `join(cwd, 'node_modules/.bin')`.
+  joinMock
+    .calledWith([
+      (segment: unknown): boolean => typeof segment === 'string',
+      locationsStatics.repoRoot.nodeModulesBin,
     ])
     .implement((...segments: never[]) => realJoin.join(...segments));
 
@@ -116,6 +126,10 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
     isSpawnedStdout: (value: unknown): boolean => spawnProxy.isSpawnedStdout(value),
 
     isSpawnedStderr: (value: unknown): boolean => spawnProxy.isSpawnedStderr(value),
+
+    setupInheritedPath: ({ value }: { value: string | undefined }): void => {
+      pathEnvProxy.setupEnv({ name: 'PATH', value });
+    },
 
     setupSettingsNotFound: (): void => {
       settingsProxy.throwsMatchingPath({

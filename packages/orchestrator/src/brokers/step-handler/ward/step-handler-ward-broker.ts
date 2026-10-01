@@ -15,6 +15,9 @@
  * never reads it — the terminal work-item write it would have justified is routing, and the router
  * owns that now.
  *
+ * The ward it spawns is the one installed nearest the quest's cwd (dungeonmasterBinResolveBroker),
+ * unless `WARD_CLI_PATH` overrides it.
+ *
  * `streamLines` rejects with `RunNotFoundError` when the OS never starts `dungeonmaster-ward` at
  * all, rather than resolving a result the way the adapter this replaced did — caught below and
  * folded into the same failed-run shape so a missing binary still falls through to the
@@ -42,6 +45,7 @@ import { stepHandlerResultContract } from '../../../contracts/step-handler-resul
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
+import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
@@ -74,9 +78,15 @@ export const stepHandlerWardBroker = async ({
 
   const { questPath } = await questFindQuestPathBroker({ questId });
 
+  const override = getEnv('WARD_CLI_PATH');
+  const ward =
+    override === undefined
+      ? await dungeonmasterBinResolveBroker({ binName: WARD_COMMAND, cwd: startPath })
+      : { command: override, leadingArgs: [] };
+
   const { exitCode: rawExitCode, output: rawOutput } = await streamLines({
-    command: getEnv('WARD_CLI_PATH') ?? WARD_COMMAND,
-    args: [RUN_SUBCOMMAND, ...args],
+    command: ward.command,
+    args: [...ward.leadingArgs, RUN_SUBCOMMAND, ...args],
     cwd: startPath,
     onLine,
   }).catch((error: unknown) => {

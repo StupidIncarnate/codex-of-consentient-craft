@@ -19,6 +19,10 @@ export const spawnInstructionContract = z
     role: agentRoleContract,
     workItemId: workItemContract.shape.id,
     taskPrompt: z.string().min(1).brand<'SpawnInstructionTaskPrompt'>(),
+    // The prompt `get-agent-prompt` serves this session: the STEP's prompt (`codeweaver-worker`)
+    // where the work item runs a step, its role otherwise. Every prompt the spawn layer builds on its
+    // own — a resume after an overload, the unsignalled-exit nudge — names this, never `role`.
+    promptName: z.string().min(1).brand<'SpawnInstructionPromptName'>().optional(),
     model: claudeModelContract.optional(),
     // Set when orphan recovery marked the work item for resume: Node dispatch resumes this Claude
     // session (`claude --resume`) with the resumePrompt instead of fresh-spawning. The MCP/Task

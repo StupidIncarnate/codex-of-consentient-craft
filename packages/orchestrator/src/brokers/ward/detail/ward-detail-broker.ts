@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Calls dungeonmaster-ward detail command and returns the JSON output
+ * PURPOSE: Calls dungeonmaster-ward detail command and returns the JSON output. The ward it runs is the
+ * one installed nearest `startPath` (dungeonmasterBinResolveBroker), so a run's detail is read by the
+ * same ward that saved it.
  *
  * USAGE:
  * const result = await wardDetailBroker({ startPath: '/home/user/project/src/file.ts', runId: FileNameStub() });
@@ -8,6 +10,8 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
+
+import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
 const JSON_FLAG = '--json';
@@ -19,9 +23,14 @@ export const wardDetailBroker = async ({
   startPath: string;
   runId: string;
 }): Promise<string | null> => {
+  const override = getEnv('WARD_CLI_PATH');
+  const ward =
+    override === undefined
+      ? await dungeonmasterBinResolveBroker({ binName: WARD_COMMAND, cwd: startPath })
+      : { command: override, leadingArgs: [] };
   const { exitCode, output } = await run({
-    command: getEnv('WARD_CLI_PATH') ?? WARD_COMMAND,
-    args: ['detail', runId, JSON_FLAG],
+    command: ward.command,
+    args: [...ward.leadingArgs, 'detail', runId, JSON_FLAG],
     cwd: startPath,
   }).catch((error: unknown) => {
     if (!(error instanceof RunNotFoundError)) {

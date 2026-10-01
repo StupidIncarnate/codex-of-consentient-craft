@@ -199,6 +199,39 @@ describe('spawnOneAgentLayerBroker', () => {
   });
 
   describe('a clean exit without a signal', () => {
+    it('VALID: {instruction carrying the step prompt name} => the nudge tells the session to fetch THAT prompt, not the role', async () => {
+      const proxy = spawnOneAgentLayerBrokerProxy();
+      const instruction = SpawnInstructionStub({ promptName: 'codeweaver-worker' });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupWorkItemStatusOnReread({
+        questId: instruction.questId,
+        workItemId: instruction.workItemId,
+        status: 'in_progress',
+      });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+
+      expect(proxy.getAllSpawnedArgs()[1]).toStrictEqual([
+        '-p',
+        agentUnsignalledExitPromptTransformer({
+          agent: 'codeweaver-worker',
+          workItemId: instruction.workItemId,
+          questId: instruction.questId,
+        }),
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        roleToModelStatics.codeweaver,
+        '--settings',
+        '{"hooks":{}}',
+        '--resume',
+        SESSION_ID,
+      ]);
+    });
+
     it('VALID: {exits 0 twice, item still in_progress} => resumes once with the unsignalled-exit prompt, then records a wall', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub({ role: 'spiritmender' });
