@@ -10,7 +10,9 @@
  * copied node and browser proxies that import it.
  *
  * The Jest configs spread the PUBLISHED `@dungeonmaster/testing/jest-config-base`, never this
- * repo's root `jest.config.base.js`, which does not exist in a consumer repo. `placeholderContent`
+ * repo's root `jest.config.base.js`, which does not exist in a consumer repo. The npm and browser
+ * configs pin `customExportConditions` to a list with neither `browser` nor `source`; each config's
+ * own comment says why. `placeholderContent`
  * is the one input a gateway package with no subpath yet (npm, bin) needs, since `tsc` refuses a
  * config that matches no file at all.
  *
@@ -62,6 +64,12 @@ const base = require('@dungeonmaster/testing/jest-config-base');
 
 module.exports = {
   ...base,
+  // jsdom resolves packages with the \`browser\` condition unless told otherwise. The base loads MSW's
+  // Node server in \`setupFilesAfterEnv\`, and under \`browser\` it pulls @mswjs/interceptors' ES-module
+  // browser build, which Jest cannot load. \`source\` stays out: it would point
+  // @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads \`dist/\`, so
+  // a test would stage responses on a second MSW server that never answers.
+  testEnvironmentOptions: { customExportConditions: ['node', 'require', 'default'] },
   setupFiles: [...(base.setupFiles ?? []), '@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
@@ -72,7 +80,15 @@ const base = require('@dungeonmaster/testing/jest-config-base');
 module.exports = {
   ...base,
   testEnvironment: 'jsdom',
-  testEnvironmentOptions: { url: 'http://localhost' },
+  testEnvironmentOptions: {
+    // jsdom resolves packages with the \`browser\` condition unless told otherwise. The base loads
+    // MSW's Node server in \`setupFilesAfterEnv\`, and under \`browser\` it pulls @mswjs/interceptors'
+    // ES-module browser build, which Jest cannot load. \`source\` stays out: it would point
+    // @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads \`dist/\`,
+    // so a test would stage responses on a second MSW server that never answers.
+    customExportConditions: ['node', 'require', 'default'],
+    url: 'http://localhost',
+  },
   setupFiles: ['@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,

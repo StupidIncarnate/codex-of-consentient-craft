@@ -232,7 +232,7 @@ module.exports = {
     );
   });
 
-  it('VALID: {folder: "npm"} => jest.config.js adds the jsdom polyfill to the base setupFiles', () => {
+  it('VALID: {folder: "npm"} => jest.config.js resolves node, require and default, never browser or source, and adds the jsdom polyfill to the base setupFiles', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: '@acme',
       folder: 'npm',
@@ -246,13 +246,19 @@ const base = require('@dungeonmaster/testing/jest-config-base');
 
 module.exports = {
   ...base,
+  // jsdom resolves packages with the \`browser\` condition unless told otherwise. The base loads MSW's
+  // Node server in \`setupFilesAfterEnv\`, and under \`browser\` it pulls @mswjs/interceptors' ES-module
+  // browser build, which Jest cannot load. \`source\` stays out: it would point
+  // @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads \`dist/\`, so
+  // a test would stage responses on a second MSW server that never answers.
+  testEnvironmentOptions: { customExportConditions: ['node', 'require', 'default'] },
   setupFiles: [...(base.setupFiles ?? []), '@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
     );
   });
 
-  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the testing package\'s polyfill', () => {
+  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the testing package\'s polyfill, resolving node, require and default, never browser or source', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: '@acme',
       folder: 'browser',
@@ -266,7 +272,15 @@ const base = require('@dungeonmaster/testing/jest-config-base');
 module.exports = {
   ...base,
   testEnvironment: 'jsdom',
-  testEnvironmentOptions: { url: 'http://localhost' },
+  testEnvironmentOptions: {
+    // jsdom resolves packages with the \`browser\` condition unless told otherwise. The base loads
+    // MSW's Node server in \`setupFilesAfterEnv\`, and under \`browser\` it pulls @mswjs/interceptors'
+    // ES-module browser build, which Jest cannot load. \`source\` stays out: it would point
+    // @dungeonmaster/testing's own entry at its \`src/\` while the base's setup file loads \`dist/\`,
+    // so a test would stage responses on a second MSW server that never answers.
+    customExportConditions: ['node', 'require', 'default'],
+    url: 'http://localhost',
+  },
   setupFiles: ['@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
