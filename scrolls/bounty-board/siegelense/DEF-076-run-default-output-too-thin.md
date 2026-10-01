@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: every `look` costs an agent a second call |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-066; rewritten with the user, also SL-069, SL-100, SL-120 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

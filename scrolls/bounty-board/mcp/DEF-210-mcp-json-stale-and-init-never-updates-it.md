@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: an existing `.mcp.json` entry never updates, so a re-init keeps a stale server command |
 | Package | mcp |
 | Found | 2026-09-30, walkthrough cases IN-16, IN-17, IN-19 (confirmed by reading both files) |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "IN-16, IN-17", and `scrolls/walkthrough/features/08-init-prompts-and-mcp.md`, "Known open items" items 1 and 2; 2026-09-30 |

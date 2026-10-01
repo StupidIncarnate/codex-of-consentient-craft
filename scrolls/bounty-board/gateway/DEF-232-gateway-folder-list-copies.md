@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
+| Priority | P3: hand-kept copies that agree today |
 | Package | gateway |
 | Found | 2026-09, `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history) item 5 |
 | Moved from | `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history), 2026-09-30 |

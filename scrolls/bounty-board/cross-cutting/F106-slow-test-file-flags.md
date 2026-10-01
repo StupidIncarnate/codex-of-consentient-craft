@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: slow and flaky whole-repo runs cost reruns |
 | Package | cross-cutting |
 | Found | operator |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |

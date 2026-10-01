@@ -4,6 +4,7 @@
 |---|---|
 | Kind | change |
 | Status | ready |
+| Priority | P3: a new feature that needs a design first |
 | Package | siegelense |
 | Found | 2026-09-30, the user's decision on DEF-213 |
 | Moved from | DEF-213 (the driving-oddities code), 2026-09-30 |

@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P1: `video stop` hands back an unfinished file of the wrong span |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough cases SL-102, SL-103 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

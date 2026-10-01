@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: about 5 seconds of load cost in every lint and hook process |
 | Package | eslint-plugin |
 | Found | F104 |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |

@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P3: delete an unused tool |
 | Package | tooling |
 | Found | post-merge connection check, 2026-09-30 |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |
@@ -25,3 +26,7 @@ Checked on master after 788165421 and a build: `discover` for `packages/*/src/ad
 ## History
 
 Found by the post-merge connection check. The tool was built under `scrolls/brands-gateways-epic/items/s1-adapter-census-command.md`.
+
+Assayer upstream report 3 (2026-10-01) found that the census also skips every file named `*-layer-adapter.ts`
+(`is-adapter-entry-file-guard.ts:19`), 46 files in assayer's core. Deleting the tool closes that report too, so it has
+no bounty of its own.

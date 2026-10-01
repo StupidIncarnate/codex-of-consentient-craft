@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: the screenshot shows the whole page when the reading is scoped |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-067 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

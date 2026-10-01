@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P3: raw JSON in a human view |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough cases SL-076, SL-077, SL-080 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

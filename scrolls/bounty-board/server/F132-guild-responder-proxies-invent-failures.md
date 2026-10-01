@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P1: `ban-invented-failures` scans 0 files, so the rule silently checks nothing |
 | Package | server |
 | Found | Z03-E4 |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |

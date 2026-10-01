@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
+| Priority | P2: a test gap around verdict buttons |
 | Package | web |
 | Found | 2026-09-30, walkthrough cases MK-14, MK-15 (code read) |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "MK-14, MK-15", and `scrolls/walkthrough/features/04-marks-and-human-verdicts.md`, "Known open items"; 2026-09-30 |

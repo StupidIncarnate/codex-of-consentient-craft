@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P1: a lane can serve a stale web build, and a rebuild under a live lane blanks it mid-run |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-044 follow-up |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

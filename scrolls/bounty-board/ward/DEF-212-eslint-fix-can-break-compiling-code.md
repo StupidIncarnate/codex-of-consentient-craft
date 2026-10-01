@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
+| Priority | P2: intermittent and not seen again; no guard |
 | Package | ward |
 | Found | 2026-09-30, walkthrough case WD-46 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "WD-46", and `scrolls/walkthrough/features/07-ward.md`, "Known open items"; 2026-09-30 |

@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: hidden init scripts carry into later runs and cannot be removed |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-092 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

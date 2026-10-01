@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: a stuck reservation is invisible to `status` |
 | Package | siegelense |
 | Found | 2026-09-28, DEF-68 check |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P3: a missing status row |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-050 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

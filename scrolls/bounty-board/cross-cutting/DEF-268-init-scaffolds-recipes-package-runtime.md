@@ -4,6 +4,7 @@
 |---------|-----------------------------------------------------------------------------|
 | Kind    | defect                                                                      |
 | Status  | needs decision                                                              |
+| Priority | P2: consumers carry runner code they should not own, but it works; waits on a decision |
 | Package | cross-cutting (siegelense, hydration-recipes, hydration, eslint-plugin)     |
 | Found   | 2026-09-30, the user, looking at a consumer repo after `dungeonmaster init` |
 

@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: the form cannot show the server's 400 message |
 | Package | web |
 | Found | 2026-09-29, walkthrough case SL-088 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

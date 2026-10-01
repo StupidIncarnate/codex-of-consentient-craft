@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: an agent must read recipe code to chain seeds |
 | Package | cross-cutting |
 | Found | 2026-09-27, walkthrough case SL-036 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

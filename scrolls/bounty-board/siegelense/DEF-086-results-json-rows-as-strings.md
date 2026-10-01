@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: every row needs a second parse |
 | Package | siegelense |
 | Found | 2026-09-27, walkthrough cases SL-127, SL-128, SL-149 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

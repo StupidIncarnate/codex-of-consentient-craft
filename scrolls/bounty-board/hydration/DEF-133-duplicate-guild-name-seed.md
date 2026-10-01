@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P3: a repeated display name in seeded data |
 | Package | hydration |
 | Found | 2026-09-28, walkthrough case SL-079 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

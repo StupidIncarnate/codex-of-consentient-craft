@@ -4,6 +4,7 @@
 |---|---|
 | Kind | change |
 | Status | ready |
+| Priority | P3: a planned check, waiting on the siege design |
 | Package | orchestrator |
 | Found | 2026-09-30, walkthrough exploration; `scrolls/orcha-changes/HANDOFF.md` item 9 |
 | Moved from | DEF-214, 2026-09-30. The user filed it as part of the siege re-architecture |

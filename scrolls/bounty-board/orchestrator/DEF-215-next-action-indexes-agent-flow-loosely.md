@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
+| Priority | P3: loose typing with no known wrong result |
 | Package | orchestrator |
 | Found | 2026-09-30, `scrolls/consolidated-plan-handoff.md` "Known gaps, not yet units" |
 | Moved from | `scrolls/walkthrough/features/08-init-prompts-and-mcp.md`, "Known open items"; 2026-09-30 |

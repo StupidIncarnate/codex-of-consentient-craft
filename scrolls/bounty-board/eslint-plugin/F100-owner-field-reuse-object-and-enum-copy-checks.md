@@ -4,6 +4,7 @@
 |---|---|
 | Kind | change |
 | Status | ready |
+| Priority | P3: two planned checks were never built; nothing is wrong meanwhile |
 | Package | eslint-plugin |
 | Found | R8 |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |

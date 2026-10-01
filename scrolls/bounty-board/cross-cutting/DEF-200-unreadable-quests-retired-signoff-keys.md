@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P1: older quests load as unreadable, and `session-forensics` prints blank with no warning |
 | Package | cross-cutting |
 | Found | 2026-09-30, live in the web quest list; earlier seen by the session-forensics exploration (SF coverage/quest) and walkthrough case MK-28 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" rows "SF · coverage, quest" and "MK-28", and `scrolls/walkthrough/features/06-session-forensics.md`, "Known open items" item 2; 2026-09-30 |

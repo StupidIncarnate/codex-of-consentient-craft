@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: a full ward exits 1 on load-only slow flags |
 | Package | ward |
 | Found | 2026-09-29, full ward run `1790726979118-47a0` |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

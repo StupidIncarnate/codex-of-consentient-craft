@@ -4,6 +4,7 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
+| Priority | P2: the repo and its consumers grade the same test differently, so a repo pass can hide a consumer failure |
 | Package | cross-cutting |
 | Found | F60 |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |
