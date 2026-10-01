@@ -16,7 +16,14 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: [], generated: [], untyped: [], esmOnly: [], skippedOwnCopy: [] },
+      result: {
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        noRootExport: [],
+        skippedOwnCopy: [],
+      },
       output: 'gateway-sync: nothing to do\n',
     });
   });
@@ -48,6 +55,7 @@ describe('CliGatewaySyncResponder', () => {
         generated: ['left-pad'],
         untyped: ['left-pad'],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       },
       output:
@@ -74,7 +82,14 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: [], generated: [], untyped: [], esmOnly: [], skippedOwnCopy: [] },
+      result: {
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        noRootExport: [],
+        skippedOwnCopy: [],
+      },
       output: 'gateway-sync: nothing to do\n',
     });
   });
@@ -125,7 +140,14 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: [], generated: [], untyped: [], esmOnly: [], skippedOwnCopy: [] },
+      result: {
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        noRootExport: [],
+        skippedOwnCopy: [],
+      },
       output:
         'gateway-sync: skipped, no .dungeonmaster.json in /elsewhere/app or any folder above it\n',
     });
@@ -156,6 +178,7 @@ describe('CliGatewaySyncResponder', () => {
         generated: ['left-pad'],
         untyped: ['left-pad'],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
         lockfileWarning:
           'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json',

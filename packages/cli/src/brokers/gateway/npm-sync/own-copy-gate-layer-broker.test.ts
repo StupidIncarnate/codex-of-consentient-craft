@@ -111,6 +111,32 @@ describe('ownCopyGateLayerBroker', () => {
     expect(result).toBe(null);
   });
 
+  it('VALID: {a test and a proxy that would not compile without jest types} => never compiles them and returns null', async () => {
+    const proxy = ownCopyGateLayerBrokerProxy();
+    proxy.setupInstalled({ repoRoot: REPO_ROOT, packageName: 'zod', version: '4.7.0' });
+    proxy.setupOwnFolder({
+      ownSrcRoot: OWN_SRC_ROOT,
+      folder: 'zod',
+      files: {
+        'zod.ts': 'export const zodLike: number = 1;\n',
+        'zod.test.ts': "describe('zod', () => undefined);\n",
+        'zod-like/zod-like.proxy.ts': 'export const zodLikeProxy = jest.fn();\n',
+      },
+    });
+
+    const result = await ownCopyGateLayerBroker({
+      repoRoot: REPO_ROOT,
+      ownSrcRoot: OWN_SRC_ROOT,
+      ownPackageJson: PackageJsonStub({ dependencies: { zod: '^4.6.5' } }),
+      dependency: GatewayNpmDependencyStub({ name: 'zod', range: '^4.0.0', folder: 'zod' }),
+      copyPlan: ['zod'],
+      plannedCopies: [],
+      plannedFiles: [],
+    });
+
+    expect(result).toBe(null);
+  });
+
   it('INVALID: {range satisfied, our folder does not compile} => skips for compile, naming both versions', async () => {
     const proxy = ownCopyGateLayerBrokerProxy();
     proxy.setupInstalled({ repoRoot: REPO_ROOT, packageName: 'zod', version: '4.7.0' });
@@ -135,6 +161,8 @@ describe('ownCopyGateLayerBroker', () => {
       reason: 'compile',
       installed: '4.7.0',
       ours: '^4.6.5',
+      detail:
+        "packages/@gateway/npm/src/zod/zod.ts(1): TS2322: Type 'string' is not assignable to type 'number'.",
     });
   });
 

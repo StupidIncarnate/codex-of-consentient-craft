@@ -76,6 +76,8 @@ describe('gatewayNpmSyncReportLinesTransformer', () => {
           reason: 'compile',
           installed: '2.0.0',
           ours: '^2.12.10',
+          detail:
+            "packages/@gateway/npm/src/msw/msw.ts(1): TS2305: Module 'msw' has no exported member 'http'.",
         }),
         GatewayNpmSkippedOwnCopyStub({ name: 'ink', reason: 'esm-only' }),
         GatewayNpmSkippedOwnCopyStub({
@@ -88,9 +90,19 @@ describe('gatewayNpmSyncReportLinesTransformer', () => {
     const result = gatewayNpmSyncReportLinesTransformer({ report });
 
     expect(result).toStrictEqual([
-      'passthrough instead of our wrapper: msw (our wrapper does not compile against installed 2.0.0)',
+      "passthrough instead of our wrapper: msw (our wrapper does not compile against installed 2.0.0: packages/@gateway/npm/src/msw/msw.ts(1): TS2305: Module 'msw' has no exported member 'http'.)",
       'passthrough instead of our wrapper: ink (our wrapper imports an ESM-only package)',
       'passthrough instead of our wrapper: @hono/node-ws (our wrapper imports a package this repo does not declare)',
+    ]);
+  });
+
+  it('VALID: {packages with no root export} => names them on one line', () => {
+    const report = GatewayNpmSyncReportStub({ noRootExport: ['sub-only-lib', '@acme/tools'] });
+
+    const result = gatewayNpmSyncReportLinesTransformer({ report });
+
+    expect(result).toStrictEqual([
+      'no root export; wrap a subpath by hand: sub-only-lib, @acme/tools',
     ]);
   });
 

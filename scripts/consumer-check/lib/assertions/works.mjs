@@ -388,7 +388,11 @@ const assertWardCleanFixture = async ({ report, consumerRoot }) => {
   report.check(
     'dungeonmaster ward runs in the consumer and exits 0 on the clean fixture (@gateway/node covered separately above, F1)',
     result.code === 0,
-    result.code === 0 ? '' : `${result.stdout}\n${result.stderr}`.slice(-3000),
+    // Each stream's own tail: ward's progress lines go to one stream and its summary to the other,
+    // so one tail of the two joined keeps only the progress and drops what actually failed.
+    result.code === 0
+      ? ''
+      : `exit ${String(result.code)}\n--- stdout ---\n${result.stdout.slice(-4000)}\n--- stderr ---\n${result.stderr.slice(-1500)}`,
   );
 };
 

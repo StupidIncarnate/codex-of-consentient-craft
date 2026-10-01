@@ -47,6 +47,7 @@ describe('gatewayNpmSyncBroker (integration)', () => {
         generated: [],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(barrel).toBe(sync.readOwnGatewayFile({ relativePath: 'elkjs/elkjs.ts' }));
@@ -130,6 +131,7 @@ describe('gatewayNpmSyncBroker (integration)', () => {
         generated: ['left-pad'],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect({ diagnostics, testRun }).toStrictEqual({
@@ -224,6 +226,7 @@ describe('#gateway/npm/left-pad', () => {
         generated: ['agent-lib'],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(barrel).toBe(`/**
@@ -270,6 +273,7 @@ export * from 'agent-lib';
         generated: ['hono__node-ws'],
         untyped: ['@hono/node-ws'],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [
           {
             name: '@hono/node-ws',
@@ -330,6 +334,7 @@ export * from '@hono/node-ws';
         generated: [],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(barrel).toBe("// hand-edited\nexport * from 'elkjs';\n");
@@ -386,6 +391,7 @@ export * from '@hono/node-ws';
         generated: [],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(packageJsonAfter).toBe(gatewayPackageJson);
@@ -431,6 +437,7 @@ export * from '@hono/node-ws';
         generated: [],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(rootBarrel).toBe(null);
@@ -489,6 +496,7 @@ export * from '@hono/node-ws';
         generated: [],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(serverBarrel).toBe(
@@ -537,6 +545,7 @@ export * from '@hono/node-ws';
         generated: ['react-dom'],
         untyped: ['react-dom'],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [
           {
             name: 'react-dom',
@@ -615,6 +624,7 @@ export * from 'react-dom';
         generated: ['esm-lib'],
         untyped: [],
         esmOnly: ['esm-lib'],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect({ diagnostics, testRun }).toStrictEqual({
@@ -692,6 +702,7 @@ export type * from 'esm-lib' with { 'resolution-mode': 'import' };
         generated: ['elkjs'],
         untyped: [],
         esmOnly: ['elkjs'],
+        noRootExport: [],
         skippedOwnCopy: [
           {
             name: 'elkjs',
@@ -768,6 +779,7 @@ export type * from 'elkjs' with { 'resolution-mode': 'import' };
         generated: ['left-pad'],
         untyped: ['left-pad'],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       });
       expect(elkjsBarrel).toBe(null);
@@ -820,6 +832,7 @@ export type * from 'elkjs' with { 'resolution-mode': 'import' };
         generated: ['zod'],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [{ name: 'zod', reason: 'version', installed: '3.23.8', ours: '^4.6.5' }],
       });
       expect(barrel).toBe(`/**
@@ -895,12 +908,15 @@ export * from 'zod';
         generated: ['debug'],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [
           {
             name: 'debug',
             reason: 'compile',
             installed: installedVersion,
             ours: sync.ownGatewayRange({ packageName: 'debug' }),
+            detail:
+              "packages/@gateway/npm/src/debug/debug.ts(17): TS2305: Module '\"debug\"' has no exported member 'coerce'.",
           },
         ],
       });
@@ -953,6 +969,7 @@ export = pkgModule;
         generated: ['left-pad'],
         untyped: ['left-pad'],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
         lockfileWarning:
           'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json',
@@ -978,6 +995,249 @@ export * from 'left-pad';
           2,
         )}\n`,
       );
+    });
+  });
+
+  describe('a consumer-shaped repo, as init leaves it before anything is installed', () => {
+    it('VALID: {root and gateway tsconfig as init writes them, no @types/jest, elkjs in our range} => compiles our elkjs wrapper and stub under that tsconfig and copies it byte for byte', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-consumer-tsconfig' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: JSON.stringify({ name: 'acme', dependencies: { elkjs: '^0.10.0' } }),
+      });
+      testbed.writeFile({
+        relativePath: 'tsconfig.json',
+        content: JSON.stringify({
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'node16',
+            moduleResolution: 'node16',
+            customConditions: ['source'],
+            lib: ['ES2022'],
+            esModuleInterop: true,
+            skipLibCheck: true,
+            resolveJsonModule: true,
+            strict: true,
+            noUnusedLocals: true,
+            noUnusedParameters: true,
+            noImplicitReturns: true,
+            exactOptionalPropertyTypes: true,
+            noUncheckedIndexedAccess: true,
+            noEmit: true,
+            typeRoots: ['./node_modules/@types', './@types'],
+          },
+          files: [],
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/tsconfig.json',
+        content: JSON.stringify({
+          compilerOptions: {
+            typeRoots: ['../../../node_modules/@types', '../../../@types', './@types'],
+          },
+          include: ['**/*.ts', '@types/**/*'],
+          exclude: ['node_modules', 'dist'],
+          extends: '../../../tsconfig.json',
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/elkjs/package.json',
+        content: JSON.stringify({
+          name: 'elkjs',
+          version: sync.minVersionSatisfying({
+            range: sync.ownGatewayRange({ packageName: 'elkjs' }),
+          }),
+          main: 'index.js',
+          types: 'index.d.ts',
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/elkjs/index.js',
+        content: 'module.exports = class ELK {};\n',
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/elkjs/index.d.ts',
+        content:
+          'export interface ElkNode {\n  id: string;\n  x?: number;\n  y?: number;\n  width?: number;\n  height?: number;\n  children?: ElkNode[];\n}\ndeclare class ELK {\n  layout<T extends ElkNode>(graph: T): Promise<T>;\n}\nexport default ELK;\n',
+      });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: 'typescript' });
+
+      const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
+
+      const stub = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/elkjs/elk-layout-result/elk-layout-result.stub.ts',
+      });
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        copied: ['elkjs'],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        noRootExport: [],
+        skippedOwnCopy: [],
+      });
+      expect(stub).toBe(
+        sync.readOwnGatewayFile({
+          relativePath: 'elkjs/elk-layout-result/elk-layout-result.stub.ts',
+        }),
+      );
+    });
+  });
+
+  describe('an installed package with no root export', () => {
+    it('VALID: {our subpath folders refused, two of their subpaths exported} => writes a passthrough per resolving subpath and no root barrel', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-no-root-subpaths' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: JSON.stringify({
+          name: 'acme',
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/@modelcontextprotocol/sdk/package.json',
+        content: JSON.stringify({
+          name: '@modelcontextprotocol/sdk',
+          version: '1.0.0',
+          exports: {
+            './server/mcp.js': { types: './mcp.d.ts', default: './mcp.js' },
+            './types.js': { types: './types.d.ts', default: './types.js' },
+          },
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/@modelcontextprotocol/sdk/mcp.d.ts',
+        content: 'export declare const mcpVersion: number;\n',
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/@modelcontextprotocol/sdk/mcp.js',
+        content: 'exports.mcpVersion = 1;\n',
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/@modelcontextprotocol/sdk/types.d.ts',
+        content: 'export declare const typesVersion: number;\n',
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/@modelcontextprotocol/sdk/types.js',
+        content: 'exports.typesVersion = 1;\n',
+      });
+
+      const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
+
+      const mcpBarrel = testbed.readFile({
+        relativePath:
+          'packages/@gateway/npm/src/modelcontextprotocol__sdk__server__mcp/modelcontextprotocol__sdk__server__mcp.ts',
+      });
+      const rootBarrel = testbed.readFile({
+        relativePath:
+          'packages/@gateway/npm/src/modelcontextprotocol__sdk/modelcontextprotocol__sdk.ts',
+      });
+      const serverBarrel = testbed.readFile({
+        relativePath:
+          'packages/@gateway/npm/src/modelcontextprotocol__sdk__server/modelcontextprotocol__sdk__server.ts',
+      });
+      const diagnostics = sync.compileDiagnostics({
+        repoRoot: testbed.guildPath,
+        relativePaths: [
+          'packages/@gateway/npm/src/modelcontextprotocol__sdk__server__mcp/modelcontextprotocol__sdk__server__mcp.ts',
+          'packages/@gateway/npm/src/modelcontextprotocol__sdk__types/modelcontextprotocol__sdk__types.ts',
+        ],
+      });
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: ['modelcontextprotocol__sdk__server__mcp', 'modelcontextprotocol__sdk__types'],
+        untyped: [],
+        esmOnly: [],
+        noRootExport: [],
+        skippedOwnCopy: [
+          {
+            name: '@modelcontextprotocol/sdk',
+            reason: 'compile',
+            installed: '1.0.0',
+            ours: '^1.0.0',
+            detail:
+              "packages/@gateway/npm/src/modelcontextprotocol__sdk__server/modelcontextprotocol__sdk__server.ts(10): TS2307: Cannot find module '@modelcontextprotocol/sdk/server' or its corresponding type declarations.",
+          },
+        ],
+      });
+      expect({ rootBarrel, serverBarrel, diagnostics }).toStrictEqual({
+        rootBarrel: null,
+        serverBarrel: null,
+        diagnostics: [],
+      });
+      expect(mcpBarrel).toBe(`/**
+ * PURPOSE: Pass-through for the npm package '@modelcontextprotocol/sdk/server/mcp.js'. Code outside the gateway imports @modelcontextprotocol/sdk/server/mcp.js
+ * through here instead of the raw package, so a future guard or override on @modelcontextprotocol/sdk/server/mcp.js lands in
+ * this one file and reaches every caller.
+ *
+ * USAGE:
+ * import { someExport } from '#gateway/npm/modelcontextprotocol__sdk__server__mcp';
+ */
+
+export * from '@modelcontextprotocol/sdk/server/mcp.js';
+`);
+    });
+
+    it('VALID: {no root export and no subpath folder of ours} => writes nothing, leaves the gateway package.json alone and reports it', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-no-root-nothing' });
+      const gatewayPackageJson = JSON.stringify({ name: '@acme/npm', version: '0.1.0' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: JSON.stringify({ name: 'acme', dependencies: { 'sub-only-lib': '^2.0.0' } }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: gatewayPackageJson,
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/sub-only-lib/package.json',
+        content: JSON.stringify({
+          name: 'sub-only-lib',
+          version: '2.0.0',
+          exports: { './server': { types: './server.d.ts', default: './server.js' } },
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/sub-only-lib/server.d.ts',
+        content: 'export declare const serve: () => void;\n',
+      });
+
+      const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
+
+      const rootBarrel = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/sub-only-lib/sub-only-lib.ts',
+      });
+      const packageJsonAfter = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+      });
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        noRootExport: ['sub-only-lib'],
+        skippedOwnCopy: [],
+      });
+      expect({ rootBarrel, packageJsonAfter }).toStrictEqual({
+        rootBarrel: null,
+        packageJsonAfter: gatewayPackageJson,
+      });
     });
   });
 });

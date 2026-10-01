@@ -9,6 +9,7 @@ describe('gatewayNpmSyncReportContract', () => {
       generated: ['left-pad', 'zod'],
       untyped: ['left-pad'],
       esmOnly: ['ink'],
+      noRootExport: [],
       skippedOwnCopy: [GatewayNpmSkippedOwnCopyStub({ installed: '3.23.8', ours: '^4.6.5' })],
       lockfileWarning: 'lockfile not updated',
     });
@@ -20,17 +21,19 @@ describe('gatewayNpmSyncReportContract', () => {
       generated: ['left-pad', 'zod'],
       untyped: ['left-pad'],
       esmOnly: ['ink'],
+      noRootExport: [],
       skippedOwnCopy: [{ name: 'zod', reason: 'version', installed: '3.23.8', ours: '^4.6.5' }],
       lockfileWarning: 'lockfile not updated',
     });
   });
 
-  it('EMPTY: {} => stub holds five empty lists and no lockfile warning', () => {
+  it('EMPTY: {} => stub holds six empty lists and no lockfile warning', () => {
     expect(GatewayNpmSyncReportStub()).toStrictEqual({
       copied: [],
       generated: [],
       untyped: [],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
   });
@@ -42,6 +45,7 @@ describe('gatewayNpmSyncReportContract', () => {
         generated: [],
         untyped: [],
         esmOnly: [],
+        noRootExport: [],
         skippedOwnCopy: [],
       }),
     ).toThrow(/Too small/u);

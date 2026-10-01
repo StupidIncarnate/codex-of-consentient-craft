@@ -3,6 +3,7 @@
  * own wrapper for it, and why. `installed` is the version the consumer has installed and `ours` the
  * range dungeonmaster's own npm gateway declares, each present only when it was found — a report
  * line names both so the person reading it sees the mismatch without opening a package.json.
+ * `detail` is the first compiler diagnostic of a `compile` skip, so the line says what broke.
  *
  * USAGE:
  * gatewayNpmSkippedOwnCopyContract.parse({ name: 'zod', reason: 'version', installed: '3.23.8', ours: '^4.6.5' });
@@ -19,6 +20,7 @@ export const gatewayNpmSkippedOwnCopyContract = z
     reason: gatewayNpmSkipReasonContract,
     installed: z.string().min(1).brand<'GatewayNpmSkippedOwnCopyInstalled'>().optional(),
     ours: z.string().min(1).brand<'GatewayNpmSkippedOwnCopyOurs'>().optional(),
+    detail: z.string().min(1).brand<'GatewayNpmSkippedOwnCopyDetail'>().optional(),
   })
   .brand<'GatewayNpmSkippedOwnCopy'>();
 

@@ -19,6 +19,23 @@ describe('gatewayNpmSkippedOwnCopyContract', () => {
     });
   });
 
+  it('VALID: {reason: compile, detail} => keeps the diagnostic', () => {
+    const result = gatewayNpmSkippedOwnCopyContract.parse(
+      GatewayNpmSkippedOwnCopyStub({
+        reason: 'compile',
+        installed: '4.6.5',
+        detail: "packages/@gateway/npm/src/zod/zod.ts(1): TS2307: Cannot find module 'zod'.",
+      }),
+    );
+
+    expect(result).toStrictEqual({
+      name: 'zod',
+      reason: 'compile',
+      installed: '4.6.5',
+      detail: "packages/@gateway/npm/src/zod/zod.ts(1): TS2307: Cannot find module 'zod'.",
+    });
+  });
+
   it('INVALID: {reason: "network"} => throws a validation error', () => {
     expect(() =>
       gatewayNpmSkippedOwnCopyContract.parse({ name: 'zod', reason: 'network' }),

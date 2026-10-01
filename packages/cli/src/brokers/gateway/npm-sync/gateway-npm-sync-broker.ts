@@ -8,7 +8,10 @@
  * they import resolves in the consumer, the installed version satisfies the range
  * `@dungeonmaster/npm` declares for the package, and the folders compile where they will land
  * (`ownCopyGateLayerBroker`); anything else gets a generated passthrough barrel and test, and a
- * failed gate is reported in `skippedOwnCopy`. A folder already present is never touched. Each
+ * failed gate is reported in `skippedOwnCopy`. A passthrough is only written for a specifier the
+ * consumer's install resolves (`passthroughPlanLayerBroker`): an installed package with no root
+ * export gets one per subpath folder we wrap that resolves, or nothing and a `noRootExport` entry.
+ * A folder already present is never touched. Each
  * package a folder was written for is added to the npm gateway's own `dependencies`, the
  * placeholder `src/index.d.ts` goes once a subpath exists, and when `dependencies` changed one
  * `npm install --ignore-scripts` from the repo root brings the lockfile back in step — best effort:
@@ -46,11 +49,11 @@ import type { ScaffoldFile } from '../../../contracts/scaffold-file/scaffold-fil
 import { gatewayNpmSyncStatics } from '../../../statics/gateway-npm-sync/gateway-npm-sync-statics';
 import { gatewayPackageTemplateStatics } from '../../../statics/gateway-package-template/gateway-package-template-statics';
 import { gatewayNpmPassthroughFilesTransformer } from '../../../transformers/gateway-npm-passthrough-files/gateway-npm-passthrough-files-transformer';
-import { npmModuleExportShapeBroker } from '../../npm-module/export-shape/npm-module-export-shape-broker';
 import { gatewayNpmDependenciesListBroker } from '../npm-dependencies-list/gateway-npm-dependencies-list-broker';
 import { gatewayPackageRecordLayerBroker } from './gateway-package-record-layer-broker';
 import { ownCopyGateLayerBroker } from './own-copy-gate-layer-broker';
 import { ownCopyPlanLayerBroker } from './own-copy-plan-layer-broker';
+import { passthroughPlanLayerBroker } from './passthrough-plan-layer-broker';
 import { subpathFoldersOwnedLayerBroker } from './subpath-folders-owned-layer-broker';
 
 export const gatewayNpmSyncBroker = async ({
@@ -70,6 +73,7 @@ export const gatewayNpmSyncBroker = async ({
       untyped: [],
       esmOnly: [],
       skippedOwnCopy: [],
+      noRootExport: [],
     });
   }
 
@@ -97,6 +101,7 @@ export const gatewayNpmSyncBroker = async ({
   const untyped: GatewayNpmDependency['name'][] = [];
   const esmOnly: GatewayNpmDependency['name'][] = [];
   const skippedOwnCopy: GatewayNpmSkippedOwnCopy[] = [];
+  const noRootExport: GatewayNpmDependency['name'][] = [];
   const written: GatewayNpmDependency[] = [];
 
   // Sequential: a copy set claims folders (a subpath, gateway-test-support) the next dependency's
@@ -115,7 +120,6 @@ export const gatewayNpmSyncBroker = async ({
       return;
     }
 
-    written.push(dependency);
     const copyPlan =
       ownSrcRoot === null
         ? null
@@ -141,6 +145,7 @@ export const gatewayNpmSyncBroker = async ({
         ),
       });
       if (skipped === null && typeof copyPlan !== 'string') {
+        written.push(dependency);
         for (const folder of copyPlan) {
           claimed.add(folder);
           copied.push(folder);
@@ -153,17 +158,29 @@ export const gatewayNpmSyncBroker = async ({
       }
     }
 
-    const shape = npmModuleExportShapeBroker({ repoRoot, packageName: dependency.name });
-    claimed.add(dependency.folder);
-    passthroughs.push({
+    const plans = await passthroughPlanLayerBroker({
+      repoRoot,
+      ownSrcRoot,
       dependency,
-      files: gatewayNpmPassthroughFilesTransformer({ dependency, shape }),
+      excludedFolders: [...claimed],
     });
-    if (shape === 'untyped') {
-      untyped.push(dependency.name);
+    if (plans.length === 0) {
+      noRootExport.push(dependency.name);
+      return;
     }
-    if (shape === 'esm-only') {
-      esmOnly.push(dependency.name);
+    written.push(dependency);
+    for (const plan of plans) {
+      claimed.add(plan.dependency.folder);
+      passthroughs.push({
+        dependency: plan.dependency,
+        files: gatewayNpmPassthroughFilesTransformer(plan),
+      });
+      if (plan.shape === 'untyped') {
+        untyped.push(plan.dependency.name);
+      }
+      if (plan.shape === 'esm-only') {
+        esmOnly.push(plan.dependency.name);
+      }
     }
   }, Promise.resolve());
 
@@ -173,6 +190,7 @@ export const gatewayNpmSyncBroker = async ({
     untyped,
     esmOnly,
     skippedOwnCopy,
+    noRootExport,
   });
 
   if (getEnv(lifecycle.envName) === lifecycle.ciValue) {

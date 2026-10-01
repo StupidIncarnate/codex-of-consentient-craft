@@ -27,6 +27,7 @@ describe('gatewayNpmSyncBroker', () => {
       generated: ['left-pad'],
       untyped: ['left-pad'],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
     expect(proxy.copiedFolders()).toStrictEqual([
@@ -96,6 +97,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: [],
       untyped: [],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
     expect(proxy.copiedFolders()).toStrictEqual([]);
@@ -124,6 +126,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: [],
       untyped: [],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
     expect({
@@ -152,6 +155,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: ['left-pad'],
       untyped: ['left-pad'],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
     expect(proxy.copiedFolders()).toStrictEqual([]);
@@ -185,6 +189,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: [],
       untyped: [],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
     expect(proxy.removedPaths({ repoRoot: REPO_ROOT })).toStrictEqual([]);
@@ -202,6 +207,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: [],
       untyped: [],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
     });
   });
@@ -230,6 +236,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: ['left-pad'],
       untyped: ['left-pad'],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [],
       lockfileWarning:
         'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json',
@@ -284,6 +291,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: ['zod'],
       untyped: ['zod'],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [{ name: 'zod', reason: 'version', installed: '3.23.8', ours: '^4.6.5' }],
     });
     expect(proxy.copiedFolders()).toStrictEqual([]);
@@ -308,7 +316,17 @@ describe('#gateway/npm/left-pad', () => {
       generated: ['elkjs'],
       untyped: ['elkjs'],
       esmOnly: [],
-      skippedOwnCopy: [{ name: 'elkjs', reason: 'compile', installed: '1.0.0', ours: '*' }],
+      noRootExport: [],
+      skippedOwnCopy: [
+        {
+          name: 'elkjs',
+          reason: 'compile',
+          installed: '1.0.0',
+          ours: '*',
+          detail:
+            "packages/@gateway/npm/src/elkjs/elkjs.ts(1): TS2322: Type 'string' is not assignable to type 'number'.",
+        },
+      ],
     });
     expect(proxy.copiedFolders()).toStrictEqual([]);
   });
@@ -332,6 +350,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: ['elkjs'],
       untyped: ['elkjs'],
       esmOnly: [],
+      noRootExport: [],
       skippedOwnCopy: [
         { name: 'elkjs', reason: 'unresolved-import', installed: '1.0.0', ours: '*' },
       ],

@@ -5,10 +5,15 @@
  * must satisfy the range `@dungeonmaster/npm`'s own package.json declares for that package in
  * `dependencies` or `peerDependencies` — a subpath folder gates on the package it wraps, which is
  * this dependency; nothing installed, or no range of ours, fails the same way. Then a plan that
- * already failed to resolve passes its reason on. Last, the folders to copy are compiled where they
- * will land (`copyCompileLayerBroker`), beside every file this run plans to write before them, and
- * any diagnostic fails. Null means copy; anything else is the skip to report, and the sync writes a
- * passthrough instead. Nothing is written here, so a failed gate leaves nothing behind.
+ * already failed to resolve passes its reason on. Last, the files that touch the package's API — the
+ * barrel, wrapper files and `.stub.ts` files — are compiled where they will land
+ * (`copyCompileLayerBroker`), beside every file this run plans to write before them, and any
+ * diagnostic fails, carrying the first one as the skip's `detail`. `.test.ts` and `.proxy.ts` files
+ * are never root files: they need jest's types, which `init` declares but has not installed when
+ * its own sync runs, and a folder refused then stays a passthrough for good, since no later sync
+ * replaces an existing folder. A real version mismatch surfaces in a wrapper or a stub; whatever
+ * those import is still checked as usual. Null means copy; anything else is the skip to report, and
+ * the sync writes a passthrough instead. Nothing is written here, so a failed gate leaves nothing behind.
  *
  * USAGE:
  * await ownCopyGateLayerBroker({ repoRoot, ownSrcRoot, ownPackageJson, dependency, copyPlan: ['zod'], plannedCopies: [], plannedFiles: [] });
@@ -47,7 +52,8 @@ export const ownCopyGateLayerBroker = async ({
   plannedCopies: readonly (readonly [string, string])[];
   plannedFiles: readonly (readonly [string, string])[];
 }): Promise<GatewayNpmSkippedOwnCopy | null> => {
-  const { consumerGateway, sourceExtensions } = gatewayNpmSyncStatics;
+  const { consumerGateway, sourceExtensions, compileGateSkippedSuffixes, skipDetailMaxLength } =
+    gatewayNpmSyncStatics;
   const npmPackageRoot = join(repoRoot, consumerGateway.packageDirectory);
   const srcRoot = join(npmPackageRoot, consumerGateway.sourceDirectory);
 
@@ -96,18 +102,22 @@ export const ownCopyGateLayerBroker = async ({
   );
   const files = new Map<string, string>([...plannedFiles, ...copiedFiles.flat()]);
   const thisCopyFolders = thisCopy.map(([, consumerFolder]) => consumerFolder);
-  const checkedPaths = [...files.keys()].filter(
-    (filePath) =>
-      sourceExtensions.some((extension) => filePath.endsWith(extension)) &&
-      thisCopyFolders.some((consumerFolder) => filePath.startsWith(`${consumerFolder}/`)),
-  );
+  const checkedPaths = [...files.keys()]
+    .filter(
+      (filePath) =>
+        sourceExtensions.some((extension) => filePath.endsWith(extension)) &&
+        !compileGateSkippedSuffixes.some((suffix) => filePath.endsWith(suffix)) &&
+        thisCopyFolders.some((consumerFolder) => filePath.startsWith(`${consumerFolder}/`)),
+    )
+    .sort();
 
-  const diagnostics = copyCompileLayerBroker({ repoRoot, ownSrcRoot, files, checkedPaths });
-  if (diagnostics.length > 0) {
+  const [firstDiagnostic] = copyCompileLayerBroker({ repoRoot, ownSrcRoot, files, checkedPaths });
+  if (firstDiagnostic !== undefined) {
     return gatewayNpmSkippedOwnCopyContract.parse({
       name: dependency.name,
       reason: 'compile',
       ...versions,
+      detail: firstDiagnostic.slice(0, skipDetailMaxLength),
     });
   }
 

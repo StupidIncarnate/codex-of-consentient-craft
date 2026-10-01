@@ -3,7 +3,8 @@
  * copied from dungeonmaster's own npm gateway, the folders generated as passthroughs, the packages
  * whose passthrough found no type declarations, the ESM-only packages whose passthrough carries
  * types only, the packages that got a passthrough although dungeonmaster has its own wrapper for
- * them (and why), and — only when the closing `npm install` that refreshes the lockfile failed —
+ * them (and why), the installed packages that got nothing because neither their root nor any
+ * subpath we wrap resolves, and — only when the closing `npm install` that refreshes the lockfile failed —
  * the warning saying so. A caller prints it; nothing parses it back.
  *
  * USAGE:
@@ -22,6 +23,7 @@ export const gatewayNpmSyncReportContract = z
     untyped: z.array(gatewayNpmDependencyContract.shape.name),
     esmOnly: z.array(gatewayNpmDependencyContract.shape.name),
     skippedOwnCopy: z.array(gatewayNpmSkippedOwnCopyContract),
+    noRootExport: z.array(gatewayNpmDependencyContract.shape.name),
     lockfileWarning: z.string().min(1).brand<'GatewayNpmSyncReportLockfileWarning'>().optional(),
   })
   .brand<'GatewayNpmSyncReport'>();

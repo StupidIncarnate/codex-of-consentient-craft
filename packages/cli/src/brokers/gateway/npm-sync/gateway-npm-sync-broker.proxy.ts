@@ -9,11 +9,11 @@ import { resolvePackageRoot } from '#gateway/node/module';
 import { resolvePackageRootProxy } from '#gateway/node/module/resolve-package-root/resolve-package-root.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { npmModuleExportShapeBrokerProxy } from '../../npm-module/export-shape/npm-module-export-shape-broker.proxy';
 import { gatewayNpmDependenciesListBrokerProxy } from '../npm-dependencies-list/gateway-npm-dependencies-list-broker.proxy';
 import { gatewayPackageRecordLayerBrokerProxy } from './gateway-package-record-layer-broker.proxy';
 import { ownCopyGateLayerBrokerProxy } from './own-copy-gate-layer-broker.proxy';
 import { ownCopyPlanLayerBrokerProxy } from './own-copy-plan-layer-broker.proxy';
+import { passthroughPlanLayerBrokerProxy } from './passthrough-plan-layer-broker.proxy';
 import { subpathFoldersOwnedLayerBrokerProxy } from './subpath-folders-owned-layer-broker.proxy';
 
 const INSTALL_ARGS = ['install', '--ignore-scripts', '--no-audit', '--no-fund'];
@@ -48,7 +48,7 @@ export const gatewayNpmSyncBrokerProxy = (): {
   const gateProxy = ownCopyGateLayerBrokerProxy();
   const ownManifestProxy = readJsonFileIfExistsProxy();
   const consumerSubpathsProxy = subpathFoldersOwnedLayerBrokerProxy();
-  npmModuleExportShapeBrokerProxy();
+  passthroughPlanLayerBrokerProxy();
   const envProxy = getEnvProxy();
   const cpHandle = registerMock({ fn: cp });
   const writeProxy = writeFileCreatingParentProxy();

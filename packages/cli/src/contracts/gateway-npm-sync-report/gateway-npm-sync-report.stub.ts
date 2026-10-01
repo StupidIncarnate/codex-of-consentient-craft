@@ -13,5 +13,6 @@ export const GatewayNpmSyncReportStub = ({
     untyped: [],
     esmOnly: [],
     skippedOwnCopy: [],
+    noRootExport: [],
     ...props,
   });

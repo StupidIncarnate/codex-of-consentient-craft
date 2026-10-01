@@ -33,6 +33,8 @@ describe('gatewayNpmSyncStatics', () => {
       },
       sourceExtensions: ['.ts', '.tsx'],
       gatewayFileExportSuffixes: ['.proxy', '.stub'],
+      compileGateSkippedSuffixes: ['.test.ts', '.test.tsx', '.proxy.ts', '.proxy.tsx'],
+      skipDetailMaxLength: 240,
       esmProbe: {
         diagnosticCodes: {
           importOfEsm: 1479,

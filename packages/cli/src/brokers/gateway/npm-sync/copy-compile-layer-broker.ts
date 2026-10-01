@@ -4,9 +4,12 @@
  * built against an API the consumer's installed version lacks is caught while there is still nothing
  * to clean up. `files` holds every file this run plans to write (earlier dependencies' copies and
  * passthroughs too, so a cross-folder import sees them); only `checkedPaths` have their diagnostics
- * counted. Options match `npmModuleEsmOnlyBroker` and the consumer's root tsconfig — node16 with
- * the `source` condition, under the gateway's own CommonJS package.json — plus `strict`, with the
- * consumer's installed `@types` as the type roots the gateway package template sets. `#gateway/<kind>/<sub>`
+ * counted. The options are the consumer's own `packages/@gateway/npm/tsconfig.json`, its whole
+ * `extends` chain parsed the way `tsc` parses it, so the gate passes exactly when the consumer's own
+ * typecheck of those files would; a repo with no such tsconfig gets the template's node16 options
+ * with `strict`. An unreadable tsconfig is itself the diagnostic. The default lib files come from the
+ * consumer's installed `typescript`: inside the esbuild-bundled CLI, TypeScript looks for them next
+ * to the bundle, finds none, and reports `Cannot find name 'Object'` against every file. `#gateway/<kind>/<sub>`
  * resolves to that gateway package's `src/` the way its `exports` map does, without needing the
  * workspace symlinks `npm install` makes; an npm-gateway folder nobody has written yet resolves to
  * dungeonmaster's own copy of it. Reach for `npmModuleEsmOnlyBroker` to ask about one specifier;
@@ -18,13 +21,18 @@
  */
 
 import * as ts from '#gateway/npm/typescript';
+import { createRequire } from '#gateway/node/module';
 import { join } from '#gateway/node/path';
-import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
+import { gatewayLocationsStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayNpmSyncStatics } from '../../../statics/gateway-npm-sync/gateway-npm-sync-statics';
 import { gatewayPackageTemplateStatics } from '../../../statics/gateway-package-template/gateway-package-template-statics';
 
 const GATEWAY_PREFIX = `${gatewayLocationsStatics.importPrefix}/`;
 const PATH_SEPARATOR = '/';
+const PACKAGE_JSON_FILE_NAME = 'package.json';
+const TYPESCRIPT_PACKAGE = 'typescript';
+const TYPESCRIPT_LIB_DIRECTORY = 'lib';
+const DEFAULT_LIB_PROBE = 'lib.d.ts';
 
 export const copyCompileLayerBroker = ({
   repoRoot,
@@ -45,7 +53,27 @@ export const copyCompileLayerBroker = ({
     consumerGateway.gatewayGroupDirectory,
   );
 
-  const compilerOptions: ts.CompilerOptions = {
+  const configPath = join(npmPackageRoot, locationsStatics.repoRoot.tsconfig);
+  const configFailures: string[] = [];
+  const parsedConfig = ts.sys.fileExists(configPath)
+    ? ts.getParsedCommandLineOfConfigFile(
+        configPath,
+        { noEmit: true },
+        {
+          ...ts.sys,
+          onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
+            configFailures.push(
+              `${configPath.slice(repoRoot.length + 1)}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ')}`,
+            );
+          },
+        },
+      )
+    : undefined;
+  if (configFailures.length > 0) {
+    return configFailures;
+  }
+
+  const templateOptions: ts.CompilerOptions = {
     module: ts.ModuleKind.Node16,
     moduleResolution: ts.ModuleResolutionKind.Node16,
     target: ts.ScriptTarget.ES2022,
@@ -60,6 +88,8 @@ export const copyCompileLayerBroker = ({
       join(npmPackageRoot, typeRoot),
     ),
   };
+  const compilerOptions: ts.CompilerOptions =
+    parsedConfig === undefined ? templateOptions : { ...parsedConfig.options, noEmit: true };
 
   const plannedDirectories = new Set<string>();
   for (const filePath of files.keys()) {
@@ -74,6 +104,16 @@ export const copyCompileLayerBroker = ({
   const realReadFile = host.readFile.bind(host);
   const realFileExists = host.fileExists.bind(host);
   const realDirectoryExists = host.directoryExists?.bind(host);
+
+  const libDirectory = (
+    createRequire(join(repoRoot, PACKAGE_JSON_FILE_NAME)).resolve.paths(TYPESCRIPT_PACKAGE) ?? []
+  )
+    .map((directory) => join(directory, TYPESCRIPT_PACKAGE, TYPESCRIPT_LIB_DIRECTORY))
+    .find((directory) => ts.sys.fileExists(join(directory, DEFAULT_LIB_PROBE)));
+  if (libDirectory !== undefined) {
+    host.getDefaultLibLocation = () => libDirectory;
+    host.getDefaultLibFileName = (options) => join(libDirectory, ts.getDefaultLibFileName(options));
+  }
 
   host.getSourceFile = (fileName, languageVersion, ...rest) => {
     const planned = files.get(fileName);

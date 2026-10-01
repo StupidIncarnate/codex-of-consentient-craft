@@ -49,6 +49,11 @@ export const gatewayNpmSyncStatics = {
   // A gateway package's `exports` maps `./<sub>.proxy` and `./<sub>.stub` to `src/<sub>.<kind>.ts`
   // and every other `./<sub>` to `src/<sub>/<sub>.ts`; the compile gate resolves `#gateway/*` that way.
   gatewayFileExportSuffixes: ['.proxy', '.stub'],
+  // Copied files the compile gate never makes root files: tests and proxies need jest's types,
+  // which `init` declares but has not installed when its own sync runs.
+  compileGateSkippedSuffixes: ['.test.ts', '.test.tsx', '.proxy.ts', '.proxy.tsx'],
+  // The longest first-diagnostic text a compile skip carries into its one report line.
+  skipDetailMaxLength: 240,
   esmProbe: {
     diagnosticCodes: {
       importOfEsm: 1479,

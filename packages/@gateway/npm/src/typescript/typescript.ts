@@ -36,6 +36,7 @@ export {
   factory,
   flattenDiagnosticMessageText,
   forEachChild,
+  getDefaultLibFileName,
   getModeForUsageLocation,
   getModifiers,
   getParsedCommandLineOfConfigFile,

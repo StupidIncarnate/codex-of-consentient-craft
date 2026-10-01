@@ -56,6 +56,7 @@ export const CliGatewaySyncResponder = async ({
       untyped: [],
       esmOnly: [],
       skippedOwnCopy: [],
+      noRootExport: [],
     });
   }
 
