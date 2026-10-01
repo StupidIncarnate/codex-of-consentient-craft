@@ -16,7 +16,10 @@
  * // caller reaches a package's own composed export this way, and enforce-proxy-child-creation
  * // decides per name whether it needs a child proxy. The caller passes its own workspace's
  * // scope (read off the real workspace root, never hardcoded); with none given, this shape is
- * // skipped entirely, same as before this branch existed
+ * // skipped entirely
+ * // A gateway import also records its default import ('import electron from ...') and its
+ * // namespace import ('import * as fsNs from ...') under the local name, so a caller can see that
+ * // the file imports the subpath at all, whatever shape the import takes
  */
 import {
   fileExtensionsStatics,
@@ -47,19 +50,21 @@ export const parseImplementationImportsTransformer = ({
   contentWithoutComments = contentWithoutComments.replace(/\/\/.*$/gmu, '');
 
   // Simple regex to match import statements
-  // Matches: import { name } from 'path' or import name from 'path'. The first capture
+  // Matches: import { name } from 'path', import name from 'path', or import * as name from
+  // 'path'. The first capture
   // group is the whole-declaration `type` keyword ('import type { X }'). This parses raw
   // file content by regex, not an ESTree, so there is no per-specifier ImportSpecifier
   // node to read an `importKind` off — the `type ` prefix text is the only signal, both
   // here (whole statement) and per-name below (mixed statement).
-  const importRegex = /import\s+(type\s+)?(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/gu;
+  const importRegex =
+    /import\s+(type\s+)?(?:\{([^}]+)\}|\*\s+as\s+(\w+)|(\w+))\s+from\s+['"]([^'"]+)['"]/gu;
 
   // Get folder types that require proxies
   const folderTypes = Object.keys(folderConfigStatics);
 
   let match = importRegex.exec(contentWithoutComments);
   while (match !== null) {
-    const [, importTypeKeyword, namedImports, defaultImport, importPath] = match;
+    const [, importTypeKeyword, namedImports, namespaceImport, defaultImport, importPath] = match;
 
     // A whole `import type { ... } from '...'` statement introduces no runtime bindings —
     // every name it lists is a type — so it is skipped before any path-based branching
@@ -90,10 +95,16 @@ export const parseImplementationImportsTransformer = ({
       gatewayFolderSegment !== undefined &&
       gatewayFolderNames.some((folder) => folder === gatewayFolderSegment)
     ) {
-      for (const [name, path] of namedImportEntriesTransformer({
-        namedImports,
-        importPath: importPath ?? '',
-      })) {
+      const gatewayImportPath = importPath ?? '';
+      // A gateway subpath has one proxy for the whole subpath, so enforce-proxy-child-creation
+      // needs to see a default or namespace import of it too, not only named ones.
+      const wholeModuleEntries = [defaultImport, namespaceImport].flatMap(
+        (name): [string, string][] => (name === undefined ? [] : [[name, gatewayImportPath]]),
+      );
+      for (const [name, path] of [
+        ...namedImportEntriesTransformer({ namedImports, importPath: gatewayImportPath }),
+        ...wholeModuleEntries,
+      ]) {
         imports.set(name, path);
       }
       match = importRegex.exec(contentWithoutComments);
