@@ -1,14 +1,6 @@
 import { isIoBoundaryProxyGuard } from './is-io-boundary-proxy-guard';
 
 describe('isIoBoundaryProxyGuard', () => {
-  it('VALID: {filename: an /adapters/ proxy} => returns true', () => {
-    const result = isIoBoundaryProxyGuard({
-      filename: '/repo/packages/shared/src/adapters/fs/read/fs-read-adapter.proxy.ts',
-    });
-
-    expect(result).toBe(true);
-  });
-
   it('VALID: {filename: a gateway node proxy} => returns true', () => {
     const result = isIoBoundaryProxyGuard({
       filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',

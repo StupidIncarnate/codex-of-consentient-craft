@@ -609,10 +609,7 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
         };
       `,
       filename: '/project/src/adapters/http/http-adapter.proxy.ts',
-      errors: [
-        { messageId: 'adapterProxyMustSetupMocks' },
-        { messageId: 'jestMockedOnlyNpmPackages', data: { name: 'httpAdapter' } },
-      ],
+      errors: [{ messageId: 'jestMockedOnlyNpmPackages', data: { name: 'httpAdapter' } }],
     },
     // ❌ WRONG - jest.mocked() on implementation code (broker)
     {
@@ -668,69 +665,7 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
         { messageId: 'jestMockedOnlyNpmPackages', data: { name: 'UserWidget' } },
       ],
     },
-    // ❌ WRONG - Adapter proxy missing mock setup in constructor
-    {
-      code: `
-        import axios from 'axios';
-        jest.mock('axios');
-
-        export const httpAdapterProxy = () => {
-          const mock = jest.mocked(axios);
-
-          return {
-            returns: ({ url, response }) => {
-              mock.mockResolvedValueOnce(response);
-            }
-          };
-        };
-      `,
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
-      errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
-    },
-    // ❌ WRONG - Adapter proxy with mock setup inside method (not constructor)
-    {
-      code: `
-        import { readFile } from 'fs/promises';
-        jest.mock('fs/promises');
-
-        export const fsAdapterProxy = () => {
-          const mock = jest.mocked(readFile);
-
-          return {
-            setup: () => {
-              mock.mockResolvedValue(Buffer.from(''));
-            },
-            returns: ({ path, contents }) => {
-              mock.mockResolvedValueOnce(contents);
-            }
-          };
-        };
-      `,
-      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
-      errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
-    },
-    // ❌ WRONG - Adapter proxy with jest.spyOn but no mockImplementation
-    {
-      code: `
-        import fs from 'fs';
-
-        export const fsAdapterProxy = () => {
-          const mock = jest.spyOn(fs, 'readFileSync');
-
-          return {
-            returns: ({ path, contents }) => {
-              mock.mockReturnValueOnce(contents);
-            }
-          };
-        };
-      `,
-      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
-      errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
-    },
-    // ❌ WRONG - Gateway wrapper proxy (no /adapters/ segment) with jest.spyOn but no
-    // mockImplementation. Proves isIoBoundaryProxyGuard treats a gateway path as an I/O
-    // boundary too, so validateAdapterMockSetupLayerBroker runs here the same as it does
-    // for a /adapters/ path.
+    // ❌ WRONG - Gateway wrapper proxy with jest.spyOn but no mockImplementation
     {
       code: `
         import fs from 'fs';

@@ -10,11 +10,6 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
       code: 'const dir = process.cwd();',
       filename: '/repo/packages/cli/src/startup/start-install.ts',
     },
-    // VALID: process.cwd() inside default-allowed folder (adapters/process/cwd/)
-    {
-      code: 'export const processCwdAdapter = () => process.cwd();',
-      filename: '/repo/packages/shared/src/adapters/process/cwd/process-cwd-adapter.ts',
-    },
     // VALID: process.cwd() inside the gateway's own sanctioned wrapper
     // (@dungeonmaster/node/process exports `cwd`)
     {
@@ -74,12 +69,6 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
       filename: '/repo/packages/server/src/responders/foo/foo-responder.ts',
       errors: [{ messageId: 'bareProcessCwd' }, { messageId: 'bareProcessCwd' }],
     },
-    // INVALID: process.cwd() in an adapter that is NOT under adapters/process/cwd/
-    {
-      code: 'const dir = process.cwd();',
-      filename: '/repo/packages/server/src/adapters/glob/find/glob-find-adapter.ts',
-      errors: [{ messageId: 'bareProcessCwd' }],
-    },
     // INVALID: process.cwd() in a gateway wrapper that is NOT the sanctioned process/ module
     {
       code: 'export const currentDirSync = () => process.cwd();',
@@ -112,7 +101,7 @@ ruleTester.run(
       // INVALID: default-allowed folder no longer matches when custom allowedFolders overrides
       {
         code: 'const dir = process.cwd();',
-        filename: '/repo/packages/shared/src/adapters/process/cwd/process-cwd-adapter.ts',
+        filename: '/repo/packages/@gateway/node/src/process/process.ts',
         options: [{ allowedFiles: ['**/bin/cli-entry.ts'], allowedFolders: [] }],
         errors: [{ messageId: 'bareProcessCwd' }],
       },

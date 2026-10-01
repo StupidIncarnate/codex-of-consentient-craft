@@ -174,12 +174,14 @@ export const configDungeonmasterBroker = ({
     // T04 (scrolls/brands-gateways-epic/items/t04-workspace-export-mocks-ban.md): the whole-repo
     // scan reads 0 in every package.
     '@dungeonmaster/ban-workspace-export-mocks': ['error', { workspacePackageNames }],
-    // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
-    // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
+    // Bans raw imports/requires of non-workspace packages (npm packages and Node built-ins)
+    // outside gateway packages; all external access must go through the `#gateway/...` alias.
     '@dungeonmaster/raw-import-ban': 'error',
-    // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
+    // Bans runtime use of platform globals (from DOM or Node, e.g. process, Buffer) outside
+    // gateway packages, requiring `#gateway/...` imports.
     '@dungeonmaster/platform-globals-ban': 'error',
-    // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
+    // Bans direct spawning of CLI binaries (git, npm, claude, etc.) outside gateway packages,
+    // requiring `#gateway/bin/...` wrappers.
     '@dungeonmaster/bin-program-spawn-ban': 'error',
     // R1: reads every workspace package once to index which contracts production code parses, so it
     // is a ward-only rule, not an editor one. Off here; the repo's lint pass turns it on.

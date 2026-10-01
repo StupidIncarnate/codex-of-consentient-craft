@@ -10,7 +10,7 @@ import { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config
 // dungeonmasterRuleEnforceOnStatics entry — genuinely ward-only. Each needs the TYPE CHECKER (the
 // program `parserServices` expose), so it cannot run pre-edit (the hook parses one file in
 // isolation, no program) and 'post-edit' would fail the fs-operation check below (these rules read
-// no file — they call the type checker, not fsExistsSyncAdapter/fsReadFileSyncAdapter). BR row 2194:
+// no file — they call the type checker, not gateway fs wrappers). BR row 2194:
 // `enforce-folder-return-types` "loses its tag" once R1 lands, and `ban-primitives` and
 // `require-zod-on-primitives` have left the map — dropped entirely, not given a third timing value.
 const WARD_ONLY_TYPE_CHECKED_RULES = [
@@ -94,12 +94,8 @@ const gatewayFsBarrelSpecifiers = [
   `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.node}/fs__promises`,
 ];
 
-// A specifier "does file-system work" either through the not-yet-migrated raw adapter path
-// (`.../adapters/fs/<name>/fs-<name>-adapter`) or through the gateway's own fs barrels.
+// A specifier "does file-system work" through the gateway's own fs barrels.
 const isFsOperationSpecifier = ({ specifier }: { specifier: string }): boolean => {
-  if (specifier.includes('/adapters/fs/')) {
-    return true;
-  }
   return gatewayFsBarrelSpecifiers.some(
     (barrelSpecifier) =>
       specifier === barrelSpecifier || specifier.startsWith(`${barrelSpecifier}/`),
