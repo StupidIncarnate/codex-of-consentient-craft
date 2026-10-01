@@ -308,14 +308,6 @@ module.exports = [
       '@dungeonmaster/platform-globals-ban': 'off',
     },
   },
-  // The web entry imports its three CSS files for Vite to bundle; no gateway export can carry a
-  // side-effect stylesheet import (EPIC.md concession 9).
-  {
-    files: ['packages/web/src/main.ts'],
-    rules: {
-      '@dungeonmaster/raw-import-ban': 'off',
-    },
-  },
   // `@dungeonmaster/testing` is the one workspace package whose whole job is shipping test support:
   // its `.` export carries the stubs a consumer's tests import (b03 "Decisions (3.3-D)" (c)).
   {

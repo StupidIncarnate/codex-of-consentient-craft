@@ -81,6 +81,18 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       options: [{ scope: '@acme' }],
     },
 
+    // --- a side-effect stylesheet import is for the bundler; no gateway can wrap CSS ---
+    {
+      code: "import '@mantine/core/styles.css';",
+      filename: '/repo/packages/web/src/main.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
+    {
+      code: "import 'some-theme/dist/theme.scss';",
+      filename: '/repo/packages/web/src/main.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
+
     // --- consumer scope other than @dungeonmaster: its own workspace imports are allowed ---
     {
       code: "import { widget } from '@acme/shared/widgets';",
@@ -143,6 +155,30 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
         {
           messageId: 'scopedGatewayImport',
           data: { importSource: '@acme/node/fs', gatewayPath: '#gateway/node/fs' },
+        },
+      ],
+    },
+    // --- a stylesheet import that binds a value is flagged; only the side-effect form is skipped ---
+    {
+      code: "import styles from 'x.css';",
+      filename: '/repo/packages/web/src/main.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'rawImport',
+          data: { importSource: 'x.css', gatewayPath: '#gateway/npm/x.css' },
+        },
+      ],
+    },
+    // --- a side-effect import of a code package is flagged; only stylesheets are skipped ---
+    {
+      code: "import 'reflect-metadata';",
+      filename: '/repo/packages/web/src/main.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'rawImport',
+          data: { importSource: 'reflect-metadata', gatewayPath: '#gateway/npm/reflect-metadata' },
         },
       ],
     },

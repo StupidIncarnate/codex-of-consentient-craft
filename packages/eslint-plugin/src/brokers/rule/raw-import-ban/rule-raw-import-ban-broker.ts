@@ -11,7 +11,9 @@
  * RuleTester case can prove the rule works for a consumer repo scoped differently than this one,
  * without touching the filesystem. Dungeonmaster's own published packages (`@dungeonmaster/shared`,
  * `@dungeonmaster/testing`, ...) are never flagged in any repo, its four gateway packages
- * excepted — see isDungeonmasterToolkitImportGuard for why. `scope` only gates which imports count as "workspace"; the
+ * excepted — see isDungeonmasterToolkitImportGuard for why. A side-effect import of a stylesheet
+ * (`import '@mantine/core/styles.css';`) is never flagged: the bundler consumes it, and no gateway
+ * can wrap CSS. `scope` only gates which imports count as "workspace"; the
  * suggested gateway path is always the `#gateway/...` alias text, identical in every consumer repo.
  *
  * USAGE:
@@ -25,6 +27,7 @@ import { builtinModules } from '#gateway/node/module';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
+import { stylesheetExtensionStatics } from '../../../statics/stylesheet-extension/stylesheet-extension-statics';
 import { isDungeonmasterToolkitImportGuard } from '../../../guards/is-dungeonmaster-toolkit-import/is-dungeonmaster-toolkit-import-guard';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
@@ -108,6 +111,19 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
           node.source?.type === AST_NODE_TYPES.Literal ? node.source.value : undefined;
 
         if (typeof importSource !== 'string') {
+          return;
+        }
+
+        // A stylesheet the bundler consumes is not code, so no gateway can wrap it. Only the
+        // side-effect form is skipped: `import styles from 'x.css'` binds a value and stays flagged.
+        const isSideEffectStylesheetImport =
+          node.type === AST_NODE_TYPES.ImportDeclaration &&
+          node.specifiers.length === 0 &&
+          stylesheetExtensionStatics.extensions.some((extension) =>
+            importSource.endsWith(extension),
+          );
+
+        if (isSideEffectStylesheetImport) {
           return;
         }
 
