@@ -39,11 +39,23 @@ const SIEGE_OPERATION_ITEM = OperationItemStub({
 const { id: SIEGE_OPERATION_ITEM_ID } = SIEGE_OPERATION_ITEM;
 const OPERATIONS_REF = `operations/${String(SIEGE_OPERATION_ITEM_ID)}`;
 
+const CODEWEAVER_OPERATION_ITEM = OperationItemStub({
+  id: 'b1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+  role: 'codeweaver',
+  flowIds: ['send-flow'],
+  packageNames: [SIEGE_PACKAGE],
+});
+const { id: CODEWEAVER_OP_ID } = CODEWEAVER_OPERATION_ITEM;
+const CODEWEAVER_OPERATIONS_REF = `operations/${String(CODEWEAVER_OP_ID)}`;
+
 const HAPPY_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 const SECOND_WALK_ITEM_ID = QuestWorkItemIdStub({ value: 'd4e5f6a7-58cc-4372-a567-0e02b2c3d479' });
 const FIX_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479' });
 const WARD_ITEM_ID = QuestWorkItemIdStub({ value: 'e5f6a7b8-58cc-4372-a567-0e02b2c3d479' });
 const REPAIR_ITEM_ID = QuestWorkItemIdStub({ value: 'a7b8c9d0-58cc-4372-a567-0e02b2c3d479' });
+const SECOND_REPAIR_ITEM_ID = QuestWorkItemIdStub({
+  value: 'b8c9d0e1-58cc-4372-a567-0e02b2c3d479',
+});
 
 const WALK_PAYLOAD = WorkPlanPayloadSiegemasterStub({
   path: { nodeIds: ['web-node'], branchLabels: [] },
@@ -485,6 +497,44 @@ describe('nextActionTransformer', () => {
           'scope has nowhere to go.',
       });
     });
+
+    it('INVALID: {repair done, routes.done undeclared, no mintedBy} => blocks with no-minter', () => {
+      const quest = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [CODEWEAVER_OPERATION_ITEM],
+        workItems: [
+          WorkItemStub({
+            id: REPAIR_ITEM_ID,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            relatedDataItems: [CODEWEAVER_OPERATIONS_REF],
+            assignedUnitIds: [],
+          }),
+        ],
+      });
+
+      const action = nextActionTransformer({
+        quest,
+        plan: null,
+        operationItemId: CODEWEAVER_OP_ID,
+        agentFlowStatics,
+        questFlowStatics,
+      });
+
+      expect(action).toStrictEqual({
+        kind: 'block',
+        operationItemId: CODEWEAVER_OP_ID,
+        family: 'codeweaver',
+        step: 'repair',
+        reason: 'no-minter',
+        message:
+          'step `repair` in family `codeweaver` folded to `done`, which it declares no route ' +
+          'for, and the work item that recorded it names no minter to return to. An undeclared ' +
+          'outcome returns to whoever minted the step; with neither a route nor a minter the ' +
+          'scope has nowhere to go.',
+      });
+    });
   });
 
   describe('a plain route mint into a return-only target carries the return edge', () => {
@@ -605,6 +655,169 @@ describe('nextActionTransformer', () => {
         step: 'ward',
         cause: 'return-to-minter',
         batch: [{ step: 'ward', role: 'siegemaster', assignedUnitIds: [], needsLane: false }],
+      });
+    });
+
+    it('VALID: {red family ward, then repair completes} => routes to repair with mintedBy, then returns to ward and never blocks with no-minter', () => {
+      const wardWorkItem = WorkItemStub({
+        id: WARD_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'ward',
+        relatedDataItems: [CODEWEAVER_OPERATIONS_REF],
+        assignedUnitIds: [],
+      });
+
+      const questAfterWard = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [CODEWEAVER_OPERATION_ITEM],
+        workItems: [wardWorkItem],
+      });
+
+      // 1. Red family ward routes to repair and stamps mintedBy
+      const routeAction = nextActionTransformer({
+        quest: questAfterWard,
+        plan: null,
+        operationItemId: CODEWEAVER_OP_ID,
+        agentFlowStatics,
+        questFlowStatics,
+        declaredWord: 'unmet',
+      });
+
+      expect(routeAction).toStrictEqual({
+        kind: 'route',
+        operationItemId: CODEWEAVER_OP_ID,
+        from: 'ward',
+        outcome: 'unmet',
+        step: 'repair',
+        batch: [
+          {
+            step: 'repair',
+            role: 'codeweaver',
+            assignedUnitIds: [],
+            mintedBy: WARD_ITEM_ID,
+            needsLane: false,
+          },
+        ],
+      });
+
+      // 2. The minted repair completes; nextActionTransformer resolves return to ward
+      const repairWorkItem = WorkItemStub({
+        id: REPAIR_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'repair',
+        mintedBy: WARD_ITEM_ID,
+        relatedDataItems: [CODEWEAVER_OPERATIONS_REF],
+        assignedUnitIds: [],
+      });
+
+      const questAfterRepair = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [CODEWEAVER_OPERATION_ITEM],
+        workItems: [wardWorkItem, repairWorkItem],
+      });
+
+      const returnAction = nextActionTransformer({
+        quest: questAfterRepair,
+        plan: null,
+        operationItemId: CODEWEAVER_OP_ID,
+        agentFlowStatics,
+        questFlowStatics,
+      });
+
+      expect(returnAction).toStrictEqual({
+        kind: 'mint',
+        operationItemId: CODEWEAVER_OP_ID,
+        step: 'ward',
+        cause: 'return-to-minter',
+        batch: [{ step: 'ward', role: 'codeweaver', assignedUnitIds: [], needsLane: false }],
+      });
+    });
+
+    it('VALID: {repair drains unmet} => re-routes to repair preserving the original ward minter', () => {
+      const wardWorkItem = WorkItemStub({
+        id: WARD_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'ward',
+        relatedDataItems: [CODEWEAVER_OPERATIONS_REF],
+        assignedUnitIds: [],
+      });
+      const firstRepairWorkItem = WorkItemStub({
+        id: REPAIR_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'repair',
+        mintedBy: WARD_ITEM_ID,
+        relatedDataItems: [CODEWEAVER_OPERATIONS_REF],
+        assignedUnitIds: [],
+      });
+
+      const questAfterFirstRepair = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [CODEWEAVER_OPERATION_ITEM],
+        workItems: [wardWorkItem, firstRepairWorkItem],
+      });
+
+      // Repair folded to unmet -> should route back to repair, preserving mintedBy = WARD_ITEM_ID
+      const secondRouteAction = nextActionTransformer({
+        quest: questAfterFirstRepair,
+        plan: null,
+        operationItemId: CODEWEAVER_OP_ID,
+        agentFlowStatics,
+        questFlowStatics,
+        declaredWord: 'unmet',
+      });
+
+      expect(secondRouteAction).toStrictEqual({
+        kind: 'route',
+        operationItemId: CODEWEAVER_OP_ID,
+        from: 'repair',
+        outcome: 'unmet',
+        step: 'repair',
+        batch: [
+          {
+            step: 'repair',
+            role: 'codeweaver',
+            assignedUnitIds: [],
+            mintedBy: WARD_ITEM_ID,
+            needsLane: false,
+          },
+        ],
+      });
+
+      // When second repair completes, it still returns to ward
+      const secondRepairWorkItem = WorkItemStub({
+        id: SECOND_REPAIR_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'repair',
+        mintedBy: WARD_ITEM_ID,
+        relatedDataItems: [CODEWEAVER_OPERATIONS_REF],
+        assignedUnitIds: [],
+      });
+
+      const questAfterSecondRepair = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [CODEWEAVER_OPERATION_ITEM],
+        workItems: [wardWorkItem, firstRepairWorkItem, secondRepairWorkItem],
+      });
+
+      const returnAction = nextActionTransformer({
+        quest: questAfterSecondRepair,
+        plan: null,
+        operationItemId: CODEWEAVER_OP_ID,
+        agentFlowStatics,
+        questFlowStatics,
+      });
+
+      expect(returnAction).toStrictEqual({
+        kind: 'mint',
+        operationItemId: CODEWEAVER_OP_ID,
+        step: 'ward',
+        cause: 'return-to-minter',
+        batch: [{ step: 'ward', role: 'codeweaver', assignedUnitIds: [], needsLane: false }],
       });
     });
   });
