@@ -286,4 +286,29 @@ A package Jest cannot load gets a module mock beside its wrapper, \`packages/@ga
 **Never import dungeonmaster's own gateway.** A wrapper imports only the consumer's own copy — never \`@dungeonmaster/{npm,node,browser,bin}\` from \`node_modules\`. Read the installed package only to copy a shape from.
 
 \`dungeonmaster create-package\` refuses a name scoped \`@gateway\` — a wrapper is not a scaffolded package. Add the folder by hand instead.`,
+
+  decisionMaking: `## Making Decisions
+
+Applies in any repo \`dungeonmaster init\` has touched.
+
+**Measure before you choose a direction.** Planning a feature, weigh its performance and read the real system: real files, real sizes, real counts. A guess is not a direction.
+
+**Take the maintainable, sustainable option, even when it is more work.** When one choice leaves the system healthier and the other is quicker, take the healthier one.
+
+**Decide a clear-cut choice yourself.** When something looks like it needs the user but one option wins and nothing else weighs equally, pick it, carry on, and tell the user in one line what you chose and why. Do not stop to ask.
+
+**Bring the user in only for a decision that is theirs:**
+
+| Theirs | Example |
+|---|---|
+| User experience | what a screen shows, how a flow feels |
+| Functionality or behaviour | a change to what the product does |
+| Scope or an agreed design | adding, dropping or reshaping what was agreed |
+| A true tie | options equal on the facts, so the choice is a preference |
+| Spend | money or quota beyond the task's normal cost |
+| Destructive, irreversible or outward-facing | deleting data, force-push, publishing, messaging people |
+| Data retention or privacy | what is kept, for how long, who can see it |
+| Naming and branding | what a product or feature is called |
+
+**Never re-ask what the user already decided.** When you report a decision, state the evidence behind it, and record it where the work's plan lives.`,
 } as const;

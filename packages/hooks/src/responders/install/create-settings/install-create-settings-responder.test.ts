@@ -157,6 +157,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -240,6 +248,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -458,6 +474,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -541,6 +565,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -715,6 +747,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -790,6 +830,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -964,6 +1012,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -1047,6 +1103,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -1221,6 +1285,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -1296,6 +1368,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
