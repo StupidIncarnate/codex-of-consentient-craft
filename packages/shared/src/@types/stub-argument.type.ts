@@ -72,20 +72,26 @@ type IsGatewayBrand<T> =
 
 /**
  * Transforms Record types with branded keys to use plain string/number keys.
- * Record<BrandedString, V> => Record<string, StubArgument<V>>
+ * Record<BrandedString, V> => { [k: string]: StubArgument<V> }
+ *
+ * The single-branded-key arms are inline index signatures, not `Record<...>`. TypeScript resolves
+ * an inline index signature's value type lazily, but resolves a `Record` alias's type argument
+ * eagerly. A type that recurses through a branded-key index signature, such as
+ * `type V = string | { [key: SymbolName]: V }`, therefore hits TS2589 ("Type instantiation is
+ * excessively deep") or crashes tsc when these arms are written as `Record<...>`.
  */
 type UnbrandRecord<T> = keyof T extends string
   ? string extends keyof T
     ? { [K in keyof T]?: StubArgument<T[K]> } // Record<string, V> - regular object
     : IsUnion<keyof T> extends true
       ? { [K in keyof T]?: StubArgument<T[K]> } // Union of literal keys - regular object
-      : Record<string, StubArgument<T[keyof T]>> // Single branded key - generalize
+      : { [k: string]: StubArgument<T[keyof T]> } // Single branded key - generalize, lazily
   : keyof T extends number
     ? number extends keyof T
       ? { [K in keyof T]?: StubArgument<T[K]> } // Record<number, V> - regular object
       : IsUnion<keyof T> extends true
         ? { [K in keyof T]?: StubArgument<T[K]> } // Union of literal keys - regular object
-        : Record<number, StubArgument<T[keyof T]>> // Single branded key - generalize
+        : { [k: number]: StubArgument<T[keyof T]> } // Single branded key - generalize, lazily
     : { [K in keyof T]?: StubArgument<T[K]> }; // Other key types - map properties
 
 // ============================================================================
@@ -97,7 +103,7 @@ type UnbrandRecord<T> = keyof T extends string
  * - Branded primitives => base primitives (BrandedString => string)
  * - Arrays => recursively transformed arrays
  * - Functions => preserved as-is
- * - Records with branded keys => Record<string, ...> or Record<number, ...>
+ * - Records with branded keys => { [k: string]: ... } or { [k: number]: ... }
  * - Objects => recursively transformed properties (all optional)
  */
 type StubArgumentBase<T> = T extends any // Distributive - handles union members separately
