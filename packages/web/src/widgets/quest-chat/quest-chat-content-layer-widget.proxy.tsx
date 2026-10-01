@@ -24,6 +24,7 @@ import { AutoScrollContainerWidgetProxy as autoScrollProxyImpl } from '../auto-s
 import { ChatEntryListWidgetProxy as chatEntryListProxyImpl } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ChatInputWidgetProxy as chatInputProxyImpl } from '../chat-input/chat-input-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
+import { QuestClarifyPanelWidgetProxy as questClarifyPanelProxyImpl } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
 
 // Aliased calls to avoid enforce-proxy-child-creation phantom detection. These proxies
 // are needed because QuestChatContentLayerWidget renders AutoScrollContainerWidget,
@@ -31,6 +32,8 @@ import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 // implementation file doesn't directly import.
 const setupAutoScrollContainer = autoScrollProxyImpl;
 const setupChatEntryList = chatEntryListProxyImpl;
+// The clarify panel renders through ChatPanelWidget, so it is composed under an alias for the same reason.
+const setupClarifyPanel = questClarifyPanelProxyImpl;
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { FormDropdownWidgetProxy } from '../form-dropdown/form-dropdown-widget.proxy';
@@ -76,6 +79,13 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getChatRequestBody: () => Promise<unknown>;
   getChatRequestCount: () => number;
   getClarifyRequestCount: () => number;
+  getClarifyRequestBodies: () => Promise<unknown[]>;
+  clickClarifyOption: (params: { label: string }) => Promise<void>;
+  typeInClarifyComposer: (params: { text: string }) => void;
+  clickClarifySend: () => void;
+  getClarifyCounter: () => HTMLElement['textContent'];
+  isClarifyPanelVisible: () => boolean;
+  getChatMessageTexts: () => HTMLElement['textContent'][];
   getPauseRequestCount: () => number;
   getNewQuestRequestCount: () => number;
   getNewQuestRequestBodies: () => Promise<unknown[]>;
@@ -140,6 +150,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   notificationsHandle.calledWith([isNotificationPayload]).returns(undefined);
   setupAutoScrollContainer();
   setupChatEntryList();
+  const clarifyPanel = setupClarifyPanel();
   const merge = questMergeBrokerProxy();
   FormDropdownWidgetProxy();
   DumpsterRaccoonWidgetProxy();
@@ -211,6 +222,20 @@ export const QuestChatContentLayerWidgetProxy = (): {
     getChatRequestBody: async () => binding.getChatRequestBody(),
     getChatRequestCount: () => binding.getChatRequestCount(),
     getClarifyRequestCount: () => binding.getClarifyRequestCount(),
+    getClarifyRequestBodies: async () => binding.getClarifyRequestBodies(),
+    // Exact label text: each card's description is its own element, so a label never matches two.
+    clickClarifyOption: async ({ label }) => {
+      await userEvent.click(screen.getByText(label), userEventStatics.options);
+    },
+    typeInClarifyComposer: ({ text }) => {
+      clarifyPanel.typeInComposer({ text });
+    },
+    clickClarifySend: () => {
+      clarifyPanel.clickComposerSend();
+    },
+    getClarifyCounter: () => clarifyPanel.getCounter(),
+    isClarifyPanelVisible: () => screen.queryByTestId('QUEST_CLARIFY_PANEL') !== null,
+    getChatMessageTexts: () => screen.queryAllByTestId('CHAT_MESSAGE').map((el) => el.textContent),
     getPauseRequestCount: () => binding.getPauseRequestCount(),
     setupFollowup: ({ chatProcessId }) => {
       binding.setupFollowup({ chatProcessId });

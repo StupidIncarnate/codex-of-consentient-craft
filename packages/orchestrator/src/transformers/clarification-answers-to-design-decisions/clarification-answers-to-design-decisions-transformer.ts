@@ -12,7 +12,7 @@ import { designDecisionContract } from '@dungeonmaster/shared/contracts';
 import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
-import { clarificationAnswerToLineTransformer } from '../clarification-answer-to-line/clarification-answer-to-line-transformer';
+import { clarificationAnswerToLineTransformer } from '@dungeonmaster/shared/transformers';
 
 export const clarificationAnswersToDesignDecisionsTransformer = ({
   answers,

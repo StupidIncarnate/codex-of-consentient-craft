@@ -10,6 +10,7 @@ export const questClarifyBrokerProxy = (): {
   setupInvalidResponse: (params: { chatProcessId: unknown }) => void;
   setupError: () => void;
   getRequestCount: () => number;
+  getRequestBodies: () => Promise<unknown[]>;
 } => {
   const jsonFetchProxy = fetchJsonProxy();
   const address = { method: 'post', url: webConfigStatics.api.routes.questClarify } as const;
@@ -25,5 +26,6 @@ export const questClarifyBrokerProxy = (): {
       jsonFetchProxy.setupConnectionRefused(address);
     },
     getRequestCount: (): number => jsonFetchProxy.getRequestCount(address),
+    getRequestBodies: async (): Promise<unknown[]> => jsonFetchProxy.getRequestBodies(address),
   };
 };

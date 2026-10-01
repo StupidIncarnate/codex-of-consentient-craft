@@ -541,7 +541,12 @@ export const QuestChatContentLayerWidget = ({
       onSubmitAnswers={({ answers }): void => {
         const questions = pendingClarification?.questions ?? [];
         submitClarifyAnswers({
-          answers: answers.map((a) => ({ header: a.question.header, label: a.label })),
+          answers: answers.map((a) => ({
+            header: a.question.header,
+            labels: a.labels,
+            ...(a.text === undefined ? {} : { text: a.text }),
+            ...(a.images === undefined ? {} : { images: a.images }),
+          })),
           questions,
         });
       }}

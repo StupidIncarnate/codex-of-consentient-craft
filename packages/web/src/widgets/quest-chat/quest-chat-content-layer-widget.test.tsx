@@ -3,6 +3,7 @@ import { Node } from '#gateway/browser/Node';
 import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -533,6 +534,307 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       expect(proxy.getClarifyRequestCount()).toBe(1);
+    });
+
+    it('VALID: {two-question set, Alpha/Gamma toggled on a multiSelect question} => no POST until the last question is answered, then one POST carries both answers', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '5f1d2c3e-8a47-4b6d-9c10-2e7f3a9b4c51' });
+      const quest = QuestStub({ id: 'q-clarify-set', status: 'review_flows' });
+      const chatProcessId = 'proc-clarify-set';
+      proxy.setupClarify({ chatProcessId });
+
+      const { findByTestId } = mantineRenderMiddleware({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify-set' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      const { questions } = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which letters?',
+            header: 'Letters',
+            options: [
+              { label: 'Alpha', description: 'First' },
+              { label: 'Beta', description: 'Second' },
+              { label: 'Gamma', description: 'Third' },
+            ],
+            multiSelect: true,
+          },
+          {
+            question: 'Which size?',
+            header: 'Size',
+            options: [
+              { label: 'Small', description: 'Little' },
+              { label: 'Large', description: 'Big' },
+            ],
+            multiSelect: false,
+          },
+        ],
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId, questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CLARIFY_PANEL');
+
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Alpha' });
+        await proxy.clickClarifyOption({ label: 'Gamma' });
+        await proxy.clickClarifyOption({ label: 'Alpha' });
+        await proxy.clickClarifyOption({ label: 'Alpha' });
+      });
+
+      expect(proxy.getClarifyRequestCount()).toBe(0);
+
+      await act(async () => {
+        proxy.clickClarifySend();
+        return Promise.resolve();
+      });
+
+      expect(proxy.getClarifyRequestCount()).toBe(0);
+      expect(proxy.getClarifyCounter()).toBe('Question 2 of 2');
+
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Small' });
+      });
+
+      await waitFor(() => {
+        expect(proxy.getClarifyRequestCount()).toBe(1);
+      });
+
+      await expect(proxy.getClarifyRequestBodies()).resolves.toStrictEqual([
+        {
+          answers: [
+            { header: 'Letters', labels: ['Alpha', 'Gamma'] },
+            { header: 'Size', labels: ['Small'] },
+          ],
+          questions,
+        },
+      ]);
+    });
+
+    it('VALID: {Letters Alpha+Gamma checked with typed "prefer Gamma", then Size Small} => one POST carries labels and text, chat echoes the set, panel closes', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '0b8e6a14-3d52-4f97-a1c8-7e2d9f4b6a30' });
+      const quest = QuestStub({ id: 'q-clarify-text', status: 'review_flows' });
+      const chatProcessId = 'proc-clarify-text';
+      proxy.setupClarify({ chatProcessId });
+
+      const { findByTestId } = mantineRenderMiddleware({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify-text' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      const { questions } = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which letters?',
+            header: 'Letters',
+            options: [
+              { label: 'Alpha', description: 'First' },
+              { label: 'Beta', description: 'Second' },
+              { label: 'Gamma', description: 'Third' },
+            ],
+            multiSelect: true,
+          },
+          {
+            question: 'Which size?',
+            header: 'Size',
+            options: [
+              { label: 'Small', description: 'Little' },
+              { label: 'Large', description: 'Big' },
+            ],
+            multiSelect: false,
+          },
+        ],
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId, questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CLARIFY_PANEL');
+
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Alpha' });
+        await proxy.clickClarifyOption({ label: 'Gamma' });
+      });
+      act(() => {
+        proxy.typeInClarifyComposer({ text: 'prefer Gamma' });
+      });
+      await act(async () => {
+        proxy.clickClarifySend();
+        return Promise.resolve();
+      });
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Small' });
+      });
+
+      await waitFor(() => {
+        expect(proxy.getClarifyRequestCount()).toBe(1);
+      });
+
+      await expect(proxy.getClarifyRequestBodies()).resolves.toStrictEqual([
+        {
+          answers: [
+            { header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' },
+            { header: 'Size', labels: ['Small'] },
+          ],
+          questions,
+        },
+      ]);
+      expect(proxy.getChatMessageTexts()).toStrictEqual([
+        'YOULetters: Alpha, Gamma — prefer Gamma\nSize: Small',
+      ]);
+      expect(proxy.isClarifyPanelVisible()).toBe(false);
+    });
+
+    it('VALID: {last question is multiSelect, Alpha+Gamma toggled} => no POST on toggle, one POST on the composer send', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '9c4a7e21-6b38-4d05-8f12-3a5e1c7d9b64' });
+      const quest = QuestStub({ id: 'q-clarify-last', status: 'review_flows' });
+      const chatProcessId = 'proc-clarify-last';
+      proxy.setupClarify({ chatProcessId });
+
+      const { findByTestId } = mantineRenderMiddleware({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify-last' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      const { questions } = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which size?',
+            header: 'Size',
+            options: [
+              { label: 'Small', description: 'Little' },
+              { label: 'Large', description: 'Big' },
+            ],
+            multiSelect: false,
+          },
+          {
+            question: 'Which letters?',
+            header: 'Letters',
+            options: [
+              { label: 'Alpha', description: 'First' },
+              { label: 'Beta', description: 'Second' },
+              { label: 'Gamma', description: 'Third' },
+            ],
+            multiSelect: true,
+          },
+        ],
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId, questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CLARIFY_PANEL');
+
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Small' });
+      });
+
+      expect(proxy.getClarifyRequestCount()).toBe(0);
+
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Alpha' });
+        await proxy.clickClarifyOption({ label: 'Gamma' });
+      });
+
+      expect(proxy.getClarifyRequestCount()).toBe(0);
+
+      await act(async () => {
+        proxy.clickClarifySend();
+        return Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(proxy.getClarifyRequestCount()).toBe(1);
+      });
+
+      await expect(proxy.getClarifyRequestBodies()).resolves.toStrictEqual([
+        {
+          answers: [
+            { header: 'Size', labels: ['Small'] },
+            { header: 'Letters', labels: ['Alpha', 'Gamma'] },
+          ],
+          questions,
+        },
+      ]);
     });
 
     it('VALID: {?chat=hidden, quest at review_flows} => CHAT_PANEL not in DOM, binding still subscribed (spec panel renders from WS quest-modified)', async () => {

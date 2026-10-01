@@ -1,19 +1,18 @@
 /**
- * PURPOSE: Renders one clarification answer as its summary line. The resume prompt and the design-decision
- * title both call this, so the two never drift apart.
+ * PURPOSE: Renders one clarification answer as its summary line. The orchestrator's resume prompt and design-decision
+ * title and the web chat echo all call this, so the three never drift apart.
  *
  * USAGE:
  * clarificationAnswerToLineTransformer({ answer });
  * // Returns 'Letters: Alpha, Gamma — prefer Gamma'; a typed-only answer returns 'Letters: my own answer'
  */
 
-import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import { clarificationAnswerLineStatics } from '../../statics/clarification-answer-line/clarification-answer-line-statics';
 
 export const clarificationAnswerToLineTransformer = ({
   answer,
 }: {
-  answer: ClarificationAnswer;
+  answer: { header: string; labels: readonly string[]; text?: string | undefined };
 }): string => {
   const { separators } = clarificationAnswerLineStatics;
   const { header, labels, text } = answer;

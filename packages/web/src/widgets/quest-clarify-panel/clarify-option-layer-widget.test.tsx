@@ -22,10 +22,109 @@ describe('ClarifyOptionLayerWidget', () => {
       const option = parsed.questions[0]!.options[0]!;
 
       mantineRenderMiddleware({
-        ui: <ClarifyOptionLayerWidget option={option} onSelect={jest.fn()} />,
+        ui: (
+          <ClarifyOptionLayerWidget
+            option={option}
+            multiSelect={false}
+            checked={false}
+            onSelect={jest.fn()}
+          />
+        ),
       });
 
       expect(screen.getByTestId('CLARIFY_OPTION').textContent).toBe('ReactUI library');
+    });
+  });
+
+  describe('checkbox', () => {
+    it('VALID: {multiSelect: true, checked: false} => renders one unchecked checkbox', () => {
+      const proxy = ClarifyOptionLayerWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Pick letters',
+            header: 'Letters',
+            options: [{ label: 'Alpha', description: 'First' }],
+            multiSelect: true,
+          },
+        ],
+      });
+      const option = parsed.questions[0]!.options[0]!;
+
+      mantineRenderMiddleware({
+        ui: (
+          <ClarifyOptionLayerWidget
+            option={option}
+            multiSelect={true}
+            checked={false}
+            onSelect={jest.fn()}
+          />
+        ),
+      });
+
+      expect({ hasCheckbox: proxy.hasCheckbox(), isChecked: proxy.isChecked() }).toStrictEqual({
+        hasCheckbox: true,
+        isChecked: false,
+      });
+    });
+
+    it('VALID: {multiSelect: true, checked: true} => renders a checked checkbox', () => {
+      const proxy = ClarifyOptionLayerWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Pick letters',
+            header: 'Letters',
+            options: [{ label: 'Alpha', description: 'First' }],
+            multiSelect: true,
+          },
+        ],
+      });
+      const option = parsed.questions[0]!.options[0]!;
+
+      mantineRenderMiddleware({
+        ui: (
+          <ClarifyOptionLayerWidget
+            option={option}
+            multiSelect={true}
+            checked={true}
+            onSelect={jest.fn()}
+          />
+        ),
+      });
+
+      expect({ hasCheckbox: proxy.hasCheckbox(), isChecked: proxy.isChecked() }).toStrictEqual({
+        hasCheckbox: true,
+        isChecked: true,
+      });
+    });
+
+    it('VALID: {multiSelect: false} => renders no checkbox', () => {
+      const proxy = ClarifyOptionLayerWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Pick a size',
+            header: 'Size',
+            options: [{ label: 'Small', description: 'Little' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const option = parsed.questions[0]!.options[0]!;
+
+      mantineRenderMiddleware({
+        ui: (
+          <ClarifyOptionLayerWidget
+            option={option}
+            multiSelect={false}
+            checked={false}
+            onSelect={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.hasCheckbox()).toBe(false);
     });
   });
 
@@ -46,7 +145,14 @@ describe('ClarifyOptionLayerWidget', () => {
       const onSelect = jest.fn();
 
       mantineRenderMiddleware({
-        ui: <ClarifyOptionLayerWidget option={option} onSelect={onSelect} />,
+        ui: (
+          <ClarifyOptionLayerWidget
+            option={option}
+            multiSelect={false}
+            checked={false}
+            onSelect={onSelect}
+          />
+        ),
       });
 
       await proxy.clickOption();

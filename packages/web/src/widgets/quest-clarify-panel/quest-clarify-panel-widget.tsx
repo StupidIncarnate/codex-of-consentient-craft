@@ -1,33 +1,42 @@
 /**
  * PURPOSE: Renders a clarification panel showing questions with selectable options for quest
- * clarification. Owns question-advancement and answer-collection state; each option renders via
- * ClarifyOptionLayerWidget, which only reports which label was picked.
+ * clarification. Owns question-advancement, checked-option and answer-collection state. A
+ * single-select card click commits at once; a multiSelect card click only toggles its checkbox, and
+ * the composer below the cards commits the checked labels plus any typed text and pasted images.
  *
  * USAGE:
  * <QuestClarifyPanelWidget questions={questions} questTitle={questTitle} onSubmitAnswers={handleSubmit} />
- * // Renders question text, option buttons, and "Other..." freeform input
+ * // Renders question text, option cards and the answer composer; onSubmitAnswers fires once, on the last question
  */
 
-import { useState } from '#gateway/npm/react';
+import { useCallback, useState } from '#gateway/npm/react';
 
-import { Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
+import { Group, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { AskUserQuestionItem, AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
+import type {
+  AskUserQuestionItem,
+  AskUserQuestionOption,
+  PastedImageUpload,
+} from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { FormInputWidget } from '../form-input/form-input-widget';
-import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
+import { ChatComposerWidget } from '../chat-composer/chat-composer-widget';
 import { ClarifyOptionLayerWidget } from './clarify-option-layer-widget';
 
-const OPTION_FONT_SIZE = 12;
-const OPTION_BORDER_RADIUS = 2;
-const OPTION_PADDING_Y = 8;
+// Own ids, not the chat panel's CHAT_INPUT / SEND_BUTTON: both composers are on screen at once.
+const COMPOSER_TEST_IDS = {
+  editor: 'CLARIFY_COMPOSER',
+  placeholder: 'CLARIFY_COMPOSER_PLACEHOLDER',
+  sendButton: 'CLARIFY_SEND_BUTTON',
+};
 
 // Holds the whole question rather than flattening `header` + `question` off it, so this type
 // never indexes AskUserQuestionItem twice. Read `.question.header` / `.question.question` at
 // call sites instead of carrying two separately-typed copies of the same source object.
 export interface ClarifyAnswer {
   question: AskUserQuestionItem;
-  label: AskUserQuestionOption['label'];
+  labels: AskUserQuestionOption['label'][];
+  text?: string;
+  images?: readonly PastedImageUpload[];
 }
 
 export const QuestClarifyPanelWidget = ({
@@ -42,10 +51,24 @@ export const QuestClarifyPanelWidget = ({
   const { colors } = emberDepthsThemeStatics;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [collectedAnswers, setCollectedAnswers] = useState<ClarifyAnswer[]>([]);
-  const [showFreeform, setShowFreeform] = useState(false);
-  const [freeformValue, setFreeformValue] = useState('' as string);
+  const [checkedLabels, setCheckedLabels] = useState<AskUserQuestionOption['label'][]>([]);
 
   const currentQuestion = questions[currentQuestionIndex];
+  const isMultiSelect = currentQuestion?.multiSelect === true;
+
+  const commitAnswer = useCallback(
+    ({ answer }: { answer: ClarifyAnswer }): void => {
+      const updated = [...collectedAnswers, answer];
+      if (currentQuestionIndex < questions.length - 1) {
+        setCollectedAnswers(updated);
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setCheckedLabels([]);
+      } else {
+        onSubmitAnswers({ answers: updated });
+      }
+    },
+    [collectedAnswers, currentQuestionIndex, questions.length, onSubmitAnswers],
+  );
 
   return (
     <Stack gap={0} data-testid="QUEST_CLARIFY_PANEL" style={{ flexShrink: 0 }}>
@@ -91,74 +114,45 @@ export const QuestClarifyPanelWidget = ({
             <ClarifyOptionLayerWidget
               key={opt.label}
               option={opt}
+              multiSelect={isMultiSelect}
+              checked={checkedLabels.includes(opt.label)}
               onSelect={({ label }): void => {
-                const updated = [...collectedAnswers, { question: currentQuestion, label }];
-                if (currentQuestionIndex < questions.length - 1) {
-                  setCollectedAnswers(updated);
-                  setCurrentQuestionIndex(currentQuestionIndex + 1);
-                  setShowFreeform(false);
-                  setFreeformValue('' as string);
-                } else {
-                  onSubmitAnswers({ answers: updated });
+                if (isMultiSelect) {
+                  setCheckedLabels(
+                    checkedLabels.includes(label)
+                      ? checkedLabels.filter((checked) => checked !== label)
+                      : [...checkedLabels, label],
+                  );
+                  return;
                 }
+                commitAnswer({ answer: { question: currentQuestion, labels: [label] } });
               }}
             />
           ))}
-          {showFreeform ? (
-            <Stack data-testid="CLARIFY_FREEFORM" gap={6}>
-              <FormInputWidget
-                value={freeformValue}
-                onChange={(value: string): void => {
-                  setFreeformValue(value);
-                }}
-                placeholder={'Type your answer...' as string}
-                autoFocus={true}
-              />
-              <PixelBtnWidget
-                label={'Send'}
-                onClick={(): void => {
-                  if (freeformValue.length > 0 && currentQuestion) {
-                    const freeLabel = freeformValue as unknown as AskUserQuestionOption['label'];
-                    const updated = [
-                      ...collectedAnswers,
-                      {
-                        question: currentQuestion,
-                        label: freeLabel,
-                      },
-                    ];
-                    if (currentQuestionIndex < questions.length - 1) {
-                      setCollectedAnswers(updated);
-                      setCurrentQuestionIndex(currentQuestionIndex + 1);
-                      setShowFreeform(false);
-                      setFreeformValue('' as string);
-                    } else {
-                      onSubmitAnswers({ answers: updated });
-                    }
-                  }
-                }}
-              />
-            </Stack>
-          ) : (
-            <UnstyledButton
-              data-testid="CLARIFY_OTHER_BTN"
-              px="sm"
-              py={OPTION_PADDING_Y}
-              onClick={(): void => {
-                setShowFreeform(true);
-              }}
-              style={{
-                fontFamily: 'monospace',
-                fontSize: OPTION_FONT_SIZE,
-                color: colors['text-dim'],
-                backgroundColor: 'transparent',
-                border: `1px dashed ${colors.border}`,
-                borderRadius: OPTION_BORDER_RADIUS,
-              }}
-            >
-              Other...
-            </UnstyledButton>
-          )}
         </Stack>
+        {currentQuestion ? (
+          <ChatComposerWidget
+            key={currentQuestionIndex}
+            placeholder="Type an answer..."
+            hasSelection={checkedLabels.length > 0}
+            testIds={COMPOSER_TEST_IDS}
+            onSubmit={async ({ text, images }): Promise<void> => {
+              // Option order, not click order, so the labels a send carries are stable.
+              const labels = currentQuestion.options
+                .map((opt) => opt.label)
+                .filter((label) => checkedLabels.includes(label));
+              commitAnswer({
+                answer: {
+                  question: currentQuestion,
+                  labels,
+                  ...(text.length > 0 ? { text } : {}),
+                  ...(images.length > 0 ? { images } : {}),
+                },
+              });
+              return Promise.resolve();
+            }}
+          />
+        ) : null}
       </Stack>
     </Stack>
   );

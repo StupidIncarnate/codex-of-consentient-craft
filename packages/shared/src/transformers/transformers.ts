@@ -13,6 +13,9 @@ export * from './metadata-extractor/metadata-extractor-transformer';
 // Folder Dependency Tree
 export * from './folder-dependency-tree/folder-dependency-tree-transformer';
 
+// Clarification Answer Line
+export * from './clarification-answer-to-line/clarification-answer-to-line-transformer';
+
 // Name to URL Slug
 export * from './name-to-url-slug/name-to-url-slug-transformer';
 

@@ -1901,6 +1901,114 @@ describe('QuestFlow', () => {
     });
   });
 
+  // Flow: multi-select-commits-on-first-click. The same real route, real orchestrator and fake
+  // Claude CLI as the images describe above, driven with a multi-select answer.
+  describe('POST /api/quests/:questId/clarify with a multi-select answer', () => {
+    const lettersQuestion = ClarificationQuestionStub({
+      question: 'Which letters?',
+      header: 'Letters',
+      options: [
+        { label: 'Alpha', description: 'First letter' },
+        { label: 'Beta', description: 'Second letter' },
+        { label: 'Gamma', description: 'Third letter' },
+      ],
+      multiSelect: true,
+    });
+
+    it("VALID: {'Letters' answer with labels ['Alpha', 'Gamma'] and text 'prefer Gamma'} => 200, the resumed prompt and the stored design decision title both read 'Letters: Alpha, Gamma — prefer Gamma'", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-clarify-multi-select' });
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
+      const cli = harness.configureFakeClaudeCli();
+      const sessionId = SessionIdStub({ value: 'cccccccc-7101-4222-8222-444444444444' });
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Clarify Multi Select Guild — Both',
+        guildPath: dungeonmasterHome,
+        fields: {
+          status: 'explore_flows',
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-7101-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
+      });
+      const questId = seeded.quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: [{ header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' }],
+          questions: [lettersQuestion],
+        }),
+      });
+      const prompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const questResponse = await app.request(`/api/quests/${questId}`);
+      const questBody: unknown = await questResponse.json();
+      const titles = harness.readDesignDecisionTitles({ body: questBody });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(prompt).toBe('Letters: Alpha, Gamma — prefer Gamma');
+      expect(titles).toStrictEqual(['Letters: Alpha, Gamma — prefer Gamma']);
+    });
+
+    it("INVALID: {'Letters' answer with labels [] and no text} => 400 and no agent spawned", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-clarify-multi-select-empty' });
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
+      const cli = harness.configureFakeClaudeCli();
+      const sessionId = SessionIdStub({ value: 'cccccccc-7102-4222-8222-444444444444' });
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Clarify Multi Select Guild — Empty',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-7102-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
+      });
+      const questId = seeded.quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: [{ header: 'Letters', labels: [] }],
+          questions: [lettersQuestion],
+        }),
+      });
+      const invocation = await harness.waitForClaudeInvocation({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 1000,
+      });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(400);
+      expect(invocation).toBe(null);
+    });
+  });
+
   // Flow: screenshot-path-server-side. A real file on a real filesystem, referenced by its
   // absolute path in the message text rather than uploaded through `images` — the server's scan
   // finds it, copies it into the quest's own images folder, and rewrites the path to the same

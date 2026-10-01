@@ -13,7 +13,7 @@ describe('questClarifyBroker', () => {
 
       const result = await questClarifyBroker({
         questId: QuestIdStub({ value: 'quest-1' }),
-        answers: [{ header: 'Database', label: 'PostgreSQL' }],
+        answers: [{ header: 'Database', labels: ['PostgreSQL'] }],
         questions: AskUserQuestionStub({
           questions: [
             {
@@ -28,6 +28,37 @@ describe('questClarifyBroker', () => {
 
       expect(result).toStrictEqual({ chatProcessId: 'clarify-proc-1' });
     });
+
+    it('VALID: {labels Alpha+Gamma, text, no images} => POST body carries labels and text exactly and omits images', async () => {
+      const proxy = questClarifyBrokerProxy();
+      proxy.setupClarify({ chatProcessId: 'clarify-proc-2' });
+      const { questions } = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which letters?',
+            header: 'Letters',
+            options: [
+              { label: 'Alpha', description: 'First' },
+              { label: 'Gamma', description: 'Third' },
+            ],
+            multiSelect: true,
+          },
+        ],
+      });
+
+      await questClarifyBroker({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        answers: [{ header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' }],
+        questions,
+      });
+
+      await expect(proxy.getRequestBodies()).resolves.toStrictEqual([
+        {
+          answers: [{ header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' }],
+          questions,
+        },
+      ]);
+    });
   });
 
   describe('response parsing', () => {
@@ -38,7 +69,7 @@ describe('questClarifyBroker', () => {
       await expect(
         questClarifyBroker({
           questId: QuestIdStub({ value: 'quest-1' }),
-          answers: [{ header: 'Database', label: 'PostgreSQL' }],
+          answers: [{ header: 'Database', labels: ['PostgreSQL'] }],
           questions: AskUserQuestionStub({
             questions: [
               {
@@ -60,7 +91,7 @@ describe('questClarifyBroker', () => {
       await expect(
         questClarifyBroker({
           questId: QuestIdStub({ value: 'quest-1' }),
-          answers: [{ header: 'Database', label: 'PostgreSQL' }],
+          answers: [{ header: 'Database', labels: ['PostgreSQL'] }],
           questions: AskUserQuestionStub({
             questions: [
               {
@@ -84,7 +115,7 @@ describe('questClarifyBroker', () => {
       await expect(
         questClarifyBroker({
           questId: QuestIdStub({ value: 'quest-1' }),
-          answers: [{ header: 'Database', label: 'PostgreSQL' }],
+          answers: [{ header: 'Database', labels: ['PostgreSQL'] }],
           questions: AskUserQuestionStub({
             questions: [
               {

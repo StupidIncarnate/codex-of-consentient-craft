@@ -301,7 +301,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'CANCEL' })).toHaveCount(0);
   });
 
-  test('VALID: clicking CLARIFY_OTHER_BTN reveals CLARIFY_FREEFORM with a working FORM_INPUT', async ({
+  test('VALID: typing into the clarify composer and sending posts the text as the answer', async ({
     page,
     request,
   }) => {
@@ -341,13 +341,21 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
 
     await expect(page.getByTestId('QUEST_CLARIFY_PANEL')).toBeVisible({ timeout: CLARIFY_TIMEOUT });
 
-    await page.getByTestId('CLARIFY_OTHER_BTN').click();
+    const clarifyPostPromise = page.waitForRequest(
+      (req) => req.method() === 'POST' && req.url().includes('/clarify'),
+    );
 
-    const freeform = page.getByTestId('CLARIFY_FREEFORM');
-    await expect(freeform.getByTestId('FORM_INPUT')).toHaveCount(1);
+    await page.getByTestId('CLARIFY_COMPOSER').fill('a freeform clarification answer');
+    await page.getByTestId('CLARIFY_SEND_BUTTON').click();
 
-    await freeform.getByTestId('FORM_INPUT').fill('a freeform clarification answer');
-    await expect(freeform.getByTestId('FORM_INPUT')).toHaveValue('a freeform clarification answer');
+    const clarifyPost = await clarifyPostPromise;
+
+    expect(clarifyPost.postDataJSON().answers).toStrictEqual([
+      { header: 'Database Selection', labels: [], text: 'a freeform clarification answer' },
+    ]);
+    await expect(page.getByTestId('QUEST_CLARIFY_PANEL')).not.toBeVisible({
+      timeout: CLARIFY_TIMEOUT,
+    });
   });
 
   test('EMPTY: a quest with no design decisions or tooling still renders PLAN_SECTION with a live "(0)" count, not an absent one', async ({

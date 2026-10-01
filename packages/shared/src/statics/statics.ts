@@ -8,6 +8,7 @@
 
 // Export all statics
 export * from './file-extensions/file-extensions-statics';
+export * from './clarification-answer-line/clarification-answer-line-statics';
 export * from './folder-config/folder-config-statics';
 export * from './dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics';
 export * from './quests-folder/quests-folder-statics';

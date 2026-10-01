@@ -12,7 +12,7 @@ import type { Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
-import { clarificationAnswerToLineTransformer } from '../../transformers/clarification-answer-to-line/clarification-answer-to-line-transformer';
+import { clarificationAnswerToLineTransformer } from '@dungeonmaster/shared/transformers';
 import { ClarifyAnswerResponder } from '../../responders/clarify/answer/clarify-answer-responder';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
 

@@ -8,7 +8,11 @@
 
 import { questClarifyResultContract } from '../../../contracts/quest-clarify-result/quest-clarify-result-contract';
 import type { QuestClarifyResult } from '../../../contracts/quest-clarify-result/quest-clarify-result-contract';
-import type { AskUserQuestionItem, Quest } from '@dungeonmaster/shared/contracts';
+import type {
+  AskUserQuestionItem,
+  PastedImageUpload,
+  Quest,
+} from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -20,7 +24,12 @@ export const questClarifyBroker = async ({
   questions,
 }: {
   questId: Quest['id'];
-  answers: { header: string; label: string }[];
+  answers: {
+    header: string;
+    labels: string[];
+    text?: string;
+    images?: readonly PastedImageUpload[];
+  }[];
   questions: AskUserQuestionItem[];
 }): Promise<QuestClarifyResult> => {
   const url = webConfigStatics.api.routes.questClarify.replace(':questId', questId);

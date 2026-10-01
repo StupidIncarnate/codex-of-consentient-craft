@@ -33,6 +33,8 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
+import { clarificationAnswerToLineTransformer } from '@dungeonmaster/shared/transformers';
+
 import { console } from '#gateway/browser/console';
 import { crypto } from '#gateway/browser/crypto';
 import { filter } from '#gateway/npm/rxjs__operators';
@@ -94,7 +96,12 @@ export const useQuestChatBinding = ({
     comments: readonly CommentQueueEntry[];
   }) => Promise<CommentBatchSendResult>;
   submitClarifyAnswers: (params: {
-    answers: { header: string; label: string }[];
+    answers: {
+      header: string;
+      labels: string[];
+      text?: string;
+      images?: readonly PastedImageUpload[];
+    }[];
     questions: AskUserQuestionItem[];
   }) => void;
   stopChat: () => void;
@@ -842,13 +849,20 @@ export const useQuestChatBinding = ({
       answers,
       questions,
     }: {
-      answers: { header: string; label: string }[];
+      answers: {
+        header: string;
+        labels: string[];
+        text?: string;
+        images?: readonly PastedImageUpload[];
+      }[];
       questions: AskUserQuestionItem[];
     }): void => {
       const activeQuestId = questIdRef.current;
       if (!activeQuestId) return;
 
-      const userMessage = answers.map((a) => `${a.header}: ${a.label}`).join('\n');
+      const userMessage = answers
+        .map((answer) => clarificationAnswerToLineTransformer({ answer }))
+        .join('\n');
       const userEntry = chatEntryContract.parse({
         role: 'user',
         content: userMessage,

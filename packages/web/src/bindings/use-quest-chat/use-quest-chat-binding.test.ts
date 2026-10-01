@@ -1874,7 +1874,7 @@ describe('useQuestChatBinding', () => {
       await act(async () => {
         result.current.submitClarifyAnswers({
           questions: stub.questions,
-          answers: [{ header: 'Preference', label: 'Option A' }],
+          answers: [{ header: 'Preference', labels: ['Option A'] }],
         });
         await new Promise((resolve) => {
           setTimeout(resolve, 0);
@@ -1882,6 +1882,95 @@ describe('useQuestChatBinding', () => {
       });
 
       expect(result.current.isStreaming).toBe(true);
+    });
+
+    it('VALID: {labels Alpha+Gamma with text, then a label-only answer} => synthetic entry reads one line per answer and the POST carries labels and text exactly', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-clarify-submit-2' });
+      proxy.setupClarify({ chatProcessId: 'proc-clar-2' });
+      proxy.setupUuids({ uuids: ['eeeeeee1-eeee-4eee-8eee-eeeeeeeeeeee'] });
+      proxy.setupTimestamps({ timestamps: ['2026-05-11T04:00:00.000Z'] });
+      const stub = AskUserQuestionStub();
+
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        result.current.submitClarifyAnswers({
+          questions: stub.questions,
+          answers: [
+            { header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' },
+            { header: 'Size', labels: ['Small'] },
+          ],
+        });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 0);
+        });
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedEntries = new Map();
+      expectedEntries.set(synthKey, [
+        {
+          role: 'user',
+          content: 'Letters: Alpha, Gamma — prefer Gamma\nSize: Small',
+          uuid: 'eeeeeee1-eeee-4eee-8eee-eeeeeeeeeeee',
+          timestamp: '2026-05-11T04:00:00.000Z',
+        },
+      ]);
+
+      expect({
+        entriesBySession: result.current.entriesBySession,
+        requestCount: proxy.getClarifyRequestCount(),
+        requestBodies: await proxy.getClarifyRequestBodies(),
+      }).toStrictEqual({
+        entriesBySession: expectedEntries,
+        requestCount: 1,
+        requestBodies: [
+          {
+            answers: [
+              { header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' },
+              { header: 'Size', labels: ['Small'] },
+            ],
+            questions: stub.questions,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {typed-only answer, no labels} => synthetic entry reads "Letters: my own answer"', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-clarify-submit-3' });
+      proxy.setupClarify({ chatProcessId: 'proc-clar-3' });
+      proxy.setupUuids({ uuids: ['eeeeeee2-eeee-4eee-8eee-eeeeeeeeeeee'] });
+      proxy.setupTimestamps({ timestamps: ['2026-05-11T04:01:00.000Z'] });
+      const stub = AskUserQuestionStub();
+
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        result.current.submitClarifyAnswers({
+          questions: stub.questions,
+          answers: [{ header: 'Letters', labels: [], text: 'my own answer' }],
+        });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 0);
+        });
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedEntries = new Map();
+      expectedEntries.set(synthKey, [
+        {
+          role: 'user',
+          content: 'Letters: my own answer',
+          uuid: 'eeeeeee2-eeee-4eee-8eee-eeeeeeeeeeee',
+          timestamp: '2026-05-11T04:01:00.000Z',
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedEntries);
     });
   });
 
