@@ -1,6 +1,8 @@
 import { isPortFree } from './is-port-free';
 import { isPortFreeProxy } from './is-port-free.proxy';
 
+const isAbove4500 = (value: unknown): boolean => typeof value === 'number' && value > 4500;
+
 describe('isPortFree', () => {
   it('VALID: {port staged free} => resolves true', async () => {
     const proxy = isPortFreeProxy();
@@ -46,5 +48,37 @@ describe('isPortFree', () => {
     await expect(isPortFree({ port: 9999 })).rejects.toStrictEqual(
       new Error('isPortFreeProxy: port 9999 was not staged'),
     );
+  });
+
+  describe('getCalls / getCallsFor', () => {
+    it('VALID: {probe port 4173} => getCallsFor returns [[4173]] and [] for unprobed port', async () => {
+      const proxy = isPortFreeProxy();
+      proxy.setupPortFree({ port: 4173 });
+
+      await isPortFree({ port: 4173 });
+
+      expect(proxy.getCallsFor({ port: 4173 })).toStrictEqual([[4173]]);
+      expect(proxy.getCallsFor({ port: 8080 })).toStrictEqual([]);
+      expect(proxy.getCalls()).toStrictEqual([[4173]]);
+    });
+
+    it('VALID: {multiple probes and predicate matcher} => getCallsFor matches predicate and getCalls returns all', async () => {
+      const proxy = isPortFreeProxy();
+      proxy.setupPortFree({ port: 4173 });
+      proxy.setupPortInUse({ port: 5000 });
+
+      await isPortFree({ port: 4173 });
+      await isPortFree({ port: 5000 });
+
+      expect(proxy.getCallsFor({ port: isAbove4500 })).toStrictEqual([[5000]]);
+      expect(proxy.getCalls()).toStrictEqual([[4173], [5000]]);
+    });
+
+    it('EMPTY: {no calls made} => getCalls and getCallsFor return empty arrays', () => {
+      const proxy = isPortFreeProxy();
+
+      expect(proxy.getCalls()).toStrictEqual([]);
+      expect(proxy.getCallsFor({ port: 4173 })).toStrictEqual([]);
+    });
   });
 });
