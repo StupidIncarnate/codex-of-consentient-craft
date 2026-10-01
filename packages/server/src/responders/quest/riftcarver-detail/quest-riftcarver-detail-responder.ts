@@ -12,7 +12,10 @@
  * // Returns { status: 200, data: { log: '...' } } or { status: 400/404, data: { error } }
  */
 
-import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
+import {
+  questFindQuestPathBroker,
+  terminalTextCleanTransformer,
+} from '@dungeonmaster/orchestrator';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -49,9 +52,12 @@ export const QuestRiftcarverDetailResponder = async ({
       `${riftcarverResultId}.log`,
     );
     const contents = await readFile(logFilePath);
+    // The file keeps ward's terminal redraw codes as printed; the UI gets them cleaned.
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: questRiftcarverDetailResponseDataContract.parse({ log: contents }),
+      data: questRiftcarverDetailResponseDataContract.parse({
+        log: terminalTextCleanTransformer({ text: contents }),
+      }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Riftcarver detail not available';

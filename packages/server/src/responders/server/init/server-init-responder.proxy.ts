@@ -93,6 +93,8 @@ export const ServerInitResponderProxy = (): {
     onError: ((args: { error: unknown }) => void) | undefined;
   };
   getReplayChatHistoryCalls: () => unknown[];
+  setupReplayCommandOutputSuccess: () => void;
+  getReplayCommandOutputCalls: () => unknown[];
   setupFindQuestPathSuccess: (params: {
     questId: Quest['id'];
     questPath: string;
@@ -262,6 +264,10 @@ export const ServerInitResponderProxy = (): {
     },
     getDevLogOutput: (): RecordedCalls => devLogProxy.getWrittenLines(),
     getReplayChatHistoryCalls: (): unknown[] => [...orchestrator.replayChatHistoryGetCalls()],
+    setupReplayCommandOutputSuccess: (): void => {
+      orchestrator.replayCommandOutputSetupSuccess();
+    },
+    getReplayCommandOutputCalls: (): unknown[] => [...orchestrator.replayCommandOutputGetCalls()],
     setupFindQuestPathSuccess: ({
       questId,
       questPath,

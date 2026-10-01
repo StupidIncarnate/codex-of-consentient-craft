@@ -70,6 +70,8 @@ export { signalFromStreamTransformer } from './transformers/signal-from-stream/s
 export { streamJsonToTextTransformer } from './transformers/stream-json-to-text/stream-json-to-text-transformer';
 export { streamJsonToToolUseTransformer } from './transformers/stream-json-to-tool-use/stream-json-to-tool-use-transformer';
 export { toolInputToDisplayTransformer } from './transformers/tool-input-to-display/tool-input-to-display-transformer';
+// Exported for the server, which cleans a persisted command log before serving it to the UI.
+export { terminalTextCleanTransformer } from './transformers/terminal-text-clean/terminal-text-clean-transformer';
 
 // State - event bus for orchestration lifecycle events
 export { orchestrationEventsState } from './state/orchestration-events/orchestration-events-state';

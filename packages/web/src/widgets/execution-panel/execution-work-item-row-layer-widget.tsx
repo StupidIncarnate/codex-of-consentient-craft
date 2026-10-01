@@ -190,9 +190,6 @@ export const ExecutionWorkItemRowLayerWidget = ({
       {...(order === undefined ? {} : { order })}
       {...(now === undefined ? {} : { now })}
       {...(workItem.errorMessage ? { errorMessage: workItem.errorMessage } : {})}
-      {...(workItem.sessionId === undefined && workItem.declaredReason
-        ? { commandOutput: workItem.declaredReason }
-        : {})}
       {...(wardResults.length > 0 ? { wardResults, questId } : {})}
       {...(riftcarverResults.length > 0 ? { riftcarverResults, questId } : {})}
       {...(workItem.sessionId ? { sessionId: workItem.sessionId } : {})}

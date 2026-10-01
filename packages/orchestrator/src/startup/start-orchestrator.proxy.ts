@@ -240,6 +240,9 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls/playDispatchGetCalls. Unaddressed on purpose: a caller needing one field off
   // a specific call (the sessionId) filters/reads this array itself.
   replayChatHistoryGetCalls: () => readonly unknown[];
+  replayCommandOutputSetupSuccess: () => void;
+  // Every call StartOrchestrator.replayCommandOutput received, first-arg only.
+  replayCommandOutputGetCalls: () => readonly unknown[];
   startFollowupChatReturns: (params: { questId: Quest['id']; chatProcessId: string }) => void;
   startFollowupChatThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // Every call StartOrchestrator.startFollowupChat received, first-arg only — mirrors
@@ -373,6 +376,7 @@ export const StartOrchestratorProxy = (): {
   const commentBatchHandle = registerMock({ fn: StartOrchestrator.commentBatch });
   const stopAllChatsHandle = registerMock({ fn: StartOrchestrator.stopAllChats });
   const replayChatHistoryHandle = registerMock({ fn: StartOrchestrator.replayChatHistory });
+  const replayCommandOutputHandle = registerMock({ fn: StartOrchestrator.replayCommandOutput });
   const startFollowupChatHandle = registerMock({ fn: StartOrchestrator.startFollowupChat });
   const stopFollowupChatHandle = registerMock({ fn: StartOrchestrator.stopFollowupChat });
   const getAgentPromptHandle = registerMock({ fn: StartOrchestrator.getAgentPrompt });
@@ -804,6 +808,13 @@ export const StartOrchestratorProxy = (): {
     },
     replayChatHistoryGetCalls: (): readonly unknown[] =>
       replayChatHistoryHandle.callsMatching([]).map((call) => call[0]),
+    // Any `{ ... }` call, for the reason replayChatHistorySetupSuccess gives: the caller discards
+    // the result, and a test seeds whichever command work items its quest carries.
+    replayCommandOutputSetupSuccess: (): void => {
+      replayCommandOutputHandle.calledWith([isObjectArgument]).returns(undefined);
+    },
+    replayCommandOutputGetCalls: (): readonly unknown[] =>
+      replayCommandOutputHandle.callsMatching([]).map((call) => call[0]),
     startFollowupChatReturns: ({
       questId,
       chatProcessId,

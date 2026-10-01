@@ -359,6 +359,56 @@ describe('ServerInitResponder', () => {
         completeCallCount: 1,
       });
     });
+
+    it('VALID: {subscribe-quest with a sessionless command step that saved output} => replays that output through replayCommandOutput, and only that item', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-sub-command' });
+      const carveId = QuestWorkItemIdStub({ value: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' });
+      const pendingWardId = QuestWorkItemIdStub({
+        value: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      });
+      const agentId = QuestWorkItemIdStub({ value: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee' });
+      const session = SessionIdStub({ value: 'session-agent' });
+      const guildId = GuildIdStub();
+      const carve = WorkItemStub({
+        id: carveId,
+        role: 'riftcarver',
+        status: 'complete',
+        declaredReason: '— base branch: master —',
+      });
+      const quest = QuestStub({
+        id: questId,
+        workItems: [
+          carve,
+          WorkItemStub({ id: pendingWardId, role: 'ward', status: 'pending' }),
+          WorkItemStub({ id: agentId, sessionId: session, declaredReason: 'done: every unit met' }),
+        ],
+      });
+      proxy.setupLoadQuestSuccess({ quest });
+      proxy.setupFindQuestPathSuccess({ questId, questPath: '/q/path', guildId });
+      proxy.setupReplaySuccess();
+      proxy.setupReplayCommandOutputSuccess();
+      proxy.callResponder();
+
+      const client = WsContextStub({ send: jest.fn() });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(proxy.getReplayCommandOutputCalls()).toStrictEqual([
+        {
+          questId,
+          workItem: carve,
+          chatProcessId: `quest-replay-${questId}-${carveId}-command`,
+        },
+      ]);
+    });
   });
 
   describe('websocket onMessage subscribe-quest retained chat-complete', () => {

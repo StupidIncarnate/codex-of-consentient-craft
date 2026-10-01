@@ -7,13 +7,35 @@ describe('QuestRiftcarverDetailResponder', () => {
   describe('successful retrieval', () => {
     it('VALID: {questId + riftcarverResultId, log file present} => returns 200 with the plain-text log wrapped in a JSON envelope', async () => {
       const proxy = QuestRiftcarverDetailResponderProxy();
-      const { expectedLog } = proxy.setupDetail();
+      proxy.setupDetail({ contents: '— build pass 1 —\n> tsc\nBuild succeeded\n' });
 
       const result = await proxy.callResponder({
         params: { questId: VALID_QUEST_ID, riftcarverResultId: VALID_RIFTCARVER_RESULT_ID },
       });
 
-      expect(result).toStrictEqual({ status: 200, data: { log: expectedLog } });
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { log: '— build pass 1 —\n> tsc\nBuild succeeded' },
+      });
+    });
+
+    it('VALID: {log file holds ward terminal redraws} => returns 200 with the redraw codes and their blank lines removed', async () => {
+      const proxy = QuestRiftcarverDetailResponderProxy();
+      proxy.setupDetail({
+        contents:
+          'typecheck   @dungeonmaster/cli   running...\r\n\u001b[Ktypecheck   @dungeonmaster/cli   PASS  241 files, 241 discovered (14.1s)\n\n\r\u001b[K\n\n',
+      });
+
+      const result = await proxy.callResponder({
+        params: { questId: VALID_QUEST_ID, riftcarverResultId: VALID_RIFTCARVER_RESULT_ID },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: {
+          log: 'typecheck   @dungeonmaster/cli   running...\ntypecheck   @dungeonmaster/cli   PASS  241 files, 241 discovered (14.1s)',
+        },
+      });
     });
   });
 

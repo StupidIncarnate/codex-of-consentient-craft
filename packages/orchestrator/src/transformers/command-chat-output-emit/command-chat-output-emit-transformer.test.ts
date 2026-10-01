@@ -19,7 +19,7 @@ describe('commandChatOutputEmitTransformer', () => {
       const result = commandChatOutputEmitTransformer({
         questId,
         workItemId,
-        line: 'lint  @dungeonmaster/web  PASS',
+        text: 'lint  @dungeonmaster/web  PASS',
       });
 
       expect(result).toStrictEqual({
@@ -44,7 +44,7 @@ describe('commandChatOutputEmitTransformer', () => {
       });
     });
 
-    // The riftcarver call site differs in nothing but the line it passes. Asserting the identical
+    // The riftcarver call site differs in nothing but the text it passes. Asserting the identical
     // full shape here is what pins that: a per-role variation would show up as a diff on this
     // object, which is exactly the drift the extraction removes.
     it('VALID: {riftcarver line} => produces the identical event shape, differing only in the streamed content', () => {
@@ -56,7 +56,7 @@ describe('commandChatOutputEmitTransformer', () => {
       const result = commandChatOutputEmitTransformer({
         questId,
         workItemId,
-        line: '— baseRef a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2 —',
+        text: '— baseRef a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2 —',
       });
 
       expect(result).toStrictEqual({
@@ -81,13 +81,17 @@ describe('commandChatOutputEmitTransformer', () => {
       });
     });
 
-    it('EDGE: {line: ""} => still emits one entry, so a blank command line reaches the panel', () => {
+    it('VALID: {stderr chunk of a running line overwritten by its result} => one entry per line, redraw codes removed', () => {
       const proxy = commandChatOutputEmitTransformerProxy();
       proxy.setupEntryIdentity({ uuid: FIXED_UUID, timestamp: FIXED_TIMESTAMP });
       const questId = QuestIdStub({ value: 'add-auth' });
       const workItemId = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
 
-      const result = commandChatOutputEmitTransformer({ questId, workItemId, line: '' });
+      const result = commandChatOutputEmitTransformer({
+        questId,
+        workItemId,
+        text: 'unit  @dungeonmaster/web running...\r\u001b[Klint  @dungeonmaster/mcp PASS\n',
+      });
 
       expect(result).toStrictEqual({
         type: 'chat-output',
@@ -100,11 +104,44 @@ describe('commandChatOutputEmitTransformer', () => {
             {
               role: 'assistant',
               type: 'text',
-              content: '',
+              content: 'unit  @dungeonmaster/web running...',
+              uuid: FIXED_UUID,
+              timestamp: FIXED_TIMESTAMP,
+            },
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'lint  @dungeonmaster/mcp PASS',
               uuid: FIXED_UUID,
               timestamp: FIXED_TIMESTAMP,
             },
           ],
+          questId,
+          workItemId,
+        },
+      });
+    });
+
+    it('EMPTY: {text: only an erase-line redraw} => carries no entries', () => {
+      const proxy = commandChatOutputEmitTransformerProxy();
+      proxy.setupEntryIdentity({ uuid: FIXED_UUID, timestamp: FIXED_TIMESTAMP });
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const workItemId = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
+
+      const result = commandChatOutputEmitTransformer({
+        questId,
+        workItemId,
+        text: '\r\u001b[K\n',
+      });
+
+      expect(result).toStrictEqual({
+        type: 'chat-output',
+        processId: WORK_ITEM_ID,
+        payload: {
+          processId: WORK_ITEM_ID,
+          chatProcessId: WORK_ITEM_ID,
+          slotIndex: 0,
+          entries: [],
           questId,
           workItemId,
         },

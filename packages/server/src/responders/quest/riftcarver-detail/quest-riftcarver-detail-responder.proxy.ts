@@ -15,10 +15,8 @@ const LOG_FILE_PATH = LOG_FILE_PATH_VALUE;
 // the responder passes params.questId straight through, so the mocked address must match it.
 const DETAIL_QUEST_ID = QuestIdStub({ value: '11111111-1111-4111-8111-111111111111' });
 
-const FIXED_LOG = '— build pass 1 —\n> tsc\nBuild succeeded\n';
-
 export const QuestRiftcarverDetailResponderProxy = (): {
-  setupDetail: () => { expectedLog: typeof FIXED_LOG };
+  setupDetail: (params: { contents: string }) => void;
   setupNotFound: () => void;
   callResponder: typeof QuestRiftcarverDetailResponder;
 } => {
@@ -42,13 +40,9 @@ export const QuestRiftcarverDetailResponderProxy = (): {
   };
 
   return {
-    setupDetail: (): { expectedLog: typeof FIXED_LOG } => {
+    setupDetail: ({ contents }: { contents: string }): void => {
       setupPaths();
-      readProxy.returns({
-        path: LOG_FILE_PATH,
-        contents: FIXED_LOG,
-      });
-      return { expectedLog: FIXED_LOG };
+      readProxy.returns({ path: LOG_FILE_PATH, contents });
     },
     setupNotFound: (): void => {
       setupPaths();

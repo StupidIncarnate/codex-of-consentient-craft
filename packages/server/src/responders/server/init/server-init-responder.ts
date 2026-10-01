@@ -305,6 +305,20 @@ export const ServerInitResponder = ({
                       }),
                   );
                 }
+                // A command work item (ward, carve, commit) has no session JSONL. Its saved output
+                // replays through the same entry funnel its live stream used, so the row reads the
+                // same after a reload as it did while it ran.
+                for (const wi of questForReplay.workItems) {
+                  if (wi.sessionId !== undefined || wi.declaredReason === undefined) continue;
+                  const taggedId = `quest-replay-${subQuestId}-${wi.id}-command`;
+                  replayChatProcessIds.push(taggedId);
+                  replayClientByChatProcessId.set(taggedId, subWs);
+                  StartOrchestrator.replayCommandOutput({
+                    questId: subQuestId,
+                    workItem: wi,
+                    chatProcessId: taggedId,
+                  });
+                }
               })
               .catch((error: unknown) => {
                 const reason = errorFormatReasonTransformer({ error });
@@ -476,6 +490,14 @@ export const ServerInitResponder = ({
                       });
                     }),
                 );
+                for (const wi of quest.workItems) {
+                  if (wi.sessionId !== undefined || wi.declaredReason === undefined) continue;
+                  StartOrchestrator.replayCommandOutput({
+                    questId: replayQuestId,
+                    workItem: wi,
+                    chatProcessId: `quest-replay-${replayQuestId}-${wi.id}-command`,
+                  });
+                }
                 replayWs.send(
                   JSON.stringify(
                     wsMessageContract.parse({

@@ -360,6 +360,24 @@ Reach for a \`Map\` or \`Set\` before a nested \`.find\` inside a \`.filter\`; d
 const indexMap = new Map<ChatEntry, number>();  // ✅
 \`\`\`
 
+### Numbers
+
+Lint refuses a number written straight into an expression (\`no-magic-numbers\`). Only \`-1\`, \`0\`, \`1\`, an array index and a default value pass. Tests and stubs are exempt.
+
+Name the number in \`statics/\`, and read it from there. Not a comment beside the literal, and not a cast that hides it.
+
+A number that is really a character is not a number. Write the character as a string escape, never as its code. Then keep that escape out of a regex literal: \`no-control-regex\` refuses a control character there, so build the pattern from the string.
+
+\`\`\`typescript
+setTimeout(retry, 1000);                          // ❌ what is 1000?
+setTimeout(retry, retryStatics.delayMs);          // ✅ the limit has a name and one home
+
+const ESC = String.fromCharCode(27);              // ❌ 27 is a magic number
+const ESC = '\\u001b';                             // ✅ the character itself, as a string
+const ERASE_LINE = /\\u001b\\[K/u;                   // ❌ no-control-regex
+const ERASE_LINE = new RegExp(\`\${ESC}\\\\[K\`, 'u'); // ✅ the pattern is built from the string
+\`\`\`
+
 ### Errors
 
 Every failure is logged, thrown, or handled. A \`.catch\` that does none of those is a lint error, and there is no wording that gets past it:

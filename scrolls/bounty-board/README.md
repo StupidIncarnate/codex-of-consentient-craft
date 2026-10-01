@@ -25,7 +25,7 @@ links back to it.
 - **Longer context stays where it was written.** A file links to the original doc's section when that
   doc holds more than the file needs to repeat.
 
-Next free numbers: **DEF-270** and **CHG-5**.
+Next free numbers: **DEF-271** and **CHG-5**.
 
 ## Status values
 

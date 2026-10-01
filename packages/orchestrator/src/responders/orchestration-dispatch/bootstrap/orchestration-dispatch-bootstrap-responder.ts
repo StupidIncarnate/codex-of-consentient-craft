@@ -55,11 +55,15 @@ export const OrchestrationDispatchBootstrapResponder = (): void => {
         // A deterministic step's work item has no sessionId, so the JSONL watcher can never tail
         // it, and this callback is the only route its output has to the workspace. It builds the
         // event through `commandChatOutputEmitTransformer`, which keys the chat process on the
-        // work item so the execution panel groups the lines under that row.
+        // work item so the execution panel groups the lines under that row. A `line` can be a
+        // whole stderr chunk of nothing but terminal redraw codes, which leaves no entries, and
+        // an event with no entries is not emitted.
         onStepLine: ({ questId, workItemId, line }): void => {
-          orchestrationEventsState.emit(
-            commandChatOutputEmitTransformer({ questId, workItemId, line }),
-          );
+          const event = commandChatOutputEmitTransformer({ questId, workItemId, text: line });
+          if (event.payload.entries.length === 0) {
+            return;
+          }
+          orchestrationEventsState.emit(event);
         },
         registerProcess: ({ processId, questId, questWorkItemId, kill }): void => {
           orchestrationProcessesState.register({

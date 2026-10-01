@@ -46,6 +46,7 @@ import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-c
 import type { ClarificationAnswer } from '../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
+import { ChatCommandReplayFlow } from '../flows/chat-command-replay/chat-command-replay-flow';
 import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
 import { ChatStartFlow } from '../flows/chat-start/chat-start-flow';
 import { ClarifyAnswerFlow } from '../flows/clarify-answer/clarify-answer-flow';
@@ -346,6 +347,20 @@ export const StartOrchestrator = {
       guildId,
       ...(chatProcessId && { chatProcessId }),
     }),
+
+  // A command work item (ward, carve, commit) has no session to replay; its saved output is
+  // replayed through the same entry funnel its live stream used.
+  replayCommandOutput: ({
+    questId,
+    workItem,
+    chatProcessId,
+  }: {
+    questId: Quest['id'];
+    workItem: WorkItem;
+    chatProcessId: string;
+  }): void => {
+    ChatCommandReplayFlow({ questId, workItem, chatProcessId });
+  },
 
   // Follow-up chat methods — the FOLLOW-UP tab's post-quest conversation with the tavernkeeper.
   // Quest-scoped chat, resuming the single tavernkeeper work item across every message instead

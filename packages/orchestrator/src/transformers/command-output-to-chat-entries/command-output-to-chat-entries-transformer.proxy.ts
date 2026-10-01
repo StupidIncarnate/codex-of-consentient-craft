@@ -1,10 +1,10 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-export const commandChatOutputEmitTransformerProxy = (): {
+export const commandOutputToChatEntriesTransformerProxy = (): {
   setupEntryIdentity: (params: { uuid: string; timestamp: string }) => void;
 } => {
-  // The entries' uuid and timestamp come from commandLineToChatEntryTransformer, which runs real.
+  // Each entry's uuid and timestamp come from commandLineToChatEntryTransformer, which runs real.
   const uuidHandle = registerMock({ fn: randomUUID });
 
   return {
