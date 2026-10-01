@@ -6,7 +6,7 @@
  *
  * USAGE:
  * machineStatics.monitored;
- * // Returns ['rss per process group', 'free memory', 'free disk', 'load average', 'kernel OOM events']
+ * // Returns ['memory per process group', 'free memory', 'free disk', 'load average', 'kernel OOM events']
  */
 
 export const machineStatics = {
@@ -14,7 +14,7 @@ export const machineStatics = {
   // ask about'. Without it a session guesses at metric names, and a guess that returns nothing
   // reads exactly like a metric that is zero."
   monitored: [
-    'rss per process group',
+    'memory per process group',
     'free memory',
     'free disk',
     'load average',

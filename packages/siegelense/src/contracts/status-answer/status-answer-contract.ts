@@ -15,7 +15,7 @@
  *
  * USAGE:
  * statusAnswerContract.parse({
- *   monitored: ['rss per process group', 'free memory', 'free disk', 'load average', 'kernel OOM events'],
+ *   monitored: ['memory per process group', 'free memory', 'free disk', 'load average', 'kernel OOM events'],
  *   machine: { freeMemMB: 980, totalMemMB: 16000, freeDiskMB: 2100, cores: 8, loadAvg: [7.9, 6.2, 4.1], oomKillsSinceBoot: 2 },
  *   instances: [],
  *   queriedInstanceState: null,

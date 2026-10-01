@@ -10,7 +10,7 @@ describe('statusAnswerContract', () => {
 
       expect(result).toStrictEqual({
         monitored: [
-          'rss per process group',
+          'memory per process group',
           'free memory',
           'free disk',
           'load average',

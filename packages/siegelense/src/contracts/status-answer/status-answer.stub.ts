@@ -6,7 +6,7 @@ import type { StatusAnswer } from './status-answer-contract';
 export const StatusAnswerStub = ({ ...props }: StubArgument<StatusAnswer> = {}): StatusAnswer =>
   statusAnswerContract.parse({
     monitored: [
-      'rss per process group',
+      'memory per process group',
       'free memory',
       'free disk',
       'load average',

@@ -17,7 +17,7 @@ describe('statusAnswerRenderTransformer', () => {
       });
 
       expect(result).toBe(
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
       );
@@ -34,7 +34,7 @@ describe('statusAnswerRenderTransformer', () => {
       });
 
       expect(result).toBe(
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created on branch "main" in the last 6hr. Widen with --since beginning.\n',
       );
@@ -51,7 +51,7 @@ describe('statusAnswerRenderTransformer', () => {
       });
 
       expect(result).toBe(
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created on branch "main". Widen by dropping --branch.\n',
       );
@@ -68,7 +68,7 @@ describe('statusAnswerRenderTransformer', () => {
       });
 
       expect(result).toBe(
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created.\n',
       );
@@ -119,7 +119,7 @@ describe('statusAnswerRenderTransformer', () => {
       const result = statusAnswerRenderTransformer({ answer, instanceId: null });
 
       expect(result).toBe(
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk -MB, 8 cores, load 7.9/6.2/4.1, OOM kills unreadable\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
           '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
@@ -174,7 +174,7 @@ describe('statusAnswerRenderTransformer', () => {
       const result = statusAnswerRenderTransformer({ answer, instanceId: null });
 
       expect(result).toBe(
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
           '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
