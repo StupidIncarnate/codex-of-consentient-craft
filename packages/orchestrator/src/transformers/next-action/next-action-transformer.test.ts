@@ -131,24 +131,6 @@ const ADVERSARIAL_IN_SCOPE = [
 
 const HAPPY_WALK_IN_SCOPE = ['send-flow:terminal:web-node', ...ADVERSARIAL_IN_SCOPE];
 
-// Deliberately MIXED statuses — terminal, failed, skipped and in_progress — so a visit count that
-// filtered on status would read fewer than 40 and let the budget overrun.
-const FIX_VISIT_STATUSES = ['complete', 'failed', 'skipped', 'in_progress'] as const;
-const FORTY_FIX_VISITS = [...Array(40).keys()].map((index) =>
-  WorkItemStub({
-    id: `b2c3d4e5-58cc-4372-a567-0e02b2c3d4${String(index).padStart(2, '0')}`,
-    role: 'siegemaster',
-    status: index === 39 ? 'complete' : (FIX_VISIT_STATUSES[index % 4] ?? 'complete'),
-    step: 'fixHappy',
-    relatedDataItems: [OPERATIONS_REF],
-    assignedUnitIds: index === 39 ? [PERF_UNIT_ID] : [],
-    observations:
-      index === 39
-        ? [UnitObservationStub({ unitId: PERF_UNIT_ID, mark: 'unmet', evidence: 'still 1.9s' })]
-        : [],
-  }),
-);
-
 // Every route in every step graph, family-qualified. `as object` rather than a shape:
 // `agentFlowStatics` is a union of six differently-keyed graphs, so `Object.entries` falls to its
 // `{}` overload and hands back `any`. Narrowing to `object` is what keeps the walk DERIVED from the
@@ -747,37 +729,6 @@ describe('nextActionTransformer', () => {
     });
   });
 
-  describe('maxVisits, spent', () => {
-    it('INVALID: {40 fixHappy visits with mixed statuses, one unmet unit} => blocks with max-visits', () => {
-      const quest = QuestStub({
-        flows: [SIEGE_FLOW],
-        operations: [SIEGE_OPERATION_ITEM],
-        workItems: FORTY_FIX_VISITS,
-      });
-
-      const action = nextActionTransformer({
-        quest,
-        plan: null,
-        operationItemId: SIEGE_OPERATION_ITEM_ID,
-        agentFlowStatics,
-        questFlowStatics,
-      });
-
-      expect(action).toStrictEqual({
-        kind: 'block',
-        operationItemId: SIEGE_OPERATION_ITEM_ID,
-        family: 'siegemaster',
-        step: 'fixHappy',
-        reason: 'max-visits',
-        message:
-          'maxVisits spent: step `fixHappy` in family `siegemaster` has been entered 40 times ' +
-          `for operation item ${String(SIEGE_OPERATION_ITEM_ID)}, and its whole budget is 40 — ` +
-          'the loop is not converging and another session would find the same thing. Still ' +
-          'unmet: send-flow:off-map:perf.',
-      });
-    });
-  });
-
   describe('an unknown step', () => {
     it('INVALID: {a work item at a step nobody declared} => blocks, naming the step and the family', () => {
       const quest = QuestStub({
@@ -841,7 +792,7 @@ describe('nextActionTransformer', () => {
           siegemaster: {
             entry: 'plan',
             steps: {
-              plan: { role: 'planner', kind: 'prompt', maxVisits: 5, routes: { done: 'nowhere' } },
+              plan: { role: 'planner', kind: 'prompt', routes: { done: 'nowhere' } },
             },
           },
         },
@@ -860,59 +811,6 @@ describe('nextActionTransformer', () => {
           'step in that family nor `@done` nor `@blocked`. The graph reachability check runs at ' +
           'lint and at load; this throw is its backstop.',
       });
-    });
-  });
-
-  describe('an invalidation', () => {
-    it('VALID: {a flow invalidated} => unions its units onto the next mint and edits nothing', () => {
-      const quest = QuestStub({
-        flows: [SIEGE_FLOW],
-        operations: [SIEGE_OPERATION_ITEM],
-        workItems: [
-          WorkItemStub({
-            id: HAPPY_WORK_ITEM_ID,
-            role: 'siegemaster',
-            status: 'complete',
-            step: 'adversarial',
-            relatedDataItems: [OPERATIONS_REF],
-            assignedUnitIds: [PERF_UNIT_ID],
-            observations: [
-              UnitObservationStub({
-                unitId: PERF_UNIT_ID,
-                mark: 'met',
-                evidence: 'the attack did not fall over',
-              }),
-            ],
-          }),
-        ],
-      });
-      const workItemsBefore = JSON.parse(JSON.stringify(quest.workItems)) as unknown;
-
-      const action = nextActionTransformer({
-        quest,
-        plan: null,
-        operationItemId: SIEGE_OPERATION_ITEM_ID,
-        agentFlowStatics,
-        questFlowStatics,
-        invalidatedFlowIds: [SIEGE_FLOW.id],
-      });
-
-      expect(action).toStrictEqual({
-        kind: 'route',
-        operationItemId: SIEGE_OPERATION_ITEM_ID,
-        from: 'adversarial',
-        outcome: 'done',
-        step: 'commit',
-        batch: [
-          {
-            step: 'commit',
-            role: 'siegemaster',
-            assignedUnitIds: ADVERSARIAL_IN_SCOPE,
-            needsLane: false,
-          },
-        ],
-      });
-      expect(quest.workItems).toStrictEqual(workItemsBefore);
     });
   });
 

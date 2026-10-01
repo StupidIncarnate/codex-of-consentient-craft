@@ -10,10 +10,30 @@ const DECLARED_FAMILY_STEPS = Object.entries(stepScopeStatics.byFamilyStep).flat
 
 const REVIEW_STEPS = [
   ['codeweaver.review', stepScopeStatics.byFamilyStep.codeweaver.review] as const,
+  ['codeweaver.work', stepScopeStatics.byFamilyStep.codeweaver.work] as const,
   ['flowrider.review', stepScopeStatics.byFamilyStep.flowrider.review] as const,
+  ['flowrider.work', stepScopeStatics.byFamilyStep.flowrider.work] as const,
   ['siegemaster.happyWalk', stepScopeStatics.byFamilyStep.siegemaster.happyWalk] as const,
+  ['siegemaster.fixHappy', stepScopeStatics.byFamilyStep.siegemaster.fixHappy] as const,
   ['siegemaster.adversarial', stepScopeStatics.byFamilyStep.siegemaster.adversarial] as const,
+  ['siegemaster.fixAdversarial', stepScopeStatics.byFamilyStep.siegemaster.fixAdversarial] as const,
 ];
+
+// Every step of the three unit-bearing families, walked off agentFlowStatics, so a step added to the
+// graph without a scope declaration fails here before stepInScopeUnitsTransformer throws on it live.
+const UNIT_FAMILIES = Object.keys(
+  stepScopeStatics.byFamilyStep,
+) as (keyof typeof stepScopeStatics.byFamilyStep)[];
+const UNIT_FAMILY_STEPS = UNIT_FAMILIES.flatMap((family) =>
+  Object.keys(agentFlowStatics[family].steps).map((step) => [family, step] as const),
+);
+
+const SCOPED_LABELS = new Set(DECLARED_FAMILY_STEPS.map(([family, step]) => `${family}.${step}`));
+const UNSCOPED_LABELS = new Set(
+  Object.entries(stepScopeStatics.unscopedByFamilyStep).flatMap(([family, steps]) =>
+    Object.keys(steps).map((step) => `${family}.${step}`),
+  ),
+);
 
 // Statics may import statics but `ban-contract-in-tests` refuses a contract import, so this sorted
 // literal is the coverage assertion against packageTypeContract's nine options — the same pin
@@ -182,12 +202,56 @@ describe('stepScopeStatics', () => {
     );
   });
 
+  describe('declaration coverage', () => {
+    it.each(UNIT_FAMILY_STEPS)(
+      'VALID: {family: %s, step: %s} => is declared in exactly one of byFamilyStep and unscopedByFamilyStep',
+      (family, step) => {
+        const label = `${family}.${step}`;
+
+        expect(
+          [SCOPED_LABELS.has(label), UNSCOPED_LABELS.has(label)].filter(Boolean),
+        ).toStrictEqual([true]);
+      },
+    );
+
+    it.each([...UNSCOPED_LABELS])(
+      'VALID: {unscoped step: %s} => names a step agentFlowStatics actually declares',
+      (label) => {
+        expect(AGENT_FLOW_FAMILY_STEP_LABELS.has(label)).toBe(true);
+      },
+    );
+
+    it.each(UNIT_FAMILIES)(
+      'VALID: {family: %s} => repair is declared none, so a spiritmender is never assigned a unit',
+      (family) => {
+        expect(stepScopeStatics.unscopedByFamilyStep[family].repair).toBe('none');
+      },
+    );
+  });
+
   describe('full exported value', () => {
     it('VALID: {statics} => matches the complete step-scope map', () => {
       expect(stepScopeStatics).toStrictEqual({
         byFamilyStep: {
           codeweaver: {
             review: {
+              flowTypes: ['runtime', 'operational'],
+              verificationMethods: ['test', 'reading'],
+              unitKinds: ['terminal', 'branch', 'observable'],
+              packageTypes: [
+                'http-backend',
+                'mcp-server',
+                'frontend-react',
+                'frontend-ink',
+                'hook-handlers',
+                'eslint-plugin',
+                'cli-tool',
+                'programmatic-service',
+                'library',
+              ],
+              observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+            },
+            work: {
               flowTypes: ['runtime', 'operational'],
               verificationMethods: ['test', 'reading'],
               unitKinds: ['terminal', 'branch', 'observable'],
@@ -223,9 +287,50 @@ describe('stepScopeStatics', () => {
               ],
               observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
             },
+            work: {
+              flowTypes: ['runtime'],
+              verificationMethods: ['test'],
+              unitKinds: ['terminal', 'branch', 'observable'],
+              packageTypes: [
+                'http-backend',
+                'mcp-server',
+                'frontend-react',
+                'frontend-ink',
+                'hook-handlers',
+                'eslint-plugin',
+                'cli-tool',
+                'programmatic-service',
+                'library',
+              ],
+              observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
+            },
           },
           siegemaster: {
             happyWalk: {
+              flowTypes: ['runtime'],
+              verificationMethods: ['test'],
+              unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
+              packageTypes: [
+                'http-backend',
+                'mcp-server',
+                'frontend-react',
+                'frontend-ink',
+                'hook-handlers',
+                'eslint-plugin',
+                'cli-tool',
+                'programmatic-service',
+                'library',
+              ],
+              observableOrigins: [
+                'spec',
+                'chaoswhisperer',
+                'codeweaver',
+                'flowrider',
+                'siegemaster',
+                'operator',
+              ],
+            },
+            fixHappy: {
               flowTypes: ['runtime'],
               verificationMethods: ['test'],
               unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
@@ -273,6 +378,52 @@ describe('stepScopeStatics', () => {
                 'operator',
               ],
             },
+            fixAdversarial: {
+              flowTypes: ['runtime'],
+              verificationMethods: ['test'],
+              unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
+              packageTypes: [
+                'http-backend',
+                'mcp-server',
+                'frontend-react',
+                'frontend-ink',
+                'hook-handlers',
+                'eslint-plugin',
+                'cli-tool',
+                'programmatic-service',
+                'library',
+              ],
+              observableOrigins: [
+                'spec',
+                'chaoswhisperer',
+                'codeweaver',
+                'flowrider',
+                'siegemaster',
+                'operator',
+              ],
+            },
+          },
+        },
+        unscopedByFamilyStep: {
+          codeweaver: { plan: 'all', commit: 'none', ward: 'none', repair: 'none' },
+          flowrider: {
+            recipe: 'none',
+            writeIngredient: 'none',
+            plan: 'all',
+            commit: 'none',
+            ward: 'none',
+            repair: 'none',
+          },
+          siegemaster: {
+            sweepIn: 'none',
+            recipe: 'none',
+            writeIngredient: 'none',
+            read: 'none',
+            plan: 'all',
+            commit: 'none',
+            ward: 'none',
+            repair: 'none',
+            sweepOut: 'none',
           },
         },
       });

@@ -4,6 +4,7 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { WardRunIdStub } from '@dungeonmaster/shared/contracts/ward-run-id/ward-run-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -161,10 +162,20 @@ describe('workItemToPromptTransformer', () => {
         exitCode: 1,
         wardMode: 'full',
       });
+      const gateItem = WorkItemStub({
+        id: 'dddddddd-1212-4222-9333-444444444444',
+        role: 'ward',
+        step: 'gate',
+        status: 'complete',
+        relatedDataItems: [
+          `operations/${String(operationId)}`,
+          'wardResults/cccccccc-1212-4222-9333-444444444444',
+        ],
+      });
       const quest = QuestStub({
         id: questId,
         operations: [operation],
-        workItems: [workItem],
+        workItems: [gateItem, workItem],
         wardResults: [wardResult],
       });
 
@@ -182,6 +193,7 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Failed ward result: cccccccc-1212-4222-9333-444444444444 (mode: full)',
         'Ward detail blob: <questFolder>/ward-results/cccccccc-1212-4222-9333-444444444444.json',
+        'Ward output log: <questFolder>/ward-results/cccccccc-1212-4222-9333-444444444444.log',
       ].join('\n');
 
       // agentFlowStatics.wardFull.steps.repair.model — the step's own declared model, not
@@ -190,6 +202,118 @@ describe('workItemToPromptTransformer', () => {
         prompt: spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
         model: 'sonnet',
       });
+    });
+
+    it("EDGE: {codeweaver repair, the quest's only red ward result belongs to ANOTHER scope} => serves no ward lines, never a different scope's failure", () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1414-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1414-4222-9333-444444444444' });
+      const otherOperationId = OperationItemIdStub({
+        value: 'eeeeeeee-1414-4222-9333-444444444444',
+      });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'Codeweaver: build this slice — package: web · flow: send-flow',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        step: 'repair',
+        relatedDataItems: [`operations/${String(operationId)}`],
+      });
+      const otherGate = WorkItemStub({
+        id: 'dddddddd-1414-4222-9333-444444444444',
+        role: 'codeweaver',
+        step: 'ward',
+        status: 'complete',
+        relatedDataItems: [
+          `operations/${String(otherOperationId)}`,
+          'wardResults/cccccccc-1414-4222-9333-444444444444',
+        ],
+      });
+      const quest = QuestStub({
+        id: questId,
+        operations: [operation],
+        workItems: [otherGate, workItem],
+        wardResults: [
+          WardResultStub({
+            id: 'cccccccc-1414-4222-9333-444444444444',
+            exitCode: 1,
+            wardMode: 'full',
+          }),
+        ],
+      });
+
+      const result = workItemToPromptTransformer({ quest, workItem, agentName: 'spiritmender' });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] Codeweaver: build this slice — package: web · flow: send-flow',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    it('VALID: {riftcarver repair, its scope carries a carve result} => serves the riftcarver log path and no ward lines', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1515-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1515-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'riftcarver',
+        text: 'Carve the quest worktree',
+        status: 'in_progress',
+      });
+      const carveItem = WorkItemStub({
+        id: 'dddddddd-1515-4222-9333-444444444444',
+        role: 'riftcarver',
+        step: 'carve',
+        status: 'complete',
+        relatedDataItems: [
+          `operations/${String(operationId)}`,
+          'riftcarverResults/cccccccc-1515-4222-9333-444444444444',
+        ],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'riftcarver',
+        step: 'repair',
+        relatedDataItems: [`operations/${String(operationId)}`],
+      });
+      const quest = QuestStub({
+        id: questId,
+        operations: [operation],
+        workItems: [carveItem, workItem],
+        riftcarverResults: [RiftcarverResultStub({ id: 'cccccccc-1515-4222-9333-444444444444' })],
+        wardResults: [
+          WardResultStub({
+            id: 'ffffffff-1515-4222-9333-444444444444',
+            exitCode: 1,
+            wardMode: 'full',
+          }),
+        ],
+      });
+
+      const result = workItemToPromptTransformer({ quest, workItem, agentName: 'spiritmender' });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [riftcarver] Carve the quest worktree',
+        '',
+        'Riftcarver log: <questFolder>/riftcarver-results/cccccccc-1515-4222-9333-444444444444.log',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
     });
 
     it('VALID: {codeweaver scope work item at the work step} => serves the codeweaver worker prompt', () => {
@@ -698,6 +822,7 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Failed ward result: cccccccc-8888-4222-9333-444444444444 (mode: committed, runId: run-123)',
         'Ward detail blob: <questFolder>/ward-results/cccccccc-8888-4222-9333-444444444444.json',
+        'Ward output log: <questFolder>/ward-results/cccccccc-8888-4222-9333-444444444444.log',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -756,6 +881,7 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Failed ward result: ffffffff-9999-4222-9333-444444444444 (mode: full)',
         'Ward detail blob: <questFolder>/ward-results/ffffffff-9999-4222-9333-444444444444.json',
+        'Ward output log: <questFolder>/ward-results/ffffffff-9999-4222-9333-444444444444.log',
       ].join('\n');
 
       expect(result.prompt).toBe(

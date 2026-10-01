@@ -582,8 +582,8 @@ Node dispatcher (the /queue page's play button; Start and Resume press it too)
   │   taken by each family's own `review` step, before the family's `commit` step runs.
   │
   │   (a red ward routes `unmet` to its family's own `repair` step, which returns to that ward and
-  │    re-runs it; a repairable carve red does the same inside the riftcarver family. A spent
-  │    `maxVisits` on either blocks the quest, as does any `wall` — see "Failure handling".)
+  │    re-runs it; a repairable carve red does the same inside the riftcarver family. A repair
+  │    that commits nothing blocks the quest as `no-progress`, as does any `wall` — see "Failure handling".)
   ▼
 Complete ──► the dispatcher's next scan picks up the next FIFO quest in the queue
 ```
@@ -595,8 +595,8 @@ says which family runs after which — `riftcarver → codeweaver → flowrider 
 @complete`, with `warpgate` appended at merge rather than routed to. The **step graph**
 (`agentFlowStatics`, this package's own statics) says what happens INSIDE one family: `plan → work →
 review → commit → ward`, with `unmet` marks looping back to the step that can settle them. Every step
-declares a `role` (`planner`/`worker`/`reviewer`), a `kind` (`prompt`/`deterministic`), a `maxVisits`
-ceiling and a route per outcome word.
+declares a `role` (`planner`/`worker`/`reviewer`), a `kind` (`prompt`/`deterministic`) and a route per
+outcome word. No step carries a visit budget — a step runs as many times as its work needs.
 
 `quest.operations` is one **SCOPE** per entry — a family's slice of the quest, `{ id, role, text, status,
 locked, flowIds, packageNames }` (`operationItemContract`).
@@ -785,8 +785,9 @@ its reviewers run FIRST and find the work; its workers repair what they found.
   session requests one mid-pass, and it returns to whoever asked rather than routing anywhere of its own.
   `recipe-maker` starts and kills its own instances to prove its recipes, so several can run side by side.
 
-Reopening a unit an earlier siegemaster pass already marked is a `quest-work` `invalidation` payload — a `flowId`
-and a reason, refused to any work item but a siegemaster one.
+A unit an earlier siegemaster pass already marked starts unmarked again when a fresh walker is assigned it:
+`unitCurrentMarkTransformer` reads the most recent work item ASSIGNED the unit, so an earlier `met` does not carry over.
+A siege fixer's `done` returns to the walker that minted it, which walks again on a fresh session.
 
 **Work item = one dispatched session.** `quest.workItems[]` are generic session containers (`role`,
 `status`, `step`, `dependsOn`, `relatedDataItems`, `assignedUnitIds`, `observations`, `pieceId`,
@@ -1083,7 +1084,7 @@ take the whole quest.
 | codeweaver     | the Node dispatcher, ONE SCOPE PER (PACKAGE, FLOW) CELL running its own `plan → work → review → commit → ward` step graph — product code + its unit tests | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit plus an outcome word (worker, reviewer); `modify-quest` narrowly (`packagesAffected` from the planner, `verifyByHuman` from the worker) |
 | ward           | `wardFull`'s `gate` step is `kind: 'deterministic'`, so it always reaches it via `run-step` → `stepHandlerWardBroker`, and only the Node dispatcher can run it                                                                     | exit code (green / red)                  | none (broker writes wardResults + item status)                                                   |
 | flowrider      | the Node dispatcher, ONE SCOPE PER FLOW running the same step graph as codeweaver — the test suites that prove that flow                   | family done / blocked | same shape as codeweaver's row above                                            |
-| siegemaster    | the Node dispatcher, ONE SCOPE PER FLOW running its own `sweepIn → plan → happyWalk ⇄ fixHappy → adversarial ⇄ fixAdversarial → commit → ward → sweepOut` graph — hands-on QA against a running system | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit the walkers settle plus an outcome word (every step); an `invalidation` payload appends a `walk-reset` note |
+| siegemaster    | the Node dispatcher, ONE SCOPE PER FLOW running its own `sweepIn → plan → happyWalk ⇄ fixHappy → adversarial ⇄ fixAdversarial → commit → ward → sweepOut` graph — hands-on QA against a running system | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit the walkers settle plus an outcome word (every step) |
 | spiritmender   | the Node dispatcher (inserted on a ward red, or on a REPAIRABLE riftcarver red). Bespoke prompt                | complete (done / partial / blocked)      | none                                                                                             |
 | warpgate       | dispatched like any relay role, but its item is appended at MERGE time (see below). Bespoke prompt                       | complete (done / partial / blocked)      | none                                                                                             |
 
@@ -1143,8 +1144,8 @@ VALUE, the thing `WorktreePrepareError` carries): `create` / `base_branch` class
 agent is ever dispatched into the repo-root checkout; `push` / `node_modules` / `typecheck` classify as `unmet`.
 `isPermissionDeniedErrorGuard` is checked FIRST and overrides the step's own class — no fresh session of any role can
 talk an operator's filesystem out of saying no. The handler reports that word and the `carve` step's own routes do
-the rest: `unmet` to `repair`, which returns to `carve`; `wall` to `@blocked`. The bound is `carve`'s and `repair`'s
-own `maxVisits`. Full outcome table in `docs/quest-role-paths.md`, invariants under `RIFT-*`.
+the rest: `unmet` to `repair`, which returns to `carve`; `wall` to `@blocked`. The carve⇄repair loop is bounded by
+the `no-progress` check on `repair`, not by a visit count. Full outcome table in `docs/quest-role-paths.md`, invariants under `RIFT-*`.
 
 The whole outcome — work-item status, the operation completing, the `riftcarverResults` ref, the work item's
 `riftcarverResults/<id>` back-link, and any splice — rides ONE `questOperationsUpdateBroker` persist, so a crash is
@@ -1193,9 +1194,8 @@ Four things about that append are load-bearing, and all four live inside `questO
   dispatch scan's advance self-heal mint an abandoned relay item into the worktree the moment the merge finishes.
 
 It is `locked: true`, which protects it from `modify-quest` deletion — the same protection the plan item and the
-fixed verify tail carry (`operationItemContract`'s own words) — not a budget. The bound on an agent that never
-converges on its own is the `merge` step's own `maxVisits: 3` in `agentFlowStatics.warpgate`, the ordinary
-step-graph ceiling every gate/repair loop uses. A double-click on Teleport is two POSTs that both clear the mergeable-status gate
+fixed verify tail carry (`operationItemContract`'s own words) — not a budget. The `merge` step in `agentFlowStatics.warpgate`
+has no visit budget; nothing bounds it beyond walls. A double-click on Teleport is two POSTs that both clear the mergeable-status gate
 before either writes, so the update callback refuses a second warpgate operation from inside the lock; without that
 guard N clicks mint N merge agents against the one worktree. The responder also kills any running follow-up chat
 (`isPostQuestChatWorkItemRoleGuard`) before writing anything, because tavernkeeper spawns outside the ledger and nothing
@@ -1222,10 +1222,20 @@ declares no `done` route of its own. A target that DOES declare `done` (riftcarv
 `repair`, `review`, `work`, …) is left untouched, so a genuine gap in ITS OWN route table still
 surfaces as `no-minter` instead of silently returning somewhere nobody routed it.
 
-**The bound is `maxVisits`, and it is a ceiling on a count nothing stores.** The router derives it where
-it is about to mint — the work items on this scope whose `step` equals that step — so no visit counter
-field exists on the work item and none is to be added. Exceeding one is
-`{ kind: 'block', reason: 'max-visits' }`.
+**There is no visit budget; the bound is `no-progress`.** The three `repair` steps (`CLOSE_OUT.repair`, shared by
+codeweaver, flowrider and siegemaster; `wardFull.repair`; `riftcarver.repair`) carry `requiresProgress: true`. Before
+the router mints another item at a `requiresProgress` step, `mintNextActionTransformer` compares the scope's latest
+existing item at that step: if its `startRef` (the worktree HEAD sha stamped when that session first fetched its
+prompt) equals the worktree's current HEAD, that repair committed nothing, so the router returns
+`{ kind: 'block', reason: 'no-progress' }` and the quest halts for a human. `questRouteScopeBroker` reads the
+worktree HEAD (`headSha` from `#gateway/bin/git`) above the lock — only when the quest has a `worktreePath` and some
+item on the scope carries a `startRef` — and passes it to `nextActionTransformer` as `headSha`. When HEAD is unknown
+(no worktree, unreadable HEAD) or the latest repair has no `startRef`, the check is skipped and the repair mints. It
+covers ward→repair, carve→repair, gate→repair and repair→repair. A repair step is assigned NO units
+(`stepScopeStatics.unscopedByFamilyStep` declares every `repair` as `none`). Question 2 groups units no plan piece
+claims into ONE successor per holder and never hands a successor a unit outside the target step's own scope; when
+`unmet` routes a step back to itself (repair, fixHappy, fixAdversarial) the successor's `mintedBy` passes the
+holder's own minter through, so the return edge lands on the gate or walker that started the loop.
 
 **Verification is measured, not asserted.** A flow decomposes into atomic **verification units** (the off-map
 probe families, every terminal, labelled branch and observable — `qaUnitEnumerateTransformer` is the single
@@ -1264,10 +1274,9 @@ stops a step being measured on work that did not exist while it ran.
 
 **`quest.planningNotes.questNotes[]` is the durable side channel** — `{ id, kind: 'open-question' |
 'tooling-error' | 'out-of-scope' | 'walk-reset', role, workItemId, flowId?, unitId?, summary, detail, at }`.
-A note NEVER closes a unit; only an observation does. Reopening every observation on a flow is the `invalidation`
-payload on `quest-work`: a `flowId` plus a reason, refused to any work item but a siegemaster one, which appends a
-`walk-reset` note here and leaves every existing observation on disk untouched — the reopening is a consequence of
-a later work item's own assignment outranking the earlier `met`, not an edit or an erasure.
+A note NEVER closes a unit; only an observation does. `walk-reset` is a note kind kept so quests that carry one
+still load; no current payload appends it. A re-walk starts fresh because a later work item's own assignment
+outranks an earlier `met`, not because anything edits or erases an observation.
 
 **The standards-review surface has its own tool family**, and it is NOT a role's denominator. A diff
 decomposes into review units (`get-blight-checklist` — every changed impl file, its test/proxy/stub
@@ -1304,8 +1313,7 @@ marker and nothing more. `signalBackInputContract` validates `signal: 'complete'
 `quest-handle-signal-back-responder.ts`.
 
 **A SESSION REPORTS; IT NEVER ROUTES.** What a session DID is already on the record before it signals —
-its marks on each assigned unit, and optionally an `outcome` word, a `request` for another step, or an
-`invalidation`, all written through the `quest-work` tool. `signal-back` marks the work item terminal;
+its marks on each assigned unit, and optionally an `outcome` word, or a `request` for another step, all written through the `quest-work` tool. `signal-back` marks the work item terminal;
 the ROUTER reads the record on the next scan and takes the step's own route for it.
 
 **One gate runs BEFORE any mutation, and it THROWS rather than returning** — the error rides the awaited
@@ -1344,9 +1352,10 @@ The orchestrator has THREE failure shapes, and the STEP GRAPH owns all three.
   when the target declares no `done` route of its own: `ward`'s own `repair` and siege's `fixHappy` / `fixAdversarial`
   need it and RETURN to the gate that minted them once they drain, where riftcarver's and wardFull's own `repair`
   declare `done: 'commit'` and never need it.
-- **A spent `maxVisits` — the bound.** Each step declares its own ceiling, derived where the router is about to mint
-  from the work items on this scope at that step. Exceeding one is `{ kind: 'block', reason: 'max-visits' }`, which
-  halts the quest rather than looping.
+- **`no-progress` — the bound.** A `repair` step carries `requiresProgress: true`; when the scope's latest repair
+  item's `startRef` equals the worktree's current HEAD, that repair committed nothing and the router returns
+  `{ kind: 'block', reason: 'no-progress' }`, which halts the quest for a human rather than looping. Structural errors
+  (`unknown-step`, `unknown-route-target`, `no-minter`) halt it too.
 - **`wall` — the halt.** An environment wall a session declares through `quest-work`, or a deterministic handler's
   classification: ward's CRASH (ward never reported on the code, so a repair has nothing to fix), riftcarver's
   `git-state` red or a permission denial (there is no worktree to dispatch a repair into, and the only checkout left

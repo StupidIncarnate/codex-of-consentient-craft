@@ -4,7 +4,7 @@
  * rather than read off `operationItem.role` directly. `wardFull` carries `role: 'ward'`, so the
  * ledger's role is what a caller HAS and the family key is what `agentFlowStatics` is KEYED ON;
  * `nextActionTransformer` resolves it the identical way, at `next-action-transformer.ts:139-149`.
- * `quest-work`'s `invalidation` and `request` payloads both need a caller's FAMILY, never its ledger
+ * `quest-work`'s `request` payload needs a caller's FAMILY, never its ledger
  * role, for exactly the reason that file's own comment gives.
  *
  * USAGE:

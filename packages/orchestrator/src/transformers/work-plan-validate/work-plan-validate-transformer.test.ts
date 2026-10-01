@@ -676,16 +676,35 @@ describe('workPlanValidateTransformer', () => {
 
   describe('check 13 — a browser-layer piece count per batch is within the step’s maxConcurrent', () => {
     it('INVALID: {5 browser-layer pieces at one step, one batch} => refuses every one with check 13, over the limit of 4', () => {
-      const families = ['re-entry', 'concurrency', 'interruption', 'staleness', 'configuration'];
-      const pieces = families.map((family) =>
+      // Five terminal nodes, so five pieces can each own one unit `flowrider.work` really measures —
+      // check 6 refuses two pieces in a batch sharing a unit, and check 5 refuses an off-map probe on
+      // a flowrider worker.
+      const nodeIds = ['end-a', 'end-b', 'end-c', 'end-d', 'end-e'];
+      const wideFlow = FlowStub({
+        id: 'send-flow',
+        nodes: nodeIds.map((id) =>
+          FlowNodeStub({ id, label: id, packages: ['@dungeonmaster/web'] }),
+        ),
+        edges: [],
+      });
+      const wideQuest = QuestStub({
+        flows: [wideFlow],
+        packagesAffected,
+        operations: [flowriderOperationItem],
+      });
+      const pieces = nodeIds.map((id) =>
         WorkPlanPieceStub({
-          id: `pc-${family}`,
-          assignedUnitIds: [`send-flow:off-map:${family}`],
+          id: `pc-${id}`,
+          assignedUnitIds: [`send-flow:terminal:${id}`],
+          contextUnitIds: [],
           payload: WorkPlanPayloadFlowriderStub({
-            specPath: `./packages/web/src/flows/send/send-${family}.e2e.ts`,
+            specPath: `./packages/web/src/flows/send/send-${id}.e2e.ts`,
             harnesses: [],
             units: [
-              WorkPlanFlowriderUnitStub({ unitId: `send-flow:off-map:${family}`, kind: 'off-map' }),
+              WorkPlanFlowriderUnitStub({
+                unitId: `send-flow:terminal:${id}`,
+                observableTarget: { target: 'node', nodeId: id },
+              }),
             ],
           }),
         }),
@@ -695,11 +714,11 @@ describe('workPlanValidateTransformer', () => {
         batches: [WorkPlanBatchStub({ pieces })],
       });
 
-      const result = workPlanValidateTransformer({ quest: flowriderQuest, workItem, plan });
+      const result = workPlanValidateTransformer({ quest: wideQuest, workItem, plan });
 
       expect(result).toStrictEqual(
-        families.map((family) => ({
-          pieceId: `pc-${family}`,
+        nodeIds.map((id) => ({
+          pieceId: `pc-${id}`,
           check: 13,
           message:
             "batch 1 names 5 browser-layer pieces at step 'work', over the maxConcurrent limit of 4",

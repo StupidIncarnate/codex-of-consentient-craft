@@ -64,6 +64,10 @@ export interface ExecutionRowLayerWidgetProps {
   // `insertedBy` — that field means a retry splice superseding a failed item, a different edge.
   mintedByLabel?: string;
   errorMessage?: string;
+  // A deterministic step's saved printed output (`workItem.declaredReason`), rendered verbatim when
+  // no streamed entries exist for the row. Streamed lines are never replayed for a step that has no
+  // session, so after a reload this is the only copy of what a red ward printed.
+  commandOutput?: string;
   // Carries summary, attempt, maxAttempts, startedAt, completedAt and actualSignal as ONE object
   // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
   // has instead of picking it apart field by field.
@@ -139,6 +143,7 @@ export const ExecutionRowLayerWidget = ({
   indented,
   mintedByLabel,
   errorMessage,
+  commandOutput,
   workItem,
   scopeWorkItems,
   entries,
@@ -522,6 +527,19 @@ export const ExecutionRowLayerWidget = ({
               isCommandOutput={isCommandRow}
               {...(runningNow === undefined ? {} : { now: runningNow })}
             />
+          ) : null}
+          {!entries?.length && commandOutput ? (
+            <Text
+              ff="monospace"
+              data-testid="execution-row-command-output"
+              style={{
+                fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                color: colors.text,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {commandOutput}
+            </Text>
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
           {files.length > 0 ? (

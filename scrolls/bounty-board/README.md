@@ -67,6 +67,66 @@ For a change, name this section "What to build".>
 <Partial fixes with their SHAs, decisions and who made them, and links to longer context.>
 ```
 
+## How to operate — Instructions for the operator
+
+1. **Open up a worktree when you start:**
+   Never work directly in the main checkout or `master`. Always create and operate from a dedicated worktree (e.g. `worktrees/bounty-board`) created from `master`. Keep the main checkout clean.
+2. **Parallel at most 3 sub-agents at one time:**
+   The operator coordinates and monitors at most 3 sub-agents in flight concurrently.
+3. **Agents running ward MUST be in a worktree:**
+   Every dispatched agent must work in its own separate worktree. Crucially, **agents have to go in a worktree because they run ward commands**. Ward commands (`ward --uncommitted`, `ward --committed`) inspect git index and working tree status; sharing a checkout causes agents to see each other's edits or race on build artifacts.
+4. **Bundling related bugs (max 3 at one time):**
+   Some bugs are closely related and can be bundled into a single agent assignment, but only bundle up to 3 related items at a time.
+5. **Performance issues run alone:**
+   Performance issues (`perf`, latency, load timeouts, slow tests) must **only ever be grabbed one at a time**. Never bundle performance issues and never run parallel perf investigations, as concurrent agents and background load invalidate timings and thrash memory.
+6. **Package isolation & disjoint scopes:**
+   Two agents must never edit the same package at once unless the operator explicitly names disjoint file lists for them. Any item marked "runs alone" runs with no other agent touching its package.
+7. **Role separation:**
+   Use sub-agents for all implementation, testing, reproduction, root-cause investigation, and disagreement exploration. The operator owns coordination: reviewing reports, merging worktrees, running gates, committing, and updating this file.
+8. **Recurring 30-minute cron & 1-hour timeout monitor:**
+   Keep a recurring cron every 30 minutes to keep your cache warm and monitor agent progress.
+   - **1-hour limit:** If an agent runs over 1 hour, instruct them to find a clean stopping place immediately and report back: (1) what is done, (2) what was found, and (3) what is still left to do.
+   - The operator can then either spawn a fresh sub-agent to continue from the clean state or split the remaining scope across multiple agents.
+9. **Landing work & verification:**
+   When a sub-agent finishes:
+   - Review their report and merge their worktree into your operator worktree.
+   - Run `npm run ward -- --committed` (or `ward --committed`) to ensure focused changes didn't break anything.
+   - Build compiled output (`npm run build:clean` or package build) only when tools or consumers require fresh `dist`.
+10. **Syncing with master & full ward gate:**
+    At regular intervals, pull in `master`, run a full repo-wide ward check (`npm run ward`) in your worktree to verify all green, and then merge the clean work into `master`.
+11. **Clear blockers before marking blocked:**
+    The user gives no input until the run is complete unless explicitly needed. When an item appears blocked, dispatch an agent to explore the TypeScript, Node, config, or test disagreement. If it still will not clear, mark it `blocked` in the index and file with the specific reason, and move on to non-dependent items. Never halt progress because one item is stuck.
+12. **Update this file as you go:**
+    Update `README.md` and bounty files in the same commit as the work every time something finishes or changes status.
+    - When a bounty is finished: delete its file and remove its row from the index (or record the commit SHA).
+    - When a bounty is declined: delete its file and record the decision under [Declined](#declined).
+    - When an item needs user input: mark status `needs decision` and clearly state the question.
+13. **Never `rm` a file — move to `tmp/deletions/`:**
+    Deleting files (`rm`, `git rm`, `unlink`) prompts for user confirmation and stalls execution. Instead, verify nothing imports the file across all packages and tests, then move it using plain `mv` to `<repoRoot>/tmp/deletions/<bounty-id>/<original repo-relative path>`.
+14. **Wrap-up & worktree cleanup:**
+    When finished or when the user says to wrap it up:
+    - Let all current in-flight agent work drain.
+    - Execute the merge workflow into `master` (merge active worktrees into the operator worktree, pull `master`, run full `npm run ward`, merge into `master`).
+    - Verify that nothing is straggling (check status, uncommitted changes, stashes).
+    - Once confirmed that nothing is straggling, delete the operator worktree and any sub-agent worktrees.
+
+## Instructions for agents
+
+Every agent dispatched to work on the bounty board is handed one bounty file (or bundle of up to 3 related items) and the standing brief: [agent-brief.md](agent-brief.md).
+
+Key expectations for agents:
+- **Do not assume bounties are all valid:** Confirm whether the problem actually reproduces in current code before modifying anything. Keep in mind it could be an E2E issue.
+- **Root cause first:** Identify the underlying cause before attempting a fix.
+- **E2E investigation and coverage:** When fixing issues, if it makes sense that an E2E should cover the bug, search if an E2E already exists and is failing to report correctly, or if this is a test coverage hole. E2Es are needed when:
+  - Data funnels through multiple packages (e.g. data sending or receiving across server / web sockets / gateways).
+  - Real browser user actions are involved (e.g. copying to clipboard, page scrolling, focus) that Jest / `@testing-library` cannot authentically test.
+- **Cut-and-dry vs. user input:**
+  - *Cut-and-dry solution:* Implement the fix cleanly with real assertions and tests.
+  - *Not cut-and-dry:* If it requires architectural trade-offs or user decisions, do not guess; bubble up the question clearly in the report under `DECISIONS / QUESTIONS` and wait.
+- **Scope discipline:** Never touch files outside assigned scope; never delete files with `rm` (use `tmp/deletions/`).
+- **Ward verification:** Run scoped `ward --uncommitted` and `ward --committed`, plus any related e2e / integration suites to ensure nothing else broke.
+- **1-hour stopping protocol:** If reaching 1 hour or prompted to stop, cleanly checkpoint and report done / found / remaining.
+
 ## Declined
 
 | ID | What was asked | The user's decision |

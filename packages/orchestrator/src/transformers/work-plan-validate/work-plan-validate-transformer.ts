@@ -144,9 +144,10 @@ export const workPlanValidateTransformer = ({
   // scope would reject exactly the case it exists for. `stepInScopeUnitsTransformer` applies BOTH the
   // package narrowing and the flow narrowing per piece, closing the gap the old flow-only derivation
   // left open: a codeweaver piece scoped to `server` can no longer claim a `web` unit on the same
-  // flow. A step that declares its own scope (siege `adversarial`) is held to it; a `worker`/`planner`
-  // step (no declared scope, which is what a planner's pieces mostly are) inherits its family's whole
-  // in-scope set, still package-narrowed.
+  // flow. Every step is held to the scope `stepScopeStatics` declares for it — a `work` piece to its
+  // reviewer's scope, so no off-map probe lands on a codeweaver or flowrider worker. A piece naming a
+  // step outside the family graph is check 3's to report and is skipped here, because the scope
+  // lookup throws on a step it has no declaration for.
   //
   // `stepInScopeUnitsTransformer` throws when `operationItemId` resolves to no ledger item — its
   // documented caller-bug signal. But this validator's whole job is turning a malformed SUBMITTED plan
@@ -158,27 +159,29 @@ export const workPlanValidateTransformer = ({
   const operationItemExistsOnLedger = quest.operations.some(
     (candidate) => String(candidate.id) === String(parsedPlan.operationItemId),
   );
-  allPieces.forEach(({ piece }) => {
-    const legalUnitIdList = operationItemExistsOnLedger
-      ? stepInScopeUnitsTransformer({
-          quest,
-          operationItemId: parsedPlan.operationItemId,
-          step: piece.step,
-        }).map((unitId) => String(unitId))
-      : [];
-    const legalUnitIds = new Set(legalUnitIdList);
-    piece.assignedUnitIds.forEach((unitId) => {
-      if (!legalUnitIds.has(String(unitId))) {
-        failures.push(
-          workPlanValidationFailureContract.parse({
-            pieceId: piece.id,
-            check: numbers.outOfScopeAssignedUnit,
-            message: `${piece.id}: assigned unit '${String(unitId)}' is not in scope for operation item '${String(parsedPlan.operationItemId)}'`,
-          }),
-        );
-      }
+  allPieces
+    .filter(({ piece }) => stepNames.has(String(piece.step)))
+    .forEach(({ piece }) => {
+      const legalUnitIdList = operationItemExistsOnLedger
+        ? stepInScopeUnitsTransformer({
+            quest,
+            operationItemId: parsedPlan.operationItemId,
+            step: piece.step,
+          }).map((unitId) => String(unitId))
+        : [];
+      const legalUnitIds = new Set(legalUnitIdList);
+      piece.assignedUnitIds.forEach((unitId) => {
+        if (!legalUnitIds.has(String(unitId))) {
+          failures.push(
+            workPlanValidationFailureContract.parse({
+              pieceId: piece.id,
+              check: numbers.outOfScopeAssignedUnit,
+              message: `${piece.id}: assigned unit '${String(unitId)}' is not in scope for operation item '${String(parsedPlan.operationItemId)}'`,
+            }),
+          );
+        }
+      });
     });
-  });
 
   // Check 6: no unit is claimed by two pieces in the same batch.
   parsedPlan.batches.forEach((batch) => {

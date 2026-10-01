@@ -54,20 +54,14 @@
  * reads the plan BEFORE it enters the lock — which is also why `plan` arrives as an argument rather
  * than being read here.
  *
- * `request`, `invalidatedFlowIds`, `declaredWord` AND `hitWall` ARRIVE AS ARGUMENTS for the same
- * reason `deriveOutcomeTransformer` takes `declaredWord` and `hitWall`: the work tool writes them and
- * this reads them, and a pure function cannot go and look. `request` carries its own asker, because
- * the minted step's `done` returns to the session that asked for it.
+ * `request`, `headSha`, `declaredWord` AND `hitWall` ARRIVE AS ARGUMENTS for the same reason
+ * `deriveOutcomeTransformer` takes `declaredWord` and `hitWall`: the work tool and the worktree hold
+ * them, and a pure function cannot go and look. `request` carries its own asker, because the minted
+ * step's `done` returns to the session that asked for it. `headSha` is the worktree's HEAD, which
+ * `mintNextActionTransformer` compares against a `requiresProgress` step's last `startRef`.
  */
 
-import type {
-  Quest,
-  WorkItem,
-  OperationItem,
-  QaChecklistItem,
-  Flow,
-  WorkPlanPiece,
-} from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -79,10 +73,10 @@ import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
 import { deriveOutcomeTransformer } from '../derive-outcome/derive-outcome-transformer';
 import { foldOutcomesTransformer } from '../fold-outcomes/fold-outcomes-transformer';
 import { mintNextActionTransformer } from '../mint-next-action/mint-next-action-transformer';
-import { pieceBriefPayloadTransformer } from '../piece-brief-payload/piece-brief-payload-transformer';
 import { stepEntryBatchTransformer } from '../step-entry-batch/step-entry-batch-transformer';
 import { stepInScopeUnitsTransformer } from '../step-in-scope-units/step-in-scope-units-transformer';
 import { unitCurrentMarkTransformer } from '../unit-current-mark/unit-current-mark-transformer';
+import { unmetBatchLayerTransformer } from './unmet-batch-layer-transformer';
 
 export const nextActionTransformer = ({
   quest,
@@ -91,7 +85,7 @@ export const nextActionTransformer = ({
   agentFlowStatics,
   questFlowStatics,
   request,
-  invalidatedFlowIds,
+  headSha,
   declaredWord,
   hitWall,
 }: {
@@ -109,7 +103,7 @@ export const nextActionTransformer = ({
               | {
                   role: string;
                   kind: string;
-                  maxVisits: number;
+                  requiresProgress?: boolean;
                   routes: Readonly<Record<string, string | undefined>>;
                   needsLane?: boolean;
                   maxConcurrent?: { limit: number; counts: string };
@@ -125,7 +119,7 @@ export const nextActionTransformer = ({
     Record<string, { families: Readonly<Record<string, { role: string } | undefined>> } | undefined>
   >;
   request?: { fromWorkItemId: WorkItem['id']; step: string; reason: string };
-  invalidatedFlowIds?: readonly Flow['id'][];
+  headSha?: string;
   declaredWord?: StepOutcome;
   hitWall?: boolean;
 }): NextAction => {
@@ -208,13 +202,6 @@ export const nextActionTransformer = ({
       .flatMap((item) => item.assignedUnitIds.map(String)),
   );
 
-  const invalidatedUnitIds =
-    invalidatedFlowIds === undefined || invalidatedFlowIds.length === 0
-      ? []
-      : stepInScopeUnitsTransformer({ quest, operationItemId, step }).filter((unitId) =>
-          invalidatedFlowIds.some((flowId) => String(unitId).startsWith(`${String(flowId)}:`)),
-        );
-
   // --- QUESTION 1: did this step REQUEST another step?
   if (request !== undefined) {
     const requestedNode = graph.steps[request.step];
@@ -250,11 +237,9 @@ export const nextActionTransformer = ({
         }),
       ],
       cause: 'request',
-      maxVisits: requestedNode.maxVisits,
+      requiresProgress: requestedNode.requiresProgress === true,
+      headSha,
       maxConcurrent: requestedNode.maxConcurrent,
-      // A requested step measures nothing, so re-opened units never land on it — they wait for the
-      // route target, or for the minter this returns to.
-      invalidatedUnitIds: [],
     });
   }
 
@@ -273,80 +258,37 @@ export const nextActionTransformer = ({
   const unmetTarget = node.routes.unmet;
   const unmetNode = unmetTarget === undefined ? undefined : graph.steps[unmetTarget];
 
-  if (unmetUnitIds.length > 0 && unmetTarget !== undefined && unmetNode !== undefined) {
-    const claimedBy = new Map<QaChecklistItem['id'], WorkPlanPiece>();
+  // A successor is never handed a unit its own step cannot settle. Units outside the target step's
+  // scope — a `repair` holding off-map probes from before `repair` was declared `none` — fall through
+  // to question 4, where the step's own outcome routes the scope without carrying them forward.
+  const unmetTargetScope = new Set(
+    unmetTarget === undefined
+      ? []
+      : stepInScopeUnitsTransformer({ quest, operationItemId, step: unmetTarget }).map(String),
+  );
+  const settleableUnmetUnitIds = unmetUnitIds.filter((unitId) =>
+    unmetTargetScope.has(String(unitId)),
+  );
 
-    for (const planBatch of plan?.batches ?? []) {
-      for (const piece of planBatch.pieces) {
-        for (const claimed of piece.assignedUnitIds) {
-          if (!claimedBy.has(claimed)) {
-            claimedBy.set(claimed, piece);
-          }
-        }
-      }
-    }
-
-    const claimedGroups = (plan?.batches ?? [])
-      .flatMap((planBatch) => planBatch.pieces)
-      .map((piece) => ({
-        piece,
-        unitIds: unmetUnitIds.filter((unitId) => claimedBy.get(unitId) === piece),
-      }))
-      .filter((group) => group.unitIds.length > 0);
-
-    const unclaimedUnitIds = unmetUnitIds.filter((unitId) => !claimedBy.has(unitId));
-    const fallbackMinter = terminalStepItems.at(-1);
-
+  if (settleableUnmetUnitIds.length > 0 && unmetTarget !== undefined && unmetNode !== undefined) {
     return mintNextActionTransformer({
       quest,
       operationItemId,
       family,
       step: unmetTarget,
-      batch: [
-        ...claimedGroups.map((group) => {
-          const payload = pieceBriefPayloadTransformer({
-            piece: group.piece,
-            unitIds: group.unitIds,
-          });
-          const minter =
-            [...terminalStepItems]
-              .reverse()
-              .find((item) =>
-                item.assignedUnitIds.some((held) =>
-                  group.unitIds.some((unitId) => String(unitId) === String(held)),
-                ),
-              ) ?? fallbackMinter;
-
-          return mintedWorkItemContract.parse({
-            step: unmetTarget,
-            role: operationItem.role,
-            assignedUnitIds: group.unitIds,
-            needsLane: unmetNode.needsLane === true,
-            ...(payload === undefined ? {} : { payload }),
-            ...(minter === undefined ? {} : { mintedBy: minter.id }),
-          });
-        }),
-        ...unclaimedUnitIds.map((unitId) => {
-          const minter =
-            [...terminalStepItems]
-              .reverse()
-              .find((item) =>
-                item.assignedUnitIds.some((held) => String(held) === String(unitId)),
-              ) ?? fallbackMinter;
-
-          return mintedWorkItemContract.parse({
-            step: unmetTarget,
-            role: operationItem.role,
-            assignedUnitIds: [unitId],
-            needsLane: unmetNode.needsLane === true,
-            ...(minter === undefined ? {} : { mintedBy: minter.id }),
-          });
-        }),
-      ],
+      batch: unmetBatchLayerTransformer({
+        plan,
+        unmetUnitIds: settleableUnmetUnitIds,
+        terminalStepItems,
+        step,
+        unmetTarget,
+        itemRole: operationItem.role,
+        needsLane: unmetNode.needsLane === true,
+      }),
       cause: 'unmet',
-      maxVisits: unmetNode.maxVisits,
+      requiresProgress: unmetNode.requiresProgress === true,
+      headSha,
       maxConcurrent: unmetNode.maxConcurrent,
-      invalidatedUnitIds,
     });
   }
 
@@ -377,9 +319,9 @@ export const nextActionTransformer = ({
         needsLane: node.needsLane === true,
       }),
       cause: 'plan-batch',
-      maxVisits: node.maxVisits,
+      requiresProgress: node.requiresProgress === true,
+      headSha,
       maxConcurrent: node.maxConcurrent,
-      invalidatedUnitIds,
     });
   }
 
@@ -488,9 +430,9 @@ export const nextActionTransformer = ({
           }),
         ],
         cause: 'return-to-minter',
-        maxVisits: minterNode.maxVisits,
+        requiresProgress: minterNode.requiresProgress === true,
+        headSha,
         maxConcurrent: minterNode.maxConcurrent,
-        invalidatedUnitIds,
       });
     }
 
@@ -510,36 +452,13 @@ export const nextActionTransformer = ({
         needsLane: minterNode.needsLane === true,
       }),
       cause: 'return-to-minter',
-      maxVisits: minterNode.maxVisits,
+      requiresProgress: minterNode.requiresProgress === true,
+      headSha,
       maxConcurrent: minterNode.maxConcurrent,
-      invalidatedUnitIds,
     });
   }
 
   if (target === '@done') {
-    // The one lever that re-opens off-map families after a fix: a scope that would otherwise be
-    // finished mints one more pass over exactly the re-opened units.
-    if (invalidatedUnitIds.length > 0) {
-      return mintNextActionTransformer({
-        quest,
-        operationItemId,
-        family,
-        step,
-        batch: [
-          mintedWorkItemContract.parse({
-            step,
-            role: operationItem.role,
-            assignedUnitIds: [],
-            needsLane: node.needsLane === true,
-          }),
-        ],
-        cause: 'invalidation',
-        maxVisits: node.maxVisits,
-        maxConcurrent: node.maxConcurrent,
-        invalidatedUnitIds,
-      });
-    }
-
     return nextActionContract.parse({ kind: 'complete', operationItemId, outcome });
   }
 
@@ -590,8 +509,11 @@ export const nextActionTransformer = ({
   // ever will. `routeGateId` is the same "current item at this step" fallback question 2's mark-mint
   // already uses; a target that DOES declare `done` (`review`, `work`, riftcarver's and wardFull's own
   // `repair`) is left untouched, so a genuine gap in ITS OWN route table still surfaces as
-  // `no-minter` instead of a silent, unintended return.
-  const routeGateId = terminalStepItems.at(-1)?.id;
+  // `no-minter` instead of a silent, unintended return. A route back to the SAME step (`repair`'s
+  // own `unmet`) passes the current item's minter through, for the reason `unmetBatchLayerTransformer`
+  // gives: naming the current repair would return the next one to another repair, not to the gate.
+  const routeGate = terminalStepItems.at(-1);
+  const routeGateId = routeTarget === step ? (routeGate?.mintedBy ?? routeGate?.id) : routeGate?.id;
   const batch =
     targetNode.routes.done === undefined && routeGateId !== undefined
       ? routeBatch.map((item) => mintedWorkItemContract.parse({ ...item, mintedBy: routeGateId }))
@@ -604,9 +526,9 @@ export const nextActionTransformer = ({
     step: routeTarget,
     batch,
     cause: 'plan-batch',
-    maxVisits: targetNode.maxVisits,
+    requiresProgress: targetNode.requiresProgress === true,
+    headSha,
     maxConcurrent: targetNode.maxConcurrent,
-    invalidatedUnitIds,
     from: step,
     outcome,
   });

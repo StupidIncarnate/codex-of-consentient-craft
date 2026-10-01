@@ -1,48 +1,39 @@
 /**
- * PURPOSE: Spends a step's budgets on a batch the router has already decided to mint, and returns the
- * `NextAction` that survives them — the mint or route itself, a `capped` come-back, or a `max-visits`
- * block. Reach for this rather than parsing a `NextAction` by hand: every mint path shares these
- * three rules, and a path that skipped one would overspend a budget with nothing reporting it.
+ * PURPOSE: Applies the two rules every mint shares to a batch the router has already decided on, and
+ * returns the `NextAction` that survives them — the mint or route itself, a `capped` come-back, or a
+ * `no-progress` block. Reach for this rather than parsing a `NextAction` by hand: a mint path that
+ * skipped either rule would loop a gate forever or overload the machine with nothing reporting it.
  *
  * USAGE:
  * mintNextActionTransformer({
- *   quest, operationItemId, family: 'flowrider', step: 'work',
- *   batch, cause: 'plan-batch', maxVisits: 40, invalidatedUnitIds: [],
+ *   quest, operationItemId, family: 'codeweaver', step: 'repair',
+ *   batch, cause: 'plan-batch', requiresProgress: true, headSha, maxConcurrent: undefined,
  * });
  * // Returns: NextAction — a `mint`, or a `route` when `from` and `outcome` are both given
  *
- * `maxVisits` IS COUNTED OFF THE LEDGER, OVER EVERY STATUS, and no counter field exists or is to be
- * added. A visit that crashed still burned a dispatch, so a `pending`, an `in_progress` and a
- * `failed` item at that step each count exactly as a completed one does. `retryCount` is orphan
- * recovery's budget and a crash-resumed session is the SAME visit; `attempt` / `maxAttempts` are
- * written once at mint and never read back. A counter field is a second source of truth that a
- * crash, a replay or a hand-edited `quest.json` desyncs from the record it claims to summarise.
- *
- * THE CHECK RUNS BEFORE THE MINT, over `visits + batch.length`, so a parallel batch cannot step over
- * the ceiling one item at a time.
+ * THERE IS NO VISIT BUDGET. A step mints as many times as its work needs. The one loop that can spin
+ * with nothing changing is a gate and its `repair`, so a `requiresProgress` step is minted again only
+ * once the scope's latest item at that step has moved the worktree's HEAD past the `startRef` it
+ * began at. Equal means that repair committed nothing; the next session would read the same red, so
+ * the answer is `no-progress` for a human. An unknown `headSha` (no worktree, an unreadable HEAD) or
+ * a latest item with no `startRef` (it never fetched its prompt) skips the check rather than block on
+ * what cannot be measured.
  *
  * `maxConcurrent` IS THE ROUTER'S CAP, NOT THE PLAN'S, because a mark-minted piece is by definition
  * not in the plan: three walkers marking `unmet` mint three fixers outside any declared batch, and
  * nothing a planner wrote bounds that. The `counts` half matters — the same step runs below-browser
  * pieces that cost nothing and must not eat the cap. Nothing fitting is `capped`, never `block`: the
  * cap clears on its own the moment a walk records.
- *
- * AN INVALIDATION EDITS NOTHING. The re-opened units are UNIONED onto the first item this mints; no
- * existing observation is touched and no mark is cleared. The re-opening falls out of the committed
- * current-mark rule alone, since the item minted here becomes the most recent one assigned those
- * units and its absent mark is then the state.
  */
 
-import type { Quest, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
-import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
 import type { MintedWorkItem } from '../../contracts/minted-work-item/minted-work-item-contract';
 import { nextActionContract } from '../../contracts/next-action/next-action-contract';
 import type { NextAction } from '../../contracts/next-action/next-action-contract';
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
 import { workItemAssignmentContract } from '../../contracts/work-item-assignment/work-item-assignment-contract';
-import { routerBlockMessageStatics } from '../../statics/router-block-message/router-block-message-statics';
 
 export const mintNextActionTransformer = ({
   quest,
@@ -51,9 +42,9 @@ export const mintNextActionTransformer = ({
   step,
   batch,
   cause,
-  maxVisits,
+  requiresProgress,
+  headSha,
   maxConcurrent,
-  invalidatedUnitIds,
   from,
   outcome,
 }: {
@@ -63,12 +54,12 @@ export const mintNextActionTransformer = ({
   step: string;
   batch: readonly MintedWorkItem[];
   cause: Extract<NextAction, { kind: 'mint' }>['cause'];
-  maxVisits: number;
+  requiresProgress: boolean;
+  headSha: string | undefined;
   // REQUIRED and nullable rather than optional: every caller reads it straight off the step node,
   // where absent is the common case, and an optional parameter would put a ternary on every one of
   // those call sites for a value the step already spells.
   maxConcurrent: { limit: number; counts: string } | undefined;
-  invalidatedUnitIds: readonly QaChecklistItem['id'][];
   from?: string;
   outcome?: StepOutcome;
 }): NextAction => {
@@ -76,26 +67,27 @@ export const mintNextActionTransformer = ({
   const scopeItems = quest.workItems.filter((item) =>
     item.relatedDataItems.some((ref) => String(ref) === scopeRef),
   );
-  const visits = scopeItems.filter(
-    (item) => item.step !== undefined && String(item.step) === step,
-  ).length;
+  const previousAttempt = scopeItems
+    .filter((item) => item.step !== undefined && String(item.step) === step)
+    .at(-1);
 
-  if (visits + batch.length > maxVisits) {
-    const stillUnmet = [
-      ...new Set(batch.flatMap((minted) => minted.assignedUnitIds.map(String))),
-    ].slice(0, routerBlockMessageStatics.limits.maxUnitIds);
-
+  if (
+    requiresProgress &&
+    headSha !== undefined &&
+    previousAttempt?.startRef !== undefined &&
+    String(previousAttempt.startRef) === headSha
+  ) {
     return nextActionContract.parse({
       kind: 'block',
       operationItemId,
       family,
       step,
-      reason: 'max-visits',
+      reason: 'no-progress',
       message:
-        `maxVisits spent: step \`${step}\` in family \`${family}\` has been entered ` +
-        `${String(visits)} times for operation item ${String(operationItemId)}, and its whole ` +
-        `budget is ${String(maxVisits)} — the loop is not converging and another session would ` +
-        `find the same thing. Still unmet: ${stillUnmet.length === 0 ? 'none' : stillUnmet.join(', ')}.`,
+        `no progress: the last \`${step}\` in family \`${family}\` for operation item ` +
+        `${String(operationItemId)} (work item ${String(previousAttempt.id)}) committed nothing — the ` +
+        `worktree HEAD is still ${headSha}, where it started — and its gate went red again. Another ` +
+        `session would read the same failure, so the quest halts for a human.`,
     });
   }
 
@@ -148,23 +140,6 @@ export const mintNextActionTransformer = ({
     });
   }
 
-  const withInvalidation =
-    invalidatedUnitIds.length === 0
-      ? allowed
-      : allowed.map((minted, index) =>
-          index === 0
-            ? mintedWorkItemContract.parse({
-                ...minted,
-                assignedUnitIds: [
-                  ...new Set([
-                    ...minted.assignedUnitIds.map(String),
-                    ...invalidatedUnitIds.map(String),
-                  ]),
-                ],
-              })
-            : minted,
-        );
-
   if (from !== undefined && outcome !== undefined) {
     return nextActionContract.parse({
       kind: 'route',
@@ -172,7 +147,7 @@ export const mintNextActionTransformer = ({
       from,
       outcome,
       step,
-      batch: withInvalidation,
+      batch: allowed,
     });
   }
 
@@ -181,6 +156,6 @@ export const mintNextActionTransformer = ({
     operationItemId,
     step,
     cause,
-    batch: withInvalidation,
+    batch: allowed,
   });
 };

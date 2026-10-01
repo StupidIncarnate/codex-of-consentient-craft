@@ -11,7 +11,7 @@ describe('routedGraphContract', () => {
       expect(result).toStrictEqual({
         graphName: 'codeweaver',
         entry: 'plan',
-        nodes: { plan: { routes: { done: '@done' }, maxVisits: 5 } },
+        nodes: { plan: { routes: { done: '@done' } } },
       });
     });
 
@@ -37,7 +37,7 @@ describe('routedGraphContract', () => {
       expect(result).toStrictEqual({ graphName: 'codeweaver', entry: 'plan', nodes: {} });
     });
 
-    it('VALID: {node with mintableOnRequest, no maxVisits} => parses successfully', () => {
+    it('VALID: {node with mintableOnRequest} => parses successfully', () => {
       const graph = RoutedGraphStub({
         nodes: { recipe: { routes: { wall: '@blocked' }, mintableOnRequest: true } },
       });
@@ -69,16 +69,6 @@ describe('routedGraphContract', () => {
       expect(() => routedGraphContract.parse({ graphName: 'codeweaver', entry: 'plan' })).toThrow(
         /received undefined/u,
       );
-    });
-
-    it('INVALID: {maxVisits: 0} => throws validation error', () => {
-      expect(() =>
-        routedGraphContract.parse({
-          graphName: 'codeweaver',
-          entry: 'plan',
-          nodes: { plan: { routes: {}, maxVisits: 0 } },
-        }),
-      ).toThrow(/to be >0/u);
     });
   });
 });

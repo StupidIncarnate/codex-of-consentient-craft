@@ -176,6 +176,8 @@ Applies to every ward run, in any repo, by any agent.
 
 Applies to every long-running command, in any repo, by any agent.
 
+**Wait for every edit's result before you start ward or a build.** The pre-edit hook refuses an edit that breaks a code standard — a conditional in a test is the usual one — and writes nothing. A check queued beside it grades a tree without your change.
+
 **A command can outlive the Bash call that started it.** Anything slow — a whole-repo ward, a build, an install, a browser run — crosses the call's timeout, and the harness moves it to the background. The call then returns saying so, carrying NO result. Give a long command \`timeout: 600000\` up front. \`run_in_background: true\` buys nothing: it blocks for that same timeout either way.
 
 **Your final response TERMINATES every background command you own, and no notification can follow it.** A command still running when you stop dies part-way, while your report reads clean and nothing tells you it happened.

@@ -102,7 +102,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'codeweaver-planner',
             model: 'opus',
-            maxVisits: 5,
             routes: { done: 'work', empty: '@done', wall: '@blocked' },
           },
           work: {
@@ -110,7 +109,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'codeweaver-worker',
             model: 'sonnet',
-            maxVisits: 40,
             routes: { done: 'review', unmet: 'work', wall: '@blocked' },
           },
           review: {
@@ -118,14 +116,12 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'codeweaver-reviewer',
             model: 'opus',
-            maxVisits: 10,
             routes: { done: 'commit', unmet: 'work', wall: '@blocked' },
           },
           commit: {
             role: 'worker',
             kind: 'deterministic',
             handler: 'commit',
-            maxVisits: 3,
             routes: { done: 'ward', empty: 'ward', wall: '@blocked' },
           },
           ward: {
@@ -133,7 +129,6 @@ describe('agentFlowStatics', () => {
             kind: 'deterministic',
             handler: 'ward',
             args: ['--committed', '--uncommitted'],
-            maxVisits: 3,
             routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
           },
           repair: {
@@ -141,7 +136,7 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'spiritmender',
             model: 'sonnet',
-            maxVisits: 3,
+            requiresProgress: true,
             routes: { unmet: 'repair', wall: '@blocked' },
           },
         },
@@ -154,7 +149,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'recipe-maker',
             model: 'opus',
-            maxVisits: 5,
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
@@ -163,7 +157,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'write-ingredient',
             model: 'opus',
-            maxVisits: 10,
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
@@ -172,7 +165,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'flowrider-planner',
             model: 'opus',
-            maxVisits: 5,
             routes: { done: 'work', empty: '@done', wall: '@blocked' },
           },
           work: {
@@ -180,7 +172,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'flowrider-worker',
             model: 'sonnet',
-            maxVisits: 40,
             maxConcurrent: { limit: 4, counts: 'browser-pieces' },
             routes: { done: 'review', unmet: 'work', wall: '@blocked' },
           },
@@ -189,14 +180,12 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'flowrider-reviewer',
             model: 'opus',
-            maxVisits: 10,
             routes: { done: 'commit', unmet: 'work', wall: '@blocked' },
           },
           commit: {
             role: 'worker',
             kind: 'deterministic',
             handler: 'commit',
-            maxVisits: 3,
             routes: { done: 'ward', empty: 'ward', wall: '@blocked' },
           },
           ward: {
@@ -204,7 +193,6 @@ describe('agentFlowStatics', () => {
             kind: 'deterministic',
             handler: 'ward',
             args: ['--committed', '--uncommitted'],
-            maxVisits: 3,
             routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
           },
           repair: {
@@ -212,7 +200,7 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'spiritmender',
             model: 'sonnet',
-            maxVisits: 3,
+            requiresProgress: true,
             routes: { unmet: 'repair', wall: '@blocked' },
           },
         },
@@ -224,7 +212,6 @@ describe('agentFlowStatics', () => {
             role: 'worker',
             kind: 'deterministic',
             handler: 'cleanup',
-            maxVisits: 3,
             routes: { done: 'plan', empty: 'plan', wall: '@blocked' },
           },
           recipe: {
@@ -232,7 +219,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'recipe-maker',
             model: 'opus',
-            maxVisits: 5,
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
@@ -241,7 +227,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'write-ingredient',
             model: 'opus',
-            maxVisits: 10,
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
@@ -250,7 +235,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'siegemaster-reader',
             model: 'sonnet',
-            maxVisits: 10,
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
@@ -259,7 +243,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'siege-planner',
             model: 'opus',
-            maxVisits: 5,
             routes: { done: 'happyWalk', empty: 'sweepOut', wall: '@blocked' },
           },
           happyWalk: {
@@ -267,7 +250,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'siege-happy-walker',
             model: 'sonnet',
-            maxVisits: 40,
             needsLane: true,
             routes: {
               done: 'adversarial',
@@ -281,7 +263,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'siege-happy-fixer',
             model: 'sonnet',
-            maxVisits: 40,
             routes: { unmet: 'fixHappy', wall: '@blocked' },
           },
           adversarial: {
@@ -289,7 +270,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'siege-adversarial-walker',
             model: 'sonnet',
-            maxVisits: 40,
             needsLane: true,
             routes: { done: 'commit', empty: 'commit', unmet: 'fixAdversarial', wall: '@blocked' },
           },
@@ -298,14 +278,12 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'siege-adversarial-fixer',
             model: 'sonnet',
-            maxVisits: 40,
             routes: { unmet: 'fixAdversarial', wall: '@blocked' },
           },
           commit: {
             role: 'worker',
             kind: 'deterministic',
             handler: 'commit',
-            maxVisits: 3,
             routes: { done: 'ward', empty: 'ward', wall: '@blocked' },
           },
           ward: {
@@ -313,7 +291,6 @@ describe('agentFlowStatics', () => {
             kind: 'deterministic',
             handler: 'ward',
             args: ['--committed', '--uncommitted'],
-            maxVisits: 3,
             routes: { done: 'sweepOut', empty: 'sweepOut', unmet: 'repair', wall: '@blocked' },
           },
           repair: {
@@ -321,14 +298,13 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'spiritmender',
             model: 'sonnet',
-            maxVisits: 3,
+            requiresProgress: true,
             routes: { unmet: 'repair', wall: '@blocked' },
           },
           sweepOut: {
             role: 'worker',
             kind: 'deterministic',
             handler: 'cleanup',
-            maxVisits: 3,
             routes: { done: '@done', empty: '@done', wall: '@blocked' },
           },
         },
@@ -341,7 +317,6 @@ describe('agentFlowStatics', () => {
             kind: 'deterministic',
             handler: 'ward',
             args: [],
-            maxVisits: 3,
             routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
           },
           repair: {
@@ -349,14 +324,13 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'spiritmender',
             model: 'sonnet',
-            maxVisits: 3,
+            requiresProgress: true,
             routes: { done: 'commit', unmet: 'repair', wall: '@blocked' },
           },
           commit: {
             role: 'worker',
             kind: 'deterministic',
             handler: 'commit',
-            maxVisits: 3,
             routes: { done: 'gate', empty: 'gate', wall: '@blocked' },
           },
         },
@@ -369,7 +343,6 @@ describe('agentFlowStatics', () => {
             kind: 'deterministic',
             handler: 'riftcarver',
             args: [],
-            maxVisits: 3,
             routes: { done: '@done', unmet: 'repair', wall: '@blocked' },
           },
           repair: {
@@ -377,14 +350,13 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'spiritmender',
             model: 'sonnet',
-            maxVisits: 3,
+            requiresProgress: true,
             routes: { done: 'commit', unmet: 'repair', wall: '@blocked' },
           },
           commit: {
             role: 'worker',
             kind: 'deterministic',
             handler: 'commit',
-            maxVisits: 3,
             routes: { done: 'carve', empty: 'carve', wall: '@blocked' },
           },
         },
@@ -397,7 +369,6 @@ describe('agentFlowStatics', () => {
             kind: 'prompt',
             prompt: 'warpgate',
             model: 'opus',
-            maxVisits: 3,
             routes: { done: '@done', unmet: 'merge', wall: '@blocked' },
           },
         },
@@ -523,8 +494,8 @@ describe('agentFlowStatics', () => {
     expect(CONFIG_HANDLER_NAMES).toStrictEqual(['cleanup', 'commit', 'riftcarver', 'ward']);
   });
 
-  // Each of the three has exactly one reader, and a fourth step carrying one silently changes
-  // that reader's behaviour.
+  // Each flag has exactly one reader, and a step carrying one it should not silently changes that
+  // reader's behaviour. No step carries a visit budget: a step runs as many times as its work needs.
   it('VALID: {the single-reader flags} => each is declared by exactly its own steps', () => {
     expect({
       mintableOnRequest: ALL_STEP_PATHS.filter(([, step]) => 'mintableOnRequest' in step).map(
@@ -534,6 +505,10 @@ describe('agentFlowStatics', () => {
       maxConcurrent: ALL_STEP_PATHS.filter(([, step]) => 'maxConcurrent' in step).map(
         ([path]) => path,
       ),
+      requiresProgress: ALL_STEP_PATHS.filter(([, step]) => 'requiresProgress' in step).map(
+        ([path]) => path,
+      ),
+      maxVisits: ALL_STEP_PATHS.filter(([, step]) => 'maxVisits' in step).map(([path]) => path),
     }).toStrictEqual({
       mintableOnRequest: [
         'flowrider.recipe',
@@ -544,15 +519,14 @@ describe('agentFlowStatics', () => {
       ],
       needsLane: ['siegemaster.happyWalk', 'siegemaster.adversarial'],
       maxConcurrent: ['flowrider.work'],
+      requiresProgress: [
+        'codeweaver.repair',
+        'flowrider.repair',
+        'siegemaster.repair',
+        'wardFull.repair',
+        'riftcarver.repair',
+      ],
+      maxVisits: [],
     });
-  });
-
-  // `maxVisits` is on EVERY step, which the reads above enforce at compile time — a step missing
-  // it drops out of the union and `step.maxVisits` stops typechecking. What is asserted here is
-  // the ladder itself: four rungs, every one a positive integer.
-  it('VALID: {every step} => its maxVisits is one rung of the budget ladder', () => {
-    expect(
-      [...new Set(ALL_STEP_PATHS.map(([, step]) => step.maxVisits))].sort((a, b) => a - b),
-    ).toStrictEqual([3, 5, 10, 40]);
   });
 });

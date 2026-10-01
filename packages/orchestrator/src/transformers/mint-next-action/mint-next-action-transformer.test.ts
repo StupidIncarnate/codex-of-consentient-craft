@@ -16,6 +16,9 @@ const { id: OPERATION_ITEM_ID } = OPERATION_ITEM;
 const OPERATIONS_REF = `operations/${String(OPERATION_ITEM_ID)}`;
 const WORK_STEP = 'work';
 const BADGE_UNIT_ID = UnitIdStub({ value: 'send-flow:observable:check-badge-count-text' });
+const REPAIR_ITEM_ID = 'a9b8c7d6-58cc-4372-a567-0e02b2c3d479';
+const HEAD_SHA = '0123456789abcdef0123456789abcdef01234567';
+const OTHER_SHA = 'fedcba9876543210fedcba9876543210fedcba98';
 
 // Deliberately MIXED statuses — terminal, failed and one in_progress — so a status filter on the
 // visit count fails these tests instead of passing them.
@@ -47,8 +50,8 @@ const BELOW_BROWSER_PIECES = [...Array(6).keys()].map((index) =>
 );
 
 describe('mintNextActionTransformer', () => {
-  describe('maxVisits', () => {
-    it('INVALID: {40 work visits, batch of one, maxVisits 40} => blocks, naming the step, family and count', () => {
+  describe('no visit budget', () => {
+    it('VALID: {40 earlier work visits, batch of one} => mints — a step runs as many times as its work needs', () => {
       const quest = QuestStub({ operations: [OPERATION_ITEM], workItems: FORTY_VISITS });
 
       const action = mintNextActionTransformer({
@@ -58,76 +61,9 @@ describe('mintNextActionTransformer', () => {
         step: WORK_STEP,
         batch: [MintedWorkItemStub({ step: 'work', role: 'flowrider' })],
         cause: 'unmet',
-        maxVisits: 40,
+        requiresProgress: false,
+        headSha: undefined,
         maxConcurrent: undefined,
-        invalidatedUnitIds: [],
-      });
-
-      expect(action).toStrictEqual({
-        kind: 'block',
-        operationItemId: OPERATION_ITEM_ID,
-        family: 'flowrider',
-        step: 'work',
-        reason: 'max-visits',
-        message:
-          'maxVisits spent: step `work` in family `flowrider` has been entered 40 times for ' +
-          `operation item ${String(OPERATION_ITEM_ID)}, and its whole budget is 40 — the loop is ` +
-          'not converging and another session would find the same thing. Still unmet: ' +
-          'send-flow:observable:check-badge-count-text.',
-      });
-    });
-
-    it('INVALID: {39 work visits, batch of TWO, maxVisits 40} => blocks before minting either', () => {
-      const quest = QuestStub({
-        operations: [OPERATION_ITEM],
-        workItems: FORTY_VISITS.slice(0, 39),
-      });
-
-      const action = mintNextActionTransformer({
-        quest,
-        operationItemId: OPERATION_ITEM_ID,
-        family: 'flowrider',
-        step: WORK_STEP,
-        batch: [
-          MintedWorkItemStub({ step: 'work', role: 'flowrider', pieceId: 'pc-a' }),
-          MintedWorkItemStub({ step: 'work', role: 'flowrider', pieceId: 'pc-b' }),
-        ],
-        cause: 'plan-batch',
-        maxVisits: 40,
-        maxConcurrent: undefined,
-        invalidatedUnitIds: [],
-      });
-
-      expect(action).toStrictEqual({
-        kind: 'block',
-        operationItemId: OPERATION_ITEM_ID,
-        family: 'flowrider',
-        step: 'work',
-        reason: 'max-visits',
-        message:
-          'maxVisits spent: step `work` in family `flowrider` has been entered 39 times for ' +
-          `operation item ${String(OPERATION_ITEM_ID)}, and its whole budget is 40 — the loop is ` +
-          'not converging and another session would find the same thing. Still unmet: ' +
-          'send-flow:observable:check-badge-count-text.',
-      });
-    });
-
-    it('VALID: {39 work visits, batch of ONE, maxVisits 40} => spends the last of the budget', () => {
-      const quest = QuestStub({
-        operations: [OPERATION_ITEM],
-        workItems: FORTY_VISITS.slice(0, 39),
-      });
-
-      const action = mintNextActionTransformer({
-        quest,
-        operationItemId: OPERATION_ITEM_ID,
-        family: 'flowrider',
-        step: WORK_STEP,
-        batch: [MintedWorkItemStub({ step: 'work', role: 'flowrider' })],
-        cause: 'unmet',
-        maxVisits: 40,
-        maxConcurrent: undefined,
-        invalidatedUnitIds: [],
       });
 
       expect(action).toStrictEqual({
@@ -147,6 +83,133 @@ describe('mintNextActionTransformer', () => {
     });
   });
 
+  describe('no progress on a repair loop', () => {
+    it('INVALID: {requiresProgress, the last repair started at the current HEAD} => blocks no-progress, naming the repair and the sha', () => {
+      const quest = QuestStub({
+        operations: [OPERATION_ITEM],
+        workItems: [
+          WorkItemStub({
+            id: REPAIR_ITEM_ID,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'repair',
+            startRef: HEAD_SHA,
+            relatedDataItems: [OPERATIONS_REF],
+          }),
+        ],
+      });
+
+      const action = mintNextActionTransformer({
+        quest,
+        operationItemId: OPERATION_ITEM_ID,
+        family: 'flowrider',
+        step: 'repair',
+        batch: [MintedWorkItemStub({ step: 'repair', role: 'flowrider', assignedUnitIds: [] })],
+        cause: 'plan-batch',
+        requiresProgress: true,
+        headSha: HEAD_SHA,
+        maxConcurrent: undefined,
+      });
+
+      expect(action).toStrictEqual({
+        kind: 'block',
+        operationItemId: OPERATION_ITEM_ID,
+        family: 'flowrider',
+        step: 'repair',
+        reason: 'no-progress',
+        message:
+          'no progress: the last `repair` in family `flowrider` for operation item ' +
+          `${String(OPERATION_ITEM_ID)} (work item ${REPAIR_ITEM_ID}) committed nothing — the ` +
+          `worktree HEAD is still ${HEAD_SHA}, where it started — and its gate went red again. ` +
+          'Another session would read the same failure, so the quest halts for a human.',
+      });
+    });
+
+    it.each([
+      [
+        'HEAD moved past the last repair',
+        { startRef: OTHER_SHA, headSha: HEAD_SHA, requiresProgress: true },
+      ],
+      ['HEAD unknown', { startRef: HEAD_SHA, headSha: undefined, requiresProgress: true }],
+      [
+        'the step needs no progress',
+        { startRef: HEAD_SHA, headSha: HEAD_SHA, requiresProgress: false },
+      ],
+    ] as const)(
+      'VALID: {%s} => mints the repair',
+      (_label, { startRef, headSha, requiresProgress }) => {
+        const quest = QuestStub({
+          operations: [OPERATION_ITEM],
+          workItems: [
+            WorkItemStub({
+              id: REPAIR_ITEM_ID,
+              role: 'flowrider',
+              status: 'complete',
+              step: 'repair',
+              startRef,
+              relatedDataItems: [OPERATIONS_REF],
+            }),
+          ],
+        });
+
+        const action = mintNextActionTransformer({
+          quest,
+          operationItemId: OPERATION_ITEM_ID,
+          family: 'flowrider',
+          step: 'repair',
+          batch: [MintedWorkItemStub({ step: 'repair', role: 'flowrider', assignedUnitIds: [] })],
+          cause: 'plan-batch',
+          requiresProgress,
+          headSha,
+          maxConcurrent: undefined,
+        });
+
+        expect(action).toStrictEqual({
+          kind: 'mint',
+          operationItemId: OPERATION_ITEM_ID,
+          step: 'repair',
+          cause: 'plan-batch',
+          batch: [{ step: 'repair', role: 'flowrider', assignedUnitIds: [], needsLane: false }],
+        });
+      },
+    );
+
+    it('EDGE: {the last repair never fetched its prompt, so carries no startRef} => mints, never blocking on what it cannot measure', () => {
+      const quest = QuestStub({
+        operations: [OPERATION_ITEM],
+        workItems: [
+          WorkItemStub({
+            id: REPAIR_ITEM_ID,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'repair',
+            relatedDataItems: [OPERATIONS_REF],
+          }),
+        ],
+      });
+
+      const action = mintNextActionTransformer({
+        quest,
+        operationItemId: OPERATION_ITEM_ID,
+        family: 'flowrider',
+        step: 'repair',
+        batch: [MintedWorkItemStub({ step: 'repair', role: 'flowrider', assignedUnitIds: [] })],
+        cause: 'plan-batch',
+        requiresProgress: true,
+        headSha: HEAD_SHA,
+        maxConcurrent: undefined,
+      });
+
+      expect(action).toStrictEqual({
+        kind: 'mint',
+        operationItemId: OPERATION_ITEM_ID,
+        step: 'repair',
+        cause: 'plan-batch',
+        batch: [{ step: 'repair', role: 'flowrider', assignedUnitIds: [], needsLane: false }],
+      });
+    });
+  });
+
   describe('maxConcurrent', () => {
     it('VALID: {six below-browser pieces plus one browser piece, limit 4} => all seven mint', () => {
       const quest = QuestStub({ operations: [OPERATION_ITEM], workItems: [] });
@@ -158,9 +221,9 @@ describe('mintNextActionTransformer', () => {
         step: WORK_STEP,
         batch: [...BELOW_BROWSER_PIECES, BROWSER_PIECE],
         cause: 'plan-batch',
-        maxVisits: 40,
+        requiresProgress: false,
+        headSha: undefined,
         maxConcurrent: { limit: 4, counts: 'browser-pieces' },
-        invalidatedUnitIds: [],
       });
 
       expect(action).toStrictEqual({
@@ -194,9 +257,9 @@ describe('mintNextActionTransformer', () => {
         step: WORK_STEP,
         batch: [BROWSER_PIECE],
         cause: 'unmet',
-        maxVisits: 40,
+        requiresProgress: false,
+        headSha: undefined,
         maxConcurrent: { limit: 4, counts: 'browser-pieces' },
-        invalidatedUnitIds: [],
       });
 
       expect(action).toStrictEqual({
@@ -245,9 +308,9 @@ describe('mintNextActionTransformer', () => {
           }),
         ],
         cause: 'plan-batch',
-        maxVisits: 40,
+        requiresProgress: false,
+        headSha: undefined,
         maxConcurrent: { limit: 4, counts: 'browser-pieces' },
-        invalidatedUnitIds: [],
       });
 
       expect(action).toStrictEqual({
@@ -282,9 +345,9 @@ describe('mintNextActionTransformer', () => {
         step: WORK_STEP,
         batch: [MintedWorkItemStub({ step: 'work', role: 'flowrider', assignedUnitIds: [] })],
         cause: 'plan-batch',
-        maxVisits: 40,
+        requiresProgress: false,
+        headSha: undefined,
         maxConcurrent: undefined,
-        invalidatedUnitIds: [],
         from: 'plan',
         outcome: 'done',
       });
@@ -296,63 +359,6 @@ describe('mintNextActionTransformer', () => {
         outcome: 'done',
         step: 'work',
         batch: [{ step: 'work', role: 'flowrider', assignedUnitIds: [], needsLane: false }],
-      });
-    });
-  });
-
-  describe('an invalidation', () => {
-    it('VALID: {two invalidated units, batch of two} => unions them onto the FIRST item only', () => {
-      const quest = QuestStub({ operations: [OPERATION_ITEM], workItems: [] });
-
-      const action = mintNextActionTransformer({
-        quest,
-        operationItemId: OPERATION_ITEM_ID,
-        family: 'flowrider',
-        step: WORK_STEP,
-        batch: [
-          MintedWorkItemStub({
-            step: 'work',
-            role: 'flowrider',
-            assignedUnitIds: [],
-            pieceId: 'pc-a',
-          }),
-          MintedWorkItemStub({
-            step: 'work',
-            role: 'flowrider',
-            assignedUnitIds: [],
-            pieceId: 'pc-b',
-          }),
-        ],
-        cause: 'plan-batch',
-        maxVisits: 40,
-        maxConcurrent: undefined,
-        invalidatedUnitIds: [
-          UnitIdStub({ value: 'send-flow:terminal:batch-sent' }),
-          UnitIdStub({ value: 'send-flow:branch:copy-failed' }),
-        ],
-      });
-
-      expect(action).toStrictEqual({
-        kind: 'mint',
-        operationItemId: OPERATION_ITEM_ID,
-        step: 'work',
-        cause: 'plan-batch',
-        batch: [
-          {
-            step: 'work',
-            role: 'flowrider',
-            assignedUnitIds: ['send-flow:terminal:batch-sent', 'send-flow:branch:copy-failed'],
-            pieceId: 'pc-a',
-            needsLane: false,
-          },
-          {
-            step: 'work',
-            role: 'flowrider',
-            assignedUnitIds: [],
-            pieceId: 'pc-b',
-            needsLane: false,
-          },
-        ],
       });
     });
   });

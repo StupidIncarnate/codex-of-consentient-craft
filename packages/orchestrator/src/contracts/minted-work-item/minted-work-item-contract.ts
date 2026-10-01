@@ -17,7 +17,7 @@
  * planner's INTENT; this is what the session is actually answerable for, which is why story 14's
  * signal gate reads the work item's copy and never the piece's.
  *
- * `pieceId` AND `payload` COME APART on a mark-, request-, invalidation- or return-mint: there is no
+ * `pieceId` AND `payload` COME APART on a mark-, request- or return-mint: there is no
  * piece, so `pieceId` is absent, while `payload` may still carry the ORIGINATING piece's brief copied
  * across. A unit no piece ever claimed gets neither, and that is the reviewer's whole job — there is
  * nothing to copy from, and synthesising a payload for it would invent a brief nobody wrote.

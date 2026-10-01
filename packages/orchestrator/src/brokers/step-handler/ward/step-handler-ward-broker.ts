@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Runs ward with a deterministic step's own `args`, verbatim, and classifies the exit
  * into one of the four `Outcome` words: the cwd resolve, the spawn, the run-id transformer and
- * the detail-blob persist, plus the `wardResults` ref append. It writes no terminal work-item
+ * the detail-blob persist (`ward-results/<id>.json`, with the printed output beside it at
+ * `ward-results/<id>.log`), plus the `wardResults` ref append. It writes no terminal work-item
  * status, completes no operation item and splices no spiritmender step — routing belongs to the
  * router.
  *
@@ -111,7 +112,11 @@ export const stepHandlerWardBroker = async ({
     const wardResultsDir = join(questPath, locationsStatics.quest.wardResultsDir);
     await ensureDir(wardResultsDir);
     const detailFilePath = join(wardResultsDir, `${wardResultId}.json`);
-    await writeFile(detailFilePath, detailJson);
+    // The printed output is saved beside the blob because the blob records per-check status only:
+    // a run red for a reason no check carries — `SLOW TESTS FAILED THIS RUN` — reads all-pass there,
+    // and the repair session sent to fix it has nothing else naming what went red.
+    const outputFilePath = join(wardResultsDir, `${wardResultId}.log`);
+    await Promise.all([writeFile(detailFilePath, detailJson), writeFile(outputFilePath, output)]);
   }
 
   const wardResult = wardResultContract.parse({

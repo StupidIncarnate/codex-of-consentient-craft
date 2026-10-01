@@ -208,14 +208,37 @@ export const workItemToPromptTransformer = ({
   const isSpiritmender =
     (node?.kind === 'prompt' && node.prompt === 'spiritmender') || workItem.role === 'spiritmender';
   if (isSpiritmender) {
-    const latestFailedWard = [...quest.wardResults]
-      .filter((wardResult) => wardResult.exitCode !== 0)
-      .at(-1);
+    // THE RED RESULT IS THIS SCOPE'S OWN, read off the result refs its gate items carry — never the
+    // quest's latest red, which for a riftcarver repair or a second family's repair is some other
+    // scope's failure. Only a role-keyed spiritmender item, whose scope holds no gate, falls back to
+    // the quest-wide latest.
+    const scopeRef = `operations/${String(linkedOperation.id)}`;
+    const scopeResultRefs = new Set(
+      quest.workItems
+        .filter((item) => item.relatedDataItems.some((ref) => String(ref) === scopeRef))
+        .flatMap((item) => item.relatedDataItems.map(String)),
+    );
+    const failedWards = quest.wardResults.filter((wardResult) => wardResult.exitCode !== 0);
+    const latestFailedWard =
+      failedWards
+        .filter((wardResult) => scopeResultRefs.has(`wardResults/${String(wardResult.id)}`))
+        .at(-1) ?? (linkedOperation.role === 'spiritmender' ? failedWards.at(-1) : undefined);
     if (latestFailedWard !== undefined) {
       parts.push(
         '',
         `Failed ward result: ${String(latestFailedWard.id)} (mode: ${String(latestFailedWard.wardMode)}${latestFailedWard.runId === undefined ? '' : `, runId: ${String(latestFailedWard.runId)}`})`,
         `Ward detail blob: <questFolder>/ward-results/${String(latestFailedWard.id)}.json`,
+        `Ward output log: <questFolder>/ward-results/${String(latestFailedWard.id)}.log`,
+      );
+    }
+
+    const latestCarve = quest.riftcarverResults
+      .filter((carve) => scopeResultRefs.has(`riftcarverResults/${String(carve.id)}`))
+      .at(-1);
+    if (latestCarve !== undefined) {
+      parts.push(
+        '',
+        `Riftcarver log: <questFolder>/riftcarver-results/${String(latestCarve.id)}.log`,
       );
     }
   }

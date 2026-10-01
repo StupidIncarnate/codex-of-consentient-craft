@@ -2,7 +2,7 @@
  * PURPOSE: Responder invoked after a sub-agent's `signal-back` MCP call is validated. `complete` is
  * the sole signal kind, and a SESSION REPORTS, IT NEVER ROUTES: what the session did is already on
  * the record, written through `quest-work` — its marks on each assigned unit, and optionally an
- * outcome word, a request or an invalidation. This responder marks the WORK ITEM terminal.
+ * outcome word or a request. This responder marks the WORK ITEM terminal.
  *
  * WHO MOVES THE SCOPE IS DECIDED BY `workItem.step`, and getting that wrong is invisible:
  *

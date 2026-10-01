@@ -257,26 +257,6 @@ describe('questWorkRecordBroker', () => {
         /^quest-work: work item aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa is not on quest add-auth — nothing was recorded$/u,
       );
     });
-
-    it("ERROR: {kind: invalidation, an unknown workItemId} => throws naming the work item, 'nothing was reset'", async () => {
-      const proxy = questWorkRecordBrokerProxy();
-      const quest = QuestStub({ id: QUEST_ID, workItems: [] });
-      proxy.setupQuestFound({ quest });
-
-      await expect(
-        questWorkRecordBroker({
-          questId: QUEST_ID,
-          workItemId: WORK_ITEM_ID,
-          payload: {
-            kind: 'invalidation',
-            flowId: 'send-flow',
-            reason: 'fixed the guard',
-          } as never,
-        }),
-      ).rejects.toThrow(
-        /^quest-work: work item aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa is not on quest add-auth — nothing was reset$/u,
-      );
-    });
   });
 
   describe('concurrency', () => {

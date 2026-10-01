@@ -37,8 +37,8 @@ describe('graphReachabilityViolationsTransformer', () => {
         graphName: 'stall-graph',
         entry: 'alpha',
         nodes: {
-          alpha: { routes: { unmet: 'beta' }, maxVisits: 1 },
-          beta: { routes: { unmet: 'alpha' }, maxVisits: 1 },
+          alpha: { routes: { unmet: 'beta' } },
+          beta: { routes: { unmet: 'alpha' } },
         },
       });
 
@@ -88,7 +88,7 @@ describe('graphReachabilityViolationsTransformer', () => {
         entry: 'plan',
         nodes: {
           plan: { routes: { done: 'repair', wall: '@blocked' } },
-          repair: { routes: { unmet: 'repair', wall: '@blocked' }, maxVisits: 3 },
+          repair: { routes: { unmet: 'repair', wall: '@blocked' } },
         },
       });
 
@@ -130,36 +130,13 @@ describe('graphReachabilityViolationsTransformer', () => {
     });
   });
 
-  describe('rule 6: a cyclic path has `maxVisits` somewhere on it', () => {
-    it('INVALID: {a work <-> review cycle with maxVisits on NEITHER} => names the cycle path', () => {
+  describe('a cycle carries no budget', () => {
+    it('VALID: {a work <-> review cycle that also reaches a terminal} => passes, because a step runs as many times as its work needs', () => {
       const graph = RoutedGraphStub({
         graphName: 'cycle-graph',
         entry: 'work',
         nodes: {
           work: { routes: { done: 'review' } },
-          review: { routes: { unmet: 'work', done: '@done' } },
-        },
-      });
-
-      const result = graphReachabilityViolationsTransformer({
-        graph,
-        terminals: STEP_TERMINALS,
-        exemptFlag: 'mintableOnRequest',
-        knownPrompts: [],
-        knownHandlers: [],
-      });
-
-      expect(result).toStrictEqual([
-        "The cycle <work → review → work> in the 'cycle-graph' graph declares `maxVisits` on no step on it. Put one on any step in that cycle; without it nothing stops the quest re-entering it forever.",
-      ]);
-    });
-
-    it('VALID: {the same cycle with maxVisits on ONE step} => passes', () => {
-      const graph = RoutedGraphStub({
-        graphName: 'cycle-graph',
-        entry: 'work',
-        nodes: {
-          work: { routes: { done: 'review' }, maxVisits: 3 },
           review: { routes: { unmet: 'work', done: '@done' } },
         },
       });

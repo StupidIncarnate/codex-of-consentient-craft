@@ -75,6 +75,7 @@ export const stepHandlerWardBrokerProxy = (): {
     exitCode: number;
     manifestJson: string;
   }) => void;
+  getWrittenOutputLog: () => unknown;
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
   getSpawnedLocalWardArgs: () => unknown;
@@ -95,6 +96,8 @@ export const stepHandlerWardBrokerProxy = (): {
   fsWriteProxy.succeeds({
     path: `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}/${FIXED_WARD_RESULT_UUID}.json`,
   });
+  const outputLogPath = `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}/${FIXED_WARD_RESULT_UUID}.log`;
+  fsWriteProxy.succeeds({ path: outputLogPath });
   const detailProxy = wardDetailBrokerProxy();
   // Inert — satisfies enforce-proxy-child-creation. The module mocks below replace both brokers'
   // exports; this proxy's own internal staging is never exercised.
@@ -224,6 +227,8 @@ export const stepHandlerWardBrokerProxy = (): {
         stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
       });
     },
+
+    getWrittenOutputLog: (): unknown => fsWriteProxy.writtenContentsFor({ path: outputLogPath }),
 
     getSpawnedLocalWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: execPath }),
 

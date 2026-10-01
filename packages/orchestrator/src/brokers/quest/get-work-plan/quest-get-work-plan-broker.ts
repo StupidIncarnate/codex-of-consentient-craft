@@ -9,10 +9,10 @@
  * await questGetWorkPlanBroker({ questId, operationItemId });
  * // Returns ContentText — the rendered plan, or the sentence saying no planner has run yet
  *
- * THE DENOMINATOR IS THE ITEM'S UNFILTERED SCOPE, taken at the family's ENTRY step. Every family's
- * entry is a step `stepScopeStatics.byFamilyStep` deliberately omits — a planner is assigned no
- * units and `sweepIn` holds none — so `stepInScopeUnitsTransformer` applies no kind, origin or
- * method narrowing there and returns every unit the item's own flows and packages hold. That, not
+ * THE DENOMINATOR IS THE ITEM'S UNFILTERED SCOPE, taken at the family's WHOLE-SCOPE step — the one
+ * `stepScopeStatics.unscopedByFamilyStep` declares `all`, never the family's entry step (siegemaster
+ * enters at `sweepIn`, which measures nothing). `stepInScopeUnitsTransformer` applies no kind, origin
+ * or method narrowing there and returns every unit the item's own flows and packages hold. That, not
  * some later step's slice, is what a coverage review has to be measured against.
  *
  * AN ITEM WHOSE ROLE RUNS NO STEP GRAPH resolves to an empty denominator rather than throwing —
@@ -24,7 +24,7 @@ import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
-import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
+import { familyWholeScopeStepTransformer } from '../../../transformers/family-whole-scope-step/family-whole-scope-step-transformer';
 import { questWorkUnitsTransformer } from '../../../transformers/quest-work-units/quest-work-units-transformer';
 import { stepInScopeUnitsTransformer } from '../../../transformers/step-in-scope-units/step-in-scope-units-transformer';
 import { workItemFamilyResolveTransformer } from '../../../transformers/work-item-family-resolve/work-item-family-resolve-transformer';
@@ -53,18 +53,15 @@ export const questGetWorkPlanBroker = async ({
   }
 
   const family = workItemFamilyResolveTransformer({ quest, operationItem });
-  const entryStep = Object.entries(agentFlowStatics)
-    .filter((entry) => entry[0] === String(family))
-    .map((entry) => entry[1].entry)
-    .at(0);
+  const wholeScopeStep = familyWholeScopeStepTransformer({ family: String(family) });
 
   const inScopeUnitIds =
-    entryStep === undefined
+    wholeScopeStep === undefined
       ? []
       : stepInScopeUnitsTransformer({
           quest,
           operationItemId,
-          step: entryStep,
+          step: wholeScopeStep,
         });
 
   const plan = await plannedWorkReadBroker({ questFolderPath: questPath, operationItemId });

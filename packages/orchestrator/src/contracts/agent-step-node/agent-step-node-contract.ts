@@ -21,7 +21,7 @@
  * for the real dispatch and by `workItemToPromptTransformer` for what `get-agent-prompt` reports —
  * one field, one reader pair, so the two can never name a different model for the same session. A
  * deterministic step carries no `model` (it spawns nothing), which is why the field stays optional.
- * Everything else a step node carries — `routes`, `maxVisits`, `needsLane`, `maxConcurrent` — has
+ * Everything else a step node carries — `routes`, `requiresProgress`, `needsLane`, `maxConcurrent` — has
  * exactly one reader inside the router and stays undeclared behind `.loose()`, because a
  * second copy of a shape the `as const` already pins is the copy that drifts.
  */

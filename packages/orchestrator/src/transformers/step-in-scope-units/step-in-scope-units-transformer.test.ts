@@ -389,8 +389,8 @@ describe('stepInScopeUnitsTransformer', () => {
     });
   });
 
-  describe('a step with no declared scope', () => {
-    it("VALID: {codeweaver 'work'} => returns the family's whole in-scope set unfiltered", () => {
+  describe('a step declared outside byFamilyStep', () => {
+    it("VALID: {codeweaver 'work'} => carries its reviewer's scope, so no off-map probe reaches a codeweaver worker", () => {
       const flow = FlowStub({
         id: 'send-flow',
         flowType: 'operational',
@@ -429,6 +429,48 @@ describe('stepInScopeUnitsTransformer', () => {
       expect(result).toStrictEqual([
         'send-flow:terminal:web-node',
         'send-flow:observable:imports-the-shared-limit',
+      ]);
+    });
+
+    it("VALID: {codeweaver 'plan', declared all} => returns the family's whole in-scope set unfiltered", () => {
+      const flow = FlowStub({
+        id: 'send-flow',
+        flowType: 'operational',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'imports-the-shared-limit',
+                description: 'the widget imports the shared limit instead of inlining it',
+                package: WEB_PACKAGE,
+                verifyByReading: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const operationItem = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const { id: operationItemId } = operationItem;
+      const quest = QuestStub({ flows: [flow], operations: [operationItem] });
+
+      const result = stepInScopeUnitsTransformer({
+        quest,
+        operationItemId,
+        step: 'plan',
+      });
+
+      expect(result).toStrictEqual([
+        'send-flow:terminal:web-node',
+        'send-flow:observable:imports-the-shared-limit',
         'send-flow:off-map:re-entry',
         'send-flow:off-map:concurrency',
         'send-flow:off-map:interruption',
@@ -437,6 +479,86 @@ describe('stepInScopeUnitsTransformer', () => {
         'send-flow:off-map:hostile-input',
         'send-flow:off-map:perf',
       ]);
+    });
+
+    it("EMPTY: {codeweaver 'repair', declared none} => returns no unit", () => {
+      const flow = FlowStub({
+        id: 'send-flow',
+        flowType: 'operational',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'imports-the-shared-limit',
+                description: 'the widget imports the shared limit instead of inlining it',
+                package: WEB_PACKAGE,
+                verifyByReading: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const operationItem = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const { id: operationItemId } = operationItem;
+      const quest = QuestStub({ flows: [flow], operations: [operationItem] });
+
+      const result = stepInScopeUnitsTransformer({
+        quest,
+        operationItemId,
+        step: 'repair',
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it("ERROR: {codeweaver 'retired-step', declared in neither table} => throws naming the step and the family", () => {
+      const flow = FlowStub({
+        id: 'send-flow',
+        flowType: 'operational',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'imports-the-shared-limit',
+                description: 'the widget imports the shared limit instead of inlining it',
+                package: WEB_PACKAGE,
+                verifyByReading: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const operationItem = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const { id: operationItemId } = operationItem;
+      const quest = QuestStub({ flows: [flow], operations: [operationItem] });
+
+      expect(() =>
+        stepInScopeUnitsTransformer({
+          quest,
+          operationItemId,
+          step: 'retired-step',
+        }),
+      ).toThrow(
+        /^stepInScopeUnitsTransformer: step 'retired-step' of family 'codeweaver' is declared in neither stepScopeStatics\.byFamilyStep nor stepScopeStatics\.unscopedByFamilyStep$/u,
+      );
     });
   });
 

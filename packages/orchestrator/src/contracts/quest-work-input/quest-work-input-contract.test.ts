@@ -152,18 +152,14 @@ describe('questWorkInputContract', () => {
   });
 
   describe('invalidation payload', () => {
-    it('VALID: {kind: invalidation, flowId, reason} => round-trips', () => {
-      const input = QuestWorkInputStub({
-        payload: {
-          kind: 'invalidation',
-          flowId: 'send-flow',
-          reason: 'copy-failed branch now returns 400 instead of 500',
-        },
-      });
-
-      const result = questWorkInputContract.parse(input);
-
-      expect(result).toStrictEqual(input);
+    it('INVALID: {kind: invalidation} => refused, the kind no longer exists', () => {
+      expect(() =>
+        questWorkInputContract.parse(
+          QuestWorkInputStub({
+            payload: { kind: 'invalidation', flowId: 'send-flow', reason: 'fixed' } as never,
+          }),
+        ),
+      ).toThrow(/invalid/iu);
     });
   });
 

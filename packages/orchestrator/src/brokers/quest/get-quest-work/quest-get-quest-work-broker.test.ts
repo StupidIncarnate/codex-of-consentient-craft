@@ -112,10 +112,10 @@ describe('questGetQuestWorkBroker', () => {
       expect(view.assignedUnits.map((unit) => String(unit.unitId))).toStrictEqual([UNIT_B, UNIT_C]);
     });
 
-    // A `work` step declares no scope in `stepScopeStatics`, so its denominator is the item's WHOLE
-    // enumerated set — every terminal, every observable and every off-map family on the flow. That
-    // is the documented `undefined`-means-no-filter case, not a lookup miss.
-    it('VALID: {the same fixture} => inScopeUnits holds the item’s whole enumerated set', async () => {
+    // A codeweaver `work` step carries its reviewer's scope in `stepScopeStatics`, so its denominator
+    // is every terminal and observable on the flow — and no off-map family, which only a siege walker
+    // can settle.
+    it('VALID: {the same fixture} => inScopeUnits holds the terminal and observables, and no off-map probe', async () => {
       const proxy = questGetQuestWorkBrokerProxy();
       proxy.setupQuestWithPlan({
         quest: QUEST,
@@ -133,13 +133,6 @@ describe('questGetQuestWorkBroker', () => {
         UNIT_A,
         UNIT_B,
         UNIT_C,
-        'send-flow:off-map:re-entry',
-        'send-flow:off-map:concurrency',
-        'send-flow:off-map:interruption',
-        'send-flow:off-map:staleness',
-        'send-flow:off-map:configuration',
-        'send-flow:off-map:hostile-input',
-        'send-flow:off-map:perf',
       ]);
     });
   });

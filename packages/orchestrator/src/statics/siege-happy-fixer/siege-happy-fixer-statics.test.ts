@@ -126,7 +126,7 @@ describe('siegeHappyFixerStatics', () => {
       '### 6. Never weaken, skip or delete a test to reach green',
       '### 7. Evidence beats the brief — and say so on the record',
       '### 8. Mark each unit as it settles',
-      '### 9. Where the fix moved behaviour nobody can enumerate, invalidate the flow',
+      "### 9. A change that reaches past your units is the walker's to catch",
       '### 10. Ward your own paths, and nothing wider',
       '### 11. Signal — there is no forward route back to you',
     ]);

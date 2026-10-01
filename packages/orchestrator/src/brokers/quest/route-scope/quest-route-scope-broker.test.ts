@@ -189,6 +189,114 @@ describe('questRouteScopeBroker', () => {
     });
   });
 
+  describe('the no-progress halt on a repair loop', () => {
+    const WARD_ITEM_ID = 'aa7ac10b-58cc-4372-a567-0e02b2c3d479';
+    const REPAIR_ITEM_ID = 'bb7ac10b-58cc-4372-a567-0e02b2c3d479';
+    const START_SHA = '0123456789abcdef0123456789abcdef01234567';
+    const WORKTREE_PATH = '/repo/worktrees/add-auth';
+
+    it('ERROR: {ward red again after a repair that left HEAD where it started} => blocks naming the repair, mints nothing', async () => {
+      const proxy = questRouteScopeBrokerProxy();
+      proxy.setupPassthrough();
+      proxy.setupWorktreeHead({ sha: START_SHA });
+
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE],
+        flows: [SEND_FLOW],
+        operations: [CODEWEAVER_SCOPE],
+        worktreePath: WORKTREE_PATH,
+        workItems: [
+          WorkItemStub({
+            id: REPAIR_ITEM_ID,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            startRef: START_SHA,
+            relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+          }),
+          WorkItemStub({
+            id: WARD_ITEM_ID,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+          }),
+        ],
+      });
+
+      proxy.setupQuest({ quest });
+
+      const result = await questRouteScopeBroker({ questId: quest.id });
+
+      const blockCalls = proxy.getBlockCalls();
+
+      expect({
+        result,
+        blockedItems: blockCalls.map((call) => String(call.failedWorkItemId)),
+        reasons: blockCalls.map((call) => String(call.reason)),
+      }).toStrictEqual({
+        result: { routed: false, blocked: true },
+        blockedItems: [WARD_ITEM_ID],
+        reasons: [
+          'no progress: the last `repair` in family `codeweaver` for operation item ' +
+            `${CODEWEAVER_OP_ID} (work item ${REPAIR_ITEM_ID}) committed nothing — the worktree ` +
+            `HEAD is still ${START_SHA}, where it started — and its gate went red again. Another ` +
+            'session would read the same failure, so the quest halts for a human.',
+        ],
+      });
+    });
+
+    it('VALID: {ward red again after a repair that moved HEAD} => mints the next repair', async () => {
+      const proxy = questRouteScopeBrokerProxy();
+      proxy.setupPassthrough();
+      proxy.setupWorktreeHead({ sha: 'fedcba9876543210fedcba9876543210fedcba98' });
+
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE],
+        flows: [SEND_FLOW],
+        operations: [CODEWEAVER_SCOPE],
+        worktreePath: WORKTREE_PATH,
+        workItems: [
+          WorkItemStub({
+            id: REPAIR_ITEM_ID,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            startRef: START_SHA,
+            relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+          }),
+          WorkItemStub({
+            id: WARD_ITEM_ID,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+          }),
+        ],
+      });
+
+      proxy.setupQuest({ quest });
+
+      const result = await questRouteScopeBroker({ questId: quest.id });
+
+      const minted = proxy.getPersistedQuest().workItems.slice(quest.workItems.length);
+
+      expect({
+        result,
+        mintedSteps: minted.map((item) => String(item.step)),
+        mintedBy: minted.map((item) => String(item.mintedBy)),
+        mintedUnits: minted.map((item) => item.assignedUnitIds.map(String)),
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedSteps: ['repair'],
+        mintedBy: [WARD_ITEM_ID],
+        mintedUnits: [[]],
+      });
+    });
+  });
+
   describe('the wall halt', () => {
     it('ERROR: {a step declaring `wall`} => blocks the quest, naming the step and the family in the reason', async () => {
       const proxy = questRouteScopeBrokerProxy();

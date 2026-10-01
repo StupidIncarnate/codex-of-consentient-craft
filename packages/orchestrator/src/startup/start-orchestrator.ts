@@ -460,8 +460,8 @@ export const StartOrchestrator = {
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)
   getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),
 
-  // MCP-driven quest-work — the single write surface every LLM step calls, across its six
-  // payload kinds (plan, observations, amendment, outcome, invalidation, request).
+  // MCP-driven quest-work — the single write surface every LLM step calls, across its five
+  // payload kinds (plan, observations, amendment, outcome, request).
   questWork: async ({
     questId,
     workItemId,

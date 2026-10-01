@@ -25,44 +25,87 @@ describe('spiritmenderPromptStatics', () => {
     expect(spiritmenderPromptStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
   });
 
-  it('VALID: title => frames Spiritmender as a ward recovery relay worker', () => {
+  it('VALID: title => frames Spiritmender as the gate repair worker', () => {
     expect(spiritmenderPromptStatics.prompt.template).toMatch(
-      /^# Spiritmender - Ward Recovery Relay Worker$/mu,
+      /^# Spiritmender - Gate Repair Worker$/mu,
     );
   });
 
-  it('VALID: template => frames the role as owning ONE operation item on the ledger', () => {
-    const needle = "You own ONE operation item on the quest's operations ledger";
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
+  // A repair is declared `none` in stepScopeStatics, so it is assigned no unit. A prompt teaching
+  // `quest-work` marks would send it hunting for units it does not hold.
+  it('VALID: template => tells the session it holds no verification units and marks nothing', () => {
+    expect({
+      holdsNone: template.includes('**You hold NO verification units.**'),
+      marksNothing: template.includes('you mark nothing through `quest-work`'),
+    }).toStrictEqual({ holdsNone: true, marksNothing: true });
   });
 
-  it('VALID: template => reads the ward failure from the Operation Context blob rows', () => {
-    const resultRow = '| **Failed ward result** | The id of the ward run that went red. |';
-    const blobRow =
-      '| **Ward detail blob** | A `<questFolder>/ward-results/<id>.json` path. `Read` it for the full error output: files, error messages, jest diffs. |';
-    const foundResult = template.slice(
-      template.indexOf(resultRow),
-      template.indexOf(resultRow) + resultRow.length,
-    );
-    const foundBlob = template.slice(
-      template.indexOf(blobRow),
-      template.indexOf(blobRow) + blobRow.length,
-    );
+  // A ward run can be red with every check PASS — the slow-file gate — and the blob records
+  // per-check status only, so the log is the one input naming that red.
+  it('VALID: template => reads the ward OUTPUT LOG first, and names the slow-file red', () => {
+    expect({
+      logRowReadFirst: template.includes(
+        "| **Ward output log** | A `<questFolder>/ward-results/<id>.log` path: ward's whole printed output. **`Read` this FIRST.**",
+      ),
+      blobRow: template.includes(
+        '| **Ward detail blob** | A `<questFolder>/ward-results/<id>.json` path: per-check status',
+      ),
+      riftcarverRow: template.includes(
+        '| **Riftcarver log** | A `<questFolder>/riftcarver-results/<id>.log` path',
+      ),
+      slowFileRed: template.includes('**A slow-file red is a real red.**'),
+      neverRaiseThreshold: template.includes('Never raise the threshold to make a red go away.'),
+    }).toStrictEqual({
+      logRowReadFirst: true,
+      blobRow: true,
+      riftcarverRow: true,
+      slowFileRed: true,
+      neverRaiseThreshold: true,
+    });
+  });
 
-    expect({ foundResult, foundBlob }).toStrictEqual({
-      foundResult: resultRow,
-      foundBlob: blobRow,
+  // An e2e or integration red cannot be fixed honestly without the flow it was proving.
+  it('VALID: template => names the MCP tools that give it the quest context, with the flow and package off its operation item', () => {
+    expect({
+      heading: spiritmenderPromptStatics.prompt.template.includes(
+        '### 2. Learn What the Quest Was Building',
+      ),
+      getQuestScoped: template.includes(
+        "`get-quest({ questId: 'QUEST_ID', flowId: '<flow id>', packageName: '<package>' })`",
+      ),
+      getQuestWork: template.includes(
+        "`get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })`",
+      ),
+      projectMap: template.includes('`get-project-map({ packages: [...] })`, `discover`'),
+    }).toStrictEqual({
+      heading: true,
+      getQuestScoped: true,
+      getQuestWork: true,
+      projectMap: true,
+    });
+  });
+
+  // `signal-back`'s blockedReason is stored as a note and the item still completes, so the router
+  // routes it `done`. Only a `quest-work` outcome word reaches `@blocked`.
+  it('VALID: template => declares a wall through quest-work, and says blockedReason is not one', () => {
+    expect({
+      questWorkWall: spiritmenderPromptStatics.prompt.template.includes(
+        "quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', payload: { kind: 'outcome', word: 'wall', reason:",
+      ),
+      blockedReasonIsNotAWall: template.includes(
+        '**A `blockedReason` on `signal-back` is NOT a wall.**',
+      ),
+      noBlockedReasonCall: template.includes("blockedReason: 'git commit is denied"),
+    }).toStrictEqual({
+      questWorkWall: true,
+      blockedReasonIsNotAWall: true,
+      noBlockedReasonCall: false,
     });
   });
 
   it('VALID: template => reproduces the failures itself with a scoped ward run', () => {
     const needle =
-      'Re-run ward SCOPED to the failing files the blob names, so you see the errors live.';
+      'Re-run ward SCOPED to the failing files the log and blob name, so you see the errors live.';
     const found = template.slice(
       template.indexOf(needle),
       template.indexOf(needle) + needle.length,
@@ -105,13 +148,13 @@ describe('spiritmenderPromptStatics', () => {
   it('VALID: template => scopes "no failure, no partial" to work it could have done, and defers the wall to [WALL]', () => {
     expect({
       noFailedOrPartialSignalForWorkItCouldHaveDone: template.includes(
-        '**You have no `failed` signal for work you could have done, and no `partial` signal either — that outcome no longer exists.**',
+        '**You have no `failed` signal for work you could have done, and no `partial` signal either.**',
       ),
       namesWallAsTheException: template.includes(
-        '[WALL] below is the one exception. It covers an ENVIRONMENT wall only — a denied command, a missing binary, an unreachable service. Signal `blocked` for one of those.',
+        '[WALL] below is the one exception. It covers an ENVIRONMENT wall only — a denied command, a missing binary, an unreachable service.',
       ),
       theSecondStatementIsScopedToo: template.includes(
-        "The one exception is [WALL]'s environment wall. That one is `blocked`.",
+        "The one exception is [WALL]'s environment wall, declared through `quest-work` before you signal.",
       ),
     }).toStrictEqual({
       noFailedOrPartialSignalForWorkItCouldHaveDone: true,
@@ -279,7 +322,7 @@ describe('spiritmenderPromptStatics', () => {
       delegationSpike: template.includes('You delegate LOOKING and CHECKING.'),
       delegationLeafBan: template.includes('You are the last agent in this chain.'),
       wallRole: template.includes(
-        '[WALL] When the ENVIRONMENT blocks you rather than the work, signal `blocked`.',
+        '[WALL] When the ENVIRONMENT blocks you rather than the work, declare a wall.',
       ),
       wallMinion: template.includes('report it. Do not work around it.'),
       gitFormsRule: template.includes(

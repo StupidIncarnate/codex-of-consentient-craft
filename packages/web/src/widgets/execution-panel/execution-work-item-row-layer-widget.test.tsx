@@ -319,6 +319,83 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
     });
   });
 
+  describe('saved command output', () => {
+    it('VALID: {sessionless ward step, declaredReason, no streamed entries} => expanded row shows the saved output verbatim', async () => {
+      const proxy = ExecutionWorkItemRowLayerWidgetProxy();
+      proxy.setupWardDetailNotFound();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'ward',
+        declaredReason: 'lint:      PASS  4 packages\n\nSLOW TESTS FAILED THIS RUN',
+        relatedDataItems: [`wardResults/${WARD_RESULT_ID}`],
+      });
+      const wardResult = WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 });
+
+      mantineRenderMiddleware({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            wardResultsById={new Map([[wardResult.id, wardResult]])}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'), userEventStatics.options);
+
+      expect(screen.getByTestId('execution-row-command-output').textContent).toBe(
+        'lint:      PASS  4 packages\n\nSLOW TESTS FAILED THIS RUN',
+      );
+    });
+
+    it('VALID: {sessionless step, declaredReason, streamed entries present} => renders the streamed entries, not the saved output', async () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItemId = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'ward',
+        declaredReason: 'lint:      PASS  4 packages',
+      });
+      const entry = AssistantTextChatEntryStub({ content: 'lint  @dungeonmaster/web  PASS' });
+
+      mantineRenderMiddleware({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            workItemEntries={new Map([[workItemId, [entry]]])}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'), userEventStatics.options);
+
+      expect(screen.queryByTestId('execution-row-command-output')).toBe(null);
+    });
+
+    it('EMPTY: {agent step with a session, declaredReason} => renders no saved-output block', async () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'complete',
+        step: 'work',
+        sessionId: SessionIdStub(),
+        declaredReason: 'done: every unit met',
+      });
+
+      mantineRenderMiddleware({
+        ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
+      });
+
+      await userEvent.click(screen.getByTestId('execution-row-header'), userEventStatics.options);
+
+      expect(screen.queryByTestId('execution-row-command-output')).toBe(null);
+    });
+  });
+
   describe('ward results', () => {
     it('VALID: {relatedDataItems carries a wardResults ref matching wardResultsById} => expanded row shows the ward exit code', async () => {
       const proxy = ExecutionWorkItemRowLayerWidgetProxy();
