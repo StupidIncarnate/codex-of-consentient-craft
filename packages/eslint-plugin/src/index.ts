@@ -18,6 +18,8 @@ export { ruleEnforceContractUsageInTestsBroker } from './brokers/rule/enforce-co
 export { ruleRequireZodOnPrimitivesBroker } from './brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
 export { ruleRequireContractValidationBroker } from './brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
 export { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config-dungeonmaster-broker';
+export { configGatewayLintConfigBroker } from './brokers/config/gateway-lint-config/config-gateway-lint-config-broker';
+export { configWorkspacePackageNamesBroker } from './brokers/config/workspace-package-names/config-workspace-package-names-broker';
 export {
   dungeonmasterRuleEnforceOnStatics,
   folderConfigStatics,
