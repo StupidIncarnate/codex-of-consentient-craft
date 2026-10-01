@@ -30,4 +30,23 @@ describe('stdout', () => {
       text: '',
     });
   });
+
+  it.each([true, false, undefined])(
+    'VALID: {setupIsTty: %s} => stdout.isTTY reads back that value',
+    (value) => {
+      const proxy = stdoutProxy();
+
+      proxy.setupIsTty({ value });
+
+      expect(stdout.isTTY).toBe(value);
+    },
+  );
+
+  it('VALID: {setupIsTty: true, then a new proxy} => the new proxy resets isTTY to false', () => {
+    stdoutProxy().setupIsTty({ value: true });
+
+    stdoutProxy();
+
+    expect(stdout.isTTY).toBe(false);
+  });
 });
