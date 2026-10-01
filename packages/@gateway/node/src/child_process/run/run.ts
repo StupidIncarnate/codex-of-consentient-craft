@@ -1,11 +1,13 @@
 /**
  * PURPOSE: Runs a subprocess to completion and hands back everything it printed, as plain values —
  * no zod contracts, since this file IS the boundary those contracts would otherwise wrap. Reach
- * for this over `stream`/`streamLines` when the caller wants the whole output as one value and has
- * nowhere to put lines while the process is still running.
+ * for this over `stream`/`streamLines` when the caller wants the whole output as one value once the
+ * process exits. `onStdout`/`onStderr` add a live view of a run still in flight, for a caller that
+ * narrates progress while it waits for that whole result.
  *
  * USAGE:
  * const result = await run({ command: 'npm', args: ['run', 'test'], cwd: '/project' });
+ * await run({ command: 'node', args: ['cli.js'], cwd: '/project', stdin: 'ignore', onStdout: (chunk) => show(chunk), onStderr: (chunk) => show(chunk) });
  * // Returns { exitCode: number, output: string, stdout: string, stderr: string, signal: NodeJS.Signals | null, timedOut: boolean }
  *
  * `stdout` and `stderr` are each decoded ONCE, from that stream's concatenated bytes. Decoding
@@ -13,6 +15,15 @@
  * chunks. `output` is `stdout` followed by `stderr`, for a caller that shows a human everything the
  * command printed. A caller that PARSES what the command printed reads `stdout`: a warning the
  * command writes to stderr during a successful run would otherwise land inside the parsed value.
+ *
+ * `onStdout` and `onStderr` receive each stream's text as it arrives, decoded through a
+ * `StringDecoder`, so a multi-byte character split across two chunks reaches the callback whole.
+ * Joined, the text one callback receives equals that stream's field in the result. Every callback
+ * has fired before the promise settles.
+ *
+ * `stdin` defaults to `'inherit'`. A caller with no terminal to hand the child (a desktop app, a
+ * background job) passes `'ignore'`, so the child reads end-of-input instead of waiting on a
+ * stdin nobody writes to.
  *
  * A child's `exit` fires when the PROCESS ends, which is not when its OUTPUT ends: the last chunks
  * can still be queued on the pipes, so a handler that resolves there loses them — intermittently,
@@ -33,6 +44,7 @@
  */
 
 import { spawn } from 'child_process';
+import { StringDecoder } from 'string_decoder';
 
 import { RunNotFoundError } from '../run-not-found.error';
 
@@ -42,12 +54,18 @@ export const run = async ({
   cwd,
   timeout,
   env,
+  stdin = 'inherit',
+  onStdout,
+  onStderr,
 }: {
   command: string;
   args: string[];
   cwd: string;
   timeout?: number;
   env?: Record<string, string>;
+  stdin?: 'inherit' | 'ignore';
+  onStdout?: (chunk: string) => void;
+  onStderr?: (chunk: string) => void;
 }): Promise<{
   exitCode: number;
   output: string;
@@ -59,12 +77,14 @@ export const run = async ({
   new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
-      stdio: ['inherit', 'pipe', 'pipe'],
+      stdio: [stdin, 'pipe', 'pipe'],
       env: { ...process.env, ...env },
     });
 
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
+    const stdoutDecoder = new StringDecoder('utf8');
+    const stderrDecoder = new StringDecoder('utf8');
     let timedOut = false;
 
     const stdoutStream = child.stdout;
@@ -72,10 +92,22 @@ export const run = async ({
 
     stdoutStream.on('data', (chunk: Buffer) => {
       stdoutChunks.push(chunk);
+      if (onStdout) {
+        const text = stdoutDecoder.write(chunk);
+        if (text !== '') {
+          onStdout(text);
+        }
+      }
     });
 
     stderrStream.on('data', (chunk: Buffer) => {
       stderrChunks.push(chunk);
+      if (onStderr) {
+        const text = stderrDecoder.write(chunk);
+        if (text !== '') {
+          onStderr(text);
+        }
+      }
     });
 
     const timeoutHandle =
@@ -115,6 +147,17 @@ export const run = async ({
 
       drained
         .then(() => {
+          // A stream that ended on an incomplete multi-byte sequence leaves bytes in its decoder.
+          // `end()` hands them over (as U+FFFD, the same as the joined decode below gives them).
+          const stdoutTail = stdoutDecoder.end();
+          if (onStdout && stdoutTail !== '') {
+            onStdout(stdoutTail);
+          }
+          const stderrTail = stderrDecoder.end();
+          if (onStderr && stderrTail !== '') {
+            onStderr(stderrTail);
+          }
+
           const stdout = Buffer.concat(stdoutChunks).toString('utf8');
           const stderr = Buffer.concat(stderrChunks).toString('utf8');
           const decoded = { output: stdout + stderr, stdout, stderr };
