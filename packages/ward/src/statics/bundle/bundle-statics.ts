@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Names the layout and the build invocation of the hashed e2e bundle. Reach for this
- * rather than spelling a path at a call site: the builder, the artifact sweep and the gitignore
- * entry all have to agree on `.ward/bundle`, and a directory named in only one of them either
- * leaks forever or is reaped out from under a run that is serving it.
+ * PURPOSE: Names the layout and the build invocation of the hashed bundle that an e2e run, and an
+ * integration run whose package opts in, both read. Reach for this rather than spelling a path at
+ * a call site: the builder, the artifact sweep and the gitignore entry all have to agree on
+ * `.ward/bundle`, and a directory named in only one of them either leaks forever or is reaped out
+ * from under a run that is serving it.
  *
  * `.tmp-` is a PREFIX, and the suffix a caller appends must be unique to the process — the build
  * writes into `.tmp-<pid>` and then `rename`s it onto `<hash>`, which is the only way two runs can
@@ -28,6 +29,11 @@ export const bundleStatics = {
   // The lockfile is hashed alongside the closure's own sources: a dependency version bump changes
   // no file inside any workspace package, and the bundle it produces is a different bundle.
   lockfileName: 'package-lock.json',
+  // The environment variable an integration run's jest process reads the bundle directory from.
+  // Ward sets it only for a package whose own package.json holds `"ward": { "integrationBuild":
+  // true }`, so a test that spawns the package's compiled program runs it from here, never from a
+  // `dist` another process may be rewriting.
+  integrationEnvVar: 'DUNGEONMASTER_BUNDLE_DIR',
   // Everything a workspace package contributes to a bundle built from it. A package's barrels sit
   // at `src/<folderType>/<folderType>.ts`, inside `src/**`; `*.ts` at the package ROOT holds the
   // config files a build reads (`playwright.config.ts`, `vite.config.ts`).

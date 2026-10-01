@@ -40,6 +40,8 @@ import { openHandleReportStatics } from '../../../statics/open-handle-report/ope
 import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 import { runnerCommandResolveBroker } from '../../runner-command/resolve/runner-command-resolve-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
+import { bundleBuildForIntegrationBroker } from '../../bundle/build-for-integration/bundle-build-for-integration-broker';
+import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 
 export const checkRunIntegrationBroker = async ({
   projectFolder,
@@ -163,6 +165,32 @@ export const checkRunIntegrationBroker = async ({
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }
+
+  // A package whose package.json sets `"ward": { "integrationBuild": true }` has tests that run its
+  // compiled output. They get the same content-hashed bundle an e2e run gets. It is built only
+  // after every check that skips the package without starting jest, so those runs never pay for
+  // it. A plain build instead would rewrite the package's `dist` with no lock, under every other
+  // process reading it.
+  const bundle = await bundleBuildForIntegrationBroker({ packageRoot: cwd });
+
+  if (bundle.error !== null) {
+    // Every test that spawns the compiled program would fail on a missing file, so the build's own
+    // output is what names the actual cause.
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'fail',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: String(bundle.error),
+        exitCode: 1,
+      }),
+    });
+  }
+
   const runner = runnerCommandResolveBroker({ binName: bin, cwd });
 
   // `--detectOpenHandles` above only reports from the MAIN thread, so the worker branch would
@@ -189,6 +217,9 @@ export const checkRunIntegrationBroker = async ({
     cwd,
     env: {
       ...(wantsTimerWatch ? { [openHandleReportStatics.env.pathVar]: handleReportPath } : {}),
+      ...(bundle.bundleDir === null
+        ? {}
+        : { [bundleStatics.integrationEnvVar]: String(bundle.bundleDir) }),
     },
   }).catch((error: unknown) => {
     if (!(error instanceof RunNotFoundError)) {

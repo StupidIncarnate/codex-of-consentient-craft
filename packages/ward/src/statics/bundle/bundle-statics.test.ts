@@ -12,6 +12,7 @@ describe('bundleStatics', () => {
       buildCommand: 'npm',
       buildArgs: ['run', 'build', '--', '--outDir'],
       lockfileName: 'package-lock.json',
+      integrationEnvVar: 'DUNGEONMASTER_BUNDLE_DIR',
       closurePatterns: ['src/**', '*.ts', 'package.json', 'tsconfig*.json'],
       uiPatterns: [
         'vite.config.ts',

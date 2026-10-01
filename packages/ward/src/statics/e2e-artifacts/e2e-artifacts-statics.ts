@@ -75,7 +75,8 @@ export const e2eArtifactsStatics = {
       portKeyed: true,
     },
     {
-      // A prebuilt UI bundle, one directory per hash of the inputs that produced it, plus the
+      // A prebuilt bundle (an e2e run's UI, or the build an opted-in integration run reads), one
+      // directory per hash of the inputs that produced it, plus the
       // `.tmp-<pid>` a killed build never renamed away. Expiring one costs a full production build
       // rather than reclaiming waste, so it carries its own window — see BUNDLE_TTL_MS for what a
       // shorter one was measured to cost.
