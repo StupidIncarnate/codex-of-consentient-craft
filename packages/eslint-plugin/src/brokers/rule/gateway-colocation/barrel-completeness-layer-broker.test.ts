@@ -106,6 +106,46 @@ describe('barrelCompletenessLayerBroker', () => {
     });
   });
 
+  it('VALID: {a wrapper USAGE comment quotes an export statement} => reports nothing for the quoted name and returns true', () => {
+    const proxy = barrelCompletenessLayerBrokerProxy();
+    const mockReport = jest.fn();
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
+    const subpathDirectory = '/repo/packages/@gateway/bin/src/git/';
+
+    proxy.fsReaddirSync.returns({
+      path: subpathDirectory,
+      entries: [
+        { name: 'cat-file-blob', kind: 'directory' },
+        { name: 'git.ts', kind: 'file' },
+      ],
+    });
+    proxy.fsReaddirSync.returns({
+      path: '/repo/packages/@gateway/bin/src/git/cat-file-blob/',
+      entries: [{ name: 'cat-file-blob.ts', kind: 'file' }],
+    });
+    proxy.fsReadFileSync.returns({
+      path: '/repo/packages/@gateway/bin/src/git/cat-file-blob/cat-file-blob.ts',
+      contents:
+        "/**\n * USAGE:\n * await catFileBlob({ ref: 'HEAD', path: 'src/x.ts', cwd: '/repo' });\n * // Returns 'export const x = 1;\\n'\n */\nexport const catFileBlob = async (): Promise<string> => '';\n",
+    });
+    proxy.fsExistsSync.returns({
+      path: '/repo/packages/@gateway/bin/src/git/cat-file-blob/cat-file-blob.ts',
+      exists: true,
+    });
+
+    const result = barrelCompletenessLayerBroker({
+      node,
+      context,
+      fileName: 'git.ts',
+      subpathDirectory,
+      reexports: [{ name: 'catFileBlob', source: './cat-file-blob/cat-file-blob' }],
+    });
+
+    expect(result).toBe(true);
+    expect(mockReport.mock.calls).toStrictEqual([]);
+  });
+
   it('INVALID: {a re-export points at a file that no longer exists} => reports barrelStaleReexport and returns false', () => {
     const proxy = barrelCompletenessLayerBrokerProxy();
     const mockReport = jest.fn();

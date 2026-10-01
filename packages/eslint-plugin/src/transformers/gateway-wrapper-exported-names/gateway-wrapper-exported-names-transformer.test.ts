@@ -53,6 +53,14 @@ describe('gatewayWrapperExportedNamesTransformer', () => {
 
       expect(result).toStrictEqual({ valueNames: ['argv'], typeNames: [] });
     });
+
+    it('VALID: {sourceText: export const { a, b } = process;} => returns every bound name as a value name', () => {
+      const result = gatewayWrapperExportedNamesTransformer({
+        sourceText: 'export const { argv, env } = process;\n',
+      });
+
+      expect(result).toStrictEqual({ valueNames: ['argv', 'env'], typeNames: [] });
+    });
   });
 
   describe('mixed exports', () => {
@@ -63,6 +71,34 @@ describe('gatewayWrapperExportedNamesTransformer', () => {
       });
 
       expect(result).toStrictEqual({ valueNames: ['isFsError'], typeNames: [] });
+    });
+  });
+
+  describe('export text outside a real declaration', () => {
+    it('VALID: {a USAGE comment quoting an export statement} => returns only the real export', () => {
+      const result = gatewayWrapperExportedNamesTransformer({
+        sourceText:
+          "/**\n * USAGE:\n * const text = await catFileBlob({ ref: 'HEAD', path: 'src/x.ts', cwd: '/repo' });\n * // Returns 'export const x = 1;\\n'\n */\nexport const catFileBlob = (): string => '';\n",
+      });
+
+      expect(result).toStrictEqual({ valueNames: ['catFileBlob'], typeNames: [] });
+    });
+
+    it('VALID: {a line comment and a string holding export text} => returns only the real export', () => {
+      const result = gatewayWrapperExportedNamesTransformer({
+        sourceText:
+          "// export const fromComment = 1;\nexport const sample = 'export function fromString() {}';\n",
+      });
+
+      expect(result).toStrictEqual({ valueNames: ['sample'], typeNames: [] });
+    });
+
+    it('VALID: {a non-exported const and a nested export-looking line} => returns no names', () => {
+      const result = gatewayWrapperExportedNamesTransformer({
+        sourceText: 'const local = 1;\nnamespace inner {\n  export const nested = local;\n}\n',
+      });
+
+      expect(result).toStrictEqual({ valueNames: [], typeNames: [] });
     });
   });
 
