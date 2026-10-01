@@ -15,6 +15,7 @@ describe('orchestrator', () => {
 
     expect(exportedKeys).toStrictEqual([
       'BaseBranchNotFoundError',
+      'GuildPathTakenError',
       'QuestBranchNameTakenError',
       'QuestNotFoundError',
       'StartOrchestrator',

@@ -1,3 +1,4 @@
+import { GuildPathTakenError } from '@dungeonmaster/orchestrator';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildUpdateResponderProxy } from './guild-update-responder.proxy';
@@ -128,6 +129,26 @@ describe('GuildUpdateResponder', () => {
     it('ERROR: {path already registered to another guild} => returns 409 with error message', async () => {
       const proxy = GuildUpdateResponderProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const path = '/tmp/taken';
+      proxy.setupUpdateGuildError({
+        guildId,
+        error: new GuildPathTakenError({ path }),
+      });
+
+      const result = await proxy.callResponder({
+        params: { guildId },
+        body: { path },
+      });
+
+      expect(result).toStrictEqual({
+        status: 409,
+        data: { error: 'A guild with path /tmp/taken already exists' },
+      });
+    });
+
+    it('ERROR: {generic Error with matching message text} => returns 500 without treating it as conflict', async () => {
+      const proxy = GuildUpdateResponderProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       proxy.setupUpdateGuildError({
         guildId,
         message: 'A guild with path /tmp/taken already exists',
@@ -139,7 +160,7 @@ describe('GuildUpdateResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        status: 409,
+        status: 500,
         data: { error: 'A guild with path /tmp/taken already exists' },
       });
     });

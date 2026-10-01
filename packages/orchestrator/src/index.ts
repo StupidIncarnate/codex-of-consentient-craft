@@ -92,3 +92,5 @@ export { BaseBranchNotFoundError } from './errors/base-branch-not-found/base-bra
 export { QuestBranchNameTakenError } from './errors/quest-branch-name-taken/quest-branch-name-taken-error';
 // Exported so the server's quest read responders can `instanceof`-check it and answer 404.
 export { QuestNotFoundError } from './errors/quest-not-found/quest-not-found-error';
+// Exported so the server's guild mutation responders can `instanceof`-check it and answer 409.
+export { GuildPathTakenError } from './errors/guild-path-taken/guild-path-taken-error';

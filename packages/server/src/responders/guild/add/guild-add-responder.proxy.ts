@@ -7,7 +7,12 @@ type Guild = ReturnType<typeof GuildStub>;
 
 export const GuildAddResponderProxy = (): {
   setupAddGuild: (params: { name: string; path: string; guild: Guild }) => void;
-  setupAddGuildError: (params: { name: string; path: string; message: string }) => void;
+  setupAddGuildError: (params: {
+    name: string;
+    path: string;
+    error?: Error;
+    message?: string;
+  }) => void;
   getAddGuildCalls: () => RecordedCalls;
   callResponder: typeof GuildAddResponder;
 } => {
@@ -20,13 +25,19 @@ export const GuildAddResponderProxy = (): {
     setupAddGuildError: ({
       name,
       path,
+      error,
       message,
     }: {
       name: string;
       path: string;
-      message: string;
+      error?: Error;
+      message?: string;
     }): void => {
-      orchestrator.addGuildThrows({ name, path, error: new Error(message) });
+      orchestrator.addGuildThrows({
+        name,
+        path,
+        error: error ?? new Error(message ?? 'Failed to add guild'),
+      });
     },
     getAddGuildCalls: (): RecordedCalls => orchestrator.addGuildGetCalls(),
     callResponder: GuildAddResponder,

@@ -7,7 +7,7 @@
  * // `path` when it is not absolute, 409 when the path is already registered to another guild
  */
 
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { GuildPathTakenError, StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { guildAbsolutePathInputContract } from '../../../contracts/guild-absolute-path-input/guild-absolute-path-input-contract';
 import { guildAddBodyContract } from '../../../contracts/guild-add-body/guild-add-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -45,8 +45,8 @@ export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<Re
       data: guildContract.parse(result),
     });
   } catch (error: unknown) {
+    const isConflict = error instanceof GuildPathTakenError;
     const message = error instanceof Error ? error.message : 'Failed to add guild';
-    const isConflict = message.startsWith('A guild with path');
     return responderResultContract.parse({
       status: isConflict
         ? httpStatusStatics.clientError.conflict
