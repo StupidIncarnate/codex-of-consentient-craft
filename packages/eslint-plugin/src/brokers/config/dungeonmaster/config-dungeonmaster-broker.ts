@@ -302,7 +302,8 @@ export const configDungeonmasterBroker = ({
       // Gateway shape rules: these guard the gateway's own layout and colocation, so they only
       // ever apply inside this carve-out, never the main workspace block.
       '@dungeonmaster/gateway-import-boundary': 'error',
-      // requireStub: true — every gateway subpath barrel now ships at least one .stub.ts (G18).
+      // requireStub: true — a subpath holding a wrapper file ships at least one .stub.ts; a barrel-only
+      // subpath (a bare `export * from 'pkg'`) needs none.
       '@dungeonmaster/gateway-colocation': ['error', { requireStub: true }],
       '@dungeonmaster/gateway-layout': 'error',
       // Needs the type checker (project: true, already set for this carve-out below) to tell a

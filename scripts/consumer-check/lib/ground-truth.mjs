@@ -55,6 +55,17 @@ export const loadGroundTruth = async () => {
       'gateway-package-template-statics.js',
     )
   );
+  const rootPostinstallMergeTransformerModule = await import(
+    distPath(
+      'packages',
+      'cli',
+      'dist',
+      'src',
+      'transformers',
+      'root-postinstall-merge',
+      'root-postinstall-merge-transformer.js',
+    )
+  );
   const tsconfigTemplateStaticsModule = await import(
     distPath('packages', 'cli', 'dist', 'src', 'statics', 'tsconfig-template', 'tsconfig-template-statics.js')
   );
@@ -119,6 +130,8 @@ export const loadGroundTruth = async () => {
     gatewayFoldersStatics: gatewayFoldersStaticsModule.gatewayFoldersStatics,
     gatewaySourceCopyStatics: gatewaySourceCopyStaticsModule.gatewaySourceCopyStatics,
     gatewayPackageTemplateStatics: gatewayPackageTemplateStaticsModule.gatewayPackageTemplateStatics,
+    rootPostinstallMergeTransformer:
+      rootPostinstallMergeTransformerModule.rootPostinstallMergeTransformer,
     tsconfigTemplateStatics: tsconfigTemplateStaticsModule.tsconfigTemplateStatics,
     jestConfigTemplateStatics: jestConfigTemplateStaticsModule.jestConfigTemplateStatics,
     gatewayImportsFieldTransformer:

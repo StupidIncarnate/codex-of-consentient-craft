@@ -15,10 +15,10 @@ export const packageSeedServiceStatics = {
       fileName: 'flows.ts',
       exportPaths: ['./__NAME__/__NAME__-flow'],
     },
-    // `hono` is declared, never imported, and the seed carries no contract: a consumer's
-    // `@gateway/npm` starts empty (no `#gateway/npm/hono`, no `#gateway/npm/zod`) and it has no
-    // `shared` package, so a seed reaching for any of them fails install, lint or typecheck on a
-    // fresh scaffold. The detector reads the declared dependency beside the flows folder instead.
+    // `hono` is declared, never imported, and the seed carries no contract: `#gateway/npm/hono`
+    // exists only once the npm-gateway sync runs after this scaffold (the next `npm install`), the
+    // package declares no `zod`, and a consumer has no `shared` package, so a seed reaching for any
+    // of them fails install, lint or typecheck on a fresh scaffold. The detector reads the declared dependency beside the flows folder instead.
     dependencies: {
       hono: '^4.0.0',
     },
@@ -63,9 +63,9 @@ describe('routeStatics', () => {
         path: 'src/flows/__NAME__/__NAME__-flow.ts',
         contents: `/**
  * PURPOSE: Starting point for this package's HTTP routes — replace with the real routes this
- * service serves. Mount them on a Hono app from a responder once \`#gateway/npm/hono\` exists: a
- * consumer writes that wrapper under packages/@gateway/npm/src/hono/ (the package already declares
- * \`hono\`).
+ * service serves. Mount them on a Hono app from a responder through \`#gateway/npm/hono\`: once
+ * \`npm install\` has run, \`dungeonmaster gateway-sync\` has given the declared \`hono\`
+ * dependency its packages/@gateway/npm/src/hono/ folder.
  *
  * USAGE:
  * const routes = __CAMEL__Flow();
@@ -97,10 +97,10 @@ describe('__PASCAL__Flow', () => {
       fileName: 'flows.ts',
       exportPaths: ['./__NAME__/__NAME__-flow'],
     },
-    // The MCP SDK is declared, never imported, and the seed carries no contract: a consumer's
-    // `@gateway/npm` starts empty (no `#gateway/npm/@modelcontextprotocol/sdk`, no
-    // `#gateway/npm/zod`) and it has no `shared` package, so a seed reaching for any of them fails
-    // install, lint or typecheck on a fresh scaffold. The detector reads the declared dependency
+    // The MCP SDK is declared, never imported, and the seed carries no contract: its
+    // `#gateway/npm` wrapper exists only once the npm-gateway sync runs after this scaffold (the
+    // next `npm install`), the package declares no `zod`, and a consumer has no `shared` package, so
+    // a seed reaching for any of them fails install, lint or typecheck on a fresh scaffold. The detector reads the declared dependency
     // beside the flows folder instead.
     dependencies: {
       '@modelcontextprotocol/sdk': '^1.0.0',
@@ -158,9 +158,9 @@ describe('toolStatics', () => {
         path: 'src/flows/__NAME__/__NAME__-flow.ts',
         contents: `/**
  * PURPOSE: Starting point for this package's MCP tools — replace with the real tools this server
- * exposes. Register them on an MCP server from a responder once the \`#gateway/npm\` wrapper for
- * \`@modelcontextprotocol/sdk\` exists: a consumer writes it under packages/@gateway/npm/src/ (the
- * package already declares the SDK).
+ * exposes. Register them on an MCP server from a responder through the \`#gateway/npm\` wrapper
+ * for \`@modelcontextprotocol/sdk\`: once \`npm install\` has run, \`dungeonmaster gateway-sync\` has
+ * given the declared SDK its folder under packages/@gateway/npm/src/.
  *
  * USAGE:
  * const tools = __CAMEL__Flow();

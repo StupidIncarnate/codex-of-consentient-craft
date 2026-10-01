@@ -19,9 +19,9 @@
  * beside each one — the same rules a real consumer's own lint enforces on its own code, so the
  * fixture never trips a violation THIS suite does not intend. Every outside package, Node module
  * and platform global a sample touches goes through `#gateway/...` (`raw-import-ban` and
- * `platform-globals-ban` apply to a consumer exactly as they do here), and a npm package the
- * consumer's npm gateway has no wrapper for gets one written into that gateway first, the way the
- * `consumerGatewayWrapper` session snippet tells a consumer to.
+ * `platform-globals-ban` apply to a consumer exactly as they do here). The one npm package a sample
+ * imports (`zod`, in the contract-check proxy) is a root `dependencies` entry `run.mjs` declares, so
+ * `init`'s gateway-sync copies dungeonmaster's own wrapper for it — this file writes none.
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -360,69 +360,6 @@ const addGatewayDependencies = ({ consumerRoot, packageName, gateways, scope }) 
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
 };
 
-// The consumer's npm gateway starts with no wrapper, so the one npm package a sample needs (zod, for
-// the contract-check proxy's schema) gets its own here, in the four-file shape the
-// `consumerGatewayWrapper` session snippet names: the wrapper, its export-shape test, and a stub
-// folder holding a stub plus that stub's own test — `gateway-colocation` refuses a subpath with any
-// of them missing. Copied from this repo's own `packages/@gateway/npm/src/zod` shape.
-const ZOD_WRAPPER_SOURCE = `/**
- * PURPOSE: Gateway entry for the npm package 'zod'. Every raw export passes through unchanged.
- *
- * USAGE:
- * import { z } from '#gateway/npm/zod';
- */
-
-export * from 'zod';
-export { default } from 'zod';
-`;
-
-const ZOD_WRAPPER_TEST = `import * as ourModule from './zod';
-// A raw \`require\`, not \`import * as\`: TS's importStar helper synthesizes a .default onto any CJS
-// module that lacks __esModule, so comparing against that synthetic shape would fail a pass-through.
-import pkgModule = require('zod');
-
-describe('#gateway/npm/zod', () => {
-  it('VALID: {module} => re-exports the same runtime bindings as zod', () => {
-    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
-  });
-});
-`;
-
-const ZOD_STRING_SCHEMA_STUB = `/**
- * PURPOSE: A real, branded Zod schema, built through the real \`z.string()\`.
- *
- * USAGE:
- * const schema = ZodStringSchemaStub();
- * schema.parse('gateway-stub'); // real, branded GatewayStubValue
- */
-import { z } from 'zod';
-
-export const ZodStringSchemaStub = (): z.ZodType<string> => z.string().brand<'GatewayStubValue'>();
-`;
-
-const ZOD_STRING_SCHEMA_STUB_TEST = `import { ZodStringSchemaStub } from './zod-string-schema.stub';
-
-describe('ZodStringSchemaStub', () => {
-  it('VALID: {} => a real schema that parses a real string', () => {
-    expect(ZodStringSchemaStub().parse('gateway-stub')).toBe('gateway-stub');
-  });
-
-  it('INVALID: {} => a real schema that throws for a non-string', () => {
-    expect(() => ZodStringSchemaStub().parse(123)).toThrow(/expected string, received number/u);
-  });
-});
-`;
-
-const writeZodGatewayWrapper = ({ consumerRoot }) => {
-  const zodDir = join(consumerRoot, 'packages', '@gateway', 'npm', 'src', 'zod');
-  const stubDir = join(zodDir, 'zod-string-schema');
-  mkdirSync(stubDir, { recursive: true });
-  writeFileSync(join(zodDir, 'zod.ts'), ZOD_WRAPPER_SOURCE);
-  writeFileSync(join(zodDir, 'zod.test.ts'), ZOD_WRAPPER_TEST);
-  writeFileSync(join(stubDir, 'zod-string-schema.stub.ts'), ZOD_STRING_SCHEMA_STUB);
-  writeFileSync(join(stubDir, 'zod-string-schema.stub.test.ts'), ZOD_STRING_SCHEMA_STUB_TEST);
-};
-
 // `create-package`'s own gateway-scope detection (`works.mjs`'s `assertScopeDetection`, F5) and its
 // scaffolded jest.config.js (`assertJestConfigBase`, F6) are both plain passing assertions against
 // the `lib`/`app` packages this function scaffolds (never `probe` — F5/F6 need no known violation) —
@@ -456,7 +393,6 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
     gateways: ['node'],
     scope,
   });
-  writeZodGatewayWrapper({ consumerRoot });
 
   const libSrcDir = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'src');
   const probeSrcDir = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME, 'src');

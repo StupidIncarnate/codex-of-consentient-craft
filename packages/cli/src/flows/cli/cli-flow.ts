@@ -9,6 +9,7 @@
 import type { InstallContext } from '@dungeonmaster/shared/contracts';
 
 import { CliCreatePackageResponder } from '../../responders/cli/create-package/cli-create-package-responder';
+import { CliGatewaySyncResponder } from '../../responders/cli/gateway-sync/cli-gateway-sync-responder';
 import { CliInitResponder } from '../../responders/cli/init/cli-init-responder';
 import { CliServeResponder } from '../../responders/cli/serve/cli-serve-responder';
 import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
@@ -20,6 +21,7 @@ const COMMANDS = {
   statuslineTap: 'statusline-tap',
   createPackage: 'create-package',
   siegelense: 'siegelense',
+  gatewaySync: 'gateway-sync',
 } as const;
 
 export const CliFlow = async ({
@@ -47,6 +49,11 @@ export const CliFlow = async ({
 
   if (command === COMMANDS.siegelense) {
     return CliSiegelenseResponder({ args });
+  }
+
+  if (command === COMMANDS.gatewaySync) {
+    await CliGatewaySyncResponder({ context });
+    return;
   }
 
   // Serving is what NO command means, and what `start` names explicitly. Every other unrecognized

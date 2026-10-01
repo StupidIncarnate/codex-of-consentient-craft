@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Which gateway packages `dungeonmaster init` fills with dungeonmaster's OWN source rather
- * than leaving empty, and how to find that source. node and browser wrap what every Node runtime
- * and every browser provide, so the same wrappers fit any consumer; npm and bin depend on the
- * consumer's own dependencies and installed programs, so they start empty. The two keys read from
+ * PURPOSE: Which gateway packages `dungeonmaster init` fills whole with dungeonmaster's OWN source,
+ * and how to find that source. node and browser wrap what every Node runtime and every browser
+ * provide, so the same wrappers fit any consumer; npm and bin depend on the consumer's own
+ * dependencies and installed programs, so npm is filled per dependency by the npm-gateway sync and
+ * bin starts empty. The two keys read from
  * `@dungeonmaster/shared`'s `gatewayLocationsStatics.folders` — the one list of gateway folder
  * names — so "which two copy" stays a filter over that list rather than a second independent list
  * that could grow the other two names by accident; only the per-entry `specifier`/`directories`

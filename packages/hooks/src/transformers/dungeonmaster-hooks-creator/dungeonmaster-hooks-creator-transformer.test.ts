@@ -33,6 +33,10 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             matcher: 'AskUserQuestion',
             hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
           },
+          {
+            matcher: 'Bash',
+            hooks: [{ type: 'command', command: 'dungeonmaster-post-bash', timeout: 300 }],
+          },
         ],
         SessionStart: [
           {

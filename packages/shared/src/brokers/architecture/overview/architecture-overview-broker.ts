@@ -103,7 +103,7 @@ Inside one domain folder every file may import every other, helpers and layers i
 
 An outside package is reached only through the gateway: \`#gateway/<folder>/<subpath>\`, where \`<folder>\` is \`npm\`, \`node\`, \`browser\` or \`bin\`. Every folder type imports outside things through it, types included, and nothing imports a raw package.
 
-A wrapper is one folder per subpath under \`packages/@gateway/<folder>/src/<subpath>/\`, holding the wrapper file plus its \`.proxy.ts\` and \`.stub.ts\`. A consumer repo's \`npm\` and \`bin\` wrappers start empty; the \`consumerGatewayWrapper\` session snippet says how to add the first one.
+A wrapper is one folder per subpath under \`packages/@gateway/<folder>/src/<subpath>/\`, holding the wrapper file plus its \`.proxy.ts\` and \`.stub.ts\`. A consumer repo's \`npm\` gateway gets a folder for every \`dependencies\` entry from \`dungeonmaster gateway-sync\`, and its \`bin\` wrappers start empty; the \`consumerGatewayWrapper\` session snippet says what fills them and how to add one.
 
 ## Cross-Package Public API
 

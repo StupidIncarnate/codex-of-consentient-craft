@@ -215,8 +215,8 @@ export const instanceKillBrokerProxy = (): {
       removeProxy.succeeds({ path: homePath });
     },
 
-    // Delegates to shutdownReasonWriteBrokerProxy's own `writeFile` mock — the SAME shared mock
-    // `writeHandle` above already answers for the registry's own writes, addressed here by the
+    // Delegates to shutdownReasonWriteBrokerProxy's own atomic-write mocks — the SAME shared
+    // `writeFile`/`rename` mocks the registry's own writes answer through, addressed here by the
     // shutdown-reason path instead. `nowMs` matches this proxy's own `Date.now` stub so re-staging
     // it through `setupWriteSucceeds` is a no-op collision, not a silent override.
     setupShutdownReasonWriteSucceeds: ({

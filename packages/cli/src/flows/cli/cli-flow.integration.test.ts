@@ -3,6 +3,7 @@ import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
+import { npmGatewaySyncHarness } from '../../../test/harnesses/npm-gateway-sync/npm-gateway-sync.harness';
 
 import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
 import { CliFlow } from './cli-flow';
@@ -69,7 +70,7 @@ describe('CliFlow', () => {
           }),
         }),
       ).rejects.toThrow(
-        'Unknown command: seigelense. Commands: init, start, statusline-tap, create-package, siegelense.',
+        'Unknown command: seigelense. Commands: init, start, statusline-tap, create-package, siegelense, gateway-sync.',
       );
     });
 
@@ -292,6 +293,176 @@ describe('CliFlow', () => {
       testbed.cleanup();
 
       expect(packagesDir).toBe(null);
+    });
+  });
+
+  describe('command routing - gateway-sync', () => {
+    const harness = cliStatuslineHarness();
+    const npmFake = npmCommandFakeHarness();
+    const syncEnv = npmGatewaySyncHarness();
+
+    it('VALID: {command: "gateway-sync", started in packages/app, app depends on left-pad} => finds the repo root above, writes the left-pad passthrough, records it and prints what it generated', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({
+        baseName: 'cli-flow-gateway-sync',
+      });
+      testbed.writeFile({ relativePath: '.dungeonmaster.json', content: '{}\n' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: `{\n  "name": "@acme/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*", "packages/@gateway/*"]\n}\n`,
+      });
+      testbed.writeFile({
+        relativePath: 'packages/app/package.json',
+        content: `{\n  "name": "@acme/app",\n  "version": "0.0.0",\n  "dependencies": { "left-pad": "^1.3.0" }\n}\n`,
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: `{\n  "name": "@acme/npm",\n  "version": "0.1.0"\n}\n`,
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/src/index.d.ts',
+        content: 'export {};\n',
+      });
+      const stdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'gateway-sync',
+        args: [],
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: `${testbed.guildPath}/packages/app`,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      stdout.restore();
+      const stdoutOutput = stdout.getOutput();
+      const npmGatewaySrc = testbed.listDir({ relativePath: 'packages/@gateway/npm/src' });
+      const leftPadFolder = testbed.listDir({
+        relativePath: 'packages/@gateway/npm/src/left-pad',
+      });
+      const npmGatewayPackageJson = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+      });
+
+      testbed.cleanup();
+
+      expect(stdoutOutput).toStrictEqual([
+        'gateway-sync: packages/@gateway/npm/src/\n  generated: left-pad\n  untyped: left-pad\n',
+      ]);
+      expect({ npmGatewaySrc, leftPadFolder, npmGatewayPackageJson }).toStrictEqual({
+        npmGatewaySrc: ['left-pad'],
+        leftPadFolder: ['left-pad.test.ts', 'left-pad.ts'],
+        npmGatewayPackageJson: `{\n  "name": "@acme/npm",\n  "version": "0.1.0",\n  "dependencies": {\n    "left-pad": "^1.3.0"\n  }\n}\n`,
+      });
+    });
+
+    it('VALID: {command: "gateway-sync", every dependency already has a folder} => prints nothing to do and leaves the folder untouched', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'cli-flow-gateway-sync-noop',
+      });
+      testbed.writeFile({ relativePath: '.dungeonmaster.json', content: '{}\n' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: `{\n  "name": "@acme/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*", "packages/@gateway/*"],\n  "dependencies": { "left-pad": "^1.3.0" }\n}\n`,
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: `{\n  "name": "@acme/npm",\n  "version": "0.1.0",\n  "dependencies": { "left-pad": "^1.3.0" }\n}\n`,
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.ts',
+        content: "export { default } from 'left-pad';\n",
+      });
+      const stdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'gateway-sync',
+        args: [],
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      stdout.restore();
+      const stdoutOutput = stdout.getOutput();
+      const leftPadBarrel = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.ts',
+      });
+
+      testbed.cleanup();
+
+      expect({ stdoutOutput, leftPadBarrel }).toStrictEqual({
+        stdoutOutput: ['gateway-sync: nothing to do\n'],
+        leftPadBarrel: "export { default } from 'left-pad';\n",
+      });
+    });
+
+    it('ERROR: {command: "gateway-sync", no .dungeonmaster.json at or above the start directory} => throws naming the start directory and writes nothing', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'cli-flow-gateway-sync-no-config',
+      });
+      syncEnv.stageLifecycleEvent({ value: undefined });
+      const stdout = harness.captureStdout();
+
+      const attempt = CliFlow({
+        command: 'gateway-sync',
+        args: [],
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      await expect(attempt).rejects.toThrow(
+        `gateway-sync found no .dungeonmaster.json in ${testbed.guildPath} or any folder above it. Run it inside a repo \`dungeonmaster init\` has set up.`,
+      );
+
+      stdout.restore();
+      const stdoutOutput = stdout.getOutput();
+      const packagesDir = testbed.listDir({ relativePath: 'packages' });
+
+      testbed.cleanup();
+
+      expect({ stdoutOutput, packagesDir }).toStrictEqual({ stdoutOutput: [], packagesDir: null });
+    });
+
+    it('VALID: {command: "gateway-sync", run by npm as the root postinstall, no .dungeonmaster.json above} => prints one skip notice, succeeds and writes nothing', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'cli-flow-gateway-sync-postinstall-no-config',
+      });
+      syncEnv.stageLifecycleEvent({ value: 'postinstall' });
+      const stdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'gateway-sync',
+        args: [],
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      stdout.restore();
+      const stdoutOutput = stdout.getOutput();
+      const packagesDir = testbed.listDir({ relativePath: 'packages' });
+
+      testbed.cleanup();
+
+      expect({ stdoutOutput, packagesDir }).toStrictEqual({
+        stdoutOutput: [
+          `gateway-sync: skipped, no .dungeonmaster.json in ${testbed.guildPath} or any folder above it\n`,
+        ],
+        packagesDir: null,
+      });
     });
   });
 
