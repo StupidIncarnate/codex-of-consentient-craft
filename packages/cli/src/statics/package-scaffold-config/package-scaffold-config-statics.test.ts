@@ -199,9 +199,9 @@ module.exports = {
       );
     });
 
-    it('VALID: {} => the published tsx template widens that tuple to tsx/jsx rather than restating it', () => {
+    it('VALID: {} => the published tsx template keeps the base transform keys first and adds a node_modules-excluding tsx/jsx key after them', () => {
       expect(packageScaffoldConfigStatics.jestConfigTsxPublished).toMatch(
-        /^ {4}'\^\.\+\\\\\.\[jt\]sx\?\$': tsJestEntry,$/mu,
+        /^ {2}transform: \{\n {4}\.\.\.base\.transform,\n {4}'\^\(\?!\.\*\/node_modules\/\)\.\+\\\\\.\[jt\]sx\?\$': tsJestEntry,\n {2}\},$/mu,
       );
     });
 

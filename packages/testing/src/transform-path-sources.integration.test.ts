@@ -1,11 +1,11 @@
 /**
  * Pins that NOTHING jest loads on its transform path reads compiled output.
  *
- * The three files under `ts-jest/` and `jest.setup.js` are loaded by plain Node `require`, before
+ * The transformer files under `ts-jest/` and `jest.setup.js` are loaded by plain Node `require`, before
  * and outside ts-jest's own transform, so the `source` export condition in a jest config cannot
  * reach them — a relative `../dist/...` here stays a `dist` read however the configs are set.
  *
- * That matters more than an ordinary stale import, because these four files sit on EVERY transform
+ * That matters more than an ordinary stale import, because these files sit on EVERY transform
  * in the repo. An edit to the middleware behind `registerMock` is invisible to every test in every
  * package until someone builds, with nothing saying which half of the change is live.
  *
@@ -22,6 +22,7 @@ const TRANSFORM_PATH_FILES = [
   'ts-jest/transformers.js',
   'ts-jest/proxy-mock-transformer.js',
   'ts-jest/harness-lifecycle-transformer.js',
+  'ts-jest/node-modules-transformer.js',
   'src/jest.setup.js',
 ] as const;
 
