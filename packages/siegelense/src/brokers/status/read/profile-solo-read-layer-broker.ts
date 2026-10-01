@@ -10,7 +10,7 @@
  *
  * A profile read that fails (an unknown spec name, an unconfigured `.dungeonmaster.json`) answers
  * `null` rather than throwing, and says nothing: a retired spec is the normal state of an old
- * registry row, and `status --since beginning` reads one row per instance, so a line per failure
+ * registry row, and `status --since 1wk` reads one row per instance, so a line per failure
  * would bury the table. The row shows no profile line instead of a crashed `status` call.
  *
  * USAGE:

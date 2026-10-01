@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Drives `SiegelenseStatusLayerFlow` through its real argv surface — `--instance`,
- * `--branch`, `--since` (`1hr`/`1h`, `6hr`/`6h`, `1day`/`1d`, `beginning`) and `--json` — against a
+ * `--branch`, `--since` (`1hr`/`1h`, `6hr`/`6h`, `1day`/`1d`, `1wk`) and `--json` — against a
  * real `registry.json` under a fresh `installTestbedCreateBroker` tree, matching how the `status`
  * cases in `siegelense-flow.integration.test.ts` drive a real evidence tree with no mocks. Neither
  * `--branch` nor `--since` had ever been driven as literal argv before this file — both had real
@@ -24,7 +24,7 @@
  * `LIKELY CAUSE`, so that row renders `-`.
  *
  * USAGE:
- * await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', 'beginning'] });
+ * await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', '1wk'] });
  * // Writes the rendered table for every main-branch instance, regardless of age
  */
 
@@ -43,7 +43,7 @@ import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegele
 import { SiegelenseStatusLayerFlow } from './siegelense-status-layer-flow';
 
 // 20 minutes ago, 90 minutes ago and 7 hours ago — inside 1h/6h/1d, inside only 6h/1d, and inside
-// only 1d/beginning, respectively. Every offset sits far enough from a minute/hour rounding edge
+// only 1d/1wk, respectively. Every offset sits far enough from a minute/hour rounding edge
 // that the whole suite's runtime cannot cross it.
 const MAIN_RECENT_ID = InstanceIdStub({ value: 'inst_00001aaa' });
 const FEATURE_MID_ID = InstanceIdStub({ value: 'inst_00002bbb' });
@@ -122,7 +122,7 @@ const BRANCH_BETA_TABLE_LINES = [
 ];
 
 // The parser's own accepted `--since` tokens (`status-args-parse-transformer.ts`) — both spellings
-// of each window, plus `beginning` — each mapped to the table its own window must produce against
+// of each window, plus `1wk` — each mapped to the table its own window must produce against
 // the fixture above. '6h'/'6hr' share the same expected table as the no-flag default below: that
 // default IS '6h', proven twice.
 const SINCE_ALIAS_CASES = [
@@ -132,7 +132,7 @@ const SINCE_ALIAS_CASES = [
   ['6hr', SINCE_6H_TABLE_LINES],
   ['1d', SINCE_1D_TABLE_LINES],
   ['1day', SINCE_1D_TABLE_LINES],
-  ['beginning', SINCE_1D_TABLE_LINES],
+  ['1wk', SINCE_1D_TABLE_LINES],
 ] as const;
 
 describe('SiegelenseStatusLayerFlow', () => {
@@ -227,11 +227,11 @@ describe('SiegelenseStatusLayerFlow', () => {
   });
 
   describe('the --branch filter', () => {
-    it('VALID: {callArgs: [--branch, main, --since, beginning]} => includes only the two main-branch instances, regardless of age', async () => {
+    it('VALID: {callArgs: [--branch, main, --since, 1wk]} => includes only the two main-branch instances', async () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', 'beginning'] });
+      await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', '1wk'] });
 
       const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
@@ -240,11 +240,11 @@ describe('SiegelenseStatusLayerFlow', () => {
       expect(wholeOutput!.split('\n').slice(2)).toStrictEqual(BRANCH_MAIN_TABLE_LINES);
     });
 
-    it('VALID: {callArgs: [--branch, beta, --since, beginning]} => includes only the beta-branch instance', async () => {
+    it('VALID: {callArgs: [--branch, beta, --since, 1wk]} => includes only the beta-branch instance', async () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'beta', '--since', 'beginning'] });
+      await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'beta', '--since', '1wk'] });
 
       const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
@@ -266,7 +266,7 @@ describe('SiegelenseStatusLayerFlow', () => {
       const [wholeOutput] = writes;
 
       expect(wholeOutput!.split('\n').slice(2)).toStrictEqual([
-        'No siegelense instances created on branch "nonexistent-branch" in the last 6hr. Widen with --since beginning.',
+        'No siegelense instances created on branch "nonexistent-branch" in the last 6hr. Widen with --since 1wk.',
         '',
       ]);
     });
@@ -377,7 +377,7 @@ describe('SiegelenseStatusLayerFlow', () => {
   describe('the refusal for a flag status does not accept', () => {
     it('INVALID: {callArgs: [--human]} => rejects --human as an unknown flag, naming every accepted flag', async () => {
       await expect(SiegelenseStatusLayerFlow({ callArgs: ['--human'] })).rejects.toThrow(
-        /^Unknown flag: --human\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1h\|6h\|1d\|beginning>\] \[--json\]$/u,
+        /^Unknown flag: --human\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1h\|6h\|1d\|1wk>\] \[--json\]$/u,
       );
     });
   });

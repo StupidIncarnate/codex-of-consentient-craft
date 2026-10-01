@@ -35,7 +35,7 @@
  *   branch: null,
  *   since: '6h',
  * });
- * // Returns 'MONITORED: ...\nMACHINE: ...\nNo siegelense instances created in the last 6hr. Widen with --since beginning.\n'
+ * // Returns 'MONITORED: ...\nMACHINE: ...\nNo siegelense instances created in the last 6hr. Widen with --since 1wk.\n'
  *
  * statusAnswerRenderTransformer({ answer: StatusAnswerStub({ instances: [] }), instanceId: InstanceIdStub() });
  * // Returns 'No record of the instance id "<id>". Check the id that `dungeonmaster siegelense start` returned.\n'
@@ -57,7 +57,7 @@ export const statusAnswerRenderTransformer = ({
   answer: StatusAnswer;
   instanceId: SiegeInstance['id'] | null;
   branch?: string | null;
-  since?: '1h' | '6h' | '1d' | 'beginning' | null;
+  since?: '1h' | '6h' | '1d' | '1wk' | null;
 }): string => {
   const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
   const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? 'unreadable'}`;
@@ -70,8 +70,7 @@ export const statusAnswerRenderTransformer = ({
     const { widest, display: sinceDisplay } = statusTableStatics.sinceWindows;
 
     const branchClause = branch === null ? '' : ` on branch "${branch}"`;
-    const sinceClause =
-      since === null || since === 'beginning' ? '' : ` in the last ${sinceDisplay[since]}`;
+    const sinceClause = since === null ? '' : ` in the last ${sinceDisplay[since]}`;
     const widenClause =
       since === widest
         ? branch === null

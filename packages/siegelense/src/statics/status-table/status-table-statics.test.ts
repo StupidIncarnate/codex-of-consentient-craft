@@ -25,13 +25,13 @@ describe('statusTableStatics', () => {
         indent: '  ',
       },
       sinceWindows: {
-        order: ['1h', '6h', '1d', 'beginning'],
-        widest: 'beginning',
+        order: ['1h', '6h', '1d', '1wk'],
+        widest: '1wk',
         display: {
           '1h': '1hr',
           '6h': '6hr',
           '1d': '1day',
-          beginning: 'beginning',
+          '1wk': '1wk',
         },
       },
     });

@@ -19,7 +19,7 @@ export const statusArgsContract = z
   .object({
     instanceId: siegeInstanceContract.shape.id.nullable(),
     branch: z.string().brand<'StatusArgsBranch'>().nullable().optional(),
-    since: z.enum(['1h', '6h', '1d', 'beginning']).nullable().optional(),
+    since: z.enum(['1h', '6h', '1d', '1wk']).nullable().optional(),
     isJson: z.boolean(),
   })
   .strict()
