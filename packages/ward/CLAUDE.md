@@ -418,14 +418,14 @@ Two shapes, and neither is visible from the exit code alone:
 | kernel out-of-memory reaper | **SIGKILL**, and the process says nothing at all |
 
 **`RawOutput.signal` is what separates the second from an ordinary failure.** A child killed from
-outside chose no exit code of its own, so `childProcessSpawnCaptureAdapter` hands back 1 — identical
-to eslint failing over lint errors. That adapter reports the signal ALONGSIDE the exit code rather
+outside chose no exit code of its own, so `run` (`#gateway/node/child_process`) hands back 1 — identical
+to eslint failing over lint errors. That wrapper reports the signal ALONGSIDE the exit code rather
 than folding it in, and `signal` is `null` (never absent) so one value means "not killed" whether the
 field was written, left off by an early return that spawned nothing, or read from a `.ward/` result
 saved before the field existed.
 
 `isOutOfMemoryFailureGuard` ORs the three pieces of evidence, because each arrives alone in a real
-case. It excludes SIGTERM deliberately: that is the spawn adapter's own timeout kill, and reporting a
+case. It excludes SIGTERM deliberately: that is the spawn wrapper's own timeout kill, and reporting a
 timeout as memory sends a reader after the wrong thing.
 
 **This replaced a test.** A memory-ceiling integration test used to spawn a real full-repo lint
@@ -441,7 +441,7 @@ there; whether that is a real failure is decided once for the whole run.
 
 **E2e eligibility gate:** The e2e broker first asks `architecturePackageE2eEligibleDetectBroker`
 (`@dungeonmaster/shared`) whether the package's own `src/` layout and `package.json` qualify it as
-e2e-eligible — `widgets/` plus either a React dependency or the `ink` adapter. A non-eligible package
+e2e-eligible — `widgets/` plus either a React dependency or an Ink dependency. A non-eligible package
 (most backends, CLIs, libraries) returns `status: 'skip'` without ever checking for
 `playwright.config.ts`. An **eligible** package missing `playwright.config.ts` returns `status: 'fail'`
 — that combination is a real gap, not something to skip quietly. Only an eligible package WITH the

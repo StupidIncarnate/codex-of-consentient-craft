@@ -1109,8 +1109,8 @@ Two rules qualify it, and both are load-bearing:
 1. **A done-check reads DISK or git, never `quest.json` alone.** A recorded `worktreePath` is a claim; a reachable
    directory whose HEAD is still the recorded branch is proof. The spiritmender that ran between the two attempts may
    have deleted, moved, repaired or `npm install`ed things the ledger knows nothing about. Concretely: the base branch
-   is re-verified with `gitVerifyRefAdapter` rather than trusted; the worktree is checked with `pathExists`
-   AND `gitCurrentBranchAdapter`; a recorded path that is GONE reads as not-done and is RE-CREATED (attaching to the
+   is re-verified with `verifyRef` (`#gateway/bin/git`) rather than trusted; the worktree is checked with `pathExists`
+   AND `currentBranch` (`#gateway/bin/git`); a recorded path that is GONE reads as not-done and is RE-CREATED (attaching to the
    surviving branch without `-b`, after a `git worktree prune`) rather than blocking; and the `node_modules` mirror
    done-checks PER ROOT inside `populate-one-root-layer-broker`, because an attempt may have mirrored six roots of
    nine before dying. Every skip emits its own `— skip … —` line, so the streamed output IS the evidence the contract
@@ -1532,7 +1532,7 @@ and the operation item's own text) — no quest content, which each step fetches
 `get-quest`.
 
 **`agentPromptGetBroker` stamps `workItem.startRef`** — the quest worktree's HEAD
-sha, read with `gitHeadShaAdapter` off the checkout `questCwdResolveBroker` resolves. It is written
+sha, read with `headSha` (`#gateway/bin/git`) off the checkout `questCwdResolveBroker` resolves. It is written
 the FIRST time an item is served its prompt and NEVER moved, so a re-served prompt (an
 orphan-recovery resume, a redelivered fetch) does not shrink the range it marks: a later HEAD
 already contains that item's own commits. Guarded twice — a pre-check that skips the git spawn on

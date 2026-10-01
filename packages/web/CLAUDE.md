@@ -612,10 +612,10 @@ All six are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts
 
 1. **Node overlap vs. full labels.** Cards show the whole label wrapped (no clamp) at
    `width: node.width`, so height varies. ELK lays out non-overlapping rectangles, so it must reserve
-   each node's REAL height or stacked rows overlap. The elk adapter estimates height from label
+   each node's REAL height or stacked rows overlap. `elkLayoutBroker` estimates height from label
    length with `elkLayoutStatics.labelEstimate`, using a deliberately LOW `charsPerLine` (18 vs the
    ~29 a 240px monospace line truly fits) so the estimate is an UPPER bound — reserved box ≥ rendered
-   card, no DOM-measure two-pass needed. The estimate must be computed INLINE in the adapter's `.map`
+   card, no DOM-measure two-pass needed. The estimate must be computed INLINE in `elkLayoutBroker`'s `.map`
    callback; a named non-exported helper trips the "non-exported functions forbidden" lint.
 2. **Edge labels overlap because React Flow paints them at the edge MIDPOINT**, independent of ELK's
    label placement — feeding ELK `edge.labels` does not fix it. A custom edge renders the full label
@@ -636,7 +636,7 @@ All six are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts
    panel deciding. Guarded by `canvasFillsPanelBelowRequest` in `test/harnesses/flow-diagram/`, which
    measures the canvas against the panel's own bottom edge; a jsdom assertion on the style alone
    cannot tell you the chain resolved.
-4. **Duplicate controls.** The adapter's `<Controls>` are the actuators the custom RPG buttons
+4. **Duplicate controls.** React Flow's `<Controls>` (rendered inside `react-flow-widget.tsx`) are the actuators the custom RPG buttons
    `.click()`; keep them mounted but `display: none`. Programmatic clicks still fire on a hidden
    button.
 5. **A node's measurement is taken ONCE, and losing it costs you every edge.** `adoptUserNodes` keeps
@@ -646,7 +646,7 @@ All six are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts
    touching one — silently. The symptom is therefore "the cards are fine, the LINES are missing", which
    points nowhere near measurement. Two things hold it: `nodes`/`edges` are `useMemo`d in
    `react-flow-diagram-widget.tsx` (which is why the early returns sit BELOW the memos, and why the
-   empty-array prop defaults are module constants), and `node-measure-layer-adapter.ts` re-measures
+   empty-array prop defaults are module constants), and `node-measure-layer-widget.tsx` (`NodeMeasureLayerWidget`) re-measures
    from the DOM whenever React Flow reports `nodesInitialized === false`. The memo alone is not enough:
    a `quest-modified` over the websocket is a genuine content change, so it busts any memo, and it
    arrives during exactly the frame the first measurement lands in.

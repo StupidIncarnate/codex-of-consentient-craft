@@ -64,13 +64,13 @@ Claude CLI outputs newline-delimited JSON (JSONL) during sessions. Each line has
 
 **Design decision:** One `assistant-stream-line` contract with variant stubs (not separate contracts per content type). The outer shape `{type: 'assistant', message: {content: [...]}}` is identical — only content items differ.
 
-## Streaming Adapters: the output callback is REQUIRED, never optional
+## Streaming Wrappers: the output callback is REQUIRED, never optional
 
-`childProcessSpawnStreamLinesAdapter` takes `onLine` as a **required** parameter. Any future adapter
+`streamLines` (from `#gateway/node/child_process`) takes `onLine` as a **required** parameter. Any future wrapper
 that streams a long-running process's output must do the same. This is a deliberate ergonomic
 choice, and it is load-bearing:
 
-- The adapter is the ONLY place a subprocess's output exists **while the process is still running**.
+- The wrapper is the ONLY place a subprocess's output exists **while the process is still running**.
   The returned `output` does not resolve until exit, so it can never drive a live UI.
 - An optional callback makes "no live output" the default, and choosing it is **invisible**: the
   code compiles, the command runs, the returned result is correct, and the only symptom is a
@@ -98,7 +98,7 @@ import {cwdResolveBroker} from '@dungeonmaster/shared/brokers';
 const repoRoot = await cwdResolveBroker({startPath, kind: 'repo-root'});
 ```
 
-`startPath` is a `FilePath` (typically `processCwdAdapter()`). `kind` selects what to walk up for:
+`startPath` is a `FilePath` (typically `cwd()` from `#gateway/node/process`). `kind` selects what to walk up for:
 
 | `kind`                 | Walks up to the directory containing | Return brand           |
 |------------------------|--------------------------------------|------------------------|
