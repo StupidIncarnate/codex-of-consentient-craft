@@ -35,10 +35,9 @@ import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 import type { OpenHandle } from '../../../contracts/open-handle/open-handle-contract';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
-import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { bundleBuildBroker } from '../../bundle/build/bundle-build-broker';
 import { e2eArtifactsRemoveBroker } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker';
-import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
+import { runnerCommandResolveBroker } from '../../runner-command/resolve/runner-command-resolve-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 
 export const checkRunE2eBroker = async ({
@@ -122,17 +121,17 @@ export const checkRunE2eBroker = async ({
     testNamePattern === undefined
       ? [...args, ...e2eFiles]
       : [...args, '--grep', testNamePattern, '--pass-with-no-tests', ...e2eFiles];
-  const command = binResolveBroker({ binName: bin, cwd });
+  const runner = runnerCommandResolveBroker({ binName: bin, cwd });
 
   // The prebuilt UI bundle `vite preview` serves, keyed by a hash of every source in this package's
   // `dependencies` closure — so a run whose inputs have not changed reuses the build instead of
   // paying a dev server's startup and per-request transform for the whole suite.
   //
-  // The Playwright process (runner and worker, which import the harnesses) gets `--conditions=source`
-  // below, like ward's jest children, so `@dungeonmaster/shared` and `@dungeonmaster/testing` resolve
-  // to TypeScript there and a stub or proxy `dist/` does not ship is still reachable. The servers
-  // under test do not keep it: `packages/web/playwright.config.ts` strips it from their env, because
-  // Vite loads its config through plain Node and that condition sends it to `.ts` barrels.
+  // The Playwright processes (the CLI, its runner and its workers, which import the harnesses) get
+  // `--conditions=source` through the runner command, like ward's jest children, so
+  // `@dungeonmaster/shared` and `@dungeonmaster/testing` resolve to TypeScript there and a stub or
+  // proxy `dist/` does not ship is still reachable. The servers under test and any program a global
+  // setup or a harness spawns do not inherit it — see runnerCommandResolveBroker.
   const bundle = await bundleBuildBroker({ packageRoot });
 
   if (bundle.error !== null) {
@@ -179,15 +178,14 @@ export const checkRunE2eBroker = async ({
   // resolved for an ENOENT, so a machine without the resolved bin reads as a failing e2e run below,
   // exactly as it always has.
   const result = await run({
-    command,
-    args: finalArgs,
+    command: runner.command,
+    args: [...runner.leadingArgs, ...finalArgs],
     cwd,
     env: {
       [openHandleReportStatics.env.pathVar]: handleReportPath,
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),
       PLAYWRIGHT_JSON_OUTPUT_NAME: jsonReportPath,
-      ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
       // Absent when the package has no build script to make a bundle with. The consumer's
       // playwright config decides what to serve then; ward states what it has rather than
       // pointing at a directory it never built.

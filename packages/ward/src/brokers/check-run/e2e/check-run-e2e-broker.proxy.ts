@@ -10,11 +10,11 @@ import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.proxy';
 import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
-import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+import { runnerCommandResolveBrokerProxy } from '../../runner-command/resolve/runner-command-resolve-broker.proxy';
 import { bundleBuildBrokerProxy } from '../../bundle/build/bundle-build-broker.proxy';
-import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import { RunnerCommandStub } from '../../../contracts/runner-command/runner-command.stub';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 
 // The sha-256 of the three files bundleBuildBrokerProxy's single-package fixture stages, in sorted
@@ -34,6 +34,7 @@ export const checkRunE2eBrokerProxy = (): {
   setupSourceConditionUnsupported: (params: { projectFolder: ProjectFolder }) => void;
   getRemovedCachePaths: (params: { projectFolder: ProjectFolder }) => readonly unknown[][];
   getSpawnedArgs: () => unknown;
+  getSpawnedCommandLine: () => unknown;
   getSpawnedEnvValue: (params: { key: string }) => unknown;
   getSpawnedOptions: () => unknown;
 } => {
@@ -60,18 +61,17 @@ export const checkRunE2eBrokerProxy = (): {
   // the run to work. It IS staged, because the removal is behaviour worth asserting: the port it
   // deletes under, and that it still fires on the early-return path below.
   const removeProxy = e2eArtifactsRemoveBrokerProxy();
-  const binProxy = binResolveBrokerProxy();
+  const runnerProxy = runnerCommandResolveBrokerProxy();
   // Every setup below except setupPassWithBundle leaves the bundle broker's own manifest read
   // UNSTAGED, so it answers "no build script" and the run gets no bundle — which is what those
   // setups' expectations describe.
   const bundleProxy = bundleBuildBrokerProxy();
-  // The resolved bin path depends on projectFolder.path, so the getters below (which take no
-  // params) address the spawn read against whatever setup last resolved — set here, read there.
-  const resolvedCommandRef: { value: string } = { value: '/project/node_modules/.bin/eslint' };
-  // `sourceConditionSupportedBroker` walks every ancestor of the cwd, so "reachable" is staged per
-  // cwd in `setupPlaywrightConfigExists`; a cwd `setupSourceConditionUnsupported` marked keeps that
-  // answer whichever order the two setups are called in.
-  const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
+  // The runner command depends on projectFolder.path, so the getters below (which take no params)
+  // address the spawn read against whatever setup last resolved — set here, read there.
+  const runnerRef: { value: ReturnType<typeof RunnerCommandStub> } = { value: RunnerCommandStub() };
+  // Whether the `source` barrel is reachable is staged per cwd in `stageRun`; a cwd
+  // `setupSourceConditionUnsupported` marked is staged as a consumer's install instead, so call that
+  // before `setupPass` and its siblings.
   const unsupportedCwds = new Set<string>();
 
   // The broker names its Playwright report AND its vite cache after the SERVER port, so this
@@ -110,13 +110,31 @@ export const checkRunE2eBrokerProxy = (): {
     });
   };
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): string => {
-    const command = binProxy.setupFound({
-      cwd: projectFolder.path,
-      binName: checkCommandsStatics.e2e.bin,
+  // Addressed by the runner command and its leading args only, never the Playwright args. The
+  // leading args are what tell Playwright apart from jest when both run under the same node.
+  const stageRun = ({
+    projectFolder,
+    exitCode,
+    stdout,
+  }: {
+    projectFolder: ProjectFolder;
+    exitCode: number;
+    stdout: string;
+  }): void => {
+    const cwd = projectFolder.path;
+    const binName = checkCommandsStatics.e2e.bin;
+    const runner = unsupportedCwds.has(cwd)
+      ? runnerProxy.setupBuiltRunner({ cwd, binName })
+      : runnerProxy.setupSourceRunner({ cwd, binName });
+    runnerRef.value = runner;
+    run.setupSuccess({
+      command: runner.command,
+      args: (spawnArgs: readonly unknown[]): boolean =>
+        runner.leadingArgs.every((leadingArg, index) => spawnArgs[index] === leadingArg),
+      exitCode,
+      stdout,
+      stderr: '',
     });
-    resolvedCommandRef.value = command;
-    return command;
   };
 
   const markEligible = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
@@ -137,10 +155,6 @@ export const checkRunE2eBrokerProxy = (): {
       path: `${projectFolder.path}/playwright.config.ts`,
       exists: true,
     });
-    const cwd = projectFolder.path;
-    if (!unsupportedCwds.has(cwd)) {
-      sourceConditionProxy.setupSupported({ cwd });
-    }
   };
 
   const bundleDirFor = ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
@@ -161,12 +175,7 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      run.setupSuccess({
-        command: resolveCommand({ projectFolder }),
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      });
+      stageRun({ projectFolder, exitCode: 0, stdout: '' });
     },
 
     setupPassWithBundle: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
@@ -174,12 +183,7 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       stageCachedBundle({ projectFolder });
-      run.setupSuccess({
-        command: resolveCommand({ projectFolder }),
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      });
+      stageRun({ projectFolder, exitCode: 0, stdout: '' });
     },
 
     getBundleDir: ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
@@ -195,12 +199,7 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      run.setupSuccess({
-        command: resolveCommand({ projectFolder }),
-        exitCode: 0,
-        stdout,
-        stderr: '',
-      });
+      stageRun({ projectFolder, exitCode: 0, stdout });
     },
 
     setupPassWithJsonReport: ({
@@ -213,12 +212,7 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      run.setupSuccess({
-        command: resolveCommand({ projectFolder }),
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      });
+      stageRun({ projectFolder, exitCode: 0, stdout: '' });
       readProxy.returns({
         path: `${projectFolder.path}/.ward-playwright-report-40000.json`,
         contents: jsonContent,
@@ -235,24 +229,14 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      run.setupSuccess({
-        command: resolveCommand({ projectFolder }),
-        exitCode: 1,
-        stdout,
-        stderr: '',
-      });
+      stageRun({ projectFolder, exitCode: 1, stdout });
     },
 
     setupFailWithEmptyOutput: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      run.setupSuccess({
-        command: resolveCommand({ projectFolder }),
-        exitCode: 1,
-        stdout: '',
-        stderr: '',
-      });
+      stageRun({ projectFolder, exitCode: 1, stdout: '' });
     },
 
     setupNotE2eEligible: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
@@ -279,9 +263,7 @@ export const checkRunE2eBrokerProxy = (): {
     }: {
       projectFolder: ProjectFolder;
     }): void => {
-      const cwd = projectFolder.path;
-      unsupportedCwds.add(cwd);
-      sourceConditionProxy.setupUnsupported({ cwd });
+      unsupportedCwds.add(projectFolder.path);
     },
 
     getRemovedCachePaths: ({
@@ -293,10 +275,20 @@ export const checkRunE2eBrokerProxy = (): {
         packageRoot: projectFolder.path,
         port: STAGED_SERVER_PORT,
       }),
-    getSpawnedArgs: (): unknown => run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
+    // The arguments Playwright itself received: the spawn's args after the runner command's leading
+    // args.
+    getSpawnedArgs: (): unknown =>
+      run
+        .getCallsFor({ command: runnerRef.value.command })
+        .at(-1)
+        ?.slice(runnerRef.value.leadingArgs.length),
+    getSpawnedCommandLine: (): unknown => ({
+      command: runnerRef.value.command,
+      args: run.getCallsFor({ command: runnerRef.value.command }).at(-1),
+    }),
     getSpawnedEnvValue: ({ key }: { key: string }): unknown =>
-      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env[key],
+      run.getOptionsFor({ command: runnerRef.value.command }).at(-1)?.env[key],
     getSpawnedOptions: (): unknown =>
-      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1),
+      run.getOptionsFor({ command: runnerRef.value.command }).at(-1),
   };
 };

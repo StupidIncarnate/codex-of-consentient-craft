@@ -1,4 +1,4 @@
-import { getEnv, pid } from '#gateway/node/process';
+import { execPath, getEnv, pid } from '#gateway/node/process';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -10,6 +10,7 @@ import { OpenHandleStub } from '../../../contracts/open-handle/open-handle.stub'
 
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 
+import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { checkRunUnitBroker } from './check-run-unit-broker';
 import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
 
@@ -305,17 +306,24 @@ describe('checkRunUnitBroker', () => {
   });
 
   describe('source export condition', () => {
-    it('VALID: {shared source barrel reachable} => spawns jest with NODE_OPTIONS=--conditions=source', async () => {
+    it('VALID: {shared source barrel reachable} => runs jest through this node with --conditions=source', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({ projectFolder, fileList: [] });
 
-      expect(proxy.getSpawnedNodeOptions()).toBe('--conditions=source');
+      expect(proxy.getSpawnedCommandLine()).toStrictEqual({
+        command: execPath,
+        args: [
+          '--conditions=source',
+          `${projectFolder.path}/node_modules/.bin/jest`,
+          ...checkCommandsStatics.unit.args,
+        ],
+      });
     });
 
-    it('VALID: {consumer install, shared packs dist only} => spawns jest with no NODE_OPTIONS at all', async () => {
+    it('VALID: {consumer install, shared packs dist only} => runs the jest bin itself', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setupSourceConditionUnsupported({ projectFolder });
@@ -323,7 +331,20 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({ projectFolder, fileList: [] });
 
-      expect(proxy.getSpawnedNodeOptions()).toBe(undefined);
+      expect(proxy.getSpawnedCommandLine()).toStrictEqual({
+        command: `${projectFolder.path}/node_modules/.bin/jest`,
+        args: [...checkCommandsStatics.unit.args],
+      });
+    });
+
+    it('VALID: {shared source barrel reachable} => hands jest NODE_OPTIONS exactly as ward found it', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedNodeOptions()).toBe(getEnv('NODE_OPTIONS'));
     });
   });
 

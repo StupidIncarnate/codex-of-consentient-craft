@@ -242,10 +242,10 @@ cannot.
 | Consumer | Honours `source`? | Mechanism |
 |---|---|---|
 | jest | **Yes** | `customExportConditions` in the jest config |
-| ward's jest child process itself | **Yes**, conditionally | `NODE_OPTIONS=--conditions=source`, injected by the unit and integration brokers |
+| ward's jest and Playwright processes themselves | **Yes**, conditionally | `node --conditions=source <bin>`, built by `runnerCommandResolveBroker` for the unit, integration and e2e brokers |
 | tsc | **No** | See below |
 | eslint | No | Its own rule modules resolve through plain Node |
-| Playwright, vite config loader, plain `node` | No | Plain Node CJS, no condition |
+| vite config loader, plain `node`, any program a test spawns | No | Plain Node CJS, no condition |
 
 **The `source` condition does nothing for tsc under node10.** Node10 ignores `exports`, so the key is
 never read. Nor can the flag simply be added: TypeScript accepts `customConditions` only under
@@ -271,11 +271,12 @@ stay in the list.
 
 `customExportConditions` governs only what the TEST environment resolves. The transform glue's own
 `@dungeonmaster/shared` imports are resolved by Node, outside that environment, so without help the
-jest process reads `dist/` while the tests it runs read source. `checkRunUnitBroker` and
-`checkRunIntegrationBroker` therefore spawn jest with `NODE_OPTIONS=--conditions=source`.
-`checkRunTypecheckBroker`, `checkRunLintBroker` and `checkRunE2eBroker` set no environment at all.
+jest process reads `dist/` while the tests it runs read source. `checkRunUnitBroker`,
+`checkRunIntegrationBroker` and `checkRunE2eBroker` therefore start their runner as
+`node --conditions=source <bin>`, through `runnerCommandResolveBroker`. `checkRunTypecheckBroker` and
+`checkRunLintBroker` spawn their bin directly, with no condition.
 
-That injection is guarded, because **Node does not fall through when a matched condition names a
+That condition is guarded, because **Node does not fall through when a matched condition names a
 missing file** — it throws `MODULE_NOT_FOUND` naming the `.ts` path:
 
 ```
@@ -287,25 +288,25 @@ Several non-private packages declare a `source` condition naming a file their `f
 packs — cli, config, eslint-plugin, mcp, orchestrator, shared and tooling among them — and ward is
 published and runs in other people's repos. So `sourceConditionSupportedBroker` walks ancestor
 directories for `node_modules/@dungeonmaster/shared/statics.ts`, present here through the workspace
-symlink and absent in an install, and the flag is injected only where it can work. The guarantee is
+symlink and absent in an install, and the flag is added only where it can work. The guarantee is
 behavioural rather than declarative: the manifests keep advertising `source` targets they do not ship.
 Packing the barrels instead is rejected, because they `export *` from `src/**` — honouring the
 condition declaratively means shipping those packages' whole TypeScript trees. `@dungeonmaster/testing`
 is the one package that does pack every file its `source` keys name, and it does so for an unrelated
 reason: its published `ts-jest` glue reads `../src/…` at runtime.
 
-### The variable is inherited, and is stripped before any grandchild sees it
+### The condition is a node argument, so a test's own child never inherits it
 
-`NODE_OPTIONS` reaches every descendant process. A test that spawns a compiled child — a built hook
-binary, the bundled CLI — would hand that child source resolution, and it would die resolving a `.ts`
-file it cannot parse. `packages/testing/src/jest.setup.js` removes `--conditions=source` from
-`process.env.NODE_OPTIONS` at setup time for exactly that reason.
+The condition reaches every process that loads tests, and no other. Jest forks its workers, and
+Playwright forks its runner and its workers, each with the parent's `execArgv`, so all of them
+resolve workspace packages to source. A test's own `spawn(process.execPath, ...)` does not inherit
+`execArgv`, and ward leaves `NODE_OPTIONS` alone, so a built program a test starts — a hook binary,
+the bundled CLI, an Electron main — loads its `dist/` exactly as a consumer's would. Passed through
+`NODE_OPTIONS` instead, the condition would travel through the environment into every descendant,
+and a built child would die resolving a `.ts` file it cannot load.
 
-Deleting it there does not weaken the jest process: Node parses `NODE_OPTIONS` once at startup, so the
-condition stays applied to every resolution the worker makes afterwards, and jest forks its workers
-from the untouched main-process environment. It only stops the value being copied outward.
-`packages/cli`'s `cli-bin.harness.ts` additionally sets `NODE_OPTIONS: ''` on its own spawn, so that
-one measures what a consumer requiring the shipped esbuild bundle gets.
+A test that wants a source child asks for it: it passes `--conditions=source` to that child. A child
+started with `fork()` inherits `execArgv` the way Jest's own workers do.
 
 ### Lint is not a member of the "reads source" list, in one narrow way
 
