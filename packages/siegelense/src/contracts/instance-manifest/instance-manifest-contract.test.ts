@@ -22,6 +22,10 @@ describe('instanceManifestContract', () => {
             path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
             linkPresent: true,
           },
+          driver: {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/driver.log',
+            linkPresent: true,
+          },
         },
         seeded: null,
         queuedMs: 34_000,
@@ -49,6 +53,10 @@ describe('instanceManifestContract', () => {
             path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
             linkPresent: true,
           },
+          driver: {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/driver.log',
+            linkPresent: true,
+          },
         },
         seeded: null,
         queuedMs: 34_000,
@@ -70,6 +78,10 @@ describe('instanceManifestContract', () => {
           },
           web: {
             path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/web-server.log',
+            linkPresent: true,
+          },
+          driver: {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/driver.log',
             linkPresent: true,
           },
         },
@@ -99,6 +111,10 @@ describe('instanceManifestContract', () => {
             path: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
             linkPresent: false,
           },
+          driver: {
+            path: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_7f3a9c21/driver.log',
+            linkPresent: false,
+          },
         },
       });
 
@@ -120,6 +136,10 @@ describe('instanceManifestContract', () => {
           },
           web: {
             path: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
+            linkPresent: false,
+          },
+          driver: {
+            path: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_7f3a9c21/driver.log',
             linkPresent: false,
           },
         },
@@ -162,6 +182,39 @@ describe('instanceManifestContract', () => {
     it('INVALID: {missing instanceId} => throws Required', () => {
       expect(() =>
         instanceManifestContract.parse({
+          specName: 'dungeonmaster-stack',
+          baseUrl: 'http://localhost:34173',
+          home: '/tmp/dm-siege-inst_7f3a9c21',
+          evidence: {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
+            linkPresent: true,
+          },
+          logs: {
+            api: {
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log',
+              linkPresent: true,
+            },
+            web: {
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
+              linkPresent: true,
+            },
+            driver: {
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/driver.log',
+              linkPresent: true,
+            },
+          },
+          seeded: null,
+          queuedMs: 34_000,
+          aheadOfMe: 2,
+          bootMs: 21_000,
+        }),
+      ).toThrow(/received undefined/u);
+    });
+
+    it('INVALID: {missing driver in logs} => throws received undefined', () => {
+      expect(() =>
+        instanceManifestContract.parse({
+          instanceId: 'inst_7f3a9c21',
           specName: 'dungeonmaster-stack',
           baseUrl: 'http://localhost:34173',
           home: '/tmp/dm-siege-inst_7f3a9c21',

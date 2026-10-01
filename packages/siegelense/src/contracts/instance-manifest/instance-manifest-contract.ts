@@ -6,7 +6,7 @@
  * spec is just another spec"), so a caller that only checks "is this field present" before opening it
  * would otherwise get a URL nothing answers, with nothing saying why. `null` here means exactly "this
  * spec never claimed a web surface" — never "the surface failed to come up," which is what
- * `LaneBootFailedError` is for. `evidence` and both `logs` entries are `RepoLocalPath`,
+ * `LaneBootFailedError` is for. `evidence` and all three `logs` entries are `RepoLocalPath`,
  * never a bare `AbsoluteFilePath`, because a shot is only evidence if the reader's `Read` can reach it
  * (line 165) and a repo that has never run `init` still needs an honest answer rather than a path that
  * silently stops resolving. The guild folded into `evidence`'s and each log's underlying path is the
@@ -29,6 +29,7 @@
  *   logs: {
  *     api: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log', linkPresent: true },
  *     web: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log', linkPresent: true },
+ *     driver: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/driver.log', linkPresent: true },
  *   },
  *   seeded: { guildSlug: 'siege-guild', guildId: '7306b468-…' },
  *   queuedMs: 34000,
@@ -95,6 +96,7 @@ export const instanceManifestContract = z
       .object({
         api: repoLocalPathContract,
         web: repoLocalPathContract,
+        driver: repoLocalPathContract,
       })
       .brand<'InstanceManifestLogs'>(),
     seeded: seedResultContract.nullable(),

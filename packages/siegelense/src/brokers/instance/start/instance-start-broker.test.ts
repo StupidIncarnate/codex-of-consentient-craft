@@ -652,6 +652,38 @@ describe('instanceStartBroker', () => {
         linkPresent: true,
       });
     });
+
+    it('VALID: {start} => the manifest carries api, web, and driver logs as repo-local paths', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: 'api',
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
+
+      expect(result.logs).toStrictEqual({
+        api: {
+          path: '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479/api-server.log',
+          linkPresent: true,
+        },
+        web: {
+          path: '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479/web-server.log',
+          linkPresent: true,
+        },
+        driver: {
+          path: '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479/driver.log',
+          linkPresent: true,
+        },
+      });
+    });
   });
 
   describe('a failed seed stops the driver it just booted', () => {
