@@ -14,7 +14,7 @@
  * cleanupAnswerContract.parse({
  *   reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33812, 33840], homeRemoved: true }],
  *   portsReleased: [41345, 34173],
- *   lockReleased: true,
+ *   lockReleaseOutcome: 'released',
  *   assetsAged: { instances: 3, freedMB: 1840 },
  *   leftAlone: [{ id: 'inst_7f3a', why: 'live — last beat 2s ago' }],
  * });
@@ -25,6 +25,7 @@ import { z } from '#gateway/npm/zod';
 
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { leftAloneContract } from '../left-alone/left-alone-contract';
+import { lockReleaseOutcomeContract } from '../lock-release-outcome/lock-release-outcome-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
 
 export const cleanupAnswerContract = z
@@ -40,7 +41,7 @@ export const cleanupAnswerContract = z
           .brand<'CleanupAnswerPortsReleased'>(),
       )
       .readonly(),
-    lockReleased: z.boolean(),
+    lockReleaseOutcome: lockReleaseOutcomeContract,
     assetsAged: z
       .object({
         instances: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedInstances'>(),

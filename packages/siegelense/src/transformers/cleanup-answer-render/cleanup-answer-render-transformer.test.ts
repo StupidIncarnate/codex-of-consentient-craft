@@ -4,11 +4,11 @@ import { cleanupAnswerRenderTransformer } from './cleanup-answer-render-transfor
 
 describe('cleanupAnswerRenderTransformer', () => {
   describe('one reaped, two left alone', () => {
-    it('VALID: {reaped, portsReleased, lockReleased, assetsAged, two leftAlone reasons} => the exact text including both reasons', () => {
+    it('VALID: {reaped, portsReleased, lockReleaseOutcome: "released", assetsAged, two leftAlone reasons} => the exact text including both reasons', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         assetsAged: { instances: 3, freedMB: 1840 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
@@ -29,11 +29,11 @@ describe('cleanupAnswerRenderTransformer', () => {
   });
 
   describe('nothing reaped and nothing left alone', () => {
-    it('EMPTY: {reaped: [], portsReleased: [], lockReleased: false, nothing aged, leftAlone: []} => "none" fills every field, and the aged line prints its zero', () => {
+    it('EMPTY: {reaped: [], portsReleased: [], lockReleaseOutcome: "none-held", nothing aged, leftAlone: []} => "none" fills every field, and the aged line prints its zero', () => {
       const answer = CleanupAnswerStub({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
@@ -55,7 +55,7 @@ describe('cleanupAnswerRenderTransformer', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_dead0', staleFor: '3h', killed: [], homeRemoved: false }],
         portsReleased: [],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
@@ -77,7 +77,7 @@ describe('cleanupAnswerRenderTransformer', () => {
       const answer = CleanupAnswerStub({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 1, freedMB: 12 },
         leftAlone: [
           {
@@ -95,6 +95,28 @@ describe('cleanupAnswerRenderTransformer', () => {
           'LOCK RELEASED: none held\n' +
           'ASSETS AGED: 1 instances, 12MB\n' +
           'LEFT ALONE: inst_1d09 (run_7 cited by a VERIFIED prelude in /repo/.quest-plans/1dac5395/path-3.md)\n',
+      );
+    });
+  });
+
+  describe('lock release failed', () => {
+    it('ERROR: {lockReleaseOutcome: "failed"} => renders "LOCK RELEASED: failed"', () => {
+      const answer = CleanupAnswerStub({
+        reaped: [],
+        portsReleased: [],
+        lockReleaseOutcome: 'failed',
+        assetsAged: { instances: 0, freedMB: 0 },
+        leftAlone: [],
+      });
+
+      const result = cleanupAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'REAPED: none\n' +
+          'PORTS RELEASED: none\n' +
+          'LOCK RELEASED: failed\n' +
+          'ASSETS AGED: 0 instances, 0MB\n' +
+          'LEFT ALONE: none\n',
       );
     });
   });

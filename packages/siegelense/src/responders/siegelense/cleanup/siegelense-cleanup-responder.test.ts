@@ -11,7 +11,7 @@ describe('SiegelenseCleanupResponder', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         leftAlone: [],
       });
       proxy.stageAnswer({ answer });
@@ -32,7 +32,7 @@ describe('SiegelenseCleanupResponder', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         leftAlone: [],
       });
       proxy.stageAnswer({ answer });
@@ -49,7 +49,7 @@ describe('SiegelenseCleanupResponder', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         leftAlone: [],
       });
       proxy.stageAnswer({ answer });
@@ -72,7 +72,7 @@ describe('SiegelenseCleanupResponder', () => {
       const answer = CleanupAnswerStub({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         leftAlone: [{ id: 'inst_7f3a', why: 'live — last beat 2s ago' }],
       });
       proxy.stageAnswer({ answer });
@@ -89,7 +89,7 @@ describe('SiegelenseCleanupResponder', () => {
       const answer = CleanupAnswerStub({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         leftAlone: [{ id: 'inst_7f3a', why: 'live — last beat 2s ago' }],
       });
       proxy.stageAnswer({ answer });

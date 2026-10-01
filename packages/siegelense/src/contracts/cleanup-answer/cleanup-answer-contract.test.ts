@@ -7,7 +7,7 @@ describe('cleanupAnswerContract', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         assetsAged: { instances: 3, freedMB: 1840 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
@@ -23,7 +23,7 @@ describe('cleanupAnswerContract', () => {
       expect(result).toStrictEqual({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         assetsAged: { instances: 3, freedMB: 1840 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
@@ -48,7 +48,7 @@ describe('cleanupAnswerContract', () => {
       expect(result).toStrictEqual({
         reaped: [],
         portsReleased: [],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
@@ -70,7 +70,7 @@ describe('cleanupAnswerContract', () => {
       expect(result).toStrictEqual({
         reaped: [],
         portsReleased: [],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
@@ -86,7 +86,7 @@ describe('cleanupAnswerContract', () => {
         cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
-          lockReleased: true,
+          lockReleaseOutcome: 'released',
           leftAlone: [],
         }),
       ).toThrow(/received undefined/u);
@@ -97,7 +97,7 @@ describe('cleanupAnswerContract', () => {
         cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
-          lockReleased: true,
+          lockReleaseOutcome: 'released',
           assetsAged: { instances: 3 },
           leftAlone: [],
         }),
@@ -109,7 +109,7 @@ describe('cleanupAnswerContract', () => {
         cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
-          lockReleased: true,
+          lockReleaseOutcome: 'released',
           assetsAged: { instances: 3, freedMB: 1840, videoFirst: true },
           leftAlone: [],
         }),
@@ -118,7 +118,7 @@ describe('cleanupAnswerContract', () => {
   });
 
   describe('invalid answers', () => {
-    it('INVALID: {missing lockReleased} => throws Required', () => {
+    it('INVALID: {missing lockReleaseOutcome} => throws Invalid option', () => {
       expect(() =>
         cleanupAnswerContract.parse({
           reaped: [],
@@ -126,7 +126,7 @@ describe('cleanupAnswerContract', () => {
           assetsAged: { instances: 0, freedMB: 0 },
           leftAlone: [],
         }),
-      ).toThrow(/received undefined/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

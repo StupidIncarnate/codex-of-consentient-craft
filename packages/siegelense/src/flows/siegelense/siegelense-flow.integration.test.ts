@@ -255,7 +255,7 @@ describe('SiegelenseFlow', () => {
       const expectedAnswer = CleanupAnswerStub({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });

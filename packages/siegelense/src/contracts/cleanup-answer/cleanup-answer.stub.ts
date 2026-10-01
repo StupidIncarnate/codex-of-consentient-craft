@@ -9,7 +9,7 @@ export const CleanupAnswerStub = ({ ...props }: StubArgument<CleanupAnswer> = {}
   cleanupAnswerContract.parse({
     reaped: [ReapedInstanceStub()],
     portsReleased: [41_345, 34_173],
-    lockReleased: true,
+    lockReleaseOutcome: 'released',
     assetsAged: { instances: 3, freedMB: 1840 },
     leftAlone: [LeftAloneStub()],
     ...props,

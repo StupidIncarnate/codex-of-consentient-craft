@@ -66,6 +66,8 @@ export * from './status-answer/status-answer-contract';
 
 export * from './cleanup-answer/cleanup-answer-contract';
 
+export * from './lock-release-outcome/lock-release-outcome-contract';
+
 export * from './compare-answer/compare-answer-contract';
 
 export * from './compare-query/compare-query-contract';

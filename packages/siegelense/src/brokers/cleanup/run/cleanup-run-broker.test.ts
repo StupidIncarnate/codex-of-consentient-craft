@@ -78,7 +78,7 @@ describe('cleanupRunBroker', () => {
       expect(result).toStrictEqual({
         reaped: [{ id: STALE_ID, staleFor: '9h', killed: [pgidOne, pgidTwo], homeRemoved: true }],
         portsReleased: [staleEntry.ports.api, staleEntry.ports.web],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [
           { id: LIVE_ID, why: 'live — last beat 2s ago' },
@@ -124,7 +124,7 @@ describe('cleanupRunBroker', () => {
       expect(result).toStrictEqual({
         reaped: [{ id: ABANDONED_RESERVATION_ID, staleFor: '10m', killed: [], homeRemoved: true }],
         portsReleased: [abandonedEntry.ports.api, abandonedEntry.ports.web],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
@@ -151,7 +151,7 @@ describe('cleanupRunBroker', () => {
       expect(result).toStrictEqual({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [{ id: RESERVED_ID, why: 'reserved — booting, no beat yet' }],
       });
@@ -226,7 +226,7 @@ describe('cleanupRunBroker', () => {
       expect(result).toStrictEqual({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [{ id: LIVE_ID, why: 'live — last beat 2s ago' }],
       });
@@ -238,7 +238,7 @@ describe('cleanupRunBroker', () => {
   });
 
   describe('an empty registry', () => {
-    it('EMPTY: {empty registry} => every field empty, lockReleased false', async () => {
+    it('EMPTY: {empty registry} => every field empty, lockReleaseOutcome none-held', async () => {
       const proxy = cleanupRunBrokerProxy();
 
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
@@ -249,7 +249,7 @@ describe('cleanupRunBroker', () => {
       expect(result).toStrictEqual({
         reaped: [],
         portsReleased: [],
-        lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
@@ -257,7 +257,7 @@ describe('cleanupRunBroker', () => {
   });
 
   describe('a stale boot.lock', () => {
-    it('VALID: {a boot.lock past its TTL, empty registry} => lockReleased true', async () => {
+    it('VALID: {a boot.lock past its TTL, empty registry} => lockReleaseOutcome released', async () => {
       const proxy = cleanupRunBrokerProxy();
 
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
@@ -268,7 +268,26 @@ describe('cleanupRunBroker', () => {
       expect(result).toStrictEqual({
         reaped: [],
         portsReleased: [],
-        lockReleased: true,
+        lockReleaseOutcome: 'released',
+        assetsAged: { instances: 0, freedMB: 0 },
+        leftAlone: [],
+      });
+    });
+  });
+
+  describe('a stale boot.lock whose removal fails', () => {
+    it('ERROR: {a boot.lock past its TTL whose removal fails, empty registry} => lockReleaseOutcome failed', async () => {
+      const proxy = cleanupRunBrokerProxy();
+
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupBootLockUnlinkFails({ acquiredAtMs: NOW_MS - 46_000 });
+
+      const result = await cleanupRunBroker();
+
+      expect(result).toStrictEqual({
+        reaped: [],
+        portsReleased: [],
+        lockReleaseOutcome: 'failed',
         assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
