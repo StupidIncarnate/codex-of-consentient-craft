@@ -43,11 +43,9 @@ Row: logo (left) · right group `[header chip?] [health strip] [Show later featu
 
 ### 1.1 Logo
 
--
-**STATES:** one state. ASCII-block `DUNGEONMASTER` in primary colour at 3px font, line-height 1.15, with a fireball pixel sprite (scale 2) on each side (right one mirrored), 14px gap. Half the height of the real app's logo by request.
+- **STATES:** one state. ASCII-block `DUNGEONMASTER` in primary colour at 3px font, line-height 1.15, with a fireball pixel sprite (scale 2) on each side (right one mirrored), 14px gap. Half the height of the real app's logo by request.
 - **INTERACTIONS:** none (not a link in the mock).
--
-**MOCK-ONLY:** the sprite and ASCII art are copied from `packages/web` LogoWidget; the sprite-hiding media queries of the real logo are not reproduced.
+- **MOCK-ONLY:** the sprite and ASCII art are copied from `packages/web` LogoWidget; the sprite-hiding media queries of the real logo are not reproduced.
 
 ### 1.2 Health strip
 
@@ -64,10 +62,8 @@ Row: logo (left) · right group `[header chip?] [health strip] [Show later featu
     - Title attribute: none on the strip itself except where noted.
 - **DATA
   SHOWN:** dispatch state + slots `used/total`; Claude 5h window % (bar is 8 cells: `▰` filled, `▱` empty; fill = `floor((pct*8+50)/100)`); model backend names + up/degraded state; server errors in last hour count.
--
-**RULES:** the rate-limit bar colours follow the real thresholds: ≥80% danger, ≥50% warning, else text-dim. Only the 5h window shows in the strip (7d is in the HEALTH view).
--
-**MOCK-ONLY:** all numbers are constants (3/4 slots, 62%, 23 errors). The dispatch word follows the PLAY/PAUSE toggle but nothing else reacts to it.
+- **RULES:** the rate-limit bar colours follow the real thresholds: ≥80% danger, ≥50% warning, else text-dim. Only the 5h window shows in the strip (7d is in the HEALTH view).
+- **MOCK-ONLY:** all numbers are constants (3/4 slots, 62%, 23 errors). The dispatch word follows the PLAY/PAUSE toggle but nothing else reacts to it.
 - **LATER-FLAGGED:** the `⚠ N err/1h` cell.
 
 ### 1.3 Header chip ("⚔ … running … queued")
@@ -102,8 +98,7 @@ One component renders both. Structure (top to bottom, identical y in every state
 
 ### 2.1 Expanded (full column)
 
--
-**STATES:** 190px wide (+12px padding + 1px right border). Header: `GUILDS` (dim) + ghost `+` icon button (title `Add guild`). Rows: icon square + two lines of text.
+- **STATES:** 190px wide (+12px padding + 1px right border). Header: `GUILDS` (dim) + ghost `+` icon button (title `Add guild`). Rows: icon square + two lines of text.
     - ALL GUILDS: castle-gate pixel glyph (gold), text `ALL GUILDS`, counts line.
     - Each guild (`codex`, `siegelense`, `acme-web`): icon square with initials (`CO`, `SI`, `AC`) and up to 4 `●` dots (primary when the guild has active quests, dim otherwise), name, counts line.
     - Counts line format: `N active · M bounties` (singular `1 bounty`), 9px; the `N active` part is primary-coloured when N>0.
@@ -116,25 +111,20 @@ One component renders both. Structure (top to bottom, identical y in every state
     - `+` → no-op in the mock.
     - ALL SESSIONS (full-width ghost-ish button, label `ALL SESSIONS`, title `All sessions`) → selects ALL GUILDS and switches the middle to the SESSIONS tab; in a detail view it also leaves the detail view.
     - DEVOUR toggle (§2.3).
--
-**RULES:** the icon column and row heights never change between states; every guild button's top edge is at the same y in every mode (measured 147/202/248/294 px for ALL/codex/siegelense/acme-web at both 1600x1000 and 1280x800; All-sessions 894 / 694 and toggle 932 / 732 respectively).
+- **RULES:** the icon column and row heights never change between states; every guild button's top edge is at the same y in every mode (measured 147/202/248/294 px for ALL/codex/siegelense/acme-web at both 1600x1000 and 1280x800; All-sessions 894 / 694 and toggle 932 / 732 respectively).
 
 ### 2.2 Collapsed (rail)
 
--
-**STATES:** 48px wide. Header row shows only the `+`. ALL GUILDS = gate glyph only; guild buttons = initials + dots only; the selected guild (in a detail view: the guild of the open quest/bounty) is gold-bordered. ALL SESSIONS = a `▤` icon button (title `All sessions`). Toggle = `◀|▶`.
--
-**INTERACTIONS:** same as expanded; clicking a guild in detail mode selects that guild and leaves the detail view; ALL SESSIONS same as above.
+- **STATES:** 48px wide. Header row shows only the `+`. ALL GUILDS = gate glyph only; guild buttons = initials + dots only; the selected guild (in a detail view: the guild of the open quest/bounty) is gold-bordered. ALL SESSIONS = a `▤` icon button (title `All sessions`). Toggle = `◀|▶`.
+- **INTERACTIONS:** same as expanded; clicking a guild in detail mode selects that guild and leaves the detail view; ALL SESSIONS same as above.
 - **Titles:** guild buttons `<name> · N active`; ALL `All guilds`.
 
 ### 2.3 DEVOUR toggle
 
--
-**STATES:** expanded: full-width button `▶ DEVOUR ◀` (gold text, arrows pointing at the centre), title `Collapse the guild column to the rail`. Collapsed: rail-width button `◀|▶` (arrows pointing outward), title `Expand the guild column`.
+- **STATES:** expanded: full-width button `▶ DEVOUR ◀` (gold text, arrows pointing at the centre), title `Collapse the guild column to the rail`. Collapsed: rail-width button `◀|▶` (arrows pointing outward), title `Expand the guild column`.
 - **INTERACTIONS:** click flips collapsed/expanded **in
   place** — the column width changes and the middle column resizes (nothing overlays). Works in normal mode, quest mode, bounty mode and every right-pane focus (the toggle lives in the column, which exists in all views).
--
-**PERSISTENCE:** two independent preferences: `cc-rail-normal` (normal layout; default expanded) and `cc-rail-detail` (quest + bounty modes; default collapsed). A choice survives reload and applies the next time that group of views opens.
+- **PERSISTENCE:** two independent preferences: `cc-rail-normal` (normal layout; default expanded) and `cc-rail-detail` (quest + bounty modes; default collapsed). A choice survives reload and applies the next time that group of views opens.
 - **MOCK-ONLY:** there is no animation on width change.
 
 ---
@@ -145,10 +135,8 @@ Top to bottom: `FILTERED BY <guild|ALL GUILDS>` (dim, guild in gold) → tab bar
 
 ### 3.1 Tab bar
 
--
-**STATES:** tabs `QUESTS`, `BOUNTY BOARD (N)`, `SESSIONS` (10px bold; active = primary text + 2px primary underline; inactive dim). `N` = live bounties for the current filter (respects Show later features). A ghost `+` icon button sits at the right end (title `New quest / idea / defect`).
--
-**INTERACTIONS:** click a tab → switches. `+` → no-op in the mock. Selection is not persisted. ALL SESSIONS in the guild column forces SESSIONS.
+- **STATES:** tabs `QUESTS`, `BOUNTY BOARD (N)`, `SESSIONS` (10px bold; active = primary text + 2px primary underline; inactive dim). `N` = live bounties for the current filter (respects Show later features). A ghost `+` icon button sits at the right end (title `New quest / idea / defect`).
+- **INTERACTIONS:** click a tab → switches. `+` → no-op in the mock. Selection is not persisted. ALL SESSIONS in the guild column forces SESSIONS.
 - **EMPTY-STATE HINTS (subtle, centred, dim, below the
   list):** QUESTS `+ start a quest, or tell the steward what you need`; BOUNTY BOARD `+ add an idea, or tell the steward`; SESSIONS `sessions appear here as agents run`.
 
@@ -191,8 +179,7 @@ Top to bottom: `FILTERED BY <guild|ALL GUILDS>` (dim, guild in gold) → tab bar
 
 ### 3.4 SESSIONS tab
 
--
-**STATES:** plain list. Row = `[guild / ]summary … [QUEST chip] [STATUS] age`. `QUEST` is a dim primary outline chip for sessions attached to a quest; status in the status colour (`IN PROGRESS`, `REVIEW FLOWS`, `COMPLETE`); age e.g. `2m`, `1h`, `1d`. Untitled session text `Untitled session`.
+- **STATES:** plain list. Row = `[guild / ]summary … [QUEST chip] [STATUS] age`. `QUEST` is a dim primary outline chip for sessions attached to a quest; status in the status colour (`IN PROGRESS`, `REVIEW FLOWS`, `COMPLETE`); age e.g. `2m`, `1h`, `1d`. Untitled session text `Untitled session`.
 - **INTERACTIONS:** none (rows have a pointer cursor but no action).
 - **MOCK-ONLY:** 7 seeded sessions.
 
@@ -201,14 +188,11 @@ Top to bottom: `FILTERED BY <guild|ALL GUILDS>` (dim, guild in gold) → tab bar
 ## 4. Steward chat (bottom of the middle column)
 
 - **STATES:**
-    1.
-    **Empty** (initial, and after NEW CHAT): no transcript, a dim hint line above the input: `try: show health · show me the login page · show bounties for siegelense · log a defect in codex: …`. Bar: `STEWARD` label (primary, bold) · input · `▶` send · `NEW CHAT` (ghost, disabled/dim while empty).
-    2.
-    **Growing:** a transcript appears above the bar (bottom-anchored, auto-scrolls to newest), separated by a top border. The chat's height is capped at 55% of the middle column; beyond that the transcript scrolls; the tab list above shrinks to make room.
+    1. **Empty** (initial, and after NEW CHAT): no transcript, a dim hint line above the input: `try: show health · show me the login page · show bounties for siegelense · log a defect in codex: …`. Bar: `STEWARD` label (primary, bold) · input · `▶` send · `NEW CHAT` (ghost, disabled/dim while empty).
+    2. **Growing:** a transcript appears above the bar (bottom-anchored, auto-scrolls to newest), separated by a top border. The chat's height is capped at 55% of the middle column; beyond that the transcript scrolls; the tab list above shrinks to make room.
 - **Bubble
   styles:** `YOU` (gold label, bg-raised fill, 2px gold left+right borders); `STEWARD` (primary label, transparent, 2px primary left+right borders). A steward line may end with a `[open ↗]` link (primary).
--
-**INTERACTIONS:** type in the input; Enter sends, Shift+Enter inserts a newline; `▶` sends; blank input is ignored; `NEW CHAT` clears the transcript back to the empty state. There is no scope dropdown (removed): guild context = the left column's selection or the guild named in the message.
+- **INTERACTIONS:** type in the input; Enter sends, Shift+Enter inserts a newline; `▶` sends; blank input is ignored; `NEW CHAT` clears the transcript back to the empty state. There is no scope dropdown (removed): guild context = the left column's selection or the guild named in the message.
 - **Placeholder:** `Ask the steward...`.
 - **COMMANDS (matching is on lower-cased text, evaluated in this order — first match wins):**
     1. `log a defect in <guild>: <text>` (variants: `log defect/def/bug`, `in|to|for|on <guild>`) → adds a DEFECT bounty (origin steward, age `0m`, state live) at the top of that guild's board, bumps that guild's bounty count; reply `Logged DEF in <guild> [open ↗]`; `open ↗` opens BOUNTY MODE on the new row. Unknown guild → `I do not know a guild called "<x>".`
@@ -219,8 +203,7 @@ Top to bottom: `FILTERED BY <guild|ALL GUILDS>` (dim, guild in gold) → tab bar
     6. `focus [on] <words>` / `show me <words>` / `open <words>` → finds a quest whose title contains all the words (stop words ignored); right pane switches to that quest's focus view; reply `Focused the right pane on <title>.` No match → `I could not find a quest matching "<words>".`
     7. any message containing `block` → `Two quests are blocked: codex / Rate-limit guardrail holds the queue (waiting on the 5h window) and acme-web / Checkout address form validation (failing ward lint).` (no focus change)
     8. otherwise → `I can focus the right pane for you: try 'focus login page', 'show health' or 'show bounties for siegelense'. Otherwise I'll just answer here.`
--
-**RULES:** a focus command never changes the right pane's width; the pane header then shows `← RAID` and the breadcrumb.
+- **RULES:** a focus command never changes the right pane's width; the pane header then shows `← RAID` and the breadcrumb.
 - **MOCK-ONLY:** the whole parser is a regex stub; replies are canned; no streaming, no real model.
 
 ---
@@ -230,21 +213,18 @@ Top to bottom: `FILTERED BY <guild|ALL GUILDS>` (dim, guild in gold) → tab bar
 - **Layout:** `[divider handle] [pane]`. Pane = a full-width bar, an optional breadcrumb line, then the body.
 - **Top
   bar:** on RAID it reads `RAID` (active state: gold text, gold border, bg-raised, no pointer). On any focused view it reads `← RAID` (surface fill, border, pointer) and returns to RAID. Under it, on focused views, the breadcrumb (gold, bold, ellipsis): `FOCUS · <quest title>`, `FOCUS · HEALTH`, `FOCUS · EPIC · <epic title>`, `FOCUS · BOUNTIES · <guild>`.
--
-**Body:** RAID is a self-scrolling panel (body itself does not scroll); every other view scrolls the body vertically; horizontal overflow hidden and long words wrap.
+- **Body:** RAID is a self-scrolling panel (body itself does not scroll); every other view scrolls the body vertically; horizontal overflow hidden and long words wrap.
 - **FIXED WIDTH
   RULE:** the pane's width never changes when switching what it shows (RAID ↔ quest ↔ health ↔ epic ↔ bounties ↔ question ↔ ward-fail); measured 400px for all of them at 1600 and 1280. It changes only by dragging the divider.
 
 ### 5.1 Resizable divider
 
--
-**STATES:** an 8px hit area between the middle column and the pane with a 1px line and a small `⋮` grip; resting colours border/dim; on hover or while dragging the line, grip border and glyph turn gold and the area gets a faint gold wash. Cursor `col-resize`. Title `Drag to resize · double-click to reset`.
+- **STATES:** an 8px hit area between the middle column and the pane with a 1px line and a small `⋮` grip; resting colours border/dim; on hover or while dragging the line, grip border and glyph turn gold and the area gets a faint gold wash. Cursor `col-resize`. Title `Drag to resize · double-click to reset`.
 - **INTERACTIONS:**
     - Drag left/right → the pane width follows the pointer (text selection is suppressed during the drag). Clamped to min 320px and max 60% of the frame row.
     - Release → width saved to localStorage for the current mode (`cc-pane-w-normal` / `-quest` / `-bounty`); survives reload.
     - Double-click → clears the saved width, back to the default (normal 400px; quest/bounty 40%).
--
-**RULES:** each mode keeps its own width; switching modes restores that mode's width; width never changes through content. (Measured: bounty mode 616 → 780 after dragging 160px left, still 780 after reload, 616 after double-click, at 1600; 488 → 652 → 652 → 488 at 1280.)
+- **RULES:** each mode keeps its own width; switching modes restores that mode's width; width never changes through content. (Measured: bounty mode 616 → 780 after dragging 160px left, still 780 after reload, 616 after double-click, at 1600; 488 → 652 → 652 → 488 at 1280.)
 - **MOCK-ONLY:** nothing — this is intended behaviour.
 
 ---
@@ -255,18 +235,15 @@ Framed panel (1px border, bg-surface). Everything running or waiting is a lane i
 
 ### 6.1 Panel header
 
--
-**STATES:** `RAID · 6 need you · 4 running · 5 queued` (`RAID` gold bold; `N need you` red when N>0; when dispatch is paused, ` · paused` is appended) + primary `PAUSE` button (label `PLAY` when paused).
--
-**INTERACTIONS:** `PAUSE`/`PLAY` toggles dispatch: queued lanes dim to 60% opacity, the QUEUED sub-header gets ` (paused)`, the health strip's dispatch cell flips to `paused`, the header chip button flips.
+- **STATES:** `RAID · 6 need you · 4 running · 5 queued` (`RAID` gold bold; `N need you` red when N>0; when dispatch is paused, ` · paused` is appended) + primary `PAUSE` button (label `PLAY` when paused).
+- **INTERACTIONS:** `PAUSE`/`PLAY` toggles dispatch: queued lanes dim to 60% opacity, the QUEUED sub-header gets ` (paused)`, the health strip's dispatch cell flips to `paused`, the header chip button flips.
 - **Counts stay visible whichever drawers are collapsed.**
 
 ### 6.2 Drawers
 
 - **Sub-headers (clickable, 9px dim, `▾` open / `▸` closed + label +
   count):** `NEEDS ATTENTION (6)`, `ACTIVE (4)`, `QUEUED · dispatch order (5)` (+ ` (paused)` when paused). Title attr `Collapse`/`Expand`.
--
-**INTERACTIONS:** click a sub-header → collapses/expands that drawer only; state persisted in `cc-raid-collapsed`. The whole list scrolls inside the panel when it doesn't fit (as at 1280x800, where the lower QUEUED lanes need a scroll).
+- **INTERACTIONS:** click a sub-header → collapses/expands that drawer only; state persisted in `cc-raid-collapsed`. The whole list scrolls inside the panel when it doesn't fit (as at 1280x800, where the lower QUEUED lanes need a scroll).
 - NEEDS ATTENTION empty copy: `Nothing is waiting on you.`
 
 ### 6.3 Lane anatomy (all lanes)
@@ -282,8 +259,7 @@ Layout: 110px animated scene on the left, then `[KIND tag] quest title` / `guild
 
 Scenes (pixel-art heroes + CSS shapes; the same component renders the large version in focus views, at 2.5× scale):
 
--
-**APPROVE:** owl ranger holds up a scroll; a gold `!` pulses above; a sealed arched gate (two doors, red seal that glows) stands to the right.
+- **APPROVE:** owl ranger holds up a scroll; a gold `!` pulses above; a sealed arched gate (two doors, red seal that glows) stands to the right.
 - **QUESTION:** frog cleric taps a foot (stepped bob); a speech bubble with a bold `?` gently pulses.
 - **BLOCKED:** rat warrior leans and pushes (slow rocking) against a grey boulder that shakes slightly but never moves.
 - **WARD
@@ -325,15 +301,12 @@ Format `ctx <current>/1M <bar> · Σ <total>`, 9px dim on lanes (10px in the cha
 
 ## 7. Slide-overs (RAID and HEALTH)
 
--
-**STATES:** an overlay drawer pinned to the right edge of the main frame, 400px wide (max 90%), gold left border and a dark shadow, above everything in the frame; a transparent backdrop covers the rest of the frame. Top row: dim text `slide-over · Esc or click outside to close` + `✕` button (title `Close`). Under it the same pane as the normal right pane: `RAID`/`← RAID` bar, breadcrumb, body.
+- **STATES:** an overlay drawer pinned to the right edge of the main frame, 400px wide (max 90%), gold left border and a dark shadow, above everything in the frame; a transparent backdrop covers the rest of the frame. Top row: dim text `slide-over · Esc or click outside to close` + `✕` button (title `Close`). Under it the same pane as the normal right pane: `RAID`/`← RAID` bar, breadcrumb, body.
 - **When it
   exists:** opened by the header chip (starts on RAID) or the health strip (starts on HEALTH) when the underlying view is a detail view (quest mode, bounty mode) or a focused right-pane view. In the plain RAID view the strip switches the pane instead and the chip is hidden.
--
-**INTERACTIONS:** `✕`, Esc, or a click anywhere outside the drawer → closes (slides out). Click a lane inside → that lane's focus view shows inside the drawer (with its own `← RAID`). An `↗` or "open quest" inside the drawer closes the drawer and opens quest mode; clicking a bounty row inside opens bounty mode and closes the drawer. The underlying view never moves or changes. Health strip's border is gold while a health slide-over is open.
+- **INTERACTIONS:** `✕`, Esc, or a click anywhere outside the drawer → closes (slides out). Click a lane inside → that lane's focus view shows inside the drawer (with its own `← RAID`). An `↗` or "open quest" inside the drawer closes the drawer and opens quest mode; clicking a bounty row inside opens bounty mode and closes the drawer. The underlying view never moves or changes. Health strip's border is gold while a health slide-over is open.
 - **Motion:** `transform: translateX(100% → 0)`, 180ms ease-out in, 190ms out; none under reduced motion.
--
-**RULES:** the slide-over never navigates away from the detail view; it uses the same RAID components and the same store (approving/answering inside it updates the counts in the chip too).
+- **RULES:** the slide-over never navigates away from the detail view; it uses the same RAID components and the same store (approving/answering inside it updates the counts in the chip too).
 
 ---
 
@@ -347,17 +320,14 @@ Every focus view that is about a quest leads with the BIG animated scene (full p
   top** (priority): the clicked need's scene (if focus came from a NEEDS lane) → the running battle (featured-style 100px scene with the lane's title/role/elapsed/items/tokens) → a travel scene for queued quests (86px: parallax hills, scrolling ground, hero walking, text `queued · position N — travelling to the front of the line`) → nothing (a quest that is neither running nor queued, e.g. complete). A locked epic step shows no travel scene.
 - **Header
   block:** quest title (gold, 13px bold); `guild <g> status <STATUS> role <role|—>[ elapsed <t>]`; for epic quests a clickable gold line `⛓ EPIC · Command Center 2/3[ · waits on #2]` (→ EPIC view); action buttons.
--
-**Actions:** `APPROVE` (primary; only for status review_flows / review_observables); `OPEN QUEST ↗` (ghost → quest mode); `PAUSE` / `RESUME` (ghost; toggles in_progress ↔ paused; disabled for complete/abandoned). Pause/resume changes the status word immediately; there is no other visible effect in the mock.
+- **Actions:** `APPROVE` (primary; only for status review_flows / review_observables); `OPEN QUEST ↗` (ghost → quest mode); `PAUSE` / `RESUME` (ghost; toggles in_progress ↔ paused; disabled for complete/abandoned). Pause/resume changes the status word immediately; there is no other visible effect in the mock.
 - **TOKENS
   block** (bordered box): `CONTEXT NOW` — one row per active session `<role> <ctx>/1M <90px bar> <N>%` (amber >70%, red >90%) or `no active session`; a line `in 4.5M · out 700k · Σ 5.2M` + right `est. cost $27.80`; `BY ROLE` — one row per role with a horizontal bar scaled to the largest role and the value (`2.6M`, `700k`…), or `nothing spent yet`.
 - **Callouts (if the quest has pending needs):** QUESTION and WARD FAIL boxes (see 8.2/8.3).
 - **WORK
   ITEMS:** vertical ledger; each row `glyph name STATE` — `✓ … DONE` (green), `▶ … IN PROGRESS` (primary, bg-raised, orange left border), `○ … PENDING` (dim, 70% opacity). Done count = items before the running one (running quests: from the lane's `done`; complete: all; others: 0 or a seeded count).
--
-**LOG:** boxed monospace lines, e.g. `[codeweaver] wrote packages/ward/src/brokers/spawn/spawn-broker.ts`, `[ward] lint: 2 errors in spawn-broker.ts`. Per-quest mock text.
--
-**MOCK-ONLY:** ledger names, logs, token numbers, costs are seeded per quest; unknown/new quests use a 5-item fallback ledger and a one-line log.
+- **LOG:** boxed monospace lines, e.g. `[codeweaver] wrote packages/ward/src/brokers/spawn/spawn-broker.ts`, `[ward] lint: 2 errors in spawn-broker.ts`. Per-quest mock text.
+- **MOCK-ONLY:** ledger names, logs, token numbers, costs are seeded per quest; unknown/new quests use a 5-item fallback ledger and a one-line log.
 
 ### 8.2 QUESTION focus
 
@@ -404,8 +374,7 @@ Sections (single column):
 
 - Crumb `FOCUS · EPIC · Command Center`. Title `⛓ EPIC · Command Center`; sub-line `codex · 1/3 done · Σ 2.7M · est. $17.00` (Σ and cost sum the steps). `REORDER` (ghost; becomes primary `DONE`) toggles drag handles `⠿` on the steps and the hint `Drag the handles to change the execution order (mock).`
 - Vertical chain: a numbered circle per step (✓ in green when complete) joined by a 1px connector; each step card shows title, status tag, `items d/t bar`, `Σ <tokens>`, and amber lock + `waits on #2` when blocked by an earlier incomplete step. Click a step → quest focus.
--
-**RULES:** a step is locked while any earlier step in the chain isn't `complete`; a locked step sits in QUEUED with the padlock.
+- **RULES:** a step is locked while any earlier step in the chain isn't `complete`; a locked step sits in QUEUED with the padlock.
 **MOCK-ONLY:** reorder is cosmetic; no persistence; the epic definition is a constant and the seed has only codex "Command Center" (Bounty board record complete → RAID panel in progress → Steward chat waiting).
 - **Activity
   view:** removed (RECENT ACTIVITY and its "more…" view no longer exist; the store still records activity lines internally but nothing displays them).
@@ -417,8 +386,7 @@ Sections (single column):
 **Enter:** click a quest row (QUESTS tab, including epic steps), a RAID lane's `↗`, `OPEN QUEST ↗` in a quest focus view, or a promoted-bounty link.
 **Leave:** `← COMMAND CENTER`, Esc, or clicking a guild / ALL SESSIONS in the column.
 
--
-**Layout:** header unchanged (chip now visible); frame = `[guild column or rail] [chat] [divider] [spec panel]`. The guild column starts collapsed (preference `cc-rail-detail`) and the DEVOUR toggle works in place. Spec panel default width 40% (616px at 1600, 488px at 1280), draggable (§5.1), fixed while switching SPEC/DETAILS. No giant logo, no raccoon above the transcript (the raccoon lives in RAID).
+- **Layout:** header unchanged (chip now visible); frame = `[guild column or rail] [chat] [divider] [spec panel]`. The guild column starts collapsed (preference `cc-rail-detail`) and the DEVOUR toggle works in place. Spec panel default width 40% (616px at 1600, 488px at 1280), draggable (§5.1), fixed while switching SPEC/DETAILS. No giant logo, no raccoon above the transcript (the raccoon lives in RAID).
 - **Transcript
   header:** `← COMMAND CENTER` (ghost, title `Esc`) · right-aligned context meter `ctx 142k/1M ▬▬` (same format/colours as §6.7; uses the quest's top session ctx, falls back to 202k for quests without one) · toggle `[ ] show details` / `[x] show details` (gold when on).
 - **Seeded
@@ -432,8 +400,7 @@ Sections (single column):
       box** (2px magenta border, `CHAOSWHISPERER ASKS`, the question in 13px, option buttons `Separate flow`, `Fold into main flow`, `Skip signed-out`, `Other…`; picking one replaces the buttons with `answered: <option>`), errors, the streaming indicator.
 - **DETAILS mode (`show details`
   on):** today's chrome — 2px left+right coloured borders on every message (gold for you, orange for agent), label `CHAOSWHISPERER claude-opus-5-5`, `+N context` under each message, full-width context divider lines between turns (e.g. `196.7k context (+3.6k) · SubAgents · 315.1k`), every tool call as its own full-width bar `▸ Read /home/…/file ✓`, sub-agent chains expanded (header bar + indented children). Flipping the toggle keeps the same transcript.
--
-**Composer:** textarea placeholder `Reply to chaoswhisperer...`, `▶` send; Enter sends, Shift+Enter newline. MOCK: a sent message is appended as a YOU message; no reply is generated.
+- **Composer:** textarea placeholder `Reply to chaoswhisperer...`, `▶` send; Enter sends, Shift+Enter newline. MOCK: a sent message is appended as a YOU message; no reply is generated.
 - **Auto-scroll:** the transcript starts scrolled to the newest and is bottom-anchored when short.
 - **Spec
   panel:** title bar (gold quest title; `ABANDON QUEST` ghost → in place `CONFIRM ABANDON` (danger) + `CANCEL`; confirming does nothing further in the mock); tab bar `SPEC` / `DETAILS` (10px, primary underline). SPEC: status line (`EXPLORING FLOWS` for created/explore_flows, `REVIEWING FLOWS`, `REVIEWING OBSERVABLES`, `APPROVED`, `IN PROGRESS`, `PAUSED`, `BLOCKED`, `COMPLETE`, `ABANDONED`, coloured by status), `USER REQUEST` box, `FLOWS (0)` dashed box `No flows yet — chaoswhisperer is still exploring.` DETAILS: `DESIGN DECISIONS (0)`, `OPERATIONS (0)`, `TOOLING (0)` each `Nothing recorded yet.`
@@ -449,8 +416,7 @@ Sections (single column):
 **Enter:** click a bounty row (BOUNTY BOARD tab, BOUNTIES focus list), or the `[open ↗]` link on a steward "Logged DEF" reply.
 **Leave:** `← COMMAND CENTER`, Esc, or a guild / ALL SESSIONS click.
 
--
-**Layout:** `[guild column/rail (preference cc-rail-detail, default collapsed)] [Sparkwright chat] [divider] [document panel]`; panel width 40% default, draggable, own persisted width `cc-pane-w-bounty`.
+- **Layout:** `[guild column/rail (preference cc-rail-detail, default collapsed)] [Sparkwright chat] [divider] [document panel]`; panel width 40% default, draggable, own persisted width `cc-pane-w-bounty`.
 - **Sparkwright chat (
   middle):** header `← COMMAND CENTER` · dim `sparkwright · idea · codex` (kind lower-cased, guild) · `show details` toggle (same understated/details switch as quest chat). Empty state: centred dim `Sparkwright reads this document first. Ask it to flesh out, format, or add to it.` Composer placeholder `Describe your idea...`; Enter sends. Role label `SPARKWRIGHT` (understated: small caps dim).
     - Typed message → YOU entry + canned reply `(mock) Noted. I would update the document and keep the headings as they are.`
@@ -470,12 +436,9 @@ Sections (single column):
     - Line counting: positional line diff (every index where old ≠ new, plus length difference). MOCK: Sparkwright's follow-up text is the same canned section every time.
 - **Footer action
   bar:** live → `PROMOTE TO QUEST` (primary; for DEFECT the label is `PROMOTE TO BUG HUNT`). Click → creates a quest (status `created`, title = bounty title, same guild), appended to QUESTS and to the END of QUEUED; the bounty becomes `promoted` (board row shows `↗ <quest>`; panel shows `PROMOTED ↗ <quest>` in the state field and footer `Promoted → <quest> ↗` — clickable, opens quest mode). Promoted bounties can't be abandoned or promoted again. Abandoned bounty footer: `Abandoned — nothing to promote.`
--
-**ABANDON:** click → in place `CONFIRM ABANDON` (danger) + `CANCEL` (ghost), no modal; confirm → state `abandoned` (board row dims, title struck through, `ABANDONED`).
--
-**MOCK-ONLY:** `PROMOTE TO BUG HUNT` creates an ordinary quest; documents live only in memory; ages and counts are fixed.
--
-**LATER-FLAGGED:** a bounty from a later-flagged origin can still be opened via a direct link, but it disappears from the board when the toggle is OFF.
+- **ABANDON:** click → in place `CONFIRM ABANDON` (danger) + `CANCEL` (ghost), no modal; confirm → state `abandoned` (board row dims, title struck through, `ABANDONED`).
+- **MOCK-ONLY:** `PROMOTE TO BUG HUNT` creates an ordinary quest; documents live only in memory; ages and counts are fixed.
+- **LATER-FLAGGED:** a bounty from a later-flagged origin can still be opened via a direct link, but it disappears from the board when the toggle is OFF.
 
 ---
 
@@ -485,8 +448,7 @@ Sections (single column):
 - **Quests (13 + 3
   epic):** codex — Ward spawns its children as itself (in_progress, running), Guild idea backlog (review_flows), Orchestrator starts tools from the run folder (approved), Rate-limit guardrail holds the queue (blocked), Consumer jest skips ts-jest for CJS (complete), Quest delete confirmation popover (abandoned); epic Command Center = Bounty board record (complete), RAID panel (in_progress, running), Steward chat (created, locked). siegelense — Walk records console errors (in_progress, running), Seeding recipe for headless instance (review_observables), Screenshot diff readings (paused). acme-web — Login page (in_progress, running), Checkout address form validation (blocked), Dark mode toggle (complete).
 - **Token seeds:** per quest `{ctx sessions, total, in, out, est. cost, per-role}`; context limit constant 1M.
--
-**Running:** codeweaver 12m04s 5/9; siegemaster 4m41s 2/6; spiritmender 31m17s 7/8; codeweaver 8m20s 3/7 (these tick up each second).
+- **Running:** codeweaver 12m04s 5/9; siegemaster 4m41s 2/6; spiritmender 31m17s 7/8; codeweaver 8m20s 3/7 (these tick up each second).
 
 ---
 
@@ -506,8 +468,7 @@ Sections (single column):
 
 ## 13. Responsive: 1600x1000 vs 1280x800
 
--
-**1600:** header has full copy (`⚔ 6 need you · 4 running · 5 queued`, local model names in the health strip); quests rows show stats inline on one line; right pane 400px, middle ≈ 800px; RAID shows needs + active + a few queued lanes before scrolling.
+- **1600:** header has full copy (`⚔ 6 need you · 4 running · 5 queued`, local model names in the health strip); quests rows show stats inline on one line; right pane 400px, middle ≈ 800px; RAID shows needs + active + a few queued lanes before scrolling.
 - **1280 (< 1400
   rule):** chip → `⚔ 6 need · 4 run · 5 q`; health strip shows model dots only; QUESTS rows put stats on a second line; the steward hint line wraps to two lines; right pane still 400px (middle ≈ 570px); the RAID list needs its internal scroll to reach the lower queued lanes; quest-mode panel 40% = 488px; guild column toggle and all vertical positions identical (ALL SESSIONS at y=694, toggle at y=732).
 - **Always:** header stays on one line; fixed lane heights; pane width only by dragging.
