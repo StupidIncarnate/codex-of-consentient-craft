@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const result = await QuestWardDetailResponder({ params: { questId, wardResultId } });
- * // Returns { status: 200, data: <detail json> } or { status: 400/404, data: { error } }
+ * // Returns { status: 200, data: { detail: <detail json> } } or { status: 400/404, data: { error } }
  */
 
 import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
@@ -16,6 +16,7 @@ import { locationsWardResultsPathFindBroker } from '@dungeonmaster/shared/broker
 import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 
 import { questWardDetailParamsContract } from '../../../contracts/quest-ward-detail-params/quest-ward-detail-params-contract';
+import { questWardDetailResponseDataContract } from '../../../contracts/quest-ward-detail-response-data/quest-ward-detail-response-data-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -46,7 +47,9 @@ export const QuestWardDetailResponder = async ({
     const detail: unknown = JSON.parse(contents);
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: wardDetailContract.parse(detail),
+      data: questWardDetailResponseDataContract.parse({
+        detail: wardDetailContract.parse(detail),
+      }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Ward detail not available';

@@ -15,7 +15,7 @@ export const questWardDetailBrokerProxy = (): {
 
   return {
     setupDetail: ({ detail }: { detail: unknown }): void => {
-      jsonFetchProxy.setupSuccess({ ...address, body: detail });
+      jsonFetchProxy.setupSuccess({ ...address, body: { detail } });
     },
     setupNotFound: (): void => {
       jsonFetchProxy.setupNotOk({

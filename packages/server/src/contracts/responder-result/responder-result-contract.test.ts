@@ -3,11 +3,11 @@ import { ResponderResultStub } from './responder-result.stub';
 
 describe('responderResultContract', () => {
   it('VALID: {status: 200, data: object} => parses successfully', () => {
-    const result = ResponderResultStub({ status: 200, data: { id: 'abc' } });
+    const result = ResponderResultStub({ status: 200, data: { success: true } });
 
     expect(responderResultContract.parse(result)).toStrictEqual({
       status: 200,
-      data: { id: 'abc' },
+      data: { success: true },
     });
   });
 
@@ -24,5 +24,11 @@ describe('responderResultContract', () => {
     expect(() => {
       responderResultContract.parse({ data: 'test' });
     }).toThrow(/received undefined/u);
+  });
+
+  it('INVALID: {data: {}} => throws validation error because empty object matches no union member', () => {
+    expect(() => {
+      responderResultContract.parse({ status: 200, data: {} });
+    }).toThrow(/Invalid input/u);
   });
 });
