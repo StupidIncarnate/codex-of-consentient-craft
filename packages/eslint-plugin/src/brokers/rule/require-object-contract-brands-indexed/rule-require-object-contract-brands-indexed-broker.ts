@@ -6,9 +6,10 @@
  * `z.function` schema and the value of a top-level `z.record` or `z.array` contract are not fields,
  * so they take none either. It shares one matcher with that rule so
  * the two can never disagree about a key. Reach for this over `require-object-contract-brands`,
- * which grades only the file it lints and so cannot know `questId` is a reuse. Reads every workspace
- * package once per process, so it runs in ward's lint pass only and is registered `off` until the
- * brand migration is done.
+ * which grades only the file it lints and so cannot know `questId` is a reuse. Takes the owner index
+ * once per process from the per-package cache shards ownerIndexBuildBroker keeps on disk; a layer
+ * contract also needs the contract index, which parses every workspace package once per process. So
+ * it runs in ward's lint pass only and is registered `off` until the brand migration is done.
  *
  * USAGE:
  * const rule = ruleRequireObjectContractBrandsIndexedBroker();

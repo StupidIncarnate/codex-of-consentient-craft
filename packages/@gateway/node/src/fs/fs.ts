@@ -38,5 +38,6 @@ export { walkFilesSync } from './walk-files-sync/walk-files-sync';
 export type { WalkedFile } from './walk-files-sync/walked-file';
 export { isWalkedFile } from './walk-files-sync/is-walked-file';
 export { walkedFileSchema } from './walk-files-sync/walked-file-schema';
+export { writeFileAtomicSync } from './write-file-atomic-sync/write-file-atomic-sync';
 export { writeFileBytesSync } from './write-file-bytes-sync/write-file-bytes-sync';
 export { writeFileSync } from './write-file-sync/write-file-sync';
