@@ -146,3 +146,17 @@ turn's hook fires — so a block-then-retry loop terminates.
 
 An MCP tool appears in a transcript under its namespaced name (`mcp__dungeonmaster__<tool>`), never
 the bare registered name.
+
+## Pre-edit lint: a rule registered `off` is forced on, unless a per-file override turned it off
+
+The pre-edit hook runs a `pre-edit` rule the host registers `off` at `error` anyway, so new violations of a rule the
+tree is not yet clean for still block. `eslintConfigFilterTransformer` forces it on ONLY when it is also off for a
+plain source file beside the edited one (`preEditReferenceStatics.file.name`, which `violationsCheckNewBroker` asks
+ESLint about alongside the real file). A rule on for that plain file and off for this one was switched off for this
+kind of file on purpose — `*.e2e.ts`, `*.integration.test.ts` — and stays off, exactly as ward's own lint leaves it.
+Forced on, they would block every new browser spec for building its harnesses inside a test, which Playwright's
+`page` and `request` fixtures require.
+
+`eslintLoadConfigBroker` caches by config file AND linted file, because flat-config overrides make the answer differ
+per file and the hook asks about two files in one process.
+

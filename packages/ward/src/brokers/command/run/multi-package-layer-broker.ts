@@ -7,7 +7,7 @@
  */
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
-import { stderr } from '#gateway/node/process';
+import { argv, execPath, stderr } from '#gateway/node/process';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
@@ -49,10 +49,19 @@ export const multiPackageLayerBroker = async ({
 }): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
-  const wardBin = binResolveBroker({
-    binName: wardSpawnCommandStatics.bin,
-    cwd: rootPath,
-  });
+  // A child ward is THIS ward: the same node binary running the same entry script this process was
+  // started with. Looking `dungeonmaster-ward` up instead resolves through node_modules/.bin and then
+  // PATH, which in a worktree lands on the main checkout's globally linked ward — so a worktree that
+  // edited and rebuilt ward would be graded by the one it set out to change. The bin lookup stays only
+  // for a process not started from a compiled entry script.
+  const [, selfEntry] = argv;
+  const childCommand =
+    selfEntry?.endsWith(wardSpawnCommandStatics.entryScriptExtension) === true
+      ? { command: execPath, leadingArgs: [selfEntry] }
+      : {
+          command: binResolveBroker({ binName: wardSpawnCommandStatics.bin, cwd: rootPath }),
+          leadingArgs: [],
+        };
 
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
@@ -131,8 +140,8 @@ export const multiPackageLayerBroker = async ({
       // spawn-stream adapter resolved for an ENOENT, so a machine without the resolved bin reads
       // as a crashed child below, exactly as it always has.
       const spawnResult = await stream({
-        command: wardBin,
-        args: spawnArgs,
+        command: childCommand.command,
+        args: [...childCommand.leadingArgs, ...spawnArgs],
         cwd,
         onStderr: (line: string) => {
           stderr.write(line);

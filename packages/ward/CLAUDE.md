@@ -10,6 +10,17 @@ It operates in two modes depending on whether the current project has npm worksp
   up to 4 concurrently, via a promise pool — and merges their results. Within one package, its own check types
   still run one at a time, in sequence.
 
+**A child ward is the parent ward.** `multiPackageLayerBroker` spawns `process.execPath` with the entry script
+the parent was started from (`argv[1]`), never `dungeonmaster-ward` looked up by name. A name lookup walks
+`node_modules/.bin` and then `PATH`, and in a worktree that lands on the main checkout's globally linked ward, so a
+worktree that edited and rebuilt ward would be graded by the ward it set out to change. The by-name lookup survives
+only for a parent not started from a compiled `.js` entry.
+
+**To test a ward change in a worktree:** `npm run build --workspace=@dungeonmaster/ward` inside the worktree, then
+`npm run ward`. This repo's root scripts run `node packages/ward/dist/bin/ward-entry.js`, the checkout's own build,
+and the build is safe there because a worktree's `dist/` is copied, not hardlinked. Ward's own unit and integration
+tests import ward's source and need no build; the build is for using the changed ward as the tool.
+
 Ward parses structured JSON output from each tool and persists results for drill-down inspection via `list`, `detail`,
 and `raw` subcommands.
 
