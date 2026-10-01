@@ -19,6 +19,7 @@ import {
 } from '../sprites/raid.jsx';
 import { useTheme } from '../themes.jsx';
 import { PixelBtn } from './pixel-btn.jsx';
+import { TokenLine } from './tokens.jsx';
 
 const HEROES = {
   raccoon: { pixels: raccoonStaffPixels, ...raccoonStaffSize },
@@ -403,7 +404,76 @@ export function NeedScene({ kind, s = 2, resolving = false }) {
   );
 }
 
-function NeedLane({ need, onFocus, onOpen, highlighted }) {
+function EpicMarker({ epic, onEpic }) {
+  const { theme } = useTheme();
+  if (!epic) return null;
+  return (
+    <span
+      onClick={(e) => {
+        e.stopPropagation();
+        onEpic(epic.id);
+      }}
+      title={`Epic: ${epic.title} — step ${epic.step} of ${epic.total}`}
+      style={{
+        fontFamily: 'monospace',
+        fontSize: 9,
+        color: theme.colors['loot-gold'],
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      ⛓ {epic.title} {epic.step}/{epic.total}
+    </span>
+  );
+}
+
+function LockIcon() {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  return (
+    <div
+      style={{
+        width: 50,
+        flexShrink: 0,
+        alignSelf: 'stretch',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        paddingBottom: 4,
+      }}
+      title="Waits on its epic predecessor"
+    >
+      <div style={{ position: 'relative', width: 14, height: 19 }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 3,
+            width: 8,
+            height: 9,
+            border: `2px solid ${c['text-dim']}`,
+            borderBottom: 'none',
+            borderRadius: '5px 5px 0 0',
+            boxSizing: 'border-box',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: 14,
+            height: 10,
+            background: c['text-dim'],
+            borderRadius: 2,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function NeedLane({ need, onFocus, onOpen, onEpic, highlighted }) {
   const { theme } = useTheme();
   const c = theme.colors;
   return (
@@ -413,7 +483,7 @@ function NeedLane({ need, onFocus, onOpen, highlighted }) {
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        height: 46,
+        height: 54,
         flexShrink: 0,
         overflow: 'hidden',
         borderBottom: `1px solid ${c['border']}`,
@@ -452,6 +522,10 @@ function NeedLane({ need, onFocus, onOpen, highlighted }) {
           {need.guild} · {need.age}
           {need.note ? ` · ${need.note}` : ''}
         </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...ellipsis }}>
+          <TokenLine id={need.id} />
+          <EpicMarker epic={need.epic} onEpic={onEpic} />
+        </div>
       </div>
       <OpenArrow onOpen={onOpen} />
     </div>
@@ -460,7 +534,7 @@ function NeedLane({ need, onFocus, onOpen, highlighted }) {
 
 /* ------------------------------------------------------------------ battle + travel */
 
-function MainBattle({ lane, elapsed, onFocus, onOpen, highlighted }) {
+function MainBattle({ lane, elapsed, onFocus, onOpen, onEpic = () => {}, highlighted }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const hero = HEROES[lane.hero];
@@ -472,7 +546,7 @@ function MainBattle({ lane, elapsed, onFocus, onOpen, highlighted }) {
       onClick={onFocus}
       style={{
         position: 'relative',
-        height: 86,
+        height: 100,
         flexShrink: 0,
         borderRadius: 2,
         overflow: 'hidden',
@@ -551,7 +625,7 @@ function MainBattle({ lane, elapsed, onFocus, onOpen, highlighted }) {
         style={{
           position: 'absolute',
           left: 8,
-          right: 170,
+          right: 192,
           top: 4,
           fontFamily: 'monospace',
           fontSize: 10,
@@ -576,6 +650,10 @@ function MainBattle({ lane, elapsed, onFocus, onOpen, highlighted }) {
         <span style={{ color: c['primary'] }}>{lane.role}</span> · {fmt(elapsed)} · items{' '}
         {lane.done}/{lane.total}
       </div>
+      <div style={{ position: 'absolute', left: 8, top: 29, display: 'flex', gap: 8 }}>
+        <TokenLine id={lane.id} />
+        <EpicMarker epic={lane.epic} onEpic={onEpic} />
+      </div>
       <div
         style={{
           position: 'absolute',
@@ -599,7 +677,7 @@ function MainBattle({ lane, elapsed, onFocus, onOpen, highlighted }) {
   );
 }
 
-function BattleLane({ lane, elapsed, index, onFocus, onOpen, highlighted }) {
+function BattleLane({ lane, elapsed, index, onFocus, onOpen, onEpic, highlighted }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const hero = HEROES[lane.hero];
@@ -613,7 +691,7 @@ function BattleLane({ lane, elapsed, index, onFocus, onOpen, highlighted }) {
         display: 'flex',
         alignItems: 'flex-end',
         gap: 8,
-        height: 38,
+        height: lane.epic ? 66 : 48,
         flexShrink: 0,
         overflow: 'hidden',
         borderBottom: `1px solid ${c['border']}`,
@@ -625,7 +703,7 @@ function BattleLane({ lane, elapsed, index, onFocus, onOpen, highlighted }) {
         className="r-lane-lunge"
         style={{
           animationDelay: delay,
-          marginBottom: 2,
+          marginBottom: 3,
           width: 50,
           flexShrink: 0,
           overflow: 'hidden',
@@ -645,6 +723,14 @@ function BattleLane({ lane, elapsed, index, onFocus, onOpen, highlighted }) {
           <span style={{ color: c['primary'] }}>{lane.role}</span> · {fmt(elapsed)} · items{' '}
           {lane.done}/{lane.total}
         </div>
+        <div style={{ ...ellipsis }}>
+          <TokenLine id={lane.id} />
+        </div>
+        {lane.epic && (
+          <div style={{ ...ellipsis }}>
+            <EpicMarker epic={lane.epic} onEpic={onEpic} />
+          </div>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
         <span
@@ -653,7 +739,7 @@ function BattleLane({ lane, elapsed, index, onFocus, onOpen, highlighted }) {
         >
           {hpBar(pct)}
         </span>
-        <div className="r-lane-hit" style={{ animationDelay: delay, marginBottom: 2 }}>
+        <div className="r-lane-hit" style={{ animationDelay: delay, marginBottom: 3 }}>
           <Sprite def={mon} scale={2} flip />
         </div>
       </div>
@@ -664,7 +750,7 @@ function BattleLane({ lane, elapsed, index, onFocus, onOpen, highlighted }) {
   );
 }
 
-function TravelLane({ lane, index, onFocus, onOpen, highlighted }) {
+function TravelLane({ lane, index, onFocus, onOpen, onEpic, highlighted }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const hero = HEROES[lane.hero];
@@ -676,7 +762,7 @@ function TravelLane({ lane, index, onFocus, onOpen, highlighted }) {
         display: 'flex',
         alignItems: 'flex-end',
         gap: 8,
-        height: 32,
+        height: 40,
         flexShrink: 0,
         overflow: 'hidden',
         borderBottom: `1px solid ${c['border']}`,
@@ -684,53 +770,66 @@ function TravelLane({ lane, index, onFocus, onOpen, highlighted }) {
         ...laneFrame(c, highlighted),
       }}
     >
-      <div
-        className="r-walk"
-        style={{
-          animationDelay: `${-index * 0.17}s`,
-          marginBottom: 2,
-          width: 50,
-          flexShrink: 0,
-          overflow: 'hidden',
-        }}
-      >
-        <Sprite def={hero} scale={2} />
-      </div>
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          fontSize: 10,
-          paddingBottom: 3,
-          color: index === 0 ? c['loot-gold'] : c['text'],
-          ...ellipsis,
-        }}
-        title={label}
-      >
-        <span style={{ color: c['text-dim'] }}>{index + 1}.</span> {label}
-      </div>
-      <div
-        style={{
-          width: 54,
-          flexShrink: 0,
-          alignSelf: 'stretch',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      {lane.locked ? (
+        <LockIcon />
+      ) : (
         <div
-          className="r-ground"
+          className="r-walk"
           style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 3,
-            backgroundImage: `repeating-linear-gradient(90deg, ${c['text-dim']} 0 8px, transparent 8px 14px)`,
-            backgroundSize: '28px 3px',
+            animationDelay: `${-index * 0.17}s`,
+            marginBottom: 3,
+            width: 50,
+            flexShrink: 0,
+            overflow: 'hidden',
           }}
-        />
+        >
+          <Sprite def={hero} scale={2} />
+        </div>
+      )}
+      <div style={{ flex: 1, minWidth: 0, paddingBottom: 3, lineHeight: 1.3 }}>
+        <div
+          style={{
+            fontSize: 10,
+            color: lane.locked ? c['text-dim'] : index === 0 ? c['loot-gold'] : c['text'],
+            ...ellipsis,
+          }}
+          title={label}
+        >
+          <span style={{ color: c['text-dim'] }}>{index + 1}.</span> {label}
+        </div>
+        <div style={{ display: 'flex', gap: 8, ...ellipsis }}>
+          {lane.locked ? (
+            <span style={{ fontSize: 9, color: c['warning'] }}>waits on #{lane.waitsOn}</span>
+          ) : (
+            <TokenLine id={lane.id} />
+          )}
+          <EpicMarker epic={lane.epic} onEpic={onEpic} />
+        </div>
       </div>
+      {!lane.locked && (
+        <div
+          style={{
+            width: 40,
+            flexShrink: 0,
+            alignSelf: 'stretch',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            className="r-ground"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 3,
+              backgroundImage: `repeating-linear-gradient(90deg, ${c['text-dim']} 0 8px, transparent 8px 14px)`,
+              backgroundSize: '28px 3px',
+            }}
+          />
+        </div>
+      )}
       <div style={{ paddingBottom: 3 }}>
         <OpenArrow onOpen={onOpen} />
       </div>
@@ -842,22 +941,40 @@ export function FocusScene({ need, lane, queuedLane, queuedIndex, resolving }) {
 
 /* ------------------------------------------------------------------ the panel */
 
-function SubHeader({ children, count }) {
+function SubHeader({ children, count, open, onToggle }) {
   const { theme } = useTheme();
   return (
     <div
+      onClick={onToggle}
+      title={open ? 'Collapse' : 'Expand'}
       style={{
         fontFamily: 'monospace',
         fontSize: 9,
         color: theme.colors['text-dim'],
-        padding: '8px 0 2px',
+        padding: '8px 0 3px',
         letterSpacing: 0.5,
+        cursor: 'pointer',
+        userSelect: 'none',
+        display: 'flex',
+        gap: 6,
       }}
     >
-      {children} {count !== undefined && `(${count})`}
+      <span style={{ width: 8 }}>{open ? '▾' : '▸'}</span>
+      <span>
+        {children} ({count})
+      </span>
     </div>
   );
 }
+
+const COLLAPSE_KEY = 'cc-raid-collapsed';
+const loadCollapsed = () => {
+  try {
+    return JSON.parse(window.localStorage.getItem(COLLAPSE_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+};
 
 export function RaidPanel({
   needs,
@@ -868,11 +985,22 @@ export function RaidPanel({
   onFocusNeed,
   onFocusQuest,
   onOpen,
+  onEpic,
   highlightId,
 }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const tick = useTick();
+  const [collapsed, setCollapsed] = useState(loadCollapsed);
+  const flip = (k) => {
+    const next = { ...collapsed, [k]: !collapsed[k] };
+    setCollapsed(next);
+    try {
+      window.localStorage.setItem(COLLAPSE_KEY, JSON.stringify(next));
+    } catch (e) {
+      /* storage unavailable */
+    }
+  };
   const [main, ...rest] = running;
   return (
     <div
@@ -930,8 +1058,10 @@ export function RaidPanel({
           flexDirection: 'column',
         }}
       >
-        <SubHeader count={needs.length}>NEEDS ATTENTION</SubHeader>
-        {needs.length === 0 && (
+        <SubHeader count={needs.length} open={!collapsed.needs} onToggle={() => flip('needs')}>
+          NEEDS ATTENTION
+        </SubHeader>
+        {!collapsed.needs && needs.length === 0 && (
           <div
             style={{
               fontFamily: 'monospace',
@@ -943,60 +1073,71 @@ export function RaidPanel({
             Nothing is waiting on you.
           </div>
         )}
-        {needs.map((n) => (
-          <NeedLane
-            key={n.nid}
-            need={n}
-            onFocus={() => onFocusNeed(n)}
-            onOpen={() => onOpen(n.id)}
-            highlighted={highlightId === n.id}
-          />
-        ))}
-        <SubHeader count={running.length}>ACTIVE</SubHeader>
-        {main && (
+        {!collapsed.needs &&
+          needs.map((n) => (
+            <NeedLane
+              key={n.nid}
+              need={n}
+              onFocus={() => onFocusNeed(n)}
+              onOpen={() => onOpen(n.id)}
+              onEpic={onEpic}
+              highlighted={highlightId === n.id}
+            />
+          ))}
+        <SubHeader count={running.length} open={!collapsed.active} onToggle={() => flip('active')}>
+          ACTIVE
+        </SubHeader>
+        {!collapsed.active && main && (
           <MainBattle
             lane={main}
             elapsed={toSec(main.elapsed) + tick}
             onFocus={() => onFocusQuest(main.id)}
             onOpen={() => onOpen(main.id)}
+            onEpic={onEpic}
             highlighted={highlightId === main.id}
           />
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', marginTop: 4 }}>
-          {rest.map((l, i) => (
-            <BattleLane
-              key={l.id}
-              lane={l}
-              index={i}
-              elapsed={toSec(l.elapsed) + tick}
-              onFocus={() => onFocusQuest(l.id)}
-              onOpen={() => onOpen(l.id)}
-              highlighted={highlightId === l.id}
-            />
-          ))}
-        </div>
-        <SubHeader count={queued.length}>
+        {!collapsed.active && (
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: 4 }}>
+            {rest.map((l, i) => (
+              <BattleLane
+                key={l.id}
+                lane={l}
+                index={i}
+                elapsed={toSec(l.elapsed) + tick}
+                onFocus={() => onFocusQuest(l.id)}
+                onOpen={() => onOpen(l.id)}
+                onEpic={onEpic}
+                highlighted={highlightId === l.id}
+              />
+            ))}
+          </div>
+        )}
+        <SubHeader count={queued.length} open={!collapsed.queued} onToggle={() => flip('queued')}>
           QUEUED · dispatch order{playing ? '' : ' (paused)'}
         </SubHeader>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            opacity: playing ? 1 : 0.6,
-            paddingBottom: 4,
-          }}
-        >
-          {queued.map((l, i) => (
-            <TravelLane
-              key={l.id}
-              lane={l}
-              index={i}
-              onFocus={() => onFocusQuest(l.id)}
-              onOpen={() => onOpen(l.id)}
-              highlighted={highlightId === l.id}
-            />
-          ))}
-        </div>
+        {!collapsed.queued && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              opacity: playing ? 1 : 0.6,
+              paddingBottom: 4,
+            }}
+          >
+            {queued.map((l, i) => (
+              <TravelLane
+                key={l.id}
+                lane={l}
+                index={i}
+                onFocus={() => onFocusQuest(l.id)}
+                onOpen={() => onOpen(l.id)}
+                onEpic={onEpic}
+                highlighted={highlightId === l.id}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme, questStatusColorKey } from '../themes.jsx';
 import { PixelBtn } from './pixel-btn.jsx';
+import { CtxMeter, topCtx } from './tokens.jsx';
 
 const mono = { fontFamily: 'monospace' };
 
@@ -508,12 +509,7 @@ export function QuestChat({ quest, onBack }) {
         }}
       >
         <PixelBtn label="← COMMAND CENTER" variant="ghost" onClick={onBack} title="Esc" />
-        <span
-          style={{ ...mono, fontSize: 10, color: c['text-dim'], flex: 1, textAlign: 'right' }}
-          title="Context window used by this quest's chat agent"
-        >
-          ctx <span style={{ color: c['text'] }}>202.0k</span> / 1M {'▰▰▱▱▱▱▱▱'}
-        </span>
+        <CtxMeter ctx={topCtx(quest.id) || 202} style={{ flex: 1, textAlign: 'right' }} />
         <ToggleBtn on={details} onChange={setDetails} label="show details" />
       </div>
       <div
@@ -743,30 +739,18 @@ export function QuestSpecPanel({ quest }) {
 
 /* ------------------------------------------------------------------ sparkwright chat (bounty mode) */
 
-export function SparkwrightChat({ bounty, onBack }) {
+export function SparkwrightChat({ bounty, msgs, onSend, onBack }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const [details, setDetails] = useState(false);
   const [draft, setDraft] = useState('');
-  const [msgs, setMsgs] = useState([]);
   const scroller = useRef(null);
   useEffect(() => {
     if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight;
   }, [msgs.length]);
   const send = () => {
     if (!draft.trim()) return;
-    setMsgs((m) => [
-      ...m,
-      { type: 'user', text: draft, tokens: '0.1k', ctx: 'context (+0.1k)' },
-      {
-        type: 'agent',
-        tokens: '0.4k',
-        ctx: 'context (+0.4k)',
-        blocks: [
-          { p: '(mock) Noted. I would update the document and keep the headings as they are.' },
-        ],
-      },
-    ]);
+    onSend(draft);
     setDraft('');
   };
   return (

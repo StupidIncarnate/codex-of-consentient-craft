@@ -314,15 +314,29 @@ const ORIGIN_TAG = {
   'server error': 'srv-err',
 };
 
-export function BountyDocPanel({ bounty, onPromote, onAbandon, onOpenQuest }) {
+export const docFor = (b) => DOCS[b.id] ?? fallbackDoc(b);
+
+export function BountyDocPanel({
+  bounty,
+  text,
+  onSave,
+  updating,
+  notice,
+  onPromote,
+  onAbandon,
+  onOpenQuest,
+}) {
   const { theme } = useTheme();
   const c = theme.colors;
-  const [tab, setTab] = useState('preview');
   const [confirming, setConfirming] = useState(false);
-  const [edits, setEdits] = useState({});
-  const text = edits[bounty.id] ?? DOCS[bounty.id] ?? fallbackDoc(bounty);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
   const kindColor = c[KIND_COLOR[bounty.kind]];
   const isDefect = bounty.kind === 'DEFECT';
+  const startEdit = () => {
+    setDraft(text);
+    setEditing(true);
+  };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <div
@@ -364,22 +378,38 @@ export function BountyDocPanel({ bounty, onPromote, onAbandon, onOpenQuest }) {
           >
             {bounty.title}
           </span>
-          {bounty.state === 'live' &&
-            (confirming ? (
-              <>
-                <PixelBtn
-                  label="CONFIRM ABANDON"
-                  variant="danger"
-                  onClick={() => {
-                    setConfirming(false);
-                    onAbandon();
-                  }}
-                />
-                <PixelBtn label="CANCEL" variant="ghost" onClick={() => setConfirming(false)} />
-              </>
-            ) : (
-              <PixelBtn label="ABANDON" variant="ghost" onClick={() => setConfirming(true)} />
-            ))}
+          {editing ? (
+            <>
+              <PixelBtn
+                label="SAVE"
+                onClick={() => {
+                  setEditing(false);
+                  onSave(draft);
+                }}
+              />
+              <PixelBtn label="CANCEL" variant="ghost" onClick={() => setEditing(false)} />
+            </>
+          ) : (
+            <>
+              <PixelBtn label="EDIT" variant="ghost" disabled={updating} onClick={startEdit} />
+              {bounty.state === 'live' &&
+                (confirming ? (
+                  <>
+                    <PixelBtn
+                      label="CONFIRM ABANDON"
+                      variant="danger"
+                      onClick={() => {
+                        setConfirming(false);
+                        onAbandon();
+                      }}
+                    />
+                    <PixelBtn label="CANCEL" variant="ghost" onClick={() => setConfirming(false)} />
+                  </>
+                ) : (
+                  <PixelBtn label="ABANDON" variant="ghost" onClick={() => setConfirming(true)} />
+                ))}
+            </>
+          )}
         </div>
         <div
           style={{
@@ -421,40 +451,36 @@ export function BountyDocPanel({ bounty, onPromote, onAbandon, onOpenQuest }) {
           </span>
         </div>
       </div>
-      <div style={{ display: 'flex', borderBottom: `1px solid ${c['border']}`, flexShrink: 0 }}>
-        {[
-          ['raw', 'RAW'],
-          ['preview', 'PREVIEW'],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            style={{
-              ...mono,
-              fontSize: 10,
-              fontWeight: 600,
-              padding: '5px 12px',
-              cursor: 'pointer',
-              background: 'transparent',
-              border: 'none',
-              color: tab === id ? c['primary'] : c['text-dim'],
-              borderBottom: `2px solid ${tab === id ? c['primary'] : 'transparent'}`,
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {(updating || notice) && (
+        <div
+          style={{
+            ...mono,
+            fontSize: 10,
+            padding: '4px 8px',
+            marginTop: 6,
+            borderRadius: 2,
+            flexShrink: 0,
+            color: updating ? c['primary'] : c['success'],
+            border: `1px solid ${updating ? c['primary'] : c['success']}`,
+            background: c['bg-surface'],
+          }}
+        >
+          {updating ? (
+            <span style={{ animation: 'pulse 1s infinite' }}>● Sparkwright is updating…</span>
+          ) : (
+            `✓ ${notice}`
+          )}
+        </div>
+      )}
       <div
         style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0' }}
       >
-        {tab === 'preview' ? (
-          <Markdown text={text} />
-        ) : (
+        {editing ? (
           <textarea
-            value={text}
-            onChange={(e) => setEdits({ ...edits, [bounty.id]: e.target.value })}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             spellCheck={false}
+            autoFocus
             style={{
               ...mono,
               fontSize: 11,
@@ -466,7 +492,7 @@ export function BountyDocPanel({ bounty, onPromote, onAbandon, onOpenQuest }) {
               resize: 'none',
               color: c['text'],
               background: c['bg-deep'],
-              border: `1px solid ${c['border']}`,
+              border: `1px solid ${c['loot-gold']}`,
               borderRadius: 2,
               padding: 8,
               outline: 'none',
@@ -474,6 +500,8 @@ export function BountyDocPanel({ bounty, onPromote, onAbandon, onOpenQuest }) {
               wordBreak: 'break-word',
             }}
           />
+        ) : (
+          <Markdown text={text} />
         )}
       </div>
       <div
@@ -500,6 +528,7 @@ export function BountyDocPanel({ bounty, onPromote, onAbandon, onOpenQuest }) {
         ) : (
           <PixelBtn
             label={isDefect ? 'PROMOTE TO BUG HUNT' : 'PROMOTE TO QUEST'}
+            disabled={editing}
             onClick={onPromote}
           />
         )}

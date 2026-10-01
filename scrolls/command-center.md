@@ -27,7 +27,10 @@ open one quest or one bounty. "← COMMAND CENTER" or Esc returns from either.
 
 - When the RAID list is hidden, a header chip reads "⚔ 6 need you · 3 running · 4 queued", with a small PLAY / PAUSE. It shows in quest mode, in bounty mode, and while the RAID panel shows a focused item.
 - When the RAID list is visible, the chip is hidden, so it never repeats the panel.
-- Clicking the chip returns to the RAID list.
+- **In a detail view, clicking the chip slides the RAID list in from the right
+  edge**, as an overlay at RAID's width. The detail view stays where it is. This applies in quest mode, in bounty mode, and in a focused raid view. Clicking the health strip slides the health view in the same way.
+- Close the slide-over with ✕, Esc, or a click outside. Clicking a lane inside it opens that lane's focus inside the slide-over.
+- The slide takes about 180ms, and none under reduced motion.
 - On narrow screens the chip and the health strip abbreviate, so the header stays on one row.
 
 ### 2. Guild column
@@ -36,11 +39,19 @@ open one quest or one bounty. "← COMMAND CENTER" or Esc returns from either.
 - Every guild has an icon square, its initials, in both the full column and the rail. In the full column its name and counts sit beside the square, for example "4 active · 5 bounties".
 - The column shrinks to a rail in quest mode and bounty mode. **No button moves when it
   does.** Every button keeps the same vertical position.
-- An ALL SESSIONS button sits pinned to the bottom of the column. In the rail it shrinks to an icon.
+- At the bottom of the column sit two buttons: ALL SESSIONS, and under it ≡. In the rail both are icons.
+- **In the rail, ≡ expands the full guild column as an
+  overlay** without leaving the detail view. ≡ or Esc collapses it again.
 
 ### 3. Middle column tabs
 
-- **QUESTS:** the selected guild's quests, with a status chip on each row. Clicking a row opens quest mode.
+- **QUESTS:** the selected guild's quests. Clicking a row opens quest mode. A row has the bounty board's layout:
+    1. the status in a tag box on the left, in the status colour;
+    2. the guild and the title;
+    3. right-aligned progress figures, with no animation: the current role, "items 5/9" with a small bar, the elapsed time, and the token figures (feature 12).
+
+    - A finished quest shows its final totals. An abandoned row is dimmed and struck through.
+    - An epic shows as a collapsible group (feature 13).
 - **BOUNTY BOARD:** every item that comes before a quest. See feature 4. Clicking a row opens bounty mode.
 - **SESSIONS:** the selected guild's sessions.
 - A + on the tab bar creates whatever the active tab lists.
@@ -84,7 +95,11 @@ The NEEDS ATTENTION scenes:
 | WARD FAIL: a failed ward run                                   | The hero lies knocked down with stars circling, and the monster stands over it |
 
 - The panel header reads "RAID · 6 need you · 3 running · 4 queued", with the dispatch PLAY / PAUSE toggle at its right end.
+- **Each section is a
+  drawer.** NEEDS ATTENTION, ACTIVE and QUEUED each have a header with ▾ or ▸ and their count, and each collapses on its own. The collapsed state survives a reload. The panel header's counts stay visible either way.
 - Each lane shows its kind tag where it has one, the guild, the title and the age. A running lane also shows the current role, the elapsed time, and the progress labelled as items, for example "items 5/9".
+- Every lane carries the token line (feature 12).
+- A lane in an epic carries an epic marker, and a queued quest waiting on its epic shows a lock instead of a walking hero (feature 13).
 - The list scrolls inside the panel. Each lane clips its own sprites, so no sprite spills into a neighbour.
 - Under `prefers-reduced-motion` every scene freezes to a still frame.
 - RAID replaces today's queue bar, and absorbs what the `/queue` page shows.
@@ -97,13 +112,14 @@ Clicking a lane replaces the list with that lane's focused view. A "← RAID" ba
 - Acting plays a short resolve animation before the lane moves on. The gate opens, the bubble pops, or the hero gets up. Then the lane moves to ACTIVE or QUEUED. An approved quest joins QUEUED.
 - The panel keeps its width. Switching what it shows never resizes it.
 
-| Focused on         | Shows                                                                             | Actions                                                                  |
-|--------------------|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| A quest            | Guild, status, current role, elapsed time, the work-item ledger, recent log lines | OPEN QUEST ↗, PAUSE / RESUME, and APPROVE when it is waiting on approval |
-| A pending question | The question and its options                                                      | One button per option                                                    |
-| A failed ward run  | The failing files and rules                                                       | RETRY WARD                                                               |
-| A guild's bounties | That guild's board, with the chosen row highlighted                               | PROMOTE TO QUEST, ABANDON                                                |
-| Health             | See feature 7                                                                     | none                                                                     |
+| Focused on         | Shows                                                                                                            | Actions                                                                  |
+|--------------------|------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| A quest            | Guild, status, current role, elapsed time, the TOKENS block (feature 12), the work-item ledger, recent log lines | OPEN QUEST ↗, PAUSE / RESUME, and APPROVE when it is waiting on approval |
+| An epic            | The epic's chain of quests (feature 13)                                                                          | REORDER                                                                  |
+| A pending question | The question and its options                                                                                     | One button per option                                                    |
+| A failed ward run  | The failing files and rules                                                                                      | RETRY WARD                                                               |
+| A guild's bounties | That guild's board, with the chosen row highlighted                                                              | PROMOTE TO QUEST, ABANDON                                                |
+| Health             | See feature 7                                                                                                    | none                                                                     |
 
 ### 7. Health
 
@@ -176,15 +192,41 @@ Clicking a bounty board row, or a steward's "[open ↗]" link, opens the bounty.
 
 - The guild column shrinks to its rail.
 - **Right: the document panel.**
-    1. A header band shows the kind tag (IDEA, DEFECT or FOLLOW-UP), the title, the origin, the age and the state. ABANDON sits at its top right.
-    2. RAW and PREVIEW tabs sit under the header. PREVIEW is the default here.
-    3. PREVIEW renders the markdown document: headings, lists, tables, code blocks, inline code, and screenshots placed between the paragraphs, with captions.
-    4. RAW is the same document as editable markdown text, with each image visible as `![caption](path)`.
-    5. A footer holds PROMOTE TO QUEST, or PROMOTE TO BUG HUNT on a defect. A promoted bounty shows
+    1. A header band shows the kind tag (IDEA, DEFECT or FOLLOW-UP), the title, the origin, the age and the state. EDIT and ABANDON sit at its top right.
+    2. Under it is one markdown section, rendered: headings, lists, tables, code blocks, inline code, and screenshots placed between the paragraphs, with captions. There are no RAW and PREVIEW tabs.
+    3. **EDIT turns the section into a markdown
+       editor** holding the raw text, with each image visible as `![caption](path)`. The buttons become SAVE and CANCEL.
+    4. **CANCEL undoes every edit** made since EDIT was clicked, and returns to the rendered view.
+    5. **SAVE sends the edits to
+       Sparkwright.** The section returns to the rendered view with the new text. The chat gets a user entry summarising the edits, for example "Edited the document — 2 lines changed: ## Proposal (tightened)". Sparkwright replies, and any follow-up change it makes appears in the document.
+    6. A footer holds PROMOTE TO QUEST, or PROMOTE TO BUG HUNT on a defect. A promoted bounty shows
        "Promoted → <quest> ↗" instead.
 - **Middle: the Sparkwright chat for that
   bounty.** It uses the same toned-down transcript as quest mode, with the placeholder "Describe your idea...". When empty it shows the hint "Sparkwright reads this document first. Ask it to flesh out, format, or add to it."
-- The idea quest e87996cb specifies this page as chat on the left and the document on the right, with RAW as the default tab. The command center keeps that layout and makes PREVIEW the default, because opening a bounty is mostly reading it.
+- The idea quest e87996cb specifies this page as chat on the left and the document on the right, with RAW and PREVIEW tabs and an autosaving editor. The command center keeps the layout but replaces the tabs and the autosave: the document reads rendered, edits happen behind EDIT, and SAVE hands them to Sparkwright.
+
+### 12. Token figures
+
+Every place that shows a quest shows how many tokens it uses, in one shared format.
+
+| Where                      | What it shows                                                                                                                                                                                                |
+|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Raid lanes and QUESTS rows | One dim line: the current session's context, for example "ctx 142k/1M" with a small bar, then the quest's total so far, for example "Σ 3.4M". The bar turns amber above 70% and red above 90%.               |
+| A focused quest            | A TOKENS block: context now out of the limit for each active session, total tokens in and out, a bar per role (chaoswhisperer, codeweaver, ward, spiritmender, siegemaster and so on), and an estimated cost |
+| Quest mode                 | The transcript header's context meter, in the same format                                                                                                                                                    |
+| An epic                    | The total across all its quests, and an estimated cost                                                                                                                                                       |
+
+### 13. Epics: quests linked in execution order
+
+An epic is an ordered chain of quests. A quest in an epic starts only once the quest before it is complete. **How epics
+display is a first take, and still open.**
+
+- **QUESTS
+  tab:** an epic is a collapsible group row with an EPIC tag box, its title, and progress such as "1/3 done · Σ 2.7M". Expanded, its quests are listed in order, numbered, joined by a thin connector line. A quest that cannot start yet shows a lock and "waits on #2".
+-
+**RAID:** a lane in an epic carries a marker such as "⛓ Command Center 2/3". A queued quest waiting on its predecessor shows a lock instead of a walking hero.
+- **Epic
+  view:** clicking the group row or a marker focuses the epic in the RAID panel. It shows the chain as numbered steps with connectors, each step's status and progress, the total tokens and estimated cost, and a REORDER toggle that shows drag handles on the steps.
 
 ## Later
 
@@ -202,3 +244,4 @@ Clicking a bounty board row, or a steward's "[open ↗]" link, opens the bounty.
 3. Should `scrolls/bounty-board/` be imported into the app board once, or kept as this repo's separate hand-kept list?
 4. Does a raid hero's creature follow the role, the guild, or the quest?
 5. Does the `/queue` page survive once the RAID panel shows the same thing?
+6. How should epics display, and who creates one: the user, the steward, or ChaosWhisperer when a spec is too big for one quest? Can a quest belong to more than one epic, and can an epic span guilds?

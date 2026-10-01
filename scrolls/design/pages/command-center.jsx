@@ -5,7 +5,8 @@ import { MapFrame } from '../components/map-frame.jsx';
 import { Logo } from '../components/logo.jsx';
 import { RateLimitCard } from '../components/rate-limit-card.jsx';
 import { RaidPanel, FocusScene } from '../components/raid-scene.jsx';
-import { BountyDocPanel } from '../components/bounty-doc.jsx';
+import { BountyDocPanel, docFor } from '../components/bounty-doc.jsx';
+import { tokensFor, topCtx, fmtK, CtxBar } from '../components/tokens.jsx';
 import { QuestChat, QuestSpecPanel, SparkwrightChat } from '../components/quest-chat.jsx';
 import { PixelSprite } from '../components/pixel-sprite.jsx';
 import { guildGate, guildGateSize } from '../sprites/guild.jsx';
@@ -41,15 +42,26 @@ const INIT_QUESTS = [
   { id: 'q10', guild: 'acme-web', title: 'Login page', status: 'in_progress' },
   { id: 'q11', guild: 'acme-web', title: 'Checkout address form validation', status: 'blocked' },
   { id: 'q12', guild: 'acme-web', title: 'Dark mode toggle', status: 'complete' },
+  {
+    id: 'q13',
+    guild: 'codex',
+    title: 'Bounty board record',
+    status: 'complete',
+    epic: 'e1',
+    step: 1,
+  },
+  { id: 'q14', guild: 'codex', title: 'RAID panel', status: 'in_progress', epic: 'e1', step: 2 },
+  { id: 'q15', guild: 'codex', title: 'Steward chat', status: 'created', epic: 'e1', step: 3 },
 ];
 
 const ACTIVE = [
   { id: 'q1', role: 'codeweaver', elapsed: '12m 04s', done: 5, total: 9 },
   { id: 'q7', role: 'siegemaster', elapsed: '4m 41s', done: 2, total: 6 },
   { id: 'q10', role: 'spiritmender', elapsed: '31m 17s', done: 7, total: 8 },
+  { id: 'q14', role: 'codeweaver', elapsed: '8m 20s', done: 3, total: 7 },
 ];
 
-const INIT_QUEUED = ['q3', 'q9', 'q11', 'q5'];
+const INIT_QUEUED = ['q3', 'q9', 'q11', 'q15', 'q5'];
 
 const INIT_NEEDS = [
   { nid: 'n1', kind: 'APPROVE', color: 'loot-gold', id: 'q2', age: '3h' },
@@ -338,6 +350,17 @@ const RAID_LANES = [
     total: 8,
     phase: 'battle',
   },
+  {
+    id: 'q14',
+    guild: 'codex',
+    short: 'raid-panel',
+    role: 'codeweaver',
+    hero: 'owl',
+    monster: 'slime',
+    done: 3,
+    total: 7,
+    phase: 'battle',
+  },
 ];
 
 const KIND_ORDER = ['IDEA', 'DEFECT', 'FOLLOW-UP'];
@@ -357,6 +380,30 @@ const FALLBACK_INFO = {
 };
 
 const QUEST_INFO = {
+  q13: {
+    items: ['Contract: bounty record', 'Broker: list bounties', 'Bounty board tab', 'Ward'],
+    log: ['[ward] all checks passed', '[quest] complete in 26m'],
+  },
+  q14: {
+    items: [
+      'Contract: raid lane',
+      'Widget: NeedScene',
+      'Widget: BattleLane',
+      'Widget: TravelLane',
+      'Drawers + persistence',
+      'Ward: lint + typecheck',
+      'Final review',
+    ],
+    log: [
+      '[codeweaver] wrote components/raid-scene.jsx',
+      '[codeweaver] drawers persist to localStorage',
+      '[ward] lint: 0 errors',
+    ],
+  },
+  q15: {
+    items: ['Contract: steward scope', 'Chat widget', 'Command parser', 'Ward', 'Final review'],
+    log: ['[queue] waiting on epic step #2 (RAID panel)'],
+  },
   q1: {
     items: [
       'Contract: child spawn identity',
@@ -654,7 +701,7 @@ const ICON = 38;
 
 // One component serves the full column and the quest-mode rail, so every icon square sits at the
 // same y in both: fixed-height header row, 38px icon rows, 1px divider, pinned bottom button.
-function GuildsColumn({ selected, onSelect, laterOn, onAllSessions, compact }) {
+function GuildsColumn({ selected, onSelect, laterOn, onAllSessions, compact, onRail }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const { quests, bounty } = useStore();
@@ -718,7 +765,7 @@ function GuildsColumn({ selected, onSelect, laterOn, onAllSessions, compact }) {
         {!compact && (
           <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <span style={{ fontSize: 12 }}>{name}</span>
-            <span style={{ fontSize: 10, color: c['text-dim'] }}>
+            <span style={{ fontSize: 9, color: c['text-dim'], whiteSpace: 'nowrap' }}>
               <span style={{ color: n ? c['primary'] : c['text-dim'] }}>{n} active</span>
               {' · '}
               {bountyCount(id)} {bountyCount(id) === 1 ? 'bounty' : 'bounties'}
@@ -744,6 +791,17 @@ function GuildsColumn({ selected, onSelect, laterOn, onAllSessions, compact }) {
       />
     </div>
   );
+  const bottomBtn = {
+    ...mono,
+    fontSize: 11,
+    height: 30,
+    padding: 0,
+    borderRadius: 2,
+    color: c['text'],
+    backgroundColor: c['bg-raised'],
+    border: `1px solid ${c['border']}`,
+    flexShrink: 0,
+  };
   return (
     <div
       style={{
@@ -775,26 +833,36 @@ function GuildsColumn({ selected, onSelect, laterOn, onAllSessions, compact }) {
           paddingTop: 12,
           alignSelf: 'stretch',
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: 8,
+          alignItems: compact ? 'center' : 'stretch',
         }}
       >
         <button
           onClick={onAllSessions}
           title="All sessions"
+          style={{ ...bottomBtn, width: compact ? ICON : '100%', cursor: 'pointer' }}
+        >
+          {compact ? '▤' : 'ALL SESSIONS'}
+        </button>
+        <button
+          onClick={onRail}
+          title={
+            onRail
+              ? compact
+                ? 'Expand the guild column'
+                : 'Collapse to the rail'
+              : 'Guild column (pinned in this view)'
+          }
           style={{
-            ...mono,
-            fontSize: 11,
-            width: compact ? ICON : '100%',
-            height: 30,
-            padding: 0,
-            borderRadius: 2,
-            cursor: 'pointer',
-            color: c['text'],
-            backgroundColor: c['bg-raised'],
-            border: `1px solid ${c['border']}`,
+            ...bottomBtn,
+            width: ICON,
+            alignSelf: compact ? 'center' : 'flex-start',
+            cursor: onRail ? 'pointer' : 'default',
+            opacity: onRail ? 1 : 0.5,
           }}
         >
-          {compact ? '≡' : 'ALL SESSIONS'}
+          ≡
         </button>
       </div>
     </div>
@@ -803,40 +871,292 @@ function GuildsColumn({ selected, onSelect, laterOn, onAllSessions, compact }) {
 
 /* ------------------------------------------------------------------ tabs */
 
-function QuestsTab({ guild, onOpen }) {
+const EPICS = [
+  { id: 'e1', guild: 'codex', title: 'Command Center', quests: ['q13', 'q14', 'q15'] },
+];
+
+const epicInfo = (q) => {
+  if (!q || !q.epic) return null;
+  const e = EPICS.find((x) => x.id === q.epic);
+  return { id: e.id, title: e.title, step: q.step, total: e.quests.length };
+};
+
+// A step waits on the first earlier step that is not complete.
+const epicLock = (q, quests) => {
+  if (!q || !q.epic) return null;
+  const e = EPICS.find((x) => x.id === q.epic);
+  const blocker = e.quests
+    .slice(0, q.step - 1)
+    .map((id) => quests.find((x) => x.id === id))
+    .find((x) => x && x.status !== 'complete');
+  return blocker ? { waitsOn: blocker.step } : null;
+};
+
+const FINAL_TIME = { q5: '41m', q12: '18m', q13: '26m', q6: '—' };
+const itemCounts = (q) => {
+  const led = ledgerFor(q);
+  return { done: led.filter((i) => i.state === 'done').length, total: led.length };
+};
+const smallBar = (done, total) => {
+  const n = total ? Math.round((done / total) * 6) : 0;
+  return '▰'.repeat(n) + '▱'.repeat(6 - n);
+};
+
+function LockMini() {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        position: 'relative',
+        width: 9,
+        height: 11,
+        verticalAlign: 'middle',
+        marginRight: 4,
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 2,
+          width: 5,
+          height: 5,
+          border: `1px solid ${c['warning']}`,
+          borderBottom: 'none',
+          borderRadius: '3px 3px 0 0',
+          boxSizing: 'border-box',
+        }}
+      />
+      <span
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: 9,
+          height: 6,
+          background: c['warning'],
+          borderRadius: 1,
+        }}
+      />
+    </span>
+  );
+}
+
+function QuestRow({ q, showGuild, onOpen, stepNo, lock }) {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  const [narrow, setNarrow] = useState(() => window.innerWidth < 1400);
+  useEffect(() => {
+    const f = () => setNarrow(window.innerWidth < 1400);
+    window.addEventListener('resize', f);
+    return () => window.removeEventListener('resize', f);
+  }, []);
+  const act = ACTIVE.find((a) => a.id === q.id);
+  const { done, total } = itemCounts(q);
+  const finished = ['complete', 'abandoned'].includes(q.status);
+  const abandoned = q.status === 'abandoned';
+  const tok = tokensFor(q.id);
+  const colorKey = questStatusColorKey[q.status] || 'text-dim';
+  const stat = { fontSize: 10, color: c['text-dim'], whiteSpace: 'nowrap', flexShrink: 0 };
+  const elapsed = act
+    ? act.elapsed.replace(/ \d+s$/, '')
+    : finished
+      ? FINAL_TIME[q.id] || '—'
+      : '—';
+  const stats = [
+    <span
+      key="r"
+      style={{
+        ...stat,
+        width: narrow ? 'auto' : 74,
+        textAlign: 'right',
+        color: act ? c['primary'] : c['text-dim'],
+      }}
+    >
+      {act ? act.role : '—'}
+    </span>,
+    <span key="i" style={{ ...stat, width: narrow ? 'auto' : 84 }}>
+      items {done}/{total} {smallBar(done, total)}
+    </span>,
+    <span key="e" style={{ ...stat, width: narrow ? 'auto' : 44, textAlign: 'right' }}>
+      {elapsed}
+    </span>,
+    <span key="t" style={{ ...stat, width: narrow ? 'auto' : 112, textAlign: 'right' }}>
+      ctx {topCtx(q.id) ? fmtK(topCtx(q.id)) : '—'} · Σ {tok.total ? fmtK(tok.total) : '0'}
+    </span>,
+  ];
+  return (
+    <div
+      onClick={() => onOpen(q.id)}
+      style={{
+        ...mono,
+        fontSize: 12,
+        color: c['text'],
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: narrow ? '1px 8px' : 8,
+        padding: '3px 8px',
+        borderRadius: 2,
+        cursor: 'pointer',
+        opacity: abandoned ? 0.45 : 1,
+      }}
+    >
+      <span
+        style={{
+          width: 124,
+          flexShrink: 0,
+          boxSizing: 'border-box',
+          textAlign: 'center',
+          fontSize: 9,
+          fontWeight: 600,
+          padding: '1px 4px',
+          borderRadius: 2,
+          border: `1px solid ${c[colorKey]}`,
+          color: c[colorKey],
+        }}
+      >
+        {STATUS_WORDS(q.status)}
+      </span>
+      <span
+        style={{
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          textDecoration: abandoned ? 'line-through' : 'none',
+        }}
+        title={q.title}
+      >
+        {stepNo && <span style={{ color: c['text-dim'] }}>{stepNo}. </span>}
+        {showGuild && <span style={{ color: c['text-dim'] }}>{q.guild} / </span>}
+        {q.title}
+        {lock && (
+          <span style={{ color: c['warning'], fontSize: 10 }}>
+            {' '}
+            <LockMini />
+            waits on #{lock.waitsOn}
+          </span>
+        )}
+      </span>
+      {narrow ? (
+        <span
+          style={{
+            flexBasis: '100%',
+            display: 'flex',
+            gap: 10,
+            paddingLeft: 132,
+            justifyContent: 'flex-start',
+          }}
+        >
+          {stats}
+        </span>
+      ) : (
+        stats
+      )}
+    </div>
+  );
+}
+
+function QuestsTab({ guild, onOpen, onFocus }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const { quests } = useStore();
-  const rows = quests.filter((q) => guild === 'all' || q.guild === guild);
+  const [openEpic, setOpenEpic] = useState({ e1: true });
+  const inGuild = (g) => guild === 'all' || g === guild;
+  const plain = quests.filter((q) => !q.epic && inGuild(q.guild));
+  const epics = EPICS.filter((e) => inGuild(e.guild));
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {rows.map((q) => (
-        <div
-          key={q.id}
-          onClick={() => onOpen(q.id)}
-          style={{
-            ...mono,
-            fontSize: 12,
-            color: c['text'],
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '3px 8px',
-            borderRadius: 2,
-            cursor: 'pointer',
-            opacity: q.status === 'abandoned' ? 0.5 : 1,
-          }}
-        >
-          <span style={{ flex: 1, minWidth: 0 }}>
-            {guild === 'all' && <span style={{ color: c['text-dim'] }}>{q.guild} / </span>}
-            {q.title}
-          </span>
-          <span style={{ fontSize: 10, color: c[questStatusColorKey[q.status]], flexShrink: 0 }}>
-            {STATUS_WORDS(q.status)}
-          </span>
-        </div>
+      {epics.map((e) => {
+        const steps = e.quests.map((id) => quests.find((q) => q.id === id));
+        const done = steps.filter((s) => s.status === 'complete').length;
+        const total = steps.reduce((n, s) => n + tokensFor(s.id).total, 0);
+        const isOpen = openEpic[e.id];
+        return (
+          <div key={e.id}>
+            <div
+              onClick={() => onFocus({ type: 'epic', id: e.id })}
+              style={{
+                ...mono,
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '3px 8px',
+                borderRadius: 2,
+                cursor: 'pointer',
+                background: c['bg-surface'],
+              }}
+            >
+              <span
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  setOpenEpic({ ...openEpic, [e.id]: !isOpen });
+                }}
+                style={{ width: 10, color: c['text-dim'] }}
+                title={isOpen ? 'Collapse epic' : 'Expand epic'}
+              >
+                {isOpen ? '▾' : '▸'}
+              </span>
+              <span
+                style={{
+                  width: 106,
+                  flexShrink: 0,
+                  boxSizing: 'border-box',
+                  textAlign: 'center',
+                  fontSize: 9,
+                  fontWeight: 600,
+                  padding: '1px 4px',
+                  borderRadius: 2,
+                  border: `1px solid ${c['loot-gold']}`,
+                  color: c['loot-gold'],
+                }}
+              >
+                ⛓ EPIC
+              </span>
+              <span style={{ flex: 1, minWidth: 0, color: c['loot-gold'] }}>
+                {guild === 'all' && <span style={{ color: c['text-dim'] }}>{e.guild} / </span>}
+                {e.title}
+              </span>
+              <span style={{ fontSize: 10, color: c['text-dim'] }}>
+                {done}/{steps.length} done · Σ {fmtK(total)}
+              </span>
+            </div>
+            {isOpen && (
+              <div
+                style={{
+                  marginLeft: 22,
+                  borderLeft: `1px solid ${c['loot-gold']}`,
+                  paddingLeft: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  marginTop: 2,
+                }}
+              >
+                {steps.map((s) => (
+                  <QuestRow
+                    key={s.id}
+                    q={s}
+                    stepNo={s.step}
+                    showGuild={false}
+                    onOpen={onOpen}
+                    lock={epicLock(s, quests)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {plain.map((q) => (
+        <QuestRow key={q.id} q={q} showGuild={guild === 'all'} onOpen={onOpen} />
       ))}
-      {rows.length === 0 && (
+      {plain.length + epics.length === 0 && (
         <span style={{ ...mono, fontSize: 11, color: c['text-dim'] }}>No quests yet</span>
       )}
     </div>
@@ -1170,7 +1490,7 @@ function Tabs({ guild, laterOn, onFocus, onOpen, onOpenBounty, tab, setTab }) {
         />
       </div>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 0' }}>
-        {tab === 'quests' && <QuestsTab guild={guild} onOpen={onOpen} />}
+        {tab === 'quests' && <QuestsTab guild={guild} onOpen={onOpen} onFocus={onFocus} />}
         {tab === 'bounty' && (
           <BountyTab guild={guild} laterOn={laterOn} onRowClick={(b) => onOpenBounty(b.id)} />
         )}
@@ -1453,7 +1773,7 @@ function PaneHeader({ focus, onBack }) {
   let crumb = '';
   if (focus.type === 'quest') crumb = `FOCUS · ${questById(focus.id).title}`;
   if (focus.type === 'health') crumb = 'FOCUS · HEALTH';
-  if (focus.type === 'activity') crumb = 'FOCUS · ACTIVITY';
+  if (focus.type === 'epic') crumb = `FOCUS · EPIC · ${EPICS.find((e) => e.id === focus.id).title}`;
   if (focus.type === 'bounties') crumb = `FOCUS · BOUNTIES · ${focus.guild}`;
   return (
     <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1517,10 +1837,90 @@ function Callout({ color, title, children }) {
   );
 }
 
-function QuestFocus({ id, nid, onOpen }) {
+function TokensBlock({ id }) {
   const { theme } = useTheme();
   const c = theme.colors;
-  const { questById, needs, queued, approve, togglePause, answer, retryWard } = useStore();
+  const t = tokensFor(id);
+  const roles = Object.entries(t.roles).sort((a, b) => b[1] - a[1]);
+  const maxRole = Math.max(1, ...roles.map((r) => r[1]));
+  const row = { ...mono, fontSize: 10, display: 'flex', alignItems: 'center', gap: 8 };
+  return (
+    <div>
+      <Label>TOKENS</Label>
+      <div
+        style={{
+          border: `1px solid ${c['border']}`,
+          background: c['bg-surface'],
+          borderRadius: 2,
+          padding: '6px 8px',
+          marginTop: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ ...mono, fontSize: 9, color: c['text-dim'] }}>CONTEXT NOW</span>
+          {t.sessions.length === 0 && (
+            <span style={{ ...mono, fontSize: 10, color: c['text-dim'] }}>no active session</span>
+          )}
+          {t.sessions.map((s) => (
+            <div key={s.role} style={row}>
+              <span style={{ width: 92, color: c['primary'] }}>{s.role}</span>
+              <span
+                style={{
+                  color: s.ctx > 900 ? c['danger'] : s.ctx > 700 ? c['warning'] : c['text'],
+                }}
+              >
+                {fmtK(s.ctx)}/1M
+              </span>
+              <CtxBar ctx={s.ctx} width={90} />
+              <span style={{ color: c['text-dim'] }}>{Math.round(s.ctx / 10)}%</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ ...row, justifyContent: 'space-between' }}>
+          <span style={{ color: c['text-dim'] }}>
+            in <span style={{ color: c['text'] }}>{fmtK(t.input)}</span> · out{' '}
+            <span style={{ color: c['text'] }}>{fmtK(t.output)}</span> · Σ{' '}
+            <span style={{ color: c['text'] }}>{fmtK(t.total)}</span>
+          </span>
+          <span style={{ color: c['text-dim'] }}>
+            est. cost <span style={{ color: c['loot-gold'] }}>${t.cost.toFixed(2)}</span>
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ ...mono, fontSize: 9, color: c['text-dim'] }}>BY ROLE</span>
+          {roles.length === 0 && (
+            <span style={{ ...mono, fontSize: 10, color: c['text-dim'] }}>nothing spent yet</span>
+          )}
+          {roles.map(([role, k]) => (
+            <div key={role} style={row}>
+              <span style={{ width: 92, color: c['text-dim'] }}>{role}</span>
+              <span style={{ flex: 1, height: 6, background: c['border'], borderRadius: 1 }}>
+                <span
+                  style={{
+                    display: 'block',
+                    height: '100%',
+                    width: `${(k / maxRole) * 100}%`,
+                    background: c['primary'],
+                    borderRadius: 1,
+                  }}
+                />
+              </span>
+              <span style={{ width: 40, textAlign: 'right', color: c['text'] }}>{fmtK(k)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuestFocus({ id, nid, onOpen, onEpic }) {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  const { questById, needs, queued, quests, approve, togglePause, answer, retryWard } = useStore();
   const [resolving, setResolving] = useState(null);
   const [shown, setShown] = useState(null);
   const q = questById(id);
@@ -1548,12 +1948,14 @@ function QuestFocus({ id, nid, onOpen }) {
     qIdx >= 0
       ? { id, guild: q.guild, title: q.title, hero: ['owl', 'raccoon', 'rat', 'frog'][qIdx % 4] }
       : null;
+  const ep = epicInfo(q);
+  const lock = epicLock(q, quests);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <FocusScene
         need={needForScene}
         lane={lane}
-        queuedLane={queuedLane}
+        queuedLane={lock ? null : queuedLane}
         queuedIndex={qIdx}
         resolving={resolving}
       />
@@ -1590,6 +1992,21 @@ function QuestFocus({ id, nid, onOpen }) {
             </span>
           )}
         </div>
+        {ep && (
+          <div
+            onClick={() => onEpic(ep.id)}
+            style={{
+              ...mono,
+              fontSize: 10,
+              color: c['loot-gold'],
+              cursor: 'pointer',
+              marginTop: 4,
+            }}
+          >
+            ⛓ EPIC · {ep.title} {ep.step}/{ep.total}
+            {lock ? ` · waits on #${lock.waitsOn}` : ''}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {awaiting && (
             <PixelBtn
@@ -1607,6 +2024,7 @@ function QuestFocus({ id, nid, onOpen }) {
           />
         </div>
       </div>
+      <TokensBlock id={id} />
       {myNeeds
         .filter((n) => n.kind === 'QUESTION')
         .map((n) => (
@@ -1699,6 +2117,149 @@ function QuestFocus({ id, nid, onOpen }) {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function EpicView({ id, onFocusQuest }) {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  const { quests } = useStore();
+  const [reorder, setReorder] = useState(false);
+  const e = EPICS.find((x) => x.id === id);
+  const steps = e.quests.map((qid) => quests.find((q) => q.id === qid));
+  const done = steps.filter((s) => s.status === 'complete').length;
+  const total = steps.reduce((n, s) => n + tokensFor(s.id).total, 0);
+  const cost = steps.reduce((n, s) => n + tokensFor(s.id).cost, 0);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ ...mono, fontSize: 13, fontWeight: 600, color: c['loot-gold'] }}>
+            ⛓ EPIC · {e.title}
+          </div>
+          <div style={{ ...mono, fontSize: 10, color: c['text-dim'], marginTop: 2 }}>
+            {e.guild} · {done}/{steps.length} done · Σ{' '}
+            <span style={{ color: c['text'] }}>{fmtK(total)}</span> · est.{' '}
+            <span style={{ color: c['loot-gold'] }}>${cost.toFixed(2)}</span>
+          </div>
+        </div>
+        <PixelBtn
+          label={reorder ? 'DONE' : 'REORDER'}
+          variant={reorder ? 'primary' : 'ghost'}
+          onClick={() => setReorder(!reorder)}
+        />
+      </div>
+      {reorder && (
+        <div style={{ ...mono, fontSize: 10, color: c['text-dim'] }}>
+          Drag the handles to change the execution order (mock).
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {steps.map((s, i) => {
+          const lock = epicLock(s, quests);
+          const { done: d, total: t } = itemCounts(s);
+          const colorKey = questStatusColorKey[s.status] || 'text-dim';
+          return (
+            <div key={s.id} style={{ display: 'flex', gap: 8 }}>
+              <div
+                style={{
+                  width: 22,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    border: `1px solid ${c[colorKey]}`,
+                    color: c[colorKey],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ...mono,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    background: s.status === 'complete' ? `${c['success']}22` : 'transparent',
+                  }}
+                >
+                  {s.status === 'complete' ? '✓' : s.step}
+                </div>
+                {i < steps.length - 1 && (
+                  <div style={{ flex: 1, width: 1, background: c['border'], minHeight: 14 }} />
+                )}
+              </div>
+              <div
+                onClick={() => onFocusQuest(s.id)}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  border: `1px solid ${c['border']}`,
+                  borderRadius: 2,
+                  padding: '5px 8px',
+                  marginBottom: 8,
+                  background: c['bg-surface'],
+                  cursor: 'pointer',
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'center',
+                }}
+              >
+                {reorder && (
+                  <span
+                    style={{ ...mono, color: c['loot-gold'], cursor: 'grab', fontSize: 14 }}
+                    title="Drag to reorder"
+                  >
+                    ⠿
+                  </span>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ ...mono, fontSize: 12, color: c['text'] }}>{s.title}</div>
+                  <div
+                    style={{
+                      ...mono,
+                      fontSize: 10,
+                      color: c['text-dim'],
+                      marginTop: 2,
+                      display: 'flex',
+                      gap: 8,
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 600,
+                        padding: '0 4px',
+                        borderRadius: 2,
+                        border: `1px solid ${c[colorKey]}`,
+                        color: c[colorKey],
+                      }}
+                    >
+                      {STATUS_WORDS(s.status)}
+                    </span>
+                    <span>
+                      items {d}/{t} {smallBar(d, t)}
+                    </span>
+                    <span>Σ {fmtK(tokensFor(s.id).total)}</span>
+                    {lock && (
+                      <span style={{ color: c['warning'] }}>
+                        <LockMini />
+                        waits on #{lock.waitsOn}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -2140,62 +2701,179 @@ export function CommandCenterPage() {
   const [msgs, setMsgs] = useState([]);
   const [tab, setTab] = useState('quests');
   const [openQuest, setOpenQuest] = useState(null);
-  const store = useCommandStore();
-  const [lastOpened, setLastOpened] = useState(null);
   const [openBounty, setOpenBounty] = useState(null);
+  const [lastOpened, setLastOpened] = useState(null);
+  const [ov, setOv] = useState(null);
+  const [ovShown, setOvShown] = useState(false);
+  const [railOpen, setRailOpen] = useState(false);
+  const [bsess, setBsess] = useState({});
+  const [bUpdating, setBUpdating] = useState(false);
+  const [bNotice, setBNotice] = useState(null);
   const [narrow, setNarrow] = useState(() => window.innerWidth < 1400);
+  const store = useCommandStore();
+  const reduced =
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   useEffect(() => {
     const onResize = () => setNarrow(window.innerWidth < 1400);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  const openOv = (f) => {
+    setOv(f);
+    setRailOpen(false);
+    if (reduced) setOvShown(true);
+    else requestAnimationFrame(() => requestAnimationFrame(() => setOvShown(true)));
+  };
+  const closeOv = () => {
+    setOvShown(false);
+    if (reduced) setOv(null);
+    else setTimeout(() => setOv(null), 190);
+  };
+  const leaveDetail = () => {
+    setOpenQuest(null);
+    setOpenBounty(null);
+    setRailOpen(false);
+  };
   const openQuestMode = (id) => {
     setOpenQuest(id);
     setOpenBounty(null);
     setLastOpened(id);
+    setRailOpen(false);
   };
   const openBountyMode = (id) => {
     setOpenBounty(id);
     setOpenQuest(null);
+    setRailOpen(false);
   };
   const focusOrOpen = (f) => {
     if (f.type === 'bounties' && f.highlight) openBountyMode(f.highlight);
     else setFocus(f);
   };
+
   useEffect(() => {
-    if (!openQuest && !openBounty) return undefined;
+    if (!ov && !railOpen && !openQuest && !openBounty) return undefined;
     const onKey = (e) => {
-      if (e.key === 'Escape') {
-        setOpenQuest(null);
-        setOpenBounty(null);
-      }
+      if (e.key !== 'Escape') return;
+      if (ov) closeOv();
+      else if (railOpen) setRailOpen(false);
+      else leaveDetail();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [openQuest, openBounty]);
+  }, [ov, railOpen, openQuest, openBounty]);
+
   const openQ = openQuest ? store.questById(openQuest) : null;
-  const running = RAID_LANES.map((l) => ({
-    ...l,
-    title: store.questById(l.id).title,
-    elapsed: ACTIVE.find((a) => a.id === l.id).elapsed,
-  }));
-  const queuedLanes = store.queued.map((id, i) => ({
-    id,
-    guild: store.questById(id).guild,
-    title: store.questById(id).title,
-    hero: ['owl', 'raccoon', 'rat', 'frog'][i % 4],
-  }));
   const openB = openBounty ? store.bounty.find((b) => b.id === openBounty) : null;
-  const needsFull = store.needs.map((n) => ({
-    ...n,
-    guild: store.questById(n.id).guild,
-    title: store.questById(n.id).title,
-  }));
-  const showChip = Boolean(openQ) || Boolean(openB) || focus.type !== 'overview';
-  const backToRaid = () => {
-    setOpenQuest(null);
-    setOpenBounty(null);
-    setFocus({ type: 'overview' });
+  const detail = Boolean(openQ || openB);
+
+  const running = RAID_LANES.map((l) => {
+    const q = store.questById(l.id);
+    return {
+      ...l,
+      title: q.title,
+      elapsed: ACTIVE.find((a) => a.id === l.id).elapsed,
+      epic: epicInfo(q),
+    };
+  });
+  const queuedLanes = store.queued.map((id, i) => {
+    const q = store.questById(id);
+    const lock = epicLock(q, store.quests);
+    return {
+      id,
+      guild: q.guild,
+      title: q.title,
+      hero: ['owl', 'raccoon', 'rat', 'frog'][i % 4],
+      epic: epicInfo(q),
+      locked: Boolean(lock),
+      waitsOn: lock ? lock.waitsOn : null,
+    };
+  });
+  const needsFull = store.needs.map((n) => {
+    const q = store.questById(n.id);
+    return { ...n, guild: q.guild, title: q.title, epic: epicInfo(q) };
+  });
+  const showChip = detail || focus.type !== 'overview';
+
+  // bounty document session: edits, chat, and Sparkwright's follow-up
+  const bText = openB ? (bsess[openB.id]?.text ?? docFor(openB)) : '';
+  const bMsgs = openB ? (bsess[openB.id]?.msgs ?? []) : [];
+  const patchB = (id, fn) => setBsess((s) => ({ ...s, [id]: fn(s[id] || {}) }));
+  const sendBounty = (text) => {
+    const b = openB;
+    patchB(b.id, (x) => ({
+      ...x,
+      msgs: [
+        ...(x.msgs || []),
+        { type: 'user', text, tokens: '0.1k', ctx: '' },
+        {
+          type: 'agent',
+          tokens: '0.4k',
+          ctx: '',
+          blocks: [
+            { p: '(mock) Noted. I would update the document and keep the headings as they are.' },
+          ],
+        },
+      ],
+    }));
+  };
+  const saveBounty = (newText) => {
+    const b = openB;
+    const o = bText.split('\n');
+    const n = newText.split('\n');
+    let changed = 0;
+    let first = '';
+    for (let i = 0; i < Math.max(o.length, n.length); i += 1) {
+      if (o[i] !== n[i]) {
+        changed += 1;
+        if (!first) first = (n[i] ?? o[i] ?? '').trim().slice(0, 48);
+      }
+    }
+    if (changed === 0) return;
+    patchB(b.id, (x) => ({
+      ...x,
+      text: newText,
+      msgs: [
+        ...(x.msgs || []),
+        {
+          type: 'user',
+          text: `Edited the document — ${changed} line${changed === 1 ? '' : 's'} changed: ${first || 'whitespace'}`,
+          tokens: '0.1k',
+          ctx: '',
+        },
+      ],
+    }));
+    setBUpdating(true);
+    setTimeout(() => {
+      patchB(b.id, (x) => ({
+        ...x,
+        msgs: [
+          ...(x.msgs || []),
+          {
+            type: 'agent',
+            tokens: '0.4k',
+            ctx: '',
+            blocks: [
+              {
+                p: 'Read your edits. I tightened the wording around them and kept your structure.',
+              },
+            ],
+          },
+        ],
+      }));
+    }, 600);
+    setTimeout(() => {
+      patchB(b.id, (x) => ({
+        ...x,
+        text: `${x.text}\n\n## Notes from Sparkwright\n\n- Tightened the section you edited and checked the table columns still line up.`,
+      }));
+      setBUpdating(false);
+      setBNotice('Sparkwright applied a follow-up change: added "Notes from Sparkwright"');
+      setTimeout(() => setBNotice(null), 3500);
+    }, 1700);
   };
 
   const send = (text) => {
@@ -2208,8 +2886,90 @@ export function CommandCenterPage() {
     if (r.focus) focusOrOpen(r.focus);
   };
 
+  // The right-pane body, shared by the normal pane and the slide-over.
+  const renderPane = (f, setF, inOverlay) => {
+    const open = inOverlay
+      ? (id) => {
+          closeOv();
+          openQuestMode(id);
+        }
+      : openQuestMode;
+    const openBnty = inOverlay
+      ? (id) => {
+          closeOv();
+          openBountyMode(id);
+        }
+      : openBountyMode;
+    return (
+      <>
+        <PaneHeader focus={f} onBack={() => setF({ type: 'overview' })} />
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: f.type === 'overview' ? 'hidden' : 'auto',
+            overflowX: 'hidden',
+            wordBreak: 'break-word',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          {f.type === 'overview' && (
+            <RaidPanel
+              needs={needsFull}
+              running={running}
+              queued={queuedLanes}
+              playing={playing}
+              onToggle={() => setPlaying(!playing)}
+              onFocusNeed={(n) => setF({ type: 'quest', id: n.id, nid: n.nid })}
+              onFocusQuest={(id) => setF({ type: 'quest', id })}
+              onOpen={open}
+              onEpic={(id) => setF({ type: 'epic', id })}
+              highlightId={openQuest || lastOpened}
+            />
+          )}
+          {f.type === 'quest' && (
+            <QuestFocus
+              key={f.id + (f.nid || '')}
+              id={f.id}
+              nid={f.nid}
+              onOpen={open}
+              onEpic={(id) => setF({ type: 'epic', id })}
+            />
+          )}
+          {f.type === 'epic' && (
+            <EpicView id={f.id} onFocusQuest={(id) => setF({ type: 'quest', id })} />
+          )}
+          {f.type === 'health' && <HealthView laterOn={laterOn} playing={playing} />}
+          {f.type === 'bounties' && (
+            <BountyTab
+              key={f.guild + (f.highlight || '')}
+              guild={f.guild}
+              laterOn={laterOn}
+              highlight={f.highlight}
+              compact
+              onFocusQuest={setF}
+              onRowClick={(b) => openBnty(b.id)}
+            />
+          )}
+        </div>
+      </>
+    );
+  };
+
   const colBorder = `1px solid ${c['border']}`;
   const guildName = guild === 'all' ? 'ALL GUILDS' : guild;
+  const railSelect = (g) => {
+    setGuild(g);
+    leaveDetail();
+  };
+  const railSessions = () => {
+    setGuild('all');
+    setTab('sessions');
+    leaveDetail();
+  };
+  const slide = reduced ? 'none' : 'transform 180ms ease-out';
 
   return (
     <StoreCtx.Provider value={store}>
@@ -2254,21 +3014,25 @@ export function CommandCenterPage() {
                 queued={store.queued.length}
                 playing={playing}
                 onToggle={() => setPlaying(!playing)}
-                onClick={backToRaid}
+                onClick={() => openOv({ type: 'overview' })}
                 title={
                   openQ
-                    ? `Open quest: ${openQ.guild} / ${openQ.title} — click for the command center`
+                    ? `Open quest: ${openQ.guild} / ${openQ.title} — click to slide the RAID in`
                     : openB
-                      ? `Open bounty: ${openB.title} — click for the command center`
-                      : 'Back to the RAID'
+                      ? `Open bounty: ${openB.title} — click to slide the RAID in`
+                      : 'Slide the RAID in'
                 }
               />
             )}
             <HealthStrip
               narrow={narrow}
               laterOn={laterOn}
-              active={focus.type === 'health'}
-              onClick={() => setFocus({ type: 'health' })}
+              active={focus.type === 'health' || (ov && ov.type === 'health')}
+              onClick={() =>
+                detail || focus.type !== 'overview'
+                  ? openOv({ type: 'health' })
+                  : setFocus({ type: 'health' })
+              }
               playing={playing}
             />
             <Toggle on={laterOn} onChange={setLaterOn} label="Show later features" />
@@ -2277,7 +3041,7 @@ export function CommandCenterPage() {
 
         <div style={{ flex: 1, minHeight: 0, display: 'flex', padding: '0 16px 16px' }}>
           <MapFrame padding={12}>
-            {openQ || openB ? (
+            {detail ? (
               <div
                 style={{
                   display: 'flex',
@@ -2300,18 +3064,10 @@ export function CommandCenterPage() {
                   <GuildsColumn
                     compact
                     selected={(openQ || openB).guild}
-                    onSelect={(g) => {
-                      setGuild(g);
-                      setOpenQuest(null);
-                      setOpenBounty(null);
-                    }}
+                    onSelect={railSelect}
                     laterOn={laterOn}
-                    onAllSessions={() => {
-                      setGuild('all');
-                      setTab('sessions');
-                      setOpenQuest(null);
-                      setOpenBounty(null);
-                    }}
+                    onAllSessions={railSessions}
+                    onRail={() => setRailOpen(!railOpen)}
                   />
                 </div>
                 <div
@@ -2329,6 +3085,8 @@ export function CommandCenterPage() {
                     <SparkwrightChat
                       key={openB.id}
                       bounty={openB}
+                      msgs={bMsgs}
+                      onSend={sendBounty}
                       onBack={() => setOpenBounty(null)}
                     />
                   )}
@@ -2344,6 +3102,10 @@ export function CommandCenterPage() {
                     <BountyDocPanel
                       key={openB.id}
                       bounty={openB}
+                      text={bText}
+                      onSave={saveBounty}
+                      updating={bUpdating}
+                      notice={bNotice}
                       onPromote={() => store.promote(openB.id)}
                       onAbandon={() => store.abandon(openB.id)}
                       onOpenQuest={openQuestMode}
@@ -2380,7 +3142,6 @@ export function CommandCenterPage() {
                     }}
                   />
                 </div>
-
                 <div
                   style={{
                     flex: 1,
@@ -2418,56 +3179,95 @@ export function CommandCenterPage() {
                     onFocus={focusOrOpen}
                   />
                 </div>
-
                 <ResizablePane key="normal" storageKey="normal" defaultWidth="400px">
-                  <PaneHeader focus={focus} onBack={() => setFocus({ type: 'overview' })} />
-                  <div
+                  {renderPane(focus, setFocus, false)}
+                </ResizablePane>
+              </div>
+            )}
+
+            {(ov || railOpen) && (
+              <div
+                onClick={() => (ov ? closeOv() : setRailOpen(false))}
+                style={{ position: 'absolute', inset: 0, zIndex: 18 }}
+              />
+            )}
+            {railOpen && detail && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 12,
+                  top: 18,
+                  bottom: 20,
+                  width: 190,
+                  zIndex: 25,
+                  background: c['bg-deep'],
+                  borderRight: colBorder,
+                  paddingRight: 12,
+                  overflowY: 'auto',
+                  boxShadow: '8px 0 16px rgba(0,0,0,.5)',
+                }}
+              >
+                <GuildsColumn
+                  selected={(openQ || openB).guild}
+                  onSelect={railSelect}
+                  laterOn={laterOn}
+                  onAllSessions={railSessions}
+                  onRail={() => setRailOpen(false)}
+                />
+              </div>
+            )}
+            {ov && (
+              <div
+                data-slideover
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 400,
+                  maxWidth: '90%',
+                  zIndex: 20,
+                  boxSizing: 'border-box',
+                  background: c['bg-deep'],
+                  borderLeft: `1px solid ${c['loot-gold']}`,
+                  boxShadow: '-10px 0 18px rgba(0,0,0,.55)',
+                  padding: '8px 12px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                  transform: ovShown ? 'translateX(0)' : 'translateX(100%)',
+                  transition: slide,
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ ...mono, fontSize: 10, color: c['text-dim'] }}>
+                    slide-over · Esc or click outside to close
+                  </span>
+                  <button
+                    onClick={closeOv}
+                    title="Close"
                     style={{
-                      flex: 1,
-                      minHeight: 0,
-                      overflowY: focus.type === 'overview' ? 'hidden' : 'auto',
-                      overflowX: 'hidden',
-                      wordBreak: 'break-word',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 8,
+                      ...mono,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      color: c['text'],
+                      background: c['bg-raised'],
+                      border: colBorder,
+                      borderRadius: 2,
+                      padding: '0 8px',
                     }}
                   >
-                    {focus.type === 'overview' && (
-                      <RaidPanel
-                        needs={needsFull}
-                        running={running}
-                        queued={queuedLanes}
-                        playing={playing}
-                        onToggle={() => setPlaying(!playing)}
-                        onFocusNeed={(n) => setFocus({ type: 'quest', id: n.id, nid: n.nid })}
-                        onFocusQuest={(id) => setFocus({ type: 'quest', id })}
-                        onOpen={openQuestMode}
-                        highlightId={openQuest || lastOpened}
-                      />
-                    )}
-                    {focus.type === 'quest' && (
-                      <QuestFocus
-                        key={focus.id + (focus.nid || '')}
-                        id={focus.id}
-                        nid={focus.nid}
-                        onOpen={openQuestMode}
-                      />
-                    )}
-                    {focus.type === 'health' && <HealthView laterOn={laterOn} playing={playing} />}
-                    {focus.type === 'bounties' && (
-                      <BountyTab
-                        key={focus.guild + (focus.highlight || '')}
-                        guild={focus.guild}
-                        laterOn={laterOn}
-                        highlight={focus.highlight}
-                        compact
-                        onFocusQuest={setFocus}
-                        onRowClick={(b) => openBountyMode(b.id)}
-                      />
-                    )}
-                  </div>
-                </ResizablePane>
+                    ✕
+                  </button>
+                </div>
+                {renderPane(ov, setOv, true)}
               </div>
             )}
           </MapFrame>
