@@ -115,9 +115,8 @@ import pkgModule = require('left-pad');
 describe('#gateway/npm/left-pad', () => {
   it('VALID: {module} => default is left-pad itself and each named value is its own binding', () => {
     expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
       default: pkgModule,
-      pad: pkgModule.pad,
-      version: pkgModule.version,
     });
   });
 });
@@ -126,7 +125,7 @@ describe('#gateway/npm/left-pad', () => {
     ]);
   });
 
-  it('EMPTY: {shape: export-equals, no names} => default-only barrel, and a test of the default alone', () => {
+  it('EMPTY: {shape: export-equals, no names} => default-only barrel and the same binding test', () => {
     const dependency = GatewayNpmDependencyStub();
 
     const result = gatewayNpmPassthroughFilesTransformer({
@@ -154,6 +153,7 @@ import pkgModule = require('left-pad');
 describe('#gateway/npm/left-pad', () => {
   it('VALID: {module} => default is left-pad itself and each named value is its own binding', () => {
     expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
       default: pkgModule,
     });
   });

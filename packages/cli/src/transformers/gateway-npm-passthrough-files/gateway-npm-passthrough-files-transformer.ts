@@ -7,7 +7,10 @@
  * `import x = require()` and `export =` (TS1202, TS1203). So an `export =` barrel re-exports the
  * module as its `default` and every name in `exportNames` by name, values and types in separate
  * lists, which compiles for a CommonJS consumer and an ES-module consumer alike. Its test asserts the
- * default is the package's own module object and each named value is the package's own binding.
+ * default is the package's own module object and each named value is the package's own binding. The
+ * test reads the package's values through `Object.entries`, never as `pkgModule.<name>`, because a
+ * name the package marks `@deprecated` fails a consumer's `no-deprecated` lint where it is read by
+ * name; a name the declarations promise and the runtime module lacks still fails the comparison.
  * An ESM-only package, which this CommonJS gateway
  * cannot `require`, gets a type-only barrel — `export type *` still needs the `resolution-mode:
  * 'import'` attribute, or a CommonJS file referencing an ES module is TS1479 — whose test never
@@ -99,8 +102,9 @@ import pkgModule = require('${packageName}');
 describe('#gateway/npm/${folder}', () => {
   it('VALID: {module} => default is ${packageName} itself and each named value is its own binding', () => {
     expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
       default: pkgModule,
-${valueNames.map((name) => `      ${name}: pkgModule.${name},\n`).join('')}    });
+    });
   });
 });
 `

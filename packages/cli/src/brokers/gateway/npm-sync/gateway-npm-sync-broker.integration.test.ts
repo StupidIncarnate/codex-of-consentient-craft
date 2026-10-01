@@ -194,8 +194,8 @@ import pkgModule = require('left-pad');
 describe('#gateway/npm/left-pad', () => {
   it('VALID: {module} => default is left-pad itself and each named value is its own binding', () => {
     expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
       default: pkgModule,
-      version: pkgModule.version,
     });
   });
 });
