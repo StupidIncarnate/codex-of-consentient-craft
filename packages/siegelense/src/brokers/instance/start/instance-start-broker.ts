@@ -372,11 +372,13 @@ export const instanceStartBroker = async ({
     const apiLogPath = join(evidencePath, locationsStatics.siegelense.apiLog);
     const webLogPath = join(evidencePath, locationsStatics.siegelense.webLog);
 
-    const [evidenceRepoLocal, apiLogRepoLocal, webLogRepoLocal] = await Promise.all([
-      locationsRepoLinkPathFindBroker({ homePath: evidencePath }),
-      locationsRepoLinkPathFindBroker({ homePath: apiLogPath }),
-      locationsRepoLinkPathFindBroker({ homePath: webLogPath }),
-    ]);
+    const [evidenceRepoLocal, apiLogRepoLocal, webLogRepoLocal, driverLogRepoLocal] =
+      await Promise.all([
+        locationsRepoLinkPathFindBroker({ homePath: evidencePath }),
+        locationsRepoLinkPathFindBroker({ homePath: apiLogPath }),
+        locationsRepoLinkPathFindBroker({ homePath: webLogPath }),
+        locationsRepoLinkPathFindBroker({ homePath: driverLogPath }),
+      ]);
 
     // A browserless spec (spec line 2145: "just another spec") never assigns any process the
     // `web` portRole — nothing binds that half of the claimed pair, so a URL built from it points
@@ -446,7 +448,11 @@ export const instanceStartBroker = async ({
         : {}),
       home: homePath,
       evidence: evidenceRepoLocal,
-      logs: { api: apiLogRepoLocal, web: webLogRepoLocal },
+      logs: {
+        api: apiLogRepoLocal,
+        web: webLogRepoLocal,
+        driver: driverLogRepoLocal,
+      },
       // The SEEDED guild, never the partition one — `evidence` above is still filed under the
       // guild that owns `quest` (siegelense-tooling.md line 2328). Keying assets by a seeded id
       // would file every instance under a partition of its own and defeat the point.

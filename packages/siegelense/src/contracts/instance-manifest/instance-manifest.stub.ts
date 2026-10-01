@@ -23,6 +23,9 @@ export const InstanceManifestStub = ({
       web: RepoLocalPathStub({
         path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
       }),
+      driver: RepoLocalPathStub({
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/driver.log',
+      }),
     },
     seeded: null,
     queuedMs: 34_000,
