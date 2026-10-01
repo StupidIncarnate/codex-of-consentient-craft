@@ -63,4 +63,54 @@ describe('architectureWsGatewayBroker', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('direct WS package / gateway import (post-adapters)', () => {
+    it('VALID: {file directly imports #gateway/npm/hono__node-ws} => returns gateway path', () => {
+      const proxy = architectureWsGatewayBrokerProxy();
+      proxy.setup({
+        sourceFiles: [
+          {
+            path: GATEWAY_FILE,
+            source: "import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';",
+          },
+        ],
+      });
+
+      const result = architectureWsGatewayBroker({ projectRoot: PROJECT_ROOT });
+
+      expect(result).toStrictEqual([GATEWAY_FILE]);
+    });
+
+    it('VALID: {file directly imports @hono/node-ws} => returns gateway path', () => {
+      const proxy = architectureWsGatewayBrokerProxy();
+      proxy.setup({
+        sourceFiles: [
+          {
+            path: GATEWAY_FILE,
+            source: "import { createNodeWebSocket } from '@hono/node-ws';",
+          },
+        ],
+      });
+
+      const result = architectureWsGatewayBroker({ projectRoot: PROJECT_ROOT });
+
+      expect(result).toStrictEqual([GATEWAY_FILE]);
+    });
+
+    it('EMPTY: {file inside packages/@gateway/ imports @hono/node-ws} => excluded (it is the wrapper)', () => {
+      const proxy = architectureWsGatewayBrokerProxy();
+      proxy.setup({
+        sourceFiles: [
+          {
+            path: '/repo/packages/@gateway/npm/src/hono__node-ws/hono__node-ws.ts',
+            source: "export * from '@hono/node-ws';",
+          },
+        ],
+      });
+
+      const result = architectureWsGatewayBroker({ projectRoot: PROJECT_ROOT });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
 });

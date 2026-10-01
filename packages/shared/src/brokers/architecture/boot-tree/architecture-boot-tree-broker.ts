@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Renders the Boot section of the project-map for a package — startup → flows → responders → adapters,
+ * PURPOSE: Renders the Boot section of the project-map for a package — startup → flows → responders → brokers,
  * with widget composition + bindings + HTTP/WS edges integrated under each responder for frontend-react packages
  *
  * USAGE:

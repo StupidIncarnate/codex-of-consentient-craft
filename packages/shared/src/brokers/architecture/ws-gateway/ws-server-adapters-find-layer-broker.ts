@@ -17,6 +17,7 @@
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { wsServerNpmPackagesStatics } from '../../../statics/ws-server-npm-packages/ws-server-npm-packages-statics';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
+import { gatewayPathFromImportSourceTransformer } from '../../../transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer';
 import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
 import { readFileLayerBroker } from './read-file-layer-broker';
 
@@ -42,7 +43,17 @@ export const wsServerAdaptersFindLayerBroker = ({
     if (source === undefined) continue;
     const imports = importStatementsExtractTransformer({ source });
     for (const importPath of imports) {
-      if (knownPackages.some((pkg) => importPath === pkg)) {
+      const isKnown = knownPackages.some((pkg) => {
+        if (importPath === pkg || importPath.startsWith(`${pkg}/`)) {
+          return true;
+        }
+        const gwPath = gatewayPathFromImportSourceTransformer({
+          importSource: pkg,
+          builtinModules: [],
+        });
+        return importPath === gwPath || importPath.startsWith(`${gwPath}/`);
+      });
+      if (isKnown) {
         adapters.push(filePath);
         break;
       }
