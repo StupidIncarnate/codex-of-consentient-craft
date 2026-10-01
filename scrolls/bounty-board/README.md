@@ -58,7 +58,6 @@ Work P0 first, then P1. The index lists them at the top.
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: <one line saying why> |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-022 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

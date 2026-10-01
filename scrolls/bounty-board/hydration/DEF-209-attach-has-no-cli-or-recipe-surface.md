@@ -4,7 +4,6 @@
 |---|---|
 | Kind | change |
 | Status | suspected |
-| Priority | P3: a built verb with no caller outside tests |
 | Package | hydration |
 | Found | 2026-09-30, walkthrough case HY-23 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "HY · `attach`", and `scrolls/walkthrough/features/02-hydration-and-recipes.md`, "Known open items"; 2026-09-30 |

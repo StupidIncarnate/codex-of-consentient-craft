@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P2: a load-only slow flag that costs a rerun of the full ward |
 | Package | cli |
 | Found | 2026-09-26, full `npm run ward` |
 | Moved from | `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history) item 39, 2026-09-30 |

@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P3: a refusal names the wrong field path |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough cases SL-069, SL-072 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P2: the e2e check needs two packages built first |
 | Package | ward |
 | Found | 2026-09-30, walkthrough case WD-41 (feature doc, not re-checked) |
 | Moved from | `scrolls/walkthrough/features/07-ward.md`, "Known open items"; 2026-09-30 |

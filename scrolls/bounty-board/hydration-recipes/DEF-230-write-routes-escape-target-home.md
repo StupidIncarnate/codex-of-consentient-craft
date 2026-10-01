@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P1: a route can read and change the real `~/.dungeonmaster` quests instead of its target, and can report a false defect |
 | Package | hydration-recipes |
 | Found | 2026-09, `scrolls/seigelense/remaining-build-items.md` item 8a |
 | Moved from | `scrolls/seigelense/remaining-build-items.md` section 8, 2026-09-30 |

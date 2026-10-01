@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: no UI to fix a bad guild, and one bad guild breaks the guild list |
 | Package | web |
 | Found | 2026-09-29, walkthrough case SL-088 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

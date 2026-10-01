@@ -4,7 +4,6 @@
 |---|---|
 | Kind | change |
 | Status | needs decision |
-| Priority | P3: low-value cleanup; copies already exist in assayer |
 | Package | cross-cutting |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 5, 2026-10-01 |

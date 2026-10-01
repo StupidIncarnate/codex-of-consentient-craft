@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P1: a consumer gets every workspace import reported as a raw npm import |
 | Package | eslint-plugin |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 1, 2026-10-01 |

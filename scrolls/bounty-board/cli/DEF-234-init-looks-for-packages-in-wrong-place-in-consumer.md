@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P1: if real, `init` fails in every consumer (P0 once confirmed); `npm run check:consumer` decides |
 | Package | cli |
 | Found | 2026-09, read from code; never run against a real published install |
 | Moved from | `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history) item 40, 2026-09-30 |

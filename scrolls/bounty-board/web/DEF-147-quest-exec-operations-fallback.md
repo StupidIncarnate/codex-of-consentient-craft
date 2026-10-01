@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P3: an unchecked suspicion about a seeded view |
 | Package | web |
 | Found | 2026-09-28, walkthrough case SL-195 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

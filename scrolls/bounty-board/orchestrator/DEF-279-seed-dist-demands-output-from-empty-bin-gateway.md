@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: a consumer must create an empty `dist/` folder by hand before a worktree can be made |
 | Package | orchestrator |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 7, 2026-10-01 |

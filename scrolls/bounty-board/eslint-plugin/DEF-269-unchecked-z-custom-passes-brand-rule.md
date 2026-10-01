@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: one spelling slips past a brand rule that still catches `z.unknown()` and `z.any()` |
 | Package | eslint-plugin |
 | Found | 2026-10-01, assayer's brands-and-gateways epic, item R-2a (assayer commit `ff3b731`) |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, concession 17 and upstream report 21, 2026-10-01 |

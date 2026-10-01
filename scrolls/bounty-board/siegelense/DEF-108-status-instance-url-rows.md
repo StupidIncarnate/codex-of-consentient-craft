@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: the lane URLs cannot be found again after `start` |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-044 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

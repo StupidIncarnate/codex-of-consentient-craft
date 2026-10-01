@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P2: a seeded completed quest may show operations as unclaimed; not confirmed |
 | Package | hydration-recipes |
 | Found | 2026-09-30, `scrolls/consolidated-plan-handoff.md` "Known gaps, not yet units" |
 | Moved from | `scrolls/walkthrough/features/05-web-execution-panel.md`, "Known open items"; 2026-09-30 |

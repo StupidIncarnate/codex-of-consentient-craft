@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: the version pin keeps consumers off newer TypeScript; the upgrade is under way |
 | Package | cross-cutting (dungeonmaster and its consumer assayer) |
 | Found | 2026-10-01, after assayer's brands-and-gateways epic, decision D7 (assayer `scrolls/brands-gateways-epic/items/z-4.md`) |
 

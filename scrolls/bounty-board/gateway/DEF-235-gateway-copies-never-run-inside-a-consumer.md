@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: the consumer gateway copies are unproven; `check:consumer` may already cover them |
 | Package | gateway |
 | Found | 2026-09, `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history) item 41 |
 | Moved from | `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history), 2026-09-30 |

@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P3: dead code |
 | Package | siegelense |
 | Found | 2026-09-30, walkthrough exploration (code read; a search found only the brokers' own tests calling them) |
 | Moved from | `scrolls/walkthrough/features/01-siegelense.md`, "Known open items"; 2026-09-30 |

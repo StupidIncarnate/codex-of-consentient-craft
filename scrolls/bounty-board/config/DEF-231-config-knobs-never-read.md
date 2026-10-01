@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: three settings do nothing when set; the defaults still work |
 | Package | config |
 | Found | 2026-09, `scrolls/orcha-changes/28-independent.md` section 28b |
 | Moved from | `scrolls/orcha-changes/28-independent.md`, 2026-09-30 |

@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P0: deletes the user's whole home directory on a consumer's first Jest run |
 | Package | testing |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 12, 2026-10-01 |

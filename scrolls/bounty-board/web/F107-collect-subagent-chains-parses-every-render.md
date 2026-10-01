@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: a parse every render breaks the object identity two widgets rely on |
 | Package | web |
 | Found | R1-web-b |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |

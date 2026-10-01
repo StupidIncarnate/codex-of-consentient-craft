@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P3: dead code |
 | Package | siegelense |
 | Found | 2026-09-27, walkthrough cases SL-079, SL-004, SL-005 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

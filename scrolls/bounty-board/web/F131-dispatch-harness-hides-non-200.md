@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: a test harness hides a non-200 start behind `processId: "undefined"` |
 | Package | web |
 | Found | e2e flake fix |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |

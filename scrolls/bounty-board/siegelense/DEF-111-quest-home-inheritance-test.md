@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: a missing test, and the home must be set by hand |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-048 follow-up |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

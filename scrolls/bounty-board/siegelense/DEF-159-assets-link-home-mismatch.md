@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: evidence is not reachable through the assets link |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-189 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

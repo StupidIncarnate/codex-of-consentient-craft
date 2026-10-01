@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: such a consumer cannot use worktrees and runs agents in its main checkout instead |
 | Package | orchestrator |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 6, 2026-10-01 |

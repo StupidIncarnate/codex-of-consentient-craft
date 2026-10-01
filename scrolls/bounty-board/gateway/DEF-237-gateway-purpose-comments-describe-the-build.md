@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P3: comment cleanup |
 | Package | gateway |
 | Found | 2026-09-26, spot check of four headers |
 | Moved from | `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history) item 46, 2026-09-30 |

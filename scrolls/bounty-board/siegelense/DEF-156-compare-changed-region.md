@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: a pixel share hides how much of the page changed |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-156 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

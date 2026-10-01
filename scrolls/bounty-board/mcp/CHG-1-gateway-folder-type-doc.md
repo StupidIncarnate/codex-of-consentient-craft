@@ -4,7 +4,6 @@
 |---|---|
 | Kind | change |
 | Status | ready |
-| Priority | P3: a missing doc |
 | Package | mcp |
 | Found | 2026-09-30, read-only check of `scrolls/gateway/followup-sustainability.md` after the gateway pivot merged (788165421) |
 | Moved from | `scrolls/gateway/followup-sustainability.md`, "Docs and teaching text to update" and "Work carried over from the gateway build", 2026-09-30. That doc is deleted; git history holds it |

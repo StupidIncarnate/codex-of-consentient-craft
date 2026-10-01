@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P3: a hint is hand-typed |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-059 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

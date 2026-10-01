@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P1: a ward scope that reaches nothing exits 0, so a check silently checks nothing |
 | Package | ward |
 | Found | 2026-09-30, walkthrough case WD-35 (reproduced live per `packages/ward/CLAUDE.md`) |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "WD-35", and `scrolls/walkthrough/features/07-ward.md`, "Known open items"; 2026-09-30 |

@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P1: concurrent sessions fail each other's test runs |
 | Package | testing |
 | Found | 2026-10-01, from assayer, a consumer that links dungeonmaster through `file:` (assayer item PE-10, ward run `1790897042784-6bda`) |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Post-epic work", paragraph "Upstream finding", 2026-10-01 |

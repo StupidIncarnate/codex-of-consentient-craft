@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P1: a failed run exits 0, so a script reads failure as success |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-069 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

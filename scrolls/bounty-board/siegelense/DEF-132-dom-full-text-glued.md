@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: glued text can be misread as one word |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-078 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

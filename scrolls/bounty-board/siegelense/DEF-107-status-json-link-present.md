@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P3: a flag name reads as broken when nothing is wrong |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough cases SL-029, SL-051 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

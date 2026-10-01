@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | suspected |
-| Priority | P3: a doc line, location not confirmed |
 | Package | mcp |
 | Found | 2026-09-30, walkthrough exploration (feature doc, not re-checked) |
 | Moved from | `scrolls/walkthrough/features/07-ward.md`, "Known open items"; 2026-09-30 |

@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P2: rare, but `kill` can signal an unrelated process if the OS reuses a pgid |
 | Package | siegelense |
 | Found | 2026-09-27, walkthrough case SL-063, SL-165 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |

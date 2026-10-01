@@ -4,7 +4,6 @@
 |---|---|
 | Kind | defect |
 | Status | ready |
-| Priority | P3: sample data in tests uses an old layout |
 | Package | testing |
 | Found | 2026-09, `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history) item 42 |
 | Moved from | `scrolls/gateway/followup-sustainability.md` (deleted 2026-09-30; in git history), 2026-09-30 |
