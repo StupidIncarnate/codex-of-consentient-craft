@@ -37,10 +37,10 @@ describe('statusArgsContract', () => {
       });
     });
 
-    it('VALID: {instanceId: null, since: "beginning", isJson: false} => beginning parses', () => {
+    it('VALID: {instanceId: null, since: "1wk", isJson: false} => 1wk parses', () => {
       const args = StatusArgsStub({
         instanceId: null,
-        since: 'beginning',
+        since: '1wk',
         isJson: false,
       });
 
@@ -48,7 +48,7 @@ describe('statusArgsContract', () => {
 
       expect(result).toStrictEqual({
         instanceId: null,
-        since: 'beginning',
+        since: '1wk',
         isJson: false,
       });
     });

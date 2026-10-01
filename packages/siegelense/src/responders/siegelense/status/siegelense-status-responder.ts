@@ -48,7 +48,7 @@ export const SiegelenseStatusResponder = async ({
 }: {
   instanceId: SiegeInstance['id'] | null;
   branch?: string | null | undefined;
-  since?: '1h' | '6h' | '1d' | 'beginning' | null | undefined;
+  since?: '1h' | '6h' | '1d' | '1wk' | null | undefined;
   isJson?: boolean | undefined;
 }): Promise<void> => {
   if (instanceId !== null) {

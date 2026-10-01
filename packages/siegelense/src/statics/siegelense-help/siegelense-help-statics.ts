@@ -282,7 +282,7 @@ export const siegelenseHelpStatics = {
     status: {
       summary: 'siegelense status — report the fleet, or one instance in full.',
       synopsis:
-        'dungeonmaster siegelense status [--instance <id>] [--branch <name>] [--since 1hr|6hr|1day|beginning] [--json]',
+        'dungeonmaster siegelense status [--instance <id>] [--branch <name>] [--since 1hr|6hr|1day|1wk] [--json]',
       flags: [
         {
           name: '--instance',
@@ -299,15 +299,15 @@ export const siegelenseHelpStatics = {
         },
         {
           name: '--since',
-          value: '1hr|6hr|1day|beginning',
+          value: '1hr|6hr|1day|1wk',
           required: false,
           description:
-            'narrows the fleet to instances created within that time window. Defaults to 6hr; beginning is how a caller sees every instance the registry holds, regardless of age.',
+            'narrows the fleet to instances created within that time window. Defaults to 6hr; 1wk is how a caller sees every instance created in the last week.',
         },
         JSON_FLAG,
       ],
       refusals: [
-        'A --since value outside 1hr, 6hr, 1day or beginning is refused, naming the four accepted windows.',
+        'A --since value outside 1hr, 6hr, 1day or 1wk is refused, naming the four accepted windows.',
         'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:

@@ -32,7 +32,7 @@ describe('StartSiegelense', () => {
 
       expect(withoutLiveMachineLine).toBe(
         `MONITORED: ${machineStatics.monitored.join(', ')}\n` +
-          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+          'No siegelense instances created in the last 6hr. Widen with --since 1wk.\n',
       );
     });
   });

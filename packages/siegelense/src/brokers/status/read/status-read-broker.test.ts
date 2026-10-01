@@ -572,7 +572,7 @@ describe('statusReadBroker', () => {
       ]);
     });
 
-    it('VALID: {since filter beginning retains instance active 7h ago} => older instances are not filtered out', async () => {
+    it('VALID: {since filter 1wk retains instance active 7h ago} => older instances within 1 week are not filtered out', async () => {
       const proxy = statusReadBrokerProxy();
       const nowMs = 1_700_001_000_000;
       const idRecent = InstanceIdStub({ value: 'inst_00000001' });
@@ -646,7 +646,7 @@ describe('statusReadBroker', () => {
       });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null, since: 'beginning' });
+      const result = await statusReadBroker({ instanceId: null, since: '1wk' });
 
       expect(result.instances).toStrictEqual([
         {
@@ -676,6 +676,81 @@ describe('statusReadBroker', () => {
           orphans: [],
           evidence: null,
           likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
+          branch: 'main',
+          lastRunSaved: null,
+        },
+      ]);
+    });
+
+    it('VALID: {since filter 1wk filters out instance active 8d ago} => instances older than 1 week are filtered out', async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const idRecent = InstanceIdStub({ value: 'inst_00000001' });
+      const idOld = InstanceIdStub({ value: 'inst_00000002' });
+      const entryRecent = RegistryEntryStub({
+        id: idRecent,
+        branch: 'main',
+        specName: 'dungeonmaster-stack',
+        state: 'alive',
+        bootedAtMs: nowMs - 60_000,
+        lastBeatMs: nowMs - 1000,
+      });
+      const entryOld = RegistryEntryStub({
+        id: idOld,
+        branch: 'main',
+        specName: 'dungeonmaster-stack',
+        state: 'alive',
+        bootedAtMs: nowMs - 691_200_000,
+        lastBeatMs: nowMs - 691_200_000,
+      });
+      const registry = RegistryStub({ instances: [entryRecent, entryOld] });
+
+      proxy.setupNow({ nowMs });
+      proxy.setupRegistryResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const evidencePathRecent = `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`;
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: '/home/user/.dungeonmaster',
+        rootPath: ROOT_PATH_VALUE,
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await statusReadBroker({ instanceId: null, since: '1wk' });
+
+      expect(result.instances).toStrictEqual([
+        {
+          id: idRecent,
+          state: 'alive',
+          specName: 'dungeonmaster-stack',
+          uptime: '1m',
+          lastBeat: '1s',
+          runs: 0,
+          memory: { megabytes: 0, measured: 'live' },
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
           branch: 'main',
           lastRunSaved: null,
         },

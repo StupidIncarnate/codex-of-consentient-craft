@@ -46,6 +46,7 @@ const SINCE_WINDOWS_MS = {
   '1h': 3_600_000,
   '6h': 21_600_000,
   '1d': 86_400_000,
+  '1wk': 604_800_000,
 } as const;
 
 export const statusReadBroker = async ({
@@ -55,7 +56,7 @@ export const statusReadBroker = async ({
 }: {
   instanceId: SiegeInstance['id'] | null;
   branch?: string | null;
-  since?: '1h' | '6h' | '1d' | 'beginning' | null;
+  since?: '1h' | '6h' | '1d' | '1wk' | null;
 }): Promise<StatusAnswer> => {
   // Resolved BEFORE machineReadBroker: machineOomCountBroker's own '/proc' + 'vmstat' join is left
   // to pathJoinAdapter's real-passthrough default (safe only once nothing else is pending on that
@@ -81,7 +82,7 @@ export const statusReadBroker = async ({
 
   const nowMs = Date.now();
 
-  if (since !== null && since !== 'beginning') {
+  if (since !== null) {
     const windowMs = SINCE_WINDOWS_MS[since];
     entryStatePairs = entryStatePairs.filter((pair) => {
       // `state === 'alive'` is load-bearing here exactly as it is in capacityReadBroker and
