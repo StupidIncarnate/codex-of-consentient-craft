@@ -14,6 +14,27 @@ describe('architectureOverviewBroker', () => {
     });
   });
 
+  describe('architecture layer diagram', () => {
+    it('VALID: {} => names outside packages through #gateway/npm/ instead of raw package names', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^contracts\/ {5}# Can import: statics, errors, contracts, #gateway\/npm\/zod, @dungeonmaster\/shared\/@types, @dungeonmaster\/orchestrator$/mu,
+      );
+      expect(result).toMatch(
+        /^flows\/ {9}# Can import: contracts, transformers, guards, statics, errors, flows, responders, #gateway\/npm\/hono, #gateway\/npm\/react-router-dom, #gateway\/npm\/express, #gateway\/npm\/modelcontextprotocol__sdk, #gateway\/npm\/zod-to-json-schema$/mu,
+      );
+      expect(result).toMatch(
+        /^bindings\/ {6}# Can import: brokers, state, contracts, statics, errors, guards, transformers, #gateway\/npm\/react, @dungeonmaster\/orchestrator$/mu,
+      );
+      expect(result).toMatch(
+        /^widgets\/ {7}# Can import: bindings, brokers, state, contracts, transformers, guards, statics, errors, widgets, #gateway\/npm\/react, #gateway\/npm\/mantine__core, #gateway\/npm\/mantine__hooks, #gateway\/npm\/ansi-to-react, #gateway\/npm\/react-router-dom, #gateway\/npm\/tabler__icons-react, #gateway\/npm\/testing-library__react, #gateway\/npm\/testing-library__user-event$/mu,
+      );
+    });
+  });
+
   describe('present-tense documentation rule', () => {
     it('VALID: {} => bans historical framing across every documentation surface', () => {
       architectureOverviewBrokerProxy();
