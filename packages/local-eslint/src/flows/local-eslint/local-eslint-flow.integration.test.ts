@@ -9,6 +9,7 @@ describe('LocalEslintFlow', () => {
         'ban-direct-io-in-test-scenarios',
         'ban-locator-pick',
         'ban-quest-status-literals',
+        'ban-self-located-repo-lookup',
         'ban-sync-seeding-methods',
         'graph-reachability',
         'no-bare-location-literals',

@@ -150,6 +150,7 @@ module.exports = [
       '@dungeonmaster-local/ban-sync-seeding-methods': 'warn',
       '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
       '@dungeonmaster-local/graph-reachability': 'error',
+      '@dungeonmaster-local/ban-self-located-repo-lookup': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },

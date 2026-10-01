@@ -10,6 +10,7 @@ describe('LocalEslintCreateResponder', () => {
         'ban-direct-io-in-test-scenarios',
         'ban-locator-pick',
         'ban-quest-status-literals',
+        'ban-self-located-repo-lookup',
         'ban-sync-seeding-methods',
         'graph-reachability',
         'no-bare-location-literals',
@@ -115,6 +116,22 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(plugin.rules['graph-reachability'].create).toStrictEqual(expect.any(Function));
+    });
+
+    it('VALID: {} => returns ban-self-located-repo-lookup rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-self-located-repo-lookup'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns ban-self-located-repo-lookup rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-self-located-repo-lookup'].create).toStrictEqual(
+        expect.any(Function),
+      );
     });
   });
 });

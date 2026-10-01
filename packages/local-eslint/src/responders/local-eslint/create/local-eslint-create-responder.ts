@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Assembles the local-eslint plugin object with repo-internal rules (ban-quest-status-literals, no-bare-location-literals, no-hardcoded-package-names, ban-locator-pick, ban-sync-seeding-methods, ban-direct-io-in-test-scenarios, graph-reachability).
+ * PURPOSE: Assembles the local-eslint plugin object with repo-internal rules (ban-quest-status-literals, no-bare-location-literals, no-hardcoded-package-names, ban-locator-pick, ban-sync-seeding-methods, ban-direct-io-in-test-scenarios, graph-reachability, ban-self-located-repo-lookup).
  *
  * USAGE:
  * const plugin = LocalEslintCreateResponder();
- * // Returns { rules: { 'ban-quest-status-literals': RuleModule, 'no-bare-location-literals': RuleModule, 'no-hardcoded-package-names': RuleModule, 'ban-locator-pick': RuleModule, 'ban-sync-seeding-methods': RuleModule, 'ban-direct-io-in-test-scenarios': RuleModule, 'graph-reachability': RuleModule } }
+ * // Returns { rules: { 'ban-quest-status-literals': RuleModule, 'no-bare-location-literals': RuleModule, 'no-hardcoded-package-names': RuleModule, 'ban-locator-pick': RuleModule, 'ban-sync-seeding-methods': RuleModule, 'ban-direct-io-in-test-scenarios': RuleModule, 'graph-reachability': RuleModule, 'ban-self-located-repo-lookup': RuleModule } }
  *
  * WHEN-TO-USE: Internal to the dungeonmaster monorepo only — this plugin is never published to npm.
  */
@@ -13,6 +13,7 @@ import { ruleNoHardcodedPackageNamesBroker } from '../../../brokers/rule/no-hard
 import { ruleBanLocatorPickBroker } from '../../../brokers/rule/ban-locator-pick/rule-ban-locator-pick-broker';
 import { ruleBanSyncSeedingMethodsBroker } from '../../../brokers/rule/ban-sync-seeding-methods/rule-ban-sync-seeding-methods-broker';
 import { ruleBanDirectIoInTestScenariosBroker } from '../../../brokers/rule/ban-direct-io-in-test-scenarios/rule-ban-direct-io-in-test-scenarios-broker';
+import { ruleBanSelfLocatedRepoLookupBroker } from '../../../brokers/rule/ban-self-located-repo-lookup/rule-ban-self-located-repo-lookup-broker';
 import { ruleGraphReachabilityBroker } from '../../../brokers/rule/graph-reachability/rule-graph-reachability-broker';
 
 export const LocalEslintCreateResponder = (): {
@@ -26,6 +27,7 @@ export const LocalEslintCreateResponder = (): {
       typeof ruleBanDirectIoInTestScenariosBroker
     >;
     readonly 'graph-reachability': ReturnType<typeof ruleGraphReachabilityBroker>;
+    readonly 'ban-self-located-repo-lookup': ReturnType<typeof ruleBanSelfLocatedRepoLookupBroker>;
   };
 } =>
   ({
@@ -37,5 +39,6 @@ export const LocalEslintCreateResponder = (): {
       'ban-sync-seeding-methods': ruleBanSyncSeedingMethodsBroker(),
       'ban-direct-io-in-test-scenarios': ruleBanDirectIoInTestScenariosBroker(),
       'graph-reachability': ruleGraphReachabilityBroker(),
+      'ban-self-located-repo-lookup': ruleBanSelfLocatedRepoLookupBroker(),
     },
   }) as const;
