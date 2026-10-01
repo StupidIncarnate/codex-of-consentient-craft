@@ -160,5 +160,18 @@ describe('recipesSeedRunBroker', () => {
         },
       });
     });
+
+    it('ERROR: {recipeName: quest-advances-one-step, baseUrl connection refused} => reports the destination url and connection refusal, not "no URL known"', async () => {
+      await expect(
+        recipesSeedRunBroker({
+          recipeName: 'quest-advances-one-step',
+          params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+          home: UNUSED_HOME,
+          baseUrl: 'http://127.0.0.1:1',
+        }),
+      ).rejects.toThrow(
+        /^recipe "quest-advances-one-step": ingredient "quest"'s "api" route at http:\/\/127\.0\.0\.1:1\/api\/quests refused the connection: /u,
+      );
+    });
   });
 });

@@ -18,14 +18,13 @@
  * at all, or a status excluded from `transitions.to` entirely) throws THAT gate's own named error
  * rather than leaving the quest silently at `created`.
  *
- * Returns the created quest record itself on a success status, never `dmHttpRequestAdapter`'s
+ * Returns the created quest record itself on a success status, never `dmHttpRequestBroker`'s
  * `{ status, body }` envelope — the runner parses whatever this route returns straight through
- * `questContract`, and that contract can never accept an envelope. `dmHttpResponseUnwrapAdapter` is
+ * `questContract`, and that contract can never accept an envelope. `dmHttpResponseUnwrapTransformer` is
  * what makes a failure status hold too, by throwing instead of handing the envelope onward. A
- * transport failure — `dmHttpRequestAdapter`'s own `fetch` rejecting before any status exists — is
- * caught and re-thrown through `dmHttpTransportFailureTransformer` so `routeFailureTransformer` can
- * still mine a `url` off it: `dmHttpRequestAdapter` attaches none itself (its raw `fetch` call has no
- * try/catch), unlike the framework's own `fetchPostAdapter`, which this repo's routes do not call.
+ * transport failure — `dmHttpRequestBroker`'s own `fetch` or `request` rejecting before any status
+ * exists — carries the url attached by `dmHttpRequestBroker` itself, so `routeFailureTransformer`
+ * can still mine a `url` off it.
  *
  * USAGE:
  * await questApiRouteBroker({ target, fields: { guildId, title, userRequest, status: 'created' } });
@@ -36,7 +35,6 @@
 import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
 import { dmHttpResponseUnwrapTransformer } from '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer';
-import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 import { questReachRouteBroker } from '../reach-route/quest-reach-route-broker';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 import { addQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
@@ -53,22 +51,16 @@ export const questApiRouteBroker = async ({
   const parsedFields = questFieldsContract.parse(fields);
   const url = target.baseUrl === undefined ? QUESTS_PATH : `${target.baseUrl}${QUESTS_PATH}`;
 
-  const postResponse = await (async (): ReturnType<typeof dmHttpRequestBroker> => {
-    try {
-      return await dmHttpRequestBroker({
-        target,
-        method: 'POST',
-        path: QUESTS_PATH,
-        body: {
-          guildId: parsedFields.guildId,
-          title: parsedFields.title,
-          userRequest: parsedFields.userRequest,
-        },
-      });
-    } catch (cause) {
-      throw dmHttpTransportFailureTransformer({ cause, url });
-    }
-  })();
+  const postResponse = await dmHttpRequestBroker({
+    target,
+    method: 'POST',
+    path: QUESTS_PATH,
+    body: {
+      guildId: parsedFields.guildId,
+      title: parsedFields.title,
+      userRequest: parsedFields.userRequest,
+    },
+  });
 
   const addResult = dmHttpResponseUnwrapTransformer({
     response: postResponse,
@@ -83,17 +75,11 @@ export const questApiRouteBroker = async ({
   const getPath = `${QUESTS_PATH}/${parsedAddResult.questId}`;
   const getUrl = target.baseUrl === undefined ? getPath : `${target.baseUrl}${getPath}`;
 
-  const getResponse = await (async (): ReturnType<typeof dmHttpRequestBroker> => {
-    try {
-      return await dmHttpRequestBroker({
-        target,
-        method: 'GET',
-        path: getPath,
-      });
-    } catch (cause) {
-      throw dmHttpTransportFailureTransformer({ cause, url: getUrl });
-    }
-  })();
+  const getResponse = await dmHttpRequestBroker({
+    target,
+    method: 'GET',
+    path: getPath,
+  });
 
   const getResult = dmHttpResponseUnwrapTransformer({
     response: getResponse,

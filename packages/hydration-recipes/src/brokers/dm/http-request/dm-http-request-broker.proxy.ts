@@ -5,6 +5,7 @@ type DmHttpResponse = ReturnType<typeof DmHttpResponseStub>;
 
 export const dmHttpRequestBrokerProxy = (): {
   succeeds: ({ url, response }: { url: string; response: DmHttpResponse }) => void;
+  fails: ({ url, cause }: { url: string; cause: Error }) => void;
 } => {
   const fetchProxy = fetchWithStatusProxy();
 
@@ -15,6 +16,9 @@ export const dmHttpRequestBrokerProxy = (): {
         status: response.status,
         bodyText: JSON.stringify(response.body),
       });
+    },
+    fails: ({ url, cause }: { url: string; cause: Error }): void => {
+      fetchProxy.setupRefused({ url, cause });
     },
   };
 };

@@ -17,14 +17,13 @@
  * uncreated, matching the write route's own rule for a path the target merely points at rather
  * than owns.
  *
- * Returns the created `Guild` record itself on a success status, never `dmHttpRequestAdapter`'s
+ * Returns the created `Guild` record itself on a success status, never `dmHttpRequestBroker`'s
  * `{ status, body }` envelope — the runner parses whatever this route returns straight through
- * `guildContract`, and that contract can never accept an envelope. `dmHttpResponseUnwrapAdapter` is
+ * `guildContract`, and that contract can never accept an envelope. `dmHttpResponseUnwrapTransformer` is
  * what makes a failure status hold too, by throwing instead of handing the envelope onward. A
- * transport failure — `dmHttpRequestAdapter`'s own `fetch` rejecting before any status exists — is
- * caught and re-thrown through `dmHttpTransportFailureTransformer` so `routeFailureTransformer` can
- * still mine a `url` off it: `dmHttpRequestAdapter` attaches none itself (its raw `fetch` call has no
- * try/catch), unlike the framework's own `fetchPostAdapter`, which this repo's routes do not call.
+ * transport failure — `dmHttpRequestBroker`'s own `fetch` or `request` rejecting before any status
+ * exists — carries the url attached by `dmHttpRequestBroker` itself, so `routeFailureTransformer`
+ * can still mine a `url` off it.
  *
  * `guildUniquePathResolveBroker` runs BEFORE the path is derived absolute — DEF-78 — so composing
  * two guild recipes into one target (or seeding `guild-empty` twice, and a live siegelense lane
@@ -42,7 +41,6 @@ import { guildUniquePathResolveBroker } from '../unique-path-resolve/guild-uniqu
 import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
 import { dmHttpResponseUnwrapTransformer } from '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer';
-import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -63,18 +61,12 @@ export const guildApiRouteBroker = async ({
 
   const url = target.baseUrl === undefined ? GUILDS_PATH : `${target.baseUrl}${GUILDS_PATH}`;
 
-  const response = await (async (): ReturnType<typeof dmHttpRequestBroker> => {
-    try {
-      return await dmHttpRequestBroker({
-        target,
-        method: 'POST',
-        path: GUILDS_PATH,
-        body: { name: parsedFields.name, path },
-      });
-    } catch (cause) {
-      throw dmHttpTransportFailureTransformer({ cause, url });
-    }
-  })();
+  const response = await dmHttpRequestBroker({
+    target,
+    method: 'POST',
+    path: GUILDS_PATH,
+    body: { name: parsedFields.name, path },
+  });
 
   return dmHttpResponseUnwrapTransformer({ response, url });
 };
