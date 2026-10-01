@@ -5,14 +5,14 @@ describe('slowFileThresholdStatics', () => {
     expect(slowFileThresholdStatics.threshold).toStrictEqual({
       warnMs: 5000,
       testWarnMs: 1000,
-      integrationTestWarnMs: 10_000,
+      integrationTestWarnMs: 20_000,
       lintRulesWarnMs: 4000,
-      e2eTestWarnMs: 15_000,
+      e2eTestWarnMs: 20_000,
     });
   });
 
-  it('VALID: the browser bar => sits above every other, because a spec drives a real server and a real browser', () => {
-    expect(slowFileThresholdStatics.threshold.e2eTestWarnMs).toBeGreaterThan(
+  it('VALID: the browser bar => never sits below the integration bar, because a spec drives a real server and a real browser', () => {
+    expect(slowFileThresholdStatics.threshold.e2eTestWarnMs).toBeGreaterThanOrEqual(
       slowFileThresholdStatics.threshold.integrationTestWarnMs,
     );
   });

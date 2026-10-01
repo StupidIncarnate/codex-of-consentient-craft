@@ -23,9 +23,12 @@ export const slowFileThresholdStatics = {
     testWarnMs: 1000,
     // An integration test may spawn real processes or run package installers sequentially across
     // every workspace package in the monorepo, and under whole-repo concurrency with all packages
-    // running at once, contended multi-installer suites clear in 8-9 seconds. Ten clears contended
-    // multi-installer runs and still catches an integration test doing runaway work.
-    integrationTestWarnMs: 10_000,
+    // running at once, contended multi-installer suites clear in 8-9 seconds. On a shared machine
+    // the same sweep runs far slower: at a 15-minute load of 8.3 on 12 cores,
+    // `start-pre-folder-detail-hook.integration.test.ts` ran its slowest test in 15.5s and its whole
+    // file in 14.1s run alone at a load of 3. Twenty clears that contention and still catches an
+    // integration test doing runaway work.
+    integrationTestWarnMs: 20_000,
     // Summed eslint rule time plus fix. It does NOT exclude the cost of the TypeScript program:
     // the type-aware rules pull types lazily as they run, so whichever file first reaches a part
     // of the type graph is charged with checking it. That charge belongs to the batch, not to the
@@ -53,7 +56,8 @@ export const slowFileThresholdStatics = {
     // measurement rather than a cost to remove. Two more sit near 3.6s and 4.4s, each a delay the
     // test is asserting on.
     //
-    // FIFTEEN SECONDS, which sits above the integration bar and headroom for browser specs.
-    e2eTestWarnMs: 15_000,
+    // TWENTY SECONDS, the same bar as integration and well above the 7.9s worst spec, so contention
+    // on a shared machine does not fail a spec that is only waiting on CPU.
+    e2eTestWarnMs: 20_000,
   },
 } as const;

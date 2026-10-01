@@ -43,9 +43,9 @@ describe('hasSlowFilesGuard', () => {
                 fileTimings: [
                   FileTimingStub({
                     filePath: 'src/b.test.ts',
-                    durationMs: 13_000,
-                    testMs: 12_000,
-                    slowestTestMs: 12_000,
+                    durationMs: 22_000,
+                    testMs: 21_000,
+                    slowestTestMs: 21_000,
                   }),
                 ],
               }),

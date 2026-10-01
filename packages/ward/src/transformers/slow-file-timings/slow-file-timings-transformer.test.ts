@@ -146,7 +146,7 @@ describe('slowFileTimingsTransformer', () => {
       expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
     });
 
-    it('VALID: {e2e spec at 16s} => slow, because it is over the browser bar', () => {
+    it('VALID: {e2e spec at 21s} => slow, because it is over the browser bar', () => {
       const check = CheckResultStub({
         checkType: 'e2e',
         status: 'pass',
@@ -155,9 +155,9 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/slow.e2e.ts',
-                durationMs: 16_000,
-                testMs: 16_000,
-                slowestTestMs: 16_000,
+                durationMs: 21_000,
+                testMs: 21_000,
+                slowestTestMs: 21_000,
               }),
             ],
           }),
@@ -399,7 +399,7 @@ describe('slowFileTimingsTransformer', () => {
       });
     });
 
-    it('VALID: {11s of test bodies, integration} => returns it, because it is over the integration bar', () => {
+    it('VALID: {21s of test bodies, integration} => returns it, because it is over the integration bar', () => {
       const check = CheckResultStub({
         checkType: 'integration',
         status: 'pass',
@@ -408,9 +408,9 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/slow.integration.test.ts',
-                durationMs: 12_000,
-                testMs: 11_000,
-                slowestTestMs: 11_000,
+                durationMs: 22_000,
+                testMs: 21_000,
+                slowestTestMs: 21_000,
               }),
             ],
           }),
