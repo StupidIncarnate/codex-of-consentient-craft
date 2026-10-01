@@ -58,4 +58,50 @@ export const questStartResponder = async (c: Context) => {};`,
       expect(String(result)).toBe('StartOrchestrator.startQuest({...})');
     });
   });
+
+  describe('responder with direct orchestrator import', () => {
+    it('VALID: {responder imports @dungeonmaster/orchestrator and calls StartOrchestrator} => returns namespace call', () => {
+      architectureOrchestratorMethodExtractBrokerProxy().setupFiles({
+        [RESPONDER_PATH]: `import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+export const questStartResponder = async () => {
+  const quest = await StartOrchestrator.startQuest({ questId });
+};`,
+      });
+
+      const result = architectureOrchestratorMethodExtractBroker({
+        serverResponderFile: RESPONDER_PATH,
+      });
+
+      expect(String(result)).toBe('StartOrchestrator.startQuest({...})');
+    });
+
+    it('VALID: {responder imports subpath and has other calls before StartOrchestrator} => returns StartOrchestrator call', () => {
+      architectureOrchestratorMethodExtractBrokerProxy().setupFiles({
+        [RESPONDER_PATH]: `import { StartOrchestrator } from '@dungeonmaster/orchestrator/startup/start-orchestrator';
+export const questStartResponder = async () => {
+  const parsed = JSON.parse('{}');
+  await StartOrchestrator.addQuest({ title });
+};`,
+      });
+
+      const result = architectureOrchestratorMethodExtractBroker({
+        serverResponderFile: RESPONDER_PATH,
+      });
+
+      expect(String(result)).toBe('StartOrchestrator.addQuest({...})');
+    });
+
+    it('EMPTY: {responder imports @dungeonmaster/orchestrator but has no StartOrchestrator call} => returns null', () => {
+      architectureOrchestratorMethodExtractBrokerProxy().setupFiles({
+        [RESPONDER_PATH]: `import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
+export const questStartResponder = async () => {};`,
+      });
+
+      const result = architectureOrchestratorMethodExtractBroker({
+        serverResponderFile: RESPONDER_PATH,
+      });
+
+      expect(result).toBe(null);
+    });
+  });
 });

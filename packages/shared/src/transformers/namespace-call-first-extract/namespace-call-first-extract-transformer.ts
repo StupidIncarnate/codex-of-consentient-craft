@@ -18,9 +18,20 @@ import { namespaceNameExtractTransformer } from '../namespace-name-extract/names
 
 export const namespaceCallFirstExtractTransformer = ({
   source,
+  targetNamespace,
 }: {
   source: string;
+  targetNamespace?: string;
 }): string | null => {
+  if (targetNamespace !== undefined) {
+    const pattern = new RegExp(`\\b${targetNamespace}\\.([a-z][A-Za-z0-9]*)\\s*\\(`, 'u');
+    const match = pattern.exec(source);
+    if (match?.[1] === undefined) {
+      return null;
+    }
+    return `${targetNamespace}.${match[1]}({...})`;
+  }
+
   const ns = namespaceNameExtractTransformer({ source });
   if (ns === null) {
     return null;

@@ -1,8 +1,9 @@
 /**
  * PURPOSE: Returns the WS gateway file paths for the project — the files responsible
- * for owning a WebSocket transport boundary. A gateway is detected by walking adapters
- * for ones that import a known WS-server npm package, then finding non-adapter files
- * that consume those adapters. Repo-agnostic — no hardcoded package or symbol names.
+ * for owning a WebSocket transport boundary. A gateway is detected either by walking adapters
+ * for ones that import a known WS-server npm package (and finding non-adapter consumers), or
+ * by finding files that directly import a known WS-server package (or its #gateway/npm/... path).
+ * Repo-agnostic — no hardcoded package or symbol names.
  *
  * USAGE:
  * const gateways = architectureWsGatewayBroker({

@@ -86,11 +86,6 @@ export const architectureImportEdgesBroker = ({
           continue;
         }
 
-        const adapterWrapperPrefix = `${root}/${PACKAGES_REL}/${consumerPkgName}/src/adapters/${sourcePackageName}/`;
-        if (filePath.startsWith(adapterWrapperPrefix)) {
-          continue;
-        }
-
         const sourcePackage = sourcePackageName;
         const barrel = slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1);
 

@@ -11,6 +11,9 @@ import { architectureProjectMapBroker } from './architecture-project-map-broker'
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { cwd as getCwd } from '#gateway/node/process';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
+import { architectureOrchestratorMethodExtractBroker } from '../orchestrator-method-extract/architecture-orchestrator-method-extract-broker';
+import { architectureWsGatewayBroker } from '../ws-gateway/architecture-ws-gateway-broker';
+import { architectureImportEdgesBroker } from '../import-edges/architecture-import-edges-broker';
 
 const cwd = getCwd();
 const projectRoot = cwd.slice(0, cwd.lastIndexOf('/packages/'));
@@ -159,6 +162,31 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.endsWith('→ questQueueBroker'))).toBe(true);
+  });
+
+  it('VALID: {real monorepo} => extracts StartOrchestrator methods from server responders via orchestrator method extract broker', () => {
+    const userAddResponder = `${projectRoot}/packages/server/src/responders/quest/user-add/quest-user-add-responder.ts`;
+    const result = architectureOrchestratorMethodExtractBroker({
+      serverResponderFile: userAddResponder,
+    });
+
+    expect(result).toBe('StartOrchestrator.addQuest({...})');
+  });
+
+  it('VALID: {real monorepo} => detects server-init-responder as WS gateway file via ws gateway broker', () => {
+    const gateways = architectureWsGatewayBroker({ projectRoot });
+    const serverInitResponder = `${projectRoot}/packages/server/src/responders/server/init/server-init-responder.ts`;
+
+    expect(gateways).toStrictEqual([serverInitResponder]);
+  });
+
+  it('VALID: {real monorepo} => architectureImportEdgesBroker finds cross-package edges into shared/contracts', () => {
+    const edges = architectureImportEdgesBroker({ projectRoot });
+    const sharedContractsEdges = edges.filter(
+      (edge) => `${edge.sourcePackage}/${edge.barrel}` === 'shared/contracts',
+    );
+
+    expect(sharedContractsEdges.length).toBeGreaterThan(0);
   });
 
   it('INVALID: {real monorepo, packages: [nonexistent]} => throws with valid-names list', async () => {
