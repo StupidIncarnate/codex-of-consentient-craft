@@ -375,18 +375,18 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking the adapter itself
+    // ❌ WRONG: Gateway wrapper proxy mocking an adapter
     {
       code: `
         import { httpAdapter } from './http-adapter';
         jest.mock('./http-adapter');
 
-        export const httpAdapterProxy = () => {
+        export const readFileSyncProxy = () => {
           const mockAdapter = jest.mocked(httpAdapter);
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'mockingAdapter',
@@ -397,31 +397,7 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking business logic (broker)
-    {
-      code: `
-        import { userBroker } from '../../brokers/user/user-broker';
-        jest.mock('../../brokers/user/user-broker');
-
-        export const someAdapterProxy = () => {
-          const mockBroker = jest.mocked(userBroker);
-          return { /* proxy methods */ };
-        };
-      `,
-      filename: '/project/src/adapters/some/some-adapter.proxy.ts',
-      errors: [
-        {
-          messageId: 'notNpmPackage',
-          data: {
-            name: 'userBroker',
-          },
-        },
-      ],
-    },
-
-    // ❌ WRONG: Gateway wrapper proxy (no /adapters/ segment) mocking a workspace broker
-    // instead of the outside function it wraps. Proves isIoBoundaryProxyGuard surfaces a real
-    // violation in the gateway the same way it already does for /adapters/.
+    // ❌ WRONG: Gateway wrapper proxy mocking a workspace broker instead of the outside function it wraps
     {
       code: `
         import { userBroker } from '../../../shared/brokers/user/user-broker';
@@ -443,40 +419,18 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking another adapter
-    {
-      code: `
-        import { dbAdapter } from '../db/db-adapter';
-        jest.mock('../db/db-adapter');
-
-        export const cacheAdapterProxy = () => {
-          const mockDb = jest.mocked(dbAdapter);
-          return { /* proxy methods */ };
-        };
-      `,
-      filename: '/project/src/adapters/cache/cache-adapter.proxy.ts',
-      errors: [
-        {
-          messageId: 'mockingAdapter',
-          data: {
-            name: 'dbAdapter',
-          },
-        },
-      ],
-    },
-
-    // ❌ WRONG: Adapter proxy mocking transformer
+    // ❌ WRONG: Gateway wrapper proxy mocking transformer
     {
       code: `
         import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';
         jest.mock('../../transformers/format-date/format-date-transformer');
 
-        export const dateAdapterProxy = () => {
+        export const readFileSyncProxy = () => {
           const mockFormat = jest.mocked(formatDateTransformer);
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/src/adapters/date/date-adapter.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'notNpmPackage',
@@ -487,18 +441,18 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking guard
+    // ❌ WRONG: Gateway wrapper proxy mocking guard
     {
       code: `
         import { hasPermissionGuard } from '../../guards/has-permission/has-permission-guard';
         jest.mock('../../guards/has-permission/has-permission-guard');
 
-        export const authAdapterProxy = () => {
+        export const readFileSyncProxy = () => {
           const mockGuard = jest.mocked(hasPermissionGuard);
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/src/adapters/auth/auth-adapter.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'notNpmPackage',
@@ -509,18 +463,18 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking contract/stub
+    // ❌ WRONG: Gateway wrapper proxy mocking contract/stub
     {
       code: `
         import { UserStub } from '../../contracts/user/user.stub';
         jest.mock('../../contracts/user/user.stub');
 
-        export const userAdapterProxy = () => {
+        export const readFileSyncProxy = () => {
           const mockStub = jest.mocked(UserStub);
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/src/adapters/user/user-adapter.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'notNpmPackage',
@@ -531,18 +485,18 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       ],
     },
 
-    // ❌ WRONG: Adapter proxy mocking @dungeonmaster workspace package
+    // ❌ WRONG: Gateway wrapper proxy mocking @dungeonmaster workspace package
     {
       code: `
         import { sharedContract } from '@dungeonmaster/shared';
         jest.mock('@dungeonmaster/shared');
 
-        export const sharedAdapterProxy = () => {
+        export const readFileSyncProxy = () => {
           const mockShared = jest.mocked(sharedContract);
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/src/adapters/shared/shared-adapter.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'notNpmPackage',

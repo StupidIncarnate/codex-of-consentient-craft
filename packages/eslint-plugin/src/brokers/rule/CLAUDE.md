@@ -67,27 +67,17 @@ ruleTester.run('rule-name', myRuleBroker(), {
 
 - **No describe/it blocks** - Use `ruleTester.run()` with `valid` and `invalid` arrays
 - **Integration tests** - ESLint parses real code and validates AST selectors
-- **Mocking adapters** - Mock underlying adapters (e.g., `fsExistsSyncAdapter`) using `beforeEach()`
-- **Mock at adapter level** - Use `registerMock` from `@dungeonmaster/testing/register-mock` to mock adapters
+- **Mocking gateway wrappers** - Mock the `#gateway` wrapper through that wrapper's own `.proxy.ts`, with inline setup and no catch-all
 
 ## When to Mock
 
-Mock file system checks and external dependencies that rules need for validation logic:
+Mock file system checks and external dependencies that rules need for validation logic. A rule's test mocks the `#gateway` wrapper through that wrapper's own `.proxy.ts`, with inline setup and no catch-all:
 
 ```typescript
-import {fsExistsSyncAdapter} from '../../../adapters/fs/fs-exists-sync';
-import {registerMock} from '@dungeonmaster/testing/register-mock';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 
-const mockFsExistsSync = registerMock({fn: fsExistsSyncAdapter});
-
-beforeEach(() => {
-    // No single path to key on: RuleTester's valid/invalid cases pass many different
-    // filenames, so [] is the honest catch-all and the predicate itself discriminates.
-    mockFsExistsSync.calledWith([]).implement(({filePath}) => {
-        const existingFiles = ['/project/src/user.ts'];
-        return existingFiles.includes(String(filePath));
-    });
-});
+const existsProxy = existsSyncProxy();
+existsProxy.returns({ path: '/project/src/user.ts', exists: true });
 ```
 
 See testing standards for unit test patterns - those apply to all other code except rule brokers.

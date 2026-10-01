@@ -11,10 +11,10 @@
 export const noBareProcessCwdStatics = {
   defaults: {
     allowedFiles: ['**/src/startup/start-install.ts'],
-    // The second entry is the gateway's own sanctioned wrapper — @dungeonmaster/node/process
-    // exports `cwd`, the ONE place outside a path-resolver broker allowed to call
-    // process.cwd() directly; everywhere else still goes through this rule.
-    allowedFolders: ['**/src/adapters/process/cwd/**', '**/packages/@gateway/node/src/process/**'],
+    // The gateway's own sanctioned wrapper — @dungeonmaster/node/process exports `cwd`,
+    // the ONE place outside a path-resolver broker allowed to call process.cwd() directly;
+    // everywhere else still goes through this rule.
+    allowedFolders: ['**/packages/@gateway/node/src/process/**'],
     allowTestFiles: true,
   },
   testCompanionSuffixes: ['.harness.ts', '.harness.tsx', '.proxy.ts', '.proxy.tsx'],

@@ -27,8 +27,8 @@ When creating a new ESLint rule, you MUST update these files:
 5. **Categorize for hook enforcement**:
    `src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts`
     - Add rule with `'pre-edit'` timing (if rule only checks AST/syntax, no file system operations)
-    - Add rule with `'post-edit'` timing (if rule uses `fsExistsSyncAdapter`, `fsReadFileSyncAdapter`, or other fs
-      operations)
+    - Add rule with `'post-edit'` timing (if rule uses gateway fs wrappers like `#gateway/node/fs`,
+      e.g. `existsSync`, `readFileSync`, or other fs operations)
    - Update test `src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts`
    - **CRITICAL**: The integration test `src/dungeonmaster-rule-enforce-on.integration.test.ts` will FAIL if you
       skip this step
@@ -48,7 +48,7 @@ file you modified above and correct any issues.
 **Post-edit rules** run after files are written to disk (normal ESLint):
 
 - Check file existence, colocation patterns
-- Use `fsExistsSyncAdapter()` or other file system operations
+- Use gateway fs wrappers (`existsSync`, `readFileSync`) or other file system operations
 - Require files to exist on disk for validation
 - Examples: `enforce-proxy-patterns`, `enforce-test-colocation`, `enforce-implementation-colocation`
 

@@ -5,10 +5,7 @@ describe('noBareProcessCwdStatics', () => {
     expect(noBareProcessCwdStatics).toStrictEqual({
       defaults: {
         allowedFiles: ['**/src/startup/start-install.ts'],
-        allowedFolders: [
-          '**/src/adapters/process/cwd/**',
-          '**/packages/@gateway/node/src/process/**',
-        ],
+        allowedFolders: ['**/packages/@gateway/node/src/process/**'],
         allowTestFiles: true,
       },
       testCompanionSuffixes: ['.harness.ts', '.harness.tsx', '.proxy.ts', '.proxy.tsx'],
