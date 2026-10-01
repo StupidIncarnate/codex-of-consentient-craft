@@ -13,7 +13,7 @@ export const checkIsJsonParseCallLayerBroker = ({
 }: {
   node?: TSESTree.Node | null;
 }): boolean => {
-  if (!node || node.type !== AST_NODE_TYPES.CallExpression) {
+  if (node?.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
   const { callee } = node;

@@ -127,7 +127,7 @@ describe('TrackRowLayerWidget', () => {
         'QUEST_SUMMARY_TRACK_UNMET',
         'QUEST_SUMMARY_TRACK_OUTSTANDING',
       ]);
-      expect(cells.map((cell) => String(cell.textContent))).toStrictEqual([
+      expect(cells.map((cell) => cell.textContent)).toStrictEqual([
         'FLOWRIDER',
         '0 met',
         '0 cant-meet',

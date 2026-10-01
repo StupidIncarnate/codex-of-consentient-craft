@@ -46,7 +46,10 @@ type ProgressPercent = ReturnType<ReturnType<typeof UploadProgressBarWidgetProxy
 
 export const ChatInputWidgetProxy = (): {
   clearStorage: () => void;
-  pasteImage: (params: { mediaType: DataTransferItem['type']; bytes: Uint8Array }) => DataTransfer;
+  pasteImage: (params: {
+    mediaType: DataTransferItem['type'];
+    bytes: Uint8Array<ArrayBuffer>;
+  }) => DataTransfer;
   pasteText: (params: { text: DataTransferItem['type'] }) => DataTransfer;
   attachYields: (params: { attachment: ReturnType<typeof ComposerAttachmentStub> }) => void;
   attachFails: (params: { error: Error }) => void;
@@ -123,7 +126,7 @@ export const ChatInputWidgetProxy = (): {
       bytes,
     }: {
       mediaType: DataTransferItem['type'];
-      bytes: Uint8Array;
+      bytes: Uint8Array<ArrayBuffer>;
     }): DataTransfer => {
       const blob = new Blob([bytes], { type: mediaType });
       const item = {
@@ -204,7 +207,7 @@ export const ChatInputWidgetProxy = (): {
     getProgressPercent: (): ProgressPercent => progressBarProxy.getPercent(),
 
     getEditorText: (): NonNullable<Node['textContent']> =>
-      screen.getByTestId('CHAT_INPUT').textContent ?? '',
+      screen.getByTestId('CHAT_INPUT').textContent,
 
     // Makes the real underlying `indexedDB.open` reject — see the capture comment above for why
     // this has to go through the LOAD broker's proxy rather than the save broker's own.

@@ -64,7 +64,7 @@ export const packageShardReadLayerBroker = ({
     }
     const contentHash = contentHashTransformer({ text });
     const hit = cachedByPath.get(filePath);
-    if (hit !== undefined && hit.contentHash === contentHash) {
+    if (hit?.contentHash === contentHash) {
       return [{ file: hit, isReparsed: false }];
     }
     const { owners, standaloneBrands, enums } = ownerIndexFileReadTransformer({
@@ -86,11 +86,7 @@ export const packageShardReadLayerBroker = ({
     ];
   });
 
-  if (
-    cached === null ||
-    cached.files.length !== entries.length ||
-    entries.some(({ isReparsed }) => isReparsed)
-  ) {
+  if (cached?.files.length !== entries.length || entries.some(({ isReparsed }) => isReparsed)) {
     const nextShard = ownerIndexShardContract.parse({
       schemaVersion: ownerIndexStatics.cache.schemaVersion,
       sharedVersion,

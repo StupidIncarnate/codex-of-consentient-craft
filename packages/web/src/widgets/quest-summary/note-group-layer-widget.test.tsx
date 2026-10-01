@@ -60,7 +60,7 @@ describe('NoteGroupLayerWidget', () => {
       mantineRenderMiddleware({ ui: <NoteGroupLayerWidget group={group} /> });
 
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_NOTE_ROW').map((row) => String(row.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_NOTE_ROW').map((row) => row.textContent),
       ).toStrictEqual([
         'Should a stale anchor notify per box or once per batch?siegemaster — The batch send drops boxes whose node id no longer exists in the flow.',
         'Does the queue bar need a per-flow badge?flowrider — Nobody asked before the walk ended.',

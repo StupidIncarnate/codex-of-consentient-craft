@@ -15,4 +15,4 @@ export const isAstMemberExpressionGuard = ({
   node,
 }: {
   node?: TSESTree.Node | null | undefined;
-}): boolean => node !== null && node !== undefined && node.type === AST_NODE_TYPES.MemberExpression;
+}): boolean => node?.type === AST_NODE_TYPES.MemberExpression;

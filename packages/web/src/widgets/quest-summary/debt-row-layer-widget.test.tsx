@@ -51,7 +51,7 @@ describe('DebtRowLayerWidget', () => {
         'QUEST_SUMMARY_DEBT_EVIDENCE',
         'QUEST_SUMMARY_DEBT_TO_SETTLE',
       ]);
-      expect(lines.map((line) => String(line.textContent))).toStrictEqual([
+      expect(lines.map((line) => line.textContent)).toStrictEqual([
         '[cant-meet] [flowrider] login-flow:observable:rejects-bleh-payload',
         'a browser cannot post a non-JSON body through the login form',
         '→ Drive this observable from an API-level walk instead of the browser.',
@@ -101,7 +101,7 @@ describe('DebtRowLayerWidget', () => {
         'QUEST_SUMMARY_DEBT_EVIDENCE',
         'QUEST_SUMMARY_DEBT_SUCCESSOR',
       ]);
-      expect(lines.map((line) => String(line.textContent))).toStrictEqual([
+      expect(lines.map((line) => line.textContent)).toStrictEqual([
         '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
         'no spec drives a non-JSON request at the login route yet',
         '→ nothing hands this over; a successor is owed the work',

@@ -56,7 +56,7 @@ export const laneProvisionBatchBroker = async ({
   quest: Quest;
   step: NextStep | null;
 }): Promise<NextStep | null> => {
-  if (step === null || step.type !== 'spawn-agents' || step.agents.length === 0) {
+  if (step?.type !== 'spawn-agents' || step.agents.length === 0) {
     return step;
   }
 

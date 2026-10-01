@@ -32,26 +32,26 @@ interface ReactFlowDiagramWidgetProxyResult {
   hasError: () => boolean;
   countLayoutErrorLogs: () => HTMLElement['childElementCount'];
   hasDetailPanel: () => boolean;
-  getControlTestIds: () => HTMLElement['textContent'][];
+  getControlTestIds: () => Node['textContent'][];
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
   countCommentButtonsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
   countCardsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
   clickObservableNode: (params: { nodeId: string; observableId: string }) => Promise<void>;
-  getCommentBadgeTextsOn: (params: { testId: string }) => HTMLElement['textContent'][];
+  getCommentBadgeTextsOn: (params: { testId: string }) => Node['textContent'][];
   getCommentBadgeTextsOnObservable: (params: {
     nodeId: string;
     observableId: string;
-  }) => HTMLElement['textContent'][];
+  }) => Node['textContent'][];
   hasCommentsSection: () => boolean;
-  getPanelCommentTexts: () => HTMLElement['textContent'][];
-  getInitialBoxes: () => HTMLElement['textContent'][][];
-  getPackageChipsOnNode: (params: { nodeId: string }) => HTMLElement['textContent'][];
-  getPackageChipTypesOnNode: (params: { nodeId: string }) => HTMLElement['textContent'][];
-  getObservablePackageNames: () => HTMLElement['textContent'][];
+  getPanelCommentTexts: () => Node['textContent'][];
+  getInitialBoxes: () => Node['textContent'][][];
+  getPackageChipsOnNode: (params: { nodeId: string }) => Node['textContent'][];
+  getPackageChipTypesOnNode: (params: { nodeId: string }) => Node['textContent'][];
+  getObservablePackageNames: () => Node['textContent'][];
   hasRecipeCallout: () => boolean;
-  getRecipeNames: () => HTMLElement['textContent'][];
-  getRecipeCitations: () => HTMLElement['textContent'][];
+  getRecipeNames: () => Node['textContent'][];
+  getRecipeCitations: () => Node['textContent'][];
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
@@ -101,7 +101,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
         .getByTestId('REACT_FLOW_PANE')
         .querySelector(`[data-node-id="${nodeId}"]`);
       if (!wrapper) throw new Error(`Node wrapper not found for id: ${nodeId}`);
-      await user.click(wrapper as HTMLElement);
+      await user.click(wrapper);
     },
     // An assertion card's React Flow id is the composite the diagram widget mints for it, so the
     // test names the box the way a reader does — its node and its assertion — not by that string.
@@ -116,10 +116,10 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
         .getByTestId('REACT_FLOW_PANE')
         .querySelector(`[data-node-id="obs:${nodeId}:${observableId}"]`);
       if (!wrapper) throw new Error(`Observable wrapper not found: ${nodeId}/${observableId}`);
-      await user.click(wrapper as HTMLElement);
+      await user.click(wrapper);
     },
     // Scoped by card type so a node badge can never stand in for an assertion badge.
-    getCommentBadgeTextsOn: ({ testId }: { testId: string }): HTMLElement['textContent'][] =>
+    getCommentBadgeTextsOn: ({ testId }: { testId: string }): Node['textContent'][] =>
       screen
         .queryAllByTestId(testId)
         .flatMap((card) =>
@@ -137,7 +137,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     }: {
       nodeId: string;
       observableId: string;
-    }): HTMLElement['textContent'][] => {
+    }): Node['textContent'][] => {
       const wrapper = screen
         .getByTestId('REACT_FLOW_PANE')
         .querySelector(`[data-node-id="obs:${nodeId}:${observableId}"]`);
@@ -149,7 +149,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     // The [id, initialWidth, initialHeight] triple React Flow received for every card on the canvas.
     // React Flow paints a card `visibility: hidden` until its own measurement lands, so a card that
     // arrives with no box is one lost measurement away from an invisible diagram.
-    getInitialBoxes: (): HTMLElement['textContent'][][] =>
+    getInitialBoxes: (): Node['textContent'][][] =>
       Array.from(screen.getByTestId('REACT_FLOW_PANE').querySelectorAll('[data-node-id]')).map(
         (element) => [
           element.getAttribute('data-node-id'),
@@ -160,7 +160,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     // The chips on ONE named card, in order. Scoped to the card because a whole-canvas chip list
     // cannot say WHICH node carries two — and "this node is the seam" is the claim the row exists
     // to make.
-    getPackageChipsOnNode: ({ nodeId }: { nodeId: string }): HTMLElement['textContent'][] => {
+    getPackageChipsOnNode: ({ nodeId }: { nodeId: string }): Node['textContent'][] => {
       const wrapper = screen
         .getByTestId('REACT_FLOW_PANE')
         .querySelector(`[data-node-id="${nodeId}"]`);
@@ -171,7 +171,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     },
     // The resolved KIND behind each chip on one card, so a test proves the colour was derived from
     // the quest's own declaration rather than from the package's name.
-    getPackageChipTypesOnNode: ({ nodeId }: { nodeId: string }): HTMLElement['textContent'][] => {
+    getPackageChipTypesOnNode: ({ nodeId }: { nodeId: string }): Node['textContent'][] => {
       const wrapper = screen
         .getByTestId('REACT_FLOW_PANE')
         .querySelector(`[data-node-id="${nodeId}"]`);
@@ -180,13 +180,13 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
         (chip) => chip.getAttribute('data-package-type'),
       );
     },
-    getObservablePackageNames: (): HTMLElement['textContent'][] =>
+    getObservablePackageNames: (): Node['textContent'][] =>
       screen.queryAllByTestId('FLOW_OBSERVABLE_NODE_PACKAGE').map((element) => element.textContent),
     hasRecipeCallout: (): boolean => recipeCalloutProxy.hasCallout(),
-    getRecipeNames: (): HTMLElement['textContent'][] => recipeCalloutProxy.getRecipeNames(),
-    getRecipeCitations: (): HTMLElement['textContent'][] => recipeCalloutProxy.getRecipeCitations(),
+    getRecipeNames: (): Node['textContent'][] => recipeCalloutProxy.getRecipeNames(),
+    getRecipeCitations: (): Node['textContent'][] => recipeCalloutProxy.getRecipeCitations(),
     hasCommentsSection: (): boolean => screen.queryByTestId('FLOW_DETAIL_PANEL_COMMENTS') !== null,
-    getPanelCommentTexts: (): HTMLElement['textContent'][] =>
+    getPanelCommentTexts: (): Node['textContent'][] =>
       screen
         .queryAllByTestId('FLOW_DETAIL_PANEL_COMMENT_TEXT')
         .map((element) => element.textContent),
@@ -215,7 +215,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     // Direct children of the floating control cluster, in DOM order. Scoped because the comment
     // bubbles on the cards are buttons on this canvas too; direct children rather than a descendant
     // query because the mocked glyphs carry testids of their own and would each read as a control.
-    getControlTestIds: (): HTMLElement['textContent'][] =>
+    getControlTestIds: (): Node['textContent'][] =>
       Array.from(screen.getByTestId('FLOW_DIAGRAM_CONTROLS').children).map((element) =>
         element.getAttribute('data-testid'),
       ),

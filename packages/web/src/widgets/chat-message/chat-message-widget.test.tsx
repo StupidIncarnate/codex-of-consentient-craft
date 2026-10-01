@@ -186,7 +186,7 @@ describe('ChatMessageWidget', () => {
       const message = screen.getByTestId('CHAT_MESSAGE');
       const children = Array.from(message.children);
       const labelIndex = children.findIndex((child) =>
-        child.textContent?.includes('CHAOSWHISPERER'),
+        child.textContent.includes('CHAOSWHISPERER'),
       );
       const badgeIndex = children.indexOf(badge);
 

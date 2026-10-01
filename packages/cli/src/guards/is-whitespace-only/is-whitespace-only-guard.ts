@@ -11,4 +11,4 @@
  */
 
 export const isWhitespaceOnlyGuard = ({ candidate }: { candidate?: string }): boolean =>
-  candidate !== undefined && candidate.trim().length === 0;
+  candidate?.trim().length === 0;

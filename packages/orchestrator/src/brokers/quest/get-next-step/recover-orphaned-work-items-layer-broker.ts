@@ -100,7 +100,7 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
             ...(item.sessionId === undefined ? {} : { resume: true }),
           };
         }
-        if (escalated !== undefined && item.id === escalated.id) {
+        if (item.id === escalated?.id) {
           return { ...item, status: 'failed' };
         }
         return item;

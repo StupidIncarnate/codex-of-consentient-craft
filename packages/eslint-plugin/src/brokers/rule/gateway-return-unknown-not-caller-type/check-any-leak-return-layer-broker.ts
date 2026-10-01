@@ -20,7 +20,7 @@ export const checkAnyLeakReturnLayerBroker = ({
   node,
   context,
 }: {
-  node: TSESTree.Node;
+  node: TSESTree.ReturnStatement;
   context: TSESLint.RuleContext<string, unknown[]>;
 }): void => {
   const enclosingFunction = findEnclosingFunctionLayerBroker({ node: node.parent });
@@ -32,7 +32,7 @@ export const checkAnyLeakReturnLayerBroker = ({
     return;
   }
 
-  const argument = 'argument' in node ? node.argument : undefined;
+  const { argument } = node;
 
   if (isJsonParseOrDynamicImportCallLayerBroker({ node: argument })) {
     context.report({ node, messageId: 'anyLeakNoReturnType' });
@@ -45,12 +45,11 @@ export const checkAnyLeakReturnLayerBroker = ({
 
   const targetName = argument.name;
   const parentNode = node.parent;
-  const blockStatements =
-    parentNode && Array.isArray('body' in parentNode ? parentNode.body : undefined)
-      ? 'body' in parentNode
-        ? parentNode.body
-        : undefined
-      : [];
+  const blockStatements = Array.isArray('body' in parentNode ? parentNode.body : undefined)
+    ? 'body' in parentNode
+      ? parentNode.body
+      : undefined
+    : [];
 
   const hasRiskyDeclarator =
     blockStatements && 'some' in blockStatements

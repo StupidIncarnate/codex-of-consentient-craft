@@ -120,7 +120,7 @@ export const questRouteScopeBroker = async ({
       // ending in `Item` and would read these as WORK-item statuses.
       const operation = quest.operations.find((item) => item.id === candidate.id);
 
-      if (operation === undefined || operation.status !== 'in_progress') {
+      if (operation?.status !== 'in_progress') {
         return null;
       }
 

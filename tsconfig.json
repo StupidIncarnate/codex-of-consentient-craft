@@ -25,6 +25,12 @@
     "customConditions": ["source"],
     "allowJs": true,
     "checkJs": false,
+    // Every `@types` package under the typeRoots below, as TypeScript 5 loaded by default. Packages here
+    // lean on that: `@types/jsdom` carries the DOM lib into Node packages (siegelense's page callbacks,
+    // the fetch wrappers' `BodyInit`), and `@types/eslint-plugin-eslint-comments` is a bare `declare
+    // module`. The published base config lists `node` and `jest` instead, because a consumer still on
+    // TypeScript 5 rejects `*`.
+    "types": ["*"],
     "typeRoots": [
       "./node_modules/@types",
       "./@types"

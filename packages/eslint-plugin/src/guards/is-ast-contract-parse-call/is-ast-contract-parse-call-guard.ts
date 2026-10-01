@@ -12,7 +12,7 @@ import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstContractParseCallGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
-  if (node === undefined || node.type !== AST_NODE_TYPES.CallExpression) {
+  if (node?.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
 

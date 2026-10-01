@@ -6,17 +6,17 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 export const SessionRowLayerWidgetProxy = (): {
   isRowVisible: (params: { testId: string }) => boolean;
   getRowOpacity: (params: { testId: string }) => CSSStyleDeclaration['opacity'];
-  getSessionDisplayText: (params: { testId: string }) => HTMLElement['textContent'];
+  getSessionDisplayText: (params: { testId: string }) => Node['textContent'];
   hasQuestBadge: (params: { testId: string }) => boolean;
-  getQuestBadgeText: (params: { testId: string }) => HTMLElement['textContent'];
-  getStatusText: (params: { testId: string }) => HTMLElement['textContent'];
+  getQuestBadgeText: (params: { testId: string }) => Node['textContent'];
+  getStatusText: (params: { testId: string }) => Node['textContent'];
   getStatusColor: (params: { testId: string }) => CSSStyleDeclaration['color'];
   clickSession: (params: { testId: string }) => Promise<void>;
 } => ({
   isRowVisible: ({ testId }: { testId: string }): boolean => screen.queryByTestId(testId) !== null,
   getRowOpacity: ({ testId }: { testId: string }): CSSStyleDeclaration['opacity'] =>
     screen.getByTestId(testId).style.opacity,
-  getSessionDisplayText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+  getSessionDisplayText: ({ testId }: { testId: string }): Node['textContent'] => {
     const element = screen.queryByTestId(testId);
     if (!element) {
       return null;
@@ -25,11 +25,11 @@ export const SessionRowLayerWidgetProxy = (): {
     return span?.textContent ?? null;
   },
   hasQuestBadge: ({ testId }: { testId: string }): boolean => screen.queryByTestId(testId) !== null,
-  getQuestBadgeText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+  getQuestBadgeText: ({ testId }: { testId: string }): Node['textContent'] => {
     const element = screen.queryByTestId(testId);
     return element?.textContent ?? null;
   },
-  getStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+  getStatusText: ({ testId }: { testId: string }): Node['textContent'] => {
     const element = screen.queryByTestId(testId);
     return element?.textContent ?? null;
   },

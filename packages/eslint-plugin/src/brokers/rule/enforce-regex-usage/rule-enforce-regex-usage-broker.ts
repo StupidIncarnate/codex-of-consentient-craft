@@ -59,7 +59,7 @@ export const ruleEnforceRegexUsageBroker = (): TSESLint.RuleModule<'forbiddenReg
           { allowRegex?: boolean } | undefined;
 
         // If config doesn't exist or allowRegex is false, report error
-        if (!folderConfig || folderConfig.allowRegex !== true) {
+        if (folderConfig?.allowRegex !== true) {
           ctx.report({
             node,
             messageId: 'forbiddenRegex',

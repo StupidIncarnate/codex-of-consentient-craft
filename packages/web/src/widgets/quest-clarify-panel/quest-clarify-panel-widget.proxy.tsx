@@ -13,9 +13,9 @@ export const QuestClarifyPanelWidgetProxy = (): {
   clickOther: () => Promise<void>;
   typeFreeform: (params: { text: string }) => Promise<void>;
   submitFreeform: () => Promise<void>;
-  getQuestionText: () => HTMLElement['textContent'];
-  getCounter: () => HTMLElement['textContent'];
-  getOptionLabels: () => HTMLElement['textContent'][];
+  getQuestionText: () => Node['textContent'];
+  getCounter: () => Node['textContent'];
+  getOptionLabels: () => Node['textContent'][];
 } => {
   ClarifyOptionLayerWidgetProxy();
   const formInputProxy = FormInputWidgetProxy();
@@ -24,7 +24,7 @@ export const QuestClarifyPanelWidgetProxy = (): {
   return {
     clickOption: async ({ label }: { label: AskUserQuestionOption['label'] }): Promise<void> => {
       const options = screen.getAllByTestId('CLARIFY_OPTION');
-      const target = options.find((el) => el.textContent?.includes(label));
+      const target = options.find((el) => el.textContent.includes(label));
       if (target) {
         await userEvent.click(target, userEventStatics.options);
       }
@@ -38,15 +38,15 @@ export const QuestClarifyPanelWidgetProxy = (): {
     submitFreeform: async (): Promise<void> => {
       await pixelBtnProxy.clickButton();
     },
-    getQuestionText: (): HTMLElement['textContent'] => {
+    getQuestionText: (): Node['textContent'] => {
       const element = screen.queryByTestId('CLARIFY_QUESTION_TEXT');
       return element?.textContent ?? null;
     },
-    getCounter: (): HTMLElement['textContent'] => {
+    getCounter: (): Node['textContent'] => {
       const element = screen.queryByTestId('CLARIFY_COUNTER');
       return element?.textContent ?? null;
     },
-    getOptionLabels: (): HTMLElement['textContent'][] => {
+    getOptionLabels: (): Node['textContent'][] => {
       const options = screen.queryAllByTestId('CLARIFY_OPTION');
       return options.map((el) => el.textContent);
     },

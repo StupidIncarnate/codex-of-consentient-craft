@@ -114,6 +114,7 @@ export type {
   ExportDeclaration,
   Expression,
   Identifier,
+  ImportClause,
   ImportDeclaration,
   InterfaceDeclaration,
   MemberName,

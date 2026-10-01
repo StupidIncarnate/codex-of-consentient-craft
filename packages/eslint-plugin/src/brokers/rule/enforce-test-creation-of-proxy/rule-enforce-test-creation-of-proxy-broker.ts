@@ -163,7 +163,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
 
           for (const declaration of declarations) {
             const { id, init } = declaration;
-            if (init && init.type === AST_NODE_TYPES.CallExpression) {
+            if (init?.type === AST_NODE_TYPES.CallExpression) {
               const { callee } = init;
               if (callee.type === AST_NODE_TYPES.Identifier && callee.name.endsWith('Harness')) {
                 const isInDescribeOnly = describeDepth > 0 && testBlockDepth === 0;
@@ -317,7 +317,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
           } else {
             const { id, init } = declaration;
 
-            if (init && init.type === AST_NODE_TYPES.CallExpression) {
+            if (init?.type === AST_NODE_TYPES.CallExpression) {
               const { callee } = init;
 
               if (callee.type === AST_NODE_TYPES.Identifier) {
@@ -366,7 +366,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
         for (const declarator of declarations) {
           const { init } = declarator;
 
-          if (init && init.type === AST_NODE_TYPES.CallExpression) {
+          if (init?.type === AST_NODE_TYPES.CallExpression) {
             const { callee } = init;
 
             if (callee.type === AST_NODE_TYPES.Identifier) {

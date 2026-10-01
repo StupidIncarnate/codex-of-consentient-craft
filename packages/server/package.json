@@ -36,7 +36,7 @@
     "@dungeonmaster/hydration-recipes": "*",
     "@dungeonmaster/testing": "*",
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "^6.0.3"
   },
   "publishConfig": {
     "access": "public"

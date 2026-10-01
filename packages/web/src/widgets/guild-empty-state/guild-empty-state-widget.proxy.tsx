@@ -13,8 +13,8 @@ type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 export const GuildEmptyStateWidgetProxy = (): {
   typeGuildName: ({ value }: { value: string }) => Promise<void>;
   typeGuildPath: ({ value }: { value: string }) => Promise<void>;
-  getGuildPathValue: () => HTMLElement['textContent'];
-  getGuildPathError: () => HTMLElement['textContent'];
+  getGuildPathValue: () => Node['textContent'];
+  getGuildPathError: () => Node['textContent'];
   clickBrowse: () => Promise<void>;
   clickCreate: () => Promise<void>;
   clickCancel: () => Promise<void>;
@@ -36,13 +36,13 @@ export const GuildEmptyStateWidgetProxy = (): {
       await userEvent.click(screen.getByTestId('GUILD_PATH_INPUT'), userEventStatics.options);
       await userEvent.paste(value);
     },
-    getGuildPathValue: (): HTMLElement['textContent'] => {
+    getGuildPathValue: (): Node['textContent'] => {
       const wrapper = screen.getByTestId('GUILD_PATH_INPUT');
       const input = wrapper.querySelector('input');
 
       return input?.value ?? '';
     },
-    getGuildPathError: (): HTMLElement['textContent'] =>
+    getGuildPathError: (): Node['textContent'] =>
       screen.queryByTestId('GUILD_PATH_ERROR')?.textContent ?? null,
     clickBrowse: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('GUILD_BROWSE_BUTTON'), userEventStatics.options);

@@ -20,7 +20,7 @@ export const sessionSummaryCacheState = {
     mtimeMs: number;
   }): { hit: true; summary: string | undefined } | { hit: false } => {
     const entry = cache.get(sessionId);
-    if (entry && entry.mtimeMs === mtimeMs) {
+    if (entry?.mtimeMs === mtimeMs) {
       return { hit: true, summary: entry.summary };
     }
     return { hit: false };

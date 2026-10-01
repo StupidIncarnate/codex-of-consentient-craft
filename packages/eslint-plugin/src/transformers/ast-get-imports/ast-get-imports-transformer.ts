@@ -15,7 +15,7 @@ export const astGetImportsTransformer = ({
 }): Map<string, string> => {
   const imports = new Map<string, string>();
 
-  if (!node || node.type !== AST_NODE_TYPES.ImportDeclaration) {
+  if (node?.type !== AST_NODE_TYPES.ImportDeclaration) {
     return imports;
   }
 

@@ -980,7 +980,7 @@ export const composerPasteHarness = ({
     page.evaluate(READ_CHILD_NODE_DETAILS_BROWSER_FN),
 
   readComposerTextContent: async (): Promise<unknown> =>
-    page.getByTestId('CHAT_INPUT').evaluate((element) => element.textContent ?? ''),
+    page.getByTestId('CHAT_INPUT').evaluate((element) => element.textContent),
 
   readComposerInnerHtml: async (): Promise<unknown> =>
     page.getByTestId('CHAT_INPUT').evaluate((element) => element.innerHTML),

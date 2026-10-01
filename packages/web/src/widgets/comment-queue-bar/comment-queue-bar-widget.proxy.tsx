@@ -56,7 +56,7 @@ export const CommentQueueBarWidgetProxy = (): {
   clickClearDuringSend: () => void;
   clickSend: () => Promise<void>;
   hasBar: () => boolean;
-  getCountText: () => HTMLElement['textContent'];
+  getCountText: () => Node['textContent'];
   hasClearButton: () => boolean;
   hasSendButton: () => boolean;
   hasStoredQueue: (params: { questId: Quest['id'] }) => boolean;
@@ -153,7 +153,7 @@ export const CommentQueueBarWidgetProxy = (): {
     },
 
     hasBar: (): boolean => screen.queryByTestId('COMMENT_QUEUE_BAR') !== null,
-    getCountText: (): HTMLElement['textContent'] =>
+    getCountText: (): Node['textContent'] =>
       screen.queryByTestId('COMMENT_QUEUE_COUNT')?.textContent ?? null,
     hasClearButton: (): boolean => screen.queryByTestId('COMMENT_CLEAR_BUTTON') !== null,
     hasSendButton: (): boolean => screen.queryByTestId('COMMENT_SEND_BUTTON') !== null,

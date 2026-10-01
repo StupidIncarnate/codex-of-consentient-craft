@@ -9,15 +9,15 @@ export const QuestRowLayerWidgetProxy = (): {
   isRowVisible: (params: { testId: string }) => boolean;
   clickRow: (params: { testId: string }) => Promise<void>;
   getRowOpacity: (params: { testId: string }) => CSSStyleDeclaration['opacity'];
-  getStatusText: (params: { testId: string }) => HTMLElement['textContent'];
+  getStatusText: (params: { testId: string }) => Node['textContent'];
   getStatusColor: (params: { testId: string }) => CSSStyleDeclaration['color'];
   isDeleteButtonVisible: (params: { testId: string }) => boolean;
-  getDeleteButtonAriaLabel: (params: { testId: string }) => HTMLElement['textContent'];
-  getDeleteButtonText: (params: { testId: string }) => HTMLElement['textContent'];
+  getDeleteButtonAriaLabel: (params: { testId: string }) => Node['textContent'];
+  getDeleteButtonText: (params: { testId: string }) => Node['textContent'];
   hasDeleteButtonSkullIcon: (params: { testId: string }) => boolean;
   clickDeleteButton: (params: { testId: string }) => Promise<void>;
   isPopoverVisible: (params: { testId: string }) => boolean;
-  getPopoverText: (params: { testId: string }) => HTMLElement['textContent'];
+  getPopoverText: (params: { testId: string }) => Node['textContent'];
   isBanishButtonDisabled: () => boolean;
   clickBanish: () => Promise<void>;
   clickSpare: () => Promise<void>;
@@ -32,7 +32,7 @@ export const QuestRowLayerWidgetProxy = (): {
     },
     getRowOpacity: ({ testId }: { testId: string }): CSSStyleDeclaration['opacity'] =>
       screen.getByTestId(testId).style.opacity,
-    getStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getStatusText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
     },
@@ -42,11 +42,11 @@ export const QuestRowLayerWidgetProxy = (): {
     },
     isDeleteButtonVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
-    getDeleteButtonAriaLabel: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getDeleteButtonAriaLabel: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.getAttribute('aria-label') ?? null;
     },
-    getDeleteButtonText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getDeleteButtonText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
     },
@@ -59,7 +59,7 @@ export const QuestRowLayerWidgetProxy = (): {
     },
     isPopoverVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
-    getPopoverText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getPopoverText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       const paragraph = element?.querySelector('p');
       return paragraph?.textContent ?? element?.textContent ?? null;

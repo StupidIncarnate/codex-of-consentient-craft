@@ -506,7 +506,7 @@ describe('ChatEntryListWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent?.startsWith('SIEGEMASTER')).toBe(true);
+      expect(message.textContent.startsWith('SIEGEMASTER')).toBe(true);
     });
   });
 

@@ -85,8 +85,10 @@ export const RuleContextStub = ({
     id: real.id,
     languageOptions: real.languageOptions,
     options: real.options,
-    parserOptions: real.parserOptions,
-    parserPath: real.parserPath,
+    // Flat config has no parser path, and its parser options live on `languageOptions`; the two
+    // legacy fields still sit on the type, deprecated, so they are filled without reading them.
+    parserOptions: real.languageOptions.parserOptions,
+    parserPath: undefined,
     settings: real.settings,
     cwd: real.cwd,
     filename: real.filename,

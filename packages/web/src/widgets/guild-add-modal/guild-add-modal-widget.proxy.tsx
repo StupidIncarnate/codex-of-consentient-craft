@@ -16,11 +16,11 @@ export const GuildAddModalWidgetProxy = (): {
   clickCreate: () => Promise<void>;
   clickCancel: () => Promise<void>;
   isCreateDisabled: () => boolean;
-  getPathDisplay: () => HTMLElement['textContent'];
+  getPathDisplay: () => Node['textContent'];
   clickDirectoryBrowserSelect: () => Promise<void>;
   clickDirectoryBrowserCancel: () => Promise<void>;
   clickDirectoryBrowserGoUp: () => Promise<void>;
-  getDirectoryBrowserCurrentPath: () => HTMLElement['textContent'];
+  getDirectoryBrowserCurrentPath: () => Node['textContent'];
 } => {
   const directoryBrowserProxy = DirectoryBrowserModalWidgetProxy();
 
@@ -49,7 +49,7 @@ export const GuildAddModalWidgetProxy = (): {
       const button = screen.getByTestId('CREATE_GUILD_BUTTON');
       return button.hasAttribute('disabled') || button.getAttribute('data-disabled') === 'true';
     },
-    getPathDisplay: (): HTMLElement['textContent'] => {
+    getPathDisplay: (): Node['textContent'] => {
       const wrapper = screen.queryByTestId('GUILD_PATH_DISPLAY');
 
       if (!wrapper) return null;
@@ -67,7 +67,7 @@ export const GuildAddModalWidgetProxy = (): {
     clickDirectoryBrowserGoUp: async (): Promise<void> => {
       await directoryBrowserProxy.clickGoUp();
     },
-    getDirectoryBrowserCurrentPath: (): HTMLElement['textContent'] =>
+    getDirectoryBrowserCurrentPath: (): Node['textContent'] =>
       directoryBrowserProxy.getCurrentPath(),
   };
 };

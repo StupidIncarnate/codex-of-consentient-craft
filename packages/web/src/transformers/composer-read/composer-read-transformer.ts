@@ -56,7 +56,7 @@ export const composerReadTransformer = ({
       return;
     }
 
-    rawSegments.push({ kind: 'text', text: node.textContent ?? '' });
+    rawSegments.push({ kind: 'text', text: node.textContent });
   });
 
   // Adjacent text segments merge into ONE before the empty-segment drop below. A browser leaves
@@ -70,7 +70,7 @@ export const composerReadTransformer = ({
   rawSegments.forEach((segment) => {
     const lastIndex = mergedSegments.length - 1;
     const last = mergedSegments[lastIndex];
-    if (segment.kind === 'text' && last !== undefined && last.kind === 'text') {
+    if (segment.kind === 'text' && last?.kind === 'text') {
       mergedSegments[lastIndex] = { kind: 'text', text: last.text + segment.text };
       return;
     }

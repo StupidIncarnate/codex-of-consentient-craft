@@ -108,7 +108,7 @@ export const ruleNoHardcodedPackageNamesBroker = (): TSESLint.RuleModule<
 
       ArrayExpression: (node: TSESTree.ArrayExpression): void => {
         const roleElements = node.elements.flatMap((element) => {
-          if (element === null || element.type !== AST_NODE_TYPES.Literal) {
+          if (element?.type !== AST_NODE_TYPES.Literal) {
             return [];
           }
           const { value } = element;

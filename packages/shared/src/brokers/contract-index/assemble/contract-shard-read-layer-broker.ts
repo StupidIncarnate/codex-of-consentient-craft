@@ -71,7 +71,7 @@ export const contractShardReadLayerBroker = ({
     const contentHash = isRead ? contentHashTransformer({ text }) : '';
     const hit = isRead ? cachedByPath.get(filePath) : undefined;
     const file = isRead
-      ? hit !== undefined && hit.contentHash === contentHash
+      ? hit?.contentHash === contentHash
         ? hit
         : contractIndexShardContract.shape.files.element.parse({
             filePath,
@@ -83,11 +83,7 @@ export const contractShardReadLayerBroker = ({
   });
 
   const shardFiles = entries.flatMap(({ file }) => (file === null ? [] : [file]));
-  if (
-    cached === null ||
-    cached.files.length !== shardFiles.length ||
-    entries.some(({ isReparsed }) => isReparsed)
-  ) {
+  if (cached?.files.length !== shardFiles.length || entries.some(({ isReparsed }) => isReparsed)) {
     indexCacheShardWriteBroker({
       shardPath,
       shard: contractIndexShardContract.parse({

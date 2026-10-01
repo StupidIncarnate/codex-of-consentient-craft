@@ -12,7 +12,7 @@ import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstObjectStubSpreadGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
-  if (node === undefined || node.type !== AST_NODE_TYPES.ObjectExpression) {
+  if (node?.type !== AST_NODE_TYPES.ObjectExpression) {
     return false;
   }
 

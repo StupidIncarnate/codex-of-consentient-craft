@@ -11,8 +11,8 @@ interface FlowObservableNodeLayerWidgetProxyResult {
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
   getPackage: () => HTMLElement | null;
-  getPackageColor: () => HTMLElement['textContent'];
-  getPackageType: () => HTMLElement['textContent'];
+  getPackageColor: () => Node['textContent'];
+  getPackageType: () => Node['textContent'];
   packageSharesRowWithType: () => boolean;
   getReadCheck: () => HTMLElement | null;
   readCheckSharesRowWithType: () => boolean;
@@ -31,10 +31,10 @@ export const FlowObservableNodeLayerWidgetProxy = (): FlowObservableNodeLayerWid
     // The palette token the chip resolved for its package's KIND, read off `data-package-accent`
     // rather than the applied CSS: jsdom rewrites a hex to `rgb(...)`, so a style read would be
     // comparing two notations of the same colour.
-    getPackageColor: (): HTMLElement['textContent'] =>
+    getPackageColor: (): Node['textContent'] =>
       screen.queryByTestId('FLOW_OBSERVABLE_NODE_PACKAGE')?.getAttribute('data-package-accent') ??
       null,
-    getPackageType: (): HTMLElement['textContent'] =>
+    getPackageType: (): Node['textContent'] =>
       screen.queryByTestId('FLOW_OBSERVABLE_NODE_PACKAGE')?.getAttribute('data-package-type') ??
       null,
     // Both tags must be children of the SAME element, because the card's reserved ELK height counts

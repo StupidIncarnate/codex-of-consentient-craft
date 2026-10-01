@@ -14,7 +14,6 @@ export const isCrashedProjectResultGuard = ({
 }: {
   projectResult?: ProjectResult | undefined;
 }): boolean =>
-  projectResult !== undefined &&
-  projectResult.status === 'fail' &&
+  projectResult?.status === 'fail' &&
   projectResult.errors.length === 0 &&
   projectResult.testFailures.length === 0;

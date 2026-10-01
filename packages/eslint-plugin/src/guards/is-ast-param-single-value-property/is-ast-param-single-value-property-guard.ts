@@ -36,7 +36,7 @@ export const isAstParamSingleValuePropertyGuard = ({
         ? firstParam.left
         : null;
 
-  if (!pattern || pattern.type !== AST_NODE_TYPES.ObjectPattern) {
+  if (pattern?.type !== AST_NODE_TYPES.ObjectPattern) {
     return false;
   }
 

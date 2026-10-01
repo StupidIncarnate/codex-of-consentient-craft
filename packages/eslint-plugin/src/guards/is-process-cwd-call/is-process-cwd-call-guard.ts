@@ -12,7 +12,7 @@ import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isProcessCwdCallGuard = ({ node }: { node?: TSESTree.Node | undefined }): boolean => {
-  if (!node || node.type !== AST_NODE_TYPES.CallExpression) {
+  if (node?.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
   const { callee } = node;

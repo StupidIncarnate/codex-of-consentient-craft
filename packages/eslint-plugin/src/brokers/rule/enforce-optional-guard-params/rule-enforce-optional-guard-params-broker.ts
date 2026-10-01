@@ -62,10 +62,7 @@ export const ruleEnforceOptionalGuardParamsBroker =
             annotation = firstParam.left.typeAnnotation;
           }
 
-          if (
-            !annotation?.typeAnnotation ||
-            annotation.typeAnnotation.type !== AST_NODE_TYPES.TSTypeLiteral
-          ) {
+          if (annotation?.typeAnnotation.type !== AST_NODE_TYPES.TSTypeLiteral) {
             return;
           }
 
@@ -115,10 +112,7 @@ export const ruleEnforceOptionalGuardParamsBroker =
             annotation = firstParam.left.typeAnnotation;
           }
 
-          if (
-            !annotation?.typeAnnotation ||
-            annotation.typeAnnotation.type !== AST_NODE_TYPES.TSTypeLiteral
-          ) {
+          if (annotation?.typeAnnotation.type !== AST_NODE_TYPES.TSTypeLiteral) {
             return;
           }
 
@@ -168,10 +162,7 @@ export const ruleEnforceOptionalGuardParamsBroker =
             annotation = firstParam.left.typeAnnotation;
           }
 
-          if (
-            !annotation?.typeAnnotation ||
-            annotation.typeAnnotation.type !== AST_NODE_TYPES.TSTypeLiteral
-          ) {
+          if (annotation?.typeAnnotation.type !== AST_NODE_TYPES.TSTypeLiteral) {
             return;
           }
 

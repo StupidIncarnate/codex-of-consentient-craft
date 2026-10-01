@@ -10,6 +10,7 @@
 import * as ts from '#gateway/npm/typescript';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
 import { sourceFactsContract } from '../../../contracts/source-facts/source-facts-contract';
+import { isTypeOnlyImportClauseGuard } from '@dungeonmaster/shared/guards';
 
 export const sourceFactsExtractStatementsLayerBroker = ({
   sourceFile,
@@ -24,7 +25,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
     if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
       const clause = statement.importClause;
       const bindings = clause?.namedBindings;
-      if (clause?.isTypeOnly !== true) {
+      if (clause === undefined || !isTypeOnlyImportClauseGuard({ clause })) {
         const named =
           bindings !== undefined && ts.isNamedImports(bindings)
             ? bindings.elements

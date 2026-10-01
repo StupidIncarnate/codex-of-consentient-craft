@@ -342,7 +342,7 @@ export const followupHarness = ({
     const messages = await page
       .getByTestId('CHAT_PANEL')
       .getByTestId('CHAT_MESSAGE')
-      .evaluateAll((elements) => elements.map((element) => element.textContent ?? ''));
+      .evaluateAll((elements) => elements.map((element) => element.textContent));
     return candidates
       .map((candidate) => ({
         candidate,

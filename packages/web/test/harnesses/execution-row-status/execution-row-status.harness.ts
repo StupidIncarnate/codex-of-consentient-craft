@@ -46,7 +46,7 @@ export const executionRowStatusHarness = ({
           panel.querySelectorAll('[data-testid="execution-row-layer-widget"]'),
         );
         texts.forEach((rowText, index) => {
-          const row = rows.find((candidate) => (candidate.textContent ?? '').includes(rowText));
+          const row = rows.find((candidate) => candidate.textContent.includes(rowText));
           if (row === undefined) {
             return;
           }

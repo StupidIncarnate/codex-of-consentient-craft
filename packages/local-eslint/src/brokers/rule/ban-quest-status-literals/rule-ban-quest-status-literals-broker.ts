@@ -137,11 +137,7 @@ export const ruleBanQuestStatusLiteralsBroker = (): TSESLint.RuleModule<
         const { cases } = node;
         const hasKnownStatusCase = cases.some((switchCase) => {
           const testNode = switchCase.test;
-          if (
-            testNode === null ||
-            testNode.type !== AST_NODE_TYPES.Literal ||
-            typeof testNode.value !== 'string'
-          ) {
+          if (testNode?.type !== AST_NODE_TYPES.Literal || typeof testNode.value !== 'string') {
             return false;
           }
           return classifyStatusLiteralTransformer({ literal: testNode.value }) !== null;

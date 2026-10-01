@@ -16,10 +16,8 @@ export const lengthPickDetectLayerTransformer = ({ node }: { node: ts.Node }): b
   return (
     ts.isIdentifier(node.typeName) &&
     node.typeName.text === 'Pick' &&
-    firstArgument !== undefined &&
-    firstArgument.kind === ts.SyntaxKind.ArrayType &&
-    keyArgument !== undefined &&
-    keyArgument.kind === ts.SyntaxKind.LiteralType &&
+    firstArgument?.kind === ts.SyntaxKind.ArrayType &&
+    keyArgument?.kind === ts.SyntaxKind.LiteralType &&
     ['"length"', "'length'"].includes(keyArgument.getText())
   );
 };

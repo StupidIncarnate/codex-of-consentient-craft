@@ -55,7 +55,7 @@ describe('FlowRowLayerWidget', () => {
 
       const trackRows = screen.getAllByTestId('QUEST_SUMMARY_TRACK_ROW');
 
-      expect(trackRows.map((row) => String(row.textContent))).toStrictEqual([
+      expect(trackRows.map((row) => row.textContent)).toStrictEqual([
         'FLOWRIDER12 met1 cant-meet2 unmet3 outstanding',
         'SIEGEMASTER0 met1 cant-meet4 unmet9 outstanding',
       ]);
@@ -86,12 +86,10 @@ describe('FlowRowLayerWidget', () => {
       mantineRenderMiddleware({ ui: <FlowRowLayerWidget flow={flow} /> });
 
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_TRACK_UNMET').map((cell) => String(cell.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_TRACK_UNMET').map((cell) => cell.textContent),
       ).toStrictEqual(['2 unmet', '5 unmet']);
       expect(
-        screen
-          .getAllByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')
-          .map((cell) => String(cell.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING').map((cell) => cell.textContent),
       ).toStrictEqual(['3 outstanding', '8 outstanding']);
     });
 
@@ -121,7 +119,7 @@ describe('FlowRowLayerWidget', () => {
 
       const trackRows = screen.getAllByTestId('QUEST_SUMMARY_TRACK_ROW');
 
-      expect(trackRows.map((row) => String(row.textContent))).toStrictEqual([
+      expect(trackRows.map((row) => row.textContent)).toStrictEqual([
         'CODEWEAVER6 met0 cant-meet0 unmet0 outstanding',
         'SIEGEMASTER0 met0 cant-meet0 unmet6 outstanding',
       ]);

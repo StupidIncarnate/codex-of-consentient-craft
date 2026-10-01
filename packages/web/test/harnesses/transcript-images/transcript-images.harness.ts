@@ -70,7 +70,7 @@ const READ_IMAGE_CONTENT_LAYER_CHILDREN_BROWSER_FN = () => {
   }
   return Array.from(layer.children).map((child) => ({
     tag: child.tagName.toLowerCase(),
-    text: child.textContent ?? '',
+    text: child.textContent,
     testId: child.getAttribute('data-testid') ?? '',
     src: child.tagName.toLowerCase() === 'img' ? (child.getAttribute('src') ?? '') : '',
   }));
@@ -83,7 +83,7 @@ const READ_IMAGE_CONTENT_LAYER_TEXT_BROWSER_FN = () => {
   if (layer === null) {
     throw new Error('transcript-images harness: IMAGE_CONTENT_LAYER not found');
   }
-  return layer.textContent ?? '';
+  return layer.textContent;
 };
 
 const READ_CHAT_MESSAGE_IMAGE_NATURAL_WIDTH_BROWSER_FN = (params: { index: number }) => {
@@ -108,7 +108,7 @@ const READ_USER_REQUEST_CHILDREN_BROWSER_FN = () => {
   }
   return Array.from(layer.children).map((child) => ({
     tag: child.tagName.toLowerCase(),
-    text: child.textContent ?? '',
+    text: child.textContent,
     testId: child.getAttribute('data-testid') ?? '',
     src: child.tagName.toLowerCase() === 'img' ? (child.getAttribute('src') ?? '') : '',
   }));
@@ -120,7 +120,7 @@ const READ_USER_REQUEST_TEXT_BROWSER_FN = () => {
   if (layer === null) {
     throw new Error('transcript-images harness: USER_REQUEST_TEXT not found');
   }
-  return layer.textContent ?? '';
+  return layer.textContent;
 };
 
 // Mirrors READ_CHAT_MESSAGE_IMAGE_NATURAL_WIDTH_BROWSER_FN, targeting the pinned request's own
@@ -206,7 +206,7 @@ const INSTALL_TRANSCRIPT_SEQUENCE_RECORDER_BROWSER_FN = (params: { matchText: st
 
   const sample = (): void => {
     const bubbles = Array.from(document.querySelectorAll('[data-testid="CHAT_MESSAGE"]')).filter(
-      (element) => (element.textContent ?? '').includes(params.matchText),
+      (element) => element.textContent.includes(params.matchText),
     );
     const [firstBubble] = bubbles;
     let firstImageSrcPrefix = '';
@@ -224,8 +224,7 @@ const INSTALL_TRANSCRIPT_SEQUENCE_RECORDER_BROWSER_FN = (params: { matchText: st
     const lastIndex = state.samples.length - 1;
     const last = lastIndex === -1 ? undefined : (state.samples[lastIndex] as typeof next);
     if (
-      last === undefined ||
-      last.bubbleCount !== next.bubbleCount ||
+      last?.bubbleCount !== next.bubbleCount ||
       last.firstImageSrcPrefix !== next.firstImageSrcPrefix
     ) {
       state.samples.push(next);
@@ -281,7 +280,7 @@ const INSTALL_STAGED_COPY_PAINT_PROBE_BROWSER_FN = (params: {
       return true;
     }
     const bubbles = Array.from(document.querySelectorAll('[data-testid="CHAT_MESSAGE"]')).filter(
-      (element) => (element.textContent ?? '').includes(params.matchText),
+      (element) => element.textContent.includes(params.matchText),
     );
     const [firstBubble] = bubbles;
     if (firstBubble === undefined) {

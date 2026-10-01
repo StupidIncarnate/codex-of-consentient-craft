@@ -27,10 +27,10 @@ export const QuestSpecPanelWidgetProxy = (): {
   setupQueuedComments: (args: SetupQueuedCommentsArgs) => void;
   clickDetailsTab: () => Promise<void>;
   clickSpecTab: () => Promise<void>;
-  getTabLabels: () => HTMLElement['textContent'][];
-  getActiveTabLabel: () => HTMLElement['textContent'];
+  getTabLabels: () => Node['textContent'][];
+  getActiveTabLabel: () => Node['textContent'];
   hasQueueBar: () => boolean;
-  getQueueBarCountText: () => HTMLElement['textContent'];
+  getQueueBarCountText: () => Node['textContent'];
   isQueueBarPreviousSiblingOfActionBar: () => boolean;
   clickNode: FlowsProxy['clickNode'];
   clickObservableNode: FlowsProxy['clickObservableNode'];
@@ -38,7 +38,7 @@ export const QuestSpecPanelWidgetProxy = (): {
   countCommentButtonsOn: FlowsProxy['countCommentButtonsOn'];
   countCardsOn: FlowsProxy['countCardsOn'];
   hasCommentsSection: () => boolean;
-  getPanelCommentTexts: () => HTMLElement['textContent'][];
+  getPanelCommentTexts: () => Node['textContent'][];
   clickApprove: () => Promise<void>;
   clickAbandon: () => Promise<void>;
   clickConfirmAbandon: () => Promise<void>;
@@ -49,7 +49,7 @@ export const QuestSpecPanelWidgetProxy = (): {
   hasAbandonButton: () => boolean;
   hasOperationsSection: () => boolean;
   getOperationsLedgerRows: () => HTMLElement[];
-  getActionBarButtonLabels: () => HTMLElement['textContent'][];
+  getActionBarButtonLabels: () => Node['textContent'][];
   countCommentButtons: () => HTMLElement['childElementCount'];
   // Fresh jest.fn() per proxy instance (Create-Per-Test Pattern) — a single shared double for the
   // widget's onSendComments prop so ~60 render sites don't each hand-roll an inline arrow.
@@ -84,17 +84,17 @@ export const QuestSpecPanelWidgetProxy = (): {
     clickSpecTab: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_spec'), userEventStatics.options);
     },
-    getTabLabels: (): HTMLElement['textContent'][] =>
+    getTabLabels: (): Node['textContent'][] =>
       Array.from(screen.getByTestId('QUEST_SPEC_TAB_BAR').children).map(
         (element) => element.textContent,
       ),
     // Reads the tab bar's own marker rather than re-deriving "active" from the underline colour,
     // so a test asserting which tab is showing cannot pass on a tab that merely looks selected.
-    getActiveTabLabel: (): HTMLElement['textContent'] =>
+    getActiveTabLabel: (): Node['textContent'] =>
       screen.getByTestId('QUEST_SPEC_TAB_BAR').querySelector('[data-active="true"]')?.textContent ??
       null,
     hasQueueBar: (): boolean => queueBarProxy.hasBar(),
-    getQueueBarCountText: (): HTMLElement['textContent'] => queueBarProxy.getCountText(),
+    getQueueBarCountText: (): Node['textContent'] => queueBarProxy.getCountText(),
     clickQueueSend: async (): Promise<void> => queueBarProxy.clickSend(),
     onSendComments,
     // The bar must be the ACTION_BAR's IMMEDIATE previous sibling: anywhere inside the scrollable
@@ -108,7 +108,7 @@ export const QuestSpecPanelWidgetProxy = (): {
     countCommentButtonsOn: flowsProxy.countCommentButtonsOn,
     countCardsOn: flowsProxy.countCardsOn,
     hasCommentsSection: (): boolean => flowsProxy.hasCommentsSection(),
-    getPanelCommentTexts: (): HTMLElement['textContent'][] => flowsProxy.getPanelCommentTexts(),
+    getPanelCommentTexts: (): Node['textContent'][] => flowsProxy.getPanelCommentTexts(),
     clickApprove: async (): Promise<void> => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
@@ -166,7 +166,7 @@ export const QuestSpecPanelWidgetProxy = (): {
       screen.queryAllByTestId('COMMENT_BUTTON').length,
     hasOperationsSection: (): boolean => screen.queryByTestId('OPERATIONS_SECTION') !== null,
     getOperationsLedgerRows: (): HTMLElement[] => ledgerProxy.getLedgerRows(),
-    getActionBarButtonLabels: (): HTMLElement['textContent'][] => {
+    getActionBarButtonLabels: (): Node['textContent'][] => {
       const actionBar = screen.queryByTestId('ACTION_BAR');
       if (!actionBar) return [];
       return Array.from(actionBar.querySelectorAll('[data-testid="PIXEL_BTN"]')).map(

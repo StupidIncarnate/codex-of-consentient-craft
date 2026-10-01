@@ -17,7 +17,7 @@ export const isAstObjectContractParseSpreadGuard = ({
 }: {
   node?: TSESTree.Node;
 }): boolean => {
-  if (node === undefined || node.type !== AST_NODE_TYPES.ObjectExpression) {
+  if (node?.type !== AST_NODE_TYPES.ObjectExpression) {
     return false;
   }
 

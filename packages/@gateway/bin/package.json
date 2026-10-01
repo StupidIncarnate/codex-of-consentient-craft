@@ -54,7 +54,7 @@
   "devDependencies": {
     "@dungeonmaster/testing": "*",
     "@types/node": "^24.0.15",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   },
   "publishConfig": {
     "access": "public"

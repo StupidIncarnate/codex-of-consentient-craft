@@ -20,7 +20,7 @@ import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { ingredientDeclarationStatics } from '../../statics/ingredient-declaration/ingredient-declaration-statics';
 
 export const isIngredientDeclarationCallGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
-  if (node === undefined || node.type !== AST_NODE_TYPES.CallExpression) {
+  if (node?.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
 

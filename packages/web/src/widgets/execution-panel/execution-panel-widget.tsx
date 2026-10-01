@@ -534,9 +534,7 @@ export const ExecutionPanelWidget = ({
     return ownEntries !== undefined && ownEntries.length > 0;
   });
   const runningFocusWorkItemId =
-    runningFocusRow !== undefined && runningFocusRow.kind === 'workItem'
-      ? runningFocusRow.workItem.id
-      : undefined;
+    runningFocusRow?.kind === 'workItem' ? runningFocusRow.workItem.id : undefined;
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="execution-panel-widget">

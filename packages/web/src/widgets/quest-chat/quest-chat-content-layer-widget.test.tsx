@@ -159,9 +159,7 @@ describe('QuestChatContentLayerWidget', () => {
         expect(proxy.getNewQuestRequestCount()).toBe(1);
       });
 
-      const messageTexts = screen
-        .queryAllByTestId('CHAT_MESSAGE')
-        .map((m) => String(m.textContent));
+      const messageTexts = screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent);
       const typedIdx = messageTexts.findIndex((t) => t.includes('Add auth'));
 
       expect(typedIdx).toBe(0);
@@ -189,7 +187,7 @@ describe('QuestChatContentLayerWidget', () => {
       const picker = await findByTestId('QUEST_TYPE_PICKER');
 
       expect(
-        Array.from(picker.querySelectorAll('option')).map((option) => String(option.textContent)),
+        Array.from(picker.querySelectorAll('option')).map((option) => option.textContent),
       ).toStrictEqual(['Create Feature', 'Create Bug']);
     });
 
@@ -771,15 +769,13 @@ describe('QuestChatContentLayerWidget', () => {
       await waitFor(() => {
         const lastIdx = screen
           .queryAllByTestId('CHAT_MESSAGE')
-          .map((m) => String(m.textContent))
+          .map((m) => m.textContent)
           .findIndex((t) => t.includes('AGENT_THIRD_TEXT'));
 
         expect(lastIdx).toBe(2);
       });
 
-      const messageTexts = screen
-        .queryAllByTestId('CHAT_MESSAGE')
-        .map((m) => String(m.textContent));
+      const messageTexts = screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent);
       const positions = [
         messageTexts.findIndex((t) => t.includes('AGENT_FIRST_TEXT')),
         messageTexts.findIndex((t) => t.includes('Database: Postgres')),
@@ -954,13 +950,13 @@ describe('QuestChatContentLayerWidget', () => {
 
       await waitFor(() => {
         expect(
-          screen.queryAllByTestId('CHAT_MESSAGE').some((m) => m.textContent?.startsWith('ERROR')),
+          screen.queryAllByTestId('CHAT_MESSAGE').some((m) => m.textContent.startsWith('ERROR')),
         ).toBe(true);
       });
 
       const errorMessage = screen
         .queryAllByTestId('CHAT_MESSAGE')
-        .find((m) => m.textContent?.startsWith('ERROR'));
+        .find((m) => m.textContent.startsWith('ERROR'));
 
       expect(errorMessage?.textContent).toBe(
         'ERRORQuest must be blocked, complete or merged for follow-up',
@@ -1714,7 +1710,7 @@ describe('QuestChatContentLayerWidget', () => {
 
       const bubblesBeforeDelivery = screen
         .queryAllByTestId('CHAT_MESSAGE')
-        .filter((bubble) => String(bubble.textContent).includes('AB'));
+        .filter((bubble) => bubble.textContent.includes('AB'));
       const [bubbleBeforeDelivery] = bubblesBeforeDelivery;
       const imageBeforeDelivery = bubbleBeforeDelivery!.querySelector(
         '[data-testid="CHAT_MESSAGE_IMAGE"]',
@@ -1754,21 +1750,21 @@ describe('QuestChatContentLayerWidget', () => {
       await waitFor(() => {
         const stillMatchingCount = screen
           .queryAllByTestId('CHAT_MESSAGE')
-          .filter((bubble) => String(bubble.textContent).includes('AB')).length;
+          .filter((bubble) => bubble.textContent.includes('AB')).length;
 
         expect(stillMatchingCount).toBe(1);
       });
 
       const bubblesAfterDelivery = screen
         .queryAllByTestId('CHAT_MESSAGE')
-        .filter((bubble) => String(bubble.textContent).includes('AB'));
+        .filter((bubble) => bubble.textContent.includes('AB'));
       const [bubbleAfterDelivery] = bubblesAfterDelivery;
       const imageAfterDelivery = bubbleAfterDelivery!.querySelector(
         '[data-testid="CHAT_MESSAGE_IMAGE"]',
       )!;
 
       expect({
-        bubbleTexts: bubblesAfterDelivery.map((bubble) => String(bubble.textContent)),
+        bubbleTexts: bubblesAfterDelivery.map((bubble) => bubble.textContent),
         imageSrc: imageAfterDelivery.getAttribute('src'),
       }).toStrictEqual({
         bubbleTexts: ['YOUAB'],
@@ -1816,10 +1812,10 @@ describe('QuestChatContentLayerWidget', () => {
       // CHAT_MESSAGE_IMAGE to draw.
       const bubblesBeforeDelivery = screen
         .queryAllByTestId('CHAT_MESSAGE')
-        .filter((bubble) => String(bubble.textContent).includes('SHOT'));
+        .filter((bubble) => bubble.textContent.includes('SHOT'));
 
       expect({
-        bubbleTexts: bubblesBeforeDelivery.map((bubble) => String(bubble.textContent)),
+        bubbleTexts: bubblesBeforeDelivery.map((bubble) => bubble.textContent),
         hasImage: bubblesBeforeDelivery.some(
           (bubble) => bubble.querySelector('[data-testid="CHAT_MESSAGE_IMAGE"]') !== null,
         ),
@@ -1868,7 +1864,7 @@ describe('QuestChatContentLayerWidget', () => {
       await waitFor(() => {
         const stillMatchingCount = screen
           .queryAllByTestId('CHAT_MESSAGE')
-          .filter((bubble) => String(bubble.textContent).includes('SHOT')).length;
+          .filter((bubble) => bubble.textContent.includes('SHOT')).length;
 
         expect(stillMatchingCount).toBe(1);
       });
@@ -1879,14 +1875,14 @@ describe('QuestChatContentLayerWidget', () => {
       // leaving exactly one bubble, the one carrying the picture.
       const bubblesAfterDelivery = screen
         .queryAllByTestId('CHAT_MESSAGE')
-        .filter((bubble) => String(bubble.textContent).includes('SHOT'));
+        .filter((bubble) => bubble.textContent.includes('SHOT'));
       const [bubbleAfterDelivery] = bubblesAfterDelivery;
       const imageAfterDelivery = bubbleAfterDelivery!.querySelector(
         '[data-testid="CHAT_MESSAGE_IMAGE"]',
       );
 
       expect({
-        bubbleTexts: bubblesAfterDelivery.map((bubble) => String(bubble.textContent)),
+        bubbleTexts: bubblesAfterDelivery.map((bubble) => bubble.textContent),
         imageSrc: imageAfterDelivery?.getAttribute('src'),
       }).toStrictEqual({
         bubbleTexts: ['YOUSHOT  DONE'],

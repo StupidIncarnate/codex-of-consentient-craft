@@ -62,7 +62,7 @@
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.0.0",
-    "@typescript-eslint/typescript-estree": "^8.35.1",
+    "@typescript-eslint/typescript-estree": "~8.58.2",
     "@vitejs/plugin-react": "^4.0.0",
     "@xyflow/react": "^12.11.0",
     "debug": "^4.4.1",
@@ -91,11 +91,11 @@
   },
   "peerDependencies": {
     "@playwright/test": "^1.58.2",
-    "@typescript-eslint/eslint-plugin": "^8.35.1",
-    "@typescript-eslint/parser": "^8.45.0",
-    "@typescript-eslint/utils": "^8.35.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "@typescript-eslint/utils": "^8.58.0",
     "eslint": "^9.36.0",
-    "typescript": "^5.8.3"
+    "typescript": ">=5.8.3 <7"
   },
   "peerDependenciesMeta": {
     "@playwright/test": {
@@ -126,7 +126,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.2.3",
     "@types/semver": "^6.2.7",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   },
   "publishConfig": {
     "access": "public"

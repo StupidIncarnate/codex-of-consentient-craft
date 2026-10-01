@@ -90,7 +90,7 @@ const PAINTED_ORDER_BROWSER_FN = ({
   const chains = Array.from(document.querySelectorAll('[data-testid="SUBAGENT_CHAIN"]'));
   const parent = chains.find((chain) => {
     const header = chain.querySelector('[data-testid="SUBAGENT_CHAIN_HEADER"]');
-    return header !== null && (header.textContent ?? '').includes(chainDescription);
+    return header?.textContent.includes(chainDescription) === true;
   });
 
   if (parent === undefined) {

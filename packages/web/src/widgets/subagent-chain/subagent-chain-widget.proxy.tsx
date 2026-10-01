@@ -61,7 +61,7 @@ export const SubagentChainWidgetProxy = (): {
     },
     isHeaderVisible: (): boolean => screen.queryByTestId('SUBAGENT_CHAIN_HEADER') !== null,
     isBadgeVisible: (): boolean =>
-      screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent?.includes('SUB-AGENT') ?? false,
+      screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent.includes('SUB-AGENT'),
     hasShowEarlierToggle: (): boolean =>
       screen.queryByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE') !== null,
     hasInnerGroupCount: ({ count }: { count: number }): boolean =>

@@ -24,7 +24,7 @@ export const UserRequestLayerWidgetProxy = (): {
   // The block's own textContent already excludes every img and broken-placeholder span — neither
   // carries a text node — so this IS "the request with every image stripped", with no stripping.
   getRequestText: (): NonNullable<HTMLElement['textContent']> =>
-    screen.getByTestId('USER_REQUEST_TEXT').textContent ?? '',
+    screen.getByTestId('USER_REQUEST_TEXT').textContent,
   // getAttribute, not the `.src` IDL property: jsdom resolves `.src` against the document's base
   // URL, so a root-relative path would come back as an absolute one and the assertion would be
   // about jsdom rather than about the widget.
