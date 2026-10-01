@@ -17,7 +17,6 @@ import {
   orchestrationStatusContract,
   questProjectionContract,
   questSummaryContract,
-  wardDetailContract,
 } from '@dungeonmaster/shared/contracts';
 import { guildListResponseDataContract } from '../guild-list-response-data/guild-list-response-data-contract';
 import { guildRemoveResponseDataContract } from '../guild-remove-response-data/guild-remove-response-data-contract';
@@ -42,6 +41,7 @@ import { questResumeResponseDataContract } from '../quest-resume-response-data/q
 import { questRiftcarverDetailResponseDataContract } from '../quest-riftcarver-detail-response-data/quest-riftcarver-detail-response-data-contract';
 import { questSignalBackResponseDataContract } from '../quest-signal-back-response-data/quest-signal-back-response-data-contract';
 import { questStartResponseDataContract } from '../quest-start-response-data/quest-start-response-data-contract';
+import { questWardDetailResponseDataContract } from '../quest-ward-detail-response-data/quest-ward-detail-response-data-contract';
 import { questsQueueResponseDataContract } from '../quests-queue-response-data/quests-queue-response-data-contract';
 import { rateLimitsGetResponseDataContract } from '../rate-limits-get-response-data/rate-limits-get-response-data-contract';
 import { processOutputResponseDataContract } from '../process-output-response-data/process-output-response-data-contract';
@@ -52,8 +52,7 @@ import { toolingSmoketestStateResponseDataContract } from '../tooling-smoketest-
 // Zod's union returns the FIRST member that parses, and a non-strict object strips the keys it does
 // not list. `getQuestResult`, `modifyQuestResult` and `addQuestResult` share `success` with every
 // other field optional, so each shared object member is `.strict()` here: a looser member earlier in
-// the union would otherwise swallow another responder's data and drop its keys. `wardDetailContract`
-// is loose by design (it relays ward's whole detail blob), so it stays last.
+// the union would otherwise swallow another responder's data and drop its keys.
 export const responderResultContract = z
   .object({
     status: z.number().int().brand<'ResponderResultStatus'>(),
@@ -89,6 +88,7 @@ export const responderResultContract = z
       questSignalBackResponseDataContract,
       questStartResponseDataContract,
       questSummaryContract,
+      questWardDetailResponseDataContract,
       addQuestResultContract.strict().brand<'ResponderResultData'>(),
       questsQueueResponseDataContract,
       rateLimitsGetResponseDataContract,
@@ -96,7 +96,6 @@ export const responderResultContract = z
       sessionListResponseDataContract,
       toolingSmoketestRunResponseDataContract,
       toolingSmoketestStateResponseDataContract,
-      wardDetailContract,
     ]),
   })
   .brand<'ResponderResult'>();

@@ -7,6 +7,7 @@
  * // Returns WardDetail (checks[] with per-file errors / per-suite test failures)
  */
 
+import { z } from '#gateway/npm/zod';
 import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 import type { WardDetail, WardResult, Quest } from '@dungeonmaster/shared/contracts';
 
@@ -26,6 +27,7 @@ export const questWardDetailBroker = async ({
     .replace(':wardResultId', wardResultId);
 
   const response = await fetchJson({ url });
+  const parsed = z.object({ detail: wardDetailContract }).parse(response);
 
-  return wardDetailContract.parse(response);
+  return parsed.detail;
 };

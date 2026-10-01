@@ -13,7 +13,7 @@ describe('QuestWardDetailResponder', () => {
         params: { questId: VALID_QUEST_ID, wardResultId: VALID_WARD_RESULT_ID },
       });
 
-      expect(result).toStrictEqual({ status: 200, data: expectedDetail });
+      expect(result).toStrictEqual({ status: 200, data: { detail: expectedDetail } });
     });
   });
 
