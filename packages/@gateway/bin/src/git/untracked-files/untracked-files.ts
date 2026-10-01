@@ -12,7 +12,7 @@
 import { gitRun } from '../git-run/git-run';
 
 export const untrackedFiles = async ({ cwd }: { cwd: string }): Promise<string[]> => {
-  const { exitCode, output } = await gitRun({
+  const { exitCode, output, stdout } = await gitRun({
     args: ['ls-files', '--others', '--exclude-standard'],
     cwd,
   });
@@ -23,7 +23,7 @@ export const untrackedFiles = async ({ cwd }: { cwd: string }): Promise<string[]
     );
   }
 
-  return output
+  return stdout
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0);

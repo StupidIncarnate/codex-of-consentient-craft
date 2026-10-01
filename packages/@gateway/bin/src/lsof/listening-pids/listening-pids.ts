@@ -30,7 +30,7 @@ export const listeningPids = async ({ port }: { port: number }): Promise<number[
     return [];
   }
 
-  return result.output
+  return result.stdout
     .trim()
     .split('\n')
     .map((line) => line.trim())

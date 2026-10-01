@@ -9,7 +9,14 @@ describe('gitRun()', () => {
 
     const result = await gitRun({ args: ['rev-parse', '--abbrev-ref', 'HEAD'], cwd: '/repo' });
 
-    expect(result).toStrictEqual({ exitCode: 0, output: 'main', signal: null, timedOut: false });
+    expect(result).toStrictEqual({
+      exitCode: 0,
+      output: 'main',
+      stdout: 'main',
+      stderr: '',
+      signal: null,
+      timedOut: false,
+    });
   });
 
   it('ERROR: {run throws RunNotFoundError} => throws GitNotInstalledError', async () => {
@@ -36,6 +43,8 @@ describe('gitRun()', () => {
     expect(result).toStrictEqual({
       exitCode: 1,
       output: 'fatal: not a git repository',
+      stdout: 'fatal: not a git repository',
+      stderr: '',
       signal: null,
       timedOut: false,
     });
@@ -50,6 +59,8 @@ describe('gitRun()', () => {
     expect(result).toStrictEqual({
       exitCode: 1,
       output: '',
+      stdout: '',
+      stderr: '',
       signal: 'SIGKILL',
       timedOut: false,
     });
@@ -69,7 +80,14 @@ describe('gitRun()', () => {
         cwd: '/worktrees/computed-at-runtime',
       });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
 
     it('ERROR: {throwsMatchingArgs, a predicate} => rejects with GitNotInstalledError', async () => {

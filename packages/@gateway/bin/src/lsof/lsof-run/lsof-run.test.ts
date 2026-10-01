@@ -9,7 +9,14 @@ describe('lsofRun()', () => {
 
     const result = await lsofRun({ args: ['-ti', ':3737'], cwd: '/' });
 
-    expect(result).toStrictEqual({ exitCode: 0, output: '12345\n', signal: null, timedOut: false });
+    expect(result).toStrictEqual({
+      exitCode: 0,
+      output: '12345\n',
+      stdout: '12345\n',
+      stderr: '',
+      signal: null,
+      timedOut: false,
+    });
   });
 
   it('ERROR: {run throws RunNotFoundError} => throws LsofNotInstalledError', async () => {
@@ -29,7 +36,14 @@ describe('lsofRun()', () => {
 
     const result = await lsofRun({ args: ['-ti', ':3737'], cwd: '/' });
 
-    expect(result).toStrictEqual({ exitCode: 1, output: '', signal: null, timedOut: false });
+    expect(result).toStrictEqual({
+      exitCode: 1,
+      output: '',
+      stdout: '',
+      stderr: '',
+      signal: null,
+      timedOut: false,
+    });
   });
 
   describe('tolerant addressing', () => {
@@ -43,7 +57,14 @@ describe('lsofRun()', () => {
 
       const result = await lsofRun({ args: ['-ti', ':4242'], cwd: '/' });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '111\n', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '111\n',
+        stdout: '111\n',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
 
     it('ERROR: {throwsMatchingArgs, a predicate} => rejects with LsofNotInstalledError', async () => {

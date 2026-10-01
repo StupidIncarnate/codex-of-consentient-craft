@@ -3,7 +3,7 @@ import { gitRunProxy } from '../git-run/git-run.proxy';
 const ARGS = ['rev-parse', '--abbrev-ref', 'HEAD'];
 
 export const currentBranchProxy = (): {
-  setupBranch: (params: { branch: string }) => void;
+  setupBranch: (params: { branch: string; stderr?: string }) => void;
   setupDetached: () => void;
   setupFailure: (params: { exitCode: number; output: string }) => void;
   getCallsFor: () => readonly unknown[][];
@@ -11,8 +11,13 @@ export const currentBranchProxy = (): {
   const runProxy = gitRunProxy();
 
   return {
-    setupBranch: ({ branch }: { branch: string }): void => {
-      runProxy.setupResult({ args: ARGS, exitCode: 0, output: branch });
+    setupBranch: ({ branch, stderr }: { branch: string; stderr?: string }): void => {
+      runProxy.setupResult({
+        args: ARGS,
+        exitCode: 0,
+        output: branch,
+        ...(stderr === undefined ? {} : { stderr }),
+      });
     },
     setupDetached: (): void => {
       runProxy.setupResult({ args: ARGS, exitCode: 0, output: 'HEAD' });

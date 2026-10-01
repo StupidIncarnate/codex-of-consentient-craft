@@ -26,7 +26,7 @@ export const diffFiles = async ({
 }): Promise<string[]> => {
   const revisionArg = comparison === 'ref-to-working-tree' ? baseRef : `${baseRef}...HEAD`;
 
-  const { exitCode, output } = await gitRun({
+  const { exitCode, output, stdout } = await gitRun({
     args: ['diff', revisionArg, '--name-only', ...(excludeDeleted ? ['--diff-filter=d'] : [])],
     cwd,
   });
@@ -35,7 +35,7 @@ export const diffFiles = async ({
     throw new Error(`git diff ${revisionArg} failed with exit code ${String(exitCode)}: ${output}`);
   }
 
-  return output
+  return stdout
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0);

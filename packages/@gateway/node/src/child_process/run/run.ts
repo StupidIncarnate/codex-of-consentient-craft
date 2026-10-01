@@ -6,7 +6,13 @@
  *
  * USAGE:
  * const result = await run({ command: 'npm', args: ['run', 'test'], cwd: '/project' });
- * // Returns { exitCode: number, output: string, signal: NodeJS.Signals | null, timedOut: boolean }
+ * // Returns { exitCode: number, output: string, stdout: string, stderr: string, signal: NodeJS.Signals | null, timedOut: boolean }
+ *
+ * `stdout` and `stderr` are each decoded ONCE, from that stream's concatenated bytes. Decoding
+ * chunk by chunk corrupts a multi-byte UTF-8 character the pipe happens to split across two
+ * chunks. `output` is `stdout` followed by `stderr`, for a caller that shows a human everything the
+ * command printed. A caller that PARSES what the command printed reads `stdout`: a warning the
+ * command writes to stderr during a successful run would otherwise land inside the parsed value.
  *
  * A child's `exit` fires when the PROCESS ends, which is not when its OUTPUT ends: the last chunks
  * can still be queued on the pipes, so a handler that resolves there loses them — intermittently,
@@ -22,9 +28,8 @@
  *
  * A process that never STARTED at all (spawn's own `'error'` event — ENOENT, a non-executable file)
  * is not a result to resolve — it has no exit code, no signal, nothing that happened inside a
- * process, because no process ever existed. This THROWS `RunNotFoundError` instead of resolving
- * `{exitCode: 1, output: '', signal: null}`, which used to be indistinguishable from a real command
- * that exits 1 and prints nothing.
+ * process, because no process ever existed. This THROWS `RunNotFoundError` instead, so a missing
+ * program never reads as a real command that exits 1 and prints nothing.
  */
 
 import { spawn } from 'child_process';
@@ -46,6 +51,8 @@ export const run = async ({
 }): Promise<{
   exitCode: number;
   output: string;
+  stdout: string;
+  stderr: string;
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> =>
@@ -56,19 +63,19 @@ export const run = async ({
       env: { ...process.env, ...env },
     });
 
-    let stdout = '';
-    let stderr = '';
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
     let timedOut = false;
 
     const stdoutStream = child.stdout;
     const stderrStream = child.stderr;
 
     stdoutStream.on('data', (chunk: Buffer) => {
-      stdout += chunk.toString();
+      stdoutChunks.push(chunk);
     });
 
     stderrStream.on('data', (chunk: Buffer) => {
-      stderr += chunk.toString();
+      stderrChunks.push(chunk);
     });
 
     const timeoutHandle =
@@ -108,21 +115,25 @@ export const run = async ({
 
       drained
         .then(() => {
-          const output = stdout + stderr;
+          const stdout = Buffer.concat(stdoutChunks).toString('utf8');
+          const stderr = Buffer.concat(stderrChunks).toString('utf8');
+          const decoded = { output: stdout + stderr, stdout, stderr };
 
           if (code === null && signal !== null) {
-            resolve({ exitCode: 1, output, signal, timedOut });
+            resolve({ exitCode: 1, ...decoded, signal, timedOut });
             return;
           }
 
           const normalizedCode = code === null ? 0 : Math.max(0, code);
-          resolve({ exitCode: normalizedCode, output, signal, timedOut });
+          resolve({ exitCode: normalizedCode, ...decoded, signal, timedOut });
         })
         .catch(() => {
           // A stdio stream can only reject by erroring, and the error handler below already
           // settles this promise with whatever was captured — so there is nothing left to do
           // here, and a rethrow would surface as an unhandled rejection instead.
-          resolve({ exitCode: 1, output: stdout + stderr, signal, timedOut });
+          const stdout = Buffer.concat(stdoutChunks).toString('utf8');
+          const stderr = Buffer.concat(stderrChunks).toString('utf8');
+          resolve({ exitCode: 1, output: stdout + stderr, stdout, stderr, signal, timedOut });
         });
     });
 

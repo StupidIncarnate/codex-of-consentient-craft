@@ -21,6 +21,8 @@ export const npmRun = async ({
 }): Promise<{
   exitCode: number;
   output: string;
+  stdout: string;
+  stderr: string;
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> => {

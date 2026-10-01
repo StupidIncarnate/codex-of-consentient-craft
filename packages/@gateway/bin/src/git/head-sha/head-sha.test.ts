@@ -2,6 +2,19 @@ import { headSha } from './head-sha';
 import { headShaProxy } from './head-sha.proxy';
 
 describe('headSha()', () => {
+  it('VALID: {sha, a warning on stderr} => returns the sha from stdout alone', async () => {
+    const proxy = headShaProxy();
+    proxy.setupResult({
+      exitCode: 0,
+      output: 'a1b2c3d4\n',
+      stderr: "warning: refname 'main' is ambiguous.\n",
+    });
+
+    const result = await headSha({ cwd: '/repo' });
+
+    expect(result).toBe('a1b2c3d4');
+  });
+
   it('VALID: {sha} => returns the trimmed sha', async () => {
     const proxy = headShaProxy();
     proxy.setupResult({ exitCode: 0, output: 'a1b2c3d4\n' });

@@ -21,6 +21,8 @@ export const killRun = async ({
 }): Promise<{
   exitCode: number;
   output: string;
+  stdout: string;
+  stderr: string;
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> => {

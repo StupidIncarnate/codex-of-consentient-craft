@@ -13,7 +13,10 @@
 import { gitRun } from '../git-run/git-run';
 
 export const currentBranch = async ({ cwd }: { cwd: string }): Promise<string | null> => {
-  const { exitCode, output } = await gitRun({ args: ['rev-parse', '--abbrev-ref', 'HEAD'], cwd });
+  const { exitCode, output, stdout } = await gitRun({
+    args: ['rev-parse', '--abbrev-ref', 'HEAD'],
+    cwd,
+  });
 
   if (exitCode !== 0) {
     throw new Error(
@@ -21,7 +24,7 @@ export const currentBranch = async ({ cwd }: { cwd: string }): Promise<string | 
     );
   }
 
-  const trimmed = output.trim();
+  const trimmed = stdout.trim();
 
   if (trimmed.length === 0 || trimmed === 'HEAD') {
     return null;

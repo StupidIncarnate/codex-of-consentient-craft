@@ -5,6 +5,23 @@ const RECORD_SEP = '\u001e';
 const FIELD_SEP = '\u001f';
 
 describe('logNameOnly()', () => {
+  it('VALID: {one commit, a warning on stderr} => parses the commit from stdout alone', async () => {
+    const proxy = logNameOnlyProxy();
+    const record = `a1b2c3d4${FIELD_SEP}fix typo${FIELD_SEP}${FIELD_SEP}packages/a/file.ts\n`;
+    proxy.setupResult({
+      baseRef: 'base',
+      exitCode: 0,
+      output: `${RECORD_SEP}${record}`,
+      stderr: "warning: refname 'main' is ambiguous.\n",
+    });
+
+    const result = await logNameOnly({ cwd: '/repo', baseRef: 'base' });
+
+    expect(result).toStrictEqual([
+      { sha: 'a1b2c3d4', scope: null, subject: 'fix typo', paths: ['packages/a/file.ts'] },
+    ]);
+  });
+
   it('VALID: {one commit with a scope line} => returns sha, scope, subject, paths', async () => {
     const proxy = logNameOnlyProxy();
     const body = 'work items: op-1, op-2';

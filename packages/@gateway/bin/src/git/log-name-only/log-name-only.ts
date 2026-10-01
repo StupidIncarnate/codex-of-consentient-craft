@@ -30,7 +30,7 @@ export const logNameOnly = async ({
 }): Promise<{ sha: string; scope: string | null; subject: string; paths: string[] }[]> => {
   const revisionRange = `${baseRef}..HEAD`;
 
-  const { exitCode, output } = await gitRun({
+  const { exitCode, output, stdout } = await gitRun({
     args: ['log', '--name-only', LOG_FORMAT, revisionRange],
     cwd,
   });
@@ -41,7 +41,7 @@ export const logNameOnly = async ({
     );
   }
 
-  return output
+  return stdout
     .split(COMMIT_SEPARATOR)
     .filter((record) => record.trim().length > 0)
     .map((record) => {

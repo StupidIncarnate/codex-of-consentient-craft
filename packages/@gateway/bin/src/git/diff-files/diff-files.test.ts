@@ -3,6 +3,20 @@ import { diffFiles } from './diff-files';
 import { diffFilesProxy } from './diff-files.proxy';
 
 describe('diffFiles()', () => {
+  it('VALID: {one file, a warning on stderr} => returns the paths from stdout alone', async () => {
+    const proxy = diffFilesProxy();
+    proxy.setupResult({
+      revisionArg: 'a1b2c3d4...HEAD',
+      exitCode: 0,
+      output: 'packages/a/file.ts\n',
+      stderr: "warning: refname 'main' is ambiguous.\n",
+    });
+
+    const result = await diffFiles({ cwd: '/repo', baseRef: 'a1b2c3d4' });
+
+    expect(result).toStrictEqual(['packages/a/file.ts']);
+  });
+
   it('VALID: {comparison: default} => diffs baseRef...HEAD, returns file paths', async () => {
     const proxy = diffFilesProxy();
     proxy.setupResult({

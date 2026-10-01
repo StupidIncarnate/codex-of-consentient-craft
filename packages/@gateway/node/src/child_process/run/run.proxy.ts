@@ -12,6 +12,9 @@ interface ProxyConfig {
   // Models a descendant process holding a stdio pipe open past the child's own exit: `exit`
   // fires but neither stream ever pushes `null`, so neither `end` nor `close` ever follows.
   neverDrain: boolean;
+  // Bytes per pushed chunk. A real pipe splits output wherever its buffer fills, which can fall
+  // inside a multi-byte UTF-8 character; a small chunk size reproduces that split.
+  chunkSize: number | null;
 }
 
 // A caller composing this proxy for a program that takes an argument only known at test-run time
@@ -56,6 +59,27 @@ const buildSpawnAddress = ({
   return address;
 };
 
+const pushInChunks = ({
+  stream,
+  text,
+  chunkSize,
+}: {
+  stream: Readable;
+  text: string;
+  chunkSize: number | null;
+}): void => {
+  const bytes = Buffer.from(text);
+  const step = chunkSize ?? Math.max(bytes.length, 1);
+  const offsets = Array.from(
+    { length: Math.ceil(bytes.length / step) },
+    (_, index) => index * step,
+  );
+  offsets.forEach((offset) => {
+    stream.push(bytes.subarray(offset, offset + step));
+  });
+  stream.push(null);
+};
+
 const createMockChildFromConfig = ({
   snapshot,
   killMock,
@@ -94,14 +118,8 @@ const createMockChildFromConfig = ({
       return;
     }
 
-    if (snapshot.stdout.length > 0) {
-      mockStdout.push(Buffer.from(snapshot.stdout));
-    }
-    mockStdout.push(null);
-    if (snapshot.stderr.length > 0) {
-      mockStderr.push(Buffer.from(snapshot.stderr));
-    }
-    mockStderr.push(null);
+    pushInChunks({ stream: mockStdout, text: snapshot.stdout, chunkSize: snapshot.chunkSize });
+    pushInChunks({ stream: mockStderr, text: snapshot.stderr, chunkSize: snapshot.chunkSize });
 
     child.emit('exit', snapshot.exitCode, snapshot.signal);
   });
@@ -118,6 +136,7 @@ export const runProxy = (): {
     stdout: string;
     stderr: string;
     neverDrain?: boolean;
+    chunkSize?: number;
   }) => void;
   setupSignalKill: (params: {
     command: string;
@@ -180,6 +199,7 @@ export const runProxy = (): {
       stdout,
       stderr,
       neverDrain,
+      chunkSize,
     }: {
       command: string;
       args?: SpawnArgsMatcher;
@@ -188,6 +208,7 @@ export const runProxy = (): {
       stdout: string;
       stderr: string;
       neverDrain?: boolean;
+      chunkSize?: number;
     }): void => {
       const snapshot: ProxyConfig = {
         exitCode,
@@ -196,6 +217,7 @@ export const runProxy = (): {
         stderr,
         error: null,
         neverDrain: neverDrain ?? false,
+        chunkSize: chunkSize ?? null,
       };
       handle
         .calledWith(
@@ -232,6 +254,7 @@ export const runProxy = (): {
         stderr,
         error: null,
         neverDrain: false,
+        chunkSize: null,
       };
       handle
         .calledWith(
@@ -264,6 +287,7 @@ export const runProxy = (): {
         stderr: '',
         error,
         neverDrain: false,
+        chunkSize: null,
       };
       handle
         .calledWith(

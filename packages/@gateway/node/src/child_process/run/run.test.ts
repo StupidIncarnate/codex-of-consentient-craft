@@ -10,7 +10,14 @@ describe('run()', () => {
 
       const result = await run({ command: 'npm', args: ['run', 'test'], cwd: '/project' });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
 
     it('VALID: {command exits with 0 and stdout} => returns stdout content', async () => {
@@ -22,6 +29,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 0,
         output: 'All tests passed',
+        stdout: 'All tests passed',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
@@ -43,6 +52,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: 'Error in /src/file.ts',
+        stdout: '',
+        stderr: 'Error in /src/file.ts',
         signal: null,
         timedOut: false,
       });
@@ -62,6 +73,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: 'stdout contentstderr content',
+        stdout: 'stdout content',
+        stderr: 'stderr content',
         signal: null,
         timedOut: false,
       });
@@ -83,6 +96,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: 'partial run output',
+        stdout: 'partial run output',
+        stderr: '',
         signal: 'SIGTERM',
         timedOut: false,
       });
@@ -101,6 +116,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: '',
+        stdout: '',
+        stderr: '',
         signal: 'SIGKILL',
         timedOut: false,
       });
@@ -122,6 +139,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: '',
+        stdout: '',
+        stderr: '',
         signal: 'SIGTERM',
         timedOut: true,
       });
@@ -139,7 +158,14 @@ describe('run()', () => {
         timeout: 60_000,
       });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: 'done', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: 'done',
+        stdout: 'done',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
       expect(proxy.getKillCallCount({ command: 'npm' })).toBe(0);
     });
   });
@@ -164,6 +190,53 @@ describe('run()', () => {
     });
   });
 
+  describe('stdout and stderr kept apart', () => {
+    it('VALID: {exit 0, a warning on stderr} => stdout holds only what the command printed on stdout', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        exitCode: 0,
+        stdout: 'export const x = 1;\n',
+        stderr: 'warning: CRLF will be replaced by LF in src/x.ts\n',
+      });
+
+      const result = await run({ command: 'git', args: ['cat-file', 'blob', 'abc'], cwd: '/repo' });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: 'export const x = 1;\nwarning: CRLF will be replaced by LF in src/x.ts\n',
+        stdout: 'export const x = 1;\n',
+        stderr: 'warning: CRLF will be replaced by LF in src/x.ts\n',
+        signal: null,
+        timedOut: false,
+      });
+    });
+  });
+
+  describe('multi-byte characters split across chunks', () => {
+    it('EDGE: {a two-byte "é" split between two one-byte chunks} => decodes the character intact', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        exitCode: 0,
+        stdout: 'café',
+        stderr: 'naïve',
+        chunkSize: 1,
+      });
+
+      const result = await run({ command: 'git', args: ['cat-file', 'blob', 'abc'], cwd: '/repo' });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: 'cafénaïve',
+        stdout: 'café',
+        stderr: 'naïve',
+        signal: null,
+        timedOut: false,
+      });
+    });
+  });
+
   describe('no output at all', () => {
     it('EMPTY: {command prints nothing on either stream} => returns empty output', async () => {
       const proxy = runProxy();
@@ -171,7 +244,14 @@ describe('run()', () => {
 
       const result = await run({ command: 'git', args: ['status'], cwd: '/project' });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
   });
 
@@ -207,12 +287,16 @@ describe('run()', () => {
       expect(mainResult).toStrictEqual({
         exitCode: 0,
         output: 'main-sha\n',
+        stdout: 'main-sha\n',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
       expect(masterResult).toStrictEqual({
         exitCode: 1,
         output: 'fatal: not a valid ref',
+        stdout: '',
+        stderr: 'fatal: not a valid ref',
         signal: null,
         timedOut: false,
       });
@@ -243,12 +327,16 @@ describe('run()', () => {
       expect(resultA).toStrictEqual({
         exitCode: 0,
         output: 'clean in a\n',
+        stdout: 'clean in a\n',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
       expect(resultB).toStrictEqual({
         exitCode: 0,
         output: 'clean in b\n',
+        stdout: 'clean in b\n',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
@@ -280,7 +368,14 @@ describe('run()', () => {
       ).rejects.toStrictEqual(
         new RunNotFoundError({ command: 'git', code: 'ENOENT', message: 'spawn git ENOENT' }),
       );
-      expect(mainResult).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(mainResult).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
   });
 
