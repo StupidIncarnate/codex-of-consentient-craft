@@ -2,9 +2,16 @@
  * PURPOSE: The two files the npm-gateway sync writes for a dependency dungeonmaster has no wrapper
  * of its own for — `<folder>/<folder>.ts`, a pure re-export barrel, and `<folder>/<folder>.test.ts`,
  * proving the barrel hands back the package's real runtime shape. The barrel's syntax follows the
- * package's own declarations (`NpmModuleExportShape`): TypeScript refuses `export *` against an
- * `export =` module, so that shape re-exports the whole module instead, and its test asserts the two
- * are the same object rather than comparing keys. An ESM-only package, which this CommonJS gateway
+ * package's own declarations (`NpmModuleExportShape`). TypeScript refuses `export *` against an
+ * `export =` module (TS2498), and an ES-module consumer that typechecks the barrel's source refuses
+ * `import x = require()` and `export =` (TS1202, TS1203). So an `export =` barrel re-exports the
+ * module as its `default` and every name in `exportNames` by name, values and types in separate
+ * lists, which compiles for a CommonJS consumer and an ES-module consumer alike. Its test asserts the
+ * default is the package's own module object and each named value is the package's own binding. The
+ * test reads the package's values through `Object.entries`, never as `pkgModule.<name>`, because a
+ * name the package marks `@deprecated` fails a consumer's `no-deprecated` lint where it is read by
+ * name; a name the declarations promise and the runtime module lacks still fails the comparison.
+ * An ESM-only package, which this CommonJS gateway
  * cannot `require`, gets a type-only barrel — `export type *` still needs the `resolution-mode:
  * 'import'` attribute, or a CommonJS file referencing an ES module is TS1479 — whose test never
  * loads the package. Pure, so the plan can be reported under `npm ci`
@@ -13,9 +20,12 @@
  * USAGE:
  * gatewayNpmPassthroughFilesTransformer({ dependency, shape: 'named' });
  * // Returns [ScaffoldFile for left-pad/left-pad.ts, ScaffoldFile for left-pad/left-pad.test.ts]
+ * gatewayNpmPassthroughFilesTransformer({ dependency, shape: 'export-equals', exportNames });
+ * // Returns the same two files, the barrel naming every entry of exportNames
  */
 
 import type { GatewayNpmDependency } from '../../contracts/gateway-npm-dependency/gateway-npm-dependency-contract';
+import type { GatewayNpmPassthroughPlan } from '../../contracts/gateway-npm-passthrough-plan/gateway-npm-passthrough-plan-contract';
 import type { NpmModuleExportShape } from '../../contracts/npm-module-export-shape/npm-module-export-shape-contract';
 import {
   scaffoldFileContract,
@@ -32,20 +42,26 @@ const RAW_REQUIRE_COMMENT = [
 export const gatewayNpmPassthroughFilesTransformer = ({
   dependency,
   shape,
+  exportNames,
 }: {
   dependency: GatewayNpmDependency;
   shape: NpmModuleExportShape;
+  exportNames?: GatewayNpmPassthroughPlan['exportNames'];
 }): readonly ScaffoldFile[] => {
   const { name: packageName, folder } = dependency;
+  const valueNames = exportNames?.values ?? [];
+  const typeNames = exportNames?.types ?? [];
   const shapeNote =
     shape === 'untyped'
       ? `\n *\n * '${packageName}' resolved no type declarations when this file was generated, so every import\n * through here is untyped until the package or an @types package supplies them.`
-      : shape === 'esm-only'
-        ? `\n *\n * '${packageName}' is ESM-only, and this CommonJS gateway package cannot \`require\` it, so this\n * re-exports its types only, resolved as an ES import (\`resolution-mode\`). A runtime value needs a\n * wrapper beside this barrel that loads the package with \`import()\`.`
-        : '';
+      : shape === 'export-equals'
+        ? `\n *\n * '${packageName}' declares its module with \`export =\`, which no \`export *\` can re-export\n * (TS2498), so this names every export its declarations held when this file was generated. A\n * name the package adds later is reachable through the default export until it is added here.`
+        : shape === 'esm-only'
+          ? `\n *\n * '${packageName}' is ESM-only, and this CommonJS gateway package cannot \`require\` it, so this\n * re-exports its types only, resolved as an ES import (\`resolution-mode\`). A runtime value needs a\n * wrapper beside this barrel that loads the package with \`import()\`.`
+          : '';
   const usageLine =
     shape === 'export-equals'
-      ? `import pkg from '#gateway/npm/${folder}';`
+      ? `import pkg, { someExport } from '#gateway/npm/${folder}';`
       : shape === 'esm-only'
         ? `import type { SomeType } from '#gateway/npm/${folder}';`
         : `import { someExport } from '#gateway/npm/${folder}';`;
@@ -62,7 +78,15 @@ export const gatewayNpmPassthroughFilesTransformer = ({
 
   const barrelBody =
     shape === 'export-equals'
-      ? `import pkgModule = require('${packageName}');\n\nexport = pkgModule;\n`
+      ? [
+          `export { default } from '${packageName}';\n`,
+          valueNames.length === 0
+            ? ''
+            : `export {\n${valueNames.map((name) => `  ${name},\n`).join('')}} from '${packageName}';\n`,
+          typeNames.length === 0
+            ? ''
+            : `export type {\n${typeNames.map((name) => `  ${name},\n`).join('')}} from '${packageName}';\n`,
+        ].join('')
       : shape === 'named-and-default'
         ? `export * from '${packageName}';\nexport { default } from '${packageName}';\n`
         : shape === 'esm-only'
@@ -71,13 +95,16 @@ export const gatewayNpmPassthroughFilesTransformer = ({
 
   const testBody =
     shape === 'export-equals'
-      ? `import ourModule = require('./${folder}');
+      ? `import * as ourModule from './${folder}';
 ${RAW_REQUIRE_COMMENT}
 import pkgModule = require('${packageName}');
 
 describe('#gateway/npm/${folder}', () => {
-  it('VALID: {module} => is the same module object as ${packageName}', () => {
-    expect(ourModule).toBe(pkgModule);
+  it('VALID: {module} => default is ${packageName} itself and each named value is its own binding', () => {
+    expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
+      default: pkgModule,
+    });
   });
 });
 `

@@ -531,6 +531,58 @@ beforeEach(() => {
       `;
       }
 
+      // The npm electron subpath's own PRODUCTION barrel: every name is a pass-through re-export of
+      // the 'electron' package, and the subpath's one proxy (electron/electron.proxy) stages them all.
+      if (filePath.includes('packages/@gateway/npm/src/electron/electron.ts')) {
+        return `
+        export { app, ipcMain } from 'electron';
+        export { default } from 'electron';
+      `;
+      }
+
+      // Three brokers reaching the one electron gateway subpath by a named, a default and a
+      // namespace import. None of them imports a name 'electron' through a named import.
+      if (filePath.includes('brokers/electron/named/electron-named-broker.ts')) {
+        return `
+        import { app, ipcMain } from '#gateway/npm/electron';
+        import type { IpcMainInvokeEvent } from '#gateway/npm/electron';
+
+        export const electronNamedBroker = () => {
+          ipcMain.handle('ping', (_event: IpcMainInvokeEvent) => 'pong');
+          return app;
+        };
+      `;
+      }
+      if (filePath.includes('brokers/electron/default/electron-default-broker.ts')) {
+        return `
+        import electronBinaryPath from '#gateway/npm/electron';
+
+        export const electronDefaultBroker = () => {
+          return electronBinaryPath;
+        };
+      `;
+      }
+      if (filePath.includes('brokers/electron/namespace/electron-namespace-broker.ts')) {
+        return `
+        import * as electronModule from '#gateway/npm/electron';
+
+        export const electronNamespaceBroker = () => {
+          return electronModule.app;
+        };
+      `;
+      }
+      // Imports only a TYPE from the electron subpath: no runtime binding, so electronProxy has
+      // nothing real behind it.
+      if (filePath.includes('brokers/electron/type-only/electron-type-only-broker.ts')) {
+        return `
+        import type { IpcMainInvokeEvent } from '#gateway/npm/electron';
+
+        export const electronTypeOnlyBroker = ({ event }: { event: IpcMainInvokeEvent }) => {
+          return event;
+        };
+      `;
+      }
+
       // Default empty implementation
       return `export const placeholder = () => {};`;
     },
@@ -1076,8 +1128,85 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       `,
       filename: '/acme-devdeps-repo/packages/mcp/src/brokers/orders/orders-broker.proxy.ts',
     },
+    // ✅ CORRECT - The implementation reaches the electron gateway subpath by a named import, and the
+    // proxy creates that subpath's one proxy, electronProxy.
+    {
+      code: `
+        import { electronProxy } from '#gateway/npm/electron/electron.proxy';
+
+        export const electronNamedBrokerProxy = () => {
+          const electronGateway = electronProxy();
+
+          return {
+            setup: () => electronGateway,
+          };
+        };
+      `,
+      filename: '/repo/packages/desktop/src/brokers/electron/named/electron-named-broker.proxy.ts',
+    },
+    // ✅ CORRECT - The implementation reaches the electron gateway subpath by a default import, and the
+    // proxy creates that subpath's one proxy, electronProxy.
+    {
+      code: `
+        import { electronProxy } from '#gateway/npm/electron/electron.proxy';
+
+        export const electronDefaultBrokerProxy = () => {
+          const electronGateway = electronProxy();
+
+          return {
+            setup: () => electronGateway,
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/desktop/src/brokers/electron/default/electron-default-broker.proxy.ts',
+    },
+    // ✅ CORRECT - The implementation reaches the electron gateway subpath by a namespace import, and the
+    // proxy creates that subpath's one proxy, electronProxy.
+    {
+      code: `
+        import { electronProxy } from '#gateway/npm/electron/electron.proxy';
+
+        export const electronNamespaceBrokerProxy = () => {
+          const electronGateway = electronProxy();
+
+          return {
+            setup: () => electronGateway,
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/desktop/src/brokers/electron/namespace/electron-namespace-broker.proxy.ts',
+    },
   ],
   invalid: [
+    // ❌ WRONG - The implementation imports only a type from the electron gateway subpath, so the
+    // subpath's proxy has no runtime import behind it.
+    {
+      code: `
+        import { electronProxy } from '#gateway/npm/electron/electron.proxy';
+
+        export const electronTypeOnlyBrokerProxy = () => {
+          const electronGateway = electronProxy();
+
+          return {
+            setup: () => electronGateway,
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/desktop/src/brokers/electron/type-only/electron-type-only-broker.proxy.ts',
+      errors: [
+        {
+          messageId: 'phantomProxyCreation',
+          data: {
+            proxyName: 'electronProxy',
+            implementationFile: 'electron-type-only-broker.ts',
+            implementationName: 'electron',
+          },
+        },
+      ],
+    },
     // ❌ WRONG - banWrapperMocks on: a proxy outside the gateway mocks a gateway wrapper
     {
       code: `

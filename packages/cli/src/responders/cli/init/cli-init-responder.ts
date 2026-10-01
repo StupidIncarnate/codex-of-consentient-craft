@@ -18,10 +18,12 @@ export const CliInitResponder = async ({ context }: { context: InstallContext })
 
   for (const result of results) {
     const status = result.success ? 'OK' : 'FAIL';
-    // message is populated on success, error on failure — never both, and either can be absent,
-    // so a bare `result.message` prints the literal string "undefined" on every real failure.
+    // A failure reads `error` first and falls back to `message`: installResultContract lets a
+    // failed result carry either, and a package that reports its failure in `message` is still
+    // reporting a real cause — printing only `error` dropped that text on the floor.
     const detail =
-      (result.success ? result.message : result.error) ?? 'no install message reported';
+      (result.success ? result.message : (result.error ?? result.message)) ??
+      'failed without reporting why — its installer returned neither an error nor a message';
     stdout.write(`[${status}] ${result.packageName}: ${detail}\n`);
   }
 };

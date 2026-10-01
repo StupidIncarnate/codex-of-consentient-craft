@@ -3,6 +3,10 @@ import { devDependenciesStatics } from './dev-dependencies-statics';
 describe('devDependenciesStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(devDependenciesStatics).toStrictEqual({
+      localSpecifier: {
+        scope: '@dungeonmaster/',
+        prefix: 'file:',
+      },
       packages: {
         '@dungeonmaster/eslint-plugin': '*',
         '@dungeonmaster/hooks': '*',

@@ -9,6 +9,11 @@
  * '<npm-or-node-module>'`, or through a `../` climb into a DIFFERENT subpath's own folder, is a
  * PASS-THROUGH (or that other subpath's own concern) and needs none.
  *
+ * The phantom check reads a gateway subpath's own proxy (`#gateway/<folder>/<subpath>/<subpath>.proxy`,
+ * such as `electronProxy`) as staging the whole subpath: a proxy may create it whenever the
+ * implementation imports anything from `#gateway/<folder>/<subpath>`, by a named, default or
+ * namespace import, whatever names that import brings in.
+ *
  * A bare workspace-package ROOT import (`import { StartOrchestrator } from '@dungeonmaster/orchestrator'`,
  * or `@acme/orders` in a published consumer — no folder-type subpath at all) resolves the same way,
  * against that OTHER package's own root barrel (`packages/<pkg>/src/index.ts`) instead of a gateway
@@ -469,8 +474,30 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
           // e.g., httpAdapterProxy -> httpAdapter
           const implementationName = proxyNameToImplementationNameTransformer({ proxyName });
 
+          // A gateway subpath's own proxy (`#gateway/<folder>/<subpath>/<subpath>.proxy`) stages the
+          // whole subpath, so it matches ANY import of that subpath: named, default or namespace.
+          // `{ app, ipcMain } from '#gateway/npm/electron'` never imports a name `electron`, yet
+          // `electronProxy` is the proxy that stages it.
+          const [proxyPrefix, proxyFolder, proxySubpath, proxyFile, ...proxyRest] = (
+            proxyImports.get(proxyName) ?? ''
+          ).split('/');
+          const isGatewaySubpathProxy =
+            proxyRest.length === 0 &&
+            proxySubpath !== undefined &&
+            proxyFile === `${proxySubpath}.proxy` &&
+            (proxyPrefix === gatewayLocationsStatics.importPrefix ||
+              proxyPrefix?.startsWith('@') === true) &&
+            Object.values(gatewayLocationsStatics.folders).some((folder) => folder === proxyFolder);
+          const gatewaySubpathImportPath = `${proxyPrefix}/${proxyFolder}/${proxySubpath}`;
+          const importsGatewaySubpath =
+            isGatewaySubpathProxy &&
+            Array.from(implementationImports.values()).some(
+              (importPath) => importPath === gatewaySubpathImportPath,
+            );
+
           // Check if implementation imports this dependency
-          const hasImplementationImport = implementationImports.has(implementationName);
+          const hasImplementationImport =
+            implementationImports.has(implementationName) || importsGatewaySubpath;
 
           if (!hasImplementationImport) {
             // Get implementation filename for error message

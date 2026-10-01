@@ -110,7 +110,7 @@ export const spawnOneAgentLayerBroker = async ({
       : (promptOverride ??
         instruction.resumePrompt ??
         agentTaskPromptTransformer({
-          role: instruction.role,
+          agent: instruction.promptName ?? instruction.role,
           workItemId: instruction.workItemId,
           questId: instruction.questId,
           resume: true,
@@ -247,7 +247,7 @@ export const spawnOneAgentLayerBroker = async ({
       carriedSessionId: sessionToNudge,
       unsignalledNudges: unsignalledNudges + 1,
       promptOverride: agentUnsignalledExitPromptTransformer({
-        agent: instruction.role,
+        agent: instruction.promptName ?? instruction.role,
         workItemId: instruction.workItemId,
         questId: instruction.questId,
       }),

@@ -38,8 +38,7 @@ import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/d
 import { openHandleReportParseTransformer } from '../../../transformers/open-handle-report-parse/open-handle-report-parse-transformer';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
-import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
-import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
+import { runnerCommandResolveBroker } from '../../runner-command/resolve/runner-command-resolve-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 
@@ -173,7 +172,7 @@ export const checkRunUnitBroker = async ({
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }
-  const command = binResolveBroker({ binName: bin, cwd });
+  const runner = runnerCommandResolveBroker({ binName: bin, cwd });
 
   // `--detectOpenHandles` above only reports from the MAIN thread, so the worker branch would
   // otherwise report no leaks at all. `@dungeonmaster/testing`'s jest setup watches the timer
@@ -189,22 +188,17 @@ export const checkRunUnitBroker = async ({
     processId: pid,
   });
 
-  // The jest configs ask for the `source` export condition through testEnvironmentOptions, which
-  // only governs what the TEST environment resolves. The transform glue's own
-  // `@dungeonmaster/shared` imports are resolved by NODE, outside that environment, so without this
-  // the jest process itself reads `dist/` while the tests it runs read source — measured. Ward is
-  // published, so the broker below withholds the flag wherever the barrel it names is not on disk;
-  // see its header for what Node does with a matched condition pointing at a missing file.
+  // The runner command carries the `source` export condition as a node argument where it is
+  // supported — see runnerCommandResolveBroker for why it never travels through NODE_OPTIONS.
   // A missing `jest` binary rejects `run` with RunNotFoundError rather than resolving a result —
   // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
   // for an ENOENT, so a machine without the resolved bin reads as a failing unit run below, exactly
   // as it always has.
   const result = await run({
-    command,
-    args: finalArgs,
+    command: runner.command,
+    args: [...runner.leadingArgs, ...finalArgs],
     cwd,
     env: {
-      ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
       ...(wantsTimerWatch ? { [openHandleReportStatics.env.pathVar]: handleReportPath } : {}),
     },
   }).catch((error: unknown) => {

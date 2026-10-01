@@ -11,11 +11,22 @@ import type { killRun } from '../kill-run/kill-run';
 export const KillRunResultStub = ({
   exitCode = 0,
   output = '',
+  stdout = '',
+  stderr = '',
   signal = null,
   timedOut = false,
 }: {
   exitCode?: number;
   output?: string;
+  stdout?: string;
+  stderr?: string;
   signal?: NodeJS.Signals | null;
   timedOut?: boolean;
-} = {}): Awaited<ReturnType<typeof killRun>> => ({ exitCode, output, signal, timedOut });
+} = {}): Awaited<ReturnType<typeof killRun>> => ({
+  exitCode,
+  output,
+  stdout,
+  stderr,
+  signal,
+  timedOut,
+});

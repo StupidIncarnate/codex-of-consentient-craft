@@ -1,4 +1,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { argvProxy } from '#gateway/node/process/argv/argv.proxy';
+import { execPathProxy } from '#gateway/node/process/exec-path/exec-path.proxy';
+import { execPath } from '#gateway/node/process';
 import { streamProxy } from '#gateway/node/child_process/stream/stream.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -37,6 +40,8 @@ export const multiPackageLayerBrokerProxy = (): {
   setupWardConcurrency: (params: { rootPath: string; concurrency: number }) => void;
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
+  useBinFallback: () => void;
+  wardEntry: string;
 } => {
   // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(runIdMockStatics.timestamp);
@@ -48,6 +53,13 @@ export const multiPackageLayerBrokerProxy = (): {
   const stream = streamProxy();
   RunNotFoundErrorProxy();
   const binProxy = binResolveBrokerProxy();
+  const argvStage = argvProxy();
+  execPathProxy();
+  // The compiled entry script a real parent ward was started from. Every setup stages argv with it,
+  // so the broker spawns its children as `<execPath> <this script>`; `useBinFallback` switches a
+  // test to a parent with no compiled entry, which resolves the bin by name instead.
+  const wardEntry = '/home/user/project/packages/ward/dist/bin/ward-entry.js';
+  const mode: { binFallback: boolean } = { binFallback: false };
   const saveProxy = storageSaveBrokerProxy();
   const pruneProxy = storagePruneBrokerProxy();
   const loadProxy = storageLoadBrokerProxy();
@@ -83,12 +95,18 @@ export const multiPackageLayerBrokerProxy = (): {
   const childSummaryLine = `run: ${runId}  (1.2s)\n`;
 
   const resolveWardBin = ({ rootPath }: { rootPath: string }): string => {
+    stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub() });
+    if (!mode.binFallback) {
+      argvStage.setupArgv({ argv: [execPath, wardEntry] });
+      resolvedCommandRef.value = execPath;
+      return execPath;
+    }
+    argvStage.setupArgv({ argv: [execPath] });
     const command = binProxy.setupFound({
       cwd: rootPath,
       binName: wardSpawnCommandStatics.bin,
     });
     resolvedCommandRef.value = command;
-    stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub() });
     return command;
   };
 
@@ -199,6 +217,12 @@ export const multiPackageLayerBrokerProxy = (): {
     }): void => {
       stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub({ ward: { concurrency } }) });
     },
+
+    useBinFallback: (): void => {
+      mode.binFallback = true;
+    },
+
+    wardEntry,
 
     getStderrCalls: (): unknown[] => [...stderr.getWrites()],
     getAllSpawnedArgs: (): unknown[] => [

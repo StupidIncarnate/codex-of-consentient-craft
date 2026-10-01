@@ -20,6 +20,7 @@ export const diffFilesProxy = (): {
     excludeDeleted?: boolean | undefined;
     exitCode: number;
     output: string;
+    stderr?: string;
   }) => void;
   setupNotFound: (params: { revisionArg: string; excludeDeleted?: boolean }) => void;
   returnsMatchingRevisionArg: (params: {
@@ -40,13 +41,20 @@ export const diffFilesProxy = (): {
       excludeDeleted,
       exitCode,
       output,
+      stderr,
     }: {
       revisionArg: string;
       excludeDeleted?: boolean | undefined;
       exitCode: number;
       output: string;
+      stderr?: string;
     }): void => {
-      runProxy.setupResult({ args: diffArgs({ revisionArg, excludeDeleted }), exitCode, output });
+      runProxy.setupResult({
+        args: diffArgs({ revisionArg, excludeDeleted }),
+        exitCode,
+        output,
+        ...(stderr === undefined ? {} : { stderr }),
+      });
     },
 
     setupNotFound: ({

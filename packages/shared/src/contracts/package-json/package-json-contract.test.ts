@@ -19,6 +19,14 @@ describe('packageJsonContract', () => {
       expect(result).toStrictEqual({ name: '@dungeonmaster/web' });
     });
 
+    it('VALID: version only => parses successfully', () => {
+      const pkg = PackageJsonStub({ version: '0.1.0' });
+
+      const result = packageJsonContract.parse(pkg);
+
+      expect(result).toStrictEqual({ version: '0.1.0' });
+    });
+
     it('VALID: description only => parses successfully', () => {
       const pkg = PackageJsonStub({ description: 'Shared code' });
 

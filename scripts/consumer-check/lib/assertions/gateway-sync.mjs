@@ -4,12 +4,14 @@
  * `postinstall`, and the `dungeonmaster-post-bash` PostToolUse hook after an agent's
  * `npm install <pkg>` — which fires no root `postinstall` on npm 10, so the hook is the only thing
  * that syncs it. Every package named here is tiny and frozen on the registry: `left-pad` (one CJS
- * file, `export =` typings, no dependencies) and `is-odd` (one dependency, `is-number`).
+ * file, `export =` typings, no dependencies) and `is-odd` (one dependency, `is-number`). It also
+ * proves a module mock dungeonmaster's npm gateway ships (`elkjs`) arrives with its copied folder
+ * and is what a consumer test importing `#gateway/npm/elkjs` gets under jest.
  */
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { runNpm } from '../bin-run.mjs';
+import { runJest, runNpm } from '../bin-run.mjs';
 import { REPO_ROOT } from '../ground-truth.mjs';
 import { npmInstall } from '../fixture.mjs';
 import { consumerEnv, run } from '../proc.mjs';
@@ -18,6 +20,9 @@ import { LIB_PACKAGE_NAME } from '../sample-sources.mjs';
 // A dependency dungeonmaster's own npm gateway wraps, whose folder imports nothing but `zod` itself
 // and its own files — so the sync copies it verbatim rather than generating a passthrough.
 const OWN_WRAPPED_PACKAGE = 'zod';
+// A dependency whose folder in dungeonmaster's own npm gateway ships a module mock beside the wrapper.
+const MOCKED_PACKAGE = 'elkjs';
+const MODULE_MOCK_SUFFIX = '.jest-mock.cjs';
 const AGENT_INSTALLED_PACKAGE = 'left-pad';
 const DEV_ONLY_PACKAGE = 'is-odd';
 
@@ -31,12 +36,15 @@ const generatedBarrelPath = ({ consumerRoot }) =>
 const npmGatewayDependencies = ({ consumerRoot }) =>
   readJson(join(npmGatewayDir({ consumerRoot }), 'package.json')).dependencies ?? {};
 
-// The consumer declares the SAME range this checkout's own npm gateway declares, read off disk, so
-// the root dependency and the copied wrapper never disagree about which zod they target.
-export const ownWrappedRootDependencies = () => ({
-  [OWN_WRAPPED_PACKAGE]: readJson(join(REPO_ROOT, 'packages', '@gateway', 'npm', 'package.json'))
-    .dependencies[OWN_WRAPPED_PACKAGE],
-});
+// The consumer declares the SAME ranges this checkout's own npm gateway declares, read off disk, so
+// the root dependencies and the copied wrappers never disagree about which version they target.
+export const ownWrappedRootDependencies = () => {
+  const ownDependencies = readJson(join(REPO_ROOT, 'packages', '@gateway', 'npm', 'package.json')).dependencies;
+  return {
+    [OWN_WRAPPED_PACKAGE]: ownDependencies[OWN_WRAPPED_PACKAGE],
+    [MOCKED_PACKAGE]: ownDependencies[MOCKED_PACKAGE],
+  };
+};
 
 const listFilesRecursive = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
@@ -95,6 +103,20 @@ export const checkOwnWrapperCopied = ({ report, consumerRoot, gt }) => {
     'packages/@gateway/npm drops its placeholder index.d.ts once a subpath exists (local mode only)',
     !existsSync(placeholder),
     existsSync(placeholder) ? placeholder : '',
+  );
+};
+
+// Local mode only: the module mock ships in the published npm gateway's `src`, and the sync's
+// recursive folder copy is what carries it into the consumer.
+export const checkModuleMockCopied = ({ report, consumerRoot }) => {
+  const mockFile = `${MOCKED_PACKAGE}${MODULE_MOCK_SUFFIX}`;
+  const ownMock = join(consumerRoot, 'node_modules', '@dungeonmaster', 'npm', 'src', MOCKED_PACKAGE, mockFile);
+  const consumerMock = join(npmGatewaySrc({ consumerRoot }), MOCKED_PACKAGE, mockFile);
+  const bothExist = existsSync(ownMock) && existsSync(consumerMock);
+  report.check(
+    `init's gateway-sync copied packages/@gateway/npm/src/${MOCKED_PACKAGE}/${mockFile} byte-identical to the published one (local mode only)`,
+    bothExist && readFileSync(ownMock).equals(readFileSync(consumerMock)),
+    bothExist ? '' : `${ownMock} exists: ${String(existsSync(ownMock))}; ${consumerMock} exists: ${String(existsSync(consumerMock))}`,
   );
 };
 
@@ -193,6 +215,61 @@ const writeLeftPadImporter = ({ consumerRoot }) => {
   writeFileSync(join(dir, 'label-pad-broker.test.ts'), LEFT_PAD_PROOF_TEST);
 };
 
+const MODULE_MOCK_PROOF_SOURCE = `/**
+ * PURPOSE: Builds an ELK layout engine through the npm gateway's elkjs wrapper. Exists only to prove
+ * a consumer test importing \`#gateway/npm/elkjs\` gets the gateway's own module mock under jest.
+ *
+ * USAGE:
+ * layoutEngineBroker();
+ * // Returns a new ELK instance
+ */
+
+import ELK from '#gateway/npm/elkjs';
+
+export const layoutEngineBroker = (): InstanceType<typeof ELK> => new ELK();
+`;
+
+const MODULE_MOCK_PROOF_PROXY = `export const layoutEngineBrokerProxy = (): Record<PropertyKey, never> => ({});
+`;
+
+// The real ELK is a class, not a mock: `toHaveBeenCalledTimes` on it throws, so this passes only
+// when jest handed the test the gateway's `elkjs.jest-mock.cjs`.
+const MODULE_MOCK_PROOF_TEST = `import ELK from '#gateway/npm/elkjs';
+import { layoutEngineBroker } from './layout-engine-broker';
+import { layoutEngineBrokerProxy } from './layout-engine-broker.proxy';
+
+describe('layoutEngineBroker', () => {
+  it('VALID: {} => builds the engine from the gateway elkjs module mock', () => {
+    layoutEngineBrokerProxy();
+
+    layoutEngineBroker();
+
+    expect(ELK).toHaveBeenCalledTimes(1);
+    expect(ELK).toHaveBeenCalledWith();
+  });
+});
+`;
+
+const writeModuleMockProof = ({ consumerRoot }) => {
+  const dir = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'src', 'brokers', 'layout', 'engine');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'layout-engine-broker.ts'), MODULE_MOCK_PROOF_SOURCE);
+  writeFileSync(join(dir, 'layout-engine-broker.proxy.ts'), MODULE_MOCK_PROOF_PROXY);
+  writeFileSync(join(dir, 'layout-engine-broker.test.ts'), MODULE_MOCK_PROOF_TEST);
+};
+
+// Local mode only, after the proof `runAgentInstallAssertions` wrote into `lib`: jest resolves
+// `#gateway/npm/elkjs` through the published testing base's `resolver`, from inside node_modules.
+export const assertModuleMockResolves = async ({ report, consumerRoot }) => {
+  const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
+  const result = await runJest({ consumerRoot, cwd, args: ['layout-engine-broker'] });
+  report.check(
+    `a lib test importing #gateway/npm/${MOCKED_PACKAGE} gets packages/@gateway/npm/src/${MOCKED_PACKAGE}/${MOCKED_PACKAGE}${MODULE_MOCK_SUFFIX} under jest`,
+    result.code === 0,
+    result.code === 0 ? '' : `${result.stdout}\n${result.stderr}`.slice(-2000),
+  );
+};
+
 // Runs after `create-package` and its `npm install`, and BEFORE the typecheck/lint/build/ward steps,
 // so the left-pad importer this writes is graded by those steps like any other lib source.
 export const runAgentInstallAssertions = async ({ report, consumerRoot }) => {
@@ -258,6 +335,7 @@ export const runAgentInstallAssertions = async ({ report, consumerRoot }) => {
   );
 
   writeLeftPadImporter({ consumerRoot });
+  writeModuleMockProof({ consumerRoot });
 };
 
 const HAND_EDIT = '// consumer-check: a hand edit gateway-sync must never overwrite\n';

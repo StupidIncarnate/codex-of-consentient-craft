@@ -18,6 +18,8 @@ describe('contractIndexStatics', () => {
         resolve: {
           fileSuffixes: ['', '.ts', '.tsx', '/index.ts', '/index.tsx'],
         },
+        walk: { skipFolderNames: ['node_modules', 'dist'] },
+        cache: { folderName: 'contract-index', schemaVersion: 1 },
       });
     });
   });

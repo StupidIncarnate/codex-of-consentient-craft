@@ -12,6 +12,12 @@
 import ELK from 'elkjs';
 import type { ElkNode } from 'elkjs';
 
+// Constructed at module scope, not per call: `new ELK()` lazily requires the 1.5MB
+// `elk-worker.min.js`, and a consumer's jest config runs every node_modules `.js` through ts-jest.
+// Inside a call that load is charged to the first test (2.4s in a fresh consumer, over ward's
+// slow-test bar); at module scope it lands at import time, which jest charges to no test.
+const elk = new ELK();
+
 export const ElkLayoutResultStub = async ({
   id = 'gateway-stub-root',
   children = [
@@ -25,7 +31,6 @@ export const ElkLayoutResultStub = async ({
   root: { id: string; width: number; height: number };
   children: { id: string; x: number; y: number }[];
 }> => {
-  const elk = new ELK();
   // Widened via an explicit `: ElkNode` annotation, not `satisfies` (which keeps the narrower
   // literal type): elk.layout<T>(graph: T) is generic and infers T from whatever type the
   // argument carries, so an unwidened `{ id, children }` gives back a result typed as that same

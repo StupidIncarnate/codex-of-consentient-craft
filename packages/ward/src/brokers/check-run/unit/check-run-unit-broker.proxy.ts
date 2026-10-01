@@ -11,8 +11,8 @@ import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.prox
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
-import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
-import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
+import { runnerCommandResolveBrokerProxy } from '../../runner-command/resolve/runner-command-resolve-broker.proxy';
+import { RunnerCommandStub } from '../../../contracts/runner-command/runner-command.stub';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
@@ -43,12 +43,12 @@ export const checkRunUnitBrokerProxy = (): {
   setupHandleReport: (params: { content: string }) => void;
   getSpawnedHandleReportPath: () => unknown;
   getSpawnedArgs: () => unknown;
+  getSpawnedCommandLine: () => unknown;
   getSpawnedNodeOptions: () => unknown;
 } => {
   const run = runProxy();
   RunNotFoundErrorProxy();
   pidProxy();
-  const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
   const existsProxy = existsSyncProxy();
   const globProxy = globDiscoverFilesBrokerProxy();
   // The broker's OWN patterns, computed by the same real transformer it calls — every scenario
@@ -77,31 +77,36 @@ export const checkRunUnitBrokerProxy = (): {
   // broker's own `wantsTimerWatch && existsSync(handleReportPath)` guard short-circuits before ever
   // reading it. `setupHandleReport` below overrides this to present for the tests that stage one.
   existsProxy.returns({ path: handleReportPath, exists: false });
-  const binProxy = binResolveBrokerProxy();
-  // The resolved bin path depends on projectFolder.path, so the getter below (which takes no
-  // params) addresses the spawn read against whatever setup last resolved — set here, read there.
-  const resolvedCommandRef: { value: string } = { value: '/project/node_modules/.bin/eslint' };
+  const runnerProxy = runnerCommandResolveBrokerProxy();
+  // The runner command depends on projectFolder.path, so the getters below (which take no params)
+  // address the spawn read against whatever setup last resolved — set here, read there.
+  const runnerRef: { value: ReturnType<typeof RunnerCommandStub> } = { value: RunnerCommandStub() };
 
   // The broker calls globSync once per unit discovery pattern. These tests assert on jest output
   // parsing, not which pattern discovered which file, so the default stages every real pattern
   // with the same result.
   globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
 
-  // `sourceConditionSupportedBroker` (composed inside the broker) walks every ancestor of
-  // whichever cwd `stage()` below is given — a composing caller (e.g. `singlePackageLayerBroker`)
-  // may pass a projectFolder other than the default `ProjectFolderStub()` this file's own tests
-  // use, so the "reachable" default is staged per-cwd, inside `stage()`, not once here against a
-  // guessed path. `unsupportedCwds` remembers which cwd `setupSourceConditionUnsupported` marked
-  // explicitly, so `stage()` never clobbers that with its own default regardless of call order.
+  // The runner command (composed inside the broker) depends on whether the `source` barrel is
+  // reachable from whichever cwd `stage()` below is given — a composing caller (e.g.
+  // `singlePackageLayerBroker`) may pass a projectFolder other than the default
+  // `ProjectFolderStub()` this file's own tests use, so the "reachable" default is staged per-cwd,
+  // inside `stage()`, not once here against a guessed path. `unsupportedCwds` remembers which cwd
+  // `setupSourceConditionUnsupported` marked, so `stage()` stages that one as a consumer's install.
   const unsupportedCwds = new Set<string>();
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): string => {
-    const command = binProxy.setupFound({
-      cwd: projectFolder.path,
-      binName: checkCommandsStatics.unit.bin,
-    });
-    resolvedCommandRef.value = command;
-    return command;
+  const resolveRunner = ({
+    projectFolder,
+  }: {
+    projectFolder: ProjectFolder;
+  }): ReturnType<typeof RunnerCommandStub> => {
+    const cwd = projectFolder.path;
+    const binName = checkCommandsStatics.unit.bin;
+    const runner = unsupportedCwds.has(cwd)
+      ? runnerProxy.setupBuiltRunner({ cwd, binName })
+      : runnerProxy.setupSourceRunner({ cwd, binName });
+    runnerRef.value = runner;
+    return runner;
   };
 
   // The broker's FIRST existsSync call, every run, before anything else. Staged by exact path —
@@ -115,11 +120,13 @@ export const checkRunUnitBrokerProxy = (): {
     });
   };
 
-  // Every scenario that reaches `run` shares this shape: jest.config.js answers present, the bin
-  // resolves (via `resolveCommand`, which composes `binResolveBrokerProxy` — itself an
-  // `existsSyncProxy` call against the SAME underlying mock), and `run` succeeds with the given
-  // exit code and output. Addressed by COMMAND ONLY (no args/cwd): every test here stages one
-  // outcome regardless of which of the broker's many arg-building branches actually ran.
+  // Every scenario that reaches `run` shares this shape: jest.config.js answers present, the runner
+  // command resolves (via `resolveRunner`, which composes `runnerCommandResolveBrokerProxy` — itself
+  // `existsSyncProxy` calls against the SAME underlying mock), and `run` succeeds with the given exit
+  // code and output. Addressed by the runner command and its leading args only, never the jest
+  // args: every test here stages one outcome regardless of which of the broker's many arg-building
+  // branches actually ran. The leading args are what tell jest apart from Playwright when both run
+  // under the same node.
   const stage = ({
     projectFolder,
     exitCode,
@@ -131,13 +138,16 @@ export const checkRunUnitBrokerProxy = (): {
     stdout: string;
     stderr: string;
   }): void => {
-    const cwd = projectFolder.path;
-    if (!unsupportedCwds.has(cwd)) {
-      sourceConditionProxy.setupSupported({ cwd });
-    }
     stageJestConfigPresent({ projectFolder });
-    const command = resolveCommand({ projectFolder });
-    run.setupSuccess({ command, exitCode, stdout, stderr });
+    const runner = resolveRunner({ projectFolder });
+    run.setupSuccess({
+      command: runner.command,
+      args: (spawnArgs: readonly unknown[]): boolean =>
+        runner.leadingArgs.every((leadingArg, index) => spawnArgs[index] === leadingArg),
+      exitCode,
+      stdout,
+      stderr,
+    });
   };
 
   return {
@@ -227,16 +237,14 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     // Models a consumer's install: `@dungeonmaster/shared` packs `dist` only, so no ancestor of the
-    // project folder holds the `source` barrel. Recorded in `unsupportedCwds` so `stage()` (called
-    // by `setupPass` etc., whether before or after this) never re-stages this cwd as reachable.
+    // project folder holds the `source` barrel. Recorded in `unsupportedCwds`, which `stage()` reads,
+    // so call this before `setupPass` and its siblings.
     setupSourceConditionUnsupported: ({
       projectFolder,
     }: {
       projectFolder: ProjectFolder;
     }): void => {
-      const cwd = projectFolder.path;
-      unsupportedCwds.add(cwd);
-      sourceConditionProxy.setupUnsupported({ cwd });
+      unsupportedCwds.add(projectFolder.path);
     },
 
     setupHandleReport: ({ content }: { content: string }): void => {
@@ -245,13 +253,23 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     getSpawnedHandleReportPath: (): unknown =>
-      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env[
+      run.getOptionsFor({ command: runnerRef.value.command }).at(-1)?.env[
         openHandleReportStatics.env.pathVar
       ],
 
-    getSpawnedArgs: (): unknown => run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
+    // The arguments jest itself received: the spawn's args after the runner command's leading args.
+    getSpawnedArgs: (): unknown =>
+      run
+        .getCallsFor({ command: runnerRef.value.command })
+        .at(-1)
+        ?.slice(runnerRef.value.leadingArgs.length),
+
+    getSpawnedCommandLine: (): unknown => ({
+      command: runnerRef.value.command,
+      args: run.getCallsFor({ command: runnerRef.value.command }).at(-1),
+    }),
 
     getSpawnedNodeOptions: (): unknown =>
-      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env.NODE_OPTIONS,
+      run.getOptionsFor({ command: runnerRef.value.command }).at(-1)?.env.NODE_OPTIONS,
   };
 };

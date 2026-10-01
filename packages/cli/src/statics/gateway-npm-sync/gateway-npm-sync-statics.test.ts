@@ -32,6 +32,9 @@ describe('gatewayNpmSyncStatics', () => {
         subpathSeparator: '__',
       },
       sourceExtensions: ['.ts', '.tsx'],
+      gatewayFileExportSuffixes: ['.proxy', '.stub'],
+      compileGateSkippedSuffixes: ['.test.ts', '.test.tsx', '.proxy.ts', '.proxy.tsx'],
+      skipDetailMaxLength: 240,
       esmProbe: {
         diagnosticCodes: {
           importOfEsm: 1479,
@@ -45,6 +48,7 @@ describe('gatewayNpmSyncStatics', () => {
       lockfileInstall: {
         command: 'npm',
         args: ['install', '--ignore-scripts', '--no-audit', '--no-fund'],
+        errorLinePrefixes: ['npm error', 'npm ERR!'],
       },
     });
   });

@@ -9,7 +9,9 @@ The CLI package provides the `dungeonmaster` binary:
   `StartInstall` has finished
 - `dungeonmaster create-package` - Scaffolds a new workspace package (see below)
 - `dungeonmaster gateway-sync` - Gives every `dependencies` entry a folder under `packages/@gateway/npm/src/` (a copy
-  of dungeonmaster's own wrapper, or a generated passthrough) and prints what it did; `init`, the root `postinstall`
+  of dungeonmaster's own wrapper when the installed version satisfies the range `@dungeonmaster/npm` declares for it
+  and the copy compiles there, otherwise a generated passthrough) and prints what it did, including each wrapper it
+  passed over and why, and a warning when the closing lockfile `npm install` failed; `init`, the root `postinstall`
   script `init` writes, and the hooks package's post-bash hook after `npm install <pkg>` all run it
 - `dungeonmaster statusline-tap` - Reads Claude Code's statusline payload on stdin, records rate limits, echoes it back
 - `dungeonmaster siegelense driver --instance <id>` - Launches the siegelense driver process for one instance;

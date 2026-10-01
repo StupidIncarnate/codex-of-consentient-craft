@@ -12,7 +12,12 @@ import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
 import { npmInstall } from '../fixture.mjs';
-import { checkHandEditKept, handEditGeneratedWrapper, runAgentInstallAssertions } from './gateway-sync.mjs';
+import {
+  assertModuleMockResolves,
+  checkHandEditKept,
+  handEditGeneratedWrapper,
+  runAgentInstallAssertions,
+} from './gateway-sync.mjs';
 import {
   LIB_PACKAGE_NAME,
   WEB_PACKAGE_NAME,
@@ -383,7 +388,11 @@ const assertWardCleanFixture = async ({ report, consumerRoot }) => {
   report.check(
     'dungeonmaster ward runs in the consumer and exits 0 on the clean fixture (@gateway/node covered separately above, F1)',
     result.code === 0,
-    result.code === 0 ? '' : `${result.stdout}\n${result.stderr}`.slice(-3000),
+    // Each stream's own tail: ward's progress lines go to one stream and its summary to the other,
+    // so one tail of the two joined keeps only the progress and drops what actually failed.
+    result.code === 0
+      ? ''
+      : `exit ${String(result.code)}\n--- stdout ---\n${result.stdout.slice(-4000)}\n--- stderr ---\n${result.stderr.slice(-1500)}`,
   );
 };
 
@@ -551,6 +560,7 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope
   await assertMswTrap({ report, consumerRoot, mswTrapTestFile });
   await assertGatewayProxyMockTest({ report, consumerRoot });
   await assertContractCheckTest({ report, consumerRoot });
+  await assertModuleMockResolves({ report, consumerRoot });
   await assertWardCleanFixture({ report, consumerRoot });
   await assertPreEditHook({ report, consumerRoot, lintViolationFile });
   const handEdited = await handEditGeneratedWrapper({ report, consumerRoot });

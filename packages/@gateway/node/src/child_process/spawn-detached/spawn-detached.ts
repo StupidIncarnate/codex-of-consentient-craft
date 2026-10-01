@@ -47,6 +47,14 @@ export const spawnDetached = ({
     stdio: ['ignore', stdoutFd, stderrFd],
   });
 
+  // A program that fails to start (a missing executable) leaves `pid` undefined and makes Node emit
+  // an `'error'` event on a later tick, after the throw below. An `'error'` event with no listener
+  // crashes the whole parent process, even when the caller caught that throw. This listener takes
+  // the late event; the throw below is the one report of the failure.
+  child.on('error', () => {
+    // Intentionally empty: the thrown "produced no pid" error already reports a failed start.
+  });
+
   const { pid } = child;
   if (pid === undefined) {
     throw new Error(

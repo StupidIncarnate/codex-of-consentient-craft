@@ -378,6 +378,36 @@ describe('parseImplementationImportsTransformer', () => {
     expect(result.get('z')).toStrictEqual('#gateway/npm/zod');
   });
 
+  it('VALID: {content: #gateway default import} => records the local name against the subpath', () => {
+    const content = `
+      import electron from '#gateway/npm/electron';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result).toStrictEqual(new Map([['electron', '#gateway/npm/electron']]));
+  });
+
+  it('VALID: {content: #gateway namespace import} => records the local name against the subpath', () => {
+    const content = `
+      import * as electronModule from '#gateway/npm/electron';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result).toStrictEqual(new Map([['electronModule', '#gateway/npm/electron']]));
+  });
+
+  it('VALID: {content: relative namespace import of a broker} => records nothing, because only a gateway import records a namespace name', () => {
+    const content = `
+      import * as httpModule from '../../brokers/http/http-broker';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result).toStrictEqual(new Map());
+  });
+
   it('VALID: {content: multiple imports from different scoped packages} => parses all proxy-requiring', () => {
     const content = `
       import { userBroker, authBroker } from '@acme/core/brokers';

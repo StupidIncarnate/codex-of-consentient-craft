@@ -33,6 +33,7 @@ export const InstallSetupGatewayResponderProxy = (): {
     consumerFolders: readonly string[];
     passthroughFolders: readonly string[];
   }) => void;
+  setupNpmGatewayLockfileFails: (params: { repoRoot: string; output: string }) => void;
   getNpmGatewayWrittenFiles: (params: { repoRoot: string; folder: string }) => readonly unknown[];
   getNpmGatewayInstallCalls: () => readonly string[][];
 } => {
@@ -146,6 +147,10 @@ export const InstallSetupGatewayResponderProxy = (): {
         gatewayPackageJson: { name: '@acme/npm' },
         passthroughFolders,
       });
+    },
+
+    setupNpmGatewayLockfileFails: ({ repoRoot, output }): void => {
+      npmSyncProxy.setupInstallFails({ repoRoot, output });
     },
 
     getNpmGatewayWrittenFiles: ({ repoRoot, folder }): readonly unknown[] =>

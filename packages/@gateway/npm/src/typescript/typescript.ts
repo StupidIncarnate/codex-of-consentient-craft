@@ -19,6 +19,9 @@
 export { default } from 'typescript';
 export {
   EmitHint,
+  Extension,
+  InternalSymbolName,
+  JsxEmit,
   ModuleKind,
   ModuleResolutionKind,
   ScriptKind,
@@ -34,6 +37,8 @@ export {
   factory,
   flattenDiagnosticMessageText,
   forEachChild,
+  getDefaultLibFileName,
+  getModeForUsageLocation,
   getModifiers,
   getParsedCommandLineOfConfigFile,
   isArrayLiteralExpression,
@@ -58,6 +63,8 @@ export {
   isFunctionExpression,
   isFunctionTypeNode,
   isIdentifier,
+  isIdentifierPart,
+  isIdentifierStart,
   isIfStatement,
   isImportDeclaration,
   isInterfaceDeclaration,

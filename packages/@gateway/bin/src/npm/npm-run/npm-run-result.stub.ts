@@ -11,11 +11,22 @@ import type { npmRun } from '../npm-run/npm-run';
 export const NpmRunResultStub = ({
   exitCode = 0,
   output = '',
+  stdout = '',
+  stderr = '',
   signal = null,
   timedOut = false,
 }: {
   exitCode?: number;
   output?: string;
+  stdout?: string;
+  stderr?: string;
   signal?: NodeJS.Signals | null;
   timedOut?: boolean;
-} = {}): Awaited<ReturnType<typeof npmRun>> => ({ exitCode, output, signal, timedOut });
+} = {}): Awaited<ReturnType<typeof npmRun>> => ({
+  exitCode,
+  output,
+  stdout,
+  stderr,
+  signal,
+  timedOut,
+});

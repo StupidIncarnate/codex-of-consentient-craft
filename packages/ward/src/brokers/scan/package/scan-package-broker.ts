@@ -1,7 +1,8 @@
 /**
- * PURPOSE: Runs ESLint over one package with the named rule forced to `error`, whatever the repo
- * config says about it (a rule registered `off` included), and returns that rule's hits in hand-queue
- * batches. One package per call keeps a type-aware run inside one process's memory.
+ * PURPOSE: Runs ESLint over one package with the named rule at `error` wherever the repo config runs
+ * it, or wherever its plugin is registered when the config registers it `off` everywhere, and returns
+ * that rule's hits in hand-queue batches. One package per call keeps a type-aware run inside one
+ * process's memory.
  *
  * USAGE:
  * const result = await scanPackageBroker({ projectFolder: ProjectFolderStub(), rootPath: '/home/user/project/src/file.ts', rule: '@dungeonmaster/ban-workspace-export-mocks', targets: [], configFile: ScanConfigFileStub() });

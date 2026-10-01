@@ -59,7 +59,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (copied: react); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: react / untyped: react / passthrough instead of our wrapper: react (not installed, ours ^19.0.0)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
@@ -126,7 +126,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (copied: react); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: react / untyped: react / passthrough instead of our wrapper: react (not installed, ours ^19.0.0)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe('// existing user config\n');
     });
@@ -307,6 +307,7 @@ describe('InstallFlow', () => {
           './*.proxy': {
             'npm-own-source': './src/*.proxy.ts',
             'gateway-dist': './dist/*.proxy.d.ts',
+            'gateway-source': './src/*.proxy.ts',
             source: './src/*.proxy.ts',
             import: './dist/*.proxy.js',
             require: './dist/*.proxy.js',
@@ -315,6 +316,7 @@ describe('InstallFlow', () => {
           './*.stub': {
             'npm-own-source': './src/*.stub.ts',
             'gateway-dist': './dist/*.stub.d.ts',
+            'gateway-source': './src/*.stub.ts',
             source: './src/*.stub.ts',
             import: './dist/*.stub.js',
             require: './dist/*.stub.js',
@@ -323,6 +325,7 @@ describe('InstallFlow', () => {
           './*': {
             'npm-own-source': './src/*/*.ts',
             'gateway-dist': './dist/*/*.d.ts',
+            'gateway-source': './src/*/*.ts',
             source: './src/*/*.ts',
             import: './dist/*/*.js',
             require: './dist/*/*.js',
@@ -570,6 +573,7 @@ export {};
           './*.proxy': {
             'npm-own-source': './src/*.proxy.ts',
             'gateway-dist': './dist/*.proxy.d.ts',
+            'gateway-source': './src/*.proxy.ts',
             source: './src/*.proxy.ts',
             import: './dist/*.proxy.js',
             require: './dist/*.proxy.js',
@@ -578,6 +582,7 @@ export {};
           './*.stub': {
             'npm-own-source': './src/*.stub.ts',
             'gateway-dist': './dist/*.stub.d.ts',
+            'gateway-source': './src/*.stub.ts',
             source: './src/*.stub.ts',
             import: './dist/*.stub.js',
             require: './dist/*.stub.js',
@@ -586,6 +591,7 @@ export {};
           './*': {
             'npm-own-source': './src/*/*.ts',
             'gateway-dist': './dist/*/*.d.ts',
+            'gateway-source': './src/*/*.ts',
             source: './src/*/*.ts',
             import: './dist/*/*.js',
             require: './dist/*/*.js',

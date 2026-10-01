@@ -20,7 +20,12 @@ const revisionRangeMatcher = ({ baseRef }: { baseRef: ArgMatcher }): ArgMatcher 
 };
 
 export const logNameOnlyProxy = (): {
-  setupResult: (params: { baseRef: string; exitCode: number; output: string }) => void;
+  setupResult: (params: {
+    baseRef: string;
+    exitCode: number;
+    output: string;
+    stderr?: string;
+  }) => void;
   returnsMatchingBaseRef: (params: {
     baseRef: ArgMatcher;
     exitCode: number;
@@ -35,15 +40,18 @@ export const logNameOnlyProxy = (): {
       baseRef,
       exitCode,
       output,
+      stderr,
     }: {
       baseRef: string;
       exitCode: number;
       output: string;
+      stderr?: string;
     }): void => {
       runProxy.setupResult({
         args: ['log', '--name-only', LOG_FORMAT, `${baseRef}${RANGE_SUFFIX}`],
         exitCode,
         output,
+        ...(stderr === undefined ? {} : { stderr }),
       });
     },
 

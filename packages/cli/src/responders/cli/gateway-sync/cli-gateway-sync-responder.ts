@@ -7,7 +7,8 @@
  * `.dungeonmaster.json`, found the way every other dungeonmaster entry point finds it. With no such
  * folder, a run npm started as the root `postinstall` (`npm_lifecycle_event=postinstall`) prints one
  * notice and succeeds, so an install outside an initialised repo still completes; run any other way
- * it fails. Every other failure propagates to the bin entry, which prints it and exits 1.
+ * it fails. A lockfile refresh that failed after the folders were written is a printed warning line,
+not a failure. Every other failure propagates to the bin entry, which prints it and exits 1.
  *
  * USAGE:
  * await CliGatewaySyncResponder({ context });
@@ -54,6 +55,8 @@ export const CliGatewaySyncResponder = async ({
       generated: [],
       untyped: [],
       esmOnly: [],
+      skippedOwnCopy: [],
+      noRootExport: [],
     });
   }
 

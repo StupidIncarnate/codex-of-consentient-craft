@@ -81,6 +81,11 @@ pin your own `testEnvironmentOptions`** — the conditions list is what makes a 
 workspace package to the TypeScript a session just edited rather than to `dist/`, and a suite that
 loses it grades the last build and goes green over changed source.
 
+The base's `resolver` (`packages/testing/ts-jest/gateway-module-mock-resolver.js`) answers every
+npm gateway module mock (`packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`) for every
+package but the npm gateway itself. Never set a package's own `resolver`; a package's own
+`moduleNameMapper` entry still wins over a mock, because Jest applies it first.
+
 Beyond the base, each package's config differs by what it tests: JSX packages override the preset and
 transform, `mcp` maps `.js` imports back to `.ts`, `web` resolves React to a single instance. The
 command writes the right one per package type.

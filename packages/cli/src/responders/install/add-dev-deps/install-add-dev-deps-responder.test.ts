@@ -1,5 +1,6 @@
 import { InstallAddDevDepsResponderProxy } from './install-add-dev-deps-responder.proxy';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
+import { DependencyMapStub } from '../../../contracts/dependency-map/dependency-map.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('InstallAddDevDepsResponder', () => {
@@ -253,6 +254,98 @@ describe('InstallAddDevDepsResponder', () => {
         success: true,
         action: 'skipped',
         message: 'All devDependencies already present',
+      });
+    });
+  });
+
+  describe('@dungeonmaster/* siblings taken through file:', () => {
+    it('VALID: {file: siblings, @dungeonmaster/siegelense missing} => writes siegelense as a file: path to its discovered dir, siblings untouched', async () => {
+      const proxy = InstallAddDevDepsResponderProxy();
+      const localDevDeps = DependencyMapStub({
+        ...Object.fromEntries(
+          Object.entries(devDependenciesStatics.packages).filter(
+            ([name]) => !name.startsWith('@dungeonmaster/'),
+          ),
+        ),
+        '@dungeonmaster/eslint-plugin': 'file:../dm/packages/eslint-plugin',
+        '@dungeonmaster/hooks': 'file:../dm/packages/hooks',
+        '@dungeonmaster/mcp': 'file:../dm/packages/mcp',
+        '@dungeonmaster/shared': 'file:../dm/packages/shared',
+        '@dungeonmaster/testing': 'file:../dm/packages/testing',
+        '@dungeonmaster/ward': 'file:../dm/packages/ward',
+      });
+
+      proxy.setupFileExists({ filePath: '/home/u/app/package.json' });
+      proxy.setupReadFile({
+        filePath: '/home/u/app/package.json',
+        content: JSON.stringify({ name: 'app', devDependencies: localDevDeps }),
+      });
+      proxy.setupDungeonmasterPackages({
+        packagesPath: '/home/u/dm/packages',
+        packages: [{ name: 'cli' }, { name: 'siegelense' }, { name: 'npm', group: '@gateway' }],
+      });
+
+      const result = await proxy.callResponder({
+        context: InstallContextStub({
+          value: { targetProjectRoot: '/home/u/app', dungeonmasterRoot: '/home/u/dm' },
+        }),
+      });
+
+      expect({
+        result,
+        written: String(proxy.getWrittenFiles()[0]?.content),
+      }).toStrictEqual({
+        result: {
+          packageName: '@dungeonmaster/cli',
+          success: true,
+          action: 'created',
+          message: 'Added devDependencies to package.json',
+        },
+        written: `${JSON.stringify(
+          {
+            name: 'app',
+            devDependencies: Object.fromEntries(
+              Object.entries({
+                ...localDevDeps,
+                '@dungeonmaster/siegelense': 'file:../dm/packages/siegelense',
+              }).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)),
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      });
+    });
+
+    it('VALID: {file: siblings, @dungeonmaster/siegelense already "*"} => never rewrites an existing entry, skips', async () => {
+      const proxy = InstallAddDevDepsResponderProxy();
+
+      proxy.setupFileExists({ filePath: '/home/u/app/package.json' });
+      proxy.setupReadFile({
+        filePath: '/home/u/app/package.json',
+        content: JSON.stringify({
+          name: 'app',
+          devDependencies: {
+            ...devDependenciesStatics.packages,
+            '@dungeonmaster/cli': 'file:../dm/packages/cli',
+          },
+        }),
+      });
+
+      const result = await proxy.callResponder({
+        context: InstallContextStub({
+          value: { targetProjectRoot: '/home/u/app', dungeonmasterRoot: '/home/u/dm' },
+        }),
+      });
+
+      expect({ result, written: proxy.getWrittenFiles() }).toStrictEqual({
+        result: {
+          packageName: '@dungeonmaster/cli',
+          success: true,
+          action: 'skipped',
+          message: 'All devDependencies already present',
+        },
+        written: [],
       });
     });
   });

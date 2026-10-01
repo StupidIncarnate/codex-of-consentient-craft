@@ -8,8 +8,10 @@
  * const packages = packageDiscoverBroker({
  *   dungeonmasterRoot: '/home/user/projects/dungeonmaster'
  * });
- * // Returns array of {packageName, installPath, finalizeInstallPath} for each package with
- * // start-install.js; finalizeInstallPath is null when that package has no finalize step
+ * // Returns array of {packageName, installPath, packageDir, finalizeInstallPath} for each package
+ * // with start-install.js; packageDir is the package's own directory on disk (nested under a
+ * // `@group` folder for e.g. packages/@gateway/npm); finalizeInstallPath is null when that package
+ * // has no finalize step
  */
 
 import { packageDiscoverResultContract } from '../../../contracts/package-discover-result/package-discover-result-contract';
@@ -58,6 +60,7 @@ export const packageDiscoverBroker = ({
   const packagesWithInstallers: {
     packageName: string;
     installPath: string;
+    packageDir: string;
     finalizeInstallPath: string | null;
   }[] = [];
 
@@ -85,6 +88,7 @@ export const packageDiscoverBroker = ({
       packagesWithInstallers.push({
         packageName,
         installPath: join(installDir, 'start-install.js'),
+        packageDir: join(packagesDir, ...relativeDir),
         finalizeInstallPath,
       });
     }

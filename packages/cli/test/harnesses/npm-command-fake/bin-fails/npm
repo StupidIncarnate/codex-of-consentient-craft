@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+// Fakes an `npm install` that fails the way a real one does on a dependency the registry does not
+// have — npm's own `npm error` lines on stderr, exit 1 — for the tests that prove the npm-gateway
+// sync keeps what it wrote and reports the failed lockfile refresh. Ignores every argument.
+process.stderr.write(
+  "npm error code E404\nnpm error 404 Not Found - GET https://registry.npmjs.org/@acme%2fmissing - Not found\nnpm error 404  '@acme/missing@*' is not in this registry.\n",
+);
+process.exit(1);

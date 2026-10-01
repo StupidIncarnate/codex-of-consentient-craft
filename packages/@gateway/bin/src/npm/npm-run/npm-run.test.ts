@@ -12,6 +12,8 @@ describe('npmRun()', () => {
     expect(result).toStrictEqual({
       exitCode: 0,
       output: 'added 1 package',
+      stdout: 'added 1 package',
+      stderr: '',
       signal: null,
       timedOut: false,
     });
@@ -37,6 +39,8 @@ describe('npmRun()', () => {
     expect(result).toStrictEqual({
       exitCode: 1,
       output: 'npm ERR! missing script',
+      stdout: 'npm ERR! missing script',
+      stderr: '',
       signal: null,
       timedOut: false,
     });
@@ -56,7 +60,14 @@ describe('npmRun()', () => {
         cwd: '/repo',
       });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
 
     it('ERROR: {throwsMatchingArgs, a predicate} => rejects with NpmNotInstalledError', async () => {

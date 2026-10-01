@@ -5,6 +5,12 @@
  * const filtered = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
  * // Returns a Linter.Config with only allowed rules enabled; a rule tagged 'pre-edit' that the host
  * // registers 'off' runs at 'error' with the host's options kept
+ *
+ * A pre-edit rule registered 'off' is FORCED ON so the hook blocks new violations of a rule the tree
+ * is not yet clean for. `referenceEslintConfig` — the host's config for a plain source file beside
+ * the edited one — is what tells that apart from a DELIBERATE per-file exemption: a rule that is on
+ * for the plain file and off for this one was turned off for this kind of file (an e2e spec, an
+ * integration test) and stays off, exactly as ward's own lint leaves it.
  */
 import type { Linter } from '#gateway/npm/eslint';
 import { isOffRuleSeverityGuard } from '../../guards/is-off-rule-severity/is-off-rule-severity-guard';
@@ -17,9 +23,11 @@ import { rawEslintConfigContract } from '../../contracts/raw-eslint-config/raw-e
 export const eslintConfigFilterTransformer = ({
   eslintConfig,
   hookConfig,
+  referenceEslintConfig,
 }: {
   eslintConfig: unknown;
   hookConfig: PreEditLintConfig;
+  referenceEslintConfig?: unknown;
 }): Linter.Config => {
   // Transform raw ESLint config to partial config (strips language field)
   const partialConfig = rawEslintConfigToPartialTransformer({ rawConfig: eslintConfig });
@@ -30,6 +38,11 @@ export const eslintConfigFilterTransformer = ({
   const languageOptions: unknown = parsedConfig.success
     ? parsedConfig.data.languageOptions
     : undefined;
+
+  const referenceRules =
+    referenceEslintConfig === undefined
+      ? undefined
+      : rawEslintConfigToPartialTransformer({ rawConfig: referenceEslintConfig }).rules;
 
   // Create new config with filtered rules
   const filteredRules: Linter.RulesRecord = {};
@@ -45,7 +58,11 @@ export const eslintConfigFilterTransformer = ({
         const isPreEditRule = Object.entries(dungeonmasterRuleEnforceOnStatics).some(
           ([name, enforceOn]) => name === rule && enforceOn === 'pre-edit',
         );
-        const isForcedOn = isPreEditRule && isOffRuleSeverityGuard({ ruleValue });
+        const referenceValue = referenceRules?.[rule];
+        const isExemptForThisFile =
+          referenceValue !== undefined && !isOffRuleSeverityGuard({ ruleValue: referenceValue });
+        const isForcedOn =
+          isPreEditRule && isOffRuleSeverityGuard({ ruleValue }) && !isExemptForThisFile;
         if (ruleValue === undefined) {
           return;
         }

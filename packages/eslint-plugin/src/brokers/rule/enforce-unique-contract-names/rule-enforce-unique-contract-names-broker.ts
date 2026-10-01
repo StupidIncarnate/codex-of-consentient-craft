@@ -5,8 +5,9 @@
  * this one compares a contract's name against every other package. Standalone scalar brands are not
  * compared, because the scalar migration removes them.
  *
- * Reads every workspace package once per process, so it runs in ward's lint pass only and is
- * registered `off` in the editor-facing config.
+ * Takes the owner index once per process, from the per-package cache shards ownerIndexBuildBroker
+ * keeps on disk, which still walks every workspace package, so it runs in ward's lint pass only and
+ * is registered `off` in the editor-facing config.
  *
  * USAGE:
  * const rule = ruleEnforceUniqueContractNamesBroker();

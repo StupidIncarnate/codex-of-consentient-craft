@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Defines the typed shape of a package.json file: every field any package reads off one
- * (tech-type detection, dependency extraction, npm-workspaces discovery, script wiring). Every field
+ * (tech-type detection, dependency extraction, the installed version, npm-workspaces discovery, script wiring). Every field
  * is optional and unknown keys pass through, so any real package.json parses.
  *
  * USAGE:
@@ -13,6 +13,7 @@ import { z } from '#gateway/npm/zod';
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>().optional(),
+    version: z.string().brand<'PackageJsonVersion'>().optional(),
     description: z.string().brand<'PackageJsonDescription'>().optional(),
     bin: z
       .union([

@@ -8,17 +8,23 @@
  * `gateway-test-support` is the one exception: that reserved folder is copied alongside, so it is
  * handed back as an extra folder to copy rather than treated as present. A declared package the
  * consumer's CommonJS npm gateway cannot `require` (`npmModuleEsmOnlyBroker`, probed once per
- * specifier) does not resolve: our wrapper compiled against a CommonJS build of it.
+ * specifier) does not resolve either: our wrapper compiled against a CommonJS build of it. The first
+ * import that does not resolve names the answer — `esm-only` for that case, `unresolved-import` for
+ * every other.
  *
  * USAGE:
  * await folderRequirementsLayerBroker({ repoRoot, ownSrcRoot, folder: 'elkjs', resolvableNames: ['elkjs'], knownFolders: ['elkjs'] });
- * // Returns [] when every import resolves, ['gateway-test-support'] when that must come too, or null when one cannot resolve
+ * // Returns [] when every import resolves, ['gateway-test-support'] when that must come too, or 'unresolved-import' / 'esm-only' when one cannot resolve
  */
 
 import { readFile } from '#gateway/node/fs__promises';
 import { builtinModules } from '#gateway/node/module';
 import { dirname, relative, resolve } from '#gateway/node/path';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
+import {
+  gatewayNpmSkipReasonContract,
+  type GatewayNpmSkipReason,
+} from '../../../contracts/gateway-npm-skip-reason/gateway-npm-skip-reason-contract';
 import { gatewayNpmSyncStatics } from '../../../statics/gateway-npm-sync/gateway-npm-sync-statics';
 import { npmPackageNameFromSpecifierTransformer } from '../../../transformers/npm-package-name-from-specifier/npm-package-name-from-specifier-transformer';
 import { sourceImportSpecifiersTransformer } from '../../../transformers/source-import-specifiers/source-import-specifiers-transformer';
@@ -43,7 +49,7 @@ export const folderRequirementsLayerBroker = async ({
   folder: string;
   resolvableNames: readonly string[];
   knownFolders: readonly string[];
-}): Promise<readonly string[] | null> => {
+}): Promise<readonly string[] | GatewayNpmSkipReason> => {
   const { testSupport } = gatewayNpmSyncStatics.folders;
   const { names: ownNames, prefixes: ownPrefixes } = gatewayNpmSyncStatics.ownPackages;
   const files = await sourceFilesListLayerBroker({
@@ -62,6 +68,7 @@ export const folderRequirementsLayerBroker = async ({
 
   const extraFolders = new Set<string>();
   const esmOnlyBySpecifier = new Map<string, boolean>();
+  const esmOnlyFailures = new Set<string>();
   const allResolve = importsPerFile.every(({ filePath, specifiers }) =>
     specifiers.every((specifier) => {
       if (specifier.startsWith(RELATIVE_PREFIX)) {
@@ -107,9 +114,17 @@ export const folderRequirementsLayerBroker = async ({
         esmOnlyBySpecifier.get(bareSpecifier) ??
         npmModuleEsmOnlyBroker({ repoRoot, specifier: bareSpecifier });
       esmOnlyBySpecifier.set(bareSpecifier, esmOnly);
+      if (esmOnly) {
+        esmOnlyFailures.add(bareSpecifier);
+      }
       return !esmOnly;
     }),
   );
 
-  return allResolve ? [...extraFolders] : null;
+  if (allResolve) {
+    return [...extraFolders];
+  }
+  return gatewayNpmSkipReasonContract.parse(
+    esmOnlyFailures.size > 0 ? 'esm-only' : 'unresolved-import',
+  );
 };

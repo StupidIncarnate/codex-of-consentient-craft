@@ -547,7 +547,7 @@ describe('sessionSnippetStatics', () => {
         '`dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` entry a folder there',
       ),
       namesBothFolderSources: sessionSnippetStatics.consumerGatewayWrapper.includes(
-        "dungeonmaster's own wrapper when it ships one, otherwise a one-line passthrough barrel plus its test",
+        "dungeonmaster's own wrapper when one fits your installed version and compiles, otherwise a one-line passthrough barrel plus its test",
       ),
       neverOverwrites: sessionSnippetStatics.consumerGatewayWrapper.includes(
         'An existing folder is never overwritten',
@@ -576,6 +576,9 @@ describe('sessionSnippetStatics', () => {
       pointsAtTheRefusal: sessionSnippetStatics.consumerGatewayWrapper.includes(
         '`dungeonmaster create-package` refuses a name scoped `@gateway`',
       ),
+      namesTheModuleMockConvention: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'A package Jest cannot load gets a module mock beside its wrapper, `packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`, and Jest loads it for every test that imports that gateway, with no config edit.',
+      ),
       saysNpmStartsEmpty: sessionSnippetStatics.consumerGatewayWrapper.includes(
         'npm/` and `packages/@gateway/bin/` start EMPTY',
       ),
@@ -592,6 +595,7 @@ describe('sessionSnippetStatics', () => {
       deletesThePlaceholder: true,
       neverImportsOwnGateway: true,
       pointsAtTheRefusal: true,
+      namesTheModuleMockConvention: true,
       saysNpmStartsEmpty: false,
     });
   });

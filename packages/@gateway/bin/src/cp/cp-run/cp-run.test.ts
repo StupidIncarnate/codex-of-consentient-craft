@@ -9,7 +9,14 @@ describe('cpRun()', () => {
 
     const result = await cpRun({ args: ['-a', '/src', '/dest'], cwd: '/repo' });
 
-    expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+    expect(result).toStrictEqual({
+      exitCode: 0,
+      output: '',
+      stdout: '',
+      stderr: '',
+      signal: null,
+      timedOut: false,
+    });
   });
 
   it('ERROR: {run throws RunNotFoundError} => throws CpNotInstalledError', async () => {
@@ -38,6 +45,8 @@ describe('cpRun()', () => {
     expect(result).toStrictEqual({
       exitCode: 1,
       output: "cp: cannot stat '/missing': No such file or directory",
+      stdout: "cp: cannot stat '/missing': No such file or directory",
+      stderr: '',
       signal: null,
       timedOut: false,
     });
@@ -57,7 +66,14 @@ describe('cpRun()', () => {
         cwd: '/repo',
       });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
 
     it('ERROR: {throwsMatchingArgs, a predicate} => rejects with CpNotInstalledError', async () => {

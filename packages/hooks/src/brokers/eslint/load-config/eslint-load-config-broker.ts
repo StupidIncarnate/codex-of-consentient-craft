@@ -13,8 +13,10 @@ import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-pat
 import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-// Cache keyed by resolved eslint.config.* path (or cwd when no config is found). Many cwds
-// can resolve to the same config file, so this lets unrelated callers share a cache entry.
+// Cache keyed by resolved eslint.config.* path (or cwd when no config is found) AND the file, so
+// many cwds resolving to one config file share entries. The file is part of the key because a flat
+// config's per-file overrides make the answer differ by file — `*.e2e.ts` turns rules off that a
+// plain source file keeps on — and the pre-edit hook asks about two files in one process.
 const configCache = new Map<string, unknown>();
 
 const MAX_WALK_UP_DEPTH = 20;
@@ -29,7 +31,7 @@ export const eslintLoadConfigBroker = async ({
   const targetCwd = customCwd ?? cwd();
   const resolvedCwd = resolve(targetCwd);
 
-  let cacheKey: string = resolvedCwd;
+  let configKey: string = resolvedCwd;
   let walkDir: string = resolvedCwd;
   for (let depth = 0; depth < MAX_WALK_UP_DEPTH; depth++) {
     const currentDir = walkDir;
@@ -38,7 +40,7 @@ export const eslintLoadConfigBroker = async ({
     );
     const found = candidates.find((candidate) => existsSync(candidate));
     if (found !== undefined) {
-      cacheKey = found;
+      configKey = found;
       break;
     }
     const parentDir = resolve(walkDir, '..');
@@ -48,6 +50,7 @@ export const eslintLoadConfigBroker = async ({
     walkDir = parentDir;
   }
 
+  const cacheKey = `${configKey}\u0000${filePath}`;
   const cached = configCache.get(cacheKey);
   if (cached !== undefined) {
     return cached;

@@ -1,4 +1,5 @@
 import { GatewayNpmDependencyStub } from '../../contracts/gateway-npm-dependency/gateway-npm-dependency.stub';
+import { NpmModuleExportNamesStub } from '../../contracts/npm-module-export-names/npm-module-export-names.stub';
 import { NpmModuleExportShapeStub } from '../../contracts/npm-module-export-shape/npm-module-export-shape.stub';
 import { gatewayNpmPassthroughFilesTransformer } from './gateway-npm-passthrough-files-transformer';
 
@@ -23,6 +24,20 @@ const NAMED_HEADER = `/**
  *
  * USAGE:
  * import { someExport } from '#gateway/npm/left-pad';
+ */
+`;
+
+const EXPORT_EQUALS_HEADER = `/**
+ * PURPOSE: Pass-through for the npm package 'left-pad'. Code outside the gateway imports left-pad
+ * through here instead of the raw package, so a future guard or override on left-pad lands in
+ * this one file and reaches every caller.
+ *
+ * 'left-pad' declares its module with \`export =\`, which no \`export *\` can re-export
+ * (TS2498), so this names every export its declarations held when this file was generated. A
+ * name the package adds later is reachable through the default export until it is added here.
+ *
+ * USAGE:
+ * import pkg, { someExport } from '#gateway/npm/left-pad';
  */
 `;
 
@@ -61,34 +76,36 @@ describe('gatewayNpmPassthroughFilesTransformer', () => {
     ]);
   });
 
-  it('VALID: {shape: export-equals} => import-equals barrel and a same-object test', () => {
+  it('VALID: {shape: export-equals, values and types} => default plus named lists, and a binding-by-binding test', () => {
     const dependency = GatewayNpmDependencyStub();
 
     const result = gatewayNpmPassthroughFilesTransformer({
       dependency,
       shape: NpmModuleExportShapeStub({ value: 'export-equals' }),
+      exportNames: NpmModuleExportNamesStub({
+        values: ['pad', 'version'],
+        types: ['Options', 'Width'],
+      }),
     });
 
     expect(result).toStrictEqual([
       {
         relativePath: 'left-pad/left-pad.ts',
-        contents: `/**
- * PURPOSE: Pass-through for the npm package 'left-pad'. Code outside the gateway imports left-pad
- * through here instead of the raw package, so a future guard or override on left-pad lands in
- * this one file and reaches every caller.
- *
- * USAGE:
- * import pkg from '#gateway/npm/left-pad';
- */
-
-import pkgModule = require('left-pad');
-
-export = pkgModule;
+        contents: `${EXPORT_EQUALS_HEADER}
+export { default } from 'left-pad';
+export {
+  pad,
+  version,
+} from 'left-pad';
+export type {
+  Options,
+  Width,
+} from 'left-pad';
 `,
       },
       {
         relativePath: 'left-pad/left-pad.test.ts',
-        contents: `import ourModule = require('./left-pad');
+        contents: `import * as ourModule from './left-pad';
 // A raw \`require\`, not \`import * as\`: TS's importStar helper synthesizes a .default onto any
 // CJS module that lacks __esModule, which is every third-party package here — comparing
 // against that synthetic shape would fail every pass-through. \`import x = require(...)\` compiles
@@ -96,13 +113,70 @@ export = pkgModule;
 import pkgModule = require('left-pad');
 
 describe('#gateway/npm/left-pad', () => {
-  it('VALID: {module} => is the same module object as left-pad', () => {
-    expect(ourModule).toBe(pkgModule);
+  it('VALID: {module} => default is left-pad itself and each named value is its own binding', () => {
+    expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
+      default: pkgModule,
+    });
   });
 });
 `,
       },
     ]);
+  });
+
+  it('EMPTY: {shape: export-equals, no names} => default-only barrel and the same binding test', () => {
+    const dependency = GatewayNpmDependencyStub();
+
+    const result = gatewayNpmPassthroughFilesTransformer({
+      dependency,
+      shape: NpmModuleExportShapeStub({ value: 'export-equals' }),
+      exportNames: NpmModuleExportNamesStub({ values: [], types: [] }),
+    });
+
+    expect(result).toStrictEqual([
+      {
+        relativePath: 'left-pad/left-pad.ts',
+        contents: `${EXPORT_EQUALS_HEADER}
+export { default } from 'left-pad';
+`,
+      },
+      {
+        relativePath: 'left-pad/left-pad.test.ts',
+        contents: `import * as ourModule from './left-pad';
+// A raw \`require\`, not \`import * as\`: TS's importStar helper synthesizes a .default onto any
+// CJS module that lacks __esModule, which is every third-party package here — comparing
+// against that synthetic shape would fail every pass-through. \`import x = require(...)\` compiles
+// straight to \`require(...)\`, so pkgModule is the package's own real runtime shape.
+import pkgModule = require('left-pad');
+
+describe('#gateway/npm/left-pad', () => {
+  it('VALID: {module} => default is left-pad itself and each named value is its own binding', () => {
+    expect({ ...ourModule }).toStrictEqual({
+      ...Object.fromEntries(Object.entries(pkgModule).filter(([name]) => name in ourModule)),
+      default: pkgModule,
+    });
+  });
+});
+`,
+      },
+    ]);
+  });
+
+  it('EMPTY: {shape: export-equals, exportNames omitted} => default-only barrel', () => {
+    const dependency = GatewayNpmDependencyStub();
+
+    const [barrel] = gatewayNpmPassthroughFilesTransformer({
+      dependency,
+      shape: NpmModuleExportShapeStub({ value: 'export-equals' }),
+    });
+
+    expect(barrel).toStrictEqual({
+      relativePath: 'left-pad/left-pad.ts',
+      contents: `${EXPORT_EQUALS_HEADER}
+export { default } from 'left-pad';
+`,
+    });
   });
 
   it('VALID: {shape: untyped, scoped package} => export * barrel naming the missing types', () => {

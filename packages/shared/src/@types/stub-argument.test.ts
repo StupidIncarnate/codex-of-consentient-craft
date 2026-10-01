@@ -333,6 +333,36 @@ describe('StubArgument', () => {
     });
   });
 
+  describe('edge cases: recursive type through a branded-key index signature', () => {
+    const symbolNameContract = z.string().brand<'SymbolName'>();
+    type SymbolName = z.infer<typeof symbolNameContract>;
+    type SymbolTree = string | { [key: SymbolName]: SymbolTree };
+
+    const symbolTreeContract: z.ZodType<SymbolTree> = z.lazy(() =>
+      z.union([z.string(), z.record(symbolNameContract, symbolTreeContract)]),
+    );
+
+    const SymbolTreeStub = (tree: StubArgument<SymbolTree> = 'leaf'): SymbolTree => {
+      return symbolTreeContract.parse(tree);
+    };
+
+    // Type-level proof, checked by assignability because `@ts-expect-error` is banned. A wrong
+    // literal must stay unassignable through the recursion. If it becomes assignable, this type
+    // becomes `true` and the `false` below fails to compile.
+    type WrongLiteralAssignable = { root: 42 } extends StubArgument<SymbolTree> ? true : false;
+    const wrongLiteralAssignable: WrongLiteralAssignable = false;
+
+    it('VALID: {root: {leaf: "value"}} => accepts plain string keys at every nesting level', () => {
+      const result = SymbolTreeStub({ root: { leaf: 'value' } });
+
+      expect(result).toStrictEqual({ root: { leaf: 'value' } });
+    });
+
+    it('INVALID: {root: 42} => a number leaf is not assignable', () => {
+      expect(wrongLiteralAssignable).toBe(false);
+    });
+  });
+
   describe('edge cases: union types with branded types', () => {
     const userIdContract = z.uuid().brand<'UserId'>();
     const optionalUserIdContract = userIdContract.optional();

@@ -10,7 +10,14 @@ describe('run()', () => {
 
       const result = await run({ command: 'npm', args: ['run', 'test'], cwd: '/project' });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
 
     it('VALID: {command exits with 0 and stdout} => returns stdout content', async () => {
@@ -22,6 +29,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 0,
         output: 'All tests passed',
+        stdout: 'All tests passed',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
@@ -43,6 +52,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: 'Error in /src/file.ts',
+        stdout: '',
+        stderr: 'Error in /src/file.ts',
         signal: null,
         timedOut: false,
       });
@@ -62,6 +73,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: 'stdout contentstderr content',
+        stdout: 'stdout content',
+        stderr: 'stderr content',
         signal: null,
         timedOut: false,
       });
@@ -83,6 +96,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: 'partial run output',
+        stdout: 'partial run output',
+        stderr: '',
         signal: 'SIGTERM',
         timedOut: false,
       });
@@ -101,6 +116,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: '',
+        stdout: '',
+        stderr: '',
         signal: 'SIGKILL',
         timedOut: false,
       });
@@ -122,6 +139,8 @@ describe('run()', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         output: '',
+        stdout: '',
+        stderr: '',
         signal: 'SIGTERM',
         timedOut: true,
       });
@@ -139,7 +158,14 @@ describe('run()', () => {
         timeout: 60_000,
       });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: 'done', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: 'done',
+        stdout: 'done',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
       expect(proxy.getKillCallCount({ command: 'npm' })).toBe(0);
     });
   });
@@ -164,6 +190,192 @@ describe('run()', () => {
     });
   });
 
+  describe('stdout and stderr kept apart', () => {
+    it('VALID: {exit 0, a warning on stderr} => stdout holds only what the command printed on stdout', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        exitCode: 0,
+        stdout: 'export const x = 1;\n',
+        stderr: 'warning: CRLF will be replaced by LF in src/x.ts\n',
+      });
+
+      const result = await run({ command: 'git', args: ['cat-file', 'blob', 'abc'], cwd: '/repo' });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: 'export const x = 1;\nwarning: CRLF will be replaced by LF in src/x.ts\n',
+        stdout: 'export const x = 1;\n',
+        stderr: 'warning: CRLF will be replaced by LF in src/x.ts\n',
+        signal: null,
+        timedOut: false,
+      });
+    });
+  });
+
+  describe('multi-byte characters split across chunks', () => {
+    it('EDGE: {a two-byte "é" split between two one-byte chunks} => decodes the character intact', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        exitCode: 0,
+        stdout: 'café',
+        stderr: 'naïve',
+        chunkSize: 1,
+      });
+
+      const result = await run({ command: 'git', args: ['cat-file', 'blob', 'abc'], cwd: '/repo' });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: 'cafénaïve',
+        stdout: 'café',
+        stderr: 'naïve',
+        signal: null,
+        timedOut: false,
+      });
+    });
+  });
+
+  describe('live chunk callbacks', () => {
+    it('VALID: {onStdout and onStderr} => each callback receives its own stream text, and the result still holds both', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'node',
+        args: ['cli.js', 'unit'],
+        cwd: '/repo',
+        exitCode: 1,
+        stdout: 'src/a.ts  running',
+        stderr: 'src/a.ts  0/1 passed',
+      });
+      const stdoutChunks: string[] = [];
+      const stderrChunks: string[] = [];
+
+      const result = await run({
+        command: 'node',
+        args: ['cli.js', 'unit'],
+        cwd: '/repo',
+        onStdout: (chunk) => {
+          stdoutChunks.push(chunk);
+        },
+        onStderr: (chunk) => {
+          stderrChunks.push(chunk);
+        },
+      });
+
+      expect({ stdoutChunks, stderrChunks, result }).toStrictEqual({
+        stdoutChunks: ['src/a.ts  running'],
+        stderrChunks: ['src/a.ts  0/1 passed'],
+        result: {
+          exitCode: 1,
+          output: 'src/a.ts  runningsrc/a.ts  0/1 passed',
+          stdout: 'src/a.ts  running',
+          stderr: 'src/a.ts  0/1 passed',
+          signal: null,
+          timedOut: false,
+        },
+      });
+    });
+
+    it('EDGE: {a two-byte "é" split between two one-byte chunks} => the callback receives the character whole', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'node',
+        exitCode: 0,
+        stdout: 'café',
+        stderr: 'naïve',
+        chunkSize: 1,
+      });
+      const stdoutChunks: string[] = [];
+      const stderrChunks: string[] = [];
+
+      await run({
+        command: 'node',
+        args: ['cli.js'],
+        cwd: '/repo',
+        onStdout: (chunk) => {
+          stdoutChunks.push(chunk);
+        },
+        onStderr: (chunk) => {
+          stderrChunks.push(chunk);
+        },
+      });
+
+      expect({ stdoutChunks, stderrChunks }).toStrictEqual({
+        stdoutChunks: ['c', 'a', 'f', 'é'],
+        stderrChunks: ['n', 'a', 'ï', 'v', 'e'],
+      });
+    });
+
+    it('EDGE: {stdout ends inside a multi-byte character} => the callback receives the leftover bytes as U+FFFD, matching the result', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'node',
+        exitCode: 0,
+        // "caf" plus the first byte of "é" (0xC3 0xA9), with the second byte never sent.
+        stdout: new Uint8Array([0x63, 0x61, 0x66, 0xc3]),
+        stderr: '',
+        chunkSize: 1,
+      });
+      const stdoutChunks: string[] = [];
+
+      const result = await run({
+        command: 'node',
+        args: ['cli.js'],
+        cwd: '/repo',
+        onStdout: (chunk) => {
+          stdoutChunks.push(chunk);
+        },
+      });
+
+      expect({ stdoutChunks, stdout: result.stdout }).toStrictEqual({
+        stdoutChunks: ['c', 'a', 'f', '\ufffd'],
+        stdout: 'caf\ufffd',
+      });
+    });
+
+    it('EMPTY: {onStdout, a command that prints nothing} => the callback never fires', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({ command: 'node', exitCode: 0, stdout: '', stderr: '' });
+      const stdoutChunks: string[] = [];
+
+      await run({
+        command: 'node',
+        args: ['cli.js'],
+        cwd: '/repo',
+        onStdout: (chunk) => {
+          stdoutChunks.push(chunk);
+        },
+      });
+
+      expect(stdoutChunks).toStrictEqual([]);
+    });
+  });
+
+  describe('stdin', () => {
+    it('VALID: {no stdin option} => the child inherits stdin and pipes stdout and stderr', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({ command: 'npm', exitCode: 0, stdout: '', stderr: '' });
+
+      await run({ command: 'npm', args: ['test'], cwd: '/project' });
+
+      expect(proxy.getOptionsFor({ command: 'npm' }).map((options) => options.stdio)).toStrictEqual(
+        [['inherit', 'pipe', 'pipe']],
+      );
+    });
+
+    it("VALID: {stdin: 'ignore'} => the child gets no stdin and pipes stdout and stderr", async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({ command: 'node', exitCode: 0, stdout: '', stderr: '' });
+
+      await run({ command: 'node', args: ['cli.js'], cwd: '/repo', stdin: 'ignore' });
+
+      expect(
+        proxy.getOptionsFor({ command: 'node' }).map((options) => options.stdio),
+      ).toStrictEqual([['ignore', 'pipe', 'pipe']]);
+    });
+  });
+
   describe('no output at all', () => {
     it('EMPTY: {command prints nothing on either stream} => returns empty output', async () => {
       const proxy = runProxy();
@@ -171,7 +383,14 @@ describe('run()', () => {
 
       const result = await run({ command: 'git', args: ['status'], cwd: '/project' });
 
-      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
   });
 
@@ -207,12 +426,16 @@ describe('run()', () => {
       expect(mainResult).toStrictEqual({
         exitCode: 0,
         output: 'main-sha\n',
+        stdout: 'main-sha\n',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
       expect(masterResult).toStrictEqual({
         exitCode: 1,
         output: 'fatal: not a valid ref',
+        stdout: '',
+        stderr: 'fatal: not a valid ref',
         signal: null,
         timedOut: false,
       });
@@ -243,12 +466,16 @@ describe('run()', () => {
       expect(resultA).toStrictEqual({
         exitCode: 0,
         output: 'clean in a\n',
+        stdout: 'clean in a\n',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
       expect(resultB).toStrictEqual({
         exitCode: 0,
         output: 'clean in b\n',
+        stdout: 'clean in b\n',
+        stderr: '',
         signal: null,
         timedOut: false,
       });
@@ -280,7 +507,14 @@ describe('run()', () => {
       ).rejects.toStrictEqual(
         new RunNotFoundError({ command: 'git', code: 'ENOENT', message: 'spawn git ENOENT' }),
       );
-      expect(mainResult).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+      expect(mainResult).toStrictEqual({
+        exitCode: 0,
+        output: '',
+        stdout: '',
+        stderr: '',
+        signal: null,
+        timedOut: false,
+      });
     });
   });
 

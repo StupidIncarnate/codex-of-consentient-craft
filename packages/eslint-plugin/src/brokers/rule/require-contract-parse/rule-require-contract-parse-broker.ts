@@ -4,8 +4,10 @@
  * a claim no boundary checks. Reach for this over `enforce-contract-usage-in-tests`, which grades
  * test files; this one grades the contracts themselves against the whole repo's production code.
  *
- * Reads every workspace package once per process, so it runs in ward's lint pass only and is
- * registered `off` in the editor-facing config.
+ * Takes the contract index once per process, from the per-package cache shards
+ * contractIndexBuildBroker keeps on disk, which still walks every workspace package and resolves
+ * names across files; so it runs in ward's lint pass only and is registered `off` in the
+ * editor-facing config.
  *
  * USAGE:
  * const rule = ruleRequireContractParseBroker();

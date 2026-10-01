@@ -2,6 +2,19 @@ import { upstreamSha } from './upstream-sha';
 import { upstreamShaProxy } from './upstream-sha.proxy';
 
 describe('upstreamSha()', () => {
+  it('VALID: {sha, a warning on stderr} => returns the sha from stdout alone', async () => {
+    const proxy = upstreamShaProxy();
+    proxy.setupResult({
+      exitCode: 0,
+      output: 'e5f6a7b8\n',
+      stderr: "warning: refname 'main' is ambiguous.\n",
+    });
+
+    const result = await upstreamSha({ cwd: '/repo' });
+
+    expect(result).toBe('e5f6a7b8');
+  });
+
   it('VALID: {sha} => returns the trimmed sha', async () => {
     const proxy = upstreamShaProxy();
     proxy.setupResult({ exitCode: 0, output: 'e5f6a7b8\n' });

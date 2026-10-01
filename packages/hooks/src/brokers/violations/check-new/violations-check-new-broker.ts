@@ -18,6 +18,8 @@ import {
   type ViolationComparison,
 } from '../../../contracts/violation-comparison/violation-comparison-contract';
 import { cwd, getEnv } from '#gateway/node/process';
+import { dirname, join } from '#gateway/node/path';
+import { preEditReferenceStatics } from '../../../statics/pre-edit-reference/pre-edit-reference-statics';
 
 /**
  * Checks for new ESLint violations introduced by a tool input operation.
@@ -67,11 +69,20 @@ export const violationsCheckNewBroker = async ({
   // Load configuration if not provided
   const hookConfig = hookConfigLoadBroker({ cwd: workingDir });
 
-  // Load and filter the host ESLint configuration for the actual file
-  const rawEslintConfig = await eslintLoadConfigBroker({ cwd: workingDir, filePath });
+  // Load the host ESLint configuration for the actual file, and for a plain source file beside it:
+  // the second is how the filter tells a rule that is off everywhere from one a per-file override
+  // switched off for this kind of file (see eslintConfigFilterTransformer).
+  const [rawEslintConfig, referenceEslintConfig] = await Promise.all([
+    eslintLoadConfigBroker({ cwd: workingDir, filePath }),
+    eslintLoadConfigBroker({
+      cwd: workingDir,
+      filePath: join(dirname(filePath), preEditReferenceStatics.file.name),
+    }),
+  ]);
   const filteredConfig = eslintConfigFilterTransformer({
     eslintConfig: rawEslintConfig,
     hookConfig,
+    referenceEslintConfig,
   });
 
   // Get content changes using existing utilities

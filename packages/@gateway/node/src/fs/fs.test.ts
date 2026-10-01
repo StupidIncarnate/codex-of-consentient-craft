@@ -13,6 +13,7 @@ const EXPORTS = [
   ['readdirEntriesSync', fsGateway.readdirEntriesSync],
   ['writeFileSync', fsGateway.writeFileSync],
   ['writeFileBytesSync', fsGateway.writeFileBytesSync],
+  ['writeFileAtomicSync', fsGateway.writeFileAtomicSync],
   ['mkdtempSync', fsGateway.mkdtempSync],
   ['appendFileSync', fsGateway.appendFileSync],
   ['ensureDirSync', fsGateway.ensureDirSync],

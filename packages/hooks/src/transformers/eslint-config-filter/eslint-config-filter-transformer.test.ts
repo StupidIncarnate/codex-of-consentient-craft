@@ -222,6 +222,73 @@ describe('eslintConfigFilterTransformer', () => {
       });
     });
 
+    it("VALID: {pre-edit rule 'off' for this file, 'error' for a plain file beside it} => stays 'off', a deliberate per-file exemption", () => {
+      const eslintConfig = FlatConfigStub({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' },
+      });
+      const referenceEslintConfig = FlatConfigStub({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'error' },
+      });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/enforce-test-creation-of-proxy'],
+      });
+
+      const result = eslintConfigFilterTransformer({
+        eslintConfig,
+        hookConfig,
+        referenceEslintConfig,
+      });
+
+      expect(result).toStrictEqual({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it("VALID: {pre-edit rule 'off' for this file AND for a plain file beside it} => runs at 'error', off everywhere for now", () => {
+      const eslintConfig = FlatConfigStub({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' },
+      });
+      const referenceEslintConfig = FlatConfigStub({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' },
+      });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/enforce-test-creation-of-proxy'],
+      });
+
+      const result = eslintConfigFilterTransformer({
+        eslintConfig,
+        hookConfig,
+        referenceEslintConfig,
+      });
+
+      expect(result).toStrictEqual({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'error' },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it("EDGE: {pre-edit rule 'off' for this file, absent for a plain file beside it} => runs at 'error'", () => {
+      const eslintConfig = FlatConfigStub({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' },
+      });
+      const referenceEslintConfig = FlatConfigStub({ rules: {} });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/enforce-test-creation-of-proxy'],
+      });
+
+      const result = eslintConfigFilterTransformer({
+        eslintConfig,
+        hookConfig,
+        referenceEslintConfig,
+      });
+
+      expect(result).toStrictEqual({
+        rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'error' },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
     it('EMPTY: {pre-edit rule the host does not register} => omitted', () => {
       const eslintConfig = FlatConfigStub({ rules: { 'no-console': 'error' } });
       const hookConfig = PreEditLintConfigStub({

@@ -32,24 +32,44 @@ describe('eslintLoadConfigBroker', () => {
       expect(result).toStrictEqual({ rules: { 'default-cwd-marker': 'error' } });
     });
 
-    it('VALID: same cwd called twice => second call is served from cache without asking ESLint', async () => {
+    it('VALID: same cwd and file asked twice => second call is served from cache without asking ESLint', async () => {
       const proxy = eslintLoadConfigBrokerProxy();
       proxy.returnsConfig({
-        filePath: 'file1.ts',
+        filePath: 'cached.ts',
         config: { rules: { 'no-undef': 'error' } },
       });
 
-      const result1 = await eslintLoadConfigBroker({ cwd: '/test', filePath: 'file1.ts' });
-      const result2 = await eslintLoadConfigBroker({ cwd: '/test', filePath: 'file2.ts' });
+      const result1 = await eslintLoadConfigBroker({ cwd: '/cache-test', filePath: 'cached.ts' });
+      const result2 = await eslintLoadConfigBroker({ cwd: '/cache-test', filePath: 'cached.ts' });
 
       expect({
         result1,
         result2,
-        askedAboutFile2: proxy.getCalculatedFor({ filePath: 'file2.ts' }),
+        timesAsked: proxy.getCalculatedFor({ filePath: 'cached.ts' }).length,
       }).toStrictEqual({
         result1: { rules: { 'no-undef': 'error' } },
         result2: { rules: { 'no-undef': 'error' } },
-        askedAboutFile2: [],
+        timesAsked: 1,
+      });
+    });
+
+    it('VALID: same cwd, two files => each gets its own config, since per-file overrides differ', async () => {
+      const proxy = eslintLoadConfigBrokerProxy();
+      proxy.returnsConfig({
+        filePath: 'flow.e2e.ts',
+        config: { rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' } },
+      });
+      proxy.returnsConfig({
+        filePath: 'plain.ts',
+        config: { rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'error' } },
+      });
+
+      const e2e = await eslintLoadConfigBroker({ cwd: '/override-test', filePath: 'flow.e2e.ts' });
+      const plain = await eslintLoadConfigBroker({ cwd: '/override-test', filePath: 'plain.ts' });
+
+      expect({ e2e, plain }).toStrictEqual({
+        e2e: { rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'off' } },
+        plain: { rules: { '@dungeonmaster/enforce-test-creation-of-proxy': 'error' } },
       });
     });
 

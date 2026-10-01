@@ -1,3 +1,4 @@
+import { ContractIndexFileReadStub } from '../../contracts/contract-index-file-read/contract-index-file-read.stub';
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
 import { contractFileFindLayerTransformer } from './contract-file-find-layer-transformer';
 
@@ -22,6 +23,8 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe('/repo/packages/shared/src/thing/thing-contract.ts');
@@ -37,6 +40,8 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe(undefined);
@@ -54,18 +59,22 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map([
           [
             barrelFile,
-            [
-              {
-                kind: 'named' as const,
-                exportedName: 'renamedContract',
-                sourceName: 'thingContract',
-                specifier: './src/thing/thing-contract',
-              },
-            ],
+            ContractIndexFileReadStub({
+              reExports: [
+                {
+                  kind: 'named',
+                  exportedName: 'renamedContract',
+                  sourceName: 'thingContract',
+                  specifier: './src/thing/thing-contract',
+                },
+              ],
+            }).reExports,
           ],
         ]),
         knownFiles: new Set([contractFile, barrelFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe('/repo/packages/shared/src/thing/thing-contract.ts');
@@ -81,18 +90,22 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map([
           [
             barrelFile,
-            [
-              {
-                kind: 'star' as const,
-                exportedName: '*',
-                sourceName: '*',
-                specifier: './src/thing/thing-contract',
-              },
-            ],
+            ContractIndexFileReadStub({
+              reExports: [
+                {
+                  kind: 'star',
+                  exportedName: '*',
+                  sourceName: '*',
+                  specifier: './src/thing/thing-contract',
+                },
+              ],
+            }).reExports,
           ],
         ]),
         knownFiles: new Set([contractFile, barrelFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe('/repo/packages/shared/src/thing/thing-contract.ts');
@@ -113,24 +126,28 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map([
           [
             barrelFile,
-            [
-              {
-                kind: 'star' as const,
-                exportedName: '*',
-                sourceName: '*',
-                specifier: './src/first/first-contract',
-              },
-              {
-                kind: 'star' as const,
-                exportedName: '*',
-                sourceName: '*',
-                specifier: './src/thing/thing-contract',
-              },
-            ],
+            ContractIndexFileReadStub({
+              reExports: [
+                {
+                  kind: 'star',
+                  exportedName: '*',
+                  sourceName: '*',
+                  specifier: './src/first/first-contract',
+                },
+                {
+                  kind: 'star',
+                  exportedName: '*',
+                  sourceName: '*',
+                  specifier: './src/thing/thing-contract',
+                },
+              ],
+            }).reExports,
           ],
         ]),
         knownFiles: new Set([firstContractFile, contractFile, barrelFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe('/repo/packages/shared/src/thing/thing-contract.ts');
@@ -146,6 +163,8 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe(undefined);
@@ -161,18 +180,22 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map([
           [
             barrelFile,
-            [
-              {
-                kind: 'named' as const,
-                exportedName: 'thingContract',
-                sourceName: 'thingContract',
-                specifier: './src/thing/thing-contract',
-              },
-            ],
+            ContractIndexFileReadStub({
+              reExports: [
+                {
+                  kind: 'named',
+                  exportedName: 'thingContract',
+                  sourceName: 'thingContract',
+                  specifier: './src/thing/thing-contract',
+                },
+              ],
+            }).reExports,
           ],
         ]),
         knownFiles: new Set([contractFile, barrelFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe(undefined);
@@ -188,32 +211,99 @@ describe('contractFileFindLayerTransformer', () => {
         reExportsByFile: new Map([
           [
             barrelFile,
-            [
-              {
-                kind: 'star' as const,
-                exportedName: '*',
-                sourceName: '*',
-                specifier: './more',
-              },
-            ],
+            ContractIndexFileReadStub({
+              reExports: [
+                {
+                  kind: 'star',
+                  exportedName: '*',
+                  sourceName: '*',
+                  specifier: './more',
+                },
+              ],
+            }).reExports,
           ],
           [
             otherBarrelFile,
-            [
-              {
-                kind: 'star' as const,
-                exportedName: '*',
-                sourceName: '*',
-                specifier: './contracts',
-              },
-            ],
+            ContractIndexFileReadStub({
+              reExports: [
+                {
+                  kind: 'star',
+                  exportedName: '*',
+                  sourceName: '*',
+                  specifier: './contracts',
+                },
+              ],
+            }).reExports,
           ],
         ]),
         knownFiles: new Set([contractFile, barrelFile, otherBarrelFile]),
         packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map(),
       });
 
       expect(result).toBe(undefined);
+    });
+  });
+
+  describe('remembered resolutions', () => {
+    it('VALID: {resolvedTargets already holds the specifier} => answers from it, not from knownFiles', () => {
+      const resolvedTargets = new Map<string, string | null>([
+        [`${importer}\0@repo/shared/src/thing/thing-contract`, contractFile],
+      ]);
+
+      const result = contractFileFindLayerTransformer({
+        specifier: '@repo/shared/src/thing/thing-contract',
+        fromFile: importer,
+        name: 'thingContract',
+        contractFiles: new Set([contractFile]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
+        reExportsByFile: new Map(),
+        knownFiles: new Set(),
+        packages: [sharedPackage],
+        resolvedTargets,
+        foundTargets: new Map(),
+      });
+
+      expect(result).toBe('/repo/packages/shared/src/thing/thing-contract.ts');
+    });
+
+    it('VALID: {a fresh resolution} => remembers it, null for a specifier that names nothing', () => {
+      const resolvedTargets = new Map<string, string | null>();
+
+      contractFileFindLayerTransformer({
+        specifier: 'zod',
+        fromFile: importer,
+        name: 'z',
+        contractFiles: new Set([contractFile]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
+        reExportsByFile: new Map(),
+        knownFiles: new Set([contractFile]),
+        packages: [sharedPackage],
+        resolvedTargets,
+        foundTargets: new Map(),
+      });
+
+      expect([...resolvedTargets]).toStrictEqual([[`${importer}\0zod`, null]]);
+    });
+  });
+
+  describe('remembered searches', () => {
+    it('VALID: {foundTargets already holds the barrel and name} => answers from it without following links', () => {
+      const result = contractFileFindLayerTransformer({
+        specifier: '@repo/shared/contracts',
+        fromFile: importer,
+        name: 'thingContract',
+        contractFiles: new Set([contractFile]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
+        reExportsByFile: new Map(),
+        knownFiles: new Set([barrelFile]),
+        packages: [sharedPackage],
+        resolvedTargets: new Map(),
+        foundTargets: new Map([[`${barrelFile}\0thingContract`, contractFile]]),
+      });
+
+      expect(result).toBe('/repo/packages/shared/src/thing/thing-contract.ts');
     });
   });
 });

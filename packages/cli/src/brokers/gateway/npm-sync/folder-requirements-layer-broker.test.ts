@@ -98,7 +98,7 @@ describe('folderRequirementsLayerBroker', () => {
     expect(result).toStrictEqual([]);
   });
 
-  it('INVALID: {a raw import of a package the consumer does not declare} => returns null', async () => {
+  it('INVALID: {a raw import of a package the consumer does not declare} => returns unresolved-import', async () => {
     const proxy = folderRequirementsLayerBrokerProxy();
     proxy.setupFolder({
       ownSrcRoot: OWN_SRC_ROOT,
@@ -116,10 +116,10 @@ describe('folderRequirementsLayerBroker', () => {
       knownFolders: [],
     });
 
-    expect(result).toBe(null);
+    expect(result).toBe('unresolved-import');
   });
 
-  it('INVALID: {#gateway/npm/<other> the consumer will not have} => returns null', async () => {
+  it('INVALID: {#gateway/npm/<other> the consumer will not have} => returns unresolved-import', async () => {
     const proxy = folderRequirementsLayerBrokerProxy();
     proxy.setupFolder({
       ownSrcRoot: OWN_SRC_ROOT,
@@ -135,10 +135,10 @@ describe('folderRequirementsLayerBroker', () => {
       knownFolders: [],
     });
 
-    expect(result).toBe(null);
+    expect(result).toBe('unresolved-import');
   });
 
-  it('INVALID: {a relative import into a folder the consumer will not have} => returns null', async () => {
+  it('INVALID: {a relative import into a folder the consumer will not have} => returns unresolved-import', async () => {
     const proxy = folderRequirementsLayerBrokerProxy();
     proxy.setupFolder({
       ownSrcRoot: OWN_SRC_ROOT,
@@ -154,10 +154,10 @@ describe('folderRequirementsLayerBroker', () => {
       knownFolders: [],
     });
 
-    expect(result).toBe(null);
+    expect(result).toBe('unresolved-import');
   });
 
-  it('INVALID: {a declared package that is ESM-only for the CommonJS gateway} => returns null', async () => {
+  it('INVALID: {a declared package that is ESM-only for the CommonJS gateway} => returns esm-only', async () => {
     const proxy = folderRequirementsLayerBrokerProxy();
     const testbed = installTestbedCreateBroker({ baseName: 'folder-requirements-esm' });
     testbed.writeFile({
@@ -192,6 +192,6 @@ describe('folderRequirementsLayerBroker', () => {
     });
     testbed.cleanup();
 
-    expect(result).toBe(null);
+    expect(result).toBe('esm-only');
   });
 });

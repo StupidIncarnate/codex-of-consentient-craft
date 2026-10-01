@@ -737,7 +737,7 @@ module.exports = {
 `);
       });
 
-      it('VALID: {packageType: "frontend-react"} => jest config requires the published testing base and widens its transform to tsx/jsx', () => {
+      it('VALID: {packageType: "frontend-react"} => jest config requires the published testing base, keeps its transform keys and adds own-source tsx/jsx', () => {
         const files = packageScaffoldFilesTransformer({
           request: CreatePackageRequestStub({ packageType: 'frontend-react' }),
           usesPublishedJestBase: true,
@@ -756,8 +756,8 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
   transform: {
-    '^.+\\\\.[jt]sx?$': tsJestEntry,
-    '/node_modules/.+\\\\.[cm]?js$': tsJestEntry,
+    ...base.transform,
+    '^(?!.*/node_modules/).+\\\\.[jt]sx?$': tsJestEntry,
   },
 };
 `);

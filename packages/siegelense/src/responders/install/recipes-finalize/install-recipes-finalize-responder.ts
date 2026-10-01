@@ -6,8 +6,9 @@
  * (devDependencies another package adds) mid-`readdirSync`-order sequence. `recipesScaffoldState`
  * is the signal: unset, this run scaffolded nothing and the responder is a no-op; set, it carries
  * the exact scoped package name the scaffold step already computed. Neither npm failure is fatal to
- * the overall `dungeonmaster init` run — it is reported through the result, naming the exact
- * command to run by hand.
+ * the overall `dungeonmaster init` run — it is reported through the result's `error` (the field the
+ * CLI prints for a failed result), naming the command, its exit code, npm's first error line and
+ * the command to run by hand.
  *
  * USAGE:
  * const result = await InstallRecipesFinalizeResponder({ context });
@@ -23,6 +24,7 @@ import {
 
 import { install, runBuild } from '#gateway/bin/npm';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
+import { npmFirstErrorLineTransformer } from '../../../transformers/npm-first-error-line/npm-first-error-line-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 
@@ -50,11 +52,12 @@ export const InstallRecipesFinalizeResponder = async ({
     return installResultContract.parse({
       packageName: PACKAGE_NAME,
       success: false,
-      action: 'created',
-      message:
-        `npm install failed (exit ${String(installResult.exitCode)}): ` +
-        `${installResult.output} — run "npm install" at the repo root, then "${buildCommand}" ` +
-        'to finish setting it up',
+      action: 'failed',
+      error:
+        `"npm install" in ${targetProjectRootCwd} exited ${String(installResult.exitCode)}: ` +
+        `${npmFirstErrorLineTransformer({ output: installResult.output })} — ` +
+        `packages/hydration-recipes/ is scaffolded but not built; fix that, then run "npm install" ` +
+        `at the repo root and "${buildCommand}" by hand`,
     });
   }
 
@@ -66,10 +69,11 @@ export const InstallRecipesFinalizeResponder = async ({
     return installResultContract.parse({
       packageName: PACKAGE_NAME,
       success: false,
-      action: 'created',
-      message:
-        `${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
-        `${buildResult.output} — run "${buildCommand}" to finish setting it up`,
+      action: 'failed',
+      error:
+        `"${buildCommand}" in ${targetProjectRootCwd} exited ${String(buildResult.exitCode)}: ` +
+        `${npmFirstErrorLineTransformer({ output: buildResult.output })} — ` +
+        `packages/hydration-recipes/ is scaffolded but not built; fix that, then run "${buildCommand}" by hand`,
     });
   }
 

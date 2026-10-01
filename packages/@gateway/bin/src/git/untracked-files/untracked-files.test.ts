@@ -3,6 +3,19 @@ import { untrackedFiles } from './untracked-files';
 import { untrackedFilesProxy } from './untracked-files.proxy';
 
 describe('untrackedFiles()', () => {
+  it('VALID: {one file, a warning on stderr} => returns the paths from stdout alone', async () => {
+    const proxy = untrackedFilesProxy();
+    proxy.setupResult({
+      exitCode: 0,
+      output: 'packages/a/new.ts\n',
+      stderr: "warning: refname 'main' is ambiguous.\n",
+    });
+
+    const result = await untrackedFiles({ cwd: '/repo' });
+
+    expect(result).toStrictEqual(['packages/a/new.ts']);
+  });
+
   it('VALID: {output: two files} => returns file paths', async () => {
     const proxy = untrackedFilesProxy();
     proxy.setupResult({ exitCode: 0, output: 'packages/a/new.ts\npackages/b/new.ts\n' });

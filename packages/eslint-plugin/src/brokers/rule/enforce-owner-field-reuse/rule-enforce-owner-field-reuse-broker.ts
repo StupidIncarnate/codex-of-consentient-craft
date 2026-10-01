@@ -4,8 +4,10 @@
  * contract, `Quest['id']` as a parameter type. The owner comes from the owner index, matched on
  * camelCase words with the longest owner name winning, and only among owners the file can import.
  * Reach for this over `require-object-contract-brands`, which grades a key's own brand text: a key
- * this rule claims declares no brand of its own. Reads every workspace package once per process, so
- * it runs in ward's lint pass only and is registered `off` until the brand migration is done.
+ * this rule claims declares no brand of its own. Takes the owner index once per process, from the
+ * per-package cache shards ownerIndexBuildBroker keeps on disk, which still walks every workspace
+ * package, so it runs in ward's lint pass only and is registered `off` until the brand migration is
+ * done.
  * A test, proxy, stub or harness file is not graded, since a test takes its types from stubs. An
  * error class's parameters are not graded either: errors/ may import nothing.
  *

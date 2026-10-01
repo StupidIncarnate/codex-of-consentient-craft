@@ -52,7 +52,7 @@ import { createReport, printSummary } from './lib/report.mjs';
 import { runWriteAssertions, checkWorkspacePackageGatewayImports } from './lib/assertions/writes.mjs';
 import { runWorksAssertions } from './lib/assertions/works.mjs';
 import { runMcpResolutionAssertion } from './lib/assertions/mcp-resolution.mjs';
-import { checkOwnWrapperCopied, ownWrappedRootDependencies } from './lib/assertions/gateway-sync.mjs';
+import { checkModuleMockCopied, checkOwnWrapperCopied, ownWrappedRootDependencies } from './lib/assertions/gateway-sync.mjs';
 
 const args = process.argv.slice(2);
 const modeArg = args.find((arg) => arg.startsWith('--mode='));
@@ -82,9 +82,9 @@ const runLocalMode = async ({ tarballs, gt }) => {
   const consumerRoot = makeWorkDir({ prefix: 'dm-consumer-check-local' });
   process.stdout.write(`\n--- local mode: ${consumerRoot} ---\n`);
 
-  // A dependency dungeonmaster's own npm gateway wraps, declared before `init`, so init's
-  // gateway-sync has a wrapper to copy (`checkOwnWrapperCopied`) and `lib`'s `#gateway/npm/zod`
-  // import resolves through that copy rather than a hand-written one.
+  // Dependencies dungeonmaster's own npm gateway wraps, declared before `init`, so init's
+  // gateway-sync has wrappers to copy (`checkOwnWrapperCopied`, `checkModuleMockCopied`) and `lib`'s
+  // `#gateway/npm/zod` and `#gateway/npm/elkjs` imports resolve through those copies.
   writeRootPackageJson({
     dir: consumerRoot,
     name: CONSUMER_NAME,
@@ -133,6 +133,7 @@ const runLocalMode = async ({ tarballs, gt }) => {
 
   runWriteAssertions({ report, consumerRoot, gt, mode: 'local' });
   checkOwnWrapperCopied({ report, consumerRoot, gt });
+  checkModuleMockCopied({ report, consumerRoot });
 
   // Read before the fixture packages exist (init's own gateway step already scaffolded
   // packages/@gateway/node by this point) so the fixture broker it writes can declare the right

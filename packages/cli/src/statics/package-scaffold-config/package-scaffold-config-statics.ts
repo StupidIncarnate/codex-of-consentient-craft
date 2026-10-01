@@ -25,10 +25,10 @@
  * `jestConfigNodePublished` / `jestConfigTsxPublished` are the same two shapes for a CONSUMER repo,
  * which has no `jest.config.base.js` at its root (only this checkout does) — the responder picks
  * these when that file is absent, and picks the pair above when it is present. The published
- * `@dungeonmaster/testing/jest-config-base` already transforms every extension `[cm]?[jt]s` with no
- * per-library ignore list (see that file's own header), so ONE node template covers what
- * `jestConfigNode` and `jestConfigNodeIntegration` split in two internally. The tsx variant widens
- * that same transform to include `x` by reading the tuple back OFF the spread base's own `transform`
+ * `@dungeonmaster/testing/jest-config-base` already makes every `node_modules` `[cm]?js` file eligible
+ * with no per-library ignore list (see that file's own header), so ONE node template covers what
+ * `jestConfigNode` and `jestConfigNodeIntegration` split in two internally. The tsx variant keeps
+ * that base's keys and adds own-source `tsx`/`jsx` by reading the tuple back OFF the spread base's own `transform`
  * object (`Object.values(base.transform)[0]`) rather than requiring `./ts-jest/published-options.js`
  * directly — `@dungeonmaster/testing`'s `package.json` `exports` map has no subpath for it, so an
  * external `require` of that path 404s under Node's own resolution.
@@ -203,11 +203,13 @@ module.exports = {
   // The published-base sibling of `jestConfigTsx`. `tsJestEntry` is read back off the spread base's
   // own `transform` value rather than required directly, because `@dungeonmaster/testing`'s
   // `package.json` `exports` carries no `./ts-jest/*` subpath for an outside `require` to reach.
-  // `transform` restates BOTH of the base's keys, not just the widened own-source one: under
-  // testEnvironment 'jsdom', MSW's node setup also wires jsdom's own `XMLHttpRequest` global, which
-  // pulls in an ESM `.mjs` file from @mswjs/interceptors' browser build. The `[jt]sx?` key alone
-  // never matches ".mjs", so that file reached jest's CJS loader raw and threw "Must use import to
-  // load ES Module" — confirmed directly against a real packed-and-installed consumer (item G27).
+  // `transform` spreads the base's OWN keys first and adds the own-source `[jt]sx?` key after them.
+  // Jest uses the FIRST key that matches, in object order, so a `node_modules` file still reaches
+  // the base's `node_modules` rule — `node-modules-transformer.js`, which sends ESM through ts-jest
+  // (the ESM `.mjs` file @mswjs/interceptors' browser build pulls in under jsdom, item G27) and hands
+  // CommonJS back uncompiled. The added key also excludes `node_modules` itself, so it cannot shadow
+  // that rule even if the base's key order changes: without that, every CommonJS dependency's `.js`
+  // goes through ts-jest's compile on a cold cache.
   jestConfigTsxPublished: `const base = require('@dungeonmaster/testing/jest-config-base');
 const tsJestEntry = Object.values(base.transform)[0];
 
@@ -219,8 +221,8 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
   transform: {
-    '^.+\\\\.[jt]sx?$': tsJestEntry,
-    '/node_modules/.+\\\\.[cm]?js$': tsJestEntry,
+    ...base.transform,
+    '^(?!.*/node_modules/).+\\\\.[jt]sx?$': tsJestEntry,
   },
 };
 `,

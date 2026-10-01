@@ -51,6 +51,7 @@ import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-st
 import { questToGitNamesTransformer } from '../../../transformers/quest-to-git-names/quest-to-git-names-transformer';
 import { riftcarverFailureClassifyTransformer } from '../../../transformers/riftcarver-failure-classify/riftcarver-failure-classify-transformer';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
+import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
 import { gitDetectBaseBranchBroker } from '../../git/detect-base-branch/git-detect-base-branch-broker';
 import { riftcarverPersistResultBroker } from '../../riftcarver/persist-result/riftcarver-persist-result-broker';
 import { worktreePrepareBroker } from '../../worktree/prepare/worktree-prepare-broker';
@@ -267,9 +268,17 @@ export const stepHandlerRiftcarverBroker = async ({
 
       // TYPECHECK. Deliberately has NO done-check — this is the VERDICT the repair loop re-runs.
       step.value = STEPS.typecheck;
+      const wardOverride = getEnv('WARD_CLI_PATH');
+      const ward =
+        wardOverride === undefined
+          ? await dungeonmasterBinResolveBroker({
+              binName: wardCommandStatics.bin,
+              cwd: worktreePath,
+            })
+          : { command: wardOverride, leadingArgs: [] };
       const typecheck = await streamLines({
-        command: getEnv('WARD_CLI_PATH') ?? wardCommandStatics.bin,
-        args: [...wardCommandStatics.typecheckArgs],
+        command: ward.command,
+        args: [...ward.leadingArgs, ...wardCommandStatics.typecheckArgs],
         cwd: worktreePath,
         onLine: (line: string): void => {
           stream.emit(line);

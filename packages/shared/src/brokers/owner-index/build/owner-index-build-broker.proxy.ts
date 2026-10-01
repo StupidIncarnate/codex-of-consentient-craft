@@ -1,7 +1,4 @@
-import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
-
-import { contractIndexBuildBrokerProxy } from '../../contract-index/build/contract-index-build-broker.proxy';
+import { ownerIndexAssembleBrokerProxy } from '../assemble/owner-index-assemble-broker.proxy';
 
 export const ownerIndexBuildBrokerProxy = (): {
   setupSubfolders: ({ dirPath, folders }: { dirPath: string; folders: readonly string[] }) => void;
@@ -17,14 +14,12 @@ export const ownerIndexBuildBrokerProxy = (): {
   }) => void;
   setupSourceText: ({ filePath, text }: { filePath: string; text: string }) => void;
 } => {
-  readFileSyncProxy();
-  readJsonFileSyncIfExistsProxy();
-  const indexProxy = contractIndexBuildBrokerProxy();
+  const assembleProxy = ownerIndexAssembleBrokerProxy();
 
   return {
-    setupSubfolders: indexProxy.setupSubfolders,
-    setupPackageJson: indexProxy.setupPackageJson,
-    setupWalkedFolder: indexProxy.setupWalkedFolder,
-    setupSourceText: indexProxy.setupSourceText,
+    setupSubfolders: assembleProxy.setupSubfolders,
+    setupPackageJson: assembleProxy.setupPackageJson,
+    setupWalkedFolder: assembleProxy.setupWalkedFolder,
+    setupSourceText: assembleProxy.setupSourceText,
   };
 };

@@ -680,7 +680,8 @@ cards on top of node cards; `elk-layout-statics.test.ts` pins the min of the two
 Per-node ELK options are the shape this wants and elkjs does not implement them: `elk.margins` /
 `org.eclipse.elk.margins`, `spacing.individual` and `nodeSize.minimum` were each measured leaving
 the layout byte-identical, so don't reach for them again. Real ELK is also mocked in jest
-(`^elkjs$` → `__mocks__/elkjs-mock.cjs`), so no unit test can catch a spacing regression by laying a
+(`packages/@gateway/npm/src/elkjs/elkjs.jest-mock.cjs`, which the jest base config's resolver hands
+every test importing `#gateway/npm/elkjs` or `elkjs`), so no unit test can catch a spacing regression by laying a
 graph out — the statics invariant is the guard.
 
 ## Do NOT move react/@mantine from `dependencies` to `devDependencies`

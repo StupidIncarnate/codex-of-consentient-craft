@@ -9,7 +9,8 @@
  * It registers the dungeonmaster ts-jest AST transformers (so registerMock / proxy
  * files work), the auto-reset jest.setup (clears mocks, bans .skip/.todo, fails
  * assertion-less tests), and a sandboxed `HOME` for the whole run (globalSetup/globalTeardown,
- * so every worker and every process a test spawns inherits it). Paths resolve inside the
+ * so every worker and every process a test spawns inherits it), and a resolver that answers every
+ * npm gateway module mock (see ts-jest/gateway-module-mock-resolver.js). Paths resolve inside the
  * installed @dungeonmaster/testing.
  */
 'use strict';
@@ -63,15 +64,22 @@ module.exports = {
   // whole `@inquirer/confirm` CLI-prompt chain it pulls in — `yargs`, `cliui`, `string-width`,
   // `wrap-ansi`, `y18n`, ...) — a named-package carve-out here is exactly the kind of second list
   // that silently drifts the day msw (or any future setupFilesAfterEnv dependency) adds one more.
-  // Transforming everything costs real time only for files a test run ACTUALLY requires, and
-  // ts-jest's `allowJs` (`published-options.js`) already down-levels plain JS/ESM fine.
+  // Eligible is not compiled: the `node_modules` transform rule below runs
+  // `ts-jest/node-modules-transformer.js`, which sends only ESM through ts-jest (`allowJs` in
+  // `published-options.js` down-levels it) and hands CommonJS back untouched — see that file's header.
   transformIgnorePatterns: [],
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
+  // Resolves a request for an npm gateway module mock
+  // (`packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`) to that mock, for every package but
+  // the npm gateway itself — see that file's own header.
+  resolver: path.join(__dirname, 'ts-jest', 'gateway-module-mock-resolver.js'),
   transform: {
     // Own TypeScript source, anywhere — including inside `node_modules/@dungeonmaster/testing`,
     // where this base's own `globalSetup`/`setupFilesAfterEnv` files `require()` sibling `.ts`
     // broker files by relative path in a real consumer install (see this file's own header above).
-    '^.+\\.tsx?$': ['ts-jest', dungeonmasterTsJestOptions],
+    // `ts-source-transformer.js` is ts-jest with a cache key that also covers the mocks hoisted out
+    // of the proxy files a test imports — see that file's header.
+    '^.+\\.tsx?$': [path.join(__dirname, 'ts-jest', 'ts-source-transformer.js'), dungeonmasterTsJestOptions],
     // Anchored to `node_modules`, not `.[cm]?[jt]s$` everywhere as this used to read:
     // `transformIgnorePatterns` above is `[]` because msw's OWN transitive dependency graph is too
     // deep and too volatile to enumerate by name (see this file's own header) — every node_modules
@@ -82,6 +90,10 @@ module.exports = {
     // rejected the raw `import`/`export` syntax before ts-jest ever saw the file — confirmed
     // against a real packed-and-installed consumer (item G27).
     //
+    // `node-modules-transformer.js`, not ts-jest directly: it delegates ESM to ts-jest with these
+    // same options and returns CommonJS byte-identical, so a large CJS dependency (elkjs's 1.5MB
+    // worker bundle) costs no compile — see that file's header for the ESM/CommonJS rule.
+    //
     // Anchoring to `node_modules` here — rather than matching every `.js`/`.mjs`/`.cjs` file in the
     // CONSUMER's own project too, which is what this pattern used to do — is what keeps a
     // consumer's own project `.js` fixture off ts-jest's error-recovering `transpileModule`: left
@@ -90,7 +102,10 @@ module.exports = {
     // repo's own packages (fixed in cdf22d643). A path this pattern does not match still runs: Jest
     // hands a genuine CommonJS `.js` file straight to Node's own loader, with no ts-jest step
     // needed, so a real syntax error there still throws.
-    '/node_modules/.+\\.[cm]?js$': ['ts-jest', dungeonmasterTsJestOptions],
+    '/node_modules/.+\\.[cm]?js$': [
+      path.join(__dirname, 'ts-jest', 'node-modules-transformer.js'),
+      dungeonmasterTsJestOptions,
+    ],
   },
   coverageDirectory: 'coverage',
   verbose: false,

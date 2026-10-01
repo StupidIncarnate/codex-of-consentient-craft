@@ -1,3 +1,4 @@
+import { execPath, getEnv } from '#gateway/node/process';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
@@ -5,6 +6,7 @@ import { TestFailureStub } from '../../../contracts/test-failure/test-failure.st
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 
+import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { checkRunE2eBroker } from './check-run-e2e-broker';
 import { checkRunE2eBrokerProxy } from './check-run-e2e-broker.proxy';
 
@@ -411,17 +413,24 @@ describe('checkRunE2eBroker', () => {
   });
 
   describe('source export condition', () => {
-    it('VALID: {shared source barrel reachable} => spawns playwright with NODE_OPTIONS=--conditions=source', async () => {
+    it('VALID: {shared source barrel reachable} => runs playwright through this node with --conditions=source', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunE2eBrokerProxy();
       proxy.setupPass({ projectFolder });
 
       await checkRunE2eBroker({ projectFolder, fileList: [] });
 
-      expect(proxy.getSpawnedEnvValue({ key: 'NODE_OPTIONS' })).toBe('--conditions=source');
+      expect(proxy.getSpawnedCommandLine()).toStrictEqual({
+        command: execPath,
+        args: [
+          '--conditions=source',
+          `${projectFolder.path}/node_modules/.bin/playwright`,
+          ...checkCommandsStatics.e2e.args,
+        ],
+      });
     });
 
-    it('VALID: {consumer install, shared packs dist only} => spawns playwright with no NODE_OPTIONS at all', async () => {
+    it('VALID: {consumer install, shared packs dist only} => runs the playwright bin itself', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunE2eBrokerProxy();
       proxy.setupSourceConditionUnsupported({ projectFolder });
@@ -429,7 +438,20 @@ describe('checkRunE2eBroker', () => {
 
       await checkRunE2eBroker({ projectFolder, fileList: [] });
 
-      expect(proxy.getSpawnedEnvValue({ key: 'NODE_OPTIONS' })).toBe(undefined);
+      expect(proxy.getSpawnedCommandLine()).toStrictEqual({
+        command: `${projectFolder.path}/node_modules/.bin/playwright`,
+        args: [...checkCommandsStatics.e2e.args],
+      });
+    });
+
+    it('VALID: {shared source barrel reachable} => hands playwright NODE_OPTIONS exactly as ward found it', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'NODE_OPTIONS' })).toBe(getEnv('NODE_OPTIONS'));
     });
   });
 

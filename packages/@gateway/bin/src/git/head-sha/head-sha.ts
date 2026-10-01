@@ -11,12 +11,12 @@
 import { gitRun } from '../git-run/git-run';
 
 export const headSha = async ({ cwd }: { cwd: string }): Promise<string | null> => {
-  const { exitCode, output } = await gitRun({ args: ['rev-parse', 'HEAD'], cwd });
+  const { exitCode, stdout } = await gitRun({ args: ['rev-parse', 'HEAD'], cwd });
 
   if (exitCode !== 0) {
     return null;
   }
 
-  const sha = output.trim();
+  const sha = stdout.trim();
   return sha.length === 0 ? null : sha;
 };
