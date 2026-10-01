@@ -31,7 +31,7 @@ describe('QuestClarifyResponder', () => {
       const result = await proxy.callResponder({
         params: { questId },
         body: {
-          answers: [{ header: 'q1', label: 'a1' }],
+          answers: [{ header: 'q1', labels: ['a1'] }],
           questions: [
             {
               question: 'a question',
@@ -48,6 +48,45 @@ describe('QuestClarifyResponder', () => {
         data: { chatProcessId: 'proc-clarify' },
       });
     });
+
+    it('VALID: {question-1 answer {header: Letters, labels: [Alpha, Gamma], text: prefer Gamma}} => returns 200 with chatProcessId', async () => {
+      const proxy = QuestClarifyResponderProxy();
+      const questId = QuestIdStub();
+      const sessionId = SessionIdStub({ value: 'session-clarify' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({
+        id: questId,
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId })],
+      });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({ questId, guildId, questPath: '/q/path' });
+      proxy.setupClarify({ questId, chatProcessId: 'proc-multi' });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: {
+          answers: [{ header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' }],
+          questions: [
+            {
+              question: 'Which letters?',
+              header: 'Letters',
+              options: [
+                { label: 'Alpha', description: 'first letter' },
+                { label: 'Beta', description: 'second letter' },
+                { label: 'Gamma', description: 'third letter' },
+              ],
+              multiSelect: true,
+            },
+          ],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-multi' },
+      });
+    });
   });
 
   describe('not-found cases', () => {
@@ -61,7 +100,7 @@ describe('QuestClarifyResponder', () => {
       const result = await proxy.callResponder({
         params: { questId },
         body: {
-          answers: [{ header: 'q1', label: 'a1' }],
+          answers: [{ header: 'q1', labels: ['a1'] }],
           questions: [],
         },
       });
@@ -129,6 +168,48 @@ describe('QuestClarifyResponder', () => {
         data: { error: 'answers array is required and must not be empty' },
       });
     });
+
+    it('INVALID: {answer {header: Letters, labels: []} and no text} => returns 400', async () => {
+      QuestClarifyResponderProxy();
+
+      const result = await QuestClarifyResponder({
+        params: { questId: QuestIdStub() },
+        body: { answers: [{ header: 'Letters', labels: [] }], questions: [] },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'answers array is required and must not be empty' },
+      });
+    });
+
+    it('INVALID: {answer {labels: [], text: whitespace only}} => returns 400', async () => {
+      QuestClarifyResponderProxy();
+
+      const result = await QuestClarifyResponder({
+        params: { questId: QuestIdStub() },
+        body: { answers: [{ header: 'Letters', labels: [], text: '   ' }], questions: [] },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'answers array is required and must not be empty' },
+      });
+    });
+
+    it('INVALID: {answer {labels: [empty string]}} => returns 400', async () => {
+      QuestClarifyResponderProxy();
+
+      const result = await QuestClarifyResponder({
+        params: { questId: QuestIdStub() },
+        body: { answers: [{ header: 'Letters', labels: [''] }], questions: [] },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'answers array is required and must not be empty' },
+      });
+    });
   });
 
   describe('error cases', () => {
@@ -140,7 +221,7 @@ describe('QuestClarifyResponder', () => {
       const result = await proxy.callResponder({
         params: { questId },
         body: {
-          answers: [{ header: 'q1', label: 'a1' }],
+          answers: [{ header: 'q1', labels: ['a1'] }],
           questions: [],
         },
       });

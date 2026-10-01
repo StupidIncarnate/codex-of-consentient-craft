@@ -6,7 +6,7 @@ export const QuestClarifyBodyStub = ({
   ...props
 }: StubArgument<QuestClarifyBody> = {}): QuestClarifyBody =>
   questClarifyBodyContract.parse({
-    answers: [{ header: 'q1', label: 'a1' }],
+    answers: [{ header: 'q1', labels: ['a1'] }],
     questions: [
       {
         question: 'a question',
