@@ -280,5 +280,11 @@ describe('SessionForensicsFlow', () => {
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
+
+    it('EMPTY: {argv: [summary, ""]} with empty-string target => returns the usage block', () => {
+      const result = SessionForensicsFlow({ argv: ['summary', ''] });
+
+      expect(result).toBe(USAGE_BLOCK_TEXT);
+    });
   });
 });

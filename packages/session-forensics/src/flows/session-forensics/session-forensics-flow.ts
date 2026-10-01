@@ -37,7 +37,7 @@ export const SessionForensicsFlow = ({ argv }: { argv: readonly string[] }): str
   const parsedCommand = digestCommandContract.safeParse(argv[0]);
   const [, target] = argv;
 
-  if (!parsedCommand.success || target === undefined) {
+  if (!parsedCommand.success || target === undefined || target === '') {
     return USAGE_BLOCK;
   }
 
