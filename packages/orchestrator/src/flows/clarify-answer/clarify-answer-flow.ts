@@ -12,6 +12,7 @@ import type { Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
+import { clarificationAnswerToLineTransformer } from '../../transformers/clarification-answer-to-line/clarification-answer-to-line-transformer';
 import { ClarifyAnswerResponder } from '../../responders/clarify/answer/clarify-answer-responder';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
 
@@ -30,7 +31,9 @@ export const ClarifyAnswerFlow = async ({
 }): Promise<ClarifyAnswerResult> => {
   await ClarifyAnswerResponder({ questId, answers, questions });
 
-  const message = answers.map((a) => `${a.header}: ${a.label}`).join('\n');
+  const message = answers
+    .map((answer) => clarificationAnswerToLineTransformer({ answer }))
+    .join('\n');
 
   return clarifyAnswerResultContract.parse(
     await ChatStartResponder({ guildId, message, sessionId }),

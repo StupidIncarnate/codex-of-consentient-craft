@@ -19,7 +19,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' })],
+        answers: [
+          ClarificationAnswerStub({ header: 'Database Selection', labels: ['PostgreSQL'] }),
+        ],
         questions,
       });
 
@@ -43,7 +45,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
         answers: [
-          ClarificationAnswerStub({ header: 'Icon Choice', label: 'Custom freeform answer' }),
+          ClarificationAnswerStub({ header: 'Icon Choice', labels: ['Custom freeform answer'] }),
         ],
         questions,
       });
@@ -72,8 +74,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
         answers: [
-          ClarificationAnswerStub({ header: 'Auth Method', label: 'JWT' }),
-          ClarificationAnswerStub({ header: 'Storage Layer', label: 'S3' }),
+          ClarificationAnswerStub({ header: 'Auth Method', labels: ['JWT'] }),
+          ClarificationAnswerStub({ header: 'Storage Layer', labels: ['S3'] }),
         ],
         questions,
       });
@@ -104,7 +106,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Unrelated Header', label: 'Something' })],
+        answers: [ClarificationAnswerStub({ header: 'Unrelated Header', labels: ['Something'] })],
         questions,
       });
 
@@ -122,7 +124,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
     it('EMPTY: {empty questions array} => returns empty array', () => {
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Something', label: 'Value' })],
+        answers: [ClarificationAnswerStub({ header: 'Something', labels: ['Value'] })],
         questions: [],
       });
 
@@ -148,9 +150,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
         answers: [
-          ClarificationAnswerStub({ header: 'Nonexistent Topic', label: 'Irrelevant' }),
-          ClarificationAnswerStub({ header: 'Auth Method', label: 'JWT' }),
-          ClarificationAnswerStub({ header: 'Another Missing', label: 'Nothing' }),
+          ClarificationAnswerStub({ header: 'Nonexistent Topic', labels: ['Irrelevant'] }),
+          ClarificationAnswerStub({ header: 'Auth Method', labels: ['JWT'] }),
+          ClarificationAnswerStub({ header: 'Another Missing', labels: ['Nothing'] }),
         ],
         questions,
       });
@@ -176,7 +178,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'database selection', label: 'PostgreSQL' })],
+        answers: [
+          ClarificationAnswerStub({ header: 'database selection', labels: ['PostgreSQL'] }),
+        ],
         questions,
       });
 
@@ -200,7 +204,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
         answers: [
-          ClarificationAnswerStub({ header: '  Database Selection  ', label: 'PostgreSQL' }),
+          ClarificationAnswerStub({ header: '  Database Selection  ', labels: ['PostgreSQL'] }),
         ],
         questions,
       });
@@ -224,7 +228,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Storage Layer', label: 'S3' })],
+        answers: [ClarificationAnswerStub({ header: 'Storage Layer', labels: ['S3'] })],
         questions,
       });
 
@@ -249,7 +253,9 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'postgresql' })],
+        answers: [
+          ClarificationAnswerStub({ header: 'Database Selection', labels: ['postgresql'] }),
+        ],
         questions,
       });
 
@@ -274,7 +280,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'UI Framework (v2)', label: 'React' })],
+        answers: [ClarificationAnswerStub({ header: 'UI Framework (v2)', labels: ['React'] })],
         questions,
       });
 
@@ -297,7 +303,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Auth---Method', label: 'JWT' })],
+        answers: [ClarificationAnswerStub({ header: 'Auth---Method', labels: ['JWT'] })],
         questions,
       });
 
@@ -320,7 +326,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: '---Cache Strategy', label: 'Redis' })],
+        answers: [ClarificationAnswerStub({ header: '---Cache Strategy', labels: ['Redis'] })],
         questions,
       });
 
@@ -343,7 +349,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
       ];
 
       const result = clarificationAnswersToDesignDecisionsTransformer({
-        answers: [ClarificationAnswerStub({ header: 'Cache Strategy!!!', label: 'Redis' })],
+        answers: [ClarificationAnswerStub({ header: 'Cache Strategy!!!', labels: ['Redis'] })],
         questions,
       });
 
@@ -352,6 +358,89 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
           id: 'dd-cache-strategy',
           title: 'Cache Strategy!!!: Redis',
           rationale: 'In-memory cache',
+          relatedNodeIds: [],
+        },
+      ]);
+    });
+  });
+
+  describe('multi-select and typed answers', () => {
+    it('VALID: {two labels and typed text} => title is the summary line, rationale lists each description then the text', () => {
+      const questions = [
+        ClarificationQuestionStub({
+          header: 'Letters',
+          options: [
+            { label: 'Alpha', description: 'First letter' },
+            { label: 'Beta', description: 'Second letter' },
+            { label: 'Gamma', description: 'Third letter' },
+          ],
+        }),
+      ];
+
+      const result = clarificationAnswersToDesignDecisionsTransformer({
+        answers: [
+          ClarificationAnswerStub({
+            header: 'Letters',
+            labels: ['Alpha', 'Gamma'],
+            text: 'prefer Gamma',
+          }),
+        ],
+        questions,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: 'dd-letters',
+          title: 'Letters: Alpha, Gamma \u2014 prefer Gamma',
+          rationale: 'First letter\nThird letter\nprefer Gamma',
+          relatedNodeIds: [],
+        },
+      ]);
+    });
+
+    it('VALID: {typed text only, no labels} => title and rationale are the text', () => {
+      const questions = [
+        ClarificationQuestionStub({
+          header: 'Letters',
+          options: [{ label: 'Alpha', description: 'First letter' }],
+        }),
+      ];
+
+      const result = clarificationAnswersToDesignDecisionsTransformer({
+        answers: [
+          ClarificationAnswerStub({ header: 'Letters', labels: [], text: 'my own answer' }),
+        ],
+        questions,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: 'dd-letters',
+          title: 'Letters: my own answer',
+          rationale: 'my own answer',
+          relatedNodeIds: [],
+        },
+      ]);
+    });
+
+    it('EDGE: {one label matches an option, one does not} => unmatched label is its own rationale line', () => {
+      const questions = [
+        ClarificationQuestionStub({
+          header: 'Letters',
+          options: [{ label: 'Alpha', description: 'First letter' }],
+        }),
+      ];
+
+      const result = clarificationAnswersToDesignDecisionsTransformer({
+        answers: [ClarificationAnswerStub({ header: 'Letters', labels: ['Alpha', 'Omega'] })],
+        questions,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: 'dd-letters',
+          title: 'Letters: Alpha, Omega',
+          rationale: 'First letter\nOmega',
           relatedNodeIds: [],
         },
       ]);

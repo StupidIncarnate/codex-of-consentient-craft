@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Transforms structured clarification answers and their matching questions into DesignDecision objects
+ * PURPOSE: Turns answered clarification questions into DesignDecisions. The title is the answer's summary
+ * line; the rationale holds each picked option's description on its own line, then the typed text.
  *
  * USAGE:
- * clarificationAnswersToDesignDecisionsTransformer({ answers: [{header: 'DB', label: 'PostgreSQL'}], questions: [ClarificationQuestionStub()] });
+ * clarificationAnswersToDesignDecisionsTransformer({ answers: [ClarificationAnswerStub({ header: 'DB', labels: ['PostgreSQL'] })], questions: [ClarificationQuestionStub()] });
  * // Returns DesignDecision[] with id, title, rationale, relatedNodeIds
  */
 
@@ -11,6 +12,7 @@ import { designDecisionContract } from '@dungeonmaster/shared/contracts';
 import type { ClarificationAnswer } from '../../contracts/clarification-answer/clarification-answer-contract';
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
+import { clarificationAnswerToLineTransformer } from '../clarification-answer-to-line/clarification-answer-to-line-transformer';
 
 export const clarificationAnswersToDesignDecisionsTransformer = ({
   answers,
@@ -20,19 +22,23 @@ export const clarificationAnswersToDesignDecisionsTransformer = ({
   questions: ClarificationQuestion[];
 }): DesignDecision[] => {
   const decisions: DesignDecision[] = [];
+  const questionByHeader = new Map(
+    questions.map((question) => [question.header.trim().toLowerCase(), question]),
+  );
 
   for (const answer of answers) {
-    const matchingQuestion = questions.find(
-      (q) => q.header.trim().toLowerCase() === answer.header.trim().toLowerCase(),
-    );
+    const matchingQuestion = questionByHeader.get(answer.header.trim().toLowerCase());
 
     if (!matchingQuestion) continue;
 
-    const matchingOption = matchingQuestion.options.find(
-      (opt) => opt.label === String(answer.label),
+    const descriptionByLabel = new Map(
+      matchingQuestion.options.map((opt) => [String(opt.label), String(opt.description)]),
     );
 
-    const rationale = matchingOption ? String(matchingOption.description) : answer.label;
+    const labelLines = answer.labels.map((label) => descriptionByLabel.get(label) ?? label);
+    const rationale = (answer.text === undefined ? labelLines : [...labelLines, answer.text]).join(
+      '\n',
+    );
 
     const kebabHeader = answer.header
       .toLowerCase()
@@ -40,7 +46,9 @@ export const clarificationAnswersToDesignDecisionsTransformer = ({
       .replace(/^-|-$/gu, '');
 
     const id = designDecisionContract.shape.id.parse(`dd-${kebabHeader}`);
-    const title = designDecisionContract.shape.title.parse(`${answer.header}: ${answer.label}`);
+    const title = designDecisionContract.shape.title.parse(
+      clarificationAnswerToLineTransformer({ answer }),
+    );
     const parsedRationale = designDecisionContract.shape.rationale.parse(rationale);
 
     decisions.push(

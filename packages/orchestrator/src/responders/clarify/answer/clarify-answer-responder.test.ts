@@ -27,7 +27,9 @@ describe('ClarifyAnswerResponder', () => {
 
       await ClarifyAnswerResponder({
         questId: quest.id,
-        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' })],
+        answers: [
+          ClarificationAnswerStub({ header: 'Database Selection', labels: ['PostgreSQL'] }),
+        ],
         questions,
       });
 
@@ -73,8 +75,8 @@ describe('ClarifyAnswerResponder', () => {
       await ClarifyAnswerResponder({
         questId: quest.id,
         answers: [
-          ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' }),
-          ClarificationAnswerStub({ header: 'Auth Strategy', label: 'JWT' }),
+          ClarificationAnswerStub({ header: 'Database Selection', labels: ['PostgreSQL'] }),
+          ClarificationAnswerStub({ header: 'Auth Strategy', labels: ['JWT'] }),
         ],
         questions,
       });
@@ -117,7 +119,9 @@ describe('ClarifyAnswerResponder', () => {
 
       await ClarifyAnswerResponder({
         questId: quest.id,
-        answers: [ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' })],
+        answers: [
+          ClarificationAnswerStub({ header: 'Database Selection', labels: ['PostgreSQL'] }),
+        ],
         questions,
       });
 
@@ -129,6 +133,46 @@ describe('ClarifyAnswerResponder', () => {
           id: 'dd-database-selection',
           title: 'Database Selection: PostgreSQL',
           rationale: 'PostgreSQL',
+          relatedNodeIds: [],
+        },
+      ]);
+    });
+
+    it('VALID: {two labels and typed text} => persists the summary title and one rationale line per pick', async () => {
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
+      const proxy = ClarifyAnswerResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      const questions = [
+        ClarificationQuestionStub({
+          header: 'Letters',
+          options: [
+            { label: 'Alpha', description: 'First letter' },
+            { label: 'Gamma', description: 'Third letter' },
+          ],
+        }),
+      ];
+
+      await ClarifyAnswerResponder({
+        questId: quest.id,
+        answers: [
+          ClarificationAnswerStub({
+            header: 'Letters',
+            labels: ['Alpha', 'Gamma'],
+            text: 'prefer Gamma',
+          }),
+        ],
+        questions,
+      });
+
+      const persisted = proxy.getAllPersistedContents();
+      const persistedQuest = JSON.parse(String(persisted[0])) as Quest;
+
+      expect(persistedQuest.designDecisions).toStrictEqual([
+        {
+          id: 'dd-letters',
+          title: 'Letters: Alpha, Gamma \u2014 prefer Gamma',
+          rationale: 'First letter\nThird letter\nprefer Gamma',
           relatedNodeIds: [],
         },
       ]);
@@ -147,7 +191,7 @@ describe('ClarifyAnswerResponder', () => {
 
       await ClarifyAnswerResponder({
         questId: quest.id,
-        answers: [ClarificationAnswerStub({ header: 'No Match', label: 'Value' })],
+        answers: [ClarificationAnswerStub({ header: 'No Match', labels: ['Value'] })],
         questions,
       });
 
@@ -198,8 +242,8 @@ describe('ClarifyAnswerResponder', () => {
       await ClarifyAnswerResponder({
         questId: quest.id,
         answers: [
-          ClarificationAnswerStub({ header: 'Database Selection', label: 'PostgreSQL' }),
-          ClarificationAnswerStub({ header: 'Nonexistent Question', label: 'Some Value' }),
+          ClarificationAnswerStub({ header: 'Database Selection', labels: ['PostgreSQL'] }),
+          ClarificationAnswerStub({ header: 'Nonexistent Question', labels: ['Some Value'] }),
         ],
         questions,
       });

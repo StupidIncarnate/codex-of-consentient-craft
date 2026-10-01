@@ -8,6 +8,6 @@ export const ClarificationAnswerStub = ({
 }: StubArgument<ClarificationAnswer> = {}): ClarificationAnswer =>
   clarificationAnswerContract.parse({
     header: 'Architecture Choice',
-    label: 'Option A',
+    labels: ['Option A'],
     ...props,
   });
