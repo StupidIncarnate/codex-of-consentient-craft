@@ -195,6 +195,8 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
         projectRoot,
         packages: ['nonexistent'],
       }),
-    ).rejects.toThrow(/Unknown package\(s\): nonexistent\. Valid: .*\bcli\b.*\bmcp\b.*\bweb\b/u);
+    ).rejects.toThrow(
+      /Unknown package\(s\): nonexistent\. Valid: #gateway, (?!.*\b(?:bin|browser|node|npm)\b).*\bcli\b.*\bmcp\b.*\bweb\b/u,
+    );
   });
 });

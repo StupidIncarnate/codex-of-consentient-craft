@@ -152,7 +152,20 @@ describe('architectureProjectMapBroker', () => {
           projectRoot,
           packages: ['@gateway'],
         }),
-      ).rejects.toThrow(/Unknown package\(s\): @gateway\. Valid: npm/u);
+      ).rejects.toThrow(/Unknown package\(s\): @gateway\. Valid: #gateway/u);
+    });
+
+    it('INVALID: {packages/@gateway/npm on disk, packages: [bogus]} => valid list shows #gateway instead of npm', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = '/project';
+      proxy.setupGatewayGroupPackage({ projectRoot, groupName: '@gateway', packageName: 'npm' });
+
+      await expect(
+        architectureProjectMapBroker({
+          projectRoot,
+          packages: ['bogus'],
+        }),
+      ).rejects.toThrow(/Unknown package\(s\): bogus\. Valid: #gateway/u);
     });
   });
 

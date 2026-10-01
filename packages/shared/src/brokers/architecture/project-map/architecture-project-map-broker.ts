@@ -68,7 +68,12 @@ export const architectureProjectMapBroker = async ({
   const namesRequiringDiscovery = requestedNames.filter((name) => name !== gatewayGroupName);
   const unknown = namesRequiringDiscovery.filter((name) => !discoveredNames.includes(name));
   if (unknown.length > 0) {
-    const validList = [...discoveredNames].sort((a, b) => a.localeCompare(b)).join(', ');
+    const gatewayFolders: readonly string[] = Object.values(gatewayLocationsStatics.folders);
+    const hasGateway = discoveredNames.some((name) => gatewayFolders.includes(name));
+    const validNames = hasGateway
+      ? [...discoveredNames.filter((name) => !gatewayFolders.includes(name)), gatewayGroupName]
+      : [...discoveredNames];
+    const validList = validNames.sort((a, b) => a.localeCompare(b)).join(', ');
     throw new Error(`Unknown package(s): ${unknown.join(', ')}. Valid: ${validList}`);
   }
 
