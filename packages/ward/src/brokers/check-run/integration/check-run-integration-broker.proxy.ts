@@ -12,6 +12,7 @@ import { openHandleReportPathTransformer } from '../../../transformers/open-hand
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { runnerCommandResolveBrokerProxy } from '../../runner-command/resolve/runner-command-resolve-broker.proxy';
+import { bundleBuildForIntegrationBrokerProxy } from '../../bundle/build-for-integration/bundle-build-for-integration-broker.proxy';
 import { RunnerCommandStub } from '../../../contracts/runner-command/runner-command.stub';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -19,6 +20,10 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 
 export const checkRunIntegrationBrokerProxy = (): {
   setupPass: (params: { projectFolder: ProjectFolder }) => void;
+  setupPassWithBundle: (params: { projectFolder: ProjectFolder }) => void;
+  setupOptedInWithoutBuildScript: (params: { projectFolder: ProjectFolder }) => void;
+  getBundleDir: (params: { projectFolder: ProjectFolder }) => string;
+  getSpawnedEnvValue: (params: { key: string }) => unknown;
   setupPassWithOutput: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupFail: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupFailWithBadOutput: (params: { projectFolder: ProjectFolder }) => void;
@@ -73,6 +78,10 @@ export const checkRunIntegrationBrokerProxy = (): {
   // reading it. `setupHandleReport` below overrides this to present for the tests that stage one.
   existsProxy.returns({ path: handleReportPath, exists: false });
   const runnerProxy = runnerCommandResolveBrokerProxy();
+  // Every setup below except setupPassWithBundle and setupOptedInWithoutBuildScript leaves the
+  // package.json read UNSTAGED, so the package reads as not opted in and the run gets no bundle,
+  // which is what those setups' expectations describe.
+  const bundleProxy = bundleBuildForIntegrationBrokerProxy();
   // The runner command depends on projectFolder.path, so the getters below (which take no params)
   // address the spawn read against whatever setup last resolved — set here, read there.
   const runnerRef: { value: ReturnType<typeof RunnerCommandStub> } = { value: RunnerCommandStub() };
@@ -152,6 +161,32 @@ export const checkRunIntegrationBrokerProxy = (): {
         stderr: '',
       });
     },
+
+    setupPassWithBundle: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+      bundleProxy.setupOptedInWithCachedBundle({ packageRoot: projectFolder.path });
+      stage({
+        projectFolder,
+        exitCode: 0,
+        stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+        stderr: '',
+      });
+    },
+
+    // The build check fails before jest is resolved or spawned, so only the jest config and the
+    // manifest are staged.
+    setupOptedInWithoutBuildScript: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+      stageJestConfigPresent({ projectFolder });
+      bundleProxy.setupManifest({
+        packageRoot: projectFolder.path,
+        contents: JSON.stringify({ name: 'opted-in', ward: { integrationBuild: true } }),
+      });
+    },
+
+    getBundleDir: ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
+      bundleProxy.bundleDirFor({ packageRoot: projectFolder.path }),
+
+    getSpawnedEnvValue: ({ key }: { key: string }): unknown =>
+      run.getOptionsFor({ command: runnerRef.value.command }).at(-1)?.env[key],
 
     setupPassWithOutput: ({
       projectFolder,

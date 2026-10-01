@@ -40,6 +40,80 @@ describe('checkRunIntegrationBroker', () => {
     });
   });
 
+  describe('a package whose integration tests run its build', () => {
+    it('VALID: {package.json sets ward.integrationBuild: true} => hands jest the bundle directory in DUNGEONMASTER_BUNDLE_DIR', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithBundle({ projectFolder });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect({
+        bundleDir: proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_BUNDLE_DIR' }),
+        result,
+      }).toStrictEqual({
+        bundleDir: proxy.getBundleDir({ projectFolder }),
+        result: ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
+          rawOutput: RawOutputStub({
+            stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+            stderr: '',
+            exitCode: 0,
+          }),
+        }),
+      });
+    });
+
+    it('EMPTY: {package.json does not opt in} => hands jest no DUNGEONMASTER_BUNDLE_DIR', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_BUNDLE_DIR' })).toBe(undefined);
+    });
+
+    it('ERROR: {ward.integrationBuild: true, no build script} => fails without spawning jest, naming the missing script', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupOptedInWithoutBuildScript({ projectFolder });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect({ result, jestArgs: proxy.getSpawnedArgs() }).toStrictEqual({
+        result: ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          filesCount: 0,
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: `${projectFolder.path}/package.json sets "ward": { "integrationBuild": true } but has no "build" script. Add a "build" script that accepts --outDir <dir> and writes its whole output there, or remove "integrationBuild".`,
+            exitCode: 1,
+          }),
+        }),
+        jestArgs: undefined,
+      });
+    });
+  });
+
   describe('failing tests', () => {
     it('VALID: {jest exits 1 with failures} => returns fail result with parsed test failures', async () => {
       const jestOutput = JSON.stringify({

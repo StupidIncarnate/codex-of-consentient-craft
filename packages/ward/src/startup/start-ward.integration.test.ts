@@ -3,6 +3,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { chdir, cwd, stdout } from '#gateway/node/process';
 
 import { wardRunnerHarness } from '../../test/harnesses/ward-runner/ward-runner.harness';
+import { integrationBundleHarness } from '../../test/harnesses/integration-bundle/integration-bundle.harness';
 import { WardRunResultStub } from '../contracts/ward-run-result/ward-run-result.stub';
 
 import { StartWard } from './start-ward';
@@ -103,6 +104,47 @@ describe('StartWard', () => {
         checks: storedResult.checks,
       });
     });
+  });
+
+  describe('two integration runs at once, for a package whose tests read its build', () => {
+    const bundleHarness = integrationBundleHarness();
+
+    // Two real ward processes, started together against one package that sets
+    // `"ward": { "integrationBuild": true }`. Its build writes half its output, waits, then writes
+    // the rest, so a test handed a directory still being written would find one file, not two.
+    it('VALID: {two concurrent `ward run --only integration`} => both pass, both tests read the same complete bundle, and one bundle directory is left', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'ward-integration-bundle',
+        baseDir: bundleHarness.baseDir,
+      });
+      const packageRoot = testbed.guildPath;
+      await bundleHarness.seedOptedInPackage({ packageRoot });
+
+      const runs = await Promise.all([
+        bundleHarness.runWard({ packageRoot }),
+        bundleHarness.runWard({ packageRoot }),
+      ]);
+      const bundleEntries = bundleHarness.bundleEntries({ packageRoot });
+      const seen = bundleHarness.seenByTests({ packageRoot });
+
+      testbed.cleanup();
+
+      const [bundleHash] = bundleEntries;
+      const bundleDir = `${packageRoot}/.ward/bundle/${String(bundleHash)}`;
+
+      expect({
+        exitCodes: runs.map((wardRun) => wardRun.exitCode),
+        bundleEntries,
+        seen,
+      }).toStrictEqual({
+        exitCodes: [0, 0],
+        bundleEntries: [expect.stringMatching(/^[0-9a-f]{64}$/u)],
+        seen: [
+          { bundleDir, files: ['part-1.txt', 'part-2.txt'] },
+          { bundleDir, files: ['part-1.txt', 'part-2.txt'] },
+        ],
+      });
+    }, 120_000);
   });
 
   describe('built artifact', () => {

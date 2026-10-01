@@ -33,7 +33,7 @@ probe that reproduces it is in [Re-measuring any of this](#re-measuring-any-of-t
 |---|---|---|
 | `npm run ward` (typecheck) | `packages/<pkg>/tsconfig.json` | **No.** `tsc --noEmit --listFiles`, once per package |
 | `npm run ward` (lint) | `packages/<pkg>/tsconfig.json`, via typescript-eslint `project: true` | No — but `eslint --fix` writes source, see §7 |
-| `npm run ward` (unit / integration) | the package's jest config | No |
+| `npm run ward` (unit / integration) | the package's jest config | No — except an integration run whose package opts in, into `.ward/bundle/<hash>/`, see §6 |
 | `npm run ward` (e2e) | `packages/web/playwright.config.ts` | Into `.ward/bundle/<hash>/`, never `dist/` — see §6 |
 | `npm run build` | `packages/<pkg>/tsconfig.build.json` | **Yes**, to `packages/<pkg>/dist/` |
 
@@ -348,11 +348,32 @@ to workspace packs. An explicit `files` field is what overrides it. Without one 
 published `ts-jest` glue requires `../src/…` by relative path at runtime, so a bare `["dist"]` kills
 every consumer's jest at transform time.
 
-**One ward check does build, and it never touches `dist`.** `bundleBuildBroker` runs the package's own
-`npm run build -- --outDir <path>` for an e2e run, into `<pkg>/.ward/bundle/<sha-256 of the inputs>/`.
-A build goes to `.tmp-<pid>` and is `rename`d onto its hash; `rename` onto a non-empty directory is
-refused by the kernel, so a run that loses the race discards its own copy and serves the winner's,
-which — same inputs — is the same bundle. Nothing is ever written into a published hash directory.
+**Two ward checks can build, and neither touches `dist`.** `bundleBuildBroker` runs the package's own
+`npm run build -- --outDir <path>` into `<pkg>/.ward/bundle/<sha-256 of the inputs>/`. A build goes to
+`.tmp-<pid>` and is `rename`d onto its hash; `rename` onto a non-empty directory is refused by the
+kernel, so a run that loses the race discards its own copy and serves the winner's, which — same
+inputs — is the same bundle. Nothing is ever written into a published hash directory, so a run never
+reads a half-written build.
+
+- **e2e** builds for every package with a `build` script, and hands the directory to Playwright in
+  `DUNGEONMASTER_WEB_BUNDLE_DIR`.
+- **integration** builds only for a package whose own `package.json` says so:
+
+  ```json
+  { "ward": { "integrationBuild": true } }
+  ```
+
+  Ward then hands the directory to jest in `DUNGEONMASTER_BUNDLE_DIR`. A test that spawns the
+  package's compiled program runs it from there. It never runs it from `dist`, because a plain build
+  rewrites `dist` with no lock under every process reading it. The build runs only when jest is about
+  to start, so a skipped run pays nothing. Both checks call the same broker on the same inputs, so an
+  e2e run and an integration run of one package share one bundle directory. The setting fails the
+  integration run when the package has no `build` script, and when the `ward` object holds any other
+  key, so a misspelling never silently turns the build off.
+
+The build script must accept `--outDir <dir>` and write its whole output there. The bundle holds that
+one package's output only. A compiled program that imports a sibling workspace package still loads
+that sibling's own `dist`.
 
 ---
 
