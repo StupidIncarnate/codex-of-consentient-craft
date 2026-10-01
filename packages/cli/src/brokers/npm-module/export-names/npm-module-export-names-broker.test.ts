@@ -38,6 +38,36 @@ describe('npmModuleExportNamesBroker', () => {
     });
   });
 
+  it('VALID: {export = a namespace with @deprecated members} => leaves the deprecated value and type out', () => {
+    npmModuleExportNamesBrokerProxy();
+    const testbed = installTestbedCreateBroker({ baseName: 'export-names-deprecated' });
+    testbed.writeFile({
+      relativePath: 'node_modules/shaped-lib/package.json',
+      content: JSON.stringify({ name: 'shaped-lib', version: '1.0.0', types: 'index.d.ts' }),
+    });
+    testbed.writeFile({
+      relativePath: 'node_modules/shaped-lib/index.d.ts',
+      content: [
+        'declare namespace lib {',
+        '  const current: number;',
+        '  /** @deprecated use current */',
+        '  const legacy: number;',
+        '  interface Options { fill: string }',
+        '  /** @deprecated use Options */',
+        '  interface OldOptions { fill: string }',
+        '}',
+        'export = lib;',
+        '',
+      ].join('\n'),
+    });
+    const { name } = GatewayNpmDependencyStub({ name: 'shaped-lib', folder: 'shaped-lib' });
+
+    const result = npmModuleExportNamesBroker({ repoRoot: testbed.guildPath, packageName: name });
+    testbed.cleanup();
+
+    expect(result).toStrictEqual({ values: ['current'], types: ['Options'] });
+  });
+
   it('VALID: {export = an object} => lists its identifier properties as values, skipping default and other keys', () => {
     npmModuleExportNamesBrokerProxy();
     const testbed = installTestbedCreateBroker({ baseName: 'export-names-object' });

@@ -26,6 +26,7 @@ export {
   ModuleResolutionKind,
   ScriptKind,
   ScriptTarget,
+  SymbolFlags,
   SyntaxKind,
   TypeFlags,
   addSyntheticLeadingComment,
@@ -127,8 +128,10 @@ export type {
   PropertyName,
   SourceFile,
   Statement,
+  Symbol,
   Type,
   TypeAliasDeclaration,
+  TypeChecker,
   TypeReference,
   VariableStatement,
 } from 'typescript';
