@@ -248,6 +248,10 @@ export const serverAppHarness = (): {
   // QuestListItem shape just to compare it (stepProgress/activeSessionId derivation lives deep in
   // the orchestrator and is not this harness's concern to reconstruct field-for-field).
   readListedQuestIds: (params: { body: unknown }) => readonly Quest['id'][];
+  // Reads the titles of the designDecisions a GET /api/quests/:questId body carries, in stored
+  // order — the one field a clarify send's orchestrator hop writes into quest.json, narrowed
+  // through questContract so no caller reaches for a structural cast on the `unknown` body.
+  readDesignDecisionTitles: (params: { body: unknown }) => readonly string[];
   // waitForClaudeInvocation above hands back `unknown` — honest for a value read off the fake
   // CLI's own JSON ledger rather than a contract. Reach for THIS over that one when a caller needs
   // the absolute paths a resumed chat's rewritten message embedded — the
@@ -675,6 +679,15 @@ export const serverAppHarness = (): {
     });
   };
 
+  const readDesignDecisionTitles = ({ body }: { body: unknown }): readonly string[] => {
+    if (typeof body !== 'object' || body === null || !('quest' in body)) {
+      throw new Error('quest-get response carried no quest');
+    }
+    return questContract
+      .parse(body.quest)
+      .designDecisions.map((decision) => String(decision.title));
+  };
+
   const waitForClaudeInvocationImagePaths = async (params: {
     claudeQueueDir: string;
     cwd: string;
@@ -798,6 +811,7 @@ export const serverAppHarness = (): {
     readFileBase64,
     readCreatedQuestId,
     readListedQuestIds,
+    readDesignDecisionTitles,
     waitForClaudeInvocationImagePaths,
     waitForClaudeInvocationPrompt,
   };

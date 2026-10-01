@@ -1,3 +1,5 @@
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
+
 import { questClarifyBodyContract } from './quest-clarify-body-contract';
 import { QuestClarifyBodyStub } from './quest-clarify-body.stub';
 
@@ -50,6 +52,79 @@ describe('questClarifyBodyContract', () => {
         answers: [{ header: 'Letters', labels: [], text: 'my own answer' }],
         questions: [],
       });
+    });
+  });
+
+  describe('answer images', () => {
+    it('VALID: {answer with one png} => parses and keeps the image on its answer', () => {
+      const result = questClarifyBodyContract.parse({
+        answers: [
+          {
+            header: 'Shape',
+            labels: [],
+            text: '[Pasted Image 1] like this',
+            images: [{ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' }],
+          },
+        ],
+        questions: [],
+      });
+
+      expect(result).toStrictEqual({
+        answers: [
+          {
+            header: 'Shape',
+            labels: [],
+            text: '[Pasted Image 1] like this',
+            images: [{ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' }],
+          },
+        ],
+        questions: [],
+      });
+    });
+
+    it('VALID: {answer with 5 images} => parses at the per-answer cap', () => {
+      const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' });
+
+      const result = questClarifyBodyContract.parse({
+        answers: [
+          { header: 'Shape', labels: ['Round'], images: [image, image, image, image, image] },
+        ],
+        questions: [],
+      });
+
+      expect(result.answers[0]?.images).toStrictEqual([image, image, image, image, image]);
+    });
+
+    it('INVALID: {answer with 6 images} => throws on the per-answer cap', () => {
+      const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' });
+
+      expect(() => {
+        questClarifyBodyContract.parse({
+          answers: [
+            {
+              header: 'Shape',
+              labels: ['Round'],
+              images: [image, image, image, image, image, image],
+            },
+          ],
+          questions: [],
+        });
+      }).toThrow(/<=5/u);
+    });
+
+    it('INVALID: {answer with image/bmp} => throws on the media type', () => {
+      expect(() => {
+        questClarifyBodyContract.parse({
+          answers: [
+            {
+              header: 'Shape',
+              labels: ['Round'],
+              images: [{ mediaType: 'image/bmp', dataBase64: 'Ym1w' }],
+            },
+          ],
+          questions: [],
+        });
+      }).toThrow(/Invalid option: expected one of/u);
     });
   });
 

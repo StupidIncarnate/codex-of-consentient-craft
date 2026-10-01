@@ -224,6 +224,8 @@ export const StartOrchestratorProxy = (): {
   startChatGetCalls: () => readonly unknown[];
   clarifyAnswerReturns: (params: { questId: Quest['id']; chatProcessId: string }) => void;
   clarifyAnswerThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  // Every call StartOrchestrator.clarifyAnswer received, first-arg only — mirrors startChatGetCalls.
+  clarifyAnswerGetCalls: () => readonly unknown[];
   commentBatchReturns: (params: {
     questId: Quest['id'];
     chatProcessId: string;
@@ -772,6 +774,8 @@ export const StartOrchestratorProxy = (): {
     clarifyAnswerThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       clarifyAnswerHandle.calledWith([{ questId }]).rejects(error);
     },
+    clarifyAnswerGetCalls: (): readonly unknown[] =>
+      clarifyAnswerHandle.callsMatching([]).map((call) => call[0]),
     commentBatchReturns: ({
       questId,
       chatProcessId,

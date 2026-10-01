@@ -1,14 +1,23 @@
 /**
- * PURPOSE: Handles per-quest clarification answers — loads quest, resolves chat sessionId, and delegates to orchestrator clarify adapter
+ * PURPOSE: Handles per-quest clarification answers — loads quest, resolves chat sessionId, persists
+ * the images pasted into each answer (rewriting that answer's placeholders to file paths), and
+ * delegates to orchestrator clarify adapter. The persist step runs here because it needs the guildId
+ * and questId the orchestrator's clarify adapter does not resolve on its own.
  *
  * USAGE:
  * const result = await QuestClarifyResponder({ params: { questId }, body: { answers, questions } });
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/404/500, data: { error } }
  */
 
-import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
+import {
+  clarificationAnswerContract,
+  questFindQuestPathBroker,
+  StartOrchestrator,
+} from '@dungeonmaster/orchestrator';
+import type { ClarificationAnswer } from '@dungeonmaster/orchestrator';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
+import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { questClarifyBodyContract } from '../../../contracts/quest-clarify-body/quest-clarify-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -51,6 +60,18 @@ export const QuestClarifyResponder = async ({
 
     const parsedBody = questClarifyBodyContract.safeParse(body);
     if (!parsedBody.success) {
+      // An answer's images sit at answers[n].images, so zod's own message (over-cap array,
+      // disallowed mediaType, over-ceiling size) is surfaced verbatim as the chat route does,
+      // rather than collapsed into the generic answers-required reply below.
+      const imagesIssue = parsedBody.error.issues.find(
+        (issue) => String(issue.path[0]) === 'answers' && String(issue.path[2]) === 'images',
+      );
+      if (imagesIssue !== undefined) {
+        return responderResultContract.parse({
+          status: httpStatusStatics.clientError.badRequest,
+          data: responderErrorDataContract.parse({ error: imagesIssue.message }),
+        });
+      }
       const answersError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
         field: 'answers',
@@ -86,11 +107,38 @@ export const QuestClarifyResponder = async ({
 
     const { guildId } = await questFindQuestPathBroker({ questId });
 
+    // One answer at a time: the broker mints its file ids inside its own images.map, so
+    // concurrent answers would interleave uuid consumption. Each answer's own text and own images
+    // go in, so its [Pasted Image 1] maps to a file written from that answer's image.
+    const persistedAnswers = await answers.reduce<Promise<ClarificationAnswer[]>>(
+      async (persistedSoFar, { images, ...answer }) => {
+        const persisted = await persistedSoFar;
+        const rewrittenText =
+          answer.text === undefined
+            ? undefined
+            : await pastedImagePersistBroker({
+                guildId,
+                questId,
+                message: answer.text,
+                images: images ?? [],
+              });
+        return [
+          ...persisted,
+          clarificationAnswerContract.parse({
+            header: answer.header,
+            labels: answer.labels,
+            ...(rewrittenText === undefined ? {} : { text: rewrittenText }),
+          }),
+        ];
+      },
+      Promise.resolve([]),
+    );
+
     const { chatProcessId } = await StartOrchestrator.clarifyAnswer({
       guildId,
       sessionId: resolvedSessionId,
       questId,
-      answers,
+      answers: persistedAnswers,
       questions,
     });
 

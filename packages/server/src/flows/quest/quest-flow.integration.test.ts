@@ -14,6 +14,7 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
+import { ClarificationQuestionStub } from '@dungeonmaster/orchestrator/contracts/clarification-question/clarification-question.stub';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 
@@ -1620,6 +1621,283 @@ describe('QuestFlow', () => {
       // — proof the orchestrator's resolution spawned into the existing quest rather than minting
       // a second one.
       expect(listedQuestIds).toStrictEqual([questId]);
+    });
+  });
+
+  // Flow: clarify-answer-carries-pasted-images. A real POST through the real Hono route, the real
+  // pastedImagePersistBroker writing under a real temp DUNGEONMASTER_HOME, the real orchestrator
+  // clarifyAnswer resuming the fake Claude CLI, and the quest read back over GET. questFolder ===
+  // questId for the same reason as the chat describe above.
+  describe('POST /api/quests/:questId/clarify with images', () => {
+    const shapeQuestion = ClarificationQuestionStub({
+      question: 'What shape?',
+      header: 'Shape',
+      options: [
+        { label: 'Round', description: 'A circle' },
+        { label: 'Square', description: 'Four sides' },
+      ],
+      multiSelect: false,
+    });
+    const sizeQuestion = ClarificationQuestionStub({
+      question: 'What size?',
+      header: 'Size',
+      options: [
+        { label: 'Small', description: 'Fits a pocket' },
+        { label: 'Large', description: 'Needs a bag' },
+      ],
+      multiSelect: false,
+    });
+    // pastedImageStatics.promptSentinel + '\n' + .promptInstruction, after a blank line.
+    const trailer =
+      '\n\n<!-- dungeonmaster:images -->\nRead every image referenced above before answering.';
+
+    it("VALID: {one 'Shape' answer, text 'like this [Pasted Image 1]', one PNG} => 200, exactly one .png holding the posted bytes, the resumed prompt and the stored design decision both carry the file's path", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-clarify-images-One' });
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
+      const cli = harness.configureFakeClaudeCli();
+      const sessionId = SessionIdStub({ value: 'cccccccc-7001-4222-8222-444444444444' });
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Clarify Images Guild — One',
+        guildPath: dungeonmasterHome,
+        fields: {
+          status: 'explore_flows',
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-7001-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
+      });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: [
+            {
+              header: 'Shape',
+              labels: [],
+              text: 'like this [Pasted Image 1]',
+              images: [{ mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' }],
+            },
+          ],
+          questions: [shapeQuestion],
+        }),
+      });
+      const prompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
+      const fileBytes = dir.fileNames.map((name) =>
+        harness.readFileBase64({ filePath: `${dir.dirPath}/${name}` }),
+      );
+      const questResponse = await app.request(`/api/quests/${questId}`);
+      const questBody: unknown = await questResponse.json();
+      const titles = harness.readDesignDecisionTitles({ body: questBody });
+
+      cli.restore();
+      restore();
+
+      const token = `![Pasted Image 1](${dir.dirPath}/${dir.fileNames[0]})`;
+
+      expect(response.status).toBe(200);
+      expect(dir.fileNames.map((name) => name.replace(/^[0-9a-f-]{36}/u, ''))).toStrictEqual([
+        '.png',
+      ]);
+      expect(fileBytes).toStrictEqual(['Zmlyc3QtaW1hZ2U=']);
+      expect(prompt).toBe(`Shape: like this ${token}${trailer}`);
+      expect(titles).toStrictEqual([`Shape: like this ${token}`]);
+    });
+
+    it("VALID: {two answers, each text '[Pasted Image 1]' with its own distinct PNG} => each token names the file written from its own answer's image, and the two paths differ", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-clarify-images-Two' });
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
+      const cli = harness.configureFakeClaudeCli();
+      const sessionId = SessionIdStub({ value: 'cccccccc-7002-4222-8222-444444444444' });
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Clarify Images Guild — Two',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-7002-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
+      });
+      const questId = seeded.quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: [
+            {
+              header: 'Shape',
+              labels: [],
+              text: 'like this [Pasted Image 1]',
+              images: [{ mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' }],
+            },
+            {
+              header: 'Size',
+              labels: [],
+              text: 'and this [Pasted Image 1]',
+              images: [{ mediaType: 'image/png', dataBase64: 'c2Vjb25kLWltYWdl' }],
+            },
+          ],
+          questions: [shapeQuestion, sizeQuestion],
+        }),
+      });
+      const tokenPaths = await harness.waitForClaudeInvocationImagePaths({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const tokenBytes = tokenPaths.map((filePath) => harness.readFileBase64({ filePath }));
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(new Set(tokenPaths).size).toBe(2);
+      expect(tokenBytes).toStrictEqual(['Zmlyc3QtaW1hZ2U=', 'c2Vjb25kLWltYWdl']);
+    });
+
+    it("INVALID: {'Shape' answer with 6 images} => 400, no images directory, and no agent spawned", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-clarify-images-Six' });
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
+      const cli = harness.configureFakeClaudeCli();
+      const sessionId = SessionIdStub({ value: 'cccccccc-7003-4222-8222-444444444444' });
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Clarify Images Guild — Six',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-7003-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
+      });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: [
+            {
+              header: 'Shape',
+              labels: [],
+              text: 'too many',
+              images: Array.from({ length: pastedImageStatics.maxImagesPerMessage + 1 }, () => ({
+                mediaType: 'image/png',
+                dataBase64: 'Zmlyc3QtaW1hZ2U=',
+              })),
+            },
+          ],
+          questions: [shapeQuestion],
+        }),
+      });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
+      const invocation = await harness.waitForClaudeInvocation({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 1000,
+      });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(400);
+      expect(dir.exists).toBe(false);
+      expect(invocation).toBe(null);
+    });
+
+    it("INVALID: {'Shape' answer with one image/bmp} => 400, no images directory, and no agent spawned", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-clarify-images-Bmp' });
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
+      const cli = harness.configureFakeClaudeCli();
+      const sessionId = SessionIdStub({ value: 'cccccccc-7004-4222-8222-444444444444' });
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Clarify Images Guild — Bmp',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-7004-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
+      });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: [
+            {
+              header: 'Shape',
+              labels: [],
+              text: 'a bitmap',
+              images: [{ mediaType: 'image/bmp', dataBase64: 'Zmlyc3QtaW1hZ2U=' }],
+            },
+          ],
+          questions: [shapeQuestion],
+        }),
+      });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
+      const invocation = await harness.waitForClaudeInvocation({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 1000,
+      });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(400);
+      expect(dir.exists).toBe(false);
+      expect(invocation).toBe(null);
     });
   });
 
