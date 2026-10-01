@@ -7,6 +7,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { orchestrationProcessContract } from '@dungeonmaster/orchestrator/contracts';
 import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 export const chatOutputRoutingContract = z
@@ -14,7 +15,7 @@ export const chatOutputRoutingContract = z
     slotIndex: z.number().int().nonnegative().brand<'ChatOutputRoutingSlotIndex'>().optional(),
     questId: questContract.shape.id.optional(),
     workItemId: workItemContract.shape.id.optional(),
-    chatProcessId: z.string().min(1).brand<'ChatOutputRoutingChatProcessId'>().optional(),
+    chatProcessId: orchestrationProcessContract.shape.processId.optional(),
   })
   .loose()
   .brand<'ChatOutputRouting'>();

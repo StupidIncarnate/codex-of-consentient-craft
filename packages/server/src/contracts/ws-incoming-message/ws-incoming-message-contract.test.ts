@@ -60,6 +60,21 @@ describe('wsIncomingMessageContract', () => {
       }).toThrow(/received undefined/u);
     });
 
+    it('ERROR: replay-history with empty string chatProcessId => safeParse fails on min length', () => {
+      const result = wsIncomingMessageContract.safeParse({
+        type: 'replay-history',
+        sessionId: 'sess-1',
+        guildId: GuildIdStub(),
+        chatProcessId: '',
+      });
+      const { error } = result as { success: false; error: ZodError };
+      const [issue] = error.issues;
+
+      expect(result.success).toBe(false);
+      expect(issue?.path[0]).toBe('chatProcessId');
+      expect(issue?.code).toBe('too_small');
+    });
+
     it('ERROR: ward-detail-request without questId => throws validation error', () => {
       expect(() => {
         wsIncomingMessageContract.parse({

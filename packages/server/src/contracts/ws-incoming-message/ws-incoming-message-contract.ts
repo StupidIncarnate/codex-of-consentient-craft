@@ -7,6 +7,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { orchestrationProcessContract } from '@dungeonmaster/orchestrator/contracts';
 import {
   questContract,
   guildContract,
@@ -20,7 +21,7 @@ export const wsIncomingMessageContract = z.discriminatedUnion('type', [
       type: z.literal('replay-history'),
       sessionId: sessionContract.shape.id,
       guildId: guildContract.shape.id,
-      chatProcessId: z.string().min(1).brand<'WsIncomingMessageChatProcessId'>(),
+      chatProcessId: orchestrationProcessContract.shape.processId,
     })
     .brand<'WsIncomingMessage'>(),
   z
