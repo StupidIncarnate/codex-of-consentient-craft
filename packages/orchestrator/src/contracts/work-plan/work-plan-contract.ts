@@ -28,6 +28,9 @@
  *    do this — the discriminator lives on the envelope and the thing discriminated lives three levels
  *    down, on each piece — so the check is a `safeParse` per piece against the family's contract.
  *
+ * A SHAPE REFUSAL NAMES EVERY FIELD IT REFUSES, as `payload.files[0].path: …`: a bare message such
+ * as "Invalid input" says nothing about which of a piece's dozens of fields to fix.
+ *
  * THE 1:1 CHECK BETWEEN `payload.units[]` AND `assignedUnitIds` IS CONDITIONAL ON FAMILY, and
  * `'units' in parsed.data` is the mechanism: siegemaster's payload declares no `units` key at all, so
  * that branch never runs for it. A siege piece's unit IS the walk (or the off-map family), already
@@ -89,7 +92,10 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
           code: 'custom',
           path: [...path],
           message: `piece '${piece.id}': payload does not match the ${plan.family} shape — ${parsed.error.issues
-            .map((issue) => issue.message)
+            .map(
+              (issue) =>
+                `${['payload', ...issue.path].join('.').replace(/\.(\d+)(?=\.|$)/gu, '[$1]')}: ${issue.message}`,
+            )
             .join('; ')}`,
         });
         // The shape is already wrong, so the 1:1 check below would only add noise on top of it.

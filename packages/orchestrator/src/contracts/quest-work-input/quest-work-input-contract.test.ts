@@ -30,9 +30,44 @@ describe('questWorkInputContract', () => {
     it("INVALID: {kind: plan, plannerMarks holds 'met'} => throws via the re-applied workPlanContract refinement", () => {
       const plan = WorkPlanFieldsStub({
         plannerMarks: [
+          UnitObservationFieldsStub({ mark: 'met', unitId: 'send-flow:observable:unreached' }),
+        ],
+      });
+      Reflect.deleteProperty(plan, 'writtenBy');
+      Reflect.deleteProperty(plan, 'writtenAt');
+      plan.plannerMarks.forEach((mark) => Reflect.deleteProperty(mark, 'at'));
+
+      expect(() => QuestWorkInputStub({ payload: { kind: 'plan', plan } })).toThrow(
+        /a planner may only write 'cant-meet'/u,
+      );
+    });
+
+    it('VALID: {kind: plan, a cant-meet plannerMark carrying no at} => accepted, the broker stamps at', () => {
+      const plan = WorkPlanFieldsStub({
+        plannerMarks: [
           UnitObservationFieldsStub({
-            mark: 'met',
-            unitId: 'send-flow:observable:unreached',
+            mark: 'cant-meet',
+            toSettle: 'allocate perf to a fourth round',
+            unitId: 'send-flow:off-map:perf',
+          }),
+        ],
+      });
+      Reflect.deleteProperty(plan, 'writtenBy');
+      Reflect.deleteProperty(plan, 'writtenAt');
+      plan.plannerMarks.forEach((mark) => Reflect.deleteProperty(mark, 'at'));
+
+      const result = QuestWorkInputStub({ payload: { kind: 'plan', plan } });
+
+      expect(result.payload).toStrictEqual({ kind: 'plan', plan });
+    });
+
+    it('INVALID: {kind: plan, a plannerMark carrying a caller-supplied at} => refused, key named by its path', () => {
+      const plan = WorkPlanFieldsStub({
+        plannerMarks: [
+          UnitObservationFieldsStub({
+            mark: 'cant-meet',
+            toSettle: 'allocate perf to a fourth round',
+            unitId: 'send-flow:off-map:perf',
           }),
         ],
       });
@@ -40,7 +75,7 @@ describe('questWorkInputContract', () => {
       Reflect.deleteProperty(plan, 'writtenAt');
 
       expect(() => QuestWorkInputStub({ payload: { kind: 'plan', plan } })).toThrow(
-        /a planner may only write 'cant-meet'/u,
+        /unrecognized/iu,
       );
     });
   });

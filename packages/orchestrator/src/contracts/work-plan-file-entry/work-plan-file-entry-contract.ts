@@ -14,6 +14,11 @@
  * });
  * // Returns: WorkPlanFileEntry
  *
+ * `path` takes the three forms a planner naturally writes — absolute, `./`-relative, and the bare
+ * repo-relative `packages/<package>/…` — and refuses a `..` segment, so a prefix check against a
+ * package location cannot be walked out of. Which absolute roots are legal is not decided here: that
+ * needs the quest, so it is check 9 of `workPlanValidateTransformer`.
+ *
  * `in` and `out` are FREE-FORM type sketches, not parsed TypeScript: a planner writes what a file
  * takes and gives back in whatever notation reads fastest, and a sub-agent builds against it. Making
  * them parseable would put a type checker inside a forecast.
@@ -23,31 +28,18 @@
  * proves nothing, which is a different claim.
  */
 
-import { qaChecklistItemContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workPlanFileEntryContract = z
   .object({
     path: z
-      .union([
-        z
-          .string()
-          .min(1)
-          .refine(
-            (path) => {
-              if (path.startsWith('/')) {
-                return true;
-              }
-              if (/^[A-Za-z]:\\/u.test(path)) {
-                return true;
-              }
-              return false;
-            },
-            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
-          )
-          .brand<'WorkPlanFileEntryPath'>(),
-        relativeFilePathContract,
-      ])
+      .string()
+      .min(1)
+      .refine((path) => !path.split(/[\\/]/u).includes('..'), {
+        message:
+          'Path must be absolute, ./-relative or repo-relative (packages/<package>/…), with no .. segment',
+      })
       .brand<'WorkPlanFileEntryPath'>(),
     change: z.enum(['new', 'edit']),
     in: z

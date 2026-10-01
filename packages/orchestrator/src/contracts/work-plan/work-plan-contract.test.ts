@@ -216,6 +216,48 @@ describe('workPlanContract', () => {
       ).toThrow(/piece 'pc-badge': payload does not match the codeweaver shape — /u);
     });
 
+    it('INVALID: {a codeweaver piece whose files[0].path climbs out with ..} => refused, naming the field path and the accepted forms', () => {
+      expect(() =>
+        WorkPlanStub({
+          batches: [
+            WorkPlanBatchStub({
+              pieces: [
+                WorkPlanPieceStub({
+                  id: 'pc-badge',
+                  payload: {
+                    files: [
+                      { path: '../server/src/x.ts', change: 'new', in: '{ a: string }', out: 'B' },
+                    ],
+                  },
+                }),
+              ],
+            }),
+          ],
+        }),
+      ).toThrow(
+        /piece 'pc-badge': payload does not match the codeweaver shape — payload\.files\[0\]\.path: Path must be absolute, \.\/-relative or repo-relative \(packages\/<package>\/…\), with no \.\. segment/u,
+      );
+    });
+
+    it('INVALID: {a codeweaver piece whose payload omits the in/out of a file} => refused, one line per field, each naming its path', () => {
+      expect(() =>
+        WorkPlanStub({
+          batches: [
+            WorkPlanBatchStub({
+              pieces: [
+                WorkPlanPieceStub({
+                  id: 'pc-badge',
+                  payload: { files: [{ path: 'packages/web/src/x.ts', change: 'new' }] },
+                }),
+              ],
+            }),
+          ],
+        }),
+      ).toThrow(
+        /piece 'pc-badge': payload does not match the codeweaver shape — payload\.files\[0\]\.in: Invalid input: expected string, received undefined; payload\.files\[0\]\.out: Invalid input: expected string, received undefined/u,
+      );
+    });
+
     it('INVALID: {a siegemaster plan whose piece carries a codeweaver payload} => refused, naming the piece and the family', () => {
       expect(() =>
         WorkPlanStub({

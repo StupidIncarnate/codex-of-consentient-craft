@@ -13,8 +13,8 @@
  * // Returns: QuestWorkInput — the discriminator lives on `payload.kind`, never at the top level,
  * // because the envelope (questId, workItemId) is common to all five and the union is what varies
  *
- * `writtenBy` and `writtenAt` are `.omit()`ed from both plan-bearing payloads (`plan`, `amendment`)
- * and stamped server-side in the broker, exactly as `questInputServerTimestampsTransformer` already
+ * `writtenBy`, `writtenAt` and every plannerMark's `at` are `.omit()`ed from both plan-bearing
+ * payloads (`plan`, `amendment`) and stamped server-side in the broker, exactly as `questInputServerTimestampsTransformer` already
  * replaces every timestamp a `modify-quest` payload carries — an LLM has no reliable clock, and an
  * omitted key is a REFUSED key under `.strict()`, never a silently-discarded one.
  *
@@ -41,8 +41,16 @@ import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 import { workPlanContract } from '../work-plan/work-plan-contract';
 import { workPlanFieldsContract } from '../work-plan-fields/work-plan-fields-contract';
 
+// Same reasoning as `planEnvelopeFieldsContract` below — `.strict()` is what turns a
+// caller-supplied `at` into a refusal instead of a silent strip.
+const observationFieldsContract = unitObservationFieldsContract
+  .omit({ at: true })
+  .strict()
+  .brand<'ObservationFields'>();
+
 // Both plan-bearing payloads (`plan`, `amendment`) carry the identical omitted shape — the caller
-// never sends the two server-stamped fields, and both are re-validated the same round-trip way.
+// never sends the two server-stamped fields, nor the `at` of a plannerMark (the broker stamps all
+// three from the server's clock), and both are re-validated the same round-trip way.
 // `.strict()` here is load-bearing: `workPlanFieldsContract` is a bare `z.object()`, and `.omit()`
 // alone STRIPS an unrecognized key rather than refusing it — a caller-supplied `writtenAt` would
 // otherwise vanish silently instead of being rejected.
@@ -50,16 +58,11 @@ const planEnvelopeFieldsContract = workPlanFieldsContract
   .omit({
     writtenBy: true,
     writtenAt: true,
+    plannerMarks: true,
   })
+  .extend({ plannerMarks: z.array(observationFieldsContract).default([]) })
   .strict()
   .brand<'PlanEnvelopeFields'>();
-
-// Same reasoning as `planEnvelopeFieldsContract` above — `.strict()` is what turns a
-// caller-supplied `at` into a refusal instead of a silent strip.
-const observationFieldsContract = unitObservationFieldsContract
-  .omit({ at: true })
-  .strict()
-  .brand<'ObservationFields'>();
 
 const planPayloadContract = z
   .object({
@@ -127,6 +130,10 @@ export const questWorkInputContract = z
     if (value.payload.kind === 'plan' || value.payload.kind === 'amendment') {
       const rehydrated = workPlanContract.safeParse({
         ...value.payload.plan,
+        plannerMarks: value.payload.plan.plannerMarks.map((mark) => ({
+          ...mark,
+          at: placeholderAt,
+        })),
         writtenBy: value.workItemId,
         writtenAt: placeholderAt,
       });

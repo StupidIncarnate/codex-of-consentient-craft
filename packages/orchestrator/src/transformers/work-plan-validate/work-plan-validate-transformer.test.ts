@@ -87,6 +87,15 @@ const siegemasterQuest = QuestStub({
   operations: [siegemasterOperationItem],
 });
 
+// A carved quest records its worktree at `<repoRoot>/worktrees/<name>`, which is where the repo root
+// is recovered from.
+const questWithWorktree = QuestStub({
+  flows: [sendFlow],
+  packagesAffected,
+  operations: [codeweaverOperationItem],
+  worktreePath: '/home/testuser/repo/worktrees/add-auth-1918a5ee',
+});
+
 // Every operation item above keeps OperationItemStub's default id, so ONE work item, pointing at
 // that same id, submits against all three.
 const workItem = WorkItemStub({
@@ -519,7 +528,182 @@ describe('workPlanValidateTransformer', () => {
           pieceId: 'pc-badge',
           check: 9,
           message:
-            "pc-badge: payload.files[].path './packages/server/src/rogue-file.ts' is outside the packages this operation item owns (@dungeonmaster/web)",
+            "pc-badge: payload.files[0].path './packages/server/src/rogue-file.ts' is outside the packages this operation item owns (@dungeonmaster/web)",
+        },
+      ]);
+    });
+
+    it('VALID: {a bare repo-relative path inside the owned package} => is accepted', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [WorkPlanFileEntryStub({ path: 'packages/web/src/a.tsx' })],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: codeweaverQuest, workItem, plan });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {a ./ repo-relative path inside the owned package} => is accepted', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [WorkPlanFileEntryStub({ path: './packages/web/src/a.tsx' })],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: codeweaverQuest, workItem, plan });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {an absolute path under the quest worktree, inside the owned package} => is accepted', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [
+                    WorkPlanFileEntryStub({
+                      path: '/home/testuser/repo/worktrees/add-auth-1918a5ee/packages/web/src/a.tsx',
+                    }),
+                  ],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: questWithWorktree, workItem, plan });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {an absolute path under the main checkout, inside the owned package} => is accepted', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [
+                    WorkPlanFileEntryStub({
+                      path: '/home/testuser/repo/packages/web/src/a.tsx',
+                    }),
+                  ],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: questWithWorktree, workItem, plan });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('INVALID: {an absolute worktree path inside ANOTHER package} => refused with check 9, original path quoted', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [
+                    WorkPlanFileEntryStub({
+                      path: '/home/testuser/repo/worktrees/add-auth-1918a5ee/packages/server/src/rogue.ts',
+                    }),
+                  ],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: questWithWorktree, workItem, plan });
+
+      expect(result).toStrictEqual([
+        {
+          pieceId: 'pc-badge',
+          check: 9,
+          message:
+            "pc-badge: payload.files[0].path '/home/testuser/repo/worktrees/add-auth-1918a5ee/packages/server/src/rogue.ts' is outside the packages this operation item owns (@dungeonmaster/web)",
+        },
+      ]);
+    });
+
+    it('INVALID: {an absolute path under neither the worktree nor the repo root} => refused with check 9, naming the accepted roots', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [WorkPlanFileEntryStub({ path: '/elsewhere/packages/web/src/a.tsx' })],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: questWithWorktree, workItem, plan });
+
+      expect(result).toStrictEqual([
+        {
+          pieceId: 'pc-badge',
+          check: 9,
+          message:
+            "pc-badge: payload.files[0].path '/elsewhere/packages/web/src/a.tsx' is absolute but sits under neither accepted root (/home/testuser/repo/worktrees/add-auth-1918a5ee, /home/testuser/repo) — send a repo-relative path such as 'packages/<package>/src/x.ts'",
+        },
+      ]);
+    });
+
+    it('INVALID: {an absolute path on a quest with no worktree yet} => refused with check 9, naming that no root is known', () => {
+      const plan = WorkPlanStub({
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [
+                    WorkPlanFileEntryStub({ path: '/home/testuser/repo/packages/web/a.tsx' }),
+                  ],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest: codeweaverQuest, workItem, plan });
+
+      expect(result).toStrictEqual([
+        {
+          pieceId: 'pc-badge',
+          check: 9,
+          message:
+            "pc-badge: payload.files[0].path '/home/testuser/repo/packages/web/a.tsx' is absolute but sits under neither accepted root (none — this quest has no worktree yet) — send a repo-relative path such as 'packages/<package>/src/x.ts'",
         },
       ]);
     });
@@ -580,13 +764,61 @@ describe('workPlanValidateTransformer', () => {
           pieceId: 'pc-a',
           check: 10,
           message:
-            "pc-a and pc-b both name file path './packages/web/src/shared-file.tsx' in the same batch",
+            "pc-a and pc-b both name file path 'packages/web/src/shared-file.tsx' in the same batch",
         },
         {
           pieceId: 'pc-b',
           check: 10,
           message:
-            "pc-a and pc-b both name file path './packages/web/src/shared-file.tsx' in the same batch",
+            "pc-a and pc-b both name file path 'packages/web/src/shared-file.tsx' in the same batch",
+        },
+      ]);
+    });
+
+    it('INVALID: {one file spelled worktree-absolute in one piece and bare in another} => refuses both with check 10', () => {
+      const pieceA = WorkPlanPieceStub({
+        id: 'pc-a',
+        assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
+        payload: WorkPlanPayloadCodeweaverStub({
+          files: [
+            WorkPlanFileEntryStub({
+              path: '/home/testuser/repo/worktrees/add-auth-1918a5ee/packages/web/src/shared-file.tsx',
+            }),
+          ],
+          units: [
+            WorkPlanCodeweaverUnitStub({ unitId: 'send-flow:observable:check-badge-count-text' }),
+          ],
+        }),
+      });
+      const pieceB = WorkPlanPieceStub({
+        id: 'pc-b',
+        assignedUnitIds: ['send-flow:terminal:batch-sent'],
+        payload: WorkPlanPayloadCodeweaverStub({
+          files: [WorkPlanFileEntryStub({ path: 'packages/web/src/shared-file.tsx' })],
+          units: [
+            WorkPlanCodeweaverUnitStub({
+              unitId: 'send-flow:terminal:batch-sent',
+              kind: 'terminal',
+            }),
+          ],
+        }),
+      });
+      const plan = WorkPlanStub({ batches: [WorkPlanBatchStub({ pieces: [pieceA, pieceB] })] });
+
+      const result = workPlanValidateTransformer({ quest: questWithWorktree, workItem, plan });
+
+      expect(result).toStrictEqual([
+        {
+          pieceId: 'pc-a',
+          check: 10,
+          message:
+            "pc-a and pc-b both name file path 'packages/web/src/shared-file.tsx' in the same batch",
+        },
+        {
+          pieceId: 'pc-b',
+          check: 10,
+          message:
+            "pc-a and pc-b both name file path 'packages/web/src/shared-file.tsx' in the same batch",
         },
       ]);
     });

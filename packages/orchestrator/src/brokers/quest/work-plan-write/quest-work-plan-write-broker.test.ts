@@ -1,3 +1,4 @@
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -51,6 +52,37 @@ const zeroPieceEnvelope = (): Parameters<typeof questWorkPlanWriteBroker>[0]['pl
   return payload.plan;
 };
 
+const plannerMarkEnvelope = (): Parameters<typeof questWorkPlanWriteBroker>[0]['plan'] => {
+  const { payload } = QuestWorkInputStub({
+    questId: 'add-auth',
+    workItemId: WORK_ITEM_ID,
+    payload: {
+      kind: 'plan',
+      plan: {
+        operationItemId: OPERATION_ITEM_ID,
+        family: 'codeweaver',
+        flowId: null,
+        packageNames: [],
+        batches: [],
+        plannerMarks: [
+          {
+            unitId: 'send-flow:off-map:perf',
+            mark: 'cant-meet',
+            evidence: 'no piece of this plan reaches it',
+            toSettle: 'spend a later pass on a perf probe',
+          },
+        ],
+      },
+    },
+  });
+
+  if (payload.kind !== 'plan') {
+    throw new Error('plannerMarkEnvelope: parsed payload is not a plan');
+  }
+
+  return payload.plan;
+};
+
 describe('questWorkPlanWriteBroker', () => {
   describe('a zero-piece plan (trivially passes all nineteen checks)', () => {
     it('VALID: {plan with no batches, flowId null} => writes the plan and returns its operationItemId', async () => {
@@ -97,6 +129,51 @@ describe('questWorkPlanWriteBroker', () => {
         questFolderPath,
         'quest.json',
       ]);
+    });
+  });
+
+  describe('a plan whose plannerMarks carry no at', () => {
+    it('VALID: {one cant-meet plannerMark, no at} => the written plan stamps the mark with the server clock', async () => {
+      const proxy = questWorkPlanWriteBrokerProxy();
+      const quest = QuestStub({
+        id: QUEST_ID,
+        flows: [FlowStub({ id: 'send-flow' })],
+        operations: [OPERATION_ITEM],
+        workItems: [WORK_ITEM],
+      });
+      const { questFolderPath } = proxy.setupQuestFound({
+        quest,
+        writesOperationItemId: OPERATION_ITEM_ID,
+      });
+
+      await questWorkPlanWriteBroker({
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+        plan: plannerMarkEnvelope(),
+      });
+
+      const written = JSON.parse(
+        String(proxy.getWrittenPlan({ questFolderPath, operationItemId: OPERATION_ITEM_ID })),
+      ) as unknown;
+
+      expect(written).toStrictEqual({
+        operationItemId: OPERATION_ITEM_ID,
+        family: 'codeweaver',
+        flowId: null,
+        packageNames: [],
+        writtenBy: WORK_ITEM_ID,
+        writtenAt: '2026-01-15T10:00:00.000Z',
+        batches: [],
+        plannerMarks: [
+          {
+            unitId: 'send-flow:off-map:perf',
+            mark: 'cant-meet',
+            evidence: 'no piece of this plan reaches it',
+            toSettle: 'spend a later pass on a perf probe',
+            at: '2026-01-15T10:00:00.000Z',
+          },
+        ],
+      });
     });
   });
 

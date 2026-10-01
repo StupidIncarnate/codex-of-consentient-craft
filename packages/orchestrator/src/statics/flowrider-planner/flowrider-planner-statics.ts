@@ -386,7 +386,8 @@ says how the pieces INSIDE one batch run against each other: \`parallel\` where 
 
 **\`plannerMarks\` takes \`cant-meet\` and nothing else**, on a unit no piece of yours claims, and
 every entry needs a \`toSettle\` naming the action that WOULD settle it, as an instruction rather
-than a question. A unit a piece already claims may not also carry a mark — a unit is either assigned
+than a question. An entry is \`{ unitId, mark: 'cant-meet', evidence, toSettle }\` — send no \`at\`: the
+server stamps it, and a payload carrying one is refused. A unit a piece already claims may not also carry a mark — a unit is either assigned
 to a session or recorded as uncovered, never both.
 
 Then read it back:
@@ -479,7 +480,9 @@ pictured it.
 ### \`specPath\` and \`mode\`
 
 One spec file per piece, at the path the repo's own conventions put it. \`extend\` where the file
-exists and this piece adds to it; \`new\` where it does not.
+exists and this piece adds to it; \`new\` where it does not. Every path in a piece — \`specPath\` and
+each harness \`path\` — is repo-relative (\`packages/<package>/src/x.e2e.ts\`, with or without a leading
+\`./\`) or absolute, and a \`..\` segment is refused.
 
 **A file two pieces both write is two pieces in different batches**, never one batch — the plan is
 refused for the duplicate, and the refusal counts harness paths alongside the spec.

@@ -29,15 +29,41 @@ describe('workPlanFileEntryContract', () => {
     });
   });
 
+  describe('path forms', () => {
+    it('VALID: {path: bare repo-relative} => parses unchanged', () => {
+      expect(
+        WorkPlanFileEntryStub({ path: 'packages/web/src/widgets/comment-badge/x.tsx' }).path,
+      ).toBe('packages/web/src/widgets/comment-badge/x.tsx');
+    });
+
+    it('VALID: {path: absolute POSIX} => parses unchanged', () => {
+      expect(WorkPlanFileEntryStub({ path: '/repo/packages/web/src/x.tsx' }).path).toBe(
+        '/repo/packages/web/src/x.tsx',
+      );
+    });
+
+    it('VALID: {path: absolute Windows} => parses unchanged', () => {
+      expect(WorkPlanFileEntryStub({ path: 'C:\\repo\\packages\\web\\x.tsx' }).path).toBe(
+        'C:\\repo\\packages\\web\\x.tsx',
+      );
+    });
+  });
+
   describe('invalid entries', () => {
     it('EMPTY: {empty object} => refused', () => {
       expect(workPlanFileEntryContract.safeParse({}).success).toBe(false);
     });
 
-    it('INVALID: {path with no ./ prefix} => refused, since filePathContract takes absolute or ./-relative only', () => {
-      expect(() =>
-        WorkPlanFileEntryStub({ path: 'packages/web/src/widgets/comment-badge/x.tsx' }),
-      ).toThrow(/Path must be absolute \(start with \/ or C:/u);
+    it('INVALID: {path: empty string} => refused', () => {
+      expect(() => WorkPlanFileEntryStub({ path: '' })).toThrow(
+        /expected string to have >=1 characters/u,
+      );
+    });
+
+    it('INVALID: {path with a .. segment} => refused, naming the accepted forms', () => {
+      expect(() => WorkPlanFileEntryStub({ path: '../server/src/x.ts' })).toThrow(
+        /Path must be absolute, .\/-relative or repo-relative \(packages\/<package>\/…\), with no \.\. segment/u,
+      );
     });
 
     it('INVALID: {change: rename} => refused', () => {

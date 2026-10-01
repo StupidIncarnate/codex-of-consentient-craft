@@ -259,10 +259,11 @@ plannerMarks: [
   { unitId: '<flow id>:off-map:staleness',
     mark: 'cant-meet',
     evidence: '<why no piece of this plan reaches it>',
-    toSettle: '<the walk a later pass spends on it>',
-    at: '<ISO timestamp>' }
+    toSettle: '<the walk a later pass spends on it>' }
 ]
 \`\`\`
+
+Send no \`at\` on a mark: the server stamps it, and a payload carrying one is refused.
 
 That is your one mark authority, and it is the difference between recording a family as uncovered and
 dropping it silently.
