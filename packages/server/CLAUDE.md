@@ -37,13 +37,13 @@ patching entries after delivery.
 
 ## Dev-Mode Logging
 
-All runtime observability logging in the server MUST go through the `processDevLogAdapter`. Do NOT use
+All runtime observability logging in the server MUST go through the `processDevLogBroker`. Do NOT use
 `process.stdout.write` or `console.log` directly for dev diagnostics.
 
 ```typescript
-import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
+import { processDevLogBroker } from '../brokers/process/dev-log/process-dev-log-broker';
 
-processDevLogAdapter({ message: 'Chat started: questId=abc-123' });
+processDevLogBroker({ message: 'Chat started: questId=abc-123' });
 // Writes "[dev] Chat started: questId=abc-123\n" when VERBOSE=1
 // No-ops otherwise
 ```
@@ -128,13 +128,13 @@ devLogEventFormatTransformer (main entry)
 
 ### Modifying Log Behavior
 
-- **Gating and prefix:** `src/adapters/process/dev-log/process-dev-log-adapter.ts`
+- **Gating and prefix:** `src/brokers/process/dev-log/process-dev-log-broker.ts`
 - **Event formatting:** `src/transformers/dev-log-event-format/` and its chain (see above)
-- **Static messages** (WS connect, shutdown, errors): directly in the responder via `processDevLogAdapter`
+- **Static messages** (WS connect, shutdown, errors): directly in the responder via `processDevLogBroker`
 
 ## Per-Request Logging
 
-Per-request lines are the one exception to "everything goes through `processDevLogAdapter`". They go
+Per-request lines are the one exception to "everything goes through `processDevLogBroker`". They go
 through `processRequestLogBroker`, gated on `DUNGEONMASTER_REQUEST_LOG=1` rather than `VERBOSE=1`,
 because `npm run prod` sets `VERBOSE=1` and a line per request would flood it. The siegelense lane
 sets the switch in its api process env (`.dungeonmaster.json` → `devServer.e2e.processes`), so
@@ -160,8 +160,8 @@ The server has two WS broadcast paths — they handle different event tiers:
 
 | Path | Events | Source |
 |------|--------|--------|
-| **Outbox watcher** (`orchestratorOutboxWatchAdapter`) | `quest-modified`, `quest-created` | Tails `event-outbox.jsonl`, loads full quest, broadcasts to all WS clients |
-| **In-memory relay** (`orchestratorEventsOnAdapter` loop) | `chat-output`, `chat-complete`, `clarification-request`, etc. | Subscribes to `orchestrationEventsState` in-process events |
+| **Outbox watcher** (`questOutboxWatchBroker`) | `quest-modified`, `quest-created` | Tails `event-outbox.jsonl`, loads full quest, broadcasts to all WS clients |
+| **In-memory relay** (`orchestrationEventsState.on` loop) | `chat-output`, `chat-complete`, `clarification-request`, etc. | Subscribes to `orchestrationEventsState` in-process events |
 
 The relay loop explicitly skips `quest-modified` and `quest-created` — those are handled by the outbox watcher. Pipeline `chat-output` events (those with `slotIndex` in the payload) are batched at 100ms before broadcasting. Chat `chat-output` events (without `slotIndex`) relay immediately.
 
@@ -196,14 +196,14 @@ retention is capped per quest — a browser can only be reconciling a turn it se
 
 ## Dual-Homedir Pattern
 
-The server uses two different homedir adapters for two distinct storage locations:
+The server uses two different homedir resolution mechanisms for two distinct storage locations:
 
-| Data | Adapter | Resolves to | Why |
+| Data | Resolver | Resolves to | Why |
 |---|---|---|---|
-| Session JSONL files | `osUserHomedirAdapter` | `os.homedir()` — Claude CLI's own `~/.claude/` | Claude CLI writes session files under whatever `HOME` names. We read the same value rather than tracking a second, dungeonmaster-controlled path for it. |
-| Dungeonmaster data (guilds, quests) | `osHomedirAdapter` | `DUNGEONMASTER_HOME` verbatim if set, else `os.homedir() + '/.dungeonmaster'` | We control this path. In dev/prod scripts and E2E tests, `DUNGEONMASTER_HOME` isolates dungeonmaster data per scenario. |
+| Session JSONL files | `homedir` (`#gateway/node/os`) | `os.homedir()` — Claude CLI's own `~/.claude/` | Claude CLI writes session files under whatever `HOME` names. We read the same value rather than tracking a second, dungeonmaster-controlled path for it. |
+| Dungeonmaster data (guilds, quests) | `dungeonmasterHomeFindBroker` | `DUNGEONMASTER_HOME` verbatim if set, else `os.homedir() + '/.dungeonmaster'` | We control this path. In dev/prod scripts and E2E tests, `DUNGEONMASTER_HOME` isolates dungeonmaster data per scenario. |
 
-In E2E tests, `HOME` is set to the test directory so that `os.homedir()` (used by `osUserHomedirAdapter`) resolves to
+In E2E tests, `HOME` is set to the test directory so that `os.homedir()` (imported via `#gateway/node/os`) resolves to
 the same isolated temp dir, and the fake Claude CLI writes session files where the server expects to find them. Jest's
 own `unit`/`integration` runs get the same isolation a different way: `packages/testing/src/jest.setup-global.js`'s
 `globalSetup` assigns a sandboxed `HOME` once, in Jest's own parent process, before any worker forks — the only point
