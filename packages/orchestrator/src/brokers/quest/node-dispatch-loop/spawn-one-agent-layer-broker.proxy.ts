@@ -12,7 +12,7 @@ import {
   registerSpyOn,
 } from '@dungeonmaster/testing/register-mock';
 
-import type { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
+import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { apiOverloadRetryStatics } from '../../../statics/api-overload-retry/api-overload-retry-statics';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { dispatchHoldRejectBroker } from '../../dispatch-hold/reject/dispatch-hold-reject-broker';
@@ -23,6 +23,8 @@ import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
 import { questSessionRecordBrokerProxy } from '../session-record/quest-session-record-broker.proxy';
+import { questSessionWallRecordBroker } from '../session-wall-record/quest-session-wall-record-broker';
+import { sessionEndLayerBrokerProxy } from './session-end-layer-broker.proxy';
 
 // The overload-retry path re-reads the quest to check whether the dying child signalled back
 // during the backoff. quest-get-broker's fs-walk has its own test suite; here it only supplies
@@ -40,6 +42,10 @@ registerModuleMock({ module: '../session-record/quest-session-record-broker' });
 // rather than staged through the dispatch-state read and write chains.
 registerModuleMock({ module: '../../dispatch-hold/reject/dispatch-hold-reject-broker' });
 
+// The wall record has its own suite covering the locked write; here the record's ARGUMENTS are what
+// is under test, so it is mocked at the module boundary like the hold above.
+registerModuleMock({ module: '../session-wall-record/quest-session-wall-record-broker' });
+
 const PROCESS_UUID = '00000000-0000-4000-8000-00000000d15b';
 const PINNED_NOW_MS = Date.parse('2026-09-13T04:49:29.242Z');
 
@@ -51,6 +57,8 @@ type TimeoutMs = number;
 export const spawnOneAgentLayerBrokerProxy = (): {
   setupSpawnEmitsSessionThenExits: (params: { sessionId: string; exitCode: number }) => void;
   setupSpawnExitsWithoutSession: (params: { exitCode: number }) => void;
+  setupSpawnEmitsLinesThenExits: (params: { lines: readonly string[]; exitCode: number }) => void;
+  getWallRecordInputs: () => readonly unknown[];
   setupSpawnEmitsApiOverloadThenExits: (params: {
     instruction: SpawnInstruction;
     sessionId?: string;
@@ -89,6 +97,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   questGetBrokerProxy();
   questSessionRecordBrokerProxy();
   dispatchHoldRejectBrokerProxy();
+  sessionEndLayerBrokerProxy();
 
   registerMock({ fn: randomUUID }).calledWith([]).returns(PROCESS_UUID);
 
@@ -109,6 +118,20 @@ export const spawnOneAgentLayerBrokerProxy = (): {
 
   const rejectMock = registerMock({ fn: dispatchHoldRejectBroker });
   const getMock = registerMock({ fn: questGetBroker });
+  const wallMock = registerMock({ fn: questSessionWallRecordBroker });
+  // A clean exit re-reads the quest to see whether the child signalled. For the default instruction
+  // the re-read finds no such work item — the quiet outcome, as if it signalled and moved on — and a
+  // wall record resolves; a test that needs the unsignalled path stages the status itself with
+  // setupWorkItemStatusOnReread, which outranks this as the later registration at the same address.
+  const defaultInstruction = SpawnInstructionStub();
+  getMock
+    .calledWith([{ input: { questId: defaultInstruction.questId } }])
+    .resolves(GetQuestResultStub({ success: true, quest: QuestStub({ workItems: [] }) }));
+  wallMock
+    .calledWith([
+      { questId: defaultInstruction.questId, workItemId: defaultInstruction.workItemId },
+    ])
+    .resolves(null);
 
   return {
     setupSpawnEmitsSessionThenExits: ({
@@ -127,6 +150,19 @@ export const spawnOneAgentLayerBrokerProxy = (): {
     setupSpawnExitsWithoutSession: ({ exitCode }: { exitCode: number }): void => {
       spawnProxy.setupSpawnAndEmitLines({ lines: [], exitCode });
     },
+
+    setupSpawnEmitsLinesThenExits: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: number;
+    }): void => {
+      spawnProxy.setupSpawnAndEmitLines({ lines: [...lines], exitCode });
+    },
+
+    getWallRecordInputs: (): readonly unknown[] =>
+      wallMock.callsMatching([]).map((call) => call[0]),
 
     // One attempt that emits the CLI's synthetic 529 line before dying — the exact shape a real
     // overloaded run produces. Omit sessionId for a child that died before its init line.

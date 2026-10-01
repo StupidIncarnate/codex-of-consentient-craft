@@ -230,6 +230,40 @@ describe('questRouteScopeBroker', () => {
         ],
       });
     });
+
+    it('ERROR: {a wall carrying a declaredReason} => leads the block reason with it, so the row says why', async () => {
+      const proxy = questRouteScopeBrokerProxy();
+      proxy.setupPassthrough();
+
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE],
+        flows: [SEND_FLOW],
+        operations: [CODEWEAVER_SCOPE],
+        workItems: [
+          WorkItemStub({
+            id: PLAN_WORK_ITEM_ID,
+            role: 'codeweaver',
+            status: 'failed',
+            step: 'plan',
+            relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+            declaredWord: 'wall',
+            declaredReason:
+              'the dungeonmaster MCP server did not connect in this session (status: failed)',
+          }),
+        ],
+      });
+
+      proxy.setupQuest({ quest });
+
+      await questRouteScopeBroker({ questId: quest.id });
+
+      expect(proxy.getBlockCalls().map((call) => String(call.reason))).toStrictEqual([
+        'the dungeonmaster MCP server did not connect in this session (status: failed) — ' +
+          'step `plan` in family `codeweaver` folded to `wall` and routes it to `@blocked` for ' +
+          `operation item ${CODEWEAVER_OP_ID}. No fresh session of any role passes this, so the ` +
+          'quest halts here for a human.',
+      ]);
+    });
   });
 
   describe('the family route', () => {

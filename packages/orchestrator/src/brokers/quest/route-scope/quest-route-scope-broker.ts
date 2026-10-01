@@ -153,7 +153,13 @@ export const questRouteScopeBroker = async ({
 
       if (action.kind === 'block') {
         halt.workItemId = last.id;
-        halt.reason = String(action.message);
+        // A wall's own reason leads: the block writes this over the item's `errorMessage`, which is
+        // the line the execution row shows, so the router's generic halt line alone would hide WHY
+        // the session or handler stopped.
+        halt.reason =
+          last.declaredWord === 'wall' && last.declaredReason !== undefined
+            ? `${String(last.declaredReason)} — ${String(action.message)}`
+            : String(action.message);
         return null;
       }
 

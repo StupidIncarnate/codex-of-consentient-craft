@@ -29,7 +29,10 @@ import type { APIRequestContext } from '#gateway/npm/playwright__test';
 import { z } from '#gateway/npm/zod';
 
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
+import {
+  ClaudeQueueResponseStub,
+  SimpleTextResponseStub,
+} from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmHttpResponse } from '@dungeonmaster/hydration-recipes/contracts';
@@ -105,7 +108,7 @@ export const dispatchHarness = ({
   queueScript: (params: {
     script: {
       role: string;
-      outcome: 'done' | 'green' | 'red';
+      outcome: 'done' | 'silent' | 'green' | 'red';
       // The assistant text this step's agent emits. Give two steps DIFFERENT text and a spec can
       // tell one role's transcript from the next one's — which is what an assertion about a role
       // TRANSITION needs, and what the shared default text cannot express.
@@ -125,7 +128,7 @@ export const dispatchHarness = ({
     questId: string;
     script: {
       role: string;
-      outcome: 'done' | 'green' | 'red';
+      outcome: 'done' | 'silent' | 'green' | 'red';
       text?: string;
       outputLines?: string[];
       delayMs?: number;
@@ -179,7 +182,8 @@ export const dispatchHarness = ({
   // nothing else) and the ward queue (an exit code: green/red). The relay dispatches ONE work item
   // at a time, so FIFO order maps each outcome to the matching dispatch.
   //
-  // `done` IS THE ONLY AGENT OUTCOME A QUEUED RESPONSE CAN SPELL, because `signal-back` carries no
+  // `done` IS THE ONLY AGENT OUTCOME WORD A QUEUED RESPONSE CAN SPELL (`silent` spells a session that
+  // never signals at all), because `signal-back` carries no
   // outcome word: the four words ride on `quest-work`, which this fake CLI has no MCP client to
   // call. A ward outcome is spelled through the ward queue instead (green/red below): a red routes
   // `unmet` to a `repair` work item on the same scope, and the router returns that repair to a
@@ -190,7 +194,7 @@ export const dispatchHarness = ({
   }: {
     script: {
       role: string;
-      outcome: 'done' | 'green' | 'red';
+      outcome: 'done' | 'silent' | 'green' | 'red';
       text?: string;
       outputLines?: string[];
       delayMs?: number;
@@ -203,6 +207,19 @@ export const dispatchHarness = ({
     agentLineDelayMs?: number;
   }): void => {
     for (const step of script) {
+      // `silent`: the fake CLI prints `outputLines` verbatim and exits 0 WITHOUT signalling — the
+      // shape of a session that never reached `signal-back`, such as one whose init line reports the
+      // dungeonmaster MCP server `failed`.
+      if (step.outcome === 'silent') {
+        claudeMock.queueResponse({
+          response: ClaudeQueueResponseStub({
+            sessionId: `e2e-dispatch-session-${nextUnique()}`,
+            lines: step.outputLines ?? [],
+            exitCode: 0,
+          }),
+        });
+        continue;
+      }
       if (step.outcome === 'done') {
         claudeMock.queueResponse({
           response: SimpleTextResponseStub({

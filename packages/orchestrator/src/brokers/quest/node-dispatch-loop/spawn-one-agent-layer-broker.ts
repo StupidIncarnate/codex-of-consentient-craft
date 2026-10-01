@@ -18,7 +18,14 @@
  *   twenty minutes and then hit the outage keeps its context. An attempt that died before its init
  *   line has no session to resume and re-spawns fresh.
  *
- *   Terminal work-item status is never written here — it belongs to the child's own signal-back.
+ *   A SESSION CUT OFF FROM `quest-work` IS WALLED HERE. A child whose init line shows the
+ *   dungeonmaster MCP server not `connected` has no tool to report through, so it is killed at once
+ *   and its work item recorded `wall`; so is one whose final `result` line names a
+ *   `DUNGEONMASTER-WALL:` (agentSessionWallReasonTransformer). A child that exits CLEANLY without
+ *   signalling goes to sessionEndLayerBroker, which resumes it once with a prompt that says so
+ *   rather than letting orphan recovery tell it it was killed.
+ *
+ *   Every other terminal work-item status belongs to the child's own signal-back.
  *
  * USAGE:
  * await spawnOneAgentLayerBroker({ instruction, cwd });
@@ -41,7 +48,9 @@ import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spaw
 import { isApiOverloadLineGuard } from '../../../guards/is-api-overload-line/is-api-overload-line-guard';
 import { isRateLimitRejectedLineGuard } from '../../../guards/is-rate-limit-rejected-line/is-rate-limit-rejected-line-guard';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
+import { agentSessionWallReasonTransformer } from '../../../transformers/agent-session-wall-reason/agent-session-wall-reason-transformer';
 import { agentTaskPromptTransformer } from '../../../transformers/agent-task-prompt/agent-task-prompt-transformer';
+import { agentUnsignalledExitPromptTransformer } from '../../../transformers/agent-unsignalled-exit-prompt/agent-unsignalled-exit-prompt-transformer';
 import { apiOverloadRetryDelayTransformer } from '../../../transformers/api-overload-retry-delay/api-overload-retry-delay-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
@@ -50,6 +59,7 @@ import { timerSleepBroker } from '../../timer/sleep/timer-sleep-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
+import { sessionEndLayerBroker } from './session-end-layer-broker';
 
 export const spawnOneAgentLayerBroker = async ({
   instruction,
@@ -59,6 +69,8 @@ export const spawnOneAgentLayerBroker = async ({
   isPlaying,
   overloadAttempt = 0,
   carriedSessionId,
+  unsignalledNudges = 0,
+  promptOverride,
 }: {
   instruction: SpawnInstruction;
   cwd: string;
@@ -77,6 +89,10 @@ export const spawnOneAgentLayerBroker = async ({
   // attempt captured (so this attempt resumes it rather than starting over).
   overloadAttempt?: number;
   carriedSessionId?: Session['id'];
+  // How many unsignalled-exit resumes this work item has already had, and the prompt the next
+  // resume sends instead of the finish-what-you-started one. Set only by this broker's own recursion.
+  unsignalledNudges?: number;
+  promptOverride?: string;
 }): Promise<void> => {
   const model = instruction.model ?? roleToModelTransformer({ role: instruction.role });
   const processId = `${orchestrationDispatchStatics.processIdPrefix}-${randomUUID()}`;
@@ -91,7 +107,8 @@ export const spawnOneAgentLayerBroker = async ({
   const resumePrompt =
     resumeSessionId === undefined
       ? undefined
-      : (instruction.resumePrompt ??
+      : (promptOverride ??
+        instruction.resumePrompt ??
         agentTaskPromptTransformer({
           role: instruction.role,
           workItemId: instruction.workItemId,
@@ -103,6 +120,10 @@ export const spawnOneAgentLayerBroker = async ({
   // Tracked separately from `overload`, because the two upstream deaths need opposite answers: a
   // 529 is waited out by respawning this child, a 429 means every child would die the same way.
   const rejection = { seen: false, line: '' };
+  // The reason a session hit a wall it cannot report through `quest-work`. The kill handle is filled
+  // in once the spawn returns it; the first wall line kills the child, since it can do nothing more.
+  const wall: { reason: string | undefined } = { reason: undefined };
+  const child: { kill: () => void } = { kill: () => undefined };
   const sessionStamps: Promise<void>[] = [];
   const capturedSession: { id: Session['id'] | undefined } = { id: undefined };
 
@@ -123,6 +144,11 @@ export const spawnOneAgentLayerBroker = async ({
           rejection.seen = true;
           rejection.line = line;
         }
+        const wallReason = agentSessionWallReasonTransformer({ line });
+        if (wallReason !== undefined && wall.reason === undefined) {
+          wall.reason = wallReason;
+          child.kill();
+        }
       },
       onStderrLine: ({ line }): void => {
         if (isApiOverloadLineGuard({ line })) {
@@ -138,6 +164,8 @@ export const spawnOneAgentLayerBroker = async ({
         resolve({ exitCode: code });
       },
     });
+
+    child.kill = kill;
 
     registerProcess?.({
       processId,
@@ -195,8 +223,35 @@ export const spawnOneAgentLayerBroker = async ({
     unregisterProcess({ processId });
   }
 
-  if (exitCode === null || exitCode === 0) {
-    return;
+  // A walled child was killed by this broker, so its exit code says nothing about the session; the
+  // wall is checked before the exit code for that reason.
+  if (wall.reason !== undefined || exitCode === null || exitCode === 0) {
+    const sessionToNudge = capturedSession.id ?? resumeSessionId;
+    const shouldNudge = await sessionEndLayerBroker({
+      instruction,
+      sessionId: sessionToNudge,
+      nudgesSpent: unsignalledNudges,
+      ...(wall.reason === undefined ? {} : { wallReason: wall.reason }),
+    });
+
+    if (!shouldNudge || sessionToNudge === undefined) {
+      return;
+    }
+
+    return spawnOneAgentLayerBroker({
+      instruction,
+      cwd,
+      ...(registerProcess === undefined ? {} : { registerProcess }),
+      ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
+      ...(isPlaying === undefined ? {} : { isPlaying }),
+      carriedSessionId: sessionToNudge,
+      unsignalledNudges: unsignalledNudges + 1,
+      promptOverride: agentUnsignalledExitPromptTransformer({
+        agent: instruction.role,
+        workItemId: instruction.workItemId,
+        questId: instruction.questId,
+      }),
+    });
   }
 
   // Checked BEFORE the overload branch, and it never retries. A quota refusal is the one upstream
@@ -281,6 +336,7 @@ export const spawnOneAgentLayerBroker = async ({
     ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
     ...(isPlaying === undefined ? {} : { isPlaying }),
     overloadAttempt: nextAttempt,
+    unsignalledNudges,
     ...(nextCarriedSessionId === undefined ? {} : { carriedSessionId: nextCarriedSessionId }),
   });
 };
