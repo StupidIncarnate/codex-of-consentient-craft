@@ -50,7 +50,7 @@ export const SessionForensicsFlow = async ({
   const parsedMinutes =
     minutesFlagValue === undefined ? undefined : bucketMinutesContract.safeParse(minutesFlagValue);
 
-  if (parsedMinutes !== undefined && !parsedMinutes.success) {
+  if (minutesIndex !== -1 && (minutesFlagValue === undefined || !parsedMinutes?.success)) {
     return USAGE_BLOCK;
   }
 
@@ -61,7 +61,10 @@ export const SessionForensicsFlow = async ({
       ? undefined
       : gapFloorSecondsContract.safeParse(floorSecondsFlagValue);
 
-  if (parsedFloorSeconds !== undefined && !parsedFloorSeconds.success) {
+  if (
+    floorSecondsIndex !== -1 &&
+    (floorSecondsFlagValue === undefined || !parsedFloorSeconds?.success)
+  ) {
     return USAGE_BLOCK;
   }
 

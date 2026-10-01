@@ -358,6 +358,24 @@ describe('SessionForensicsFlow', () => {
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
+
+    it('INVALID: {argv: [buckets, target, --minutes]} => flag with no value returns the usage block', async () => {
+      const target = SessionIdStub({ value: 'session-forensics-flow-buckets-missing-minutes' });
+
+      const result = await SessionForensicsFlow({ argv: ['buckets', target, '--minutes'] });
+
+      expect(result).toBe(USAGE_BLOCK_TEXT);
+    });
+
+    it('INVALID: {argv: [gaps, target, --floor-seconds]} => flag with no value returns the usage block', async () => {
+      const target = SessionIdStub({ value: 'session-forensics-flow-gaps-missing-floor' });
+
+      const result = await SessionForensicsFlow({
+        argv: ['gaps', target, '--floor-seconds'],
+      });
+
+      expect(result).toBe(USAGE_BLOCK_TEXT);
+    });
   });
 
   describe('invalid input', () => {
