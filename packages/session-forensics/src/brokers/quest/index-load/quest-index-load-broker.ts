@@ -7,7 +7,7 @@
  * one command that needs them instead. Reach for this over reading the file yourself.
  *
  * USAGE:
- * questIndexLoadBroker({ questId: QuestIdStub() });
+ * await questIndexLoadBroker({ questId: QuestIdStub() });
  * // Returns { userRequest, workItems, operations, wardResults, riftcarverResults } for that quest.
  * // Every array fails independently and userRequest is undefined when missing or invalid — same
  * // resilience as questLoadBroker. Everything comes back empty/undefined when the quest cannot be
@@ -28,11 +28,11 @@ import {
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
-export const questIndexLoadBroker = ({
+export const questIndexLoadBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): QuestIndexLoadResult => {
+}): Promise<QuestIndexLoadResult> => {
   const empty = {
     userRequest: undefined,
     workItems: [],
@@ -40,7 +40,7 @@ export const questIndexLoadBroker = ({
     wardResults: [],
     riftcarverResults: [],
   };
-  const questPath = questFindBroker({ questId });
+  const questPath = await questFindBroker({ questId });
 
   if (questPath === undefined) {
     return questIndexLoadResultContract.parse(empty);

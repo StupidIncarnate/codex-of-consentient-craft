@@ -5,6 +5,7 @@ import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest
 import { transcriptLoadBrokerProxy } from '../../../brokers/transcript/load/transcript-load-broker.proxy';
 import { transcriptResolveBrokerProxy } from '../../../brokers/transcript/resolve/transcript-resolve-broker.proxy';
 import { subagentRosterLoadBrokerProxy } from '../../../brokers/subagent/roster-load/subagent-roster-load-broker.proxy';
+import { questFindBrokerProxy } from '../../../brokers/quest/find/quest-find-broker.proxy';
 import { questLoadBrokerProxy } from '../../../brokers/quest/load/quest-load-broker.proxy';
 import { questIndexLoadBrokerProxy } from '../../../brokers/quest/index-load/quest-index-load-broker.proxy';
 import { SubagentMetaStub } from '../../../contracts/subagent-meta/subagent-meta.stub';
@@ -43,6 +44,7 @@ export const DigestRunResponderProxy = (): {
   // enforce-proxy-child-creation for the broker digest-run-responder.ts imports directly.
   transcriptResolveBrokerProxy();
   const rosterProxy = subagentRosterLoadBrokerProxy();
+  questFindBrokerProxy();
   const questProxy = questLoadBrokerProxy();
   const questIndexProxy = questIndexLoadBrokerProxy();
   // Not driven directly — the `quest` command's own transcript-size read runs against the SAME

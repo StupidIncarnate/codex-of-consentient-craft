@@ -11,10 +11,10 @@
  * way an unrecognised command does — never silently ignored or silently defaulted.
  *
  * USAGE:
- * SessionForensicsFlow({ argv: ['summary', 'abc-123'] });
+ * await SessionForensicsFlow({ argv: ['summary', 'abc-123'] });
  * // Returns the rendered ContentText for the `summary` command. Returns a usage block when argv
  * // names no valid command, or omits the target.
- * SessionForensicsFlow({ argv: ['buckets', 'abc-123', '--minutes', '5'] });
+ * await SessionForensicsFlow({ argv: ['buckets', 'abc-123', '--minutes', '5'] });
  * // Returns the `buckets` render with a 5-minute window instead of the default 15
  */
 
@@ -33,7 +33,11 @@ const USAGE_BLOCK = [
   'gaps --floor-seconds <n>',
 ].join('\n');
 
-export const SessionForensicsFlow = ({ argv }: { argv: readonly string[] }): string => {
+export const SessionForensicsFlow = async ({
+  argv,
+}: {
+  argv: readonly string[];
+}): Promise<string> => {
   const parsedCommand = digestCommandContract.safeParse(argv[0]);
   const [, target] = argv;
 

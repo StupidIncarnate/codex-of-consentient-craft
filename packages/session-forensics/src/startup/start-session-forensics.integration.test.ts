@@ -5,7 +5,7 @@ import { argv, getExitCode, setExitCode, stdout } from '#gateway/node/process';
 
 describe('StartSessionForensics', () => {
   describe('valid invocation', () => {
-    it('VALID: {argv: [summary, target resolving to no transcript]} => writes the rendered text plus a trailing newline to stdout exactly once', () => {
+    it('VALID: {argv: [summary, target resolving to no transcript]} => writes the rendered text plus a trailing newline to stdout exactly once', async () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
       const originalArgv = [...argv];
@@ -18,7 +18,7 @@ describe('StartSessionForensics', () => {
         'session-forensics-startup-summary-ghost',
       );
 
-      StartSessionForensics();
+      await StartSessionForensics();
 
       argv.splice(0, argv.length, ...originalArgv);
 
@@ -50,14 +50,14 @@ describe('StartSessionForensics', () => {
   });
 
   describe('empty target', () => {
-    it('EMPTY: {argv naming an empty target} => writes the usage block plus a trailing newline to stdout exactly once', () => {
+    it('EMPTY: {argv naming an empty target} => writes the usage block plus a trailing newline to stdout exactly once', async () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
       const originalArgv = [...argv];
       setExitCode(0);
       argv.splice(0, argv.length, 'node', 'start-session-forensics.js', 'summary', '');
 
-      StartSessionForensics();
+      await StartSessionForensics();
 
       const exitCode = getExitCode();
       argv.splice(0, argv.length, ...originalArgv);

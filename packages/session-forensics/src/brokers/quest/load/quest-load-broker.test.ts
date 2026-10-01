@@ -11,7 +11,7 @@ import { questLoadBrokerProxy } from './quest-load-broker.proxy';
 
 describe('questLoadBroker', () => {
   describe('quest found with flows', () => {
-    it('VALID: {quest with two flows} => returns both, in file order', () => {
+    it('VALID: {quest with two flows} => returns both, in file order', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'two-flow-quest' });
       const flowOne = FlowStub({
@@ -28,12 +28,12 @@ describe('questLoadBroker', () => {
       });
       proxy.setupQuest({ questId, questJson: { flows: [flowOne, flowTwo] } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [flowOne, flowTwo], workItems: [] });
     });
 
-    it('VALID: {flow carrying nodes, edges and observables} => nested shape survives intact', () => {
+    it('VALID: {flow carrying nodes, edges and observables} => nested shape survives intact', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'nested-shape-quest' });
       const observable = FlowObservableStub({
@@ -45,14 +45,14 @@ describe('questLoadBroker', () => {
       const flow = FlowStub({ id: 'nested-flow', nodes: [node], edges: [edge] });
       proxy.setupQuest({ questId, questJson: { flows: [flow] } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
   });
 
   describe('quest found with work items', () => {
-    it('VALID: {quest with one work item carrying an observation} => returns it alongside the flows', () => {
+    it('VALID: {quest with one work item carrying an observation} => returns it alongside the flows', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'work-item-quest' });
       const flow = FlowStub({ id: 'solo-flow' });
@@ -63,59 +63,59 @@ describe('questLoadBroker', () => {
       });
       proxy.setupQuest({ questId, questJson: { flows: [flow], workItems: [workItem] } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [workItem] });
     });
   });
 
   describe('quest not found', () => {
-    it('EMPTY: {questFindBroker finds nothing} => returns [], and the file is never read', () => {
+    it('EMPTY: {questFindBroker finds nothing} => returns [], and the file is never read', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'ghost-quest' });
       proxy.setupMissingQuest();
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
   });
 
   describe('quest document missing usable flows', () => {
-    it('EMPTY: {quest document has no flows key} => returns []', () => {
+    it('EMPTY: {quest document has no flows key} => returns []', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'no-flows-key-quest' });
       proxy.setupQuest({ questId, questJson: { someOtherField: 'value' } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
 
-    it('EMPTY: {flows is an empty array} => returns []', () => {
+    it('EMPTY: {flows is an empty array} => returns []', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'empty-flows-quest' });
       proxy.setupQuest({ questId, questJson: { flows: [] } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
   });
 
   describe('quest document missing usable work items', () => {
-    it('EMPTY: {quest document has no workItems key} => flows still load, workItems is []', () => {
+    it('EMPTY: {quest document has no workItems key} => flows still load, workItems is []', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'no-work-items-key-quest' });
       const flow = FlowStub({ id: 'flow-alone' });
       proxy.setupQuest({ questId, questJson: { flows: [flow] } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
 
-    it('EDGE: {a workItems entry fails the contract} => flows still load, workItems is []', () => {
+    it('EDGE: {a workItems entry fails the contract} => flows still load, workItems is []', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-work-item-entry-quest' });
       const flow = FlowStub({ id: 'flow-alone' });
@@ -124,29 +124,29 @@ describe('questLoadBroker', () => {
         questJson: { flows: [flow], workItems: [{ id: 'incomplete-work-item' }] },
       });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
   });
 
   describe('unparsable or invalid quest content', () => {
-    it('EDGE: {file is not valid JSON} => returns [], no throw', () => {
+    it('EDGE: {file is not valid JSON} => returns [], no throw', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-json-quest' });
       proxy.setupQuestRawContent({ questId, content: '{ this is not json' });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
 
-    it('EDGE: {a flows entry fails the contract} => returns [], no throw', () => {
+    it('EDGE: {a flows entry fails the contract} => returns [], no throw', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-flow-entry-quest' });
       proxy.setupQuest({ questId, questJson: { flows: [{ id: 'incomplete-flow' }] } });
 
-      const result = questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });

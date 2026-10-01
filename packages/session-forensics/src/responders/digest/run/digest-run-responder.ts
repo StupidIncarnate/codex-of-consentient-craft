@@ -12,7 +12,7 @@
  * `digestDefaultStatics` default.
  *
  * USAGE:
- * DigestRunResponder({ command: DigestCommandStub({ value: 'summary' }), target: 'abc-123' });
+ * await DigestRunResponder({ command: DigestCommandStub({ value: 'summary' }), target: 'abc-123' });
  * // Returns the rendered ContentText for the `summary` command
  */
 import { readFileSync } from '#gateway/node/fs';
@@ -21,6 +21,7 @@ import { questContract, sessionContract } from '@dungeonmaster/shared/contracts'
 import { transcriptLoadBroker } from '../../../brokers/transcript/load/transcript-load-broker';
 import { transcriptResolveBroker } from '../../../brokers/transcript/resolve/transcript-resolve-broker';
 import { subagentRosterLoadBroker } from '../../../brokers/subagent/roster-load/subagent-roster-load-broker';
+import { questFindBroker } from '../../../brokers/quest/find/quest-find-broker';
 import { questLoadBroker } from '../../../brokers/quest/load/quest-load-broker';
 import { questIndexLoadBroker } from '../../../brokers/quest/index-load/quest-index-load-broker';
 
@@ -42,7 +43,7 @@ import type { BucketMinutes } from '../../../contracts/bucket-minutes/bucket-min
 import type { GapFloorSeconds } from '../../../contracts/gap-floor-seconds/gap-floor-seconds-contract';
 import type { WorkItemIndexRow } from '../../../contracts/work-item-index-row/work-item-index-row-contract';
 
-export const DigestRunResponder = ({
+export const DigestRunResponder = async ({
   command,
   target,
   bucketMinutes,
@@ -52,18 +53,26 @@ export const DigestRunResponder = ({
   target: string;
   bucketMinutes?: BucketMinutes;
   gapFloorSeconds?: GapFloorSeconds;
-}): string => {
+}): Promise<string> => {
   if (command === 'coverage') {
     const questId = questContract.shape.id.parse(target);
-    const { flows, workItems } = questLoadBroker({ questId });
+    const questPath = await questFindBroker({ questId });
+    if (questPath === undefined) {
+      return 'quest not found';
+    }
+    const { flows, workItems } = await questLoadBroker({ questId });
     const coverage = questToCoverageTransformer({ flows, workItems });
     return coverageToTextTransformer({ coverage });
   }
 
   if (command === 'quest') {
     const questId = questContract.shape.id.parse(target);
+    const questPath = await questFindBroker({ questId });
+    if (questPath === undefined) {
+      return 'quest not found';
+    }
     const { userRequest, workItems, operations, wardResults, riftcarverResults } =
-      questIndexLoadBroker({ questId });
+      await questIndexLoadBroker({ questId });
 
     const rows: WorkItemIndexRow[] = workItems.map((workItem) => {
       const transcriptPath =

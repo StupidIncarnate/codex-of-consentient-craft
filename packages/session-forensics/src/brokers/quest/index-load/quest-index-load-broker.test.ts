@@ -9,7 +9,7 @@ import { questIndexLoadBrokerProxy } from './quest-index-load-broker.proxy';
 
 describe('questIndexLoadBroker', () => {
   describe('quest found with every collection', () => {
-    it('VALID: {quest with userRequest, workItems, operations, wardResults, riftcarverResults} => returns all five', () => {
+    it('VALID: {quest with userRequest, workItems, operations, wardResults, riftcarverResults} => returns all five', async () => {
       const proxy = questIndexLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'full-quest' });
       const workItem = WorkItemStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -27,7 +27,7 @@ describe('questIndexLoadBroker', () => {
         },
       });
 
-      const result = questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId });
 
       expect(result).toStrictEqual({
         userRequest: 'Add real-time notifications',
@@ -40,12 +40,12 @@ describe('questIndexLoadBroker', () => {
   });
 
   describe('quest not found', () => {
-    it('EMPTY: {questFindBroker finds nothing} => returns empty/undefined for all five', () => {
+    it('EMPTY: {questFindBroker finds nothing} => returns empty/undefined for all five', async () => {
       const proxy = questIndexLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'ghost-quest' });
       proxy.setupMissingQuest();
 
-      const result = questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId });
 
       expect(result).toStrictEqual({
         userRequest: undefined,
@@ -58,12 +58,12 @@ describe('questIndexLoadBroker', () => {
   });
 
   describe('quest document missing individual keys', () => {
-    it('EMPTY: {quest document has none of the five keys} => returns empty/undefined for all five', () => {
+    it('EMPTY: {quest document has none of the five keys} => returns empty/undefined for all five', async () => {
       const proxy = questIndexLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'no-keys-quest' });
       proxy.setupQuest({ questId, questJson: { someOtherField: 'value' } });
 
-      const result = questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId });
 
       expect(result).toStrictEqual({
         userRequest: undefined,
@@ -74,7 +74,7 @@ describe('questIndexLoadBroker', () => {
       });
     });
 
-    it('EDGE: {a workItems entry fails the contract} => workItems is [], the other keys still load', () => {
+    it('EDGE: {a workItems entry fails the contract} => workItems is [], the other keys still load', async () => {
       const proxy = questIndexLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-work-item-quest' });
       const operation = OperationItemStub({ id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' });
@@ -87,7 +87,7 @@ describe('questIndexLoadBroker', () => {
         },
       });
 
-      const result = questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId });
 
       expect(result).toStrictEqual({
         userRequest: 'Fix the bug',
@@ -98,7 +98,7 @@ describe('questIndexLoadBroker', () => {
       });
     });
 
-    it('EDGE: {userRequest is not a string} => userRequest is undefined, the other keys still load', () => {
+    it('EDGE: {userRequest is not a string} => userRequest is undefined, the other keys still load', async () => {
       const proxy = questIndexLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-user-request-quest' });
       const workItem = WorkItemStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -107,7 +107,7 @@ describe('questIndexLoadBroker', () => {
         questJson: { userRequest: 42, workItems: [workItem] },
       });
 
-      const result = questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId });
 
       expect(result).toStrictEqual({
         userRequest: undefined,
@@ -120,12 +120,12 @@ describe('questIndexLoadBroker', () => {
   });
 
   describe('unparsable quest content', () => {
-    it('EDGE: {file is not valid JSON} => returns empty/undefined for all five, no throw', () => {
+    it('EDGE: {file is not valid JSON} => returns empty/undefined for all five, no throw', async () => {
       const proxy = questIndexLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-json-quest' });
       proxy.setupQuestRawContent({ questId, content: '{ this is not json' });
 
-      const result = questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId });
 
       expect(result).toStrictEqual({
         userRequest: undefined,

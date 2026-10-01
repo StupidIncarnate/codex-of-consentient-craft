@@ -5,6 +5,7 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
@@ -37,10 +38,14 @@ export const questFindBrokerProxy = (): {
   }) => void;
   setupHomeEnvEmptyString: () => void;
   setupNoQuestAnywhere: () => void;
+  setupCwdSubdirectory: (params: { subdirectory: string; repoRoot?: string }) => void;
+  setupRepoRootNotFound: () => void;
 } => {
   const existsProxy = existsSyncProxy();
   const readdirProxy = readdirEntriesSyncProxy();
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
+  const cwdResolveProxy = cwdResolveBrokerProxy();
+  cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: REPO_CWD });
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — constructed here only to satisfy
   // enforce-proxy-child-creation, since this broker imports `join` directly. Never staged: the
@@ -160,6 +165,21 @@ export const questFindBrokerProxy = (): {
     setupNoQuestAnywhere: (): void => {
       homeFindProxy.clearHomeEnv();
       stageUserGlobalHomedir();
+    },
+
+    setupCwdSubdirectory: ({
+      subdirectory,
+      repoRoot = REPO_CWD,
+    }: {
+      subdirectory: string;
+      repoRoot?: string;
+    }): void => {
+      cwdStageProxy.setupCwd({ value: subdirectory });
+      cwdResolveProxy.setupRepoRootFoundInParent({ startPath: subdirectory, repoRoot });
+    },
+
+    setupRepoRootNotFound: (): void => {
+      cwdResolveProxy.setupRepoRootNotFound({ startPath: REPO_CWD });
     },
   };
 };

@@ -17,13 +17,13 @@ import { GapFloorSecondsStub } from '../../../contracts/gap-floor-seconds/gap-fl
 
 describe('DigestRunResponder', () => {
   describe('summary command', () => {
-    it('VALID: {command: summary} => renders the whole fixed block for a populated session', () => {
+    it('VALID: {command: summary} => renders the whole fixed block for a populated session', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-summary-valid' });
       const contents = JSON.stringify(TranscriptRecordStub());
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'summary',
         target,
       });
@@ -54,11 +54,11 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('EMPTY: {target resolves to nothing} => the no-timestamp render, subagent count 0', () => {
+    it('EMPTY: {target resolves to nothing} => the no-timestamp render, subagent count 0', async () => {
       const proxy = DigestRunResponderProxy();
       proxy.setupNoTranscript();
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'summary',
         target: SessionIdStub({ value: 'session-ghost' }),
       });
@@ -87,7 +87,7 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('EDGE: {roster has three sub-agent rows} => the count reaches the render', () => {
+    it('EDGE: {roster has three sub-agent rows} => the count reaches the render', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-summary-edge' });
       const contents = JSON.stringify(TranscriptRecordStub());
@@ -101,7 +101,7 @@ describe('DigestRunResponder', () => {
         ],
       });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'summary',
         target,
       });
@@ -134,13 +134,13 @@ describe('DigestRunResponder', () => {
   });
 
   describe('buckets command', () => {
-    it('VALID: {command: buckets} => renders the header plus one row for a populated session', () => {
+    it('VALID: {command: buckets} => renders the header plus one row for a populated session', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-valid' });
       const contents = JSON.stringify(TranscriptRecordStub());
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'buckets',
         target,
       });
@@ -153,7 +153,7 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('VALID: {no bucketMinutes} => a 10-minute gap between records stays inside one default 15-minute bucket', () => {
+    it('VALID: {no bucketMinutes} => a 10-minute gap between records stays inside one default 15-minute bucket', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-default-width' });
       const contents = [
@@ -162,7 +162,7 @@ describe('DigestRunResponder', () => {
       ].join('\n');
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'buckets',
         target,
       });
@@ -175,7 +175,7 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('VALID: {command: buckets, bucketMinutes: 5} => the same 10-minute gap splits into two 5-minute buckets', () => {
+    it('VALID: {command: buckets, bucketMinutes: 5} => the same 10-minute gap splits into two 5-minute buckets', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-minutes-flag' });
       const contents = [
@@ -184,7 +184,7 @@ describe('DigestRunResponder', () => {
       ].join('\n');
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'buckets',
         target,
         bucketMinutes: BucketMinutesStub({ value: 5 }),
@@ -201,7 +201,7 @@ describe('DigestRunResponder', () => {
   });
 
   describe('gaps command', () => {
-    it('VALID: {command: gaps} => renders header, one idle gap row, and the summary', () => {
+    it('VALID: {command: gaps} => renders header, one idle gap row, and the summary', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-valid' });
       const contents = [
@@ -210,7 +210,7 @@ describe('DigestRunResponder', () => {
       ].join('\n');
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'gaps',
         target,
       });
@@ -231,7 +231,7 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('EDGE: {one roster row has no timestamped transcript} => that window is skipped, the timestamped one is used', () => {
+    it('EDGE: {one roster row has no timestamped transcript} => that window is skipped, the timestamped one is used', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-edge' });
       const contents = [
@@ -258,7 +258,7 @@ describe('DigestRunResponder', () => {
         ],
       });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'gaps',
         target,
       });
@@ -280,7 +280,7 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('VALID: {no gapFloorSeconds} => a 90-second gap stays below the default 120-second floor and is dropped', () => {
+    it('VALID: {no gapFloorSeconds} => a 90-second gap stays below the default 120-second floor and is dropped', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-default-floor' });
       const contents = [
@@ -289,7 +289,7 @@ describe('DigestRunResponder', () => {
       ].join('\n');
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'gaps',
         target,
       });
@@ -309,7 +309,7 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it('VALID: {command: gaps, gapFloorSeconds: 30} => the same 90-second gap clears the lower floor and is listed', () => {
+    it('VALID: {command: gaps, gapFloorSeconds: 30} => the same 90-second gap clears the lower floor and is listed', async () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-floor-flag' });
       const contents = [
@@ -318,7 +318,7 @@ describe('DigestRunResponder', () => {
       ].join('\n');
       proxy.setupSession({ target, contents });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'gaps',
         target,
         gapFloorSeconds: GapFloorSecondsStub({ value: 30 }),
@@ -342,13 +342,13 @@ describe('DigestRunResponder', () => {
   });
 
   describe('coverage command', () => {
-    it('VALID: {command: coverage} => renders the flow block and the caveat', () => {
+    it('VALID: {command: coverage} => renders the flow block and the caveat', async () => {
       const proxy = DigestRunResponderProxy();
       const questId = QuestIdStub({ value: 'bare-flow-quest' });
       const flow = FlowStub({ id: 'bare-flow', flowType: 'runtime', nodes: [], edges: [] });
       proxy.setupQuest({ questId, questJson: { flows: [flow] } });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'coverage',
         target: questId,
       });
@@ -368,19 +368,19 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it("EMPTY: {quest not found} => returns ''", () => {
+    it("EMPTY: {quest not found} => returns 'quest not found'", async () => {
       const proxy = DigestRunResponderProxy();
       proxy.setupMissingQuest();
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'coverage',
         target: QuestIdStub({ value: 'ghost-quest' }),
       });
 
-      expect(result).toBe('');
+      expect(result).toBe('quest not found');
     });
 
-    it('VALID: {quest carries a codeweaver work item that marked an observable met} => the rendered row reflects it, end to end', () => {
+    it('VALID: {quest carries a codeweaver work item that marked an observable met} => the rendered row reflects it, end to end', async () => {
       const proxy = DigestRunResponderProxy();
       const questId = QuestIdStub({ value: 'marked-observable-quest' });
       const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
@@ -404,7 +404,7 @@ describe('DigestRunResponder', () => {
       });
       proxy.setupQuest({ questId, questJson: { flows: [flow], workItems: [workItem] } });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'coverage',
         target: questId,
       });
@@ -426,7 +426,7 @@ describe('DigestRunResponder', () => {
   });
 
   describe('quest command', () => {
-    it('VALID: {quest carries one work item joined to an operation and a ward result} => renders the whole row, transcript size and sub-agent count included', () => {
+    it('VALID: {quest carries one work item joined to an operation and a ward result} => renders the whole row, transcript size and sub-agent count included', async () => {
       const proxy = DigestRunResponderProxy();
       const questId = QuestIdStub({ value: 'quest-command-quest' });
       const target = SessionIdStub({ value: 'session-quest-command' });
@@ -470,7 +470,7 @@ describe('DigestRunResponder', () => {
         },
       });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'quest',
         target: questId,
       });
@@ -495,24 +495,24 @@ describe('DigestRunResponder', () => {
       );
     });
 
-    it("EMPTY: {quest not found} => returns ''", () => {
+    it("EMPTY: {quest not found} => returns 'quest not found'", async () => {
       const proxy = DigestRunResponderProxy();
       proxy.setupMissingQuestIndex();
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'quest',
         target: QuestIdStub({ value: 'ghost-quest' }),
       });
 
-      expect(result).toBe('');
+      expect(result).toBe('quest not found');
     });
 
-    it('EMPTY: {quest found with no work items} => prints only the user request line', () => {
+    it('EMPTY: {quest found with no work items} => prints only the user request line', async () => {
       const proxy = DigestRunResponderProxy();
       const questId = QuestIdStub({ value: 'empty-work-items-quest' });
       proxy.setupQuestIndex({ questId, questJson: { userRequest: 'Fix the bug' } });
 
-      const result = DigestRunResponder({
+      const result = await DigestRunResponder({
         command: 'quest',
         target: questId,
       });

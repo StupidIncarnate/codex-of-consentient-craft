@@ -5,7 +5,7 @@
  * and sets a non-zero exit code.
  *
  * USAGE:
- * StartSessionForensics();
+ * await StartSessionForensics();
  * // Writes the flow's rendered ContentText, or a usage block, to stdout with a trailing newline.
  */
 
@@ -14,10 +14,10 @@ import { argv as processArgv, setExitCode, stderr, stdout } from '#gateway/node/
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
-export const StartSessionForensics = (): void => {
+export const StartSessionForensics = async (): Promise<void> => {
   try {
     const argv = processArgv.slice(COMMAND_LINE_ARG_START_INDEX);
-    const result = SessionForensicsFlow({ argv });
+    const result = await SessionForensicsFlow({ argv });
     stdout.write(`${result}\n`);
   } catch (error) {
     stderr.write(`${String(error)}\n`);
