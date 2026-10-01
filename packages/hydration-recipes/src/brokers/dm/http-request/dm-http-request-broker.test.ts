@@ -41,6 +41,21 @@ describe('dmHttpRequestBroker', () => {
         { method: 'POST', path: '/api/quests', body: { title: 'Quest 1' } },
       ]);
     });
+
+    it('ERROR: {target.request throws} => decorates rejection with url', async () => {
+      dmHttpRequestBrokerProxy();
+      const target = DmTargetStub({
+        baseUrl: 'http://app.in-process',
+        request: async () => Promise.reject(new Error('in-process dispatch failed')),
+      });
+
+      await expect(
+        dmHttpRequestBroker({ target, method: 'POST', path: '/api/guilds' }),
+      ).rejects.toMatchObject({
+        url: 'http://app.in-process/api/guilds',
+        message: 'Error: in-process dispatch failed',
+      });
+    });
   });
 
   describe('a target with no request function', () => {
@@ -55,6 +70,21 @@ describe('dmHttpRequestBroker', () => {
       const result = await dmHttpRequestBroker({ target, method: 'POST', path: '/api/guilds' });
 
       expect(result).toStrictEqual({ status: 201, body: { id: 'f47ac10b' } });
+    });
+
+    it('ERROR: {fetchWithStatus throws} => decorates rejection with url', async () => {
+      const proxy = dmHttpRequestBrokerProxy();
+      const target = DmTargetStub({ baseUrl: 'http://app.in-process' });
+      proxy.fails({
+        url: 'http://app.in-process/api/guilds',
+        cause: new Error('connect ECONNREFUSED'),
+      });
+
+      await expect(
+        dmHttpRequestBroker({ target, method: 'POST', path: '/api/guilds' }),
+      ).rejects.toMatchObject({
+        url: 'http://app.in-process/api/guilds',
+      });
     });
   });
 

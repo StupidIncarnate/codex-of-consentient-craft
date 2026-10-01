@@ -19,6 +19,7 @@ import { dmHttpResponseContract } from '../../../contracts/dm-http-response/dm-h
 import { dmResponseBodyContract } from '../../../contracts/dm-response-body/dm-response-body-contract';
 import type { DmHttpResponse } from '../../../contracts/dm-http-response/dm-http-response-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
+import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 
 const JSON_CONTENT_TYPE = 'application/json';
 
@@ -33,11 +34,17 @@ export const dmHttpRequestBroker = async ({
   path: string;
   body?: unknown;
 }): Promise<DmHttpResponse> => {
+  const url = target.baseUrl === undefined ? path : `${target.baseUrl}${path}`;
+
   if (target.request !== undefined) {
-    const raw = await target.request(
-      body === undefined ? { method, path } : { method, path, body },
-    );
-    return dmHttpResponseContract.parse(raw);
+    try {
+      const raw = await target.request(
+        body === undefined ? { method, path } : { method, path, body },
+      );
+      return dmHttpResponseContract.parse(raw);
+    } catch (cause) {
+      throw dmHttpTransportFailureTransformer({ cause, url });
+    }
   }
 
   if (target.baseUrl === undefined) {
@@ -46,14 +53,18 @@ export const dmHttpRequestBroker = async ({
     );
   }
 
-  const response = await fetchWithStatus({
-    url: `${target.baseUrl}${path}`,
-    method,
-    ...(body === undefined ? {} : { headers: { 'Content-Type': JSON_CONTENT_TYPE }, body }),
-  });
+  try {
+    const response = await fetchWithStatus({
+      url,
+      method,
+      ...(body === undefined ? {} : { headers: { 'Content-Type': JSON_CONTENT_TYPE }, body }),
+    });
 
-  return dmHttpResponseContract.parse({
-    status: response.status,
-    body: dmResponseBodyContract.parse(JSON.parse(response.body)),
-  });
+    return dmHttpResponseContract.parse({
+      status: response.status,
+      body: dmResponseBodyContract.parse(JSON.parse(response.body)),
+    });
+  } catch (cause) {
+    throw dmHttpTransportFailureTransformer({ cause, url });
+  }
 };
