@@ -2,6 +2,12 @@
 
 Status: proposal, 2026-10-01. Nothing here is built yet.
 
+This is the first feature built on the chronicle-llm data layer (`scrolls/chronicle-llm/design.md`).
+It holds what the health feature shows and how it behaves. Where its data comes from, how it is stored and
+how it stays live all live in the chronicle-llm docs. The first draft of this plan kept per-quest health
+files next to `quest.json`, written by a recorder inside the server. Measurement showed that cannot serve
+the command center or scale to large quests, so chronicle-llm replaced it.
+
 ## What we are building
 
 1. **Failed-call overview in the quest's right panel.** Counts by cause, updating live while the quest runs.
@@ -20,7 +26,7 @@ Status: proposal, 2026-10-01. Nothing here is built yet.
 | Where the overview lives | The right panel, ABOVE the coverage summary |
 | How View Context opens | A side drawer over the right half. The quest execution stays visible on the left. |
 | What the headline number counts | Every failure, split by kind. Ward reds the agent later fixed still show. |
-| What gets built first | The recorder and the MCP tool. Both are checked against quest 1918a5ee's counts before any UI is built. |
+| What gets built first | The chronicle-llm store and its Claude Code harness, then the MCP tool. Both are checked against quest 1918a5ee's counts before any UI is built. |
 
 ## What quest 1918a5ee showed
 
@@ -70,80 +76,19 @@ Measured across `~/.claude/projects` on 2026-10-01: 3,676 JSONL files, 5.09 GB i
 A future quest may hold several sessions that size, so a few GB per quest is plausible. Three rules follow
 from that:
 
-1. **Never re-parse every transcript when a quest loads.** Record health stats while the quest runs, and read
-   that record on load.
+1. **Never re-parse every transcript when a quest loads.** chronicle-llm records everything as it is written, and
+   the health feature only queries it.
 2. **Never send a whole quest's transcripts to the browser for this feature.** `useQuestChatBinding` already
    holds every entry as `entriesByWorkItem`, and that will not scale. The View Context drawer fetches a window
    of entries around one call.
 3. **Store only a capped preview of each error.** Lines reach 1.11 MB. The full error text loads only when
    someone opens that instance.
 
-## Design
-
-### Recording while the quest runs
-
-**The recorder reads raw transcript lines itself. It does not hang off the chat-entry stream**, for two
-reasons:
-- Chat entries drop the fields it needs: byte offsets, `sourceToolAssistantUUID`, `toolDenialKind` and raw
-  timestamps.
-- The live tail starts at the END of each file (`startPosition: 'end'`), so it never sees lines written
-  before it started.
-
-So the recorder is an incremental indexer. For each of a quest's transcripts, including sub-agent files, it
-reads from the saved byte offset to the end of the file. It parses only complete lines and saves the new
-offset. One code path covers three triggers:
-1. the existing JSONL watcher reporting new lines
-2. server start
-3. a quest opened whose health files are missing or behind.
-
-Transcript paths come from `questCwdResolveBroker` and `claudeProjectPathEncoderTransformer`, the same pair
-the replay path uses. They resolve per SESSION, because a carved quest's transcripts sit under two
-directories.
-
-Per quest, the recorder writes into `<questFolder>/health/`, next to `quest.json`:
-
-| File | Content | Growth |
-|---|---|---|
-| `calls.jsonl` | One compact row per tool call (see below). Rows are only ever appended. | About 300 bytes per call, so 25,532 calls is about 7.5 MB |
-| `failures.jsonl` | One row per failed call, with a 2 KB error preview and the cause | Small |
-| `cursors.json` | For each transcript, the byte offset already processed | One entry per transcript |
-| `summary.json` | Rolled-up counters, rewritten at most once a second | Fixed size |
-
-The recorder needs `cursors.json` for three reasons:
-- After a server restart, it carries on from the saved offset and never starts over.
-- Old quests get a one-time catch-up scan that uses the same code path.
-- A resumed session, one "CUT OFF mid-work", simply keeps appending.
-
-A call row is written when its result arrives. The recorder pairs the call to its result by `tool_use_id`.
-The census found this pairing held for all 860 results, and `sourceToolAssistantUUID` confirms it.
-
-```
-call row:
-  toolUseId, tool, workItemId, role, step, sessionId, agentId?
-  startedAt (tool_use timestamp), endedAt (tool_result timestamp)
-  ok | failed, cause?          // cause only when failed
-  phase                        // filled in phase two, see Timeline
-  locator: { transcriptId, byteOffset, lineIndex, resultUuid }
-```
-
-`locator` is what View Context seeks to. `byteOffset` makes the seek cheap even in a 25 MB file. The
-`resultUuid` field lets the server confirm it landed on the right line. If the file changed, the server falls
-back to a scan.
-
-**Parallel tool calls need care.** When an agent issues several calls in one turn, their results arrive one
-at a time. A naive start-to-result duration then overstated total Edit time: 1,721 s against a real 729 s. The
-recorder serialises a turn's results, so each call counts from the previous result.
-
-### Live updates
-
-After each batch it records, the recorder emits a new orchestration event, `quest-health-updated`. The event
-carries the changed counters plus any new failure rows. It joins `PER_QUEST_EVENT_TYPES`
-(`packages/server/src/responders/server/init/server-init-responder.ts:62`). The web keeps a running copy and
-applies each event to it. So failures appear in the right panel as the quest runs.
+## What the health feature shows
 
 ### Failure causes
 
-The recorder sorts each failure into a cause, using shapes the census found in this quest's transcripts:
+chronicle-llm sorts each failed tool call into a cause (`tool_calls.cause`), using shapes the census found in this quest's transcripts:
 
 | Cause | How it is detected |
 |---|---|
@@ -200,7 +145,8 @@ It shows:
 - one row per cause, with its count, and whether it is still rising
 - badges for a ward verdict mismatch, a refusal loop, or a killed session.
 
-The panel loads `GET /api/quests/:questId/health`, then applies each `quest-health-updated` event.
+The panel loads `GET /api/quests/:questId/health`, which queries `tool_calls`, `errors` and `rollup_quest`.
+It then updates from the same cursor-based push every chronicle-llm reader uses.
 
 **Drill-down.** Clicking a cause lists its instances, newest first, in pages of 50. Each instance shows the
 work item and role, the time, the tool input summary and the error preview. An expand control fetches the full
@@ -208,8 +154,8 @@ error text.
 
 **View Context drawer.** No side drawer exists yet. The closest surface is
 `flow-node-detail-panel-layer-widget`, an absolutely positioned right-hand panel, which we copy. The drawer:
-- calls `GET /api/quests/:questId/transcripts/:transcriptId/window?toolUseId=…&before=40&after=20`, which seeks
-  by the stored `byteOffset` and returns chat entries
+- calls `GET /api/runs/:runId/window?toolCallId=…&before=40&after=20`, which reads that window of the
+  `timeline` view
 - renders them with the existing `ChatEntryListWidget`, read-only
 - scrolls to the failed call and highlights it. This needs a scroll-to-entry feature, which does not exist yet.
   `useAutoScrollBinding` only pins to the bottom.
@@ -217,8 +163,8 @@ error text.
 
 ### The MCP tool
 
-The new tool is `get-quest-health({ questId, sections?, cause?, limit? })`. It reads `summary.json` and
-`failures.jsonl`, never transcripts, so it stays fast at any quest size. Output is capped:
+The new tool is `get-quest-health({ questId, sections?, cause?, limit? })`. It goes through the server's HTTP API,
+which queries chronicle-llm and never reads a transcript, so it stays fast at any quest size. Output is capped:
 - by default, a summary of counters and the ranked metrics
 - `sections: ['failures']`, which returns grouped causes with 2 example instances each
 - `cause`, which returns that cause's instances, up to `limit`
@@ -250,7 +196,7 @@ Item 21, split by those rules:
 | signal | 10 s |
 | report | 6 s |
 
-The recorder fills each call row's `phase` as it goes. `summary.json` gains per-work-item phase totals. The UI
+Phases are derived at query time from `tool_calls` and `events`, so a better phase rule needs no re-ingest. The UI
 shows a lane per work item, with bars per phase and gaps marked. The MCP tool returns the same data as text
 rows, such as `item 21 codeweaver/work: explore 27s, edit 133s, verify 115s FAIL, fix 25s, verify 100s`.
 
@@ -261,7 +207,7 @@ only about 297 s. The rest was a killed session waiting to be resumed.
 
 These bugs are separate from this plan. Each should become a bounty-board entry or a fix.
 
-1. **The plan validator refuses paths inside the package it owns.** The last planner, session 97eb9b67, ended
+1. **FIXED in `f5c298cc1`. The plan validator refused paths inside the package it owns.** The last planner, session 97eb9b67, ended
    on 7 refused plans. The refusal text was `payload.files[].path '/home/…/worktrees/…/packages/web/…' is
    outside the packages this operation item owns (web)`. The likely cause is an absolute path compared against
    a relative one. This is why the quest is `paused`.
@@ -275,87 +221,7 @@ These bugs are separate from this plan. Each should become a bounty-board entry 
 6. **Agents piping ward through `tail` hide its exit code.** Either ward's output or the snippet should stop
    this.
 
-## Slice 1 in detail: the recorder and the MCP tool
-
-**The server is the only process that writes health files.** The MCP tool reads them over HTTP, as
-`get-quest-status` already does. Two processes indexing the same files would race.
-
-### Contracts in `@dungeonmaster/shared`
-
-These live in shared because the server, the web and the MCP package all read them.
-
-| Contract | Fields |
-|---|---|
-| `toolFailureCauseContract` | an enum: `hook-refusal`, `permission-denied`, `ward-red`, `ward-red-hidden`, `mcp-refused`, `tool-error`, `command-error` |
-| `transcriptLocatorContract` | `transcriptPath`, `sessionId`, `agentId?`, `byteOffset`, `lineIndex`, `resultUuid` |
-| `toolCallRecordContract` | `toolUseId`, `tool`, `workItemId`, `role`, `step?`, `sessionId`, `agentId?`, `startedAt`, `endedAt`, `durationMs`, `ok`, `cause?`, `subCause?`, `locator` |
-| `toolFailureRecordContract` | a call record plus `inputSummary` (capped at 300 chars), `errorPreview` (capped at 2,000 chars) and `errorChars` (the full length) |
-| `questHealthSummaryContract` | `questId`, `updatedAt`, `totals { calls, failed }`, `byCause`, `byTool`, `byWorkItem`, `transcriptCount` |
-| `questHealthCursorContract` | per transcript: `transcriptPath`, `byteOffset`, `lineIndex`, `pendingToolUses` (calls seen with no result yet) |
-
-`pendingToolUses` has to persist. A call and its result can land on either side of one indexing pass, so
-the pass that sees the result must still know the call.
-
-### Orchestrator
-
-| File | Job |
-|---|---|
-| `statics/tool-failure-cause` | The detection table, one row per cause, with the exact text patterns |
-| `transformers/transcript-line-tool-events` | One raw JSONL line becomes its tool uses and tool results, with ids, timestamps and flags |
-| `transformers/tool-result-cause-classify` | A paired call and result become `ok`, or a cause plus a sub-cause |
-| `transformers/quest-health-summary-fold` | A summary plus new rows becomes the next summary |
-| `brokers/quest-health/index` | Lists a quest's transcripts, including sub-agent files. Reads each from its cursor to the end of the file, classifies, and appends rows. Writes the cursors and the summary, and returns what changed. |
-| `brokers/quest-health/get` | Reads the summary and the failures, filtered by `sections`, `cause` and `limit` |
-| `state/quest-health-index` | One indexing pass per quest at a time |
-| a bootstrap responder | Every 2 s, stats the transcripts of each active quest. Indexes any quest whose files grew, and emits `quest-health-updated` with what changed. |
-| `StartOrchestrator.getQuestHealth` | The get broker, with a catch-up index run first |
-
-### Server and MCP
-
-1. Add the route `GET /api/quests/:questId/health`, taking the query parameters `sections`, `cause` and
-   `limit`.
-2. Add `quest-health-updated` to the event-type contract and to `PER_QUEST_EVENT_TYPES`.
-3. Add `get-quest-health` to the MCP package. It calls that route.
-
-### How we check it
-
-- **Unit tests.** They use lines copied from quest 1918a5ee's transcripts, one per failure shape.
-- **The real quest.** A full index of quest 1918a5ee must produce the following:
-
-  | Count | Expected |
-  |---|---|
-  | Tool results | 860 |
-  | `is_error` failures | 98 |
-  | Hidden ward reds | 18 |
-  | `Bash(sed:*)` denials | 19 |
-
-  Any difference must be explained before slice 1 counts as done.
-
-**Not in slice 1:** recovery time and turns. Both need the calls AFTER a failure, so the get broker
-computes them when it reads, in slice 6.
-
-## Order of work
-
-| Step | Delivers |
-|---|---|
-| 1 | Failure-cause statics and a line classifier, unit-tested against lines copied from this quest |
-| 2 | The health recorder, with its files, cursors and parallel-call serialising. It runs on the live stream and as a catch-up scan. |
-| 3 | The `GET /health` route, the `quest-health-updated` event and the `get-quest-health` MCP tool (summary and failures) |
-| 4 | The right-panel health section and the drill-down |
-| 5 | The transcript window route, the View Context drawer and scroll-to-entry |
-| 6 | The phase-one metrics beyond failures: ward mismatch, refusal loops, resumes, how a session ended, cost |
-| 7 | Timeline phases, the timeline UI and the timeline MCP section |
-| 8 | The phase-two metrics |
-
-Steps 1 to 3 can be checked against quest 1918a5ee. A catch-up scan of it must reproduce the counts above: 98
-failed results, 18 soft failures and 19 sed denials.
-
 ## Open questions
 
-1. **Does `session-forensics` become the parser, or go away?** It is an unwired CLI, and its contracts drop
-   `is_error` and `tool_use_id`. The recorder belongs in the orchestrator, on the live stream. One parser is
-   better than two.
-2. **Health files next to `quest.json`, or a separate store?** Next to the quest keeps it simple, and lets
-   Claude Code read it in this repo.
-3. **Where do quest-level idle gaps come from?** This quest sat idle for 72.5 minutes and 13.8 hours, and
+1. **Where do quest-level idle gaps come from?** This quest sat idle for 72.5 minutes and 13.8 hours, and
    item 38 waited 12.4 minutes between `createdAt` and `startedAt`. None of the data says why.
