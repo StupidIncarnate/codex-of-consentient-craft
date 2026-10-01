@@ -24,6 +24,7 @@ export const QuestClarifyPanelWidgetProxy = (): {
   hasComposerThumbnail: () => boolean;
   getQuestionText: () => HTMLElement['textContent'];
   getCounter: () => HTMLElement['textContent'];
+  getSendError: () => HTMLElement['textContent'];
   getOptionLabels: () => HTMLElement['textContent'][];
   getCheckboxCount: () => number;
   getOptionCount: () => number;
@@ -79,6 +80,10 @@ export const QuestClarifyPanelWidgetProxy = (): {
     },
     getCounter: (): HTMLElement['textContent'] => {
       const element = screen.queryByTestId('CLARIFY_COUNTER');
+      return element?.textContent ?? null;
+    },
+    getSendError: (): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId('CLARIFY_SEND_ERROR');
       return element?.textContent ?? null;
     },
     getOptionLabels: (): HTMLElement['textContent'][] => {

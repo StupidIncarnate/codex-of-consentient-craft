@@ -103,7 +103,7 @@ export const useQuestChatBinding = ({
       images?: readonly PastedImageUpload[];
     }[];
     questions: AskUserQuestionItem[];
-  }) => void;
+  }) => Promise<void>;
   stopChat: () => void;
   stopFollowupChat: () => void;
 } => {
@@ -844,8 +844,12 @@ export const useQuestChatBinding = ({
     [],
   );
 
+  // Resolves after a 2xx and rejects with the broker's own error otherwise. The clarify panel stays
+  // open on a rejection, so `pendingClarification` is left alone until the POST succeeds, and the
+  // synthetic user entry is staged only then: a refused send that staged one would show it twice
+  // once the user sends again.
   const submitClarifyAnswers = useCallback(
-    ({
+    async ({
       answers,
       questions,
     }: {
@@ -856,57 +860,47 @@ export const useQuestChatBinding = ({
         images?: readonly PastedImageUpload[];
       }[];
       questions: AskUserQuestionItem[];
-    }): void => {
+    }): Promise<void> => {
       const activeQuestId = questIdRef.current;
-      if (!activeQuestId) return;
+      if (!activeQuestId) return Promise.resolve();
 
-      const userMessage = answers
-        .map((answer) => clarificationAnswerToLineTransformer({ answer }))
-        .join('\n');
-      const userEntry = chatEntryContract.parse({
-        role: 'user',
-        content: userMessage,
-        uuid: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-      });
-      stagedUuidsRef.current.add(userEntry.uuid);
-      setEntriesBySessionInternal((prev) =>
-        upsertChatEntriesByUuidTransformer({
-          prev,
-          key: SYNTHETIC_SESSION_KEY,
-          newEntries: [userEntry],
-        }),
-      );
+      // Stamped at commit, not when the 200 lands: the transcript sorts by timestamp, and the
+      // resumed agent's first output can arrive over the socket before the POST resolves.
+      const committedAt = new Date().toISOString();
       setPendingTurn(true);
-      setPendingClarification(null);
       trackedChatProcessIdRef.current = null;
 
-      questClarifyBroker({
+      return questClarifyBroker({
         questId: activeQuestId,
         answers,
         questions,
       })
         .then(({ chatProcessId }) => {
-          trackedChatProcessIdRef.current = chatProcessId;
-        })
-        .catch((err: unknown) => {
-          setPendingTurn(false);
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          const errorEntry = chatEntryContract.parse({
-            role: 'system',
-            type: 'error',
-            content: errorMessage,
+          const userMessage = answers
+            .map((answer) => clarificationAnswerToLineTransformer({ answer }))
+            .join('\n');
+          const userEntry = chatEntryContract.parse({
+            role: 'user',
+            content: userMessage,
             uuid: crypto.randomUUID(),
-            timestamp: new Date().toISOString(),
+            timestamp: committedAt,
           });
-          stagedUuidsRef.current.add(errorEntry.uuid);
+          stagedUuidsRef.current.add(userEntry.uuid);
           setEntriesBySessionInternal((prev) =>
             upsertChatEntriesByUuidTransformer({
               prev,
               key: SYNTHETIC_SESSION_KEY,
-              newEntries: [errorEntry],
+              newEntries: [userEntry],
             }),
           );
+          setPendingClarification(null);
+          trackedChatProcessIdRef.current = chatProcessId;
+        })
+        .catch((err: unknown) => {
+          setPendingTurn(false);
+          // The clarify panel shows this rejection inside itself and keeps the set, so it must
+          // reject rather than resolve quietly.
+          throw err;
         });
     },
     [],

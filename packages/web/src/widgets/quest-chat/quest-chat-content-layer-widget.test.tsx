@@ -837,6 +837,82 @@ describe('QuestChatContentLayerWidget', () => {
       ]);
     });
 
+    it('ERROR: {clarify POST answers 400 too many images} => QUEST_CLARIFY_PANEL stays rendered and shows the server error text', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '4b1f6d38-2e75-4a90-9c13-7d8e5a2b0f46' });
+      const quest = QuestStub({ id: 'q-clarify-refused', status: 'review_flows' });
+      proxy.setupClarifyRefused({ status: 400, error: 'too many images' });
+
+      const { findByTestId } = mantineRenderMiddleware({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify-refused' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      const { questions } = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which shape?',
+            header: 'Shape',
+            options: [
+              { label: 'Round', description: 'R' },
+              { label: 'Square', description: 'S' },
+            ],
+            multiSelect: false,
+          },
+        ],
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId: 'proc-clarify-refused', questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CLARIFY_PANEL');
+
+      await act(async () => {
+        await proxy.clickClarifyOption({ label: 'Round' });
+      });
+
+      await waitFor(() => {
+        expect(proxy.getClarifySendError()).toBe('too many images');
+      });
+
+      expect({
+        requestCount: proxy.getClarifyRequestCount(),
+        panelVisible: proxy.isClarifyPanelVisible(),
+        counter: proxy.getClarifyCounter(),
+        sendError: proxy.getClarifySendError(),
+      }).toStrictEqual({
+        requestCount: 1,
+        panelVisible: true,
+        counter: 'Question 1 of 1',
+        sendError: 'too many images',
+      });
+    });
+
     it('VALID: {?chat=hidden, quest at review_flows} => CHAT_PANEL not in DOM, binding still subscribed (spec panel renders from WS quest-modified)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();

@@ -538,9 +538,9 @@ export const QuestChatContentLayerWidget = ({
           });
       }}
       pendingQuestion={pendingClarification}
-      onSubmitAnswers={({ answers }): void => {
+      onSubmitAnswers={async ({ answers }): Promise<void> => {
         const questions = pendingClarification?.questions ?? [];
-        submitClarifyAnswers({
+        return submitClarifyAnswers({
           answers: answers.map((a) => ({
             header: a.question.header,
             labels: a.labels,

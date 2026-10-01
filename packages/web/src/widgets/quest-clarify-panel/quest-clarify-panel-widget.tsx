@@ -6,7 +6,7 @@
  *
  * USAGE:
  * <QuestClarifyPanelWidget questions={questions} questTitle={questTitle} onSubmitAnswers={handleSubmit} />
- * // Renders question text, option cards and the answer composer; onSubmitAnswers fires once, on the last question
+ * // Renders question text, option cards and the answer composer; onSubmitAnswers fires on the last question and a rejection keeps the panel open with its error shown
  */
 
 import { useCallback, useState } from '#gateway/npm/react';
@@ -46,26 +46,34 @@ export const QuestClarifyPanelWidget = ({
 }: {
   questions: AskUserQuestionItem[];
   questTitle: AskUserQuestionItem['question'];
-  onSubmitAnswers: (params: { answers: ClarifyAnswer[] }) => void;
+  onSubmitAnswers: (params: { answers: ClarifyAnswer[] }) => Promise<void>;
 }): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [collectedAnswers, setCollectedAnswers] = useState<ClarifyAnswer[]>([]);
   const [checkedLabels, setCheckedLabels] = useState<AskUserQuestionOption['label'][]>([]);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isMultiSelect = currentQuestion?.multiSelect === true;
 
+  const reportSendFailure = useCallback((error: unknown): void => {
+    setSendError(error instanceof Error ? error.message : String(error));
+  }, []);
+
+  // The last question's commit writes neither collectedAnswers nor the question index, so a
+  // rejected send leaves the whole set in place and a resend rebuilds the same one.
   const commitAnswer = useCallback(
-    ({ answer }: { answer: ClarifyAnswer }): void => {
+    async ({ answer }: { answer: ClarifyAnswer }): Promise<void> => {
       const updated = [...collectedAnswers, answer];
       if (currentQuestionIndex < questions.length - 1) {
         setCollectedAnswers(updated);
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setCheckedLabels([]);
-      } else {
-        onSubmitAnswers({ answers: updated });
+        return Promise.resolve();
       }
+      setSendError(null);
+      return onSubmitAnswers({ answers: updated });
     },
     [collectedAnswers, currentQuestionIndex, questions.length, onSubmitAnswers],
   );
@@ -125,11 +133,23 @@ export const QuestClarifyPanelWidget = ({
                   );
                   return;
                 }
-                commitAnswer({ answer: { question: currentQuestion, labels: [label] } });
+                commitAnswer({ answer: { question: currentQuestion, labels: [label] } }).catch(
+                  reportSendFailure,
+                );
               }}
             />
           ))}
         </Stack>
+        {sendError === null ? null : (
+          <Text
+            data-testid="CLARIFY_SEND_ERROR"
+            ff="monospace"
+            size="xs"
+            style={{ color: colors.danger }}
+          >
+            {sendError}
+          </Text>
+        )}
         {currentQuestion ? (
           <ChatComposerWidget
             key={currentQuestionIndex}
@@ -141,15 +161,18 @@ export const QuestClarifyPanelWidget = ({
               const labels = currentQuestion.options
                 .map((opt) => opt.label)
                 .filter((label) => checkedLabels.includes(label));
-              commitAnswer({
+              // A rejection reaches the composer too, which then keeps its text and thumbnails.
+              return commitAnswer({
                 answer: {
                   question: currentQuestion,
                   labels,
                   ...(text.length > 0 ? { text } : {}),
                   ...(images.length > 0 ? { images } : {}),
                 },
+              }).catch((error: unknown) => {
+                reportSendFailure(error);
+                throw error;
               });
-              return Promise.resolve();
             }}
           />
         ) : null}

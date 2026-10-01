@@ -49,6 +49,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   deliverWsMessage: (params: { data: string }) => void;
   setupChat: (params: { chatProcessId: string }) => void;
   setupClarify: (params: { chatProcessId: string }) => void;
+  setupClarifyRefused: (params: { status: number; error: string }) => void;
   setupPause: () => void;
   setupMode: (params: { mode: OrchestrationMode }) => void;
   setupNewQuest: (params: { questId: Quest['id']; chatProcessId: string }) => void;
@@ -84,6 +85,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   typeInClarifyComposer: (params: { text: string }) => void;
   clickClarifySend: () => void;
   getClarifyCounter: () => HTMLElement['textContent'];
+  getClarifySendError: () => HTMLElement['textContent'];
   isClarifyPanelVisible: () => boolean;
   getChatMessageTexts: () => HTMLElement['textContent'][];
   getPauseRequestCount: () => number;
@@ -188,6 +190,9 @@ export const QuestChatContentLayerWidgetProxy = (): {
     setupClarify: ({ chatProcessId }) => {
       binding.setupClarify({ chatProcessId });
     },
+    setupClarifyRefused: ({ status, error }) => {
+      binding.setupClarifyRefused({ status, error });
+    },
     setupPause: () => {
       binding.setupPause();
     },
@@ -234,6 +239,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
       clarifyPanel.clickComposerSend();
     },
     getClarifyCounter: () => clarifyPanel.getCounter(),
+    getClarifySendError: () => clarifyPanel.getSendError(),
     isClarifyPanelVisible: () => screen.queryByTestId('QUEST_CLARIFY_PANEL') !== null,
     getChatMessageTexts: () => screen.queryAllByTestId('CHAT_MESSAGE').map((el) => el.textContent),
     getPauseRequestCount: () => binding.getPauseRequestCount(),

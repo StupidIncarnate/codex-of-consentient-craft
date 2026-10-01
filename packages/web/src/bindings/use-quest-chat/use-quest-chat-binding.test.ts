@@ -1872,7 +1872,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        result.current.submitClarifyAnswers({
+        await result.current.submitClarifyAnswers({
           questions: stub.questions,
           answers: [{ header: 'Preference', labels: ['Option A'] }],
         });
@@ -1896,7 +1896,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        result.current.submitClarifyAnswers({
+        await result.current.submitClarifyAnswers({
           questions: stub.questions,
           answers: [
             { header: 'Letters', labels: ['Alpha', 'Gamma'], text: 'prefer Gamma' },
@@ -1950,7 +1950,7 @@ describe('useQuestChatBinding', () => {
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       await act(async () => {
-        result.current.submitClarifyAnswers({
+        await result.current.submitClarifyAnswers({
           questions: stub.questions,
           answers: [{ header: 'Letters', labels: [], text: 'my own answer' }],
         });
@@ -1971,6 +1971,158 @@ describe('useQuestChatBinding', () => {
       ]);
 
       expect(result.current.entriesBySession).toStrictEqual(expectedEntries);
+    });
+  });
+
+  describe('submitClarifyAnswers outcome', () => {
+    it("VALID: {broker answers 200} => resolves, closes the clarify panel and the POST body carries each answer's images", async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-clarify-outcome-ok' });
+      proxy.setupClarify({ chatProcessId: 'proc-clar-ok' });
+      const stub = AskUserQuestionStub();
+
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId: 'proc-c', questions: stub.questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const pendingBefore = result.current.pendingClarification;
+      let outcome: unknown = 'unset';
+      await act(async () => {
+        outcome = await result.current
+          .submitClarifyAnswers({
+            questions: stub.questions,
+            answers: [
+              {
+                header: 'Shape',
+                labels: [],
+                text: 'like this[Pasted Image 1]',
+                images: [PastedImageUploadStub()],
+              },
+            ],
+          })
+          .then(() => 'resolved');
+      });
+
+      expect({
+        pendingBefore,
+        outcome,
+        pendingAfter: result.current.pendingClarification,
+        requestBodies: await proxy.getClarifyRequestBodies(),
+      }).toStrictEqual({
+        pendingBefore: { questions: stub.questions },
+        outcome: 'resolved',
+        pendingAfter: null,
+        requestBodies: [
+          {
+            answers: [
+              {
+                header: 'Shape',
+                labels: [],
+                text: 'like this[Pasted Image 1]',
+                images: [PastedImageUploadStub()],
+              },
+            ],
+            questions: stub.questions,
+          },
+        ],
+      });
+    });
+
+    it('ERROR: {broker answers 400 too many images} => rejects with that message and leaves the clarify panel open with no staged entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-clarify-outcome-400' });
+      proxy.setupClarifyRefused({ status: 400, error: 'too many images' });
+      const stub = AskUserQuestionStub();
+
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId: 'proc-c', questions: stub.questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      let rejection: unknown = 'unset';
+      await act(async () => {
+        rejection = await result.current
+          .submitClarifyAnswers({
+            questions: stub.questions,
+            answers: [{ header: 'Shape', labels: [], text: 'like this' }],
+          })
+          .then(
+            () => 'resolved',
+            (error: unknown) => String(error),
+          );
+      });
+
+      expect({
+        rejection,
+        pendingClarification: result.current.pendingClarification,
+        isStreaming: result.current.isStreaming,
+        entriesBySession: result.current.entriesBySession,
+      }).toStrictEqual({
+        rejection: 'Error: too many images',
+        pendingClarification: { questions: stub.questions },
+        isStreaming: false,
+        entriesBySession: new Map(),
+      });
+    });
+
+    it('ERROR: {network failure} => rejects and leaves the clarify panel open', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-clarify-outcome-net' });
+      proxy.setupClarifyError();
+      const stub = AskUserQuestionStub();
+
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: { chatProcessId: 'proc-c', questions: stub.questions },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      let rejected: unknown = 'unset';
+      await act(async () => {
+        rejected = await result.current
+          .submitClarifyAnswers({
+            questions: stub.questions,
+            answers: [{ header: 'Shape', labels: [], text: 'like this' }],
+          })
+          .then(
+            () => 'resolved',
+            () => 'rejected',
+          );
+      });
+
+      expect({
+        rejected,
+        pendingClarification: result.current.pendingClarification,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        rejected: 'rejected',
+        pendingClarification: { questions: stub.questions },
+        isStreaming: false,
+      });
     });
   });
 

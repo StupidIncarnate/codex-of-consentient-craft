@@ -133,7 +133,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -259,7 +259,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -325,7 +325,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -372,7 +372,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -414,7 +414,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -459,7 +459,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -537,7 +537,7 @@ describe('QuestClarifyPanelWidget', () => {
         ],
       });
       const firstQuestion = parsed.questions[0]!;
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -574,7 +574,7 @@ describe('QuestClarifyPanelWidget', () => {
           },
         ],
       });
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -612,7 +612,7 @@ describe('QuestClarifyPanelWidget', () => {
         ],
       });
       const firstQuestion = parsed.questions[0]!;
-      const onSubmitAnswers = jest.fn();
+      const onSubmitAnswers = jest.fn().mockResolvedValue(undefined);
 
       mantineRenderMiddleware({
         ui: (
@@ -629,6 +629,182 @@ describe('QuestClarifyPanelWidget', () => {
 
       expect(onSubmitAnswers.mock.calls).toStrictEqual([
         [{ answers: [{ question: firstQuestion, labels: [], text: 'Custom answer' }] }],
+      ]);
+    });
+  });
+
+  describe('a refused last-question send', () => {
+    it('ERROR: {question 2 of 2 send rejects} => panel keeps the counter, composer text and thumbnail, and shows the rejection message', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which size?',
+            header: 'Size',
+            options: [{ label: 'Small', description: 'S' }],
+            multiSelect: false,
+          },
+          {
+            question: 'Which shape?',
+            header: 'Shape',
+            options: [{ label: 'Round', description: 'R' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn().mockRejectedValue(new Error('too many images'));
+
+      mantineRenderMiddleware({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={parsed.questions[0]!.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOption({ label: 'Small' as never });
+      proxy.typeInComposer({ text: 'like this' });
+      proxy.pasteImageInComposer({
+        mediaType: 'image/png',
+        bytes: new Uint8Array([137, 80, 78, 71]),
+        attachment: ComposerAttachmentStub({
+          attachmentId: 'c0000000-0000-4000-8000-000000000002',
+        }),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasComposerThumbnail()).toBe(true);
+      });
+
+      proxy.pressEnterInComposer();
+
+      await waitFor(() => {
+        expect(proxy.getSendError()).toBe('too many images');
+      });
+
+      expect({
+        counter: proxy.getCounter(),
+        composerText: proxy.getComposerText(),
+        thumbnail: proxy.hasComposerThumbnail(),
+        sendError: proxy.getSendError(),
+      }).toStrictEqual({
+        counter: 'Question 2 of 2',
+        composerText: 'like this',
+        thumbnail: true,
+        sendError: 'too many images',
+      });
+    });
+
+    it('ERROR: {single-select card click on the last question rejects} => panel stays on that question and shows the rejection message', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Pick one',
+            header: 'Choice',
+            options: [
+              { label: 'Alpha', description: 'First' },
+              { label: 'Beta', description: 'Second' },
+            ],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn().mockRejectedValue(new Error('server said no'));
+
+      mantineRenderMiddleware({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={parsed.questions[0]!.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOption({ label: 'Beta' as never });
+
+      await waitFor(() => {
+        expect(proxy.getSendError()).toBe('server said no');
+      });
+
+      expect({
+        counter: proxy.getCounter(),
+        questionText: proxy.getQuestionText(),
+        sendError: proxy.getSendError(),
+      }).toStrictEqual({
+        counter: 'Question 1 of 1',
+        questionText: 'Pick one',
+        sendError: 'server said no',
+      });
+    });
+
+    it('VALID: {send rejects, then send again} => second send submits the whole set and clears the error', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which size?',
+            header: 'Size',
+            options: [{ label: 'Alpha', description: 'A' }],
+            multiSelect: false,
+          },
+          {
+            question: 'Which shape?',
+            header: 'Shape',
+            options: [{ label: 'Round', description: 'R' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValue(undefined);
+
+      mantineRenderMiddleware({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={parsed.questions[0]!.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOption({ label: 'Alpha' as never });
+      proxy.typeInComposer({ text: 'like this' });
+      proxy.pressEnterInComposer();
+
+      await waitFor(() => {
+        expect(proxy.getSendError()).toBe('boom');
+      });
+
+      proxy.pressEnterInComposer();
+
+      await waitFor(() => {
+        expect(proxy.getSendError()).toBe(null);
+      });
+
+      expect(onSubmitAnswers.mock.calls).toStrictEqual([
+        [
+          {
+            answers: [
+              { question: parsed.questions[0], labels: ['Alpha'] },
+              { question: parsed.questions[1], labels: [], text: 'like this' },
+            ],
+          },
+        ],
+        [
+          {
+            answers: [
+              { question: parsed.questions[0], labels: ['Alpha'] },
+              { question: parsed.questions[1], labels: [], text: 'like this' },
+            ],
+          },
+        ],
       ]);
     });
   });

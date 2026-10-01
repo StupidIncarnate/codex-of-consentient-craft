@@ -24,6 +24,7 @@ export const useQuestChatBindingProxy = (): {
   setupChatError: () => void;
   setupClarify: (params: { chatProcessId: string }) => void;
   setupClarifyError: () => void;
+  setupClarifyRefused: (params: { status: number; error: string }) => void;
   setupCommentBatchSent: (params: { chatProcessId: string; deliveredMessage: string }) => void;
   setupCommentBatchSentWithoutDeliveredMessage: (params: { chatProcessId: string }) => void;
   setupCommentBatchStale: (params: { staleAnchors: unknown[] }) => void;
@@ -99,6 +100,9 @@ export const useQuestChatBindingProxy = (): {
     },
     setupClarifyError: () => {
       clarifyProxy.setupError();
+    },
+    setupClarifyRefused: ({ status, error }) => {
+      clarifyProxy.setupRefused({ status, error });
     },
     setupCommentBatchSent: ({ chatProcessId, deliveredMessage }) => {
       commentBatchProxy.setupSentWithDeliveredMessage({ chatProcessId, deliveredMessage });
