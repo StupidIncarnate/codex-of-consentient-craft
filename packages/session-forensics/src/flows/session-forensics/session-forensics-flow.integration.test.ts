@@ -11,6 +11,7 @@ import { SessionForensicsFlow } from './session-forensics-flow';
 import { TranscriptRecordStub } from '../../contracts/transcript-record/transcript-record.stub';
 import { claudeTranscriptHarness } from '../../../test/harnesses/claude-transcript/claude-transcript.harness';
 import { chdir, cwd } from '#gateway/node/process';
+import { join } from '#gateway/node/path';
 
 const USAGE_BLOCK_TEXT = [
   'usage: session-forensics <command> <target>',
@@ -27,10 +28,10 @@ describe('SessionForensicsFlow', () => {
   describe('valid commands', () => {
     const harness = claudeTranscriptHarness();
 
-    it('VALID: {argv: [summary, target resolving to no transcript]} => routes to DigestRunResponder and returns the no-transcript render', () => {
+    it('VALID: {argv: [summary, target resolving to no transcript]} => routes to DigestRunResponder and returns the no-transcript render', async () => {
       const target = SessionIdStub({ value: 'session-forensics-flow-summary-ghost' });
 
-      const result = SessionForensicsFlow({ argv: ['summary', target] });
+      const result = await SessionForensicsFlow({ argv: ['summary', target] });
 
       expect(result).toBe(
         [
@@ -56,20 +57,20 @@ describe('SessionForensicsFlow', () => {
       );
     });
 
-    it('VALID: {argv: [buckets, target resolving to no transcript]} => routes to DigestRunResponder and returns the header row alone', () => {
+    it('VALID: {argv: [buckets, target resolving to no transcript]} => routes to DigestRunResponder and returns the header row alone', async () => {
       const target = SessionIdStub({ value: 'session-forensics-flow-buckets-ghost' });
 
-      const result = SessionForensicsFlow({ argv: ['buckets', target] });
+      const result = await SessionForensicsFlow({ argv: ['buckets', target] });
 
       expect(result).toBe(
         'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
       );
     });
 
-    it('VALID: {argv: [gaps, target resolving to no transcript]} => routes to DigestRunResponder and returns the all-zero render', () => {
+    it('VALID: {argv: [gaps, target resolving to no transcript]} => routes to DigestRunResponder and returns the all-zero render', async () => {
       const target = SessionIdStub({ value: 'session-forensics-flow-gaps-ghost' });
 
-      const result = SessionForensicsFlow({ argv: ['gaps', target] });
+      const result = await SessionForensicsFlow({ argv: ['gaps', target] });
 
       expect(result).toBe(
         [
@@ -86,13 +87,17 @@ describe('SessionForensicsFlow', () => {
       );
     });
 
-    it('VALID: {argv: [coverage, target]} => routes to DigestRunResponder and renders the real quest.json on disk', () => {
+    it('VALID: {argv: [coverage, target]} => routes to DigestRunResponder and renders the real quest.json on disk', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'session-forensics-flow-coverage',
       });
       const questId = QuestIdStub({ value: 'flow-coverage-quest' });
       const flow = FlowStub({ id: 'bare-flow', flowType: 'runtime', nodes: [], edges: [] });
 
+      testbed.writeFile({
+        relativePath: '.dungeonmaster.json',
+        content: '{}',
+      });
       testbed.writeFile({
         relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
         content: JSON.stringify({ flows: [flow] }),
@@ -101,7 +106,7 @@ describe('SessionForensicsFlow', () => {
       const originalCwd = cwd();
       chdir(testbed.guildPath);
 
-      const result = SessionForensicsFlow({ argv: ['coverage', questId] });
+      const result = await SessionForensicsFlow({ argv: ['coverage', questId] });
 
       chdir(originalCwd);
       testbed.cleanup();
@@ -159,6 +164,10 @@ describe('SessionForensicsFlow', () => {
       });
 
       testbed.writeFile({
+        relativePath: '.dungeonmaster.json',
+        content: '{}',
+      });
+      testbed.writeFile({
         relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
         content: JSON.stringify({
           userRequest: 'Add real-time notifications',
@@ -171,7 +180,7 @@ describe('SessionForensicsFlow', () => {
       const originalCwd = cwd();
       chdir(testbed.guildPath);
 
-      const result = SessionForensicsFlow({ argv: ['quest', questId] });
+      const result = await SessionForensicsFlow({ argv: ['quest', questId] });
 
       chdir(originalCwd);
       testbed.cleanup();
@@ -195,6 +204,91 @@ describe('SessionForensicsFlow', () => {
         ].join('\n'),
       );
     });
+
+    it('VALID: {argv: [coverage, target]} invoked from package subdirectory => walks up to repo root and renders', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'session-forensics-flow-subpath',
+      });
+      const questId = QuestIdStub({ value: 'flow-subpath-quest' });
+      const flow = FlowStub({ id: 'bare-flow', flowType: 'runtime', nodes: [], edges: [] });
+
+      testbed.writeFile({
+        relativePath: '.dungeonmaster.json',
+        content: '{}',
+      });
+      testbed.writeFile({
+        relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
+        content: JSON.stringify({ flows: [flow] }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/some-package/dummy.txt',
+        content: '',
+      });
+
+      const originalCwd = cwd();
+      chdir(join(testbed.guildPath, 'packages/some-package'));
+
+      const result = await SessionForensicsFlow({ argv: ['coverage', questId] });
+
+      chdir(originalCwd);
+      testbed.cleanup();
+
+      expect(result).toBe(
+        [
+          'Flow bare-flow',
+          "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
+          '  codeweaver                    0       0          0              0        0           0',
+          '  flowrider                     0       0          0              0        0           0',
+          '  siegemaster                   7       0          0              0        0           7',
+          '',
+          'These counts can be too high.',
+          'This reading has no operation item, so it counts rows a real checklist would leave out.',
+          'For the exact numbers, ask get-quest-work({questId, operationItemId}).',
+        ].join('\n'),
+      );
+    });
+
+    it('EDGE: {argv: [coverage, unknown-quest]} => returns "quest not found"', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'session-forensics-flow-coverage-missing',
+      });
+      testbed.writeFile({
+        relativePath: '.dungeonmaster.json',
+        content: '{}',
+      });
+      const questId = QuestIdStub({ value: 'non-existent-quest' });
+
+      const originalCwd = cwd();
+      chdir(testbed.guildPath);
+
+      const result = await SessionForensicsFlow({ argv: ['coverage', questId] });
+
+      chdir(originalCwd);
+      testbed.cleanup();
+
+      expect(result).toBe('quest not found');
+    });
+
+    it('EDGE: {argv: [quest, unknown-quest]} => returns "quest not found"', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'session-forensics-flow-quest-missing',
+      });
+      testbed.writeFile({
+        relativePath: '.dungeonmaster.json',
+        content: '{}',
+      });
+      const questId = QuestIdStub({ value: 'non-existent-quest' });
+
+      const originalCwd = cwd();
+      chdir(testbed.guildPath);
+
+      const result = await SessionForensicsFlow({ argv: ['quest', questId] });
+
+      chdir(originalCwd);
+      testbed.cleanup();
+
+      expect(result).toBe('quest not found');
+    });
   });
 
   describe('CLI flags', () => {
@@ -208,7 +302,7 @@ describe('SessionForensicsFlow', () => {
       ].join('\n');
       await harness.writeSession({ sessionId: target, content });
 
-      const result = SessionForensicsFlow({ argv: ['buckets', target, '--minutes', '5'] });
+      const result = await SessionForensicsFlow({ argv: ['buckets', target, '--minutes', '5'] });
 
       expect(result).toBe(
         [
@@ -227,7 +321,9 @@ describe('SessionForensicsFlow', () => {
       ].join('\n');
       await harness.writeSession({ sessionId: target, content });
 
-      const result = SessionForensicsFlow({ argv: ['gaps', target, '--floor-seconds', '30'] });
+      const result = await SessionForensicsFlow({
+        argv: ['gaps', target, '--floor-seconds', '30'],
+      });
 
       expect(result).toBe(
         [
@@ -245,44 +341,46 @@ describe('SessionForensicsFlow', () => {
       );
     });
 
-    it('INVALID: {argv: [buckets, target, --minutes, abc]} => a non-numeric flag value returns the usage block', () => {
+    it('INVALID: {argv: [buckets, target, --minutes, abc]} => a non-numeric flag value returns the usage block', async () => {
       const target = SessionIdStub({ value: 'session-forensics-flow-buckets-bad-minutes' });
 
-      const result = SessionForensicsFlow({ argv: ['buckets', target, '--minutes', 'abc'] });
+      const result = await SessionForensicsFlow({ argv: ['buckets', target, '--minutes', 'abc'] });
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
-    it('INVALID: {argv: [gaps, target, --floor-seconds, -5]} => a negative flag value returns the usage block', () => {
+    it('INVALID: {argv: [gaps, target, --floor-seconds, -5]} => a negative flag value returns the usage block', async () => {
       const target = SessionIdStub({ value: 'session-forensics-flow-gaps-bad-floor' });
 
-      const result = SessionForensicsFlow({ argv: ['gaps', target, '--floor-seconds', '-5'] });
+      const result = await SessionForensicsFlow({
+        argv: ['gaps', target, '--floor-seconds', '-5'],
+      });
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
   });
 
   describe('invalid input', () => {
-    it('EMPTY: {argv: []} => returns the usage block', () => {
-      const result = SessionForensicsFlow({ argv: [] });
+    it('EMPTY: {argv: []} => returns the usage block', async () => {
+      const result = await SessionForensicsFlow({ argv: [] });
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
-    it('INVALID: {argv: [unknown-command, target]} => returns the usage block', () => {
-      const result = SessionForensicsFlow({ argv: ['unknown-command', 'some-target'] });
+    it('INVALID: {argv: [unknown-command, target]} => returns the usage block', async () => {
+      const result = await SessionForensicsFlow({ argv: ['unknown-command', 'some-target'] });
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
-    it('EMPTY: {argv: [summary]} with no target => returns the usage block', () => {
-      const result = SessionForensicsFlow({ argv: ['summary'] });
+    it('EMPTY: {argv: [summary]} with no target => returns the usage block', async () => {
+      const result = await SessionForensicsFlow({ argv: ['summary'] });
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
-    it('EMPTY: {argv: [summary, ""]} with empty-string target => returns the usage block', () => {
-      const result = SessionForensicsFlow({ argv: ['summary', ''] });
+    it('EMPTY: {argv: [summary, ""]} with empty-string target => returns the usage block', async () => {
+      const result = await SessionForensicsFlow({ argv: ['summary', ''] });
 
       expect(result).toBe(USAGE_BLOCK_TEXT);
     });

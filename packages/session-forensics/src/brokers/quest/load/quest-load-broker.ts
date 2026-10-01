@@ -7,7 +7,7 @@
  * the whole document. Reach for this broker instead of reading the file yourself.
  *
  * USAGE:
- * questLoadBroker({ questId: QuestIdStub() });
+ * await questLoadBroker({ questId: QuestIdStub() });
  * // Returns { flows, workItems } for that quest, each in file order. The two arrays fail
  * // INDEPENDENTLY: a quest with valid flows but no workItems key still returns those flows, and
  * // vice versa. Both come back [] when the quest cannot be found or its file cannot be parsed as
@@ -22,9 +22,13 @@ import { flowContract, workItemContract } from '@dungeonmaster/shared/contracts'
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
-export const questLoadBroker = ({ questId }: { questId: Quest['id'] }): QuestLoadResult => {
+export const questLoadBroker = async ({
+  questId,
+}: {
+  questId: Quest['id'];
+}): Promise<QuestLoadResult> => {
   const empty = { flows: [], workItems: [] };
-  const questPath = questFindBroker({ questId });
+  const questPath = await questFindBroker({ questId });
 
   if (questPath === undefined) {
     return questLoadResultContract.parse(empty);

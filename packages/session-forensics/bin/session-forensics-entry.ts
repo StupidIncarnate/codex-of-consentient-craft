@@ -14,5 +14,10 @@
  */
 
 import { StartSessionForensics } from '../src/startup/start-session-forensics';
+import { exit, stderr } from '#gateway/node/process';
 
-StartSessionForensics();
+StartSessionForensics().catch((error: unknown) => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  stderr.write(`Error: ${errorMessage}\n`);
+  exit(1);
+});

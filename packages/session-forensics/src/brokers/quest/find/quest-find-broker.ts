@@ -6,24 +6,42 @@
  * gets measured, not a stale copy the user-global home also happens to carry.
  *
  * USAGE:
- * questFindBroker({ questId: QuestIdStub() });
+ * await questFindBroker({ questId: QuestIdStub() });
  * // Returns the AbsoluteFilePath to that quest's quest.json. Returns undefined when no candidate
  * // root holds it.
  */
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
-import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker, dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
+import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-export const questFindBroker = ({ questId }: { questId: Quest['id'] }): string | undefined => {
+export const questFindBroker = async ({
+  questId,
+}: {
+  questId: Quest['id'];
+}): Promise<string | undefined> => {
   const { homePath: fallbackHomePath } = dungeonmasterHomeFindBroker();
   const currentDir = cwd();
 
+  const repoRoot = await cwdResolveBroker({ startPath: currentDir, kind: 'repo-root' }).catch(
+    (error: unknown): undefined => {
+      if (error instanceof ProjectRootNotFoundError) {
+        return undefined;
+      }
+      throw error;
+    },
+  );
+
   const candidateRoots = [
-    join(currentDir, locationsStatics.dungeonmasterHome.dir),
-    join(currentDir, locationsStatics.repoRoot.dungeonmasterDevHome),
+    ...(repoRoot === undefined
+      ? []
+      : [
+          join(repoRoot, locationsStatics.dungeonmasterHome.dir),
+          join(repoRoot, locationsStatics.repoRoot.dungeonmasterDevHome),
+        ]),
     fallbackHomePath,
   ];
 
