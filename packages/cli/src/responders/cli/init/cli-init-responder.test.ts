@@ -142,8 +142,40 @@ describe('CliInitResponder', () => {
     });
   });
 
+  describe('failed result carrying its cause in message, not error', () => {
+    it('VALID: {failed result with message and no error} => writes the message', async () => {
+      const proxy = CliInitResponderProxy();
+
+      const failResult = InstallResultStub({
+        value: {
+          packageName: '@dungeonmaster/siegelense',
+          success: false,
+          action: 'failed',
+          message: '"npm install" in /project exited 1: npm error 404 Not Found',
+        },
+      });
+
+      proxy.setupInstallResults({ results: [failResult] });
+
+      const context = InstallContextStub({
+        value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm',
+        },
+      });
+
+      await proxy.callResponder({ context });
+
+      const output = proxy.getStdoutOutput();
+
+      expect(output).toStrictEqual([
+        '[FAIL] @dungeonmaster/siegelense: "npm install" in /project exited 1: npm error 404 Not Found\n',
+      ]);
+    });
+  });
+
   describe('failed result carrying neither error nor message', () => {
-    it('EMPTY: {failed result with no error and no message} => writes a fallback, never "undefined"', async () => {
+    it('EMPTY: {failed result with no error and no message} => writes a fallback naming the missing report, never "undefined"', async () => {
       const proxy = CliInitResponderProxy();
 
       const failResult = InstallResultStub({
@@ -167,7 +199,9 @@ describe('CliInitResponder', () => {
 
       const output = proxy.getStdoutOutput();
 
-      expect(output).toStrictEqual(['[FAIL] @dungeonmaster/hooks: no install message reported\n']);
+      expect(output).toStrictEqual([
+        '[FAIL] @dungeonmaster/hooks: failed without reporting why — its installer returned neither an error nor a message\n',
+      ]);
     });
   });
 });

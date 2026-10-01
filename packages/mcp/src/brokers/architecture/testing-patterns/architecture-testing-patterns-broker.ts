@@ -322,7 +322,11 @@ Never \`registerMock\` another workspace package's export. Compose the proxy it 
 
 \`\`\`typescript
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-\`\`\``;
+\`\`\`
+
+### A module mock lives in its gateway package folder
+
+A package Jest cannot load at all (it needs a canvas, a GPU or ESM) is replaced by a module mock. The mock goes in that package's gateway folder, beside the wrapper: \`packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs\`. Jest loads it automatically for any test that imports that gateway, under both \`#gateway/npm/<folder>\` and the raw package name, through the resolver the Jest base config sets; the npm gateway's own tests still get the real module. Never add a \`__mocks__\` folder or a \`moduleNameMapper\` entry to a package for it. A package's own \`moduleNameMapper\` entry still wins over a mock, and a package config never sets its own \`resolver\`.`;
 
   // Jest Home Sandbox
   const homeSandbox = `Every Jest run gets a sandbox \`HOME\`, so \`os.homedir()\` already returns a throwaway directory. A test author does nothing to turn it on, and follows these rules:

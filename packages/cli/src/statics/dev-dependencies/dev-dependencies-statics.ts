@@ -7,6 +7,13 @@
  */
 
 export const devDependenciesStatics = {
+  // A consumer that takes dungeonmaster from a local checkout declares every `@dungeonmaster/*`
+  // entry as `file:<path>`; a `*` beside those resolves to the registry, where no `@dungeonmaster`
+  // package is published, and every later `npm install` in that repo 404s.
+  localSpecifier: {
+    scope: '@dungeonmaster/',
+    prefix: 'file:',
+  },
   packages: {
     '@dungeonmaster/eslint-plugin': '*',
     '@dungeonmaster/hooks': '*',

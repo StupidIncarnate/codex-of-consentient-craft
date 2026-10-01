@@ -1,6 +1,7 @@
 import { cp } from '#gateway/node/fs__promises';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
+import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
 import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
 import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
 import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
@@ -11,6 +12,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { npmModuleExportShapeBrokerProxy } from '../../npm-module/export-shape/npm-module-export-shape-broker.proxy';
 import { gatewayNpmDependenciesListBrokerProxy } from '../npm-dependencies-list/gateway-npm-dependencies-list-broker.proxy';
 import { gatewayPackageRecordLayerBrokerProxy } from './gateway-package-record-layer-broker.proxy';
+import { ownCopyGateLayerBrokerProxy } from './own-copy-gate-layer-broker.proxy';
 import { ownCopyPlanLayerBrokerProxy } from './own-copy-plan-layer-broker.proxy';
 import { subpathFoldersOwnedLayerBrokerProxy } from './subpath-folders-owned-layer-broker.proxy';
 
@@ -28,6 +30,8 @@ export const gatewayNpmSyncBrokerProxy = (): {
     ownFolders: Readonly<Record<string, Readonly<Record<string, string>>>>;
     gatewayPackageJson: Record<string, unknown>;
     passthroughFolders: readonly string[];
+    ownRanges?: Readonly<Record<string, string>>;
+    installedVersions?: Readonly<Record<string, string | null>>;
   }) => void;
   setupInstallFails: (params: { repoRoot: string; output: string }) => void;
   writtenFiles: (params: { repoRoot: string; folder: string }) => readonly unknown[];
@@ -41,6 +45,8 @@ export const gatewayNpmSyncBrokerProxy = (): {
   const dependenciesProxy = gatewayNpmDependenciesListBrokerProxy();
   const entriesProxy = readdirEntriesProxy();
   const planProxy = ownCopyPlanLayerBrokerProxy();
+  const gateProxy = ownCopyGateLayerBrokerProxy();
+  const ownManifestProxy = readJsonFileIfExistsProxy();
   const consumerSubpathsProxy = subpathFoldersOwnedLayerBrokerProxy();
   npmModuleExportShapeBrokerProxy();
   const envProxy = getEnvProxy();
@@ -50,8 +56,10 @@ export const gatewayNpmSyncBrokerProxy = (): {
   const recordProxy = gatewayPackageRecordLayerBrokerProxy();
   const installProxy = runProxy();
 
-  const resolveOwnSrcRoot = (): string =>
-    `${String(resolvePackageRoot({ specifier: '@dungeonmaster/npm/package.json' }))}/src`;
+  const ownPackageRoot = String(
+    resolvePackageRoot({ specifier: '@dungeonmaster/npm/package.json' }),
+  );
+  const resolveOwnSrcRoot = (): string => `${ownPackageRoot}/src`;
 
   return {
     ownSrcRoot: resolveOwnSrcRoot,
@@ -69,6 +77,8 @@ export const gatewayNpmSyncBrokerProxy = (): {
       ownFolders,
       gatewayPackageJson,
       passthroughFolders,
+      ownRanges,
+      installedVersions,
     }): void => {
       const npmPackageRoot = `${repoRoot}/packages/@gateway/npm`;
       const srcRoot = `${npmPackageRoot}/src`;
@@ -95,6 +105,25 @@ export const gatewayNpmSyncBrokerProxy = (): {
       }
       consumerSubpathsProxy.setupBarrels({ srcRoot, barrels: consumerBarrels ?? {} });
       planProxy.setupOwnGateway({ ownSrcRoot, folders: ownFolders });
+      // Unless a test says otherwise, every dependency is installed at 1.0.0 and our own
+      // package.json accepts any version of it, so only the compile gate decides a copy.
+      const declared = rootPackageJson.dependencies;
+      const dependencyNames =
+        typeof declared === 'object' && declared !== null ? Object.keys(declared) : [];
+      ownManifestProxy.returnsRaw({
+        path: `${ownPackageRoot}/package.json`,
+        rawContents: JSON.stringify({
+          name: '@dungeonmaster/npm',
+          dependencies: ownRanges ?? Object.fromEntries(dependencyNames.map((name) => [name, '*'])),
+        }),
+      });
+      for (const name of dependencyNames) {
+        gateProxy.setupInstalled({
+          repoRoot,
+          packageName: name,
+          version: installedVersions === undefined ? '1.0.0' : (installedVersions[name] ?? null),
+        });
+      }
       envProxy.setupEnv({ name: 'npm_command', value: npmCommand });
 
       for (const folder of Object.keys(ownFolders)) {

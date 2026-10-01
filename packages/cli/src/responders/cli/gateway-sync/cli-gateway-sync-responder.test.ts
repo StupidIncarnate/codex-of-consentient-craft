@@ -16,7 +16,7 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: [], generated: [], untyped: [], esmOnly: [] },
+      result: { copied: [], generated: [], untyped: [], esmOnly: [], skippedOwnCopy: [] },
       output: 'gateway-sync: nothing to do\n',
     });
   });
@@ -32,7 +32,7 @@ describe('CliGatewaySyncResponder', () => {
         dependencies: { elkjs: '^0.11.0', 'left-pad': '^1.3.0' },
       },
       consumerFolders: [],
-      ownFolders: { elkjs: { 'elkjs.ts': "export * from 'elkjs';\n" } },
+      ownFolders: { elkjs: { 'elkjs.ts': 'export const elk = 1;\n' } },
       passthroughFolders: [],
     });
 
@@ -43,7 +43,13 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: ['elkjs'], generated: ['left-pad'], untyped: ['left-pad'], esmOnly: [] },
+      result: {
+        copied: ['elkjs'],
+        generated: ['left-pad'],
+        untyped: ['left-pad'],
+        esmOnly: [],
+        skippedOwnCopy: [],
+      },
       output:
         'gateway-sync: packages/@gateway/npm/src/\n  copied: elkjs\n  generated: left-pad\n  untyped: left-pad\n',
     });
@@ -68,7 +74,7 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: [], generated: [], untyped: [], esmOnly: [] },
+      result: { copied: [], generated: [], untyped: [], esmOnly: [], skippedOwnCopy: [] },
       output: 'gateway-sync: nothing to do\n',
     });
   });
@@ -119,13 +125,13 @@ describe('CliGatewaySyncResponder', () => {
     });
 
     expect({ result, output: proxy.getOutput() }).toStrictEqual({
-      result: { copied: [], generated: [], untyped: [], esmOnly: [] },
+      result: { copied: [], generated: [], untyped: [], esmOnly: [], skippedOwnCopy: [] },
       output:
         'gateway-sync: skipped, no .dungeonmaster.json in /elsewhere/app or any folder above it\n',
     });
   });
 
-  it('ERROR: {the lockfile install fails} => throws the sync error and prints nothing', async () => {
+  it('VALID: {the lockfile install fails} => still returns the report and prints the lockfile warning last', async () => {
     const proxy = CliGatewaySyncResponderProxy();
     proxy.setupRepoRootAtStart({ startPath: '/repo' });
     proxy.setupSync({
@@ -136,17 +142,26 @@ describe('CliGatewaySyncResponder', () => {
       ownFolders: {},
       passthroughFolders: ['left-pad'],
     });
-    proxy.setupInstallFails({ repoRoot: '/repo', output: 'ERESOLVE' });
+    proxy.setupInstallFails({ repoRoot: '/repo', output: 'npm error code E404\n' });
 
-    await expect(
-      CliGatewaySyncResponder({
-        context: InstallContextStub({
-          value: { targetProjectRoot: '/repo', dungeonmasterRoot: '/dm' },
-        }),
+    const result = await CliGatewaySyncResponder({
+      context: InstallContextStub({
+        value: { targetProjectRoot: '/repo', dungeonmasterRoot: '/dm' },
       }),
-    ).rejects.toThrow(
-      /^gateway npm sync: `npm install --ignore-scripts --no-audit --no-fund` in \/repo exited 1:\nERESOLVE$/u,
-    );
-    expect(proxy.getOutput()).toBe('');
+    });
+
+    expect({ result, output: proxy.getOutput() }).toStrictEqual({
+      result: {
+        copied: [],
+        generated: ['left-pad'],
+        untyped: ['left-pad'],
+        esmOnly: [],
+        skippedOwnCopy: [],
+        lockfileWarning:
+          'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json',
+      },
+      output:
+        'gateway-sync: packages/@gateway/npm/src/\n  generated: left-pad\n  untyped: left-pad\n  lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json\n',
+    });
   });
 });

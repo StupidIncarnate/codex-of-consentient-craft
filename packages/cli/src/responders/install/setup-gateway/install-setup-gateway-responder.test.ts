@@ -379,4 +379,73 @@ export * from 'left-pad';
       installs: [['install', '--ignore-scripts', '--no-audit', '--no-fund']],
     });
   });
+
+  it('VALID: {context: the lockfile npm install fails after the sync wrote left-pad} => still succeeds and carries the lockfile warning in its message', async () => {
+    const proxy = InstallSetupGatewayResponderProxy();
+    const targetProjectRoot = '/repo';
+    const rootPackageJson = PackageJsonRawStub({
+      name: '@acme/app',
+      version: '1.0.0',
+      workspaces: ['packages/*', 'packages/@gateway/*'],
+      scripts: {
+        postinstall:
+          'if command -v dungeonmaster >/dev/null 2>&1; then dungeonmaster gateway-sync; fi',
+      },
+      dependencies: { 'left-pad': '^1.3.0' },
+    });
+
+    proxy.setupRootPackageJson({
+      rootPackageJsonPath: '/repo/package.json',
+      content: JSON.stringify(rootPackageJson),
+    });
+
+    for (const folder of ['npm', 'node', 'browser', 'bin']) {
+      proxy.setupGatewayFolderExists({
+        packageRoot: `/repo/packages/@gateway/${folder}`,
+      });
+    }
+
+    proxy.setupNpmGatewaySync({
+      repoRoot: '/repo',
+      rootPackageJson,
+      consumerFolders: [],
+      passthroughFolders: ['left-pad'],
+    });
+    proxy.setupNpmGatewayLockfileFails({
+      repoRoot: '/repo',
+      output:
+        "npm error code E404\nnpm error 404  '@dungeonmaster/siegelense@*' is not in this registry.\n",
+    });
+
+    proxy.setupRootTsconfig({
+      rootTsconfigPath: '/repo/tsconfig.json',
+      content: `{
+  "compilerOptions": {
+    "module": "node16",
+    "moduleResolution": "node16",
+    "customConditions": ["source"]
+  }
+}
+`,
+    });
+
+    proxy.setupExistingPackages({
+      packagesDir: '/repo/packages',
+      packages: [],
+    });
+
+    const result = await InstallSetupGatewayResponder({
+      context: InstallContextStub({
+        value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      packageName: '@dungeonmaster/cli',
+      success: true,
+      action: 'created',
+      message:
+        'workspaces already includes packages/@gateway/*; root postinstall script already runs gateway-sync; gateway packages already scaffolded; synced packages/@gateway/npm/src (generated: left-pad / untyped: left-pad / lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+    });
+  });
 });

@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Reads target project package.json, merges missing devDependencies, and writes the updated file
+ * PURPOSE: Reads target project package.json, merges missing devDependencies, and writes the updated file.
+ * An entry the target already declares is never rewritten; a `@dungeonmaster/*` entry added beside
+ * `file:` siblings is written as a `file:` path into the dungeonmaster install running init.
  *
  * USAGE:
  * const result = await InstallAddDevDepsResponder({ context });
@@ -17,6 +19,9 @@ import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
+import { hasLocalDungeonmasterDependencyGuard } from '../../../guards/has-local-dungeonmaster-dependency/has-local-dungeonmaster-dependency-guard';
+import { packageDiscoverBroker } from '../../../brokers/package/discover/package-discover-broker';
+import { devDependencySpecifierTransformer } from '../../../transformers/dev-dependency-specifier/dev-dependency-specifier-transformer';
 import { extractDevDependenciesTransformer } from '../../../transformers/extract-dev-dependencies/extract-dev-dependencies-transformer';
 import { dependencyMapContract } from '../../../contracts/dependency-map/dependency-map-contract';
 import { packageJsonRawContract } from '@dungeonmaster/shared/contracts';
@@ -54,12 +59,11 @@ export const InstallAddDevDepsResponder = async ({
   const packageJson = parsedPackageJson.data;
   const existingDevDeps = extractDevDependenciesTransformer({ packageJson });
 
-  const requiredPackages = devDependenciesStatics.packages;
-  const missingCount = Object.keys(requiredPackages).filter(
-    (name) => !(name in existingDevDeps),
-  ).length;
+  const missingEntries = Object.entries(devDependenciesStatics.packages).filter(
+    ([name]) => !(name in existingDevDeps),
+  );
 
-  if (missingCount === 0) {
+  if (missingEntries.length === 0) {
     return installResultContract.parse({
       packageName: PACKAGE_NAME,
       success: true,
@@ -68,13 +72,38 @@ export const InstallAddDevDepsResponder = async ({
     });
   }
 
-  // Sort the merged map alphabetically rather than keeping `requiredPackages`' declaration order
-  // followed by whatever extras `existingDevDeps` added: a plain `{...requiredPackages,
+  // Discovery runs only for a target that takes dungeonmaster through `file:` — the one case a
+  // package's directory on disk decides what gets written.
+  const packageDirs = new Map(
+    hasLocalDungeonmasterDependencyGuard({ dependencies: existingDevDeps })
+      ? packageDiscoverBroker({ dungeonmasterRoot: context.dungeonmasterRoot }).map(
+          ({ packageName, packageDir }) => [String(packageName), String(packageDir)] as const,
+        )
+      : [],
+  );
+  const addedDevDeps = Object.fromEntries(
+    missingEntries.map(([name, range]) => {
+      const packageDir = packageDirs.get(name);
+      return [
+        name,
+        devDependencySpecifierTransformer({
+          packageName: name,
+          range,
+          existingDevDeps,
+          targetProjectRoot: context.targetProjectRoot,
+          ...(packageDir === undefined ? {} : { packageDir }),
+        }),
+      ];
+    }),
+  );
+
+  // Sort the merged map alphabetically rather than keeping the statics' declaration order
+  // followed by whatever extras `existingDevDeps` added: a plain `{...addedDevDeps,
   // ...existingDevDeps}` spread fixes each key's position at its FIRST insertion, so an existing
   // package outside the required set (ts-node, @changesets/cli, ...) always lands after every
   // required one instead of at its alphabetical position — silently reordering an already-sorted
   // consumer package.json on every `init` re-run.
-  const mergedEntries = Object.entries({ ...requiredPackages, ...existingDevDeps }).sort(
+  const mergedEntries = Object.entries({ ...addedDevDeps, ...existingDevDeps }).sort(
     ([keyA], [keyB]) => keyA.localeCompare(keyB),
   );
   const mergedDevDeps = dependencyMapContract.parse(Object.fromEntries(mergedEntries));

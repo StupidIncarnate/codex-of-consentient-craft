@@ -12,7 +12,12 @@ import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
 import { npmInstall } from '../fixture.mjs';
-import { checkHandEditKept, handEditGeneratedWrapper, runAgentInstallAssertions } from './gateway-sync.mjs';
+import {
+  assertModuleMockResolves,
+  checkHandEditKept,
+  handEditGeneratedWrapper,
+  runAgentInstallAssertions,
+} from './gateway-sync.mjs';
 import {
   LIB_PACKAGE_NAME,
   WEB_PACKAGE_NAME,
@@ -551,6 +556,7 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope
   await assertMswTrap({ report, consumerRoot, mswTrapTestFile });
   await assertGatewayProxyMockTest({ report, consumerRoot });
   await assertContractCheckTest({ report, consumerRoot });
+  await assertModuleMockResolves({ report, consumerRoot });
   await assertWardCleanFixture({ report, consumerRoot });
   await assertPreEditHook({ report, consumerRoot, lintViolationFile });
   const handEdited = await handEditGeneratedWrapper({ report, consumerRoot });

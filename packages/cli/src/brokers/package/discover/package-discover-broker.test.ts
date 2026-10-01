@@ -40,11 +40,13 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: '@dungeonmaster/cli',
           installPath: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
+          packageDir: '/home/user/dungeonmaster/packages/cli',
           finalizeInstallPath: null,
         },
         {
           packageName: '@dungeonmaster/hooks',
           installPath: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
+          packageDir: '/home/user/dungeonmaster/packages/hooks',
           finalizeInstallPath: null,
         },
       ]);
@@ -130,12 +132,14 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: '@dungeonmaster/cli',
           installPath: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
+          packageDir: '/home/user/dungeonmaster/packages/cli',
           finalizeInstallPath: null,
         },
         {
           packageName: '@dungeonmaster/npm',
           installPath:
             '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
+          packageDir: '/home/user/dungeonmaster/packages/@gateway/npm',
           finalizeInstallPath: null,
         },
       ]);
@@ -187,12 +191,14 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: '@dungeonmaster/cli',
           installPath: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
+          packageDir: '/consumer/node_modules/@dungeonmaster/cli',
           finalizeInstallPath: null,
         },
         {
           packageName: '@dungeonmaster/orchestrator',
           installPath:
             '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
+          packageDir: '/consumer/node_modules/@dungeonmaster/orchestrator',
           finalizeInstallPath: null,
         },
       ]);
@@ -222,6 +228,7 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: '@dungeonmaster/siegelense',
           installPath: '/dm/packages/siegelense/dist/startup/start-install.js',
+          packageDir: '/dm/packages/siegelense',
           finalizeInstallPath: '/dm/packages/siegelense/dist/startup/start-install-finalize.js',
         },
       ]);
@@ -249,6 +256,7 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: '@dungeonmaster/siegelense',
           installPath: '/dm/packages/siegelense/dist/src/startup/start-install.js',
+          packageDir: '/dm/packages/siegelense',
           finalizeInstallPath: '/dm/packages/siegelense/dist/src/startup/start-install-finalize.js',
         },
       ]);
@@ -277,6 +285,7 @@ describe('packageDiscoverBroker', () => {
         {
           packageName: '@dungeonmaster/cli',
           installPath: '/path/with spaces/packages/cli/dist/startup/start-install.js',
+          packageDir: '/path/with spaces/packages/cli',
           finalizeInstallPath: null,
         },
       ]);

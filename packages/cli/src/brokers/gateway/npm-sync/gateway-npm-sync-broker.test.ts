@@ -15,7 +15,7 @@ describe('gatewayNpmSyncBroker', () => {
         dependencies: { elkjs: '^0.11.0', 'left-pad': '^1.3.0' },
       },
       consumerFolders: [],
-      ownFolders: { elkjs: { 'elkjs.ts': "export * from 'elkjs';\n" } },
+      ownFolders: { elkjs: { 'elkjs.ts': 'export const elk = 1;\n' } },
       gatewayPackageJson: { name: '@acme/npm' },
       passthroughFolders: ['left-pad'],
     });
@@ -27,6 +27,7 @@ describe('gatewayNpmSyncBroker', () => {
       generated: ['left-pad'],
       untyped: ['left-pad'],
       esmOnly: [],
+      skippedOwnCopy: [],
     });
     expect(proxy.copiedFolders()).toStrictEqual([
       [`${proxy.ownSrcRoot()}/elkjs`, `${SRC_ROOT}/elkjs`, { recursive: true }],
@@ -83,14 +84,20 @@ describe('#gateway/npm/left-pad', () => {
       npmCommand: 'install',
       rootPackageJson: { name: 'acme', dependencies: { elkjs: '^0.11.0' } },
       consumerFolders: ['elkjs'],
-      ownFolders: { elkjs: { 'elkjs.ts': "export * from 'elkjs';\n" } },
+      ownFolders: { elkjs: { 'elkjs.ts': 'export const elk = 1;\n' } },
       gatewayPackageJson: { name: '@acme/npm', dependencies: { elkjs: '^0.11.0' } },
       passthroughFolders: [],
     });
 
     const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
 
-    expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: [],
+      untyped: [],
+      esmOnly: [],
+      skippedOwnCopy: [],
+    });
     expect(proxy.copiedFolders()).toStrictEqual([]);
     expect(proxy.writtenGatewayPackageJson({ repoRoot: REPO_ROOT })).toBe(undefined);
     expect(proxy.removedPaths({ repoRoot: REPO_ROOT })).toStrictEqual([[`${SRC_ROOT}/index.d.ts`]]);
@@ -112,7 +119,13 @@ describe('#gateway/npm/left-pad', () => {
 
     const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
 
-    expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: [],
+      untyped: [],
+      esmOnly: [],
+      skippedOwnCopy: [],
+    });
     expect({
       written: proxy.writtenFiles({ repoRoot: REPO_ROOT, folder: 'react-dom' }),
       packageJson: proxy.writtenGatewayPackageJson({ repoRoot: REPO_ROOT }),
@@ -127,7 +140,7 @@ describe('#gateway/npm/left-pad', () => {
       npmCommand: 'ci',
       rootPackageJson: { name: 'acme', dependencies: { elkjs: '^0.11.0', 'left-pad': '^1.3.0' } },
       consumerFolders: null,
-      ownFolders: { elkjs: { 'elkjs.ts': "export * from 'elkjs';\n" } },
+      ownFolders: { elkjs: { 'elkjs.ts': 'export const elk = 1;\n' } },
       gatewayPackageJson: { name: '@acme/npm' },
       passthroughFolders: ['left-pad'],
     });
@@ -139,6 +152,7 @@ describe('#gateway/npm/left-pad', () => {
       generated: ['left-pad'],
       untyped: ['left-pad'],
       esmOnly: [],
+      skippedOwnCopy: [],
     });
     expect(proxy.copiedFolders()).toStrictEqual([]);
     expect(proxy.writtenFiles({ repoRoot: REPO_ROOT, folder: 'left-pad' })).toStrictEqual([
@@ -166,7 +180,13 @@ describe('#gateway/npm/left-pad', () => {
 
     const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
 
-    expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: [],
+      untyped: [],
+      esmOnly: [],
+      skippedOwnCopy: [],
+    });
     expect(proxy.removedPaths({ repoRoot: REPO_ROOT })).toStrictEqual([]);
     expect(proxy.installCalls()).toStrictEqual([]);
   });
@@ -177,10 +197,16 @@ describe('#gateway/npm/left-pad', () => {
 
     const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
 
-    expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: [],
+      untyped: [],
+      esmOnly: [],
+      skippedOwnCopy: [],
+    });
   });
 
-  it('ERROR: {npm install exits non-zero} => throws naming the command and its output', async () => {
+  it("VALID: {npm install exits non-zero} => keeps what it wrote and reports a lockfile warning naming npm's first error line", async () => {
     const proxy = gatewayNpmSyncBrokerProxy();
     proxy.setupSync({
       repoRoot: REPO_ROOT,
@@ -191,10 +217,124 @@ describe('#gateway/npm/left-pad', () => {
       gatewayPackageJson: { name: '@acme/npm' },
       passthroughFolders: ['left-pad'],
     });
-    proxy.setupInstallFails({ repoRoot: REPO_ROOT, output: 'npm ERR! 404 left-pad' });
+    proxy.setupInstallFails({
+      repoRoot: REPO_ROOT,
+      output:
+        "npm error code E404\nnpm error 404 Not Found - GET https://registry.npmjs.org/@acme%2fmissing - Not found\nnpm error 404  '@acme/missing@*' is not in this registry.\n",
+    });
 
-    await expect(gatewayNpmSyncBroker({ repoRoot: REPO_ROOT })).rejects.toThrow(
-      /^gateway npm sync: `npm install --ignore-scripts --no-audit --no-fund` in \/repo exited 1:\nnpm ERR! 404 left-pad$/u,
+    const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
+
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: ['left-pad'],
+      untyped: ['left-pad'],
+      esmOnly: [],
+      skippedOwnCopy: [],
+      lockfileWarning:
+        'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json',
+    });
+    expect({
+      installs: proxy.installCalls(),
+      packageJson: proxy.writtenGatewayPackageJson({ repoRoot: REPO_ROOT }),
+    }).toStrictEqual({
+      installs: [['install', '--ignore-scripts', '--no-audit', '--no-fund']],
+      packageJson: `${JSON.stringify({ name: '@acme/npm', dependencies: { 'left-pad': '^1.3.0' } }, null, 2)}\n`,
+    });
+  });
+
+  it('VALID: {npm install exits non-zero with no npm error line} => falls back to its first output line', async () => {
+    const proxy = gatewayNpmSyncBrokerProxy();
+    proxy.setupSync({
+      repoRoot: REPO_ROOT,
+      npmCommand: 'install',
+      rootPackageJson: { name: 'acme', dependencies: { 'left-pad': '^1.3.0' } },
+      consumerFolders: [],
+      ownFolders: {},
+      gatewayPackageJson: { name: '@acme/npm' },
+      passthroughFolders: ['left-pad'],
+    });
+    proxy.setupInstallFails({ repoRoot: REPO_ROOT, output: '\nERESOLVE could not resolve\n' });
+
+    const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
+
+    expect(result.lockfileWarning).toBe(
+      'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (ERESOLVE could not resolve); run npm install yourself to update package-lock.json',
     );
+  });
+
+  it('VALID: {installed version outside our range} => writes a passthrough instead and reports the skip with both versions', async () => {
+    const proxy = gatewayNpmSyncBrokerProxy();
+    proxy.setupSync({
+      repoRoot: REPO_ROOT,
+      npmCommand: 'install',
+      rootPackageJson: { name: 'acme', dependencies: { zod: '^3.23.0' } },
+      consumerFolders: [],
+      ownFolders: { zod: { 'zod.ts': 'export const zodLike = 1;\n' } },
+      gatewayPackageJson: { name: '@acme/npm' },
+      passthroughFolders: ['zod'],
+      ownRanges: { zod: '^4.6.5' },
+      installedVersions: { zod: '3.23.8' },
+    });
+
+    const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
+
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: ['zod'],
+      untyped: ['zod'],
+      esmOnly: [],
+      skippedOwnCopy: [{ name: 'zod', reason: 'version', installed: '3.23.8', ours: '^4.6.5' }],
+    });
+    expect(proxy.copiedFolders()).toStrictEqual([]);
+  });
+
+  it('VALID: {our folder does not compile against what is installed} => writes a passthrough instead and reports a compile skip', async () => {
+    const proxy = gatewayNpmSyncBrokerProxy();
+    proxy.setupSync({
+      repoRoot: REPO_ROOT,
+      npmCommand: 'install',
+      rootPackageJson: { name: 'acme', dependencies: { elkjs: '^0.11.0' } },
+      consumerFolders: [],
+      ownFolders: { elkjs: { 'elkjs.ts': "export const elk: number = 'one';\n" } },
+      gatewayPackageJson: { name: '@acme/npm' },
+      passthroughFolders: ['elkjs'],
+    });
+
+    const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
+
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: ['elkjs'],
+      untyped: ['elkjs'],
+      esmOnly: [],
+      skippedOwnCopy: [{ name: 'elkjs', reason: 'compile', installed: '1.0.0', ours: '*' }],
+    });
+    expect(proxy.copiedFolders()).toStrictEqual([]);
+  });
+
+  it('VALID: {our folder imports a package the consumer does not declare} => reports an unresolved-import skip', async () => {
+    const proxy = gatewayNpmSyncBrokerProxy();
+    proxy.setupSync({
+      repoRoot: REPO_ROOT,
+      npmCommand: 'install',
+      rootPackageJson: { name: 'acme', dependencies: { elkjs: '^0.11.0' } },
+      consumerFolders: [],
+      ownFolders: { elkjs: { 'elkjs.ts': "export * from 'web-worker';\n" } },
+      gatewayPackageJson: { name: '@acme/npm' },
+      passthroughFolders: ['elkjs'],
+    });
+
+    const result = await gatewayNpmSyncBroker({ repoRoot: REPO_ROOT });
+
+    expect(result).toStrictEqual({
+      copied: [],
+      generated: ['elkjs'],
+      untyped: ['elkjs'],
+      esmOnly: [],
+      skippedOwnCopy: [
+        { name: 'elkjs', reason: 'unresolved-import', installed: '1.0.0', ours: '*' },
+      ],
+    });
   });
 });

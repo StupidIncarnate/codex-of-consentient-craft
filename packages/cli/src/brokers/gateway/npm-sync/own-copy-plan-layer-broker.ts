@@ -6,15 +6,17 @@
  * resolve, is left out. When we have the package's own folder and it does not resolve, nothing is
  * copied. When we have only subpath folders for it (`modelcontextprotocol__sdk__server` and no
  * `modelcontextprotocol__sdk`), those that resolve are copied on their own. Null — nothing of ours
- * to copy — sends the sync to a passthrough.
+ * for the package — and a skip reason — ours exists but would not resolve — both send the sync to a
+ * passthrough; only the reason is worth reporting.
  *
  * USAGE:
  * await ownCopyPlanLayerBroker({ repoRoot, ownSrcRoot, dependency, resolvableNames, knownFolders, consumerFolders });
- * // Returns ['hono', 'hono__utils__http-status', 'hono__ws'], or null when there is nothing of ours to copy
+ * // Returns ['hono', 'hono__utils__http-status', 'hono__ws'], 'unresolved-import' / 'esm-only' when ours would not resolve, or null when there is nothing of ours
  */
 
 import { readdirEntries } from '#gateway/node/fs__promises';
 import type { GatewayNpmDependency } from '../../../contracts/gateway-npm-dependency/gateway-npm-dependency-contract';
+import type { GatewayNpmSkipReason } from '../../../contracts/gateway-npm-skip-reason/gateway-npm-skip-reason-contract';
 import { gatewayNpmSyncStatics } from '../../../statics/gateway-npm-sync/gateway-npm-sync-statics';
 import { folderRequirementsLayerBroker } from './folder-requirements-layer-broker';
 import { subpathFoldersOwnedLayerBroker } from './subpath-folders-owned-layer-broker';
@@ -33,7 +35,7 @@ export const ownCopyPlanLayerBroker = async ({
   resolvableNames: readonly string[];
   knownFolders: readonly string[];
   consumerFolders: readonly string[];
-}): Promise<readonly string[] | null> => {
+}): Promise<readonly string[] | GatewayNpmSkipReason | null> => {
   const { testSupport } = gatewayNpmSyncStatics.folders;
   const ownFolders = (await readdirEntries(ownSrcRoot))
     .filter((entry) => entry.kind === 'directory')
@@ -64,13 +66,23 @@ export const ownCopyPlanLayerBroker = async ({
     })),
   );
 
-  const resolving = requirements.flatMap(({ folder, extras }) =>
-    extras === null ? [] : [{ folder, extras }],
-  );
-  const rootUnresolved =
-    hasRootFolder && !resolving.some(({ folder }) => folder === dependency.folder);
-  if (rootUnresolved || resolving.length === 0) {
+  if (copySet.length === 0) {
     return null;
+  }
+
+  const resolving = requirements.flatMap(({ folder, extras }) =>
+    typeof extras === 'string' ? [] : [{ folder, extras }],
+  );
+  const failures = requirements.flatMap(({ folder, extras }) =>
+    typeof extras === 'string' ? [{ folder, reason: extras }] : [],
+  );
+  const rootFailure = failures.find(({ folder }) => folder === dependency.folder);
+  if (rootFailure !== undefined) {
+    return rootFailure.reason;
+  }
+  const [firstFailure] = failures;
+  if (resolving.length === 0 && firstFailure !== undefined) {
+    return firstFailure.reason;
   }
 
   const copyFolders = resolving.map(({ folder }) => folder);
@@ -92,5 +104,5 @@ export const ownCopyPlanLayerBroker = async ({
     resolvableNames,
     knownFolders: copyKnownFolders,
   });
-  return testSupportExtras === null ? null : [...copyFolders, testSupport];
+  return typeof testSupportExtras === 'string' ? testSupportExtras : [...copyFolders, testSupport];
 };

@@ -9,7 +9,8 @@
  * It registers the dungeonmaster ts-jest AST transformers (so registerMock / proxy
  * files work), the auto-reset jest.setup (clears mocks, bans .skip/.todo, fails
  * assertion-less tests), and a sandboxed `HOME` for the whole run (globalSetup/globalTeardown,
- * so every worker and every process a test spawns inherits it). Paths resolve inside the
+ * so every worker and every process a test spawns inherits it), and a resolver that answers every
+ * npm gateway module mock (see ts-jest/gateway-module-mock-resolver.js). Paths resolve inside the
  * installed @dungeonmaster/testing.
  */
 'use strict';
@@ -67,6 +68,10 @@ module.exports = {
   // ts-jest's `allowJs` (`published-options.js`) already down-levels plain JS/ESM fine.
   transformIgnorePatterns: [],
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
+  // Resolves a request for an npm gateway module mock
+  // (`packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`) to that mock, for every package but
+  // the npm gateway itself — see that file's own header.
+  resolver: path.join(__dirname, 'ts-jest', 'gateway-module-mock-resolver.js'),
   transform: {
     // Own TypeScript source, anywhere — including inside `node_modules/@dungeonmaster/testing`,
     // where this base's own `globalSetup`/`setupFilesAfterEnv` files `require()` sibling `.ts`

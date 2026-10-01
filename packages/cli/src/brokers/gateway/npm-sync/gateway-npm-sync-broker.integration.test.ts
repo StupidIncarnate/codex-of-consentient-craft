@@ -25,6 +25,8 @@ describe('gatewayNpmSyncBroker (integration)', () => {
         relativePath: 'packages/@gateway/npm/src/index.d.ts',
         content: PLACEHOLDER,
       });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: 'elkjs' });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: '@types/jest' });
 
       const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
 
@@ -40,7 +42,13 @@ describe('gatewayNpmSyncBroker (integration)', () => {
       });
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ copied: ['elkjs'], generated: [], untyped: [], esmOnly: [] });
+      expect(result).toStrictEqual({
+        copied: ['elkjs'],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        skippedOwnCopy: [],
+      });
       expect(barrel).toBe(sync.readOwnGatewayFile({ relativePath: 'elkjs/elkjs.ts' }));
       expect(stub).toBe(
         sync.readOwnGatewayFile({
@@ -122,6 +130,7 @@ describe('gatewayNpmSyncBroker (integration)', () => {
         generated: ['left-pad'],
         untyped: [],
         esmOnly: [],
+        skippedOwnCopy: [],
       });
       expect({ diagnostics, testRun }).toStrictEqual({
         diagnostics: [],
@@ -215,6 +224,7 @@ describe('#gateway/npm/left-pad', () => {
         generated: ['agent-lib'],
         untyped: [],
         esmOnly: [],
+        skippedOwnCopy: [],
       });
       expect(barrel).toBe(`/**
  * PURPOSE: Pass-through for the npm package 'agent-lib'. Code outside the gateway imports agent-lib
@@ -233,7 +243,7 @@ export * from 'agent-lib';
       });
     });
 
-    it('VALID: {our folder imports a package the consumer lacks} => falls back to a passthrough', async () => {
+    it('VALID: {our folder for a package the consumer has not installed} => falls back to a passthrough and reports the version skip', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-fallback' });
       testbed.writeFile({
@@ -260,6 +270,13 @@ export * from 'agent-lib';
         generated: ['hono__node-ws'],
         untyped: ['@hono/node-ws'],
         esmOnly: [],
+        skippedOwnCopy: [
+          {
+            name: '@hono/node-ws',
+            reason: 'version',
+            ours: sync.ownGatewayRange({ packageName: '@hono/node-ws' }),
+          },
+        ],
       });
       expect(barrel).toBe(`/**
  * PURPOSE: Pass-through for the npm package '@hono/node-ws'. Code outside the gateway imports @hono/node-ws
@@ -308,7 +325,13 @@ export * from '@hono/node-ws';
       });
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        skippedOwnCopy: [],
+      });
       expect(barrel).toBe("// hand-edited\nexport * from 'elkjs';\n");
       expect(stub).toBe(null);
       expect(packageJsonAfter).toBe(gatewayPackageJson);
@@ -358,7 +381,13 @@ export * from '@hono/node-ws';
       });
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        skippedOwnCopy: [],
+      });
       expect(packageJsonAfter).toBe(gatewayPackageJson);
       expect(placeholder).toBe(PLACEHOLDER);
       expect(typesNode).toBe(null);
@@ -397,7 +426,13 @@ export * from '@hono/node-ws';
       });
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ copied: [], generated: [], untyped: [], esmOnly: [] });
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: [],
+        untyped: [],
+        esmOnly: [],
+        skippedOwnCopy: [],
+      });
       expect(rootBarrel).toBe(null);
       expect(packageJsonAfter).toBe(gatewayPackageJson);
     });
@@ -418,6 +453,16 @@ export * from '@hono/node-ws';
         relativePath: 'packages/@gateway/npm/package.json',
         content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
       });
+      sync.linkInstalledPackage({
+        repoRoot: testbed.guildPath,
+        packageName: '@modelcontextprotocol/sdk',
+      });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: '@types/jest' });
+      sync.linkInstalledPackage({
+        repoRoot: testbed.guildPath,
+        packageName: '@dungeonmaster/testing',
+      });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: '@types/node' });
 
       const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
 
@@ -444,6 +489,7 @@ export * from '@hono/node-ws';
         generated: [],
         untyped: [],
         esmOnly: [],
+        skippedOwnCopy: [],
       });
       expect(serverBarrel).toBe(
         sync.readOwnGatewayFile({
@@ -464,7 +510,7 @@ export * from '@hono/node-ws';
       );
     });
 
-    it('VALID: {depends on react-dom only, our react-dom__client needs react} => falls back to a root passthrough', async () => {
+    it('VALID: {depends on react-dom, not installed} => falls back to a root passthrough and reports the version skip', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-subpath-fallback' });
       testbed.writeFile({
@@ -491,6 +537,13 @@ export * from '@hono/node-ws';
         generated: ['react-dom'],
         untyped: ['react-dom'],
         esmOnly: [],
+        skippedOwnCopy: [
+          {
+            name: 'react-dom',
+            reason: 'version',
+            ours: sync.ownGatewayRange({ packageName: 'react-dom' }),
+          },
+        ],
       });
       expect(rootBarrel).toBe(`/**
  * PURPOSE: Pass-through for the npm package 'react-dom'. Code outside the gateway imports react-dom
@@ -562,6 +615,7 @@ export * from 'react-dom';
         generated: ['esm-lib'],
         untyped: [],
         esmOnly: ['esm-lib'],
+        skippedOwnCopy: [],
       });
       expect({ diagnostics, testRun }).toStrictEqual({
         diagnostics: [],
@@ -606,7 +660,9 @@ export type * from 'esm-lib' with { 'resolution-mode': 'import' };
         relativePath: 'node_modules/elkjs/package.json',
         content: JSON.stringify({
           name: 'elkjs',
-          version: '0.11.0',
+          version: sync.minVersionSatisfying({
+            range: sync.ownGatewayRange({ packageName: 'elkjs' }),
+          }),
           type: 'module',
           exports: { '.': { types: './index.d.ts', default: './index.js' } },
         }),
@@ -636,6 +692,16 @@ export type * from 'esm-lib' with { 'resolution-mode': 'import' };
         generated: ['elkjs'],
         untyped: [],
         esmOnly: ['elkjs'],
+        skippedOwnCopy: [
+          {
+            name: 'elkjs',
+            reason: 'esm-only',
+            installed: sync.minVersionSatisfying({
+              range: sync.ownGatewayRange({ packageName: 'elkjs' }),
+            }),
+            ours: sync.ownGatewayRange({ packageName: 'elkjs' }),
+          },
+        ],
       });
       expect(diagnostics).toStrictEqual([]);
       expect(barrel).toBe(`/**
@@ -678,6 +744,8 @@ export type * from 'elkjs' with { 'resolution-mode': 'import' };
         relativePath: 'packages/@gateway/npm/src/index.d.ts',
         content: PLACEHOLDER,
       });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: 'elkjs' });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: '@types/jest' });
 
       const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
 
@@ -700,11 +768,216 @@ export type * from 'elkjs' with { 'resolution-mode': 'import' };
         generated: ['left-pad'],
         untyped: ['left-pad'],
         esmOnly: [],
+        skippedOwnCopy: [],
       });
       expect(elkjsBarrel).toBe(null);
       expect(leftPadBarrel).toBe(null);
       expect(packageJsonAfter).toBe(gatewayPackageJson);
       expect(placeholder).toBe(PLACEHOLDER);
+    });
+  });
+
+  describe('a package dungeonmaster wraps, at a version our wrapper was not built for', () => {
+    it('VALID: {zod 3.23.8 installed, our range is ^4} => writes a passthrough instead of our zod and reports both versions', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-version-gate' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: JSON.stringify({ name: 'acme', dependencies: { zod: '^3.23.0' } }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/zod/package.json',
+        content: JSON.stringify({
+          name: 'zod',
+          version: '3.23.8',
+          main: 'index.js',
+          types: 'index.d.ts',
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/zod/index.js',
+        content: 'exports.z = { string: () => ({}) };\n',
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/zod/index.d.ts',
+        content: 'export declare const z: { string: () => unknown };\n',
+      });
+
+      const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
+
+      const barrel = testbed.readFile({ relativePath: 'packages/@gateway/npm/src/zod/zod.ts' });
+      const ourStub = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/zod/zod-string-schema/zod-string-schema.stub.ts',
+      });
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: ['zod'],
+        untyped: [],
+        esmOnly: [],
+        skippedOwnCopy: [{ name: 'zod', reason: 'version', installed: '3.23.8', ours: '^4.6.5' }],
+      });
+      expect(barrel).toBe(`/**
+ * PURPOSE: Pass-through for the npm package 'zod'. Code outside the gateway imports zod
+ * through here instead of the raw package, so a future guard or override on zod lands in
+ * this one file and reaches every caller.
+ *
+ * USAGE:
+ * import { someExport } from '#gateway/npm/zod';
+ */
+
+export * from 'zod';
+`);
+      expect(ourStub).toBe(null);
+    });
+  });
+
+  describe('a package dungeonmaster wraps, whose installed API our wrapper does not compile against', () => {
+    it('VALID: {debug at a version in our range, missing exports our wrapper re-exports} => writes a passthrough, reports the compile skip and leaves none of our files', async () => {
+      npmFake.stageSucceeds();
+      const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-compile-gate' });
+      const installedVersion = sync.minVersionSatisfying({
+        range: sync.ownGatewayRange({ packageName: 'debug' }),
+      });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: JSON.stringify({ name: 'acme', dependencies: { debug: '^4.0.0' } }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/debug/package.json',
+        content: JSON.stringify({
+          name: 'debug',
+          version: installedVersion,
+          main: 'index.js',
+          types: 'index.d.ts',
+        }),
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/debug/index.js',
+        content: 'module.exports = (namespace) => ({ namespace });\n',
+      });
+      testbed.writeFile({
+        relativePath: 'node_modules/debug/index.d.ts',
+        content:
+          'declare function debug(namespace: string): { namespace: string };\nexport = debug;\n',
+      });
+      sync.linkInstalledPackage({ repoRoot: testbed.guildPath, packageName: '@types/jest' });
+
+      const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
+
+      const barrel = testbed.readFile({ relativePath: 'packages/@gateway/npm/src/debug/debug.ts' });
+      const ourStub = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/debug/debugger/debugger.stub.ts',
+      });
+      const ourStubTest = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/debug/debugger/debugger.stub.test.ts',
+      });
+      const diagnostics = sync.compileDiagnostics({
+        repoRoot: testbed.guildPath,
+        relativePaths: [
+          'packages/@gateway/npm/src/debug/debug.ts',
+          'packages/@gateway/npm/src/debug/debug.test.ts',
+        ],
+      });
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: ['debug'],
+        untyped: [],
+        esmOnly: [],
+        skippedOwnCopy: [
+          {
+            name: 'debug',
+            reason: 'compile',
+            installed: installedVersion,
+            ours: sync.ownGatewayRange({ packageName: 'debug' }),
+          },
+        ],
+      });
+      expect({ ourStub, ourStubTest, diagnostics }).toStrictEqual({
+        ourStub: null,
+        ourStubTest: null,
+        diagnostics: [],
+      });
+      expect(barrel).toBe(`/**
+ * PURPOSE: Pass-through for the npm package 'debug'. Code outside the gateway imports debug
+ * through here instead of the raw package, so a future guard or override on debug lands in
+ * this one file and reaches every caller.
+ *
+ * USAGE:
+ * import pkg from '#gateway/npm/debug';
+ */
+
+import pkgModule = require('debug');
+
+export = pkgModule;
+`);
+    });
+  });
+
+  describe('a lockfile refresh that fails', () => {
+    it("VALID: {npm install exits 1 after the sync wrote left-pad} => keeps every file it wrote and reports npm's first error line", async () => {
+      npmFake.stageFails();
+      const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-lockfile-fails' });
+      testbed.writeFile({
+        relativePath: 'package.json',
+        content: JSON.stringify({ name: 'acme', dependencies: { 'left-pad': '^1.3.0' } }),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+        content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
+      });
+
+      const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
+
+      const barrel = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/src/left-pad/left-pad.ts',
+      });
+      const gatewayPackageJson = testbed.readFile({
+        relativePath: 'packages/@gateway/npm/package.json',
+      });
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        copied: [],
+        generated: ['left-pad'],
+        untyped: ['left-pad'],
+        esmOnly: [],
+        skippedOwnCopy: [],
+        lockfileWarning:
+          'lockfile not updated: `npm install --ignore-scripts --no-audit --no-fund` exited 1 (npm error code E404); run npm install yourself to update package-lock.json',
+      });
+      expect(barrel).toBe(`/**
+ * PURPOSE: Pass-through for the npm package 'left-pad'. Code outside the gateway imports left-pad
+ * through here instead of the raw package, so a future guard or override on left-pad lands in
+ * this one file and reaches every caller.
+ *
+ * 'left-pad' resolved no type declarations when this file was generated, so every import
+ * through here is untyped until the package or an @types package supplies them.
+ *
+ * USAGE:
+ * import { someExport } from '#gateway/npm/left-pad';
+ */
+
+export * from 'left-pad';
+`);
+      expect(gatewayPackageJson).toBe(
+        `${JSON.stringify(
+          { name: '@acme/npm', version: '0.1.0', dependencies: { 'left-pad': '^1.3.0' } },
+          null,
+          2,
+        )}\n`,
+      );
     });
   });
 });

@@ -193,6 +193,23 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => places a module mock in its gateway package folder, loaded automatically', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      const placementNeedle =
+        "The mock goes in that package's gateway folder, beside the wrapper: `packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`. Jest loads it automatically for any test that imports that gateway";
+
+      expect(result).toMatch(/^### A module mock lives in its gateway package folder$/mu);
+      expect(
+        result.slice(
+          result.indexOf(placementNeedle),
+          result.indexOf(placementNeedle) + placementNeedle.length,
+        ),
+      ).toBe(placementNeedle);
+    });
+
     it('VALID: {} => includes proxy architecture section', () => {
       architectureTestingPatternsBrokerProxy();
 

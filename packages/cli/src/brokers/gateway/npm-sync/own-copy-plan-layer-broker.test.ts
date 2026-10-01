@@ -119,7 +119,7 @@ describe('ownCopyPlanLayerBroker', () => {
     expect(result).toStrictEqual(['typescript-eslint__utils']);
   });
 
-  it('INVALID: {test support needed, but its own imports do not resolve} => returns null', async () => {
+  it('INVALID: {test support needed, but its own imports do not resolve} => returns unresolved-import', async () => {
     const proxy = ownCopyPlanLayerBrokerProxy();
     proxy.setupOwnGateway({
       ownSrcRoot: OWN_SRC_ROOT,
@@ -148,10 +148,10 @@ describe('ownCopyPlanLayerBroker', () => {
       consumerFolders: [],
     });
 
-    expect(result).toBe(null);
+    expect(result).toBe('unresolved-import');
   });
 
-  it('INVALID: {the folder imports a package the consumer lacks} => returns null', async () => {
+  it('INVALID: {the folder imports a package the consumer lacks} => returns unresolved-import', async () => {
     const proxy = ownCopyPlanLayerBrokerProxy();
     proxy.setupOwnGateway({
       ownSrcRoot: OWN_SRC_ROOT,
@@ -176,7 +176,7 @@ describe('ownCopyPlanLayerBroker', () => {
       consumerFolders: [],
     });
 
-    expect(result).toBe(null);
+    expect(result).toBe('unresolved-import');
   });
 
   it('VALID: {we have only subpath folders for the package} => copies the subpath folders that resolve', async () => {
@@ -211,7 +211,7 @@ describe('ownCopyPlanLayerBroker', () => {
     expect(result).toStrictEqual(['modelcontextprotocol__sdk__server']);
   });
 
-  it('INVALID: {we have only subpath folders, and none resolves} => returns null', async () => {
+  it('INVALID: {we have only subpath folders, and none resolves} => returns unresolved-import', async () => {
     const proxy = ownCopyPlanLayerBrokerProxy();
     proxy.setupOwnGateway({
       ownSrcRoot: OWN_SRC_ROOT,
@@ -236,7 +236,7 @@ describe('ownCopyPlanLayerBroker', () => {
       consumerFolders: [],
     });
 
-    expect(result).toBe(null);
+    expect(result).toBe('unresolved-import');
   });
 
   it('EMPTY: {no folder of ours for the package} => returns null', async () => {

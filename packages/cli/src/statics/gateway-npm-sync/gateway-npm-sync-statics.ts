@@ -8,7 +8,8 @@
  * of those a copied wrapper may still import raw (a proxy's `@dungeonmaster/testing/register-mock`),
  * since `init` installs them at the consumer's root. `esmProbe.diagnosticCodes` are the TypeScript
  * errors that mean a CommonJS file cannot `require` what it imports: TS1479 for an `import` or
- * `export ... from`, TS1471 for `import x = require()`.
+ * `export ... from`, TS1471 for `import x = require()`. `lockfileInstall.errorLinePrefixes` are how
+ * npm starts the lines that say why it failed (`npm error` today, `npm ERR!` before npm 10).
  *
  * USAGE:
  * gatewayNpmSyncStatics.ownGateway.specifier;
@@ -45,6 +46,9 @@ export const gatewayNpmSyncStatics = {
     subpathSeparator: '__',
   },
   sourceExtensions: ['.ts', '.tsx'],
+  // A gateway package's `exports` maps `./<sub>.proxy` and `./<sub>.stub` to `src/<sub>.<kind>.ts`
+  // and every other `./<sub>` to `src/<sub>/<sub>.ts`; the compile gate resolves `#gateway/*` that way.
+  gatewayFileExportSuffixes: ['.proxy', '.stub'],
   esmProbe: {
     diagnosticCodes: {
       importOfEsm: 1479,
@@ -58,5 +62,6 @@ export const gatewayNpmSyncStatics = {
   lockfileInstall: {
     command: 'npm',
     args: ['install', '--ignore-scripts', '--no-audit', '--no-fund'],
+    errorLinePrefixes: ['npm error', 'npm ERR!'],
   },
 } as const;

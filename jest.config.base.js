@@ -41,6 +41,10 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/', '/hypothesis/', '/dist/'],
   modulePathIgnorePatterns: ['/tests/tmp/', '/hypothesis/'],
   moduleFileExtensions: ['ts', 'js', 'json'],
+  // Resolves a request for an npm gateway module mock
+  // (`packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`) to that mock, for every package but
+  // the npm gateway itself — see that file's own header.
+  resolver: path.join(__dirname, 'packages/testing/ts-jest/gateway-module-mock-resolver.js'),
   transform: {
     '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],
   },
