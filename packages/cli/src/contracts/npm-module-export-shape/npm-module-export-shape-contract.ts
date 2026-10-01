@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Which of the four passthrough barrels an npm package's own type declarations call for —
  * `named` (`export *`), `named-and-default` (`export *` plus the `default`), `export-equals`
- * (`import x = require(); export = x;`), `untyped` when no declaration resolves at all, or
+ * (the `default` plus every export listed by name), `untyped` when no declaration resolves at all, or
  * `esm-only` when the CommonJS npm gateway cannot `require` the package, so only its types pass.
  *
  * USAGE:

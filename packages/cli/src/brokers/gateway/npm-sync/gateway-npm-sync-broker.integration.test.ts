@@ -68,7 +68,7 @@ describe('gatewayNpmSyncBroker (integration)', () => {
   });
 
   describe('a package dungeonmaster does not wrap', () => {
-    it('VALID: {workspace depends on left-pad, typed with export =} => writes an import-equals passthrough and its test', async () => {
+    it('VALID: {workspace depends on left-pad, typed with export =} => writes a named passthrough that a CommonJS and an ES-module consumer both compile, and its test', async () => {
       npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({ baseName: 'npm-sync-passthrough' });
       testbed.writeFile({
@@ -94,12 +94,31 @@ describe('gatewayNpmSyncBroker (integration)', () => {
       });
       testbed.writeFile({
         relativePath: 'node_modules/left-pad/index.js',
-        content: "module.exports = (text, length) => text.padStart(length, ' ');\n",
+        content:
+          "module.exports = (text, length) => text.padStart(length, ' ');\nmodule.exports.version = '1.3.0';\n",
       });
       testbed.writeFile({
         relativePath: 'node_modules/left-pad/index.d.ts',
-        content:
-          'declare function leftPad(text: string, length: number): string;\nexport = leftPad;\n',
+        content: [
+          'declare function leftPad(text: string, length: number): string;',
+          'declare namespace leftPad {',
+          '  const version: string;',
+          '  interface Options { fill: string }',
+          '}',
+          'export = leftPad;',
+          '',
+        ].join('\n'),
+      });
+      testbed.writeFile({
+        relativePath: 'packages/app/src/consumer.ts',
+        content: [
+          "import leftPad, { version } from '../../@gateway/npm/src/left-pad/left-pad';",
+          "import type { Options } from '../../@gateway/npm/src/left-pad/left-pad';",
+          '',
+          "export const options: Options = { fill: ' ' };",
+          "export const padded: string = leftPad('a', 2) + version;",
+          '',
+        ].join('\n'),
       });
 
       const result = await gatewayNpmSyncBroker({ repoRoot: testbed.guildPath });
@@ -116,6 +135,11 @@ describe('gatewayNpmSyncBroker (integration)', () => {
           'packages/@gateway/npm/src/left-pad/left-pad.ts',
           'packages/@gateway/npm/src/left-pad/left-pad.test.ts',
         ],
+      });
+      const esModuleDiagnostics = sync.compileDiagnostics({
+        repoRoot: testbed.guildPath,
+        relativePaths: ['packages/app/src/consumer.ts'],
+        consumer: 'es-module',
       });
       const testRun = await sync.runWrittenTests({
         repoRoot: testbed.guildPath,
@@ -134,8 +158,9 @@ describe('gatewayNpmSyncBroker (integration)', () => {
         noRootExport: [],
         skippedOwnCopy: [],
       });
-      expect({ diagnostics, testRun }).toStrictEqual({
+      expect({ diagnostics, esModuleDiagnostics, testRun }).toStrictEqual({
         diagnostics: [],
+        esModuleDiagnostics: [],
         testRun: 'exit 0; Tests: 1 passed, 1 total',
       });
       expect(barrel).toBe(`/**
@@ -143,15 +168,23 @@ describe('gatewayNpmSyncBroker (integration)', () => {
  * through here instead of the raw package, so a future guard or override on left-pad lands in
  * this one file and reaches every caller.
  *
+ * 'left-pad' declares its module with \`export =\`, which no \`export *\` can re-export
+ * (TS2498), so this names every export its declarations held when this file was generated. A
+ * name the package adds later is reachable through the default export until it is added here.
+ *
  * USAGE:
- * import pkg from '#gateway/npm/left-pad';
+ * import pkg, { someExport } from '#gateway/npm/left-pad';
  */
 
-import pkgModule = require('left-pad');
-
-export = pkgModule;
+export { default } from 'left-pad';
+export {
+  version,
+} from 'left-pad';
+export type {
+  Options,
+} from 'left-pad';
 `);
-      expect(barrelTest).toBe(`import ourModule = require('./left-pad');
+      expect(barrelTest).toBe(`import * as ourModule from './left-pad';
 // A raw \`require\`, not \`import * as\`: TS's importStar helper synthesizes a .default onto any
 // CJS module that lacks __esModule, which is every third-party package here — comparing
 // against that synthetic shape would fail every pass-through. \`import x = require(...)\` compiles
@@ -159,8 +192,11 @@ export = pkgModule;
 import pkgModule = require('left-pad');
 
 describe('#gateway/npm/left-pad', () => {
-  it('VALID: {module} => is the same module object as left-pad', () => {
-    expect(ourModule).toBe(pkgModule);
+  it('VALID: {module} => default is left-pad itself and each named value is its own binding', () => {
+    expect({ ...ourModule }).toStrictEqual({
+      default: pkgModule,
+      version: pkgModule.version,
+    });
   });
 });
 `);
@@ -930,13 +966,15 @@ export * from 'zod';
  * through here instead of the raw package, so a future guard or override on debug lands in
  * this one file and reaches every caller.
  *
+ * 'debug' declares its module with \`export =\`, which no \`export *\` can re-export
+ * (TS2498), so this names every export its declarations held when this file was generated. A
+ * name the package adds later is reachable through the default export until it is added here.
+ *
  * USAGE:
- * import pkg from '#gateway/npm/debug';
+ * import pkg, { someExport } from '#gateway/npm/debug';
  */
 
-import pkgModule = require('debug');
-
-export = pkgModule;
+export { default } from 'debug';
 `);
     });
   });

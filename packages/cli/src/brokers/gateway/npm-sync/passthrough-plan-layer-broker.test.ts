@@ -1,3 +1,4 @@
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { resolvePackageRoot } from '#gateway/node/module';
 import { resolve } from '#gateway/node/path';
 import { GatewayNpmDependencyStub } from '../../../contracts/gateway-npm-dependency/gateway-npm-dependency.stub';
@@ -45,6 +46,53 @@ describe('passthroughPlanLayerBroker', () => {
 
     expect(result).toStrictEqual([
       { dependency: { name: 'zod', range: '^4.0.0', folder: 'zod' }, shape: 'named-and-default' },
+    ]);
+  });
+
+  it('VALID: {an installed export = package} => plans the root barrel with the names it re-exports', async () => {
+    passthroughPlanLayerBrokerProxy();
+    const testbed = installTestbedCreateBroker({ baseName: 'passthrough-plan-export-equals' });
+    testbed.writeFile({
+      relativePath: 'packages/@gateway/npm/package.json',
+      content: JSON.stringify({ name: '@acme/npm', version: '0.1.0' }),
+    });
+    testbed.writeFile({
+      relativePath: 'node_modules/left-pad/package.json',
+      content: JSON.stringify({
+        name: 'left-pad',
+        version: '1.3.0',
+        main: 'index.js',
+        types: 'index.d.ts',
+      }),
+    });
+    testbed.writeFile({
+      relativePath: 'node_modules/left-pad/index.js',
+      content: "module.exports = (text) => text;\nmodule.exports.version = '1.3.0';\n",
+    });
+    testbed.writeFile({
+      relativePath: 'node_modules/left-pad/index.d.ts',
+      content:
+        'declare function leftPad(text: string): string;\ndeclare namespace leftPad {\n  const version: string;\n  interface Options { fill: string }\n}\nexport = leftPad;\n',
+    });
+
+    const result = await passthroughPlanLayerBroker({
+      repoRoot: testbed.guildPath,
+      ownSrcRoot: null,
+      dependency: GatewayNpmDependencyStub({
+        name: 'left-pad',
+        range: '^1.3.0',
+        folder: 'left-pad',
+      }),
+      excludedFolders: [],
+    });
+    testbed.cleanup();
+
+    expect(result).toStrictEqual([
+      {
+        dependency: { name: 'left-pad', range: '^1.3.0', folder: 'left-pad' },
+        shape: 'export-equals',
+        exportNames: { values: ['version'], types: ['Options'] },
+      },
     ]);
   });
 });

@@ -3,7 +3,8 @@
  * `npm_command=ci` environment npm sets under `npm ci` or the `npm_lifecycle_event` it sets
  * while running a lifecycle script such as the root `postinstall`, and reading a file of dungeonmaster's own
  * installed npm gateway, the source a copied folder must match byte for byte, and compiling what the
- * sync wrote under the CommonJS gateway's own options, the check a text comparison cannot make. The environment is
+ * sync wrote under the CommonJS gateway's own options or an ES-module consumer's, the check a text
+ * comparison cannot make. The environment is
  * restored after every test, so a staged variable never leaks into the next one. A copy only happens
  * when the consumer has the package installed at a version our range accepts and our folder compiles
  * there, so `linkInstalledPackage` points a testbed's `node_modules/<name>` at this repo's own
@@ -49,7 +50,11 @@ export const npmGatewaySyncHarness = (): {
   linkInstalledPackage: (params: { repoRoot: string; packageName: string }) => void;
   ownGatewayRange: (params: { packageName: string }) => string;
   minVersionSatisfying: (params: { range: string }) => string;
-  compileDiagnostics: (params: { repoRoot: string; relativePaths: readonly string[] }) => string[];
+  compileDiagnostics: (params: {
+    repoRoot: string;
+    relativePaths: readonly string[];
+    consumer?: 'es-module';
+  }) => string[];
   runWrittenTests: (params: { repoRoot: string; relativeDir: string }) => Promise<string>;
   afterEach: () => void;
 } => {
@@ -114,14 +119,19 @@ export const npmGatewaySyncHarness = (): {
 
     // Compiles written files the way the consumer's CommonJS npm gateway package does — node16
     // module and resolution — with this repo's own @types/jest for a test file's globals, and
-    // hands back every diagnostic as `<file>(<line>): TS<code>: <message>`.
-    compileDiagnostics: ({ repoRoot, relativePaths }): string[] => {
+    // hands back every diagnostic as `<file>(<line>): TS<code>: <message>`. `consumer: 'es-module'`
+    // compiles them the way an ES-module workspace package does instead (ESNext module, bundler
+    // resolution), which reads a barrel's source too when it imports the gateway.
+    compileDiagnostics: ({ repoRoot, relativePaths, consumer }): string[] => {
       const jestTypesRoot = dirname(
         String(resolvePackageRoot({ specifier: JEST_TYPES_SPECIFIER })),
       );
+      const isEsModule = consumer === 'es-module';
       const options: ts.CompilerOptions = {
-        module: ts.ModuleKind.Node16,
-        moduleResolution: ts.ModuleResolutionKind.Node16,
+        module: isEsModule ? ts.ModuleKind.ESNext : ts.ModuleKind.Node16,
+        moduleResolution: isEsModule
+          ? ts.ModuleResolutionKind.Bundler
+          : ts.ModuleResolutionKind.Node16,
         target: ts.ScriptTarget.ES2022,
         strict: true,
         esModuleInterop: true,

@@ -20,6 +20,7 @@ export { default } from 'typescript';
 export {
   EmitHint,
   Extension,
+  InternalSymbolName,
   JsxEmit,
   ModuleKind,
   ModuleResolutionKind,
@@ -62,6 +63,8 @@ export {
   isFunctionExpression,
   isFunctionTypeNode,
   isIdentifier,
+  isIdentifierPart,
+  isIdentifierStart,
   isIfStatement,
   isImportDeclaration,
   isInterfaceDeclaration,

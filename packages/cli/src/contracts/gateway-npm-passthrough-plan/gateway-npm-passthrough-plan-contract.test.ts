@@ -21,6 +21,20 @@ describe('gatewayNpmPassthroughPlanContract', () => {
     });
   });
 
+  it('VALID: {shape: export-equals, exportNames} => keeps the names its barrel re-exports', () => {
+    const result = gatewayNpmPassthroughPlanContract.parse({
+      dependency: { name: 'debug', range: '^4.0.0', folder: 'debug' },
+      shape: 'export-equals',
+      exportNames: { values: ['enable'], types: ['Debugger'] },
+    });
+
+    expect(result).toStrictEqual({
+      dependency: { name: 'debug', range: '^4.0.0', folder: 'debug' },
+      shape: 'export-equals',
+      exportNames: { values: ['enable'], types: ['Debugger'] },
+    });
+  });
+
   it('INVALID: {shape: "commonjs"} => throws a validation error', () => {
     expect(() =>
       gatewayNpmPassthroughPlanContract.parse({

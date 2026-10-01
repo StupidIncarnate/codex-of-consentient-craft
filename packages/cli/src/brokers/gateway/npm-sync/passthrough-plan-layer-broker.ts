@@ -5,7 +5,8 @@
  * whose root does not resolve (`specifierResolvesLayerBroker`: no `.` export, no `main`) gets no root
  * barrel, which the consumer's build would refuse with TS2307; it gets one barrel per subpath folder
  * dungeonmaster's own gateway has for it (same folder name, the specifier our own barrel imports)
- * whose specifier the consumer's install resolves, each shaped like any passthrough. An empty
+ * whose specifier the consumer's install resolves, each shaped like any passthrough. An
+ * `export-equals` plan also carries the names its barrel re-exports one by one. An empty
  * answer means nothing resolves and nothing is written — the sync reports the package as having no
  * root export, to be wrapped by hand.
  *
@@ -29,11 +30,13 @@ import {
 import { gatewayNpmSyncStatics } from '../../../statics/gateway-npm-sync/gateway-npm-sync-statics';
 import { npmPackageNameFromSpecifierTransformer } from '../../../transformers/npm-package-name-from-specifier/npm-package-name-from-specifier-transformer';
 import { sourceImportSpecifiersTransformer } from '../../../transformers/source-import-specifiers/source-import-specifiers-transformer';
+import { npmModuleExportNamesBroker } from '../../npm-module/export-names/npm-module-export-names-broker';
 import { npmModuleExportShapeBroker } from '../../npm-module/export-shape/npm-module-export-shape-broker';
 import { specifierResolvesLayerBroker } from './specifier-resolves-layer-broker';
 import { subpathFoldersOwnedLayerBroker } from './subpath-folders-owned-layer-broker';
 
 const BARREL_EXTENSION = '.ts';
+const EXPORT_EQUALS_SHAPE = 'export-equals';
 
 export const passthroughPlanLayerBroker = async ({
   repoRoot,
@@ -56,10 +59,14 @@ export const passthroughPlanLayerBroker = async ({
     .some((directory) => ts.sys.fileExists(join(directory, dependency.name, packageJson.fileName)));
 
   if (!installed || specifierResolvesLayerBroker({ repoRoot, specifier: dependency.name })) {
+    const shape = npmModuleExportShapeBroker({ repoRoot, packageName: dependency.name });
     return [
       gatewayNpmPassthroughPlanContract.parse({
         dependency,
-        shape: npmModuleExportShapeBroker({ repoRoot, packageName: dependency.name }),
+        shape,
+        ...(shape === EXPORT_EQUALS_SHAPE
+          ? { exportNames: npmModuleExportNamesBroker({ repoRoot, packageName: dependency.name }) }
+          : {}),
       }),
     ];
   }
@@ -91,10 +98,14 @@ export const passthroughPlanLayerBroker = async ({
         return [];
       }
       const subpathName = gatewayNpmDependencyContract.shape.name.parse(specifier);
+      const shape = npmModuleExportShapeBroker({ repoRoot, packageName: subpathName });
       return [
         gatewayNpmPassthroughPlanContract.parse({
           dependency: { name: subpathName, range: dependency.range, folder },
-          shape: npmModuleExportShapeBroker({ repoRoot, packageName: subpathName }),
+          shape,
+          ...(shape === EXPORT_EQUALS_SHAPE
+            ? { exportNames: npmModuleExportNamesBroker({ repoRoot, packageName: subpathName }) }
+            : {}),
         }),
       ];
     }),

@@ -1,5 +1,6 @@
 import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { npmModuleExportNamesBrokerProxy } from '../../npm-module/export-names/npm-module-export-names-broker.proxy';
 import { npmModuleExportShapeBrokerProxy } from '../../npm-module/export-shape/npm-module-export-shape-broker.proxy';
 import { specifierResolvesLayerBrokerProxy } from './specifier-resolves-layer-broker.proxy';
 import { subpathFoldersOwnedLayerBrokerProxy } from './subpath-folders-owned-layer-broker.proxy';
@@ -13,6 +14,7 @@ export const passthroughPlanLayerBrokerProxy = (): {
   const entriesProxy = readdirEntriesProxy();
   const fileProxy = readFileProxy();
   const ownedProxy = subpathFoldersOwnedLayerBrokerProxy();
+  npmModuleExportNamesBrokerProxy();
   npmModuleExportShapeBrokerProxy();
   specifierResolvesLayerBrokerProxy();
 
