@@ -84,42 +84,25 @@ prompt files import statics that do not exist. `git status` and a scoped ward wi
 
 **Due the moment set 25's registration lands:**
 
-1. **Remove the dispatch fallback.** Dispatch currently resolves a stepped work item's role and prompt from its
-   STEP, falling back to the SCOPE's role when the step's prompt is not registered, writing a `[dispatch-role]`
-   line to stderr each time. Once all twelve names are registered the fallback stops firing and should be deleted.
-   **The correct end state separates two things the code conflates**: what Claude is spawned AS (the scope's role)
-   and which prompt it READS (always the step's).
-2. **Restore the graph check at server boot.** `GraphReachabilityBootFlow()` was unhooked from
-   `packages/server/src/startup/start-server.ts` because the step graph named eleven prompts that did not exist
-   and it throws on a dangling one. The flow, its responder, the orchestrator broker and their tests all still
-   exist and are exercised — restoring it is one import and one call. **Watch it throw on a real bad graph before
-   calling it done.**
-3. **A mint-to-re-mint test for siegelense lane kill-once.** Needs the antagonist prompt, which set 25 writes.
+1. ~~**Remove the dispatch fallback.**~~ **Done (landed on master):** All twelve prompt names are registered in `agentPromptClassificationStatics.promptNames`. `buildSpawnInstructionLayerBroker` separates the spawned role (`workItem.role`) from the fetched prompt (`taskPrompt`), and the `[dispatch-role]` stderr fallback has been deleted.
+2. ~~**Restore the graph check at server boot.**~~ **Done (landed on master):** Restored; `GraphReachabilityBootFlow()` is wired into server startup at `packages/server/src/startup/start-server.ts:31`.
+3. **A mint-to-re-mint test for siegelense lane kill-once.** Needs the antagonist prompt (`siege-adversarial-walker`), which set 25 wrote. The mint-to-re-mint integration test remains owed.
 
 **Deletion, decided by the user and not yet done:**
 
-4. **Remove the `invalidation` payload from `quest-work`**, its five carried guards, and the `walk-reset` note.
-   The lever is obsolete by design: observations are per-work-item and frozen, and a unit's current mark is the
-   one on the most recent work item ASSIGNED it — so a second flowrider or siege walker on the same flow is
-   assigned those units and marks them from scratch. Nothing needs clearing because nothing is overwritten.
+4. ~~**Remove the `invalidation` payload from `quest-work`**, its five carried guards, and the `walk-reset` note.~~ **Done (landed on master):** The `invalidation` payload has been removed from `questWorkInputContract` and `questWorkRecordResultContract` (with tests refusing `kind: 'invalidation'`), and `walk-reset` is retained only as an inert note kind for legacy quest loading.
 
 **Smaller, all confirmed real:**
 
-5. `orch-codeweaver-partial` in `smoketest-scenarios-statics.ts` exercises a continuation that can no longer
-   happen; that file and `slot-manager-statics.ts` still describe `operationStatus: 'partial'` as live.
-6. The siegelense `walking` / `attacking` docs scope trim — a `@dungeonmaster/siegelense` edit, out of set 25's
-   package. Both siege walker prompts already carry the no-`start`/no-`kill` rule regardless.
-7. `flowriderScopeSignedOff` and `DEFAULT_FLOWS_FLOWRIDER_SIGNED` in the web test harnesses have no caller left.
-8. `CLOSE_OUT.repair` declares no `done` route and the route path sets no minter, so a finished repair there
-   blocks with `no-minter`. Reachable, untested; NOT reachable through `wardFull` or `riftcarver`, which declare
-   their own `done: 'commit'`.
+5. ~~`orch-codeweaver-partial` in `smoketest-scenarios-statics.ts` exercises a continuation that can no longer happen; that file and `slot-manager-statics.ts` still describe `operationStatus: 'partial'` as live.~~ **Done (landed on master):** Scenario removed; `smoketestScenariosStatics` declares only `orchHappyPath` and `orchReachesFlowrider`, and `operationStatus: 'partial'` has been eliminated.
+6. ~~The siegelense `walking` / `attacking` docs scope trim — a `@dungeonmaster/siegelense` edit, out of set 25's package.~~ **Done (landed on master):** Landed in `packages/siegelense/src/statics/docs/docs-statics.ts` (commit `6f9798b9a`), clarifying router-owned instance lifecycles vs manual runs.
+7. ~~`flowriderScopeSignedOff` and `DEFAULT_FLOWS_FLOWRIDER_SIGNED` in the web test harnesses have no caller left.~~ **Done (landed on master):** Both dead fixtures were removed from `packages/web/test/harnesses/quest/quest.harness.ts`.
+8. ~~`CLOSE_OUT.repair` declares no `done` route and the route path sets no minter, so a finished repair there blocks with `no-minter`.~~ **Resolved on master:** DEF-201 confirmed that the fixpoint router stamps `mintedBy` on mark-minted work items and returns to `ward` without blocking with `no-minter`.
 
 **Still genuinely open:**
 
-9. Check 19 — "a walk piece whose path needs a seeded system names a recipe". No definition of "needs a seeded
-   system" exists anywhere, so it is named in the check contract and never emitted.
-10. Whether `unitIdContract` and `qaChecklistItemIdContract` merge. Byte-identical validation, separate brands,
-    now paying a re-parse at every boundary between them.
+9. Check 19 — "a walk piece whose path needs a seeded system names a recipe". No definition of "needs a seeded system" exists anywhere, so it is named in the check contract and never emitted.
+10. Whether `unitIdContract` and `qaChecklistItemIdContract` merge. Byte-identical validation, separate brands, now paying a re-parse at every boundary between them.
 
 ---
 
