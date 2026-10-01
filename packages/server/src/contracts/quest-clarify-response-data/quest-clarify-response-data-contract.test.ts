@@ -19,4 +19,10 @@ describe('questClarifyResponseDataContract', () => {
       questClarifyResponseDataContract.parse({ chatProcessId: 'chat-12345', extra: 1 }),
     ).toThrow(/Unrecognized key: \\"extra\\"/u);
   });
+
+  it('INVALID: {empty string chatProcessId} => throws min length error', () => {
+    expect(() => questClarifyResponseDataContract.parse({ chatProcessId: '' })).toThrow(
+      /Too small|expected string to have >=1 characters/u,
+    );
+  });
 });

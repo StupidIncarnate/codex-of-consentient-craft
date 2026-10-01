@@ -7,10 +7,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { orchestrationProcessContract } from '@dungeonmaster/orchestrator/contracts';
 
 export const questStartResponseDataContract = z
   .strictObject({
-    processId: z.string().brand<'QuestStartResponseDataProcessId'>(),
+    processId: orchestrationProcessContract.shape.processId,
     dispatch: z.union([
       z.strictObject({ started: z.boolean() }).brand<'QuestStartResponseDataDispatch'>(),
       z

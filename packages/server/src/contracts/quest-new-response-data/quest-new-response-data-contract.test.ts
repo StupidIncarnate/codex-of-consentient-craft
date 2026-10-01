@@ -22,4 +22,10 @@ describe('questNewResponseDataContract', () => {
       /received undefined/u,
     );
   });
+
+  it('INVALID: {empty string chatProcessId} => throws min length error', () => {
+    expect(() => questNewResponseDataContract.parse({ chatProcessId: '' })).toThrow(
+      /Too small|expected string to have >=1 characters/u,
+    );
+  });
 });

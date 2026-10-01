@@ -7,9 +7,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { orchestrationProcessContract } from '@dungeonmaster/orchestrator/contracts';
 
 export const questChatResponseDataContract = z
-  .strictObject({ chatProcessId: z.string().brand<'QuestChatResponseDataChatProcessId'>() })
+  .strictObject({ chatProcessId: orchestrationProcessContract.shape.processId })
   .brand<'QuestChatResponseData'>();
 
 export type QuestChatResponseData = z.infer<typeof questChatResponseDataContract>;

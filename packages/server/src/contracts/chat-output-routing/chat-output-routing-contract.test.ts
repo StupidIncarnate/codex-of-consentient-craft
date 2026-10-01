@@ -99,5 +99,11 @@ describe('chatOutputRoutingContract', () => {
         'Invalid UUID',
       );
     });
+
+    it('ERROR: {chatProcessId: ""} (empty string) => throws ZodError', () => {
+      expect(() => chatOutputRoutingContract.parse({ chatProcessId: '' })).toThrow(
+        /expected string to have >=1 characters|Too small/u,
+      );
+    });
   });
 });

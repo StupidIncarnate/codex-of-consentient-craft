@@ -27,4 +27,10 @@ describe('questStartResponseDataContract', () => {
       /received undefined/u,
     );
   });
+
+  it('INVALID: {empty string processId} => throws min length error', () => {
+    expect(() =>
+      questStartResponseDataContract.parse({ processId: '', dispatch: { started: true } }),
+    ).toThrow(/Too small|expected string to have >=1 characters/u);
+  });
 });

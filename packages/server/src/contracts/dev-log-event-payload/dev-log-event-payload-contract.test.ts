@@ -20,4 +20,18 @@ describe('devLogEventPayloadContract', () => {
       expect(result.role).toBe('codeweaver');
     });
   });
+
+  describe('invalid inputs', () => {
+    it('INVALID: {chatProcessId: ""} (empty string) => throws min length error', () => {
+      expect(() => devLogEventPayloadContract.parse({ chatProcessId: '' })).toThrow(
+        /Too small|expected string to have >=1 characters/u,
+      );
+    });
+
+    it('INVALID: {processId: ""} (empty string) => throws min length error', () => {
+      expect(() => devLogEventPayloadContract.parse({ processId: '' })).toThrow(
+        /Too small|expected string to have >=1 characters/u,
+      );
+    });
+  });
 });
