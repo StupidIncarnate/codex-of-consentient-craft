@@ -62,7 +62,7 @@ so if that is missing, stop and say so rather than building it. Its commands:
 | `summary <sessionId\|agent-id>` | wall clock, record/message counts, model, token totals (input / cache_read / cache_creation / output / thinking), tool-call histogram, tool-result bytes, sub-agent count |
 | `buckets <sessionId\|agent-id> [--minutes <n>]` | chronological n-minute buckets, default 15 (fixed width): API-response count, tool calls, output tokens, context-in tokens, tool-result bytes, top 4 tools |
 | `gaps <sessionId\|agent-id> [--floor-seconds <n>]` | **every gap of n+ seconds between assistant turns, default floor 120**, labelled with which sub-agents were live during it — then totals splitting wall clock into blocked-on-sub-agent versus true idle |
-| `coverage <questId>` | per flow, per track (codeweaver/flowrider/siegemaster): required/signed/met/can't-meet/unmet/not-signed — an upper bound, not the authoritative reading (Step 7 has the caveat) |
+| `coverage <questId>` | per flow, per track (codeweaver/flowrider/siegemaster): required/signed/met/can't-meet/unmet/not-signed — an upper bound, not the authoritative reading (Step 6 has the caveat) |
 | `quest <questId>` | Step 1's whole per-work-item index in one pass — see Step 1 |
 
 `--minutes`/`--floor-seconds` are the only flags any command takes; every other argument shape above
@@ -259,7 +259,7 @@ each role delivered its own obligation against it.
 Run Phase 2 after Phase 1 (its reports give you the per-session behaviour to cross-reference), or
 standalone when the question is only about spec-to-delivery fit.
 
-## Step 7 — the coverage baseline
+## Step 6 — the coverage baseline
 
 No single command prints all of the below — there is no `scripts/quest-forensics.py`. Assemble it
 from three real calls:
@@ -307,7 +307,7 @@ two disagree, **the MCP tool is right and the discrepancy is itself a finding** 
 and its measurer were counting differently. Call `get-quest-work` for at least one work item per role
 and reconcile.
 
-## Step 8 — dispatch the chain analyzers
+## Step 7 — dispatch the chain analyzers
 
 **One analyzer per FLOW.** Model `opus`. Each writes to
 `scrolls/reports/$ARGUMENTS/chain-<slug>.md`.
@@ -393,14 +393,14 @@ Report headings, verbatim:
 ## 8. Raw figures appendix
 ```
 
-## Step 9 — compile Phase 2
+## Step 8 — compile Phase 2
 
 One compiler agent on `opus`, reading every `chain-*.md` plus the spec-phase report plus the Phase 1
 post-mortem. It writes `scrolls/reports/$ARGUMENTS/00-DELIVERY-CHAIN-AUDIT.md`:
 
 ```
 ## A. The chain as designed, and the chain as run
-## B. Coverage — every flow, every unit, marked and unmarked     (a matrix, from step 7's baseline)
+## B. Coverage — every flow, every unit, marked and unmarked     (a matrix, from step 6's baseline)
 ## C. Did the spec give the workers what they needed?            (provenance, cost of each late find)
 ## D. Obligation versus delivery, per role                       (what each role owes, and met)
 ## E. Where the chain leaks                                      (seams, overlaps, unowned units)
@@ -415,7 +415,7 @@ approved flow map to a delivered flow complete, or does every operator quietly i
 missing artifact? Answer it plainly — including "no middle step is missing, and here is why" if that
 is what the evidence says.
 
-## Step 10 — report back
+## Step 9 — report back
 
 For Phase 1, tell the user where the post-mortem is, its top three findings with figures, and the
 highest-value fix with its saving. For Phase 2, lead with section G's answer, then the coverage
