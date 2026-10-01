@@ -31,7 +31,7 @@ describe('SiegelenseStatusResponder', () => {
       await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
       ]);
@@ -45,7 +45,7 @@ describe('SiegelenseStatusResponder', () => {
       await SiegelenseStatusResponder({ instanceId: null });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
       ]);
@@ -160,7 +160,7 @@ describe('SiegelenseStatusResponder', () => {
       await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+        'MONITORED: memory per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
           '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
