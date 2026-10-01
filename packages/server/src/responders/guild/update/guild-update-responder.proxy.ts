@@ -7,7 +7,11 @@ type Guild = ReturnType<typeof GuildStub>;
 
 export const GuildUpdateResponderProxy = (): {
   setupUpdateGuild: (params: { guild: Guild }) => void;
-  setupUpdateGuildError: (params: { guildId: Guild['id']; message: string }) => void;
+  setupUpdateGuildError: (params: {
+    guildId: Guild['id'];
+    error?: Error;
+    message?: string;
+  }) => void;
   getUpdateGuildCalls: () => RecordedCalls;
   callResponder: typeof GuildUpdateResponder;
 } => {
@@ -19,12 +23,17 @@ export const GuildUpdateResponderProxy = (): {
     },
     setupUpdateGuildError: ({
       guildId,
+      error,
       message,
     }: {
       guildId: Guild['id'];
-      message: string;
+      error?: Error;
+      message?: string;
     }): void => {
-      orchestrator.updateGuildThrows({ guildId, error: new Error(message) });
+      orchestrator.updateGuildThrows({
+        guildId,
+        error: error ?? new Error(message ?? 'Failed to update guild'),
+      });
     },
     getUpdateGuildCalls: (): RecordedCalls => orchestrator.updateGuildGetCalls(),
     callResponder: GuildUpdateResponder,

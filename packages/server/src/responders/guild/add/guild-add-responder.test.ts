@@ -1,3 +1,4 @@
+import { GuildPathTakenError } from '@dungeonmaster/orchestrator';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
 
@@ -123,13 +124,31 @@ describe('GuildAddResponder', () => {
       proxy.setupAddGuildError({
         name,
         path,
-        message: 'A guild with path /tmp/test already exists',
+        error: new GuildPathTakenError({ path }),
       });
 
       const result = await proxy.callResponder({ body: { name: 'Test', path: '/tmp/test' } });
 
       expect(result).toStrictEqual({
         status: 409,
+        data: { error: 'A guild with path /tmp/test already exists' },
+      });
+    });
+
+    it('ERROR: {generic Error with matching message text} => returns 500 without treating it as conflict', async () => {
+      const proxy = GuildAddResponderProxy();
+      const name = 'Test';
+      const path = '/tmp/test';
+      proxy.setupAddGuildError({
+        name,
+        path,
+        message: 'A guild with path /tmp/test already exists',
+      });
+
+      const result = await proxy.callResponder({ body: { name: 'Test', path: '/tmp/test' } });
+
+      expect(result).toStrictEqual({
+        status: 500,
         data: { error: 'A guild with path /tmp/test already exists' },
       });
     });
