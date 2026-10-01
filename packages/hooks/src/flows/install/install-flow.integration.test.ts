@@ -158,6 +158,14 @@ describe('InstallFlow', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -241,6 +249,14 @@ describe('InstallFlow', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -413,6 +429,14 @@ describe('InstallFlow', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -496,6 +520,14 @@ describe('InstallFlow', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },

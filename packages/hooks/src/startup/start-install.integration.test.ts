@@ -149,6 +149,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -224,6 +232,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -387,6 +403,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -462,6 +486,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -636,6 +668,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -711,6 +751,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },
@@ -884,6 +932,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -959,6 +1015,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet decisionMaking',
                 },
               ],
             },

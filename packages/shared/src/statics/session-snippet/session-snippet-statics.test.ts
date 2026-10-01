@@ -599,4 +599,53 @@ describe('sessionSnippetStatics', () => {
       saysNpmStartsEmpty: false,
     });
   });
+
+  // A SESSION THAT HAS NO RULE FOR DECISIONS EITHER GUESSES WHERE IT SHOULD MEASURE OR STOPS TO ASK
+  // WHERE ONE CHOICE WINS. Each bold lead is one rule, and the table is the whole list of what is the
+  // user's to decide, so a reword that drops a row hands that decision back to the agent.
+  it('VALID: decisionMaking snippet => measures before choosing, takes the maintainable option, decides clear-cut choices, and lists the user-owned decisions', () => {
+    expect({
+      measureFirst: sessionSnippetStatics.decisionMaking.includes(
+        '**Measure before you choose a direction.**',
+      ),
+      guessIsNotADirection: sessionSnippetStatics.decisionMaking.includes(
+        'A guess is not a direction.',
+      ),
+      maintainableOverQuick: sessionSnippetStatics.decisionMaking.includes(
+        '**Take the maintainable, sustainable option, even when it is more work.**',
+      ),
+      decideClearCutYourself: sessionSnippetStatics.decisionMaking.includes(
+        '**Decide a clear-cut choice yourself.**',
+      ),
+      tellInOneLine: sessionSnippetStatics.decisionMaking.includes(
+        'tell the user in one line what you chose and why. Do not stop to ask.',
+      ),
+      userOwnedTable: [...sessionSnippetStatics.decisionMaking.matchAll(/^\| ([^|]+) \|/gmu)].map(
+        (match) => match[1],
+      ),
+      neverReAsk: sessionSnippetStatics.decisionMaking.includes(
+        '**Never re-ask what the user already decided.**',
+      ),
+      namesNoRepoLocalPath: /packages\/|scrolls\//u.test(sessionSnippetStatics.decisionMaking),
+    }).toStrictEqual({
+      measureFirst: true,
+      guessIsNotADirection: true,
+      maintainableOverQuick: true,
+      decideClearCutYourself: true,
+      tellInOneLine: true,
+      userOwnedTable: [
+        'Theirs',
+        'User experience',
+        'Functionality or behaviour',
+        'Scope or an agreed design',
+        'A true tie',
+        'Spend',
+        'Destructive, irreversible or outward-facing',
+        'Data retention or privacy',
+        'Naming and branding',
+      ],
+      neverReAsk: true,
+      namesNoRepoLocalPath: false,
+    });
+  });
 });

@@ -9,8 +9,8 @@ that *tests* create are the exception — those belong in the OS `/tmp`, via `in
 in your context at session start — yours and every sub-agent's — in this repo and in every repo `dungeonmaster init`
 has touched: `<dungeonmaster-ward>`, `<dungeonmaster-wardDiscipline>`, `<dungeonmaster-buildDiscipline>`,
 `<dungeonmaster-worktrees>`, `<dungeonmaster-generatedConfig>`, `<dungeonmaster-commentDiscipline>`,
-`<dungeonmaster-discover>`, `<dungeonmaster-searchStrategy>`, `<dungeonmaster-folderTypes>`,
-`<dungeonmaster-modifyingCodeGuidance>`, `<dungeonmaster-packages>`. Their source is
+`<dungeonmaster-decisionMaking>`, `<dungeonmaster-discover>`, `<dungeonmaster-searchStrategy>`,
+`<dungeonmaster-folderTypes>`, `<dungeonmaster-modifyingCodeGuidance>`, `<dungeonmaster-packages>`. Their source is
 `packages/shared/src/statics/session-snippet/session-snippet-statics.ts`. **Change a rule THERE.** This file holds
 only what is true of THIS checkout and false of a consumer's — a copy of anything else drifts from the one the agents
 actually read.
