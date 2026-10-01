@@ -20,38 +20,29 @@ import { ownerIndexPackageContract } from '../../../contracts/owner-index-packag
 import type { OwnerIndex } from '../../../contracts/owner-index/owner-index-contract';
 import { ownerIndexShardContract } from '../../../contracts/owner-index-shard/owner-index-shard-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { locationsStatics } from '../../../statics/locations/locations-statics';
+import { isContractSourceFileGuard } from '../../../guards/is-contract-source-file/is-contract-source-file-guard';
 import { ownerIndexStatics } from '../../../statics/owner-index/owner-index-statics';
+import { indexCacheShardPathTransformer } from '../../../transformers/index-cache-shard-path/index-cache-shard-path-transformer';
 import { ownerIndexFromReadsTransformer } from '../../../transformers/owner-index-from-reads/owner-index-from-reads-transformer';
+import { indexCacheSharedVersionBroker } from '../../index-cache/shared-version/index-cache-shared-version-broker';
+import { sourceFileWalkBroker } from '../../source-file/walk/source-file-walk-broker';
 import { workspacePackageListBroker } from '../../workspace-package/list/workspace-package-list-broker';
-import { contractFilesWalkLayerBroker } from './contract-files-walk-layer-broker';
 import { packageShardReadLayerBroker } from './package-shard-read-layer-broker';
 
 export const ownerIndexAssembleBroker = ({ rootDir }: { rootDir: string }): OwnerIndex => {
-  const cacheDir = [
-    rootDir,
-    locationsStatics.repoRoot.nodeModules,
-    ...ownerIndexStatics.cache.folderNames,
-  ].join('/');
-
-  const installedShared = packageJsonContract.safeParse(
-    readJsonFileSyncIfExists(
-      [
-        rootDir,
-        locationsStatics.repoRoot.nodeModules,
-        ...ownerIndexStatics.cache.sharedPackageFolders,
-        'package.json',
-      ].join('/'),
-    ),
-  );
   const sharedVersion = ownerIndexShardContract.shape.sharedVersion.parse(
-    installedShared.success ? (installedShared.data.version ?? '') : '',
+    indexCacheSharedVersionBroker({ rootDir }),
   );
 
   const walked = workspacePackageListBroker({ rootDir })
     .map((workspacePackage) => ({
       workspacePackage,
-      files: contractFilesWalkLayerBroker({ rootDir, dirPath: workspacePackage.dir }),
+      files: sourceFileWalkBroker({
+        rootDir,
+        dirPath: workspacePackage.dir,
+        skipFolderNames: ownerIndexStatics.walk.skipFolderNames,
+        isWantedFile: isContractSourceFileGuard,
+      }),
     }))
     .filter(({ files }) => files.length > 0);
 
@@ -78,7 +69,11 @@ export const ownerIndexAssembleBroker = ({ rootDir }: { rootDir: string }): Owne
 
   const reads = shards.flatMap(({ ownerPackage, filePaths }) =>
     packageShardReadLayerBroker({
-      shardPath: `${cacheDir}/${ownerPackage.name.split('/').join('__')}${ownerIndexStatics.cache.shardSuffix}`,
+      shardPath: indexCacheShardPathTransformer({
+        rootDir,
+        folderName: ownerIndexStatics.cache.folderName,
+        packageName: ownerPackage.name,
+      }),
       ownerPackage,
       filePaths,
       sharedVersion,

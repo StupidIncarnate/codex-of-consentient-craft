@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Removes the owner index cache folder's temp files older than
- * ownerIndexStatics.cache.staleTempMs — what a writer killed between its write and its rename leaves
+ * PURPOSE: Removes a cache folder's temp files older than
+ * indexCacheStatics.staleTempMs — what a writer killed between its write and its rename leaves
  * behind. A younger temp file may belong to a writer still running, so it stays. Best-effort: a
  * file another process already removed is skipped, and any other failure is one stderr line, never
  * a thrown error, since the cache only ever saves time.
@@ -13,15 +13,13 @@ import { isFsError, readdirEntriesSync, statSync, unlinkSync } from '#gateway/no
 import { now } from '#gateway/node/Date';
 import { stderr } from '#gateway/node/process';
 
-import { ownerIndexStatics } from '../../../statics/owner-index/owner-index-statics';
+import { indexCacheStatics } from '../../../statics/index-cache/index-cache-statics';
 
 export const staleTempFilesRemoveLayerBroker = ({ cacheDir }: { cacheDir: string }): void => {
-  const cutoffMs = now() - ownerIndexStatics.cache.staleTempMs;
+  const cutoffMs = now() - indexCacheStatics.staleTempMs;
   try {
     const tempPaths = readdirEntriesSync(cacheDir)
-      .filter(
-        (entry) => entry.kind === 'file' && entry.name.endsWith(ownerIndexStatics.cache.tempSuffix),
-      )
+      .filter((entry) => entry.kind === 'file' && entry.name.endsWith(indexCacheStatics.tempSuffix))
       .map((entry) => `${cacheDir}/${entry.name}`);
     for (const tempPath of tempPaths) {
       try {
@@ -31,12 +29,12 @@ export const staleTempFilesRemoveLayerBroker = ({ cacheDir }: { cacheDir: string
       } catch (error: unknown) {
         if (!isFsError({ error, code: 'ENOENT' })) {
           stderr.write(
-            `[owner-index] stale temp file not removed: ${tempPath}: ${String(error)}\n`,
+            `[index-cache] stale temp file not removed: ${tempPath}: ${String(error)}\n`,
           );
         }
       }
     }
   } catch (error: unknown) {
-    stderr.write(`[owner-index] stale temp files not listed: ${cacheDir}: ${String(error)}\n`);
+    stderr.write(`[index-cache] stale temp files not listed: ${cacheDir}: ${String(error)}\n`);
   }
 };

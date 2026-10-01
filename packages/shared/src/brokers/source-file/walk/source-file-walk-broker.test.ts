@@ -1,10 +1,12 @@
-import { contractFilesWalkLayerBroker } from './contract-files-walk-layer-broker';
-import { contractFilesWalkLayerBrokerProxy } from './contract-files-walk-layer-broker.proxy';
+import { isContractSourceFileGuard } from '../../../guards/is-contract-source-file/is-contract-source-file-guard';
+import { ownerIndexStatics } from '../../../statics/owner-index/owner-index-statics';
+import { sourceFileWalkBroker } from './source-file-walk-broker';
+import { sourceFileWalkBrokerProxy } from './source-file-walk-broker.proxy';
 
-describe('contractFilesWalkLayerBroker', () => {
+describe('sourceFileWalkBroker', () => {
   describe('valid input', () => {
     it('VALID: {contracts in nested folders} => lists a folder own files first, then its subfolders last-listed first', () => {
-      const proxy = contractFilesWalkLayerBrokerProxy();
+      const proxy = sourceFileWalkBrokerProxy();
       const pkg = '/repo/packages/alpha';
       proxy.setupWalkedFolder({ dirPath: pkg, folders: ['src'], files: ['package.json'] });
       proxy.setupWalkedFolder({ dirPath: `${pkg}/src`, folders: ['contracts'], files: [] });
@@ -24,7 +26,12 @@ describe('contractFilesWalkLayerBroker', () => {
         files: ['b-contract.ts', 'b-owner-layer-contract.ts'],
       });
 
-      const result = contractFilesWalkLayerBroker({ rootDir: '/repo', dirPath: pkg });
+      const result = sourceFileWalkBroker({
+        rootDir: '/repo',
+        dirPath: pkg,
+        skipFolderNames: ownerIndexStatics.walk.skipFolderNames,
+        isWantedFile: isContractSourceFileGuard,
+      });
 
       expect(result).toStrictEqual([
         `${pkg}/src/contracts/b/b-contract.ts`,
@@ -34,7 +41,7 @@ describe('contractFilesWalkLayerBroker', () => {
     });
 
     it('VALID: {node_modules, dist and test folders} => never lists them', () => {
-      const proxy = contractFilesWalkLayerBrokerProxy();
+      const proxy = sourceFileWalkBrokerProxy();
       const pkg = '/repo-skip/packages/alpha';
       proxy.setupWalkedFolder({
         dirPath: pkg,
@@ -43,7 +50,12 @@ describe('contractFilesWalkLayerBroker', () => {
       });
       proxy.setupWalkedFolder({ dirPath: `${pkg}/src`, folders: [], files: [] });
 
-      const result = contractFilesWalkLayerBroker({ rootDir: '/repo-skip', dirPath: pkg });
+      const result = sourceFileWalkBroker({
+        rootDir: '/repo-skip',
+        dirPath: pkg,
+        skipFolderNames: ownerIndexStatics.walk.skipFolderNames,
+        isWantedFile: isContractSourceFileGuard,
+      });
 
       expect({
         result,
@@ -56,12 +68,14 @@ describe('contractFilesWalkLayerBroker', () => {
 
   describe('things that vanish mid-walk', () => {
     it('EMPTY: {folder missing} => returns an empty list', () => {
-      const proxy = contractFilesWalkLayerBrokerProxy();
+      const proxy = sourceFileWalkBrokerProxy();
       proxy.setupMissingFolder({ dirPath: '/repo-gone/packages/alpha' });
 
-      const result = contractFilesWalkLayerBroker({
+      const result = sourceFileWalkBroker({
         rootDir: '/repo-gone',
         dirPath: '/repo-gone/packages/alpha',
+        skipFolderNames: ownerIndexStatics.walk.skipFolderNames,
+        isWantedFile: isContractSourceFileGuard,
       });
 
       expect(result).toStrictEqual([]);

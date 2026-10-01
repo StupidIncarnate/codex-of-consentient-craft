@@ -1,14 +1,6 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { ContractUsesBindingStub } from '../../contracts/contract-uses-binding/contract-uses-binding.stub';
 import { contractUsesScanLayerTransformer } from './contract-uses-scan-layer-transformer';
-
-const targetFile = '/repo/packages/a/src/thing/thing-contract.ts';
-const thingBinding = ContractUsesBindingStub({
-  localName: 'thingContract',
-  targetFile,
-  isTypeOnly: false,
-});
 
 describe('contractUsesScanLayerTransformer', () => {
   describe('parse calls', () => {
@@ -22,14 +14,14 @@ describe('contractUsesScanLayerTransformer', () => {
           true,
         );
 
-        const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+        const result = contractUsesScanLayerTransformer({
+          sourceFile,
+          candidateNames: ['thingContract'],
+        });
 
         expect(result).toStrictEqual({
-          parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 2 } }],
-          wholeParseSites: [
-            { targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 2 } },
-          ],
-          valueTargets: [targetFile],
+          parseCalls: [{ line: 2, parsedNames: ['thingContract'], wholeNames: ['thingContract'] }],
+          valueNames: ['thingContract'],
         });
       },
     );
@@ -42,12 +34,14 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
       expect(result).toStrictEqual({
-        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        wholeParseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        valueTargets: [targetFile],
+        parseCalls: [{ line: 1, parsedNames: ['thingContract'], wholeNames: ['thingContract'] }],
+        valueNames: ['thingContract'],
       });
     });
 
@@ -59,12 +53,14 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
       expect(result).toStrictEqual({
-        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        wholeParseSites: [],
-        valueTargets: [targetFile],
+        parseCalls: [{ line: 1, parsedNames: ['thingContract'], wholeNames: [] }],
+        valueNames: ['thingContract'],
       });
     });
 
@@ -76,13 +72,12 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
-
-      expect(result).toStrictEqual({
-        parseSites: [],
-        wholeParseSites: [],
-        valueTargets: [targetFile],
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
       });
+
+      expect(result).toStrictEqual({ parseCalls: [], valueNames: ['thingContract'] });
     });
   });
 
@@ -95,12 +90,14 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
       expect(result).toStrictEqual({
-        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        wholeParseSites: [],
-        valueTargets: [targetFile],
+        parseCalls: [{ line: 1, parsedNames: ['thingContract'], wholeNames: [] }],
+        valueNames: ['thingContract'],
       });
     });
 
@@ -112,12 +109,14 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
       expect(result).toStrictEqual({
-        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        wholeParseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        valueTargets: [targetFile],
+        parseCalls: [{ line: 1, parsedNames: ['thingContract'], wholeNames: ['thingContract'] }],
+        valueNames: ['thingContract'],
       });
     });
 
@@ -129,12 +128,14 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
       expect(result).toStrictEqual({
-        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        wholeParseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
-        valueTargets: [targetFile],
+        parseCalls: [{ line: 1, parsedNames: ['thingContract'], wholeNames: ['thingContract'] }],
+        valueNames: ['thingContract'],
       });
     });
   });
@@ -148,13 +149,12 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
-
-      expect(result).toStrictEqual({
-        parseSites: [],
-        wholeParseSites: [],
-        valueTargets: [targetFile],
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
       });
+
+      expect(result).toStrictEqual({ parseCalls: [], valueNames: ['thingContract'] });
     });
 
     it('VALID: {a property named like the binding} => is not a use', () => {
@@ -165,9 +165,12 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
-      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseCalls: [], valueNames: [] });
     });
 
     it('VALID: {typeof thingContract in a type position} => is not a use', () => {
@@ -178,9 +181,12 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
-      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseCalls: [], valueNames: [] });
     });
 
     it('VALID: {the import declaration itself} => is not a use', () => {
@@ -191,14 +197,17 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+      const result = contractUsesScanLayerTransformer({
+        sourceFile,
+        candidateNames: ['thingContract'],
+      });
 
-      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseCalls: [], valueNames: [] });
     });
   });
 
-  describe('bindings', () => {
-    it('EMPTY: {no bindings} => returns nothing', () => {
+  describe('candidates', () => {
+    it('EMPTY: {no candidate names} => returns nothing', () => {
       const sourceFile = ts.createSourceFile(
         '/repo/packages/a/src/x.ts',
         'thingContract.parse(value);',
@@ -206,25 +215,30 @@ describe('contractUsesScanLayerTransformer', () => {
         true,
       );
 
-      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [] });
+      const result = contractUsesScanLayerTransformer({ sourceFile, candidateNames: [] });
 
-      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseCalls: [], valueNames: [] });
     });
 
-    it('VALID: {type-only binding} => is ignored', () => {
+    it('VALID: {two candidates in one parse, one through a field} => records both, only one whole', () => {
       const sourceFile = ts.createSourceFile(
         '/repo/packages/a/src/x.ts',
-        'thingContract.parse(value);',
+        'z.union([bContract.shape.id, aContract]).parse(value);',
         ts.ScriptTarget.Latest,
         true,
       );
 
       const result = contractUsesScanLayerTransformer({
         sourceFile,
-        bindings: [ContractUsesBindingStub({ targetFile, isTypeOnly: true })],
+        candidateNames: ['aContract', 'bContract'],
       });
 
-      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({
+        parseCalls: [
+          { line: 1, parsedNames: ['aContract', 'bContract'], wholeNames: ['aContract'] },
+        ],
+        valueNames: ['aContract', 'bContract'],
+      });
     });
   });
 });

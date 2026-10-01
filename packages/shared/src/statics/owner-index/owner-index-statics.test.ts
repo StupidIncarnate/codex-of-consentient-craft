@@ -1,7 +1,7 @@
 import { ownerIndexStatics } from './owner-index-statics';
 
 describe('ownerIndexStatics', () => {
-  it('VALID: {ownerIndexStatics} => holds the object roots, layer suffix, skipped folders and cache location', () => {
+  it('VALID: {ownerIndexStatics} => holds the object roots, layer suffix, skipped folders and cache folder', () => {
     expect(ownerIndexStatics).toStrictEqual({
       objectRootNames: ['object', 'strictObject', 'looseObject'],
       layerContractSuffix: '-layer-contract.ts',
@@ -16,14 +16,7 @@ describe('ownerIndexStatics', () => {
           'test-fixtures',
         ],
       },
-      cache: {
-        folderNames: ['.cache', 'dungeonmaster', 'owner-index'],
-        shardSuffix: '.json',
-        tempSuffix: '.tmp',
-        staleTempMs: 3_600_000,
-        schemaVersion: 2,
-        sharedPackageFolders: ['@dungeonmaster', 'shared'],
-      },
+      cache: { folderName: 'owner-index', schemaVersion: 2 },
     });
   });
 });

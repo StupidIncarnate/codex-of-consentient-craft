@@ -55,7 +55,7 @@ describe('staleTempFilesRemoveLayerBroker', () => {
         stderr: proxy.stderrText(),
       }).toStrictEqual({
         removedB: [[`${cacheDir}/b.json.2-0.tmp`]],
-        stderr: `[owner-index] stale temp file not removed: ${cacheDir}/a.json.1-0.tmp: Error: EACCES: unlink '${cacheDir}/a.json.1-0.tmp'\n`,
+        stderr: `[index-cache] stale temp file not removed: ${cacheDir}/a.json.1-0.tmp: Error: EACCES: unlink '${cacheDir}/a.json.1-0.tmp'\n`,
       });
     });
 
@@ -77,7 +77,7 @@ describe('staleTempFilesRemoveLayerBroker', () => {
       staleTempFilesRemoveLayerBroker({ cacheDir });
 
       expect(proxy.stderrText()).toBe(
-        `[owner-index] stale temp files not listed: ${cacheDir}: Error: EACCES: scandir '${cacheDir}'\n`,
+        `[index-cache] stale temp files not listed: ${cacheDir}: Error: EACCES: scandir '${cacheDir}'\n`,
       );
     });
   });

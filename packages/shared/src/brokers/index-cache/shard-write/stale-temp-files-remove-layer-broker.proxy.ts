@@ -7,7 +7,7 @@ import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import { ownerIndexStatics } from '../../../statics/owner-index/owner-index-statics';
+import { indexCacheStatics } from '../../../statics/index-cache/index-cache-statics';
 
 export const staleTempFilesRemoveLayerBrokerProxy = (): {
   setupNow: ({ ms }: { ms: number }) => void;
@@ -30,11 +30,11 @@ export const staleTempFilesRemoveLayerBrokerProxy = (): {
   const clockProxy = nowProxy();
   const errorOutput = stderrProxy();
 
-  // Every repo root's cache folder starts with no temp files, and the clock reads the epoch, so a
+  // Every repo root's cache folders start with no temp files, and the clock reads the epoch, so a
   // test that is not about cleanup needs no staging for it. An exact stage outranks both.
-  const cacheFolder = `/${[locationsStatics.repoRoot.nodeModules, ...ownerIndexStatics.cache.folderNames].join('/')}`;
+  const cacheRoot = `/${[locationsStatics.repoRoot.nodeModules, ...indexCacheStatics.rootFolderNames].join('/')}/`;
   readdirProxy.returnsMatchingPath({
-    path: (value: unknown): boolean => typeof value === 'string' && value.endsWith(cacheFolder),
+    path: (value: unknown): boolean => typeof value === 'string' && value.includes(cacheRoot),
     entries: [],
   });
   clockProxy.setupNow({ ms: 0 });

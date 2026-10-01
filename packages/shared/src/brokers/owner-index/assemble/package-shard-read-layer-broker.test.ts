@@ -375,7 +375,7 @@ describe('packageShardReadLayerBroker', () => {
 
       expect({ result, stderr: proxy.stderrText() }).toStrictEqual({
         result: [{ filePath: aFile, contentHash: A_HASH, ...aRead }],
-        stderr: `[owner-index] cache shard not written: ${shardPath}: Error: EROFS: open '${shardPath}'\n`,
+        stderr: `[index-cache] cache shard not written: ${shardPath}: Error: EROFS: open '${shardPath}'\n`,
       });
     });
   });

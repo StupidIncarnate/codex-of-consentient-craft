@@ -7,9 +7,9 @@
  * so they take none either. It shares one matcher with that rule so
  * the two can never disagree about a key. Reach for this over `require-object-contract-brands`,
  * which grades only the file it lints and so cannot know `questId` is a reuse. Takes the owner index
- * once per process from the per-package cache shards ownerIndexBuildBroker keeps on disk; a layer
- * contract also needs the contract index, which parses every workspace package once per process. So
- * it runs in ward's lint pass only and is registered `off` until the brand migration is done.
+ * and, for a layer contract, the contract index once per process, each from the per-package cache
+ * shards its build broker keeps on disk, which still walks every workspace package; so it runs in
+ * ward's lint pass only and is registered `off` until the brand migration is done.
  *
  * USAGE:
  * const rule = ruleRequireObjectContractBrandsIndexedBroker();

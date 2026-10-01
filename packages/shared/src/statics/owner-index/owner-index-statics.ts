@@ -2,11 +2,9 @@
  * PURPOSE: The owner index's fixed vocabulary, stated once so the broker, the chain reader and any
  * test that stages a repo agree: the zod call names that open an object contract, the suffix that
  * marks a layer contract, the folders whose files can never be production contracts (so a walk
- * skips them whole), and where the per-package cache shards live: under which schema version, beside
- * which installed @dungeonmaster/shared, and how old a leftover temp file must be before a writer
- * removes it. Bump `cache.schemaVersion` whenever a change alters what a per-file read holds, so
- * every shard written before it reads as a miss; an upgrade of the installed shared package does the
- * same on its own.
+ * skips them whole), and the folder and schema version of its cache shards under
+ * indexCacheStatics' root. Bump `cache.schemaVersion` whenever a change alters what a per-file read
+ * holds, so every shard written before it reads as a miss.
  *
  * USAGE:
  * ownerIndexStatics.objectRootNames;
@@ -29,11 +27,7 @@ export const ownerIndexStatics = {
     ],
   },
   cache: {
-    folderNames: ['.cache', 'dungeonmaster', 'owner-index'],
-    shardSuffix: '.json',
-    tempSuffix: '.tmp',
-    staleTempMs: 3_600_000,
+    folderName: 'owner-index',
     schemaVersion: 2,
-    sharedPackageFolders: ['@dungeonmaster', 'shared'],
   },
 } as const;

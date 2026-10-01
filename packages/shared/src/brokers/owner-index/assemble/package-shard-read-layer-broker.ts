@@ -14,18 +14,16 @@
  * packageShardReadLayerBroker({ shardPath, ownerPackage, filePaths, sharedVersion: '0.1.0' });
  * // Returns OwnerIndexShard['files'] — one per file of `filePaths` still on disk, in that order
  */
-import { createHash } from '#gateway/node/crypto';
-import { readFileSyncIfExists, writeFileAtomicSync } from '#gateway/node/fs';
-import { dirname } from '#gateway/node/path';
-import { stderr } from '#gateway/node/process';
+import { readFileSyncIfExists } from '#gateway/node/fs';
 
 import type { OwnerIndexPackage } from '../../../contracts/owner-index-package/owner-index-package-contract';
 import { ownerIndexShardContract } from '../../../contracts/owner-index-shard/owner-index-shard-contract';
 import type { OwnerIndexShard } from '../../../contracts/owner-index-shard/owner-index-shard-contract';
 import { ownerIndexStatics } from '../../../statics/owner-index/owner-index-statics';
 import { ownerIndexFileReadTransformer } from '../../../transformers/owner-index-file-read/owner-index-file-read-transformer';
-import { safeJsonParseTransformer } from '../../../transformers/safe-json-parse/safe-json-parse-transformer';
-import { staleTempFilesRemoveLayerBroker } from './stale-temp-files-remove-layer-broker';
+import { contentHashTransformer } from '../../../transformers/content-hash/content-hash-transformer';
+import { indexCacheShardReadBroker } from '../../index-cache/shard-read/index-cache-shard-read-broker';
+import { indexCacheShardWriteBroker } from '../../index-cache/shard-write/index-cache-shard-write-broker';
 
 export const packageShardReadLayerBroker = ({
   shardPath,
@@ -39,17 +37,20 @@ export const packageShardReadLayerBroker = ({
   sharedVersion: OwnerIndexShard['sharedVersion'];
 }): OwnerIndexShard['files'] => {
   const { name: packageName, dir: packageDir } = ownerPackage;
-  const shardText = readFileSyncIfExists(shardPath);
-  const shardJson = shardText === null ? null : safeJsonParseTransformer({ value: shardText });
-  const shardParse =
-    shardJson?.ok === true ? ownerIndexShardContract.safeParse(shardJson.value) : null;
+  const shard = indexCacheShardReadBroker({
+    shardPath,
+    parse: (value: unknown) => {
+      const parsed = ownerIndexShardContract.safeParse(value);
+      return parsed.success ? parsed.data : null;
+    },
+  });
   const cached =
-    shardParse?.success === true &&
-    shardParse.data.schemaVersion === ownerIndexStatics.cache.schemaVersion &&
-    shardParse.data.sharedVersion === sharedVersion &&
-    shardParse.data.packageName === packageName &&
-    shardParse.data.packageDir === packageDir
-      ? shardParse.data
+    shard !== null &&
+    shard.schemaVersion === ownerIndexStatics.cache.schemaVersion &&
+    shard.sharedVersion === sharedVersion &&
+    shard.packageName === packageName &&
+    shard.packageDir === packageDir
+      ? shard
       : null;
 
   const cachedByPath = new Map<string, OwnerIndexShard['files'][number]>(
@@ -61,7 +62,7 @@ export const packageShardReadLayerBroker = ({
     if (text === null) {
       return [];
     }
-    const contentHash = createHash('sha256').update(text).digest('hex');
+    const contentHash = contentHashTransformer({ text });
     const hit = cachedByPath.get(filePath);
     if (hit !== undefined && hit.contentHash === contentHash) {
       return [{ file: hit, isReparsed: false }];
@@ -90,19 +91,14 @@ export const packageShardReadLayerBroker = ({
     cached.files.length !== entries.length ||
     entries.some(({ isReparsed }) => isReparsed)
   ) {
-    const shard = ownerIndexShardContract.parse({
+    const nextShard = ownerIndexShardContract.parse({
       schemaVersion: ownerIndexStatics.cache.schemaVersion,
       sharedVersion,
       packageName,
       packageDir,
       files: entries.map(({ file }) => file),
     });
-    try {
-      writeFileAtomicSync(shardPath, JSON.stringify(shard));
-    } catch (error: unknown) {
-      stderr.write(`[owner-index] cache shard not written: ${shardPath}: ${String(error)}\n`);
-    }
-    staleTempFilesRemoveLayerBroker({ cacheDir: dirname(shardPath) });
+    indexCacheShardWriteBroker({ shardPath, shard: nextShard });
   }
 
   return entries.map(({ file }) => file);

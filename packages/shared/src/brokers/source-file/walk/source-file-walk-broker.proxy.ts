@@ -2,7 +2,7 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 
-export const contractFilesWalkLayerBrokerProxy = (): {
+export const sourceFileWalkBrokerProxy = (): {
   setupWalkedFolder: ({
     dirPath,
     folders,
