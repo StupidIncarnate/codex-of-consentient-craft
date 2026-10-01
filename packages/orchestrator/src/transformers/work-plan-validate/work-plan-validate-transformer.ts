@@ -34,6 +34,8 @@ import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 import { workPlanValidationCheckStatics } from '../../statics/work-plan-validation-check/work-plan-validation-check-statics';
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 import { stepInScopeUnitsTransformer } from '../step-in-scope-units/step-in-scope-units-transformer';
+import { workPlanFileRepoRelativeTransformer } from '../work-plan-file-repo-relative/work-plan-file-repo-relative-transformer';
+import { workPlanFileRootsTransformer } from '../work-plan-file-roots/work-plan-file-roots-transformer';
 import { workPlanQuestUnitIdsTransformer } from '../work-plan-quest-unit-ids/work-plan-quest-unit-ids-transformer';
 
 const OPERATIONS_REF_PREFIX = 'operations/';
@@ -244,20 +246,43 @@ export const workPlanValidateTransformer = ({
     .filter((entry) => parsedPlan.packageNames.some((name) => String(name) === String(entry.name)))
     .map((entry) => String(entry.location).replace(/^\.\//u, '').replace(/\/$/u, ''));
 
+  // A path is measured repo-relative: absolute paths are accepted under the quest's worktree or the
+  // repo root it was carved from, and a bare, `./` or absolute spelling of the same file agree.
+  const acceptedRoots = workPlanFileRootsTransformer({ worktreePath: quest.worktreePath });
   if (parsedPlan.family === 'codeweaver') {
     allPieces.forEach(({ piece }) => {
       const payload = workPlanPayloadCodeweaverContract.parse(piece.payload);
-      payload.files.forEach((file) => {
-        const normalizedFilePath = String(file.path).replace(/^\.\//u, '');
+      payload.files.forEach((file, fileIndex) => {
+        const field = `payload.files[${fileIndex}].path '${String(file.path)}'`;
+        const repoRelativePath = workPlanFileRepoRelativeTransformer({
+          filePath: String(file.path),
+          roots: acceptedRoots,
+        });
+
+        if (repoRelativePath === undefined) {
+          failures.push(
+            workPlanValidationFailureContract.parse({
+              pieceId: piece.id,
+              check: numbers.fileOutsideOwnedPackage,
+              message: `${piece.id}: ${field} is absolute but sits under neither accepted root (${
+                acceptedRoots.length > 0
+                  ? acceptedRoots.join(', ')
+                  : 'none — this quest has no worktree yet'
+              }) — send a repo-relative path such as 'packages/<package>/src/x.ts'`,
+            }),
+          );
+          return;
+        }
+
         const sitsUnderOwnedPackage = ownedPackageLocations.some((location) =>
-          normalizedFilePath.startsWith(`${location}/`),
+          repoRelativePath.startsWith(`${location}/`),
         );
         if (!sitsUnderOwnedPackage) {
           failures.push(
             workPlanValidationFailureContract.parse({
               pieceId: piece.id,
               check: numbers.fileOutsideOwnedPackage,
-              message: `${piece.id}: payload.files[].path '${String(file.path)}' is outside the packages this operation item owns (${parsedPlan.packageNames.map((name) => String(name)).join(', ')})`,
+              message: `${piece.id}: ${field} is outside the packages this operation item owns (${parsedPlan.packageNames.map((name) => String(name)).join(', ')})`,
             }),
           );
         }
@@ -370,7 +395,8 @@ export const workPlanValidateTransformer = ({
     });
   }
 
-  // Check 10: no two pieces in one batch name the same file path.
+  // Check 10: no two pieces in one batch name the same file path. Paths compare repo-relative, so
+  // a bare, `./` and absolute spelling of one file are the same claim.
   const pieceFilePaths = allPieces.map(({ piece, batchIndex }) => {
     if (parsedPlan.family === 'codeweaver') {
       return {
@@ -393,7 +419,13 @@ export const workPlanValidateTransformer = ({
   });
 
   const pathClaims = pieceFilePaths.flatMap(({ piece, batchIndex, paths }) =>
-    paths.map((path) => ({ piece, batchIndex, path: String(path) })),
+    paths.map((path) => ({
+      piece,
+      batchIndex,
+      path:
+        workPlanFileRepoRelativeTransformer({ filePath: String(path), roots: acceptedRoots }) ??
+        String(path),
+    })),
   );
   const uniqueBatchPathKeys = [
     ...new Set(pathClaims.map((claim) => `${claim.batchIndex}\u0000${claim.path}`)),

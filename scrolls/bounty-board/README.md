@@ -25,7 +25,7 @@ links back to it.
 - **Longer context stays where it was written.** A file links to the original doc's section when that
   doc holds more than the file needs to repeat.
 
-Next free numbers: **DEF-269** and **CHG-5**.
+Next free numbers: **DEF-270** and **CHG-5**.
 
 ## Status values
 
@@ -140,6 +140,7 @@ Sorted by package, then ID.
 
 | ID                                                                                         | Package           | Kind   | Bounty                                                                                                             | Status         |
 |--------------------------------------------------------------------------------------------|-------------------|--------|--------------------------------------------------------------------------------------------------------------------|----------------|
+| [DEF-269](eslint-plugin/DEF-269-unchecked-z-custom-passes-brand-rule.md)                | eslint-plugin     | defect | an unchecked `z.custom<unknown>()` passes the rule that bans `z.unknown()`                                       | ready          |
 | [DEF-233](cli/DEF-233-cli-install-test-slow-under-load.md)                                 | cli               | defect | ward slow-test gate flags the cli install integration test under full-suite load                                   | suspected      |
 | [DEF-234](cli/DEF-234-init-looks-for-packages-in-wrong-place-in-consumer.md)               | cli               | defect | dungeonmaster init in a consumer may look for dungeonmaster's packages in the wrong directory                      | suspected      |
 | [DEF-231](config/DEF-231-config-knobs-never-read.md)                                       | config            | defect | three config knobs are defined and validated but nothing reads them                                                | ready          |

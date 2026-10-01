@@ -10,7 +10,7 @@
  * rules import ONE copy of this walk instead of each keeping its own.
  *
  * USAGE:
- * workspaceRootFindBroker({ startDir: __dirname });
+ * workspaceRootFindBroker({ startDir: '/repo/packages/hooks/src/brokers/x' }); // the linted file's directory
  * // Returns { rootDir: '/repo', rootPackageJsonName: '@dungeonmaster/hooks', packageNames: [...] },
  * // or undefined when no ancestor package.json carries a `workspaces` field
  */

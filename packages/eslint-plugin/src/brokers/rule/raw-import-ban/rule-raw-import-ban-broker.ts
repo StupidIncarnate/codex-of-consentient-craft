@@ -6,10 +6,9 @@
  * with the alias spelling as the fix, so two callers cannot reach the same gateway two ways. Every
  * other `@<scope>/...` workspace import is never flagged. Value imports and `import type` are both flagged — the
  * gateway is the one path to an outside package, whatever carries the specifier. `scope` defaults
- * to the value repoScopeResolveBroker reads from the repo root package.json at module load,
- * and can be overridden per-rule-instance via the `scope` option — the override exists so a
- * RuleTester case can prove the rule works for a consumer repo scoped differently than this one,
- * without touching the filesystem. Dungeonmaster's own published packages (`@dungeonmaster/shared`,
+ * to the scope repoScopeResolveBroker reads from the npm-workspaces root above the linted file,
+ * and can be overridden per-rule-instance via the `scope` option, so a RuleTester case can name a
+ * scope without touching the filesystem. Dungeonmaster's own published packages (`@dungeonmaster/shared`,
  * `@dungeonmaster/testing`, ...) are never flagged in any repo, its four gateway packages
  * excepted — see isDungeonmasterToolkitImportGuard for why. A side-effect import of a stylesheet
  * (`import '@mantine/core/styles.css';`) is never flagged: the bundler consumes it, and no gateway
@@ -29,15 +28,14 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
 import { stylesheetExtensionStatics } from '../../../statics/stylesheet-extension/stylesheet-extension-statics';
 import { isDungeonmasterToolkitImportGuard } from '../../../guards/is-dungeonmaster-toolkit-import/is-dungeonmaster-toolkit-import-guard';
+import { dirname } from '#gateway/node/path';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
-// Resolved lazily, on the first file linted with no `scope` option, and cached from then on.
-// Every RuleTester case passes `scope` explicitly, so this real filesystem walk never runs
-// during this rule's own unit test — only a real ESLint run (or a consumer with no override)
-// ever exercises it. Held in an object, never a bare `let … = undefined`, so ESLint's own
-// `no-undef-init` autofix (which strips an explicit `= undefined`) and `init-declarations`
-// (which demands one) stop fighting each other over this declaration.
-const defaultScopeCache: { value?: string } = {};
+// Keyed by the linted file's directory. The scope comes from the npm-workspaces root above the
+// FILE being linted, never above this module: through a `file:` link this module sits inside
+// dungeonmaster's checkout, so a walk from here would read dungeonmaster's scope for a consumer's
+// files. A `scope` option skips the walk.
+const defaultScopeCache = new Map<string, string>();
 
 export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
   'rawImport' | 'scopedGatewayImport'
@@ -61,7 +59,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
           scope: {
             type: 'string',
             description:
-              'Override the workspace `@scope` used to allow workspace imports and build gateway paths. Defaults to the scope read from the repo root package.json at rule module load.',
+              'Override the workspace `@scope` used to allow workspace imports and build gateway paths. Defaults to the scope of the npm-workspaces root above the linted file.',
           },
         },
         additionalProperties: false,
@@ -90,13 +88,15 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         return optionScope;
       }
 
-      if (defaultScopeCache.value === undefined) {
-        defaultScopeCache.value = repoScopeResolveBroker({
-          startDir: __dirname,
-        });
+      const fileDir = dirname(filename);
+      const cachedScope = defaultScopeCache.get(fileDir);
+      if (cachedScope !== undefined) {
+        return cachedScope;
       }
 
-      return defaultScopeCache.value;
+      const resolvedScope = repoScopeResolveBroker({ startDir: fileDir });
+      defaultScopeCache.set(fileDir, resolvedScope);
+      return resolvedScope;
     })();
 
     return {

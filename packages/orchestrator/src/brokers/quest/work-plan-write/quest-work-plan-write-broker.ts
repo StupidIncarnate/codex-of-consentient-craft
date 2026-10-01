@@ -10,6 +10,9 @@
  * await questWorkPlanWriteBroker({ questId, workItemId, plan });
  * // Returns { operationItemId } once the plan has passed all nineteen checks and is on disk
  *
+ * The server's clock stamps `writtenBy`, `writtenAt` and every plannerMark's `at` before validation —
+ * the caller sends none of them, for the reason `questInputServerTimestampsTransformer` gives.
+ *
  * Takes `questWithModifyLockBroker` even though the write itself lands outside `quest.json`: the
  * validation reads `quest.workItems`/`quest.operations` live, and queuing behind the same lock every
  * other `quest-work` payload uses is what keeps that read from racing a concurrent mutation.
@@ -55,10 +58,12 @@ export const questWorkPlanWriteBroker = async ({
           );
         }
 
+        const now = new Date().toISOString();
         const stamped = {
           ...plan,
+          plannerMarks: plan.plannerMarks.map((mark) => ({ ...mark, at: now })),
           writtenBy: workItemId,
-          writtenAt: new Date().toISOString(),
+          writtenAt: now,
         };
 
         const failures = workPlanValidateTransformer({ quest, workItem, plan: stamped });

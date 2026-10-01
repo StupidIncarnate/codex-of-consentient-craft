@@ -136,15 +136,24 @@ describe('workPlanPayloadFlowriderContract', () => {
     });
   });
 
+  describe('specPath forms', () => {
+    it('VALID: {specPath bare repo-relative} => parses unchanged', () => {
+      expect(
+        WorkPlanPayloadFlowriderStub({ specPath: 'packages/web/src/flows/send/send-batch.e2e.ts' })
+          .specPath,
+      ).toBe('packages/web/src/flows/send/send-batch.e2e.ts');
+    });
+  });
+
   describe('invalid payloads', () => {
     it('EMPTY: {empty object} => refused, since specPath, walk and units carry no defaults', () => {
       expect(workPlanPayloadFlowriderContract.safeParse({}).success).toBe(false);
     });
 
-    it('INVALID: {specPath with no ./ prefix} => refused', () => {
+    it('INVALID: {specPath with a .. segment} => refused', () => {
       expect(() =>
-        WorkPlanPayloadFlowriderStub({ specPath: 'packages/web/src/flows/send/send-batch.e2e.ts' }),
-      ).toThrow(/Path must be absolute \(start with \/ or C:/u);
+        WorkPlanPayloadFlowriderStub({ specPath: '../web/src/flows/send/send-batch.e2e.ts' }),
+      ).toThrow(/with no \.\. segment/u);
     });
   });
 });

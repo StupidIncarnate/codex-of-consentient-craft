@@ -341,7 +341,8 @@ says how the pieces INSIDE one batch run against each other: \`parallel\` where 
 
 **\`plannerMarks\` takes \`cant-meet\` and nothing else**, on a unit no piece of yours claims, and every
 entry needs a \`toSettle\` naming the action that WOULD settle it, as an instruction rather than a
-question. It is for a unit nobody in this role could settle at this layer — never for one you simply
+question. An entry is \`{ unitId, mark: 'cant-meet', evidence, toSettle }\` — send no \`at\`: the
+server stamps it, and a payload carrying one is refused. It is for a unit nobody in this role could settle at this layer — never for one you simply
 did not cut a piece for.
 
 ### 9. Read the plan back
@@ -433,12 +434,16 @@ came out the way you pictured it.
 ### \`files\`
 
 \`\`\`
-{ path: '<absolute or repo-relative path>',
+{ path: 'packages/<package>/src/<file>',
   change: 'new' | 'edit',
   in:  '<the argument shape, or the props>',
   out: '<the return type, branded>',
   proves: ['<unit id>', …] }
 \`\`\`
+
+**\`path\` is repo-relative** — \`packages/<package>/src/x.ts\`, with or without a leading \`./\` — and sits
+under a package your plan names in \`packageNames\`. An absolute path is accepted only under this
+quest's worktree or the repo root, and a \`..\` segment is always refused.
 
 **Both sides, every file.** One side is not a shape: a line naming a contract's fields says nothing
 about what parses into it, and a line naming a return says nothing about the argument. The pair is
