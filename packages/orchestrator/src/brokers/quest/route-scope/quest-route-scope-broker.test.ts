@@ -295,6 +295,78 @@ describe('questRouteScopeBroker', () => {
         mintedUnits: [[]],
       });
     });
+
+    it('VALID: {red family ward, then repair completes} => routes to repair, then returns to ward without no-minter block', async () => {
+      const proxy = questRouteScopeBrokerProxy();
+      proxy.setupPassthrough();
+      proxy.setupWorktreeHead({ sha: 'fedcba9876543210fedcba9876543210fedcba98' });
+
+      // Step 1: ward failed with unmet
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE],
+        flows: [SEND_FLOW],
+        operations: [CODEWEAVER_SCOPE],
+        worktreePath: WORKTREE_PATH,
+        workItems: [
+          WorkItemStub({
+            id: WARD_ITEM_ID,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
+          }),
+        ],
+      });
+
+      proxy.setupQuest({ quest });
+
+      const wardRouteResult = await questRouteScopeBroker({ questId: quest.id });
+
+      const mintedRepair = proxy.getPersistedQuest().workItems.slice(quest.workItems.length);
+
+      expect({
+        wardRouteResult,
+        mintedSteps: mintedRepair.map((item) => String(item.step)),
+        mintedBy: mintedRepair.map((item) => String(item.mintedBy)),
+      }).toStrictEqual({
+        wardRouteResult: { routed: true, blocked: false },
+        mintedSteps: ['repair'],
+        mintedBy: [WARD_ITEM_ID],
+      });
+
+      // Step 2: repair completed
+      const [repairItem] = mintedRepair;
+
+      const questWithCompleteRepair = QuestStub({
+        ...quest,
+        workItems: [
+          ...quest.workItems,
+          WorkItemStub({
+            ...repairItem,
+            status: 'complete',
+          }),
+        ],
+      });
+
+      proxy.setupQuest({ quest: questWithCompleteRepair });
+
+      const repairRouteResult = await questRouteScopeBroker({ questId: quest.id });
+
+      const newlyMinted = proxy
+        .getPersistedQuest()
+        .workItems.slice(questWithCompleteRepair.workItems.length);
+
+      expect({
+        repairRouteResult,
+        mintedSteps: newlyMinted.map((item) => String(item.step)),
+        mintedBy: newlyMinted.map((item) => item.mintedBy),
+      }).toStrictEqual({
+        repairRouteResult: { routed: true, blocked: false },
+        mintedSteps: ['ward'],
+        mintedBy: [undefined],
+      });
+    });
   });
 
   describe('the wall halt', () => {
