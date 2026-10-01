@@ -6,6 +6,7 @@ import { eslintIsPathIgnoredBrokerProxy } from '../../eslint/is-path-ignored/esl
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { dirname, join } from '#gateway/node/path';
 
 export const violationsCheckNewBrokerProxy = (): {
   setupViolationCheck: (params?: { hasViolations?: boolean; filePath?: string }) => void;
@@ -34,6 +35,12 @@ export const violationsCheckNewBrokerProxy = (): {
   // is what the broker filters down to the hook's rules.
   loadConfigProxy.returnsConfig({
     filePath: '/test/file.ts',
+    config: { rules: { 'no-console': 'warn' } },
+  });
+  // The plain source file the broker asks about beside it, to tell a deliberate per-file
+  // exemption from a rule that is off everywhere.
+  loadConfigProxy.returnsConfig({
+    filePath: '/test/dungeonmaster-pre-edit-reference.ts',
     config: { rules: { 'no-console': 'warn' } },
   });
 
@@ -65,6 +72,12 @@ export const violationsCheckNewBrokerProxy = (): {
       filePath = '/test/file.ts',
     }: { hasViolations?: boolean; filePath?: string } = {}): void => {
       stageLintIgnoredPaths();
+      // The config ESLint calculates for the edited file and for the plain file beside it.
+      loadConfigProxy.returnsConfig({ filePath, config: { rules: { 'no-console': 'warn' } } });
+      loadConfigProxy.returnsConfig({
+        filePath: join(dirname(filePath), 'dungeonmaster-pre-edit-reference.ts'),
+        config: { rules: { 'no-console': 'warn' } },
+      });
       // Setup content changes with actual content to avoid early returns in lint broker
       // For Edit tool: content contains 'old' which gets replaced with 'new' by the edit
       // This ensures old and new content are different. The filePath is the file the caller's

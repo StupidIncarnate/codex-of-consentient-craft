@@ -364,7 +364,7 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -446,8 +446,8 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
-        ['run', '--only', 'lint', '--', 'src/bar.test.ts'],
+        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/bar.test.ts'],
       ]);
     });
 
@@ -537,7 +537,7 @@ describe('multiPackageLayerBroker', () => {
         rootPath,
       });
 
-      expect(proxy.getAllSpawnedArgs()).toStrictEqual([['run', '--only', 'lint']]);
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([[proxy.wardEntry, 'run', '--only', 'lint']]);
     });
 
     it('VALID: {passthrough is bare package path with --onlyTests} => child is told the parent already scoped it', async () => {
@@ -596,7 +596,7 @@ describe('multiPackageLayerBroker', () => {
       // `--onlyTests` without a `-- <files>` scope the parser rejects. The marker says the parent
       // already narrowed the run to this one package.
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['run', '--only', 'unit', '--onlyTests', 'my test', '--parentScoped'],
+        [proxy.wardEntry, 'run', '--only', 'unit', '--onlyTests', 'my test', '--parentScoped'],
       ]);
     });
 
@@ -678,8 +678,8 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['run', '--only', 'lint'],
-        ['run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        [proxy.wardEntry, 'run', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -758,8 +758,8 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['run', '--only', 'lint'],
-        ['run', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--only', 'lint'],
       ]);
     });
   });
@@ -1252,6 +1252,65 @@ describe('multiPackageLayerBroker', () => {
         },
         platformDedupeProjectResult,
       ]);
+    });
+  });
+
+  describe('the child command', () => {
+    it('VALID: {parent started from a compiled entry script} => spawns each child as `<execPath> <that script> run ...`', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: '@dungeonmaster/ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [wardFolder],
+        subResultContent: JSON.stringify({
+          runId: '1739625600000-a38e',
+          timestamp: 1739625600000,
+          filters: {},
+          checks: [],
+        }),
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        ['/home/user/project/packages/ward/dist/bin/ward-entry.js', 'run', '--only', 'lint'],
+      ]);
+    });
+
+    it('EDGE: {parent not started from a compiled entry script} => falls back to the dungeonmaster-ward bin by name', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: '@dungeonmaster/ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.useBinFallback();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [wardFolder],
+        subResultContent: JSON.stringify({
+          runId: '1739625600000-a38e',
+          timestamp: 1739625600000,
+          filters: {},
+          checks: [],
+        }),
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([['run', '--only', 'lint']]);
     });
   });
 });

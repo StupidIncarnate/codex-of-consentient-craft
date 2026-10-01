@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Defines the base command arguments and binary name used when spawning a ward sub-process
+ * PURPOSE: Defines the base command arguments used when spawning a child ward, and the fallback binary
+ * name for a parent not started from a compiled entry script
  *
  * USAGE:
- * childProcessSpawnStreamAdapter({ command: resolvedBin, args: [...wardSpawnCommandStatics.baseArgs, '--only', 'lint'], cwd });
- * // Spawns '/path/to/dungeonmaster-ward run --only lint'
+ * stream({ command: execPath, args: [selfEntry, ...wardSpawnCommandStatics.baseArgs, '--only', 'lint'], cwd });
+ * // Spawns '/usr/bin/node /path/to/ward-entry.js run --only lint'
  */
 
 export const wardSpawnCommandStatics = {
   bin: 'dungeonmaster-ward',
+  // A parent started from a compiled entry script spawns its children as `<node> <that script>`.
+  entryScriptExtension: '.js',
   baseArgs: ['run'] as const,
   // PARENT-TO-CHILD ONLY, and deliberately absent from the flag list a user-facing error prints.
   // A child ward spawned by multiPackageLayerBroker is already narrowed to one package —
