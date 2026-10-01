@@ -4,12 +4,11 @@
  * npm-workspaces monorepo" constraint — and derives the `@scope` raw-import-ban, gateway-import-boundary
  * and bin-program-spawn-ban all build their gateway-path checks from. One ordinary broker, not a
  * layer file, precisely so the three rules import ONE copy instead of each keeping its own — the
- * same fix F4 made for `workspaceRootFindBroker`. Walking from a real directory (rather than reading
- * `process.cwd()`, which `@dungeonmaster/no-bare-process-cwd` reserves for CLI entry points and
- * path-resolver brokers) means the same walk finds THIS repo's root when a rule runs from source,
- * and a consumer's own root once this package is installed under their `node_modules`. Directories
- * are joined with a plain "/" rather than `join`: every path here is already
- * POSIX-absolute (`__dirname` at rule-module load, or a value this same function derived), so no
+ * same fix F4 made for `workspaceRootFindBroker`. Each rule passes the directory of the file it
+ * lints, so the walk finds the root of the repo that owns that file. Starting from this module's own
+ * location instead would find dungeonmaster's root for a consumer that links dungeonmaster through
+ * `file:`. Directories are joined with a plain "/" rather than `join`: every path here is already
+ * POSIX-absolute (the linted file's directory, or a value this same function derived), so no
  * cross-platform behaviour is needed, and skipping it keeps this broker's only child proxy
  * the fs one its own test actually stages. Derives the scope via `packageScopeFromNameTransformer`
  * directly, not the tolerant `workspaceScopeFromRootNameTransformer` (F4, in `shared`):
@@ -19,8 +18,8 @@
  * `workspaceScopeFromRootNameTransformer`'s `PathSegment`.
  *
  * USAGE:
- * repoScopeResolveBroker({ startDir: __dirname });
- * // Returns '@dungeonmaster' as branded PackageName, read from the repo root package.json's name
+ * repoScopeResolveBroker({ startDir: '/repo/packages/hooks/src/brokers/x' });
+ * // Returns '@dungeonmaster' as branded PackageName, read from /repo/package.json's name
  */
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { existsSync, readFileSync } from '#gateway/node/fs';

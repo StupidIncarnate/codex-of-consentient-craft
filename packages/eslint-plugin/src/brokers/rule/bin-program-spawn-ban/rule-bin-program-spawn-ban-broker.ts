@@ -27,12 +27,15 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { objectPropertyValueTransformer } from '../../../transformers/object-property-value/object-property-value-transformer';
 import { childProcessFunctionNamesStatics } from '../../../statics/child-process-function-names/child-process-function-names-statics';
+import { dirname } from '#gateway/node/path';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-layer-broker';
 
-// Resolved lazily and cached, exactly as raw-import-ban's own scope resolution is: every RuleTester
-// case passes `scope` explicitly, so the real filesystem walk only ever runs for a real ESLint run.
-const defaultScopeCache: { value?: string } = {};
+// Keyed by the linted file's directory. The scope comes from the npm-workspaces root above the
+// FILE being linted, never above this module: through a `file:` link this module sits inside
+// dungeonmaster's checkout, so a walk from here would read dungeonmaster's scope for a consumer's
+// files. A `scope` option skips the walk.
+const defaultScopeCache = new Map<string, string>();
 
 export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramSpawn'> => ({
   meta: {
@@ -52,7 +55,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
           scope: {
             type: 'string',
             description:
-              'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope read from the repo root package.json at rule module load.',
+              'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope of the npm-workspaces root above the linted file.',
           },
         },
         additionalProperties: false,
@@ -75,12 +78,15 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
       if (optionScope !== undefined) {
         return optionScope;
       }
-      if (defaultScopeCache.value === undefined) {
-        defaultScopeCache.value = repoScopeResolveBroker({
-          startDir: __dirname,
-        });
+      const fileDir = dirname(filename);
+      const cachedScope = defaultScopeCache.get(fileDir);
+      if (cachedScope !== undefined) {
+        return cachedScope;
       }
-      return defaultScopeCache.value;
+
+      const resolvedScope = repoScopeResolveBroker({ startDir: fileDir });
+      defaultScopeCache.set(fileDir, resolvedScope);
+      return resolvedScope;
     })();
 
     const scopedGatewaySource = `${scope}/${gatewayLocationsStatics.folders.node}/child_process`;

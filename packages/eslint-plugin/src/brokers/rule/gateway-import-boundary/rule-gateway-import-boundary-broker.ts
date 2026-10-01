@@ -5,9 +5,9 @@
  * — that is a file inside the same gateway package — and an outside npm package or Node built-in is
  * exactly what a gateway file exists to hold. The gateway is the bottom layer: it may depend on
  * itself and on the outside world, never back up into a package built on top of it. `scope`
- * defaults to the value repoScopeResolveBroker reads from the repo root package.json at
- * module load, overridable per-rule-instance via the `scope` option so a RuleTester case can prove
- * the rule for a differently-scoped consumer without touching the filesystem. The gateway-package
+ * defaults to the scope repoScopeResolveBroker reads from the npm-workspaces root above the linted
+ * file, overridable per-rule-instance via the `scope` option so a RuleTester case can name a scope
+ * without touching the filesystem. The gateway-package
  * check is duplicated across both AST listeners, the same way raw-import-ban duplicates its own
  * relative/workspace checks — a shared named helper here would be a nested (or non-exported,
  * top-level) function, which `@dungeonmaster/forbid-non-exported-functions` refuses.
@@ -28,12 +28,14 @@ import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-s
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
+import { dirname } from '#gateway/node/path';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
-// Resolved lazily, on the first gateway file linted with no `scope` option, and cached from then
-// on — see raw-import-ban's identically-shaped cache for why this never runs during this rule's own
-// unit test (every RuleTester case passes `scope` explicitly).
-const defaultScopeCache: { value?: string } = {};
+// Keyed by the linted file's directory. The scope comes from the npm-workspaces root above the
+// FILE being linted, never above this module: through a `file:` link this module sits inside
+// dungeonmaster's checkout, so a walk from here would read dungeonmaster's scope for a consumer's
+// files. A `scope` option skips the walk.
+const defaultScopeCache = new Map<string, string>();
 
 export const ruleGatewayImportBoundaryBroker =
   (): TSESLint.RuleModule<'workspacePackageImport'> => ({
@@ -54,7 +56,7 @@ export const ruleGatewayImportBoundaryBroker =
             scope: {
               type: 'string',
               description:
-                'Override the workspace `@scope` used to tell a gateway package from any other workspace package. Defaults to the scope read from the repo root package.json at rule module load.',
+                'Override the workspace `@scope` used to tell a gateway package from any other workspace package. Defaults to the scope of the npm-workspaces root above the linted file.',
             },
           },
           additionalProperties: false,
@@ -83,13 +85,15 @@ export const ruleGatewayImportBoundaryBroker =
           return optionScope;
         }
 
-        if (defaultScopeCache.value === undefined) {
-          defaultScopeCache.value = repoScopeResolveBroker({
-            startDir: __dirname,
-          });
+        const fileDir = dirname(filename);
+        const cachedScope = defaultScopeCache.get(fileDir);
+        if (cachedScope !== undefined) {
+          return cachedScope;
         }
 
-        return defaultScopeCache.value;
+        const resolvedScope = repoScopeResolveBroker({ startDir: fileDir });
+        defaultScopeCache.set(fileDir, resolvedScope);
+        return resolvedScope;
       })();
 
       return {

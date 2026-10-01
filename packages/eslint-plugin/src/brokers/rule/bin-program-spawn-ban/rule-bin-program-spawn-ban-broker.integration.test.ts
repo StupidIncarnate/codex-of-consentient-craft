@@ -6,6 +6,10 @@ import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-t
 // slicing `__dirname`, as the platform-globals-ban integration test does.
 const REPO_ROOT = __dirname.split('/').slice(0, -6).join('/');
 const WARD_BUILD_BROKER_FILE = `${REPO_ROOT}/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts`;
+// A real npm-workspaces root on disk, named `acme`, inside this repo. With no `scope` option the
+// rule reads the scope from the root above the LINTED FILE, so `@acme/node/child_process` is read
+// as the gateway even though the rule module itself sits under dungeonmaster's root.
+const CONSUMER_FILE = `${REPO_ROOT}/packages/eslint-plugin/test/fixtures/consumer-scope/packages/app/src/brokers/x/x-broker.ts`;
 
 const ruleTester = ruleTesterHarness();
 
@@ -51,3 +55,28 @@ ruleTester.run('bin-program-spawn-ban (imported statics)', ruleBinProgramSpawnBa
     },
   ],
 });
+
+ruleTester.run(
+  'bin-program-spawn-ban (scope from the linted file)',
+  ruleBinProgramSpawnBanBroker(),
+  {
+    valid: [
+      {
+        code: "import { run } from '@acme/node/child_process'; run({ command: 'node', args: [], cwd: '/repo' });",
+        filename: CONSUMER_FILE,
+      },
+    ],
+    invalid: [
+      {
+        code: "import { run } from '@acme/node/child_process'; run({ command: 'git', args: ['status'], cwd: '/repo' });",
+        filename: CONSUMER_FILE,
+        errors: [
+          {
+            messageId: 'binProgramSpawn',
+            data: { program: 'git', binFunction: 'currentBranch', gatewayPath: '#gateway/bin/git' },
+          },
+        ],
+      },
+    ],
+  },
+);
