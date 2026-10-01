@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Reads one raw stdout line of a dispatched Claude CLI child and returns why the session hit
  * a wall it cannot report itself, or undefined. Two lines carry one: the `system/init` line naming
- * the dungeonmaster MCP server with any status but `connected`, and the final `result` line whose
+ * the dungeonmaster MCP server with a status that never connects (`failed`, `needs-auth`,
+ * `disabled` — never `pending`, which is a server still starting), and the final `result` line whose
  * text holds a `DUNGEONMASTER-WALL: <reason>` line. Reach for this over isRateLimitRejectedLineGuard
  * and isApiOverloadLineGuard, which match an upstream API death: this matches a session alive but
  * cut off from `quest-work`, whose own `wall` outcome is therefore unreachable.
@@ -33,12 +34,12 @@ export const agentSessionWallReasonTransformer = ({
   const init = mcpServerStatusInitLineContract.safeParse(parsed.value);
 
   if (init.success) {
-    const { serverName, connectedStatus } = agentSessionWallStatics.mcp;
+    const { serverName, wallStatuses } = agentSessionWallStatics.mcp;
     // A server missing from the list is left alone: a fake CLI or an unconfigured repo reports none,
     // and nothing on this line says the session ever needed it.
     const server = init.data.mcp_servers.find((entry) => entry.name === serverName);
 
-    if (server === undefined || server.status === connectedStatus) {
+    if (server === undefined || !wallStatuses.some((status) => status === server.status)) {
       return undefined;
     }
 

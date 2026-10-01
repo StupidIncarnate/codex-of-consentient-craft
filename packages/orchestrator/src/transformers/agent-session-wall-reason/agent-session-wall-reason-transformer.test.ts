@@ -1,5 +1,6 @@
 import { McpServerStatusInitLineStub } from '../../contracts/mcp-server-status-init-line/mcp-server-status-init-line.stub';
 import { SessionResultTextLineStub } from '../../contracts/session-result-text-line/session-result-text-line.stub';
+import { agentSessionWallStatics } from '../../statics/agent-session-wall/agent-session-wall-statics';
 
 import { agentSessionWallReasonTransformer } from './agent-session-wall-reason-transformer';
 
@@ -17,16 +18,31 @@ describe('agentSessionWallReasonTransformer', () => {
       expect(agentSessionWallReasonTransformer({ line: FAILED_INIT_LINE })).toBe(FAILED_REASON);
     });
 
-    it('VALID: {dungeonmaster pending} => returns the reason naming that status', () => {
+    it.each(agentSessionWallStatics.mcp.wallStatuses)(
+      'VALID: {dungeonmaster %s} => returns the reason naming that status',
+      (status) => {
+        const line = JSON.stringify(
+          McpServerStatusInitLineStub({
+            mcp_servers: [{ name: 'dungeonmaster', status }],
+          }),
+        );
+
+        expect(agentSessionWallReasonTransformer({ line })).toBe(
+          `the dungeonmaster MCP server did not connect in this session (status: ${status}), so it had no get-agent-prompt, quest-work or signal-back tool — run the server's command from .mcp.json by hand in this session's working directory to see why it fails`,
+        );
+      },
+    );
+
+    // The init line quest 1918a5ee's spiritmender child wrote 3s after spawn while its server was
+    // still starting under load. The server connects later in the same session, so this is no wall.
+    it('VALID: {dungeonmaster pending} => returns undefined', () => {
       const line = JSON.stringify(
         McpServerStatusInitLineStub({
           mcp_servers: [{ name: 'dungeonmaster', status: 'pending' }],
         }),
       );
 
-      expect(agentSessionWallReasonTransformer({ line })).toBe(
-        "the dungeonmaster MCP server did not connect in this session (status: pending), so it had no get-agent-prompt, quest-work or signal-back tool — run the server's command from .mcp.json by hand in this session's working directory to see why it fails",
-      );
+      expect(agentSessionWallReasonTransformer({ line })).toBe(undefined);
     });
 
     it('VALID: {dungeonmaster connected} => returns undefined', () => {
