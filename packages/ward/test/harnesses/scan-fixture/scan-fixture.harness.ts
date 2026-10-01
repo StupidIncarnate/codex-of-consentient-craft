@@ -1,8 +1,9 @@
 /**
  * PURPOSE: Lays a tiny two-package npm-workspaces repo onto an install testbed for the scan
- * integration test: a root `eslint.config.js` that registers `no-debugger` OFF, one package whose
- * files hold `debugger` statements (and a `console.log` the scanned rule must not report), one
- * clean package, and a real eslint linked into `node_modules/.bin` the way npm links it.
+ * integration test: a root `eslint.config.js` that registers `no-debugger` OFF and scopes
+ * `no-console` to the app package (on at `warn` with an option, off for one app file, never set for
+ * lib), one package whose files hold `debugger` and `console` statements, one clean package, and a
+ * real eslint linked into `node_modules/.bin` the way npm links it.
  *
  * USAGE:
  * const harness = scanFixtureHarness();
@@ -28,7 +29,9 @@ export const scanFixtureHarness = (): {
         body: [
           'const plugin = { rules: { "no-forbidden": { create(context) { return { Identifier(node) { if (node.name === "forbidden") { context.report({ node, message: "forbidden name" }); } } }; } } } };',
           'module.exports = [',
-          "  { files: ['**/*.js'], rules: { 'no-debugger': 'off', 'no-console': 'error' } },",
+          "  { files: ['**/*.js'], rules: { 'no-debugger': 'off' } },",
+          "  { files: ['**/*.js'], ignores: ['packages/lib/**'], rules: { 'no-console': ['warn', { allow: ['warn'] }] } },",
+          "  { files: ['packages/app/src/quiet.js'], rules: { 'no-console': 'off' } },",
           "  { files: ['packages/app/**/*.js'], plugins: { fixture: plugin }, rules: { 'fixture/no-forbidden': 'off' } },",
           '];',
           '',
@@ -37,10 +40,18 @@ export const scanFixtureHarness = (): {
       { path: 'packages/app/package.json', body: JSON.stringify({ name: '@fixture/app' }) },
       { path: 'packages/app/src/a.js', body: 'debugger;\nconst x = 1;\ndebugger;\n' },
       { path: 'packages/app/src/b.js', body: 'const y = 2;\ndebugger;\n' },
-      { path: 'packages/app/src/c.js', body: "console.log('not the scanned rule');\n" },
+      {
+        path: 'packages/app/src/c.js',
+        body: "console.log('not the scanned rule');\nconsole.warn('allowed by the rule options');\n",
+      },
+      {
+        path: 'packages/app/src/quiet.js',
+        body: "console.log('no-console is off for this file');\n",
+      },
       { path: 'packages/app/src/d.js', body: 'const forbidden = 1;\nconst other = forbidden;\n' },
       { path: 'packages/lib/package.json', body: JSON.stringify({ name: '@fixture/lib' }) },
       { path: 'packages/lib/src/clean.js', body: 'const forbidden = 3;\n' },
+      { path: 'packages/lib/src/log.js', body: "console.log('lib never sets no-console');\n" },
     ];
 
     files.forEach((file) => {

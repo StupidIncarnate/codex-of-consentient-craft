@@ -4,9 +4,9 @@ import { scanFixtureHarness } from '../../../../test/harnesses/scan-fixture/scan
 import { ScanConfigStub } from '../../../contracts/scan-config/scan-config.stub';
 import { scanRunBroker } from './scan-run-broker';
 
-// The unit tests stage the eslint child, so they cannot prove the `--rule` flag turns on a rule the
-// config registers `off`, nor that eslint's JSON survives the real parse. This drives a real eslint
-// over a real two-package tree.
+// The unit tests stage the eslint child, so they cannot prove the wrapper config turns on a rule the
+// config registers `off`, leaves a rule the config scopes where the config scopes it, nor that
+// eslint's JSON survives the real parse. This drives a real eslint over a real two-package tree.
 describe('scanRunBroker (integration)', () => {
   const harness = scanFixtureHarness();
 
@@ -113,6 +113,41 @@ describe('scanRunBroker (integration)', () => {
             [
               { file: 'packages/app/src/d.js', line: 1, message: 'forbidden name' },
               { file: 'packages/app/src/d.js', line: 2, message: 'forbidden name' },
+            ],
+          ],
+        },
+        { name: '@fixture/lib', violations: 0, batches: [] },
+      ],
+    });
+  });
+
+  it('VALID: {rule the config turns on at warn for app, off for one app file, never for lib} => reports only the app hit its options allow and none in lib', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: 'ward-scan-run-scoped',
+    });
+    await harness.writeWorkspace({ testbed });
+
+    const result = await scanRunBroker({
+      config: ScanConfigStub({ rule: 'no-console' }),
+      rootPath: testbed.guildPath,
+    });
+
+    testbed.cleanup();
+
+    expect(result).toStrictEqual({
+      rule: 'no-console',
+      packages: [
+        {
+          name: '@fixture/app',
+          violations: 1,
+          batches: [
+            [
+              {
+                file: 'packages/app/src/c.js',
+                line: 1,
+                message:
+                  'Unexpected console statement. Only these console methods are allowed: warn.',
+              },
             ],
           ],
         },
