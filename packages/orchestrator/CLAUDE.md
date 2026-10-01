@@ -1375,6 +1375,20 @@ holds real work. The resume prompt opens by telling the agent it was CUT
 OFF (killed, not paused) and requires re-establishing real state before any new work, since its last action may never
 have landed. Covered end-to-end by `packages/web/src/flows/quest-chat/dispatch-resumes-retained-session.e2e.ts`.
 
+**A clean exit is not a crash either.** A child that exits 0 without signalling was not cut off, so it
+never reaches orphan recovery's "CUT OFF" resume. `session-end-layer-broker` re-reads its work item: a
+terminal one signalled; a live one is resumed ONCE with `agentUnsignalledExitPromptTransformer`'s prompt,
+which says it ended without signalling (`agentSessionWallStatics.unsignalledExit.maxNudges`). A second
+unsignalled exit, or one with no session to resume, is recorded as `wall`.
+
+**A session cut off from `quest-work` is walled by the spawn layer.** Its only route to `wall` is an
+MCP tool, so a dead dungeonmaster MCP server leaves it nothing to say it with.
+`agentSessionWallReasonTransformer` reads two stdout lines: the `system/init` line listing the
+dungeonmaster server with any status but `connected`, and the final `result` line holding a
+`DUNGEONMASTER-WALL: <reason>` line, which both task prompts tell a session to end on when `quest-work`
+is unreachable. The first wall line kills the child, and `questSessionWallRecordBroker` records the
+item `failed` / `wall` with the reason, so the router blocks the quest on its next scan.
+
 **An API overload is not a crash.** A dispatched child that exits non-zero after emitting a 529 / `overloaded_error`
 marker lost the upstream API, not its own work. `spawn-one-agent-layer-broker` owns that case BELOW orphan recovery:
 it re-dispatches the same work item in place on `apiOverloadRetryStatics`' schedule (10 retries a minute apart, then

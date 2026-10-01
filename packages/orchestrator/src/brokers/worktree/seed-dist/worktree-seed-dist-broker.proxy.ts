@@ -66,10 +66,27 @@ export const worktreeSeedDistBrokerProxy = (): {
       }[];
     }): void => {
       isAccessibleProxy.present({ path: `${repoRoot}/packages` });
+      // A name like `@gateway/node` lives inside a scope folder: `packages/` lists the scope, the
+      // scope has no manifest of its own, and the scope's own listing holds the package.
+      const topLevelNames = [...new Set(packages.map(({ name }) => name.split('/')[0] ?? name))];
       readdirProxy.returns({
         path: `${repoRoot}/packages`,
-        entries: packages.map(({ name }) => ({ name, kind: 'directory' as const })),
+        entries: topLevelNames.map((name) => ({ name, kind: 'directory' as const })),
       });
+      topLevelNames
+        .filter((scope) => packages.some(({ name }) => name.startsWith(`${scope}/`)))
+        .forEach((scope) => {
+          isAccessibleProxy.missing({ path: `${repoRoot}/packages/${scope}/package.json` });
+          readdirProxy.returns({
+            path: `${repoRoot}/packages/${scope}`,
+            entries: packages
+              .filter(({ name }) => name.startsWith(`${scope}/`))
+              .map(({ name }) => ({
+                name: name.slice(scope.length + 1),
+                kind: 'directory' as const,
+              })),
+          });
+        });
 
       packages.forEach(({ name, isPackage, hasSourceDist, hasTargetDist }) => {
         const manifestPath = `${repoRoot}/packages/${name}/package.json`;

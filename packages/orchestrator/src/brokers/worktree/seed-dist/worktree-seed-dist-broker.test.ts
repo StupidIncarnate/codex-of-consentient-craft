@@ -165,6 +165,56 @@ describe('worktreeSeedDistBroker', () => {
     });
   });
 
+  describe('packages inside an npm scope folder', () => {
+    it('VALID: {packages/@gateway/node built, worktree has no dist} => copies it to its own scoped path', async () => {
+      const proxy = worktreeSeedDistBrokerProxy();
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
+
+      proxy.setupPackages({
+        repoRoot,
+        worktreePath,
+        packages: [
+          { name: '@gateway/node', hasSourceDist: true, hasTargetDist: false },
+          { name: 'ward', hasSourceDist: true, hasTargetDist: true },
+        ],
+      });
+      proxy.setupCopySucceeds();
+
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
+
+      expect(proxy.getCopyArgs()).toStrictEqual([
+        '-a',
+        '/repo/packages/@gateway/node/dist',
+        '/repo/worktrees/probe/packages/@gateway/node/dist',
+      ]);
+    });
+
+    it('ERROR: {packages/@gateway/bin has no source dist} => rejects naming it by its scoped path', async () => {
+      const proxy = worktreeSeedDistBrokerProxy();
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
+
+      proxy.setupPackages({
+        repoRoot,
+        worktreePath,
+        packages: [
+          { name: '@gateway/bin', hasSourceDist: false, hasTargetDist: false },
+          { name: '@gateway/node', hasSourceDist: true, hasTargetDist: true },
+        ],
+      });
+
+      const error = await worktreeSeedDistBroker({ repoRoot, worktreePath }).catch(
+        (thrown: unknown) => thrown,
+      );
+
+      expect((error as Error).message).toBe(
+        "Worktree preparation failed at seed-dist: /repo/worktrees/probe: the main checkout at /repo has no compiled output for 1 package(s) — run the repo's build before carving a worktree: @gateway/bin",
+      );
+      expect(proxy.getCopyArgs()).toBe(undefined);
+    });
+  });
+
   describe('a repo that is not a monorepo', () => {
     it('EMPTY: {no packages directory} => returns success without copying anything', async () => {
       const proxy = worktreeSeedDistBrokerProxy();

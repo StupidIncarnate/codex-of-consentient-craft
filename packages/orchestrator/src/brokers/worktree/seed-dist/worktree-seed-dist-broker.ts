@@ -56,15 +56,36 @@ export const worktreeSeedDistBroker = async ({
     return;
   }
 
-  const candidates = readdirEntriesSync(sourcePackagesDir).filter(
+  const topLevel = readdirEntriesSync(sourcePackagesDir).filter(
     (entry) => entry.kind === 'directory',
   );
 
+  // A `@`-named directory with no manifest of its own is an npm SCOPE folder, and each directory
+  // inside it is a package — `packages/@gateway/node`. Treating the scope folder as a non-package
+  // skips every package in it, and a worktree without their `dist` resolves `#gateway/*` to source:
+  // every importing package then fails typecheck with TS6059, and the worktree's MCP server dies at load.
+  const candidateGroups = await Promise.all(
+    topLevel.map(async (entry) => {
+      const hasManifest = await pathExists(
+        join(sourcePackagesDir, entry.name, projectMapStatics.packageJsonName),
+      );
+
+      if (hasManifest || !entry.name.startsWith('@')) {
+        return [entry.name];
+      }
+
+      return readdirEntriesSync(join(sourcePackagesDir, entry.name))
+        .filter((child) => child.kind === 'directory')
+        .map((child) => `${entry.name}/${child.name}`);
+    }),
+  );
+  const candidates = candidateGroups.flat();
+
   const inspected = await Promise.all(
-    candidates.map(async (entry) => {
-      const sourcePackage = join(sourcePackagesDir, entry.name);
+    candidates.map(async (name) => {
+      const sourcePackage = join(sourcePackagesDir, name);
       const sourceDist = join(sourcePackage, locationsStatics.repoRoot.dist);
-      const targetPackage = join(worktreePath, projectMapStatics.packagesDirName, entry.name);
+      const targetPackage = join(worktreePath, projectMapStatics.packagesDirName, name);
       const targetDist = join(targetPackage, locationsStatics.repoRoot.dist);
 
       const [isPackage, hasSourceDist, hasTargetDist] = await Promise.all([
@@ -73,7 +94,7 @@ export const worktreeSeedDistBroker = async ({
         pathExists(targetDist),
       ]);
 
-      return { name: entry.name, isPackage, hasSourceDist, hasTargetDist, sourceDist, targetDist };
+      return { name, isPackage, hasSourceDist, hasTargetDist, sourceDist, targetDist };
     }),
   );
 
