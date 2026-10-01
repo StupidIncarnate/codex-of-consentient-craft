@@ -194,7 +194,7 @@ lives in the table below instead.
 ward run. Anything owning fixtures resolves paths through the compiler helper, which walks up from
 `__dirname`, rather than resolving them itself.
 
-## The `exports` map has no `./adapters` subpath, and that is deliberate
+## The `exports` map has no gateway subpath, and that is deliberate
 
 The barrels `src/contracts/contracts.ts`, `src/brokers/brokers.ts`, `src/transformers/transformers.ts`,
 `src/errors/errors.ts` and `src/statics/statics.ts` are the whole public surface.

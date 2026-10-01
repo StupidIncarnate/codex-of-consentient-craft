@@ -72,7 +72,7 @@ All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json`
 **Env var surface** (programmatic overrides — not set via files):
 
 - `DUNGEONMASTER_HOME` — complete path to the dungeonmaster data dir. When unset, resolves to `~/.dungeonmaster`.
-- `DUNGEONMASTER_PORT` — trumps config. Used by ward e2e (`netFreePortPairAdapter` picks a free port per run so
+- `DUNGEONMASTER_PORT` — trumps config. Used by ward e2e (`freePortPair` from `#gateway/node/net` picks a free port per run so
   parallel e2e agents don't collide).
 - `DUNGEONMASTER_WEB_PORT` — the Vite port, the second half of that same pair. **Both the Playwright config and the Vite
   config fall back to `DUNGEONMASTER_PORT + 1` when it is unset, and those two fallbacks agree only while one launcher
@@ -101,7 +101,7 @@ during that window Vite's `/api` proxy answers every request with a bare 500 and
 `SyntaxError: Unexpected end of JSON input` from a harness calling `response.json()`, as `waitForResponse` timeouts,
 and as panels that never mount — six unrelated-looking specs at once, none of them actually broken. If you are
 editing the repo while e2e runs (or running parallel agents that are), this is the first thing to suspect. Ward e2e
-(`check-run-e2e-broker.ts`) grabs a free port pair via `netFreePortPairAdapter` and passes them via `DUNGEONMASTER_PORT`
+(`check-run-e2e-broker.ts`) grabs a free port pair via `freePortPair` (`#gateway/node/net`) and passes them via `DUNGEONMASTER_PORT`
 and `DUNGEONMASTER_WEB_PORT`. It also names the Playwright JSON report after the server port and gives Playwright a
 per-port `outputDir`, so **several browser walks against the same package can run at once** — four is a sensible cap,
 since each one boots an API server, a Vite server and a browser. Jest integration tests use

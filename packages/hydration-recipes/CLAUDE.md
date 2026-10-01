@@ -57,7 +57,7 @@ reads `.shape.<field>` off.
 `questModifyBroker` itself enforces. The one hop that is NOT a plain field write is `in_progress`:
 it seeds the operations relay, which nothing but `POST /api/quests/:questId/start` does, and that
 responder's logic is not exported from `@dungeonmaster/orchestrator`'s barrel. So `reach` calls the
-real route through `dmHttpRequestAdapter` when the target carries a `baseUrl`, and THROWS a named,
+real route through `dmHttpRequestBroker` when the target carries a `baseUrl`, and THROWS a named,
 actionable error on a write-only target rather than flipping the field and leaving the ledger
 empty — the exact silent drift `packages/orchestrator/CLAUDE.md` warns `writeQuestFile` produces.
 
@@ -79,12 +79,12 @@ a failed reload both throw a plain `Error`. The runner's own `opUpdateApplyLayer
 wraps whatever this route throws through `routeFailureTransformer` into a `HydrationRouteFailedError`,
 the same way it does for every ingredient's `update` route, so this file adds no error-shaping logic
 of its own. This is the same defect the `api` routes were fixed for (an envelope handed back where
-the runner expects the ingredient's `record` contract to parse) — `dmHttpResponseUnwrapAdapter` is
-that fix's own adapter, and it does not apply here directly: it unwraps an HTTP `{status, body}`
+the runner expects the ingredient's `record` contract to parse) — `dmHttpResponseUnwrapTransformer` is
+that fix's own transformer, and it does not apply here directly: it unwraps an HTTP `{status, body}`
 envelope, and `questModifyBroker` is an in-process call returning `{success, error?}`, a different
 shape entirely. Reusing it would have meant reshaping one to fit the other for no real gain; the
 route instead reuses the SAME two-part pattern (return the real data on success, throw on failure)
-without a second unwrap adapter. `quest-ingredient-broker.integration.test.ts`'s
+without a second unwrap transformer. `quest-ingredient-broker.integration.test.ts`'s
 `g[0].quests.filter({...}).set({title})` case is what exercises this route through a real, non-mocked
 plan — nothing did before `transitions` existed, because a `set()` on `status` was the only way most
 plans ever touched a quest after its create.
