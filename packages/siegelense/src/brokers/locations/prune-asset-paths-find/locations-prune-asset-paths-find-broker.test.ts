@@ -6,7 +6,7 @@ const EVIDENCE_DIR =
 
 describe('locationsPruneAssetPathsFindBroker', () => {
   describe('instance-level asset resolution', () => {
-    it('VALID: {evidencePath} => the runs directory, six process records and the three capture buffers, all absolute', () => {
+    it('VALID: {evidencePath} => the runs directory, three process logs and the three capture buffers, all absolute', () => {
       locationsPruneAssetPathsFindBrokerProxy();
       const evidencePath = EVIDENCE_DIR;
 
@@ -19,9 +19,6 @@ describe('locationsPruneAssetPathsFindBroker', () => {
           `${EVIDENCE_DIR}/api-server.log`,
           `${EVIDENCE_DIR}/web-server.log`,
           `${EVIDENCE_DIR}/driver.log`,
-          `${EVIDENCE_DIR}/heartbeat.json`,
-          `${EVIDENCE_DIR}/boot-failure.json`,
-          `${EVIDENCE_DIR}/shutdown-reason.json`,
         ],
         transcripts: [
           `${EVIDENCE_DIR}/console.jsonl`,

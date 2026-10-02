@@ -125,7 +125,7 @@ export const pruneInstanceReclaimBroker = async ({
       freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
       // A row reads `pruned` only when its tree is genuinely gone. A `--kind` selector leaves the
       // rest of the evidence on disk, and a row tombstoned over it would make `results` answer
-      // `pruned` for transcripts a fixer can still open.
+      // `pruned` for runs a fixer can still open.
       tombstoned: query.kind === null && selected.length === assets.length,
     }),
     refusal: null,

@@ -36,6 +36,7 @@ const RUN_FILE_SUFFIX = new RegExp(
 );
 
 const LOG_KIND = 'log';
+const RUN_KIND = 'run';
 
 export const pruneAssetsListBroker = async ({
   entry,
@@ -66,9 +67,8 @@ export const pruneAssetsListBroker = async ({
     }),
   );
 
-  // The three per-instance capture buffers classify as `log`, not `transcript` — a session
-  // transcript is a Claude-style `.jsonl` under `.claude/projects/`, which this call does not list.
-  // These are the instance's own capture record, the same as the process logs above.
+  // The three per-instance capture buffers classify as `run` alongside the run readings
+  // and transcripts — results reads them together, so results never reads a half-deleted run.
   const bufferRows = await Promise.all(
     transcripts.map(async (filePath) => {
       const stat = await statIfExists(filePath);
@@ -77,7 +77,7 @@ export const pruneAssetsListBroker = async ({
         : [
             pruneAssetContract.parse({
               path: filePath,
-              kind: LOG_KIND,
+              kind: RUN_KIND,
               sizeBytes: stat.sizeBytes,
               modifiedAtMs: stat.modifiedAtMs,
             }),

@@ -62,7 +62,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: --kind nope} => refuses naming every accepted kind and the exact text typed, never as a ZodError', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--kind', 'nope'] })).toThrow(
-        /^--kind must be one of video, shot, transcript, log; got "nope"$/u,
+        /^--kind must be one of video, shot, log, run; got "nope"$/u,
       );
     });
 

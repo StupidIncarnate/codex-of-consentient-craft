@@ -45,7 +45,7 @@ const DAY_MS = 86_400_000;
 
 const LOG_KIND_ID = InstanceIdStub({ value: 'inst_a0000001' });
 const SHOT_KIND_ID = InstanceIdStub({ value: 'inst_a0000002' });
-const TRANSCRIPT_KIND_ID = InstanceIdStub({ value: 'inst_a0000003' });
+const RUN_KIND_ID = InstanceIdStub({ value: 'inst_a0000003' });
 const VIDEO_KIND_ID = InstanceIdStub({ value: 'inst_a0000004' });
 const SCOPE_TARGET_ID = InstanceIdStub({ value: 'inst_b0000001' });
 const SCOPE_NEIGHBOUR_ID = InstanceIdStub({ value: 'inst_b0000002' });
@@ -83,10 +83,12 @@ const SHOT_KIND_TRANSCRIPT_PATH = `siegelense/unowned/instances/${SHOT_KIND_ID}/
 const SHOT_KIND_SHOT_PATH = `siegelense/unowned/instances/${SHOT_KIND_ID}/runs/run_1/step1.png`;
 const SHOT_KIND_VIDEO_PATH = `siegelense/unowned/instances/${SHOT_KIND_ID}/runs/clip.webm`;
 
-const TRANSCRIPT_KIND_LOG_PATH = `siegelense/unowned/instances/${TRANSCRIPT_KIND_ID}/api-server.log`;
-const TRANSCRIPT_KIND_TRANSCRIPT_PATH = `siegelense/unowned/instances/${TRANSCRIPT_KIND_ID}/console.jsonl`;
-const TRANSCRIPT_KIND_SHOT_PATH = `siegelense/unowned/instances/${TRANSCRIPT_KIND_ID}/runs/run_1/step1.png`;
-const TRANSCRIPT_KIND_VIDEO_PATH = `siegelense/unowned/instances/${TRANSCRIPT_KIND_ID}/runs/clip.webm`;
+const RUN_KIND_LOG_PATH = `siegelense/unowned/instances/${RUN_KIND_ID}/api-server.log`;
+const RUN_KIND_TRANSCRIPT_PATH = `siegelense/unowned/instances/${RUN_KIND_ID}/console.jsonl`;
+const RUN_KIND_RUN_JSONL_PATH = `siegelense/unowned/instances/${RUN_KIND_ID}/runs/run_1.jsonl`;
+const RUN_KIND_RUN_JSON_PATH = `siegelense/unowned/instances/${RUN_KIND_ID}/runs/run_1.json`;
+const RUN_KIND_SHOT_PATH = `siegelense/unowned/instances/${RUN_KIND_ID}/runs/run_1/step1.png`;
+const RUN_KIND_VIDEO_PATH = `siegelense/unowned/instances/${RUN_KIND_ID}/runs/clip.webm`;
 
 const VIDEO_KIND_LOG_PATH = `siegelense/unowned/instances/${VIDEO_KIND_ID}/api-server.log`;
 const VIDEO_KIND_TRANSCRIPT_PATH = `siegelense/unowned/instances/${VIDEO_KIND_ID}/console.jsonl`;
@@ -129,7 +131,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
   let logKindResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
   let shotKindResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
-  let transcriptKindResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
+  let runKindResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
   let videoKindResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
   let targetAnswer: unknown = null;
   let citedAnswer: unknown = null;
@@ -156,7 +158,7 @@ describe('SiegelensePruneLayerFlow', () => {
               guildId: null,
             }),
             RegistryEntryStub({
-              id: TRANSCRIPT_KIND_ID,
+              id: RUN_KIND_ID,
               state: 'killed',
               questId: null,
               guildId: null,
@@ -220,7 +222,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
     // Every kind, on one instance apiece, so a sweep scoped to that instance and that kind proves
     // it takes ONLY the named kind — the other three stay put with their original bytes.
-    for (const kindInstanceId of [LOG_KIND_ID, SHOT_KIND_ID, TRANSCRIPT_KIND_ID, VIDEO_KIND_ID]) {
+    for (const kindInstanceId of [LOG_KIND_ID, SHOT_KIND_ID, RUN_KIND_ID, VIDEO_KIND_ID]) {
       testbed.writeFile({
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/api-server.log`,
         content: KIND_LOG_BODY,
@@ -229,10 +231,18 @@ describe('SiegelensePruneLayerFlow', () => {
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/console.jsonl`,
         content: KIND_TRANSCRIPT_BODY,
       });
-      // The `run_1` directory itself is what makes `run_1` a real run id — no `run_1.jsonl` needed.
+      // The `run_1` directory itself is what makes `run_1` a real run id.
       testbed.writeFile({
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/run_1/step1.png`,
         content: KIND_SHOT_BODY,
+      });
+      testbed.writeFile({
+        relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/run_1.jsonl`,
+        content: KIND_TRANSCRIPT_BODY,
+      });
+      testbed.writeFile({
+        relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/run_1.json`,
+        content: KIND_TRANSCRIPT_BODY,
       });
       // A bare `.webm` directly under `runs/` — the video path `cleanup`'s own fixed sweep never
       // exercises, since nothing else in this repo writes one yet.
@@ -319,62 +329,57 @@ describe('SiegelensePruneLayerFlow', () => {
 
     // Sweep every kind-matrix instance concurrently — each is its own instance, so none depends on
     // another's outcome.
-    [
-      logKindResult,
-      shotKindResult,
-      transcriptKindResult,
-      videoKindResult,
-      videoDefaultWindowResult,
-    ] = await Promise.all([
-      SiegelensePruneLayerFlow({
-        callArgs: [
-          '--instance',
-          String(LOG_KIND_ID),
-          '--kind',
-          'log',
-          '--older-than',
-          '0s',
-          '--confirm',
-        ],
-      }),
-      SiegelensePruneLayerFlow({
-        callArgs: [
-          '--instance',
-          String(SHOT_KIND_ID),
-          '--kind',
-          'shot',
-          '--older-than',
-          '0s',
-          '--confirm',
-        ],
-      }),
-      SiegelensePruneLayerFlow({
-        callArgs: [
-          '--instance',
-          String(TRANSCRIPT_KIND_ID),
-          '--kind',
-          'transcript',
-          '--older-than',
-          '0s',
-          '--confirm',
-        ],
-      }),
-      SiegelensePruneLayerFlow({
-        callArgs: [
-          '--instance',
-          String(VIDEO_KIND_ID),
-          '--kind',
-          'video',
-          '--older-than',
-          '0s',
-          '--confirm',
-        ],
-      }),
-      // No `--older-than` here — this is the one sweep proving what the DEFAULT resolves to.
-      SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(VIDEO_DEFAULT_WINDOW_ID), '--kind', 'video', '--confirm'],
-      }),
-    ]);
+    [logKindResult, shotKindResult, runKindResult, videoKindResult, videoDefaultWindowResult] =
+      await Promise.all([
+        SiegelensePruneLayerFlow({
+          callArgs: [
+            '--instance',
+            String(LOG_KIND_ID),
+            '--kind',
+            'log',
+            '--older-than',
+            '0s',
+            '--confirm',
+          ],
+        }),
+        SiegelensePruneLayerFlow({
+          callArgs: [
+            '--instance',
+            String(SHOT_KIND_ID),
+            '--kind',
+            'shot',
+            '--older-than',
+            '0s',
+            '--confirm',
+          ],
+        }),
+        SiegelensePruneLayerFlow({
+          callArgs: [
+            '--instance',
+            String(RUN_KIND_ID),
+            '--kind',
+            'run',
+            '--older-than',
+            '0s',
+            '--confirm',
+          ],
+        }),
+        SiegelensePruneLayerFlow({
+          callArgs: [
+            '--instance',
+            String(VIDEO_KIND_ID),
+            '--kind',
+            'video',
+            '--older-than',
+            '0s',
+            '--confirm',
+          ],
+        }),
+        // No `--older-than` here — this is the one sweep proving what the DEFAULT resolves to.
+        SiegelensePruneLayerFlow({
+          callArgs: ['--instance', String(VIDEO_DEFAULT_WINDOW_ID), '--kind', 'video', '--confirm'],
+        }),
+      ]);
     videoDefaultWindowFileAfter = testbed.readFile({
       relativePath: VIDEO_DEFAULT_WINDOW_VIDEO_PATH,
     });
@@ -474,7 +479,7 @@ describe('SiegelensePruneLayerFlow', () => {
   });
 
   describe('--kind filters to exactly that kind', () => {
-    it('VALID: {kind: log} => removes the process log AND the capture buffer, since both classify as log, leaving shot and video on disk', () => {
+    it('VALID: {kind: log} => removes the process log, leaving capture buffer, shot and video on disk', () => {
       const logAfter = testbed.readFile({
         relativePath: LOG_KIND_LOG_PATH,
       });
@@ -490,9 +495,8 @@ describe('SiegelensePruneLayerFlow', () => {
 
       expect(logKindResult).toBe(undefined);
       expect(logAfter).toBe(null);
-      // console.jsonl is a per-instance capture buffer, not a Claude-style session transcript — it
-      // classifies as `log`, the same as api-server.log, and goes with it.
-      expect(transcriptAfter).toBe(null);
+      // console.jsonl is a capture buffer, which classifies as `run`, not `log` — so it survives `--kind log`.
+      expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
@@ -518,23 +522,31 @@ describe('SiegelensePruneLayerFlow', () => {
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
 
-    it('VALID: {kind: transcript} => matches nothing today, since no Claude-style session transcript is tracked yet — the log, buffer, shot and video all survive', () => {
+    it('VALID: {kind: run} => removes run stored readings and capture buffers, leaving log, shot and video on disk', () => {
       const logAfter = testbed.readFile({
-        relativePath: TRANSCRIPT_KIND_LOG_PATH,
+        relativePath: RUN_KIND_LOG_PATH,
       });
       const transcriptAfter = testbed.readFile({
-        relativePath: TRANSCRIPT_KIND_TRANSCRIPT_PATH,
+        relativePath: RUN_KIND_TRANSCRIPT_PATH,
+      });
+      const runJsonlAfter = testbed.readFile({
+        relativePath: RUN_KIND_RUN_JSONL_PATH,
+      });
+      const runJsonAfter = testbed.readFile({
+        relativePath: RUN_KIND_RUN_JSON_PATH,
       });
       const shotAfter = testbed.readFile({
-        relativePath: TRANSCRIPT_KIND_SHOT_PATH,
+        relativePath: RUN_KIND_SHOT_PATH,
       });
       const videoAfter = testbed.readFile({
-        relativePath: TRANSCRIPT_KIND_VIDEO_PATH,
+        relativePath: RUN_KIND_VIDEO_PATH,
       });
 
-      expect(transcriptKindResult).toBe(undefined);
+      expect(runKindResult).toBe(undefined);
       expect(logAfter).toBe(KIND_LOG_BODY);
-      expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
+      expect(transcriptAfter).toBe(null);
+      expect(runJsonlAfter).toBe(null);
+      expect(runJsonAfter).toBe(null);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });

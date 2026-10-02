@@ -245,7 +245,7 @@ a fixer read a run whose instance is long gone.
 - **`prune` is explicit** for reclaiming sooner, and refuses anything referenced by a `VERIFIED`
   prelude, an open issue record or an open quest's `WALKED` line — those are the ones a fixer or an antagonist still
   needs.
-- **video is the big one.** A screencast dwarfs every shot and transcript combined, so it ages out first and separately.
+- **video is the big one.** A screencast dwarfs every shot, log and run combined, so it ages out first and separately.
 
 **What "referenced" means MECHANICALLY, because both refusals above are worthless as prose.** `start` records the quest
 id in the registry entry. `prune` and `cleanup` then resolve a reference by reading that quest's `.quest-plans/` and
@@ -2468,6 +2468,8 @@ prune { kind: 'video', olderThan: '2d' }     → video first, it dwarfs everythi
     refused: [ { id: 'inst_1d09',
                  why: 'run_7 cited by a VERIFIED prelude in .quest-plans/1dac5395…/path-3.md' } ] }
 ```
+
+Asset kinds are `video`, `shot`, `log` (process `.log` files only), and `run` (run stored readings and capture buffers, kept together so `results` never reads half-deleted runs).
 
 **It refuses rather than warns.** Anything a `VERIFIED` prelude, an open issue record or an open quest's `WALKED` line
 still points at stays, and the

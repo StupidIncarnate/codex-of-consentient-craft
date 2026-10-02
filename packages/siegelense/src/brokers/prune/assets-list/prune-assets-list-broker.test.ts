@@ -68,19 +68,19 @@ describe('pruneAssetsListBroker', () => {
           },
           {
             path: `${EVIDENCE}/console.jsonl`,
-            kind: 'log',
+            kind: 'run',
             sizeBytes: 256,
             modifiedAtMs: 1_700_000_000_100,
           },
           {
             path: `${RUNS}/run_1.jsonl`,
-            kind: 'log',
+            kind: 'run',
             sizeBytes: 1024,
             modifiedAtMs: 1_700_000_000_200,
           },
           {
             path: `${RUNS}/run_1.json`,
-            kind: 'log',
+            kind: 'run',
             sizeBytes: 64,
             modifiedAtMs: 1_700_000_000_300,
           },
@@ -190,11 +190,35 @@ describe('pruneAssetsListBroker', () => {
       expect(result.assets).toStrictEqual([
         {
           path: `${RUNS}/run_1.jsonl`,
-          kind: 'log',
+          kind: 'run',
           sizeBytes: 1024,
           modifiedAtMs: 1_700_000_000_200,
         },
       ]);
+    });
+  });
+
+  describe('instance metadata', () => {
+    it('VALID: {heartbeat.json on disk} => not listed as an asset, because it is instance metadata not an evidence asset', async () => {
+      const proxy = pruneAssetsListBrokerProxy();
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
+      });
+      proxy.setupFile({
+        filePath: `${EVIDENCE}/heartbeat.json`,
+        sizeBytes: 128,
+        modifiedAtMs: 1_700_000_000_000,
+      });
+      proxy.setupDir({ dirPath: RUNS, entries: [] });
+
+      const result = await pruneAssetsListBroker({
+        entry: RegistryEntryStub({ id: INSTANCE_ID, guildId: null, questId: null }),
+      });
+
+      expect(result.assets).toStrictEqual([]);
     });
   });
 

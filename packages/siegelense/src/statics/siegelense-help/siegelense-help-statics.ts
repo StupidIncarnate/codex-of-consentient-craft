@@ -341,8 +341,7 @@ export const siegelenseHelpStatics = {
           name: '--kind',
           value: '<kind>',
           required: false,
-          description:
-            'one class of file: video, shot, transcript or log. Combines with --older-than.',
+          description: 'one class of file: video, shot, log or run. Combines with --older-than.',
         },
         {
           name: '--older-than',
