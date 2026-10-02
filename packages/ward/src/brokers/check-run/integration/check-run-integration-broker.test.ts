@@ -400,6 +400,36 @@ describe('checkRunIntegrationBroker', () => {
       expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
 
+    it('VALID: {fileList with non-integration .test.ts file, testNamePattern provided} => skips with testNamePatternMatch unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: ['src/brokers/quest/orchestration-loop/spawn-ward-layer-broker.test.ts'],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching integration test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+    });
+
     it('VALID: {fileList with mix of integration and unit test files} => only passes integration files to --findRelatedTests', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();

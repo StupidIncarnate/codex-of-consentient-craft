@@ -119,14 +119,11 @@ npm run ward -- --only unit --onlyTests "my test" --                            
 in multi-package mode every other package the scope reached reports zero matches. Those packages are reported as `skip`.
 The run fails with `--onlyTests pattern "X" matched 0 tests in any package` only when no package the pattern reached
 matched anything — which is what a typo or a stale test name looks like.
-
-**A scoped run that reaches no package at all is a different silence, and `hasUnmatchedTestNamePatternGuard` does not
-catch it.** Every early return that skips before a runner is spawned — `discoveredCount === 0`, `no matching unit test
-files in passthrough`, a package that is not e2e-eligible — records NO `testNamePatternMatch`, so `reached.length` is 0
-and the guard's own precondition fails. Reproduced live: `--only e2e --onlyTests "XYZNONEXISTENT" -- <a ward test file>`
-exits 0 having run nothing, because `@dungeonmaster/ward` is not e2e-eligible. `hasCheckDiscoveryMismatchGuard` and
-`hasNoFilesProcessedGuard` cover the neighbouring shapes but not this one: the first needs `discoveredCount > 0`, and
-the second drops checks whose status is `skip`.
+Early returns that skip before a runner is spawned — `discoveredCount === 0`, `relevantFiles.length === 0`,
+or a package that is not e2e-eligible — record `testNamePatternMatch: 'unmatched'` when `--onlyTests` was
+provided, so `hasUnmatchedTestNamePatternGuard` catches runs where no tests match. Additionally,
+`hasNoFilesProcessedGuard` catches runs where every file-scoped check reports 0 files processed, including
+skipped checks.
 
 ## Common Invocation Patterns
 

@@ -33,6 +33,7 @@ const DAY_MS = 86_400_000;
 export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
   setupSinglePackageLintPassWithNoFiles: () => void;
+  setupSinglePackageE2eOnlySkip: () => void;
   setupSinglePackageFail: () => void;
   setupSinglePackageCrash: () => void;
   setupUncommittedWithCleanTree: () => void;
@@ -101,6 +102,11 @@ export const commandRunBrokerProxy = (): {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
       singleProxy.setupLintOnlyPass({ projectFolder: singlePackageProjectFolder });
+    },
+    setupSinglePackageE2eOnlySkip: (): void => {
+      workspaceProxy.setupSinglePackage();
+      folderProxy.setupReturnsPackage({ name: 'test-pkg' });
+      singleProxy.setupE2eOnlySkip({ projectFolder: singlePackageProjectFolder });
     },
     setupSinglePackageFail: (): void => {
       workspaceProxy.setupSinglePackage();

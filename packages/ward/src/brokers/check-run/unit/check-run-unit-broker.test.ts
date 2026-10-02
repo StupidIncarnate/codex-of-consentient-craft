@@ -123,6 +123,39 @@ describe('checkRunUnitBroker', () => {
       );
     });
 
+    it('VALID: {fileList provided, testNamePattern provided, jest finds no related unit tests} => returns skip with testNamePatternMatch unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupFailWithStderr({
+        projectFolder,
+        stdout: '',
+        stderr:
+          'No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\n',
+      });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: ['src/index.test.ts'],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no unit tests related to changed files',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
     it('VALID: {no fileList, jest emits no-tests banner} => returns fail preserving full-run protection', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
@@ -488,6 +521,36 @@ describe('checkRunUnitBroker', () => {
       expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
 
+    it('VALID: {fileList with only .integration.test.ts file, testNamePattern provided} => skips with testNamePatternMatch unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: ['src/flows/chat-replay/chat-replay-flow.integration.test.ts'],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+    });
+
     it('VALID: {fileList with mix of unit and integration files} => only passes unit files to --findRelatedTests', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
@@ -533,6 +596,36 @@ describe('checkRunUnitBroker', () => {
           discoveredCount: 1,
           projectFolder,
           status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+    });
+
+    it('VALID: {fileList with directory that has no unit tests in discovered files, testNamePattern provided} => skips with testNamePatternMatch unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: ['src/transformers'],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
           errors: [],
           testFailures: [],
           rawOutput: RawOutputStub({
