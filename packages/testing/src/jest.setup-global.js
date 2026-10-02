@@ -68,6 +68,7 @@ module.exports = function globalSetup() {
   );
 
   process.env.HOME = sandboxHome;
+  process.env.DUNGEONMASTER_LOAD_DIR = join(sandboxHome, '.dungeonmaster', 'load');
   // git reads `$XDG_CONFIG_HOME/git/config` ahead of `$HOME/.gitconfig`; a developer's own XDG
   // config/cache dirs must not leak into a sandboxed run any more than `$HOME` itself does.
   process.env.XDG_CONFIG_HOME = xdgConfigHome;
