@@ -14,7 +14,10 @@ describe('siegelenseInstanceKillModuleContract', () => {
   it('VALID: {default stub} => parses with instanceKillBroker resolving stopped: true', async () => {
     const siegelenseModule = SiegelenseInstanceKillModuleStub();
 
-    const result = await siegelenseModule.instanceKillBroker({ instanceId: 'inst_7f3a9c21' });
+    const result = await siegelenseModule.instanceKillBroker({
+      instanceId: 'inst_7f3a9c21',
+      repoRoot: '/repo/worktrees/quest-a',
+    });
 
     expect(result).toStrictEqual({ stopped: true });
   });

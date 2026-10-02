@@ -3,10 +3,10 @@ import { hookConfigLoadBrokerProxy } from './hook-config-load-broker.proxy';
 
 describe('hookConfigLoadBroker', () => {
   describe('valid input', () => {
-    it('VALID: {} => returns default config with pre-edit rules', () => {
+    it('VALID: {cwd: "/project"} => returns default config with pre-edit rules', () => {
       hookConfigLoadBrokerProxy();
 
-      const result = hookConfigLoadBroker();
+      const result = hookConfigLoadBroker({ cwd: '/project' });
 
       expect(Array.isArray(result.rules)).toBe(true);
       expect(result.rules.length).toBeGreaterThan(30);

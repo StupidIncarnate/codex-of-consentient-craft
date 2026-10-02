@@ -16,6 +16,7 @@
  * // Returns the rendered ContentText for the `summary` command
  */
 import { readFileSync } from '#gateway/node/fs';
+import { cwd } from '#gateway/node/process';
 import { questContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { transcriptLoadBroker } from '../../../brokers/transcript/load/transcript-load-broker';
@@ -56,23 +57,23 @@ export const DigestRunResponder = async ({
 }): Promise<string> => {
   if (command === 'coverage') {
     const questId = questContract.shape.id.parse(target);
-    const questPath = await questFindBroker({ questId });
+    const questPath = await questFindBroker({ questId, startDir: cwd() });
     if (questPath === undefined) {
       return 'quest not found';
     }
-    const { flows, workItems } = await questLoadBroker({ questId });
+    const { flows, workItems } = await questLoadBroker({ questId, startDir: cwd() });
     const coverage = questToCoverageTransformer({ flows, workItems });
     return coverageToTextTransformer({ coverage });
   }
 
   if (command === 'quest') {
     const questId = questContract.shape.id.parse(target);
-    const questPath = await questFindBroker({ questId });
+    const questPath = await questFindBroker({ questId, startDir: cwd() });
     if (questPath === undefined) {
       return 'quest not found';
     }
     const { userRequest, workItems, operations, wardResults, riftcarverResults } =
-      await questIndexLoadBroker({ questId });
+      await questIndexLoadBroker({ questId, startDir: cwd() });
 
     const rows: WorkItemIndexRow[] = workItems.map((workItem) => {
       const transcriptPath =

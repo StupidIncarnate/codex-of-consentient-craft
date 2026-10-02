@@ -156,7 +156,7 @@ export const chatHistoryReplayBroker = async ({
   }
 
   const processor = chatLineProcessTransformer({
-    serverBaseUrl: questGetServerConfigBroker().baseUrl,
+    serverBaseUrl: questGetServerConfigBroker({ startDir: resolvedProjectPath }).baseUrl,
   });
   const sessionSource = 'session';
   const subagentSource = 'subagent';

@@ -10,6 +10,8 @@
  * proxy.stageAnswer({ answer });
  */
 
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -21,11 +23,15 @@ import type { StatusAnswerStub } from '../../../contracts/status-answer/status-a
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
+// The directory the responder reads as where it runs; the repo root it hands down is this same path.
+const CWD_VALUE = '/default/cwd';
+
 type StatusAnswer = ReturnType<typeof StatusAnswerStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 
 export const SiegelenseStatusResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
+  stageNoRepoAboveCwd: () => void;
   stageAnswer: (params: { answer: StatusAnswer; instanceId: SiegeInstance['id'] | null }) => void;
   getStdoutWrites: () => unknown[];
 } => {
@@ -34,6 +40,10 @@ export const SiegelenseStatusResponderProxy = (): {
   statusReadBrokerProxy();
   registryReadBrokerProxy();
 
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: CWD_VALUE });
+  const resolveProxy = cwdResolveBrokerProxy();
+  resolveProxy.setupRepoRootFoundAtStart({ startPath: CWD_VALUE });
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const statusReadHandle = registerMock({ fn: statusReadBroker });
   const stdout = stdoutProxy();
@@ -43,6 +53,10 @@ export const SiegelenseStatusResponderProxy = (): {
       registryReadHandle.calledWith([]).resolves(registry);
     },
 
+    stageNoRepoAboveCwd: (): void => {
+      resolveProxy.setupRepoRootNotFound({ startPath: CWD_VALUE });
+    },
+
     stageAnswer: ({
       answer,
       instanceId,
@@ -50,7 +64,7 @@ export const SiegelenseStatusResponderProxy = (): {
       answer: StatusAnswer;
       instanceId: SiegeInstance['id'] | null;
     }): void => {
-      statusReadHandle.calledWith([{ instanceId }]).resolves(answer);
+      statusReadHandle.calledWith([{ instanceId, repoRoot: CWD_VALUE }]).resolves(answer);
     },
 
     getStdoutWrites: (): unknown[] => [...stdout.getWrites()],

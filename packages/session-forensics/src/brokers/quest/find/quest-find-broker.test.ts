@@ -12,7 +12,7 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({ root: 'repoLocal', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/repo/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests/add-auth/quest.json',
@@ -31,7 +31,7 @@ describe('questFindBroker', () => {
       });
       proxy.setupQuestAt({ root: 'dev', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/repo/.dungeonmaster-dev/guilds/bb31df1a-53e9-7497-9c56-d3e719f494dd/quests/fix-bug/quest.json',
@@ -45,7 +45,7 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({ root: 'envHome', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/env/dungeonmaster-home/guilds/27a2b0ed-7dfc-24b9-a7b9-eea7daeda4f4/quests/refactor-auth/quest.json',
@@ -59,7 +59,7 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({ root: 'userGlobal', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/home/testuser/.dungeonmaster/guilds/c8fe9bf4-8af5-5022-9935-53917347c017/quests/add-logging/quest.json',
@@ -83,7 +83,7 @@ describe('questFindBroker', () => {
         questId,
       });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/repo/.dungeonmaster/guilds/5835facb-dad2-2910-81e6-934f831a086a/quests/shared-id/quest.json',
@@ -97,7 +97,7 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({ root: 'dev', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/repo/.dungeonmaster-dev/guilds/e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c/quests/missing-root-quest/quest.json',
@@ -106,15 +106,18 @@ describe('questFindBroker', () => {
   });
 
   describe('running from a package subdirectory', () => {
-    it('VALID: {cwd in package subdirectory} => resolves repo root and finds the quest', async () => {
+    it('VALID: {startDir in package subdirectory} => resolves repo root and finds the quest', async () => {
       const proxy = questFindBrokerProxy();
       const questId = QuestIdStub({ value: 'sub-dir-quest' });
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
-      proxy.setupCwdSubdirectory({ subdirectory: '/repo/packages/session-forensics' });
+      proxy.setupStartDirSubdirectory({ subdirectory: '/repo/packages/session-forensics' });
       proxy.setupQuestAt({ root: 'repoLocal', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({
+        questId,
+        startDir: '/repo/packages/session-forensics',
+      });
 
       expect(result).toBe(
         '/repo/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests/sub-dir-quest/quest.json',
@@ -131,7 +134,7 @@ describe('questFindBroker', () => {
       proxy.setupRepoRootNotFound();
       proxy.setupQuestAt({ root: 'userGlobal', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/home/testuser/.dungeonmaster/guilds/c8fe9bf4-8af5-5022-9935-53917347c017/quests/global-quest/quest.json',
@@ -154,7 +157,7 @@ describe('questFindBroker', () => {
         ],
       });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/repo/.dungeonmaster/guilds/a979fd6f-6969-1e05-b65b-fd78e7c13ea6/quests/third-guild-quest/quest.json',
@@ -169,7 +172,7 @@ describe('questFindBroker', () => {
 
       proxy.setupNoQuestAnywhere();
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(undefined);
     });
@@ -182,7 +185,7 @@ describe('questFindBroker', () => {
       proxy.setupHomeEnvEmptyString();
       proxy.setupQuestAt({ root: 'userGlobal', guildId: GuildIdStub({ value: guildId }), questId });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(
         '/home/testuser/.dungeonmaster/guilds/88888888-8888-8888-8888-888888888888/quests/empty-env-quest/quest.json',
@@ -211,7 +214,7 @@ describe('questFindBroker', () => {
         questId,
       });
 
-      const result = await questFindBroker({ questId });
+      const result = await questFindBroker({ questId, startDir: '/repo' });
 
       expect(result).toBe(undefined);
     });

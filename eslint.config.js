@@ -151,6 +151,8 @@ module.exports = [
       '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
       '@dungeonmaster-local/graph-reachability': 'error',
       '@dungeonmaster-local/ban-self-located-repo-lookup': 'error',
+      '@dungeonmaster-local/enforce-quest-cwd-resolve': 'error',
+      '@dungeonmaster-local/ban-ambient-module-resolve': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },

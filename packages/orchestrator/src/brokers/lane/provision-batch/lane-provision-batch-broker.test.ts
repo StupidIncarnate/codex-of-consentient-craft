@@ -81,7 +81,11 @@ describe('laneProvisionBatchBroker', () => {
       proxy.setupQuestFound({ quest });
       // Staged even though it must never be read for a non-lane batch — proves a low `suggested`
       // sitting in the registry cannot bound a browser-walk batch it was never measured over.
-      proxy.setupCapacityAndManifest({ suggested: 1, manifest: LaneManifestReadingStub() });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 1,
+        manifest: LaneManifestReadingStub(),
+      });
       const agents = flowriderWorkItemIds.map((workItemId) =>
         SpawnInstructionStub({ questId, role: 'flowrider', workItemId }),
       );
@@ -118,7 +122,12 @@ describe('laneProvisionBatchBroker', () => {
         workItems: [workItemOne, workItemTwo],
       });
       proxy.setupQuestFound({ quest });
-      proxy.setupCapacityAndManifest({ suggested: 1, manifest: LaneManifestReadingStub() });
+      proxy.setupCheckout({ quest });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 1,
+        manifest: LaneManifestReadingStub(),
+      });
 
       const agentOne = SpawnInstructionStub({
         questId,
@@ -184,7 +193,12 @@ describe('laneProvisionBatchBroker', () => {
         workItems: [workItemOne, workItemTwo, workItemThree],
       });
       proxy.setupQuestFound({ quest });
-      proxy.setupCapacityAndManifest({ suggested: 3, manifest: LaneManifestReadingStub() });
+      proxy.setupCheckout({ quest });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 3,
+        manifest: LaneManifestReadingStub(),
+      });
 
       const agentOne = SpawnInstructionStub({
         questId,
@@ -227,7 +241,12 @@ describe('laneProvisionBatchBroker', () => {
       });
       const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
       proxy.setupQuestFound({ quest });
-      proxy.setupCapacityAndManifest({ suggested: 0, manifest: LaneManifestReadingStub() });
+      proxy.setupCheckout({ quest });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 0,
+        manifest: LaneManifestReadingStub(),
+      });
       const agent = SpawnInstructionStub({
         questId,
         role: 'siegemaster',
@@ -268,7 +287,12 @@ describe('laneProvisionBatchBroker', () => {
       });
       const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
       proxy.setupQuestFound({ quest });
-      proxy.setupCapacityAndManifest({ suggested: 1, manifest: LaneManifestReadingStub() });
+      proxy.setupCheckout({ quest });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 1,
+        manifest: LaneManifestReadingStub(),
+      });
       const agent = SpawnInstructionStub({
         questId,
         role: 'siegemaster',
@@ -281,6 +305,129 @@ describe('laneProvisionBatchBroker', () => {
       });
 
       expect(result).toStrictEqual({ type: 'spawn-agents', agents: [agent] });
+    });
+  });
+
+  describe('the checkout the lanes are started from', () => {
+    it('VALID: {quest worktreePath differs from the process cwd} => siegelense resolves from the worktree and capacity + instanceStartBroker receive repoRoot = the worktree', async () => {
+      const proxy = laneProvisionBatchBrokerProxy();
+      const worktreePath = '/repo/worktrees/lane-provision';
+      const workItem = WorkItemStub({
+        id: workItemIdOne,
+        role: 'siegemaster',
+        status: 'pending',
+        step: 'happyWalk',
+        needsLane: true,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupCheckout({ quest });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 1,
+        manifest: LaneManifestReadingStub(),
+      });
+      const agent = SpawnInstructionStub({
+        questId,
+        role: 'siegemaster',
+        workItemId: workItemIdOne,
+      });
+
+      const result = await laneProvisionBatchBroker({
+        quest,
+        step: NextStepStub({ type: 'spawn-agents', agents: [agent] }),
+      });
+
+      expect({
+        result,
+        capacityCalls: proxy.getCapacityCalls(),
+        startCalls: proxy.getInstanceStartCalls(),
+      }).toStrictEqual({
+        result: { type: 'spawn-agents', agents: [agent] },
+        capacityCalls: [{ specName: 'stack', poolSize: null, repoRoot: worktreePath }],
+        startCalls: [
+          {
+            specName: 'stack',
+            questId,
+            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            seed: null,
+            repoRoot: worktreePath,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {quest has no worktree} => siegelense resolves from the repo root and both calls receive repoRoot = the repo root', async () => {
+      const proxy = laneProvisionBatchBrokerProxy();
+      const workItem = WorkItemStub({
+        id: workItemIdOne,
+        role: 'siegemaster',
+        status: 'pending',
+        step: 'happyWalk',
+        needsLane: true,
+      });
+      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
+      proxy.setupQuestFound({ quest });
+      proxy.setupCheckout({ quest, repoRoot: '/home/testuser' });
+      proxy.setupCapacityAndManifest({
+        quest,
+        suggested: 1,
+        manifest: LaneManifestReadingStub(),
+        repoRoot: '/home/testuser',
+      });
+      const agent = SpawnInstructionStub({
+        questId,
+        role: 'siegemaster',
+        workItemId: workItemIdOne,
+      });
+
+      await laneProvisionBatchBroker({
+        quest,
+        step: NextStepStub({ type: 'spawn-agents', agents: [agent] }),
+      });
+
+      expect(proxy.getCapacityCalls()).toStrictEqual([
+        { specName: 'stack', poolSize: null, repoRoot: '/home/testuser' },
+      ]);
+    });
+
+    it('ERROR: {quest worktree directory is gone} => throws naming the quest and the recorded path, starts no lane', async () => {
+      const proxy = laneProvisionBatchBrokerProxy();
+      const workItem = WorkItemStub({
+        id: workItemIdOne,
+        role: 'siegemaster',
+        status: 'pending',
+        step: 'happyWalk',
+        needsLane: true,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath: '/repo/worktrees/lane-provision',
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupMissingWorktree({ quest });
+      const agent = SpawnInstructionStub({
+        questId,
+        role: 'siegemaster',
+        workItemId: workItemIdOne,
+      });
+
+      await expect(
+        laneProvisionBatchBroker({
+          quest,
+          step: NextStepStub({ type: 'spawn-agents', agents: [agent] }),
+        }),
+      ).rejects.toThrow(
+        /^Cannot start a lane for quest lane-provision: worktree not found: \/repo\/worktrees\/lane-provision$/u,
+      );
+      expect(proxy.getInstanceStartCalls()).toStrictEqual([]);
     });
   });
 });

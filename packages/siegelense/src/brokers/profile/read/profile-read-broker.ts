@@ -19,7 +19,7 @@
  * whole spec unprofilable, and a silent skip would make a profile quietly thin out instead.
  *
  * USAGE:
- * await profileReadBroker({ specName });
+ * await profileReadBroker({ specName, repoRoot });
  * // Returns the SpecProfile — samples: [] and bootMs: null for a spec nothing has ever run
  */
 
@@ -44,10 +44,12 @@ const BROWSER_PROCESS_COUNT = 1;
 
 export const profileReadBroker = async ({
   specName,
+  repoRoot,
 }: {
   specName: string;
+  repoRoot: string;
 }): Promise<SpecProfile> => {
-  const spec = await laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName, repoRoot });
   const specHash = laneSpecHashBroker({ spec });
   const { samplesDir, bootsDir } = locationsProfileDirsFindBroker({ specHash });
 

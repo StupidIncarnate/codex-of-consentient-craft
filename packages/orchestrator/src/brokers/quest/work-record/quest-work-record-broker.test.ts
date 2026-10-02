@@ -81,7 +81,6 @@ describe('questWorkRecordBroker', () => {
 
     it("VALID: {needsLane item with a recorded instance, word: 'done'} => kills the lane it started", async () => {
       const proxy = questWorkRecordBrokerProxy();
-      proxy.setupLaneKill();
       const instance = QuestWorkInstanceStub();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
@@ -94,6 +93,7 @@ describe('questWorkRecordBroker', () => {
       });
       const quest = QuestStub({ id: QUEST_ID, workItems: [workItem] });
       proxy.setupQuestFound({ quest });
+      proxy.setupLaneKill({ quest });
 
       const result = await questWorkRecordBroker({
         questId: QUEST_ID,
@@ -107,7 +107,6 @@ describe('questWorkRecordBroker', () => {
 
     it("VALID: {needsLane item with a recorded instance, word: 'wall'} => kills the lane, whatever the outcome", async () => {
       const proxy = questWorkRecordBrokerProxy();
-      proxy.setupLaneKill();
       const instance = QuestWorkInstanceStub();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
@@ -120,6 +119,7 @@ describe('questWorkRecordBroker', () => {
       });
       const quest = QuestStub({ id: QUEST_ID, workItems: [workItem] });
       proxy.setupQuestFound({ quest });
+      proxy.setupLaneKill({ quest });
 
       const result = await questWorkRecordBroker({
         questId: QUEST_ID,

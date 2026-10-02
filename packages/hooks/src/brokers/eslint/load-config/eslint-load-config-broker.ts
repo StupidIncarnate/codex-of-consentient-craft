@@ -10,7 +10,6 @@ import { resolve } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
 import { hasEslintRulesConfigGuard } from '../../../guards/has-eslint-rules-config/has-eslint-rules-config-guard';
 import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-paths-broker';
-import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 // Cache keyed by resolved eslint.config.* path (or cwd when no config is found) AND the file, so
@@ -22,13 +21,12 @@ const configCache = new Map<string, unknown>();
 const MAX_WALK_UP_DEPTH = 20;
 
 export const eslintLoadConfigBroker = async ({
-  cwd: customCwd,
+  cwd: targetCwd,
   filePath,
 }: {
-  cwd?: string;
+  cwd: string;
   filePath: string;
 }): Promise<unknown> => {
-  const targetCwd = customCwd ?? cwd();
   const resolvedCwd = resolve(targetCwd);
 
   let configKey: string = resolvedCwd;

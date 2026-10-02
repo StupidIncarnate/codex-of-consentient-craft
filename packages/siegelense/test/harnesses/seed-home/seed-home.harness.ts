@@ -36,6 +36,8 @@ import { writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { dynamicImport } from '#gateway/node/module';
+import { cwd } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { dungeonmasterHomeStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -79,7 +81,8 @@ export const seedHomeHarness = (): {
     },
     homePath,
     runRecipe: async ({ recipeName }: { recipeName: RecipeName }): Promise<SeedResult> => {
-      const entryPath = await recipesLocateBroker();
+      const repoRoot = await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' });
+      const entryPath = recipesLocateBroker({ repoRoot });
       const recipesModule = await dynamicImport({ path: entryPath });
       const seedRun = (recipesModule as Record<PropertyKey, unknown>)[
         recipesConventionStatics.exports.seed

@@ -28,7 +28,7 @@
  * composing test stages them in the order the real calls consume them.
  *
  * USAGE:
- * await capacityReadBroker({ specName, poolSize: null });
+ * await capacityReadBroker({ specName, poolSize: null, repoRoot });
  * // Returns the CapacityAnswer for the spec against the policy ceiling's pool size
  */
 
@@ -51,9 +51,11 @@ const LOAD_AVERAGE_ONE_MINUTE = 0;
 export const capacityReadBroker = async ({
   specName,
   poolSize,
+  repoRoot,
 }: {
   specName: string;
   poolSize: number | null;
+  repoRoot: string;
 }): Promise<CapacityAnswer> => {
   // The pool a caller has not named is the largest one policy allows, so the group read is the most
   // CONTENDED the profile holds. Spec lines 1504-1507: a peak measured solo is optimistic for a pool
@@ -62,7 +64,7 @@ export const capacityReadBroker = async ({
 
   const registry = await registryReadBroker();
   const machine = await machineReadBroker();
-  const specProfile = await profileReadBroker({ specName });
+  const specProfile = await profileReadBroker({ specName, repoRoot });
 
   const nowMs = Date.now();
   const liveEntries = registry.instances.filter(

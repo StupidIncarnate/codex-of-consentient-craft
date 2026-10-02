@@ -1587,9 +1587,10 @@ either way. A static import is transformed when jest requires the test file, bef
 **The orchestrator never spawns `dungeonmaster-ward` or `dungeonmaster` by bare name.** `PATH` resolves a bare name to
 the main checkout's globally linked copy inside a quest worktree, and to nothing in a consumer with only a local install.
 The quest `ward` step, `wardDetailBroker`, riftcarver's preflight typecheck and the siege `cleanup` step resolve through
-`dungeonmasterBinResolveBroker`, which walks up from the run's folder to the nearest `node_modules/<owning package>`
-(`dungeonmasterBinStatics`) and runs `node <its bin entry>`, falling back to the bare name only when nothing is installed
-locally. An env override (`WARD_CLI_PATH`, `DUNGEONMASTER_CLI_PATH`) still wins, with no leading arguments.
+`packageBinResolveBroker({ binName, repoRoot })` from `@dungeonmaster/shared/brokers`, which resolves the owning package
+(`dungeonmasterBinStatics`, also shared) from the run's folder and runs `node <its bin entry>`. It falls back to this
+process's own install only when the run's folder holds none, and throws when neither has the package — it never returns
+a bare command name. An env override (`WARD_CLI_PATH`, `DUNGEONMASTER_CLI_PATH`) still wins, with no leading arguments.
 
 **Every headless agent child starts with `<cwd>/node_modules/.bin` first on its `PATH`**
 (`agentSpawnStreamJsonBroker`), so a prompt telling an agent to run `dungeonmaster siegelense …` reaches the run

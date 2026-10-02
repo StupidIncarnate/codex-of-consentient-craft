@@ -73,7 +73,7 @@ describe('cleanupRunBroker', () => {
       });
       proxy.setupNoLocks();
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [{ id: STALE_ID, staleFor: '9h', killed: [pgidOne, pgidTwo], homeRemoved: true }],
@@ -119,7 +119,7 @@ describe('cleanupRunBroker', () => {
       });
       proxy.setupNoLocks();
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [{ id: ABANDONED_RESERVATION_ID, staleFor: '10m', killed: [], homeRemoved: true }],
@@ -146,7 +146,7 @@ describe('cleanupRunBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [freshReservation] }) });
       proxy.setupNoLocks();
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [],
@@ -192,7 +192,7 @@ describe('cleanupRunBroker', () => {
       });
       proxy.setupNoLocks();
 
-      await cleanupRunBroker();
+      await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(proxy.getReleasedRegistry()).toStrictEqual({
         instances: [
@@ -221,7 +221,7 @@ describe('cleanupRunBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [liveEntry] }) });
       proxy.setupNoLocks();
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [],
@@ -244,7 +244,7 @@ describe('cleanupRunBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
       proxy.setupNoLocks();
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [],
@@ -263,7 +263,7 @@ describe('cleanupRunBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
       proxy.setupBootLockStale({ acquiredAtMs: NOW_MS - 46_000 });
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [],
@@ -282,7 +282,7 @@ describe('cleanupRunBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
       proxy.setupBootLockUnlinkFails({ acquiredAtMs: NOW_MS - 46_000 });
 
-      const result = await cleanupRunBroker();
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: [],

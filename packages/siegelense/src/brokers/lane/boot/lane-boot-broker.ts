@@ -35,14 +35,14 @@
  *   instanceId: InstanceIdStub(),
  *   homePath: '/tmp/dm-siege-inst_1',
  *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
+ *   repoRoot: '/repo',
  * });
  * // Resolves a LaneSession with browser: null (browserless spec) and every pgid it spawned
  */
 
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { closeSync, openForAppendSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { cwd, envSnapshot } from '#gateway/node/process';
+import { envSnapshot } from '#gateway/node/process';
 import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
@@ -72,12 +72,14 @@ export const laneBootBroker = async ({
   instanceId,
   homePath,
   evidencePath,
+  repoRoot,
 }: {
   spec: LaneSpec;
   ports: PortPair;
   instanceId: SiegeInstance['id'];
   homePath: string;
   evidencePath: string;
+  repoRoot: string;
 }): Promise<LaneSession> => {
   // process.env is inherited by every spawned process; the spec's own env (and each process's
   // further override) is merged OVER it — see LaneSpec's PURPOSE. `[string, string]`
@@ -91,8 +93,6 @@ export const laneBootBroker = async ({
     ),
   );
 
-  const cwdSeed = cwd();
-  const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
   const spawnCwd = repoRoot;
 
   await Promise.all([ensureDir(homePath), ensureDir(evidencePath)]);
@@ -265,6 +265,7 @@ export const laneBootBroker = async ({
       ports,
       homePath,
       evidencePath,
+      repoRoot,
       baseUrl: apiBaseUrl,
       apiBaseUrl,
       pgids: livePgids,

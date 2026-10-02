@@ -7,7 +7,7 @@ describe('questGetServerConfigBroker', () => {
       const proxy = questGetServerConfigBrokerProxy();
       proxy.setPort({ value: '3737' });
 
-      const result = questGetServerConfigBroker();
+      const result = questGetServerConfigBroker({ startDir: '/repo' });
 
       expect(result).toStrictEqual({
         baseUrl: 'http://dungeonmaster.localhost:3737',
@@ -19,7 +19,7 @@ describe('questGetServerConfigBroker', () => {
       const proxy = questGetServerConfigBrokerProxy();
       proxy.setPort({ value: '4750' });
 
-      const result = questGetServerConfigBroker();
+      const result = questGetServerConfigBroker({ startDir: '/repo' });
 
       expect(result).toStrictEqual({
         baseUrl: 'http://dungeonmaster.localhost:4750',
@@ -31,7 +31,7 @@ describe('questGetServerConfigBroker', () => {
       const proxy = questGetServerConfigBrokerProxy();
       proxy.setPort({ value: '65535' });
 
-      const result = questGetServerConfigBroker();
+      const result = questGetServerConfigBroker({ startDir: '/repo' });
 
       expect(result).toStrictEqual({
         baseUrl: 'http://dungeonmaster.localhost:65535',

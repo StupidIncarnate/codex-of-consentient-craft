@@ -10,7 +10,7 @@
  * USAGE:
  * const { capacityReadBroker, instanceStartBroker } =
  *   siegelenseLaneProvisionModuleContract.parse(await dynamicImport({ path }));
- * await capacityReadBroker({ specName: 'default', poolSize: null });
+ * await capacityReadBroker({ specName: 'default', poolSize: null, repoRoot: '/repo/worktrees/quest-a' });
  */
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
@@ -18,12 +18,14 @@ import { z } from '#gateway/npm/zod';
 export type CapacityReadBrokerFn = (params: {
   specName: string;
   poolSize: number | null;
+  repoRoot: string;
 }) => Promise<unknown>;
 export type InstanceStartBrokerFn = (params: {
   specName: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
   seed: string | null;
+  repoRoot: string;
 }) => Promise<unknown>;
 
 const capacityReadBrokerFnContract = z.custom<CapacityReadBrokerFn>(

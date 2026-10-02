@@ -4,6 +4,7 @@
  * USAGE:
  * const handle = questMonitorJsonlWatcherBroker({
  *   sessionFilePath,
+ *   projectDir,
  *   activeQuestIdGetter: () => null,
  *   chatProcessId,
  *   mainSessionWorkItemId,
@@ -43,6 +44,7 @@ const SUBAGENT_DIR_POLL_INTERVAL_MS = 1000;
 
 export const questMonitorJsonlWatcherBroker = ({
   sessionFilePath,
+  projectDir,
   activeQuestIdGetter,
   chatProcessId,
   workItemIdForAgent,
@@ -50,6 +52,9 @@ export const questMonitorJsonlWatcherBroker = ({
   mainSessionWorkItemId,
 }: {
   sessionFilePath: string;
+  // The directory the tailed session runs in; where the server port's `.dungeonmaster.json` is
+  // looked up from.
+  projectDir: string;
   activeQuestIdGetter: () => Quest['id'] | null;
   // Resolves the owning work item id for a sub-agent's realAgentId. Forwarded to each
   // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript
@@ -81,7 +86,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // must carry across both sources or sub-agent lines arrive keyed by realAgentId instead
   // of the Task's toolUseId and the web's chain grouping breaks.
   const processor = chatLineProcessTransformer({
-    serverBaseUrl: questGetServerConfigBroker().baseUrl,
+    serverBaseUrl: questGetServerConfigBroker({ startDir: projectDir }).baseUrl,
   });
 
   // A nested sub-agent has no work item of its own. Route its transcript to the nearest

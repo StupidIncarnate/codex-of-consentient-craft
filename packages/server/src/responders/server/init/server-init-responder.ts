@@ -15,7 +15,7 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { clearInterval } from '#gateway/node/clearInterval';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { exit, getEnv, on, stdout } from '#gateway/node/process';
+import { cwd, exit, getEnv, on, stdout } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
 import { URL } from '#gateway/node/url';
 import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
@@ -538,7 +538,7 @@ export const ServerInitResponder = ({
     })),
   );
 
-  const serverPort = portResolveBroker();
+  const serverPort = portResolveBroker({ startDir: cwd() });
   const serverHost = environmentStatics.hostname;
 
   // Two web-UI serving modes for this main server port:

@@ -3,27 +3,24 @@ import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 import { join } from '#gateway/node/path';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type OrchestrationMode = ReturnType<typeof OrchestrationModeStub>;
 
-const CWD_VALUE = '/default/cwd';
+const START_DIR = '/default/cwd';
 
-// The broker builds startPath as join(cwd(), projectConfigFile). `cwd` takes no argument to key
-// on (the honest catch-all); `join` is staged on the exact [cwd, projectConfigFile] tuple, so
-// this is the exact, real address configResolveBroker is called with.
-const CONFIG_START_PATH = `${CWD_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
+// The broker builds startPath as join(startDir, projectConfigFile); `join` is staged on the exact
+// [START_DIR, projectConfigFile] tuple, so this is the real address configResolveBroker is called with.
+const CONFIG_START_PATH = `${START_DIR}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
 
 export const orchestrationModeGetBrokerProxy = (): {
   setupMode: (params: { mode: OrchestrationMode }) => void;
   setupConfigNotFound: () => void;
   setupConfigError: (params: { error: Error }) => void;
 } => {
-  const cwdSetup = cwdProxy();
   const joinHandle = registerMock({ fn: join });
   joinHandle
-    .calledWith([CWD_VALUE, dungeonmasterHomeStatics.paths.projectConfigFile])
+    .calledWith([START_DIR, dungeonmasterHomeStatics.paths.projectConfigFile])
     .returns(CONFIG_START_PATH);
   // Composes config's own black-box caller proxy (F18) rather than mocking configResolveBroker
   // directly here, and rather than composing config's colocated config-resolve-broker.proxy:
@@ -38,18 +35,15 @@ export const orchestrationModeGetBrokerProxy = (): {
 
   return {
     setupMode: ({ mode }: { mode: OrchestrationMode }): void => {
-      cwdSetup.setupCwd({ value: CWD_VALUE });
       configProxy.setupResolves({
         filePath: CONFIG_START_PATH,
         config: DungeonmasterConfigStub({ orchestrationMode: mode }),
       });
     },
     setupConfigNotFound: (): void => {
-      cwdSetup.setupCwd({ value: CWD_VALUE });
       configProxy.setupConfigNotFound({ filePath: CONFIG_START_PATH });
     },
     setupConfigError: ({ error }: { error: Error }): void => {
-      cwdSetup.setupCwd({ value: CWD_VALUE });
       configProxy.setupConfigMalformed({ filePath: CONFIG_START_PATH, message: error.message });
     },
   };

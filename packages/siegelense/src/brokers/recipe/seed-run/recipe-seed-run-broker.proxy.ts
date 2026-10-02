@@ -14,8 +14,9 @@ import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 
-const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
-const PACKAGE_PATH = '/repo/packages/hydration-recipes';
+// Staged under `LaneSessionStub`'s default `repoRoot`, which is what `stepResetBroker` hands down.
+const ENTRY_PATH = '/tmp/dm-siege-stub-repo/packages/hydration-recipes/dist/index.js';
+const PACKAGE_PATH = '/tmp/dm-siege-stub-repo/packages/hydration-recipes';
 
 export const recipeSeedRunBrokerProxy = (): {
   bookPresent: () => void;
@@ -36,12 +37,10 @@ export const recipeSeedRunBrokerProxy = (): {
 
   const stageEntry = (): void => {
     locateProxy.setupPresentAndBuilt({
-      cwdPath: '/repo',
       packagePath: PACKAGE_PATH,
       entryPath: ENTRY_PATH,
     });
     locateProxy.setupPresentAndBuilt({
-      cwdPath: '/repo',
       packagePath: PACKAGE_PATH,
       entryPath: ENTRY_PATH,
     });
@@ -58,7 +57,7 @@ export const recipeSeedRunBrokerProxy = (): {
     },
 
     bookMissing: (): void => {
-      locateProxy.setupPackageMissing({ cwdPath: '/repo', packagePath: PACKAGE_PATH });
+      locateProxy.setupPackageMissing({ packagePath: PACKAGE_PATH });
     },
 
     // Shaped like `dmRegistryBroker.run`'s own real return for `guild-with-three-quests` — the
@@ -82,12 +81,9 @@ export const recipeSeedRunBrokerProxy = (): {
         .mockResolvedValue({ guild, questCreated, questInProgress, questComplete });
     },
 
-    // `repoRoot` is the cwd the caller already answers to every reader, so the one-shot cwd this
-    // queues is the same value whichever broker spends it. The real `recipesLocateBroker` throws its
-    // own `RecipesPackageMissingError`.
+    // The real `recipesLocateBroker` throws its own `RecipesPackageMissingError`.
     bookMissingUnder: ({ repoRoot }: { repoRoot: string }): void => {
       locateProxy.setupPackageMissing({
-        cwdPath: repoRoot,
         packagePath: `${repoRoot}/${recipesConventionStatics.package.workspaceDirName}/${recipesConventionStatics.package.dirName}`,
       });
     },

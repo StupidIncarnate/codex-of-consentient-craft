@@ -6,12 +6,12 @@
  * gets measured, not a stale copy the user-global home also happens to carry.
  *
  * USAGE:
- * await questFindBroker({ questId: QuestIdStub() });
+ * await questFindBroker({ questId: QuestIdStub(), startDir: '/path/to/repo' });
+ * // startDir is where the caller runs; the repo-local roots are found by walking up from it.
  * // Returns the AbsoluteFilePath to that quest's quest.json. Returns undefined when no candidate
  * // root holds it.
  */
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
-import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import { cwdResolveBroker, dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
@@ -20,13 +20,14 @@ import type { Quest } from '@dungeonmaster/shared/contracts';
 
 export const questFindBroker = async ({
   questId,
+  startDir,
 }: {
   questId: Quest['id'];
+  startDir: string;
 }): Promise<string | undefined> => {
   const { homePath: fallbackHomePath } = dungeonmasterHomeFindBroker();
-  const currentDir = cwd();
 
-  const repoRoot = await cwdResolveBroker({ startPath: currentDir, kind: 'repo-root' }).catch(
+  const repoRoot = await cwdResolveBroker({ startPath: startDir, kind: 'repo-root' }).catch(
     (error: unknown): undefined => {
       if (error instanceof ProjectRootNotFoundError) {
         return undefined;

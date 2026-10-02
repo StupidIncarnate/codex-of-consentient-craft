@@ -1,19 +1,17 @@
-// PURPOSE: Proxy for lane-boot-broker — stages every boundary it composes (cwd resolution, mkdir,
+// PURPOSE: Proxy for lane-boot-broker — stages every boundary it composes (mkdir,
 // path joining, process spawn, log fds, process kill, home removal, the browser launch, readiness,
 // and a restart's stop, respawn and registry stamp) behind semantic setup methods, so a test never
 // chains through a child proxy directly.
-// USAGE: const proxy = laneBootBrokerProxy(); const repoRoot = proxy.resolveRepoRoot();
+// USAGE: const proxy = laneBootBrokerProxy(); const { repoRoot } = proxy;
 //        proxy.setupProcessBoot({ logPath, fd, command: 'npm', args: [...], pid: 1001 });
 
 import { join } from '#gateway/node/path';
-import { cwd, envSnapshot } from '#gateway/node/process';
+import { envSnapshot } from '#gateway/node/process';
 import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
 import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
@@ -27,10 +25,9 @@ import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broke
 type ProcessGroupId = number;
 type ReadingCount = number;
 
-// The single cwd value every test in this file resolves against — `resolveRepoRoot()` reads it
-// back off the (now mocked) `cwd()` import directly, the same way the broker's own `cwd()` call
-// does, so both sides always agree.
-const CWD_PATH_VALUE = '/default/cwd';
+// The repo root a test hands the broker unless a scenario names another one. A spawn is staged by
+// its cwd, so a boot that spawned anywhere else finds no staged answer and throws.
+const REPO_ROOT_VALUE = '/default/repo-root';
 
 // This proxy's whole test file boots exactly `HOME_PATH`/`EVIDENCE_PATH` (never a runtime-computed
 // pair), so the only two directories `laneBootBroker` ever `ensureDir`s are staged once,
@@ -41,13 +38,14 @@ const EVIDENCE_PATH_VALUE =
   '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21';
 
 export const laneBootBrokerProxy = (): {
-  resolveRepoRoot: () => string;
+  repoRoot: string;
   setupProcessBoot: (params: {
     logPath: string;
     fd: number;
     command: string;
     args: readonly string[];
     pid: number;
+    repoRoot?: string;
   }) => void;
   setupServerReachable: (params: { url: string }) => void;
   setupServerNeverReachable: (params: { url: string }) => void;
@@ -68,7 +66,11 @@ export const laneBootBrokerProxy = (): {
     apiPackageName?: string;
     webPackageName?: string;
   }) => void;
-  getSpawnOptionsFor: (params: { command: string; args: readonly string[] }) => unknown;
+  getSpawnOptionsFor: (params: {
+    command: string;
+    args: readonly string[];
+    repoRoot?: string;
+  }) => unknown;
   getKillSignalsFor: (params: { pgid: ProcessGroupId }) => readonly unknown[];
   getClosedFds: () => readonly unknown[];
   getRemovedHomePaths: () => readonly unknown[];
@@ -78,7 +80,6 @@ export const laneBootBrokerProxy = (): {
   // would also pick up browserSessionLaunchBroker's own later PLAYWRIGHT_BROWSERS_PATH mutation.
   getInheritedEnvSnapshot: () => Record<PropertyKey, string>;
 } => {
-  const resolveProxy = cwdResolveBrokerProxy();
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
   // join this broker makes (claudeQueueDir, wardQueueDir, each process's logPath) is already known
   // at test-setup time (HOME_PATH_VALUE/EVIDENCE_PATH_VALUE plus a literal segment), so the real
@@ -95,8 +96,6 @@ export const laneBootBrokerProxy = (): {
   mkdirProxy.succeeds({ path: EVIDENCE_PATH_VALUE });
   // envSnapshotProxy is inert, composed to satisfy enforce-proxy-child-creation.
   envSnapshotProxy();
-  const cwdStagingProxy = cwdProxy();
-  cwdStagingProxy.setupCwd({ value: CWD_PATH_VALUE });
   const spawnProxy = processesSpawnLayerBrokerProxy();
   const stopProxy = processesStopLayerBrokerProxy();
   const restartProxy = processesRestartLayerBrokerProxy();
@@ -112,14 +111,7 @@ export const laneBootBrokerProxy = (): {
   serverLogReaderLayerBrokerProxy();
 
   return {
-    resolveRepoRoot: (): string => {
-      // The `cwd` mock staged above already answers CWD_PATH_VALUE — reading it here (rather than
-      // picking a value independently) is what keeps this and the implementation's own `cwd()`
-      // call agreeing on the same seed.
-      const cwdPath = cwd();
-      resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
-      return cwdPath;
-    },
+    repoRoot: REPO_ROOT_VALUE,
 
     setupProcessBoot: ({
       logPath,
@@ -127,15 +119,17 @@ export const laneBootBrokerProxy = (): {
       command,
       args,
       pid,
+      repoRoot,
     }: {
       logPath: string;
       fd: number;
       command: string;
       args: readonly string[];
       pid: number;
+      repoRoot?: string;
     }): void => {
       openFdProxy.returns({ path: logPath, fd });
-      spawnProxy.setupSpawn({ command, args, cwd: CWD_PATH_VALUE, pid });
+      spawnProxy.setupSpawn({ command, args, cwd: repoRoot ?? REPO_ROOT_VALUE, pid });
       // A boot-failure path SIGKILLs and closes every group it spawned, regardless of which
       // process(es) triggered the failure — every booted process needs its kill/close pre-staged,
       // not just the ones a given test expects to fail.
@@ -153,7 +147,7 @@ export const laneBootBrokerProxy = (): {
       args: readonly string[];
       pid: number;
     }): void => {
-      spawnProxy.setupSpawn({ command, args, cwd: CWD_PATH_VALUE, pid });
+      spawnProxy.setupSpawn({ command, args, cwd: REPO_ROOT_VALUE, pid });
     },
 
     setupGroupExitsOnSigterm: ({ pgid }: { pgid: ProcessGroupId }): void => {
@@ -223,10 +217,13 @@ export const laneBootBrokerProxy = (): {
     getSpawnOptionsFor: ({
       command,
       args,
+      repoRoot,
     }: {
       command: string;
       args: readonly string[];
-    }): unknown => spawnProxy.getSpawnOptionsFor({ command, args, cwd: CWD_PATH_VALUE }).at(-1),
+      repoRoot?: string;
+    }): unknown =>
+      spawnProxy.getSpawnOptionsFor({ command, args, cwd: repoRoot ?? REPO_ROOT_VALUE }).at(-1),
 
     getKillSignalsFor: ({ pgid }: { pgid: ProcessGroupId }): readonly unknown[] =>
       killProxy.getCallsFor({ pgid }),

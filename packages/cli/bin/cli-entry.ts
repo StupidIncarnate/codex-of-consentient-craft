@@ -10,11 +10,11 @@
  * node cli-entry.js                                       // Launches HTTP server and opens browser
  */
 
-import { installContextContract } from '@dungeonmaster/shared/contracts';
 import { resolve } from '#gateway/node/path';
-import { argv, cwd, exit, stderr } from '#gateway/node/process';
+import { argv, exit, stderr } from '#gateway/node/process';
 
 import { StartCli } from '../src/startup/start-cli';
+import { StartCliContext } from '../src/startup/start-cli-context';
 
 const COMMAND_ARG_START_INDEX = 2;
 // tsc compiles this file to dist/bin/cli-entry.js (rootDir "." + outDir "./dist" preserves the
@@ -34,12 +34,11 @@ if (require.main === module) {
   const [command, ...args] = argv.slice(COMMAND_ARG_START_INDEX);
 
   const dungeonmasterRoot = resolve(__dirname, DIRNAME_TO_ROOT_DEPTH);
-  const targetProjectRoot = cwd();
 
   StartCli({
     command,
     args,
-    context: installContextContract.parse({ dungeonmasterRoot, targetProjectRoot }),
+    context: StartCliContext({ dungeonmasterRoot }),
   }).catch((error: unknown) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     stderr.write(`Error: ${errorMessage}\n`);

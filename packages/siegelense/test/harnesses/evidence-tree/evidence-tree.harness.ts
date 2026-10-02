@@ -38,6 +38,7 @@ import {
   writeFileSync,
 } from '#gateway/node/fs';
 import { writeFileBytes } from '#gateway/node/fs__promises';
+import { resolve as resolvePath } from '#gateway/node/path';
 import { deleteEnv, getEnv, kill, setEnv, stderr } from '#gateway/node/process';
 import { PNG } from '#gateway/npm/pngjs';
 
@@ -180,6 +181,10 @@ const SERVER_LINE_STEP1 = 'startup ok';
 const SERVER_LINE_STEP2 = '[ERROR] inside window';
 const SERVER_LINE_STEP3 = '[ERROR] outside window';
 const SERVER_LINE_RUN2 = '[ERROR] run2 problem';
+
+// This checkout's own root — one level above `packages/` — handed to the brokers that take a repo
+// root as a parameter.
+const REPO_ROOT = resolvePath(__dirname, '..', '..', '..', '..', '..');
 
 export const evidenceTreeHarness = (): {
   beforeEach: () => Promise<void>;
@@ -704,10 +709,10 @@ export const evidenceTreeHarness = (): {
       instanceId,
     }: {
       instanceId: SiegeInstance['id'] | null;
-    }): Promise<StatusAnswer> => statusReadBroker({ instanceId }),
+    }): Promise<StatusAnswer> => statusReadBroker({ instanceId, repoRoot: REPO_ROOT }),
     readCompare: async ({ query }: { query: CompareQuery }): Promise<CompareAnswer> =>
       compareReadBroker({ query }),
-    runCleanup: async (): Promise<CleanupAnswer> => cleanupRunBroker(),
+    runCleanup: async (): Promise<CleanupAnswer> => cleanupRunBroker({ repoRoot: REPO_ROOT }),
     readRegistry: async (): Promise<Registry> => registryReadBroker(),
     measureBlank: async ({ shotPath }: { shotPath: string }): Promise<BlankReading> =>
       shotBlankReadBroker({ shotPath }),

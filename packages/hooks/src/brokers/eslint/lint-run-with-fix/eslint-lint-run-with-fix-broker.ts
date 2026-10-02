@@ -8,7 +8,7 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { ESLint } from '#gateway/npm/eslint';
 import { resolve } from '#gateway/node/path';
-import { cwd, stderr } from '#gateway/node/process';
+import { stderr } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severity-statics';
@@ -24,22 +24,21 @@ import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severit
  *
  * @param filePath - The file path to lint and fix
  * @param config - The ESLint configuration with rules to apply
- * @param cwd - The current working directory (defaults to cwd())
+ * @param cwd - The directory ESLint runs against (required)
  * @returns Array of lint results containing only error-level violations
  */
 export const eslintLintRunWithFixBroker = async ({
   filePath,
   config: _config,
-  cwd: customCwd,
+  cwd: workingDir,
 }: {
   filePath: string;
   config: unknown;
-  cwd?: string;
+  cwd: string;
 }): Promise<LintResult[]> => {
   try {
-    const resolvedWorkingDir = customCwd ?? cwd();
     // Ensure we have an absolute path for ESLint
-    const absolutePath = resolve(resolvedWorkingDir, filePath);
+    const absolutePath = resolve(workingDir, filePath);
     const absoluteFilePath = absolutePath;
 
     // Verify file is readable before linting (prevents race condition with file writes)
@@ -53,7 +52,7 @@ export const eslintLintRunWithFixBroker = async ({
     // Create ESLint instance with fix: true
     // Use the project's eslint.config.js for full plugin support (prettier, etc.)
     const eslint = new ESLint({
-      cwd: resolvedWorkingDir,
+      cwd: workingDir,
       fix: true, // Auto-fix violations
     });
 

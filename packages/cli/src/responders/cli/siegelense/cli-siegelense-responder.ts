@@ -21,6 +21,8 @@
  */
 
 import { dynamicImport } from '#gateway/node/module';
+import { cwd } from '#gateway/node/process';
+import { moduleResolveBroker } from '@dungeonmaster/shared/brokers';
 import { siegelenseModuleContract } from '../../../contracts/siegelense-module/siegelense-module-contract';
 
 const SIEGELENSE_MODULE_NAME = '@dungeonmaster/siegelense/startup';
@@ -31,7 +33,11 @@ export const CliSiegelenseResponder = async ({
 }: {
   args: readonly string[];
 }): Promise<void> => {
-  const siegelensePath = require.resolve(SIEGELENSE_MODULE_NAME);
+  // Resolved from the user's cwd, so a run inside a worktree loads that worktree's siegelense.
+  const { path: siegelensePath } = moduleResolveBroker({
+    specifier: SIEGELENSE_MODULE_NAME,
+    repoRoot: cwd(),
+  });
 
   const siegelenseModule = siegelenseModuleContract.parse(
     await dynamicImport({ path: siegelensePath }).catch((error: unknown) => {

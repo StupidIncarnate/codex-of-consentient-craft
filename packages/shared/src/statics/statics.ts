@@ -96,3 +96,6 @@ export * from './owner-index/owner-index-statics';
 
 // The exit-code range a port-kill listener result is validated against.
 export * from './port-kill-listener-result/port-kill-listener-result-statics';
+
+// Which package owns each dungeonmaster binary, read by packageBinResolveBroker.
+export * from './dungeonmaster-bin/dungeonmaster-bin-statics';

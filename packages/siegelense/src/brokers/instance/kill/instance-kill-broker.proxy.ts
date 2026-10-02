@@ -33,11 +33,12 @@ const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const HOME_PATH = HOME_PATH_VALUE;
 const ROOT_PATH = `${HOME_PATH_VALUE}/siegelense`;
 const TMP_DIR_VALUE = '/tmp';
-const CWD_PATH_VALUE = '/default/cwd';
-const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
+const REPO_ROOT_VALUE = '/default/cwd';
+const LINK_PATH_VALUE = `${REPO_ROOT_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 const LINK_PATH_FILE = LINK_PATH_VALUE;
 
 export const instanceKillBrokerProxy = (): {
+  repoRoot: string;
   setupRegistry: (params: { registry: Registry }) => void;
   setupDriverStops: (params: { socketPath: string; killed?: readonly ProcessGroupId[] }) => void;
   setupDriverStopsWithMalformedPayload: (params: { socketPath: string }) => void;
@@ -63,13 +64,10 @@ export const instanceKillBrokerProxy = (): {
   const registryProxy = registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home without
-  // also staging the link check itself, which this file stages independently (existsSync/realpath/
-  // cwd, below) — enforce-proxy-child-creation forbids reaching past this DIRECT child straight to
+  // also staging the link check itself, which this file stages independently (existsSync/realpath,
+  // below) — enforce-proxy-child-creation forbids reaching past this DIRECT child straight to
   // dungeonmasterHomeFindBrokerProxy, since instance-kill-broker.ts never imports it directly.
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
-  // Unconditional: locationsRepoLinkPathFindBroker calls cwd() on every invocation, before the
-  // link check this file stages independently below (existsSync/realpath).
-  repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
   locationsSocketPathFindBrokerProxy();
   const releaseProxy = instanceReleaseBrokerProxy();
   const shutdownReasonProxy = shutdownReasonWriteBrokerProxy();
@@ -102,6 +100,8 @@ export const instanceKillBrokerProxy = (): {
   tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
 
   return {
+    repoRoot: REPO_ROOT_VALUE,
+
     setupRegistry: ({ registry }: { registry: Registry }): void => {
       // dungeonmasterHomeFindBroker checks DUNGEONMASTER_HOME before falling back to
       // homedir() — staged here (a returned method, not the constructor, since
@@ -111,7 +111,7 @@ export const instanceKillBrokerProxy = (): {
       const json = JSON.stringify(registry);
       registryProxy.setupPresentRegistry({ content: json });
       repoLinkProxy.setupLinkResolvesToRoot({
-        cwdPath: CWD_PATH_VALUE,
+        repoRoot: REPO_ROOT_VALUE,
         linkPath: LINK_PATH_FILE,
         homeDir: HOME_DIR_VALUE,
         homePath: HOME_PATH,

@@ -1,7 +1,6 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
 import { randomUUID } from '#gateway/node/crypto';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
@@ -30,7 +29,6 @@ export const instanceReserveBrokerProxy = (): {
   // every scenario stages exactly that many pairs; a scenario needing fewer real candidates
   // repeats its last (uncontested) pair for the remainder.
   setupPortCandidates: (params: { pairs: readonly { api: number; web: number }[] }) => void;
-  setupCwd: (params: { value: string }) => void;
   setupBranch: (params: { branch: string | null }) => void;
   setupBranchFailure: (params: { exitCode: number; output: string }) => void;
   getWrittenRegistry: () => unknown;
@@ -42,7 +40,6 @@ export const instanceReserveBrokerProxy = (): {
   const evidenceProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const mkdirProxy = ensureDirProxy();
   const branchProxy = currentBranchProxy();
-  const cwdRecorder = cwdProxy();
   pidProxy();
   const clockProxy = nowProxy();
   const portPairProxy = freePortPairProxy();
@@ -104,10 +101,6 @@ export const instanceReserveBrokerProxy = (): {
 
     // currentBranchProxy has no single "branch or null" method — a detached HEAD and a named
     // branch are staged through its two separate scenario methods.
-    setupCwd: ({ value }: { value: string }): void => {
-      cwdRecorder.setupCwd({ value });
-    },
-
     setupBranch: ({ branch }: { branch: string | null }): void => {
       clockProxy.setupNow({ ms: NOW_MS_VALUE });
       if (branch === null) {

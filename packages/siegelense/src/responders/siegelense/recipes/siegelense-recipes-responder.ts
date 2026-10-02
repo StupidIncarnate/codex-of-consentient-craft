@@ -22,7 +22,8 @@
  * // Writes the RecipesAnswer as one JSON document
  */
 
-import { stdout } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwd, stdout } from '#gateway/node/process';
 
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
 import { recipesAnswerContract } from '../../../contracts/recipes-answer/recipes-answer-contract';
@@ -34,7 +35,8 @@ export const SiegelenseRecipesResponder = async ({
 }: {
   isJson?: boolean;
 } = {}): Promise<void> => {
-  const recipes = await recipesReadBroker();
+  const repoRoot = await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' });
+  const recipes = await recipesReadBroker({ repoRoot });
   const answer = recipesAnswerContract.parse({ recipes });
   stdout.write(
     isJson

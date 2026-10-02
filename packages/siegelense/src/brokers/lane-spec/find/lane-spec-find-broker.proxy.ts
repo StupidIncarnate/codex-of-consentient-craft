@@ -1,13 +1,11 @@
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 
-// The broker builds startPath as a template string, `${cwd()}/${projectConfigFile}` — never
-// `join`. `cwdProxy().setupCwd` stages the fixed value this file's every resolution needs to agree
-// on, and this proxy computes `startPath` from that SAME literal directly, never by calling `cwd()`
-// a second time.
+// The broker builds startPath as a template string, `${repoRoot}/${projectConfigFile}` — never
+// `join`. Every scenario below is staged at `/default/cwd`, so a test passes that value as
+// `repoRoot` to reach it.
 //
 // Composes config's own black-box caller proxy (F18) rather than mocking configResolveBroker
 // directly here, and rather than composing config's colocated config-resolve-broker.proxy: that
@@ -23,12 +21,10 @@ export const laneSpecFindBrokerProxy = (): {
   setupE2eAbsent: () => void;
   setupDevServerAbsent: () => void;
 } => {
-  const CWD_PATH_VALUE = '/default/cwd';
-  const cwdStagingProxy = cwdProxy();
-  cwdStagingProxy.setupCwd({ value: CWD_PATH_VALUE });
   const configProxy = configResolveBrokerProxy();
 
-  const startPath = `${CWD_PATH_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
+  const DEFAULT_REPO_ROOT = '/default/cwd';
+  const startPath = `${DEFAULT_REPO_ROOT}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
 
   // Sticky default: a single headless api process, so any caller composing this proxy without
   // addressing it still resolves a real, valid LaneSpec — setupConfiguredProcesses below is a live

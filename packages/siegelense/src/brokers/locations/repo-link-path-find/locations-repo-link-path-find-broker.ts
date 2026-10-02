@@ -8,12 +8,10 @@
  * checkout, the case likeliest to be missed since the link still resolves to something real.
  *
  * USAGE:
- * await locationsRepoLinkPathFindBroker({ homePath });
+ * await locationsRepoLinkPathFindBroker({ homePath, repoRoot });
  * // Returns RepoLocalPath — { path: '<repoRoot>/.dungeonmaster-assets/siegelense-assets/...', linkPresent: true }
  */
 
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
 import { realpath } from '#gateway/node/fs__promises';
@@ -27,12 +25,11 @@ import {
 
 export const locationsRepoLinkPathFindBroker = async ({
   homePath,
+  repoRoot,
 }: {
   homePath: string;
+  repoRoot: string;
 }): Promise<RepoLocalPath> => {
-  const cwdPath = cwd();
-  const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
-
   const linkPath = join(
     repoRoot,
     locationsStatics.repoRoot.dungeonmasterAssets,

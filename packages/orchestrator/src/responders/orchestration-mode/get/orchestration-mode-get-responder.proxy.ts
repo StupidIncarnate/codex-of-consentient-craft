@@ -1,4 +1,5 @@
 import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { orchestrationModeGetBroker } from '../../../brokers/orchestration-mode/get/orchestration-mode-get-broker';
@@ -14,6 +15,7 @@ export const OrchestrationModeGetResponderProxy = (): {
   setupMode: (params: { mode: OrchestrationMode }) => void;
 } => {
   orchestrationModeGetBrokerProxy();
+  cwdProxy();
   const brokerMock = orchestrationModeGetBroker as jest.MockedFunction<
     typeof orchestrationModeGetBroker
   >;

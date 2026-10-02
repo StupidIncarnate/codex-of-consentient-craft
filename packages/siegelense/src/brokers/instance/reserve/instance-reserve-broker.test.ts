@@ -48,6 +48,7 @@ describe('instanceReserveBroker', () => {
         specHash,
         questId: null,
         guildId: null,
+        repoRoot: '/work/repo',
       });
 
       const expectedEntry = RegistryEntryStub({
@@ -95,6 +96,7 @@ describe('instanceReserveBroker', () => {
         specHash: 'a3f9c2e1',
         questId: null,
         guildId: null,
+        repoRoot: '/work/repo',
       });
 
       // registryUpdateBroker's own two steps each mkdir the root — registryLockAcquireBroker
@@ -119,7 +121,13 @@ describe('instanceReserveBroker', () => {
       });
       proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
 
-      const result = await instanceReserveBroker({ specName, specHash, questId, guildId });
+      const result = await instanceReserveBroker({
+        specName,
+        specHash,
+        questId,
+        guildId,
+        repoRoot: '/work/repo',
+      });
 
       expect(result).toStrictEqual(
         RegistryEntryStub({
@@ -162,6 +170,7 @@ describe('instanceReserveBroker', () => {
         specHash,
         questId: null,
         guildId: null,
+        repoRoot: '/work/repo',
       });
 
       expect(result.branch).toBe('feat/def-04');
@@ -191,6 +200,7 @@ describe('instanceReserveBroker', () => {
         specHash,
         questId: null,
         guildId: null,
+        repoRoot: '/work/repo',
       });
 
       expect(result.ports).toStrictEqual(FREE_PAIR);
@@ -240,6 +250,7 @@ describe('instanceReserveBroker', () => {
         specHash: 'a3f9c2e1',
         questId: null,
         guildId: null,
+        repoRoot: '/work/repo',
       });
 
       expect(result.branch).toBe(null);
@@ -249,7 +260,6 @@ describe('instanceReserveBroker', () => {
   describe('git failure', () => {
     it('ERROR: {git rev-parse fails for a reason other than "not a git repository"} => the reservation rejects with the git failure', async () => {
       const proxy = instanceReserveBrokerProxy();
-      proxy.setupCwd({ value: '/work/repo' });
       proxy.setupBranchFailure({
         exitCode: 128,
         output: 'fatal: detected dubious ownership in repository',
@@ -262,6 +272,7 @@ describe('instanceReserveBroker', () => {
           specHash: 'a3f9c2e1',
           questId: null,
           guildId: null,
+          repoRoot: '/work/repo',
         }),
       ).rejects.toStrictEqual(
         new Error(
@@ -291,6 +302,7 @@ describe('instanceReserveBroker', () => {
           specHash: 'a3f9c2e1',
           questId: null,
           guildId: null,
+          repoRoot: '/work/repo',
         }),
       ).rejects.toThrow(expectedError.message);
     });

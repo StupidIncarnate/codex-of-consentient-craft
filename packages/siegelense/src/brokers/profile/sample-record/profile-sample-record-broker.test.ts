@@ -10,6 +10,8 @@ import { profileSampleRecordBrokerProxy } from './profile-sample-record-broker.p
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
 const HEADLESS_SPEC = 'api';
+// The root laneSpecFindBrokerProxy stages its config under.
+const REPO_ROOT = '/default/cwd';
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const FIRST_BEAT_MS = 1_700_000_000_000;
 
@@ -17,7 +19,7 @@ const FIRST_BEAT_MS = 1_700_000_000_000;
 // record lands in is the genuine content hash of the spec, which is what makes "a changed spec
 // re-measures" a property of the tree rather than of a stub.
 const headlessProfilesPath = async (): Promise<string> =>
-  `${ROOT_PATH_VALUE}/profiles/${laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) })}`;
+  `${ROOT_PATH_VALUE}/profiles/${laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC, repoRoot: REPO_ROOT }) })}`;
 
 describe('profileSampleRecordBroker', () => {
   describe('a beat with nothing measured', () => {
@@ -27,6 +29,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
+        repoRoot: REPO_ROOT,
         rssMB: null,
         beatAtMs: FIRST_BEAT_MS,
       });
@@ -53,6 +56,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
+        repoRoot: REPO_ROOT,
         rssMB: 2600,
         beatAtMs: FIRST_BEAT_MS,
       });
@@ -98,6 +102,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
+        repoRoot: REPO_ROOT,
         rssMB: 2810,
         beatAtMs: FIRST_BEAT_MS,
       });
@@ -136,6 +141,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
+        repoRoot: REPO_ROOT,
         rssMB: 2600,
         beatAtMs: FIRST_BEAT_MS,
       });
@@ -176,6 +182,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
+        repoRoot: REPO_ROOT,
         rssMB: 1800,
         beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs,
       });
@@ -211,6 +218,7 @@ describe('profileSampleRecordBroker', () => {
       const result = await profileSampleRecordBroker({
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
+        repoRoot: REPO_ROOT,
         rssMB: 1800,
         beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs,
       });

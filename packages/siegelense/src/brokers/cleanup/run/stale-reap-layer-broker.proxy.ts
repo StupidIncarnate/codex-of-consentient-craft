@@ -1,6 +1,7 @@
 import { instanceKillBrokerProxy } from '../../instance/kill/instance-kill-broker.proxy';
 
 export const staleReapLayerBrokerProxy = (): {
+  repoRoot: ReturnType<typeof instanceKillBrokerProxy>['repoRoot'];
   setupRegistry: ReturnType<typeof instanceKillBrokerProxy>['setupRegistry'];
   setupDriverUnreachableReapsLivePgids: ReturnType<
     typeof instanceKillBrokerProxy
@@ -18,6 +19,7 @@ export const staleReapLayerBrokerProxy = (): {
   const killProxy = instanceKillBrokerProxy();
 
   return {
+    repoRoot: killProxy.repoRoot,
     setupRegistry: killProxy.setupRegistry,
     setupDriverUnreachableReapsLivePgids: killProxy.setupDriverUnreachableReapsLivePgids,
     setupDriverUnreachableNoPgids: killProxy.setupDriverUnreachableNoPgids,

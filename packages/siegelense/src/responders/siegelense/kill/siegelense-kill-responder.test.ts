@@ -59,7 +59,9 @@ describe('SiegelenseKillResponder', () => {
 
       await SiegelenseKillResponder({ instanceId });
 
-      expect(proxy.getKillCallsMatching()).toStrictEqual([[{ instanceId }]]);
+      expect(proxy.getKillCallsMatching()).toStrictEqual([
+        [{ instanceId, repoRoot: '/default/cwd' }],
+      ]);
     });
   });
 

@@ -9,6 +9,7 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { addQuestInputContract, questContract } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
+import { cwd } from '#gateway/node/process';
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
@@ -147,7 +148,7 @@ export const QuestHandleResponder = async ({
     const { processId } = getQuestStatusInputContract.parse(args);
 
     try {
-      const status = await orchestratorGetQuestStatusBroker({ processId });
+      const status = await orchestratorGetQuestStatusBroker({ processId, startDir: cwd() });
       return {
         content: [
           {

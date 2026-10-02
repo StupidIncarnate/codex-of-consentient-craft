@@ -29,14 +29,14 @@
  * by an explicit `kill` call, which has no cause of its own beyond the user's own request.
  *
  * USAGE:
- * await instanceKillBroker({ instanceId });
+ * await instanceKillBroker({ instanceId, repoRoot: '/repo' });
  * // Driver reachable: sends `kill`, returns { stopped: true, killed: [...groups the driver actually
  * // stopped], reapedPgids: [] }
  * // Driver unreachable, row still alive: reaps the registry's own recorded pgids that are still
  * // live, returns { stopped: true, reapedPgids: [...] }
  * // Row already killed/pruned/unusable: no-op, returns { stopped: true, reapedPgids: [] }
  *
- * await instanceKillBroker({ instanceId, reason: 'reaped by cleanup after its heartbeat went stale' });
+ * await instanceKillBroker({ instanceId, repoRoot: '/repo', reason: 'reaped by cleanup after its heartbeat went stale' });
  * // Driver unreachable, live pgids reaped: shutdown-reason.json is written with the SUPPLIED reason
  * // rather than the generic "reaped N orphaned process groups" wording
  */
@@ -64,9 +64,11 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const instanceKillBroker = async ({
   instanceId,
+  repoRoot,
   reason,
 }: {
   instanceId: SiegeInstance['id'];
+  repoRoot: string;
   reason?: string;
 }): Promise<KillResult> => {
   const registry = await registryReadBroker();
@@ -76,7 +78,7 @@ export const instanceKillBroker = async ({
   const socketPath = entry?.socketPath ?? locationsSocketPathFindBroker({ instanceId });
 
   const evidencePath = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
-  const evidenceKept = await locationsRepoLinkPathFindBroker({ homePath: evidencePath });
+  const evidenceKept = await locationsRepoLinkPathFindBroker({ homePath: evidencePath, repoRoot });
 
   // A row already tombstoned has nothing left this broker may touch — `instanceReleaseBroker`
   // already cleared its `pgids`, and re-deriving a candidate list from anywhere else (the only

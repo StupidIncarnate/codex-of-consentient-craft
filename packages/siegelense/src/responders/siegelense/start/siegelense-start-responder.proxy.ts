@@ -14,6 +14,8 @@
  * proxy.stageManifest({ manifest });
  */
 
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -29,6 +31,9 @@ import { servedBuildStaleReadBroker } from '../../../brokers/served-build/stale-
 import { servedBuildStaleReadBrokerProxy } from '../../../brokers/served-build/stale-read/served-build-stale-read-broker.proxy';
 import type { InstanceManifestStub } from '../../../contracts/instance-manifest/instance-manifest.stub';
 import type { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
+
+// The directory the responder reads as where it runs; the repo root it hands down is this same path.
+const CWD_VALUE = '/default/cwd';
 
 type InstanceManifest = ReturnType<typeof InstanceManifestStub>;
 type SpecName = string;
@@ -60,6 +65,11 @@ export const SiegelenseStartResponderProxy = (): {
   recipesReadBrokerProxy();
   servedBuildStaleReadBrokerProxy();
 
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: CWD_VALUE });
+  const resolveProxy = cwdResolveBrokerProxy();
+  resolveProxy.setupRepoRootFoundAtStart({ startPath: CWD_VALUE });
+
   const instanceStartHandle = registerMock({ fn: instanceStartBroker });
   const owningGuildFindHandle = registerMock({ fn: questOwningGuildFindBroker });
   const recipesReadHandle = registerMock({ fn: recipesReadBroker });
@@ -77,17 +87,17 @@ export const SiegelenseStartResponderProxy = (): {
   }): void => {
     staleBySpec.set(specName, outcome);
     if (typeof outcome === 'string') {
-      staleReadHandle.calledWith([{ specName }]).resolves(outcome);
+      staleReadHandle.calledWith([{ specName, repoRoot: CWD_VALUE }]).resolves(outcome);
       return;
     }
-    staleReadHandle.calledWith([{ specName }]).rejects(outcome);
+    staleReadHandle.calledWith([{ specName, repoRoot: CWD_VALUE }]).rejects(outcome);
   };
   const stageStaleDefault = ({ specName }: { specName: SpecName }): void => {
     stageStale({ specName, outcome: staleBySpec.get(specName) ?? '' });
   };
   const stderrRecorder = stderrProxy();
   const stdoutRecorder = stdoutProxy();
-  recipesReadHandle.calledWith([]).resolves([]);
+  recipesReadHandle.calledWith([{ repoRoot: CWD_VALUE }]).resolves([]);
 
   return {
     stageManifest: ({ manifest }: { manifest: InstanceManifest }): void => {
@@ -97,7 +107,7 @@ export const SiegelenseStartResponderProxy = (): {
 
     stageError: ({ error, specName }: { error: Error; specName: SpecName }): void => {
       stageStaleDefault({ specName });
-      instanceStartHandle.calledWith([{ specName }]).rejects(error);
+      instanceStartHandle.calledWith([{ specName, repoRoot: CWD_VALUE }]).rejects(error);
     },
 
     stageQuestResolvesToGuild: ({
@@ -115,7 +125,7 @@ export const SiegelenseStartResponderProxy = (): {
     },
 
     stageRecipeListing: ({ entries }: { entries: readonly RecipeListingEntry[] }): void => {
-      recipesReadHandle.calledWith([]).resolves(entries);
+      recipesReadHandle.calledWith([{ repoRoot: CWD_VALUE }]).resolves(entries);
     },
 
     stageStaleWarning: ({ specName, warning }: { specName: SpecName; warning: string }): void => {

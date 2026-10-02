@@ -1,3 +1,5 @@
+import { execPath } from '#gateway/node/process';
+
 import { wardDetailBroker } from './ward-detail-broker';
 import { wardDetailBrokerProxy } from './ward-detail-broker.proxy';
 
@@ -9,7 +11,7 @@ describe('wardDetailBroker', () => {
       const runId = '1773805659495-6b06';
       const jsonOutput = JSON.stringify({ checks: [], runId: '123' });
 
-      proxy.setupSuccess({ output: jsonOutput });
+      proxy.setupSuccess({ startPath, output: jsonOutput });
 
       const result = await wardDetailBroker({ startPath, runId });
 
@@ -22,7 +24,7 @@ describe('wardDetailBroker', () => {
       const runId = 'run-abc';
       const jsonOutput = JSON.stringify({ checks: [{ checkType: 'lint' }] });
 
-      proxy.setupSuccess({ output: `  ${jsonOutput}  \n` });
+      proxy.setupSuccess({ startPath, output: `  ${jsonOutput}  \n` });
 
       const result = await wardDetailBroker({ startPath, runId });
 
@@ -37,12 +39,17 @@ describe('wardDetailBroker', () => {
       const runId = '1773805659495-6b06';
       const jsonOutput = JSON.stringify({ checks: [] });
 
-      proxy.setupSuccess({ output: jsonOutput });
+      proxy.setupSuccess({ startPath, output: jsonOutput });
 
       await wardDetailBroker({ startPath, runId });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual(['detail', '1773805659495-6b06', '--json']);
-      expect(proxy.getSpawnedCommand()).toBe('dungeonmaster-ward');
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '/project/node_modules/@dungeonmaster/ward/dist/bin/ward-entry.js',
+        'detail',
+        '1773805659495-6b06',
+        '--json',
+      ]);
+      expect(proxy.getSpawnedCommand()).toBe(execPath);
     });
   });
 
@@ -52,7 +59,7 @@ describe('wardDetailBroker', () => {
       const startPath = '/project';
       const runId = 'run-fail';
 
-      proxy.setupFailure();
+      proxy.setupFailure({ startPath });
 
       const result = await wardDetailBroker({ startPath, runId });
 
@@ -64,7 +71,7 @@ describe('wardDetailBroker', () => {
       const startPath = '/project';
       const runId = 'run-empty';
 
-      proxy.setupSuccess({ output: '' });
+      proxy.setupSuccess({ startPath, output: '' });
 
       const result = await wardDetailBroker({ startPath, runId });
 
@@ -76,7 +83,7 @@ describe('wardDetailBroker', () => {
       const startPath = '/project';
       const runId = 'run-bad';
 
-      proxy.setupSuccess({ output: 'not valid json' });
+      proxy.setupSuccess({ startPath, output: 'not valid json' });
 
       const result = await wardDetailBroker({ startPath, runId });
 
@@ -88,7 +95,7 @@ describe('wardDetailBroker', () => {
       const startPath = '/project';
       const runId = 'run-whitespace';
 
-      proxy.setupSuccess({ output: '   \n  \t  ' });
+      proxy.setupSuccess({ startPath, output: '   \n  \t  ' });
 
       const result = await wardDetailBroker({ startPath, runId });
 

@@ -20,6 +20,7 @@ describe('siegelenseLaneProvisionModuleContract', () => {
     const result = await siegelenseModule.capacityReadBroker({
       specName: 'default',
       poolSize: null,
+      repoRoot: '/repo/worktrees/quest-a',
     });
 
     expect(result).toStrictEqual({ suggested: 1 });

@@ -294,7 +294,7 @@ export const runVerbLayerBroker = async ({
     return stepStorageBroker({ session, prefix: step.prefix });
   }
   if (step.step === 'video') {
-    return stepVideoBroker({ session, action: step.action });
+    return stepVideoBroker({ session, action: step.action, repoRoot: lane.repoRoot });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

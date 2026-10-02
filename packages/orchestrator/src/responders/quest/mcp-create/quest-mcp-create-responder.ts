@@ -10,6 +10,8 @@ import { questMcpCreateResponderResultContract } from '../../../contracts/quest-
 import type { QuestMcpCreateResponderResult } from '../../../contracts/quest-mcp-create-responder-result/quest-mcp-create-responder-result-contract';
 import type { AddQuestInput, QuestType, Session } from '@dungeonmaster/shared/contracts';
 
+import { cwd } from '#gateway/node/process';
+
 import { questMcpCreateBroker } from '../../../brokers/quest/mcp-create/quest-mcp-create-broker';
 
 export const QuestMcpCreateResponder = async ({
@@ -24,6 +26,7 @@ export const QuestMcpCreateResponder = async ({
   questMcpCreateResponderResultContract.parse(
     await questMcpCreateBroker({
       userRequest,
+      startDir: cwd(),
       ...(questType !== undefined && { questType }),
       ...(sessionId !== undefined && { sessionId }),
     }),

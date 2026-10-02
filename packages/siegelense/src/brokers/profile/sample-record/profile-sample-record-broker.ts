@@ -21,7 +21,7 @@
  * read-modify-writes a path a second process might also be writing.
  *
  * USAGE:
- * await profileSampleRecordBroker({ instanceId, specName, rssMB, beatAtMs });
+ * await profileSampleRecordBroker({ instanceId, specName, repoRoot, rssMB, beatAtMs });
  * // Writes profiles/<specHash>/samples/<instanceId>.json, or returns null when rssMB was null
  */
 
@@ -45,11 +45,13 @@ const SOLO_POOL_SIZE = 1;
 export const profileSampleRecordBroker = async ({
   instanceId,
   specName,
+  repoRoot,
   rssMB,
   beatAtMs,
 }: {
   instanceId: SiegeInstance['id'];
   specName: string;
+  repoRoot: string;
   rssMB: number | null;
   beatAtMs: number;
 }): Promise<ProfileObservation | null> => {
@@ -57,7 +59,7 @@ export const profileSampleRecordBroker = async ({
     return null;
   }
 
-  const spec = await laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName, repoRoot });
   const specHash = laneSpecHashBroker({ spec });
 
   const registry = await registryReadBroker();

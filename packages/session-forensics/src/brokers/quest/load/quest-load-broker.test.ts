@@ -28,7 +28,7 @@ describe('questLoadBroker', () => {
       });
       proxy.setupQuest({ questId, questJson: { flows: [flowOne, flowTwo] } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [flowOne, flowTwo], workItems: [] });
     });
@@ -45,7 +45,7 @@ describe('questLoadBroker', () => {
       const flow = FlowStub({ id: 'nested-flow', nodes: [node], edges: [edge] });
       proxy.setupQuest({ questId, questJson: { flows: [flow] } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
@@ -63,7 +63,7 @@ describe('questLoadBroker', () => {
       });
       proxy.setupQuest({ questId, questJson: { flows: [flow], workItems: [workItem] } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [workItem] });
     });
@@ -75,7 +75,7 @@ describe('questLoadBroker', () => {
       const questId = QuestIdStub({ value: 'ghost-quest' });
       proxy.setupMissingQuest();
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
@@ -87,7 +87,7 @@ describe('questLoadBroker', () => {
       const questId = QuestIdStub({ value: 'no-flows-key-quest' });
       proxy.setupQuest({ questId, questJson: { someOtherField: 'value' } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
@@ -97,7 +97,7 @@ describe('questLoadBroker', () => {
       const questId = QuestIdStub({ value: 'empty-flows-quest' });
       proxy.setupQuest({ questId, questJson: { flows: [] } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
@@ -110,7 +110,7 @@ describe('questLoadBroker', () => {
       const flow = FlowStub({ id: 'flow-alone' });
       proxy.setupQuest({ questId, questJson: { flows: [flow] } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
@@ -124,7 +124,7 @@ describe('questLoadBroker', () => {
         questJson: { flows: [flow], workItems: [{ id: 'incomplete-work-item' }] },
       });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
@@ -136,7 +136,7 @@ describe('questLoadBroker', () => {
       const questId = QuestIdStub({ value: 'invalid-json-quest' });
       proxy.setupQuestRawContent({ questId, content: '{ this is not json' });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
@@ -146,7 +146,7 @@ describe('questLoadBroker', () => {
       const questId = QuestIdStub({ value: 'invalid-flow-entry-quest' });
       proxy.setupQuest({ questId, questJson: { flows: [{ id: 'incomplete-flow' }] } });
 
-      const result = await questLoadBroker({ questId });
+      const result = await questLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });

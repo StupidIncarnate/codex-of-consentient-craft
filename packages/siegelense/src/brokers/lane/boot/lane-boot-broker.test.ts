@@ -21,7 +21,7 @@ describe('laneBootBroker', () => {
   describe('a browsered two-process spec', () => {
     it('VALID: {api process} => spawns it with the right command, args and merged env', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
@@ -76,6 +76,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(
@@ -98,7 +99,7 @@ describe('laneBootBroker', () => {
 
     it('VALID: {a key present in both inherited env and the process template} => the template wins', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiProcess = LaneProcessStub({
@@ -129,6 +130,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(
@@ -143,7 +145,7 @@ describe('laneBootBroker', () => {
 
     it('VALID: {a template value nothing here can resolve} => the caller-inherited value survives instead', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiProcess = LaneProcessStub({
@@ -174,6 +176,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(
@@ -188,7 +191,7 @@ describe('laneBootBroker', () => {
 
     it('VALID: {web process} => spawns it with the right command, args and merged env', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
@@ -240,6 +243,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(
@@ -261,7 +265,6 @@ describe('laneBootBroker', () => {
 
     it('VALID: {browser: true} => LaneSession.browser is a real, live BrowserSession', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiProcess = LaneProcessStub({
         name: 'api',
@@ -309,6 +312,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(lane.browser?.bufferLengths()).toStrictEqual({
@@ -322,7 +326,7 @@ describe('laneBootBroker', () => {
   describe('a browserless spec', () => {
     it('VALID: {browser: false} => opens NO browser, and the server WAS spawned', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiProcess = LaneProcessStub({
@@ -356,6 +360,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(proxy.getBrowserLaunchCallCount()).toBe(0);
@@ -374,7 +379,6 @@ describe('laneBootBroker', () => {
 
     it('EMPTY: {browser: false} => LaneSession.browser is null', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiProcess = LaneProcessStub({
         name: 'api',
@@ -401,6 +405,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(lane.browser).toBe(null);
@@ -408,7 +413,6 @@ describe('laneBootBroker', () => {
 
     it('VALID: {browser: false} => a successful boot removes nothing', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiProcess = LaneProcessStub({
         name: 'api',
@@ -435,6 +439,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       // The home belongs to the live instance now; teardown removes it later, not a successful boot.
@@ -445,7 +450,7 @@ describe('laneBootBroker', () => {
   describe('D4: a configured process env is merged in, with token substitution and repo-root resolution', () => {
     it('VALID: {env with a bare relative path} => resolves it against the repo root before spawning', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiProcess = LaneProcessStub({
@@ -474,6 +479,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(
@@ -491,7 +497,7 @@ describe('laneBootBroker', () => {
 
     it('VALID: {two processes, each with their own env} => each spawns with only its own process env merged in', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
@@ -545,6 +551,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       const webSpawnOptions = proxy.getSpawnOptionsFor({
@@ -564,7 +571,6 @@ describe('laneBootBroker', () => {
   describe('a spec whose processes list is empty — unreachable through a real LaneSpec (laneSpecContract refines processes.length > 0), forced here to prove the guard', () => {
     it('ERROR: {spec.processes: []} => throws the plain sentence naming the spec', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const spec = Object.assign(LaneSpecStub({ name: 'empty' }), { processes: [] });
 
@@ -575,6 +581,7 @@ describe('laneBootBroker', () => {
           instanceId: INSTANCE_ID,
           homePath: HOME_PATH,
           evidencePath: EVIDENCE_PATH,
+          repoRoot: proxy.repoRoot,
         }),
       ).rejects.toStrictEqual(
         new Error(
@@ -587,7 +594,6 @@ describe('laneBootBroker', () => {
   describe('a spec whose only process never becomes ready', () => {
     it('ERROR: {api never ready} => throws LaneBootFailedError naming api, killing and closing it', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiPgid = 1_001;
@@ -623,6 +629,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       }).catch((error: unknown) => error)) as LaneBootFailedError;
 
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
@@ -637,7 +644,6 @@ describe('laneBootBroker', () => {
 
     it('ERROR: {api never ready} => removes the throwaway home', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiProcess = LaneProcessStub({
@@ -672,6 +678,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       }).catch((error: unknown) => error);
 
       expect(proxy.getRemovedHomePaths()).toStrictEqual([HOME_PATH]);
@@ -681,7 +688,6 @@ describe('laneBootBroker', () => {
   describe('a spec where one process is ready and the other never is', () => {
     it("ERROR: {web ready, api not} => the error names only 'api', and BOTH groups are killed", async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
@@ -736,6 +742,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       }).catch((error: unknown) => error)) as LaneBootFailedError;
 
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
@@ -751,7 +758,6 @@ describe('laneBootBroker', () => {
 
     it('ERROR: {web ready, api not} => removes the home but never the evidence directory', async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
@@ -804,6 +810,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       }).catch((error: unknown) => error);
 
       // Both processes' logs sit under EVIDENCE_PATH — a complete-set assertion here is what fails
@@ -815,7 +822,6 @@ describe('laneBootBroker', () => {
   describe('the claimed port pair', () => {
     it("VALID: {api and web processes} => each process's ready probe hits ITS OWN role's port", async () => {
       const proxy = laneBootBrokerProxy();
-      proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiProcess = LaneProcessStub({
         name: 'api',
@@ -861,16 +867,100 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(lane.pgids).toStrictEqual([1_001, 1_002]);
     });
   });
 
+  describe('a repo root that is not where this process runs', () => {
+    it('VALID: {repoRoot: a quest worktree} => the api and web processes spawn in it, and the session carries it', async () => {
+      const proxy = laneBootBrokerProxy();
+      const questWorktree = '/main-checkout/worktrees/quest-a';
+      const ports = PortPairStub({ api: 34_172, web: 34_173 });
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: { CLAUDE_CLI_PATH: 'bin/claude' },
+      });
+      const webProcess = LaneProcessStub({
+        name: 'web',
+        command: 'npm',
+        args: ['run', 'dev'],
+        portRole: 'web',
+        readyPath: '/',
+        logFileName: 'web-server.log',
+        env: {},
+      });
+      const spec = LaneSpecStub({ processes: [apiProcess, webProcess], browser: false, env: {} });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: 10,
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        pid: 1_001,
+        repoRoot: questWorktree,
+      });
+      proxy.setupProcessBoot({
+        logPath: WEB_LOG_PATH,
+        fd: 11,
+        command: 'npm',
+        args: ['run', 'dev'],
+        pid: 1_002,
+        repoRoot: questWorktree,
+      });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34173/' });
+      const inheritedEnvSnapshot = proxy.getInheritedEnvSnapshot();
+
+      const lane = await laneBootBroker({
+        spec,
+        ports,
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+        repoRoot: questWorktree,
+      });
+
+      expect({
+        api: proxy.getSpawnOptionsFor({
+          command: 'npm',
+          args: ['run', 'dev:no-watch'],
+          repoRoot: questWorktree,
+        }),
+        web: proxy.getSpawnOptionsFor({
+          command: 'npm',
+          args: ['run', 'dev'],
+          repoRoot: questWorktree,
+        }),
+        sessionRepoRoot: lane.repoRoot,
+      }).toStrictEqual({
+        api: {
+          cwd: questWorktree,
+          env: { ...inheritedEnvSnapshot, CLAUDE_CLI_PATH: `${questWorktree}/bin/claude` },
+          detached: true,
+          stdio: ['ignore', 10, 10],
+        },
+        web: {
+          cwd: questWorktree,
+          env: inheritedEnvSnapshot,
+          detached: true,
+          stdio: ['ignore', 11, 11],
+        },
+        sessionRepoRoot: questWorktree,
+      });
+    });
+  });
+
   describe('a spec with three processes', () => {
     it('VALID: {api, web, and a portless worker} => boots all three', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
@@ -940,6 +1030,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
 
       expect(lane.pgids).toStrictEqual([1_001, 1_002, 1_003]);
@@ -955,7 +1046,7 @@ describe('laneBootBroker', () => {
   describe('an instance restart', () => {
     it('VALID: {stopProcesses then startProcesses} => respawns the same command onto the same log fd, and session.pgids and the registry row name the new group', async () => {
       const proxy = laneBootBrokerProxy();
-      const repoRoot = proxy.resolveRepoRoot();
+      const { repoRoot } = proxy;
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const apiProcess = LaneProcessStub({
@@ -985,6 +1076,7 @@ describe('laneBootBroker', () => {
         instanceId: INSTANCE_ID,
         homePath: HOME_PATH,
         evidencePath: EVIDENCE_PATH,
+        repoRoot: proxy.repoRoot,
       });
       const pgidsHeldAtBoot = lane.pgids;
       await lane.stopProcesses();

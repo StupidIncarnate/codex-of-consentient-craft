@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Default allowlists and file-suffix lists for the no-bare-process-cwd rule
+ * PURPOSE: Default allowlists, file-suffix lists and the gateway import the no-bare-process-cwd rule tracks
  *
  * USAGE:
  * import { noBareProcessCwdStatics } from './no-bare-process-cwd-statics';
@@ -10,12 +10,20 @@
  */
 export const noBareProcessCwdStatics = {
   defaults: {
-    allowedFiles: ['**/src/startup/start-install.ts'],
-    // The gateway's own sanctioned wrapper — @dungeonmaster/node/process exports `cwd`,
-    // the ONE place outside a path-resolver broker allowed to call process.cwd() directly;
-    // everywhere else still goes through this rule.
-    allowedFolders: ['**/packages/@gateway/node/src/process/**'],
+    // A tool's config file (vite, playwright, jest) is loaded by that tool as its process entry.
+    allowedFiles: ['**/src/startup/start-install.ts', '**/*.config.{ts,js,mjs,cjs}'],
+    // The entry layer (startup/, responders/) reads where it runs and passes a repo root down.
+    // The gateway's process wrapper exports `cwd`; it is the one place that calls process.cwd().
+    allowedFolders: [
+      '**/packages/@gateway/node/src/process/**',
+      '**/src/startup/**',
+      '**/src/responders/**',
+    ],
     allowTestFiles: true,
+  },
+  gateway: {
+    processModule: '#gateway/node/process',
+    cwdExport: 'cwd',
   },
   testCompanionSuffixes: ['.harness.ts', '.harness.tsx', '.proxy.ts', '.proxy.tsx'],
 } as const;

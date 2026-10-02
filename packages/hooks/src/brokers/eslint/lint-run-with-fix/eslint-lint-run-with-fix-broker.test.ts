@@ -107,7 +107,8 @@ describe('eslintLintRunWithFixBroker()', () => {
     it('VALID: {filePath, config} => returns empty results array', async () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
-      proxy.returnsLintResultsForDefaultCwd({
+      proxy.returnsLintResults({
+        cwd: '/home/test',
         filePath: 'test.ts',
         results: [
           {
@@ -121,6 +122,7 @@ describe('eslintLintRunWithFixBroker()', () => {
 
       const config = FlatConfigStub({ rules: {} });
       const results = await eslintLintRunWithFixBroker({
+        cwd: '/home/test',
         filePath: 'test.ts',
         config,
       });
@@ -128,39 +130,6 @@ describe('eslintLintRunWithFixBroker()', () => {
       expect(results).toStrictEqual([
         {
           filePath: '/home/test/test.ts',
-          messages: [],
-          errorCount: 0,
-          warningCount: 0,
-        },
-      ]);
-    });
-  });
-
-  describe('default cwd', () => {
-    it('VALID: {filePath, config, no cwd} => resolves against the default cwd', async () => {
-      const proxy = eslintLintRunWithFixBrokerProxy();
-
-      proxy.returnsLintResultsForDefaultCwd({
-        filePath: 'marker.ts',
-        results: [
-          {
-            filePath: '/default/cwd/marker.ts',
-            messages: [],
-            errorCount: 0,
-            warningCount: 0,
-          },
-        ],
-      });
-
-      const config = FlatConfigStub();
-      const results = await eslintLintRunWithFixBroker({
-        filePath: 'marker.ts',
-        config,
-      });
-
-      expect(results).toStrictEqual([
-        {
-          filePath: '/default/cwd/marker.ts',
           messages: [],
           errorCount: 0,
           warningCount: 0,

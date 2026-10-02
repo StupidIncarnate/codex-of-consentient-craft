@@ -54,9 +54,9 @@ import { questResolvedObservablePackagesTransformer } from '../../../transformer
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
 import { questUnresolvedObservablePackagesTransformer } from '../../../transformers/quest-unresolved-observable-packages/quest-unresolved-observable-packages-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
-import { questRepoRootBroker } from '../repo-root/quest-repo-root-broker';
 import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify-lock-broker';
 import { resolvePackageEntryFactsLayerBroker } from './resolve-package-entry-facts-layer-broker';
 
@@ -356,12 +356,19 @@ export const questModifyBroker = async ({
         }
 
         // Both checks below judge a DECLARED, repo-relative path against disk, so both anchor on
-        // the repo THIS quest targets — which the guild names, never whatever directory the
-        // orchestrator process happens to have been launched from. A quest driving a sibling repo
-        // declares that repo's contract sources and its package locations alike, and resolving
-        // either one anywhere else turns every path in it into a phantom. One lookup serves both.
+        // the checkout this quest's work lives in — its worktree once carved, the repo the guild
+        // names before — never whatever directory the orchestrator process happens to have been
+        // launched from. A quest driving a sibling repo declares that repo's contract sources and
+        // its package locations alike, and resolving either one anywhere else turns every path in
+        // it into a phantom. One lookup serves both.
         if (validated.contracts !== undefined || validated.packagesAffected !== undefined) {
-          const projectRoot = await questRepoRootBroker({ questId: validated.questId });
+          const resolution = await questCwdResolveBroker({ questId: validated.questId });
+          if (resolution.kind === 'missing-worktree') {
+            throw new Error(
+              `Cannot resolve declared paths for quest ${validated.questId}: worktree not found: ${resolution.worktreePath}`,
+            );
+          }
+          const projectRoot = resolution.cwd;
 
           // Resolve contract source paths against disk and reject status-vs-disk mismatches.
           // Scoped to the contracts being WRITTEN in this call (validated.contracts) — running

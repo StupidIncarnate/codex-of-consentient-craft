@@ -7,7 +7,7 @@
  * one command that needs them instead. Reach for this over reading the file yourself.
  *
  * USAGE:
- * await questIndexLoadBroker({ questId: QuestIdStub() });
+ * await questIndexLoadBroker({ questId: QuestIdStub(), startDir: '/path/to/repo' });
  * // Returns { userRequest, workItems, operations, wardResults, riftcarverResults } for that quest.
  * // Every array fails independently and userRequest is undefined when missing or invalid — same
  * // resilience as questLoadBroker. Everything comes back empty/undefined when the quest cannot be
@@ -30,8 +30,10 @@ import { questFindBroker } from '../find/quest-find-broker';
 
 export const questIndexLoadBroker = async ({
   questId,
+  startDir,
 }: {
   questId: Quest['id'];
+  startDir: string;
 }): Promise<QuestIndexLoadResult> => {
   const empty = {
     userRequest: undefined,
@@ -40,7 +42,7 @@ export const questIndexLoadBroker = async ({
     wardResults: [],
     riftcarverResults: [],
   };
-  const questPath = await questFindBroker({ questId });
+  const questPath = await questFindBroker({ questId, startDir });
 
   if (questPath === undefined) {
     return questIndexLoadResultContract.parse(empty);

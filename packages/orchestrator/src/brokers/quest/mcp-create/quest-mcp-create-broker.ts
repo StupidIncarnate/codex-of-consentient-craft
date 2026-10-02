@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Thin wrapper for the MCP `create-quest` tool — resolves the repo root from the MCP server's process cwd (inherited from the Claude Code session that ran `/dumpster-create` in a specific repo), reuses the registered guild that covers that repo root, or auto-creates one anchored to it, then seeds a quest with the supplied userRequest via questUserAddBroker and returns `{questId, guildSlug}` so the slash command can route the browser at the spec view. ChaosWhisperer fills in the real title later via modify-quest.
+ * PURPOSE: Thin wrapper for the MCP `create-quest` tool — resolves the repo root from the directory the caller passes (the MCP server's cwd, inherited from the Claude Code session that ran `/dumpster-create` in a specific repo), reuses the registered guild that covers that repo root, or auto-creates one anchored to it, then seeds a quest with the supplied userRequest via questUserAddBroker and returns `{questId, guildSlug}` so the slash command can route the browser at the spec view. ChaosWhisperer fills in the real title later via modify-quest.
  *
  * USAGE:
- * const { questId, guildSlug } = await questMcpCreateBroker({ userRequest });
+ * const { questId, guildSlug } = await questMcpCreateBroker({ userRequest, startDir: '/path/to/repo' });
  * // Returns: the newly-created quest's id + its guild's urlSlug
  *
  * WHEN-TO-USE: Wired in by the MCP `create-quest` tool dispatch. ChaosWhisperer in
@@ -16,7 +16,6 @@
 import { questMcpCreateResultContract } from '../../../contracts/quest-mcp-create-result/quest-mcp-create-result-contract';
 import type { QuestMcpCreateResult } from '../../../contracts/quest-mcp-create-result/quest-mcp-create-result-contract';
 import { basename } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   folderNameToGuildNameTransformer,
@@ -41,22 +40,22 @@ const PLACEHOLDER_TITLE = 'New Quest';
 
 export const questMcpCreateBroker = async ({
   userRequest,
+  startDir,
   questType,
   sessionId,
 }: {
   userRequest: AddQuestInput['userRequest'];
+  startDir: string;
   questType?: QuestType;
   sessionId?: Session['id'];
 }): Promise<QuestMcpCreateResult> => {
-  const currentWorkingDirectory = cwd();
-
-  // Fall back to the literal cwd as the repo root when .dungeonmaster.json is absent
+  // Fall back to the literal startDir as the repo root when .dungeonmaster.json is absent
   // (cwdResolveBroker rejects with ProjectRootNotFoundError) so quest creation still
   // succeeds in a repo that has not been through full dungeonmaster init.
-  let repoRoot: string = currentWorkingDirectory;
+  let repoRoot: string = startDir;
   try {
     repoRoot = await cwdResolveBroker({
-      startPath: currentWorkingDirectory,
+      startPath: startDir,
       kind: 'repo-root',
     });
   } catch (error) {

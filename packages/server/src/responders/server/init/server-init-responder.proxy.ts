@@ -8,6 +8,7 @@ import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/c
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
 import { deleteEnv, setEnv } from '#gateway/node/process';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { exitProxy } from '#gateway/node/process/exit/exit.proxy';
 import { onProxy } from '#gateway/node/process/on/on.proxy';
@@ -127,6 +128,7 @@ export const ServerInitResponderProxy = (): {
   // behind; exit is recorded for the same reason.
   onProxy();
   getEnvProxy();
+  cwdProxy();
   exitProxy();
   stdoutProxy();
   const setIntervalChild = setIntervalProxy();

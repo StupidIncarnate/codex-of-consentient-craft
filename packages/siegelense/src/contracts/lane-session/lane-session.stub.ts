@@ -40,6 +40,7 @@ export const LaneSessionStub = ({
       ports: PortPairStub(dataProps.ports),
       homePath: dataProps.homePath ?? '/tmp/dm-siege-stub',
       evidencePath: dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence',
+      repoRoot: dataProps.repoRoot ?? '/tmp/dm-siege-stub-repo',
       baseUrl: dataProps.baseUrl ?? 'http://127.0.0.1:0',
       apiBaseUrl: dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',
       pgids: dataProps.pgids === undefined ? [12345] : dataProps.pgids.map((value) => value),

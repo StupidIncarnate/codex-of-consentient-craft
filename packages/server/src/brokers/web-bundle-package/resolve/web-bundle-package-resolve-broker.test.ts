@@ -35,6 +35,9 @@ describe('webBundlePackageResolveBroker', () => {
       proxy.setupOwnDependencies({
         dependencyNames: ['@dungeonmaster/nonexistent-test-package', '@dungeonmaster/web'],
       });
+      proxy.setupCandidateUnresolvable({
+        candidateName: '@dungeonmaster/nonexistent-test-package',
+      });
       proxy.setupCandidateReact({ candidateName: '@dungeonmaster/web' });
 
       const result = await webBundlePackageResolveBroker();

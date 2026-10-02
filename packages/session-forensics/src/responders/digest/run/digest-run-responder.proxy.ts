@@ -1,3 +1,4 @@
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
@@ -52,6 +53,7 @@ export const DigestRunResponderProxy = (): {
   // identity). Instantiated only to satisfy enforce-proxy-child-creation for the gateway read
   // digest-run-responder.ts imports directly.
   readFileSyncProxy();
+  const cwdSetup = cwdProxy();
 
   const sessionFilePathFor = ({ target }: { target: SessionId }): string =>
     `${PROJECTS_ROOT}/${PROJECT_DIR}/${target}.jsonl`;
@@ -89,15 +91,23 @@ export const DigestRunResponderProxy = (): {
       loadProxy.setupMissing();
     },
     setupQuest: ({ questId, questJson }: { questId: QuestId; questJson: unknown }): void => {
+      // The responder reads the directory it runs in; the quest-find proxy stages its roots under /repo.
+      cwdSetup.setupCwd({ value: '/repo' });
       questProxy.setupQuest({ questId, questJson });
     },
     setupMissingQuest: (): void => {
+      // The responder reads the directory it runs in; the quest-find proxy stages its roots under /repo.
+      cwdSetup.setupCwd({ value: '/repo' });
       questProxy.setupMissingQuest();
     },
     setupQuestIndex: ({ questId, questJson }: { questId: QuestId; questJson: unknown }): void => {
+      // The responder reads the directory it runs in; the quest-find proxy stages its roots under /repo.
+      cwdSetup.setupCwd({ value: '/repo' });
       questIndexProxy.setupQuest({ questId, questJson });
     },
     setupMissingQuestIndex: (): void => {
+      // The responder reads the directory it runs in; the quest-find proxy stages its roots under /repo.
+      cwdSetup.setupCwd({ value: '/repo' });
       questIndexProxy.setupMissingQuest();
     },
   };

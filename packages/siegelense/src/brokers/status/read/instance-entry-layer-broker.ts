@@ -29,6 +29,7 @@
  *   named: true,
  *   nowMs: 1_700_000_000_000,
  *   oomKillsSinceBoot: 2,
+ *   repoRoot: '/repo',
  * });
  * // Returns a validated InstanceStatus
  */
@@ -64,12 +65,14 @@ export const instanceEntryLayerBroker = async ({
   named,
   nowMs,
   oomKillsSinceBoot,
+  repoRoot,
 }: {
   entry: RegistryEntry;
   state: InstanceState;
   named: boolean;
   nowMs: number;
   oomKillsSinceBoot: number | null;
+  repoRoot: string;
 }): Promise<InstanceStatus> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({
     instanceId: entry.id,
@@ -121,7 +124,9 @@ export const instanceEntryLayerBroker = async ({
   // Sequential, run only AFTER the Promise.all above has fully settled, so a solo-profile read
   // never races the heartbeat, runs-directory and /proc reads it is diagnosing alongside.
   const soloProfile =
-    state === 'alive' ? null : await profileSoloReadLayerBroker({ specName: entry.specName });
+    state === 'alive'
+      ? null
+      : await profileSoloReadLayerBroker({ specName: entry.specName, repoRoot });
 
   const likelyCause = likelyCauseLayerBroker({
     state,
@@ -150,7 +155,7 @@ export const instanceEntryLayerBroker = async ({
     });
   }
 
-  const repoLocalDir = await locationsRepoLinkPathFindBroker({ homePath: evidenceDir });
+  const repoLocalDir = await locationsRepoLinkPathFindBroker({ homePath: evidenceDir, repoRoot });
   const evidence = instanceEvidenceListingContract.parse({
     dir: repoLocalDir,
     files: await evidenceTreeLayerBroker({ homeDir: evidenceDir, repoLocalDir: repoLocalDir.path }),

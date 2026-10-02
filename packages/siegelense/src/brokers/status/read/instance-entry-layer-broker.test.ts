@@ -50,6 +50,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProcListing({ pids: [] });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'alive',
         named: false,
@@ -105,6 +106,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProcListing({ pids: [] });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'alive',
         named: false,
@@ -164,7 +166,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProfileSolo({ profile: NO_PROFILE });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -174,6 +176,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupEvidenceTreeMissingDir({ dirPath: evidencePath });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'dead',
         named: true,
@@ -237,7 +240,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProfileSolo({ profile: NO_PROFILE });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -249,6 +252,7 @@ describe('instanceEntryLayerBroker', () => {
       });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'dead',
         named: true,
@@ -324,7 +328,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProfileSolo({ profile: NO_PROFILE });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -339,6 +343,7 @@ describe('instanceEntryLayerBroker', () => {
       });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'dead',
         named: true,
@@ -426,7 +431,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -476,6 +481,7 @@ describe('instanceEntryLayerBroker', () => {
       });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'dead',
         named: true,
@@ -579,7 +585,7 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -589,6 +595,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupEvidenceTreeMissingDir({ dirPath: evidencePath });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'dead',
         named: true,
@@ -655,7 +662,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProfileSolo({ profile: NO_PROFILE });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -685,6 +692,7 @@ describe('instanceEntryLayerBroker', () => {
       });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'killed',
         named: true,
@@ -764,7 +772,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProfileSolo({ profile: NO_PROFILE });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -779,6 +787,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupEvidenceTreeMissingDir({ dirPath: evidencePath });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: 'killed',
         named: true,
@@ -845,7 +854,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProfileSolo({ profile: NO_PROFILE });
       proxy.setupProcListing({ pids: [] });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -860,6 +869,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupEvidenceTreeMissingDir({ dirPath: evidencePath });
 
       const result = await instanceEntryLayerBroker({
+        repoRoot: '/repo',
         entry,
         state: InstanceStateStub({ value: 'killed' }),
         named: true,

@@ -7,6 +7,7 @@
  * const result = await proxy.callResponder({ tool: 'get-quest', args: { questId: 'abc' } });
  */
 
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
@@ -100,6 +101,7 @@ export const QuestHandleResponderProxy = (): {
   const getQuestProxy = GetQuestLayerResponderProxy();
   const orchestrator = StartOrchestratorProxy();
   const getQuestStatusProxy = orchestratorGetQuestStatusBrokerProxy();
+  cwdProxy();
   // Composed for enforce-proxy-child-creation against the responder's own imports; the two work
   // tools stage nothing here, and each has its own colocated suite.
   GetQuestWorkLayerResponderProxy();

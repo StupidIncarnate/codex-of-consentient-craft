@@ -1,6 +1,13 @@
-import { createRequire, builtinModules, resolvePackageRoot, dynamicImport } from './module';
+import {
+  createRequire,
+  builtinModules,
+  resolvePackageRoot,
+  dynamicImport,
+  resolveModuleIfExists,
+} from './module';
 import * as pkgModule from 'module';
 import { resolvePackageRoot as ourResolvePackageRoot } from './resolve-package-root/resolve-package-root';
+import { resolveModuleIfExists as ourResolveModuleIfExists } from './resolve-module-if-exists/resolve-module-if-exists';
 import { dynamicImport as ourDynamicImport } from './dynamic-import/dynamic-import';
 
 describe('#gateway/node/module', () => {
@@ -18,5 +25,9 @@ describe('#gateway/node/module', () => {
 
   it('VALID: {dynamicImport} => is the same curated function this package exports directly', () => {
     expect(dynamicImport).toBe(ourDynamicImport);
+  });
+
+  it('VALID: {resolveModuleIfExists} => is the same curated function this package exports directly', () => {
+    expect(resolveModuleIfExists).toBe(ourResolveModuleIfExists);
   });
 });

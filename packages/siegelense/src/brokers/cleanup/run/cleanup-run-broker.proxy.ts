@@ -10,6 +10,7 @@ import { staleReapLayerBrokerProxy } from './stale-reap-layer-broker.proxy';
 const CLEANUP_NOW_MS = 1_700_000_000_000;
 
 export const cleanupRunBrokerProxy = (): {
+  repoRoot: ReturnType<typeof staleReapLayerBrokerProxy>['repoRoot'];
   setupRegistry: ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry'];
   setupDriverUnreachableReapsLivePgids: ReturnType<
     typeof staleReapLayerBrokerProxy
@@ -46,6 +47,7 @@ export const cleanupRunBrokerProxy = (): {
   clockProxy.setupNow({ ms: CLEANUP_NOW_MS });
 
   return {
+    repoRoot: reapProxy.repoRoot,
     // The registry proxy underneath stages its own clock, so the cleanup clock is restored after it.
     setupRegistry: (
       ...args: Parameters<ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry']>

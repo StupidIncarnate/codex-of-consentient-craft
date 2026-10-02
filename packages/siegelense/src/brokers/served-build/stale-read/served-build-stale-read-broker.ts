@@ -13,14 +13,12 @@
  * than guess. This only warns; it never builds.
  *
  * USAGE:
- * await servedBuildStaleReadBroker({ specName: 'stack' });
+ * await servedBuildStaleReadBroker({ specName: 'stack', repoRoot });
  * // Returns 'STALE BUILD: this lane serves packages/web/dist, last built ...\nREBUILD: ...\n', or ''
  */
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { statIfExists } from '#gateway/node/fs__promises';
-import { cwd } from '#gateway/node/process';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { configDefaultsStatics, configResolveBroker } from '@dungeonmaster/config';
 
@@ -33,17 +31,17 @@ import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 
 export const servedBuildStaleReadBroker = async ({
   specName,
+  repoRoot,
 }: {
   specName: string;
+  repoRoot: string;
 }): Promise<string> => {
-  const spec = await laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName, repoRoot });
   const candidates = laneCommandPathsTransformer({ spec });
   if (candidates.length === 0) {
     return '';
   }
 
-  const cwdSeed = cwd();
-  const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
   const { git } = servedBuildStatics;
 
   const ignoreCheck = await run({
@@ -117,7 +115,7 @@ export const servedBuildStaleReadBroker = async ({
   }
 
   const config = await configResolveBroker({
-    filePath: `${cwdSeed}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
+    filePath: `${repoRoot}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
   });
   // `devServer.buildCommand` carries a schema default, so it is always set once `devServer` is;
   // the fallback only covers the type, `laneSpecFindBroker` having already refused a config

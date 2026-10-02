@@ -7,7 +7,7 @@
  * raw ZodError issue array with no context a caller would otherwise have to read past.
  *
  * USAGE:
- * await recipeSeedRunBroker({ recipe, apiBaseUrl, homePath, parameters });
+ * await recipeSeedRunBroker({ recipe, apiBaseUrl, homePath, parameters, repoRoot });
  */
 
 import { dynamicImport } from '#gateway/node/module';
@@ -26,13 +26,15 @@ export const recipeSeedRunBroker = async ({
   apiBaseUrl,
   homePath,
   parameters,
+  repoRoot,
 }: {
   recipe: string;
   apiBaseUrl: string;
   homePath: string;
   parameters: Record<string, string>;
+  repoRoot: string;
 }): Promise<SeedResult> => {
-  const entryPath = await recipesLocateBroker();
+  const entryPath = recipesLocateBroker({ repoRoot });
   const recipesModule = await dynamicImport({ path: entryPath });
   const seedRunExportName = recipesConventionStatics.exports.seed;
   const seedRunExport =

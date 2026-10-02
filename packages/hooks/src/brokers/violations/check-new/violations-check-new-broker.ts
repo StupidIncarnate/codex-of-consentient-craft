@@ -17,7 +17,7 @@ import {
   violationComparisonContract,
   type ViolationComparison,
 } from '../../../contracts/violation-comparison/violation-comparison-contract';
-import { cwd, getEnv } from '#gateway/node/process';
+import { getEnv } from '#gateway/node/process';
 import { dirname, join } from '#gateway/node/path';
 import { preEditReferenceStatics } from '../../../statics/pre-edit-reference/pre-edit-reference-statics';
 
@@ -33,17 +33,16 @@ import { preEditReferenceStatics } from '../../../statics/pre-edit-reference/pre
  * 6. Analyzes and identifies newly introduced violations
  *
  * @param toolInput - The tool input (Write, Edit, or MultiEdit)
- * @param cwd - The current working directory (defaults to process.cwd())
+ * @param cwd - The checkout the hook acts for (required)
  * @returns Violation comparison indicating if new violations were introduced
  */
 export const violationsCheckNewBroker = async ({
   toolInput,
-  cwd: cwdParam,
+  cwd: workingDir,
 }: {
   toolInput: ToolInput;
-  cwd?: string;
+  cwd: string;
 }): Promise<ViolationComparison> => {
-  const workingDir = cwdParam ?? cwd();
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {

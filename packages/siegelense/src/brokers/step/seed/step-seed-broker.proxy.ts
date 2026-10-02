@@ -2,10 +2,8 @@
  * PURPOSE: Composes the recipes-locate + dynamic-import boundary `stepSeedBroker` drives TWICE per
  * successful seed — once inside `recipesReadBroker`'s own listing read, once again for this
  * broker's own import of the recipe's `recipesSeedRunBroker` export — and exposes a semantic stage
- * per export a test needs to control. `#gateway/node/process`'s `cwd` is a ONE-SHOT mock there
- * (`recipes-locate-broker.proxy.ts`'s own `setupPresentAndBuilt` queues one answer per call), so
- * `stageEntry` re-stages the SAME resolution twice — enough for both real invocations a successful
- * seed makes, and harmless surplus for a scenario that only reaches the first.
+ * per export a test needs to control. The located package sits under the lane's `repoRoot`
+ * (`/tmp/dm-siege-stub-repo` in `LaneSessionStub`), so one stage answers both invocations.
  *
  * USAGE:
  * const proxy = stepSeedBrokerProxy();
@@ -20,10 +18,8 @@ import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 import { recipesReadBrokerProxy } from '../../recipes/read/recipes-read-broker.proxy';
 
-const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
-const PACKAGE_PATH = '/repo/packages/hydration-recipes';
-
-const LOCATE_REPEAT_COUNT = 8;
+const ENTRY_PATH = '/tmp/dm-siege-stub-repo/packages/hydration-recipes/dist/index.js';
+const PACKAGE_PATH = '/tmp/dm-siege-stub-repo/packages/hydration-recipes';
 
 export const stepSeedBrokerProxy = (): {
   stagesListing: (params: { listing: unknown }) => void;
@@ -45,19 +41,16 @@ export const stepSeedBrokerProxy = (): {
     if (state.packagePath !== null) {
       const pkgPath = state.packagePath;
       const entryPath = `${state.packagePath}/${recipesConventionStatics.entry.distRelativePath}`;
-      locateProxy.setupPresentAndBuiltAt({
+      locateProxy.setupPresentAndBuilt({
         packagePath: pkgPath,
         entryPath,
       });
       importProxy.returns({ path: entryPath, module: moduleExports });
       return;
     }
-    Array.from({ length: LOCATE_REPEAT_COUNT }).forEach(() => {
-      locateProxy.setupPresentAndBuilt({
-        cwdPath: '/repo',
-        packagePath: PACKAGE_PATH,
-        entryPath: ENTRY_PATH,
-      });
+    locateProxy.setupPresentAndBuilt({
+      packagePath: PACKAGE_PATH,
+      entryPath: ENTRY_PATH,
     });
     importProxy.returns({ path: ENTRY_PATH, module: moduleExports });
   };

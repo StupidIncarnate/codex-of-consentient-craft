@@ -12,17 +12,11 @@ import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/
 import { hookConfigDefaultBroker } from '../default/hook-config-default-broker';
 import { hookConfigMergeBroker } from '../merge/hook-config-merge-broker';
 import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
-import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 const req = createRequire(__filename);
 
-export const hookConfigLoadBroker = ({
-  cwd: cwdParam,
-}: {
-  cwd?: string;
-} = {}): PreEditLintConfig => {
-  const workingDir = cwdParam ?? cwd();
+export const hookConfigLoadBroker = ({ cwd: workingDir }: { cwd: string }): PreEditLintConfig => {
   // Skip the .ts variant (index 0) — require() cannot load TypeScript without a transpiler.
   const configPaths = locationsStatics.hooks.configFiles
     .filter((f) => !f.endsWith('.ts'))

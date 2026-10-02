@@ -27,6 +27,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [pgidA, pgidB, pgidC],
       });
@@ -68,6 +69,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [deadPgid, livePgid],
       });
@@ -93,6 +95,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [pgid],
       });
@@ -116,6 +119,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [],
       });
@@ -142,6 +146,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [pgid],
       });
@@ -166,6 +171,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: BrowserSessionStub({ close: closeMock }),
         pgids: [pgid],
       });
@@ -191,6 +197,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: BrowserSessionStub({ close: closeMock }),
         pgids: [pgid],
       });
@@ -216,6 +223,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         ports,
         pgids: [],
@@ -244,6 +252,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [pgid],
         logFds: [fdA, fdB],
@@ -268,6 +277,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [pgid],
         logFds: [fd],
@@ -287,6 +297,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [],
         logFds: [],
@@ -316,6 +327,7 @@ describe('laneTeardownBroker', () => {
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
+        repoRoot: proxy.getRepoRoot(),
         browser: null,
         pgids: [pgid],
         logFds: [failingFd, okFd],

@@ -67,6 +67,15 @@ export const laneSessionContract = z
         { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
       )
       .brand<'LaneSessionEvidencePath'>(),
+    // The checkout this lane serves — every later step resolves its repo-local paths from here,
+    // never from the process cwd.
+    repoRoot: z
+      .string()
+      .min(1)
+      .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
+        message: 'Path must be absolute (start with / or C:\\ on Windows)',
+      })
+      .brand<'LaneSessionRepoRoot'>(),
     baseUrl: z.string().brand<'LaneSessionBaseUrl'>(),
     apiBaseUrl: z.string().brand<'LaneSessionApiBaseUrl'>(),
     pgids: z.array(z.number().int().positive().brand<'LaneSessionPgids'>()).readonly(),
@@ -84,6 +93,7 @@ export type LaneSession = z.infer<typeof laneSessionContract> & {
   ports: PortPair;
   homePath: string;
   evidencePath: string;
+  repoRoot: string;
   baseUrl: string;
   apiBaseUrl: string;
   pgids: readonly number[];

@@ -6,7 +6,7 @@
  */
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
@@ -35,7 +35,6 @@ describe('the profile sample-write path, against a real tree', () => {
     baseName: 'profile-sample-record',
   });
   const originalHome = getEnv('DUNGEONMASTER_HOME');
-  const originalCwd = cwd();
 
   let soloRecord: Awaited<ReturnType<typeof profileSampleRecordBroker>> = null;
   let contendedRecord: Awaited<ReturnType<typeof profileSampleRecordBroker>> = null;
@@ -61,7 +60,6 @@ describe('the profile sample-write path, against a real tree', () => {
         }),
       ),
     });
-    chdir(testbed.guildPath);
 
     // One booted instance: every beat below is taken at pool size 1.
     await registryUpdateBroker({
@@ -81,6 +79,7 @@ describe('the profile sample-write path, against a real tree', () => {
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
       rssMB: 2600,
       beatAtMs: FIRST_BEAT_MS,
     });
@@ -88,6 +87,7 @@ describe('the profile sample-write path, against a real tree', () => {
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
       rssMB: 1800,
       beatAtMs: FIRST_BEAT_MS + SETTLE_MS,
     });
@@ -95,6 +95,7 @@ describe('the profile sample-write path, against a real tree', () => {
     nullReadingRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
       rssMB: null,
       beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 5000,
     });
@@ -102,6 +103,7 @@ describe('the profile sample-write path, against a real tree', () => {
     soloRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
       rssMB: 1900,
       beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 10_000,
     });
@@ -130,32 +132,40 @@ describe('the profile sample-write path, against a real tree', () => {
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
       rssMB: 2810,
       beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 20_000,
     });
     contendedRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
       rssMB: 2000,
       beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 30_000,
     });
 
     await profileBootRecordBroker({
       instanceId: SUBJECT_ID,
-      specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+      specHash: laneSpecHashBroker({
+        spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC, repoRoot: testbed.guildPath }),
+      }),
       bootMs: 20_000,
     });
     await profileBootRecordBroker({
       instanceId: SECOND_ID,
-      specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+      specHash: laneSpecHashBroker({
+        spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC, repoRoot: testbed.guildPath }),
+      }),
       bootMs: 22_000,
     });
 
-    profile = await profileReadBroker({ specName: HEADLESS_SPEC });
+    profile = await profileReadBroker({
+      specName: HEADLESS_SPEC,
+      repoRoot: testbed.guildPath,
+    });
   }, 30_000);
 
   afterAll(() => {
-    chdir(originalCwd);
     if (originalHome === undefined) {
       deleteEnv('DUNGEONMASTER_HOME');
     } else {
@@ -175,7 +185,7 @@ describe('the profile sample-write path, against a real tree', () => {
       expect(soloRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
         specHash: laneSpecHashBroker({
-          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }),
+          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC, repoRoot: testbed.guildPath }),
         }),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 10_000,
@@ -189,7 +199,7 @@ describe('the profile sample-write path, against a real tree', () => {
       expect(contendedRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
         specHash: laneSpecHashBroker({
-          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }),
+          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC, repoRoot: testbed.guildPath }),
         }),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 30_000,
@@ -206,7 +216,9 @@ describe('the profile sample-write path, against a real tree', () => {
       expect(profile).toStrictEqual({
         specName: 'api',
         processes: 1,
-        hash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+        hash: laneSpecHashBroker({
+          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC, repoRoot: testbed.guildPath }),
+        }),
         measuredAt: '2025-09-14',
         fromRuns: 1,
         bootMs: 21_000,

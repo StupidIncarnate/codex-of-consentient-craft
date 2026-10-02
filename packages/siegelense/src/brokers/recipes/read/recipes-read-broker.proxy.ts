@@ -17,7 +17,6 @@ export const recipesReadBrokerProxy = (): {
       moduleExports: unknown;
     }): void => {
       locateProxy.setupPresentAndBuilt({
-        cwdPath: '/repo',
         packagePath: '/repo/packages/hydration-recipes',
         entryPath,
       });

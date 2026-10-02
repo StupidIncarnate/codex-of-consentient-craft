@@ -28,7 +28,10 @@
 
 import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
+import {
+  locationsWorktreePathFindBroker,
+  packageBinResolveBroker,
+} from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
 import {
   getQuestInputContract,
@@ -51,7 +54,6 @@ import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-st
 import { questToGitNamesTransformer } from '../../../transformers/quest-to-git-names/quest-to-git-names-transformer';
 import { riftcarverFailureClassifyTransformer } from '../../../transformers/riftcarver-failure-classify/riftcarver-failure-classify-transformer';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
-import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
 import { gitDetectBaseBranchBroker } from '../../git/detect-base-branch/git-detect-base-branch-broker';
 import { riftcarverPersistResultBroker } from '../../riftcarver/persist-result/riftcarver-persist-result-broker';
 import { worktreePrepareBroker } from '../../worktree/prepare/worktree-prepare-broker';
@@ -271,9 +273,9 @@ export const stepHandlerRiftcarverBroker = async ({
       const wardOverride = getEnv('WARD_CLI_PATH');
       const ward =
         wardOverride === undefined
-          ? await dungeonmasterBinResolveBroker({
+          ? await packageBinResolveBroker({
               binName: wardCommandStatics.bin,
-              cwd: worktreePath,
+              repoRoot: worktreePath,
             })
           : { command: wardOverride, leadingArgs: [] };
       const typecheck = await streamLines({

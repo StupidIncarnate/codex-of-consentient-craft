@@ -1,24 +1,22 @@
 import { join } from '#gateway/node/path';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 
 export const locationsRepoLinkPathFindBrokerProxy = (): {
   setupLinkResolvesToRoot: (params: {
-    cwdPath: string;
+    repoRoot: string;
     linkPath: string;
     homeDir: string;
     homePath: string;
     rootPath: string;
   }) => void;
-  setupLinkAbsent: (params: { cwdPath: string; linkPath: string }) => void;
+  setupLinkAbsent: (params: { repoRoot: string; linkPath: string }) => void;
   setupLinkPointsElsewhere: (params: {
-    cwdPath: string;
+    repoRoot: string;
     linkPath: string;
     homeDir: string;
     homePath: string;
@@ -36,18 +34,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   // check itself, which a caller controlling that check independently — instanceKillBrokerProxy's
   // convention — cannot risk double-staging).
   setupHomeOnly: (params: { homeDir: string; homePath: string }) => void;
-  // A caller that needs THIS broker's `cwd()` call to resolve to a specific, known value — every
-  // scenario runs it unconditionally, before the link check ever gets staged — without wanting the
-  // full setupLinkResolvesToRoot/setupLinkAbsent/setupLinkPointsElsewhere scenario staged too.
-  setupCwd: (params: { cwdPath: string }) => void;
 } => {
-  const cwdStage = cwdProxy();
-  // No default: every caller composing this proxy stages it explicitly, via `setupCwd` or a
-  // scenario method (`setupLinkResolvesToRoot`/`setupLinkAbsent`/`setupLinkPointsElsewhere`, via
-  // `stageOuterJoin` below) — instanceReserveBroker's own git-branch lookup shares this same cwd()
-  // mock, and a caller composed alongside it (instanceStartBrokerProxy's convention) stages this
-  // address too, so no test ever reads the real working directory.
-  const resolveProxy = cwdResolveBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
   // specifier the broker imports. Shared with locationsRootPathFindBrokerProxy's own join handle
@@ -58,12 +45,10 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const linkRealpath = realpathProxy();
 
-  const stageOuterJoin = ({ cwdPath, linkPath }: { cwdPath: string; linkPath: string }): void => {
-    cwdStage.setupCwd({ value: cwdPath });
-    resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
+  const stageOuterJoin = ({ repoRoot, linkPath }: { repoRoot: string; linkPath: string }): void => {
     joinHandle
       .calledWith([
-        cwdPath,
+        repoRoot,
         locationsStatics.repoRoot.dungeonmasterAssets,
         locationsStatics.repoRoot.siegelenseLink,
       ])
@@ -72,45 +57,45 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
 
   return {
     setupLinkResolvesToRoot: ({
-      cwdPath,
+      repoRoot,
       linkPath,
       homeDir,
       homePath,
       rootPath,
     }: {
-      cwdPath: string;
+      repoRoot: string;
       linkPath: string;
       homeDir: string;
       homePath: string;
       rootPath: string;
     }): void => {
-      stageOuterJoin({ cwdPath, linkPath });
+      stageOuterJoin({ repoRoot, linkPath });
       existsProxy.returns({ path: linkPath, exists: true });
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
       linkRealpath.returns({ path: linkPath, resolved: rootPath });
     },
 
-    setupLinkAbsent: ({ cwdPath, linkPath }: { cwdPath: string; linkPath: string }): void => {
-      stageOuterJoin({ cwdPath, linkPath });
+    setupLinkAbsent: ({ repoRoot, linkPath }: { repoRoot: string; linkPath: string }): void => {
+      stageOuterJoin({ repoRoot, linkPath });
       existsProxy.returns({ path: linkPath, exists: false });
     },
 
     setupLinkPointsElsewhere: ({
-      cwdPath,
+      repoRoot,
       linkPath,
       homeDir,
       homePath,
       rootPath,
       elsewhereTarget,
     }: {
-      cwdPath: string;
+      repoRoot: string;
       linkPath: string;
       homeDir: string;
       homePath: string;
       rootPath: string;
       elsewhereTarget: string;
     }): void => {
-      stageOuterJoin({ cwdPath, linkPath });
+      stageOuterJoin({ repoRoot, linkPath });
       existsProxy.returns({ path: linkPath, exists: true });
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
       linkRealpath.returns({ path: linkPath, resolved: elsewhereTarget });
@@ -123,10 +108,6 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
 
     setupHomeOnly: (params: { homeDir: string; homePath: string }): void => {
       rootPathProxy.setupHomeOnly(params);
-    },
-
-    setupCwd: ({ cwdPath }: { cwdPath: string }): void => {
-      cwdStage.setupCwd({ value: cwdPath });
     },
   };
 };

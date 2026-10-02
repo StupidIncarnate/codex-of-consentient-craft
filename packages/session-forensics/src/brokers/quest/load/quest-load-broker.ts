@@ -7,7 +7,7 @@
  * the whole document. Reach for this broker instead of reading the file yourself.
  *
  * USAGE:
- * await questLoadBroker({ questId: QuestIdStub() });
+ * await questLoadBroker({ questId: QuestIdStub(), startDir: '/path/to/repo' });
  * // Returns { flows, workItems } for that quest, each in file order. The two arrays fail
  * // INDEPENDENTLY: a quest with valid flows but no workItems key still returns those flows, and
  * // vice versa. Both come back [] when the quest cannot be found or its file cannot be parsed as
@@ -24,11 +24,13 @@ import { questFindBroker } from '../find/quest-find-broker';
 
 export const questLoadBroker = async ({
   questId,
+  startDir,
 }: {
   questId: Quest['id'];
+  startDir: string;
 }): Promise<QuestLoadResult> => {
   const empty = { flows: [], workItems: [] };
-  const questPath = await questFindBroker({ questId });
+  const questPath = await questFindBroker({ questId, startDir });
 
   if (questPath === undefined) {
     return questLoadResultContract.parse(empty);

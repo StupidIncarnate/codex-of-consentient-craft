@@ -4,13 +4,13 @@ import react from '#gateway/npm/vitejs__plugin-react';
 import type { UserConfig } from '#gateway/npm/vite';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
-import { getEnv } from '#gateway/node/process';
+import { cwd, getEnv } from '#gateway/node/process';
 
 const sharedSubpaths = readdirSync(resolve(__dirname, '../shared'))
   .filter((file) => file.endsWith('.ts') && !file.endsWith('.d.ts') && file !== 'index.ts')
   .map((file) => `@dungeonmaster/shared/${file.replace('.ts', '')}`);
 
-const basePort = portResolveBroker();
+const basePort = portResolveBroker({ startDir: cwd() });
 // DUNGEONMASTER_WEB_PORT wins whenever the launcher allocated the two ports separately — ward's
 // e2e runner asks the OS for both, so its web port is NOT basePort + 1 and guessing it here
 // leaves Playwright waiting on a port nothing ever binds. The +1 is the fallback for `npm run

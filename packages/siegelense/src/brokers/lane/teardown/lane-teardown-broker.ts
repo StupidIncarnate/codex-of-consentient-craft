@@ -115,7 +115,7 @@ export const laneTeardownBroker = async ({
 
   const [, evidenceKept] = await Promise.all([
     rm(session.homePath, { recursive: true, force: true }),
-    locationsRepoLinkPathFindBroker({ homePath: session.evidencePath }),
+    locationsRepoLinkPathFindBroker({ homePath: session.evidencePath, repoRoot: session.repoRoot }),
   ]);
 
   return killResultContract.parse({

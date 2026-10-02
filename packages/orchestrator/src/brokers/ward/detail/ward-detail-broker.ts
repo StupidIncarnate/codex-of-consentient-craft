@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Calls dungeonmaster-ward detail command and returns the JSON output. The ward it runs is the
- * one installed nearest `startPath` (dungeonmasterBinResolveBroker), so a run's detail is read by the
+ * one `startPath` resolves (packageBinResolveBroker), so a run's detail is read by the
  * same ward that saved it.
  *
  * USAGE:
@@ -11,7 +11,7 @@
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
-import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
+import { packageBinResolveBroker } from '@dungeonmaster/shared/brokers';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
 const JSON_FLAG = '--json';
@@ -26,7 +26,7 @@ export const wardDetailBroker = async ({
   const override = getEnv('WARD_CLI_PATH');
   const ward =
     override === undefined
-      ? await dungeonmasterBinResolveBroker({ binName: WARD_COMMAND, cwd: startPath })
+      ? await packageBinResolveBroker({ binName: WARD_COMMAND, repoRoot: startPath })
       : { command: override, leadingArgs: [] };
   const { exitCode, output } = await run({
     command: ward.command,

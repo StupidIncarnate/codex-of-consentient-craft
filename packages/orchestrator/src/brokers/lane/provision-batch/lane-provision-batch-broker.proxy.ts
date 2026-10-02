@@ -1,25 +1,31 @@
 /**
  * PURPOSE: Proxy for lane-provision-batch-broker — composes questFindQuestPathBrokerProxy (the
  * implementation's ONE guildId/questPath resolution for the whole batch), laneRecordInstanceBrokerProxy
- * (the write half, queued once per lane a scenario actually starts), and the ONE `dynamicImport`
- * staging that answers BOTH `capacityReadBroker` and `instanceStartBroker` for siegelense's single
- * `brokers` module path — one combined `.resolves()` call, because two separate stagings of the
+ * (the write half, queued once per lane a scenario actually starts), questCwdResolveBrokerProxy
+ * (which checkout the quest runs in), moduleResolveBrokerProxy (siegelense resolved FROM that
+ * checkout, addressed by its path so a resolution from anywhere else fails loudly) and the ONE
+ * `dynamicImport` staging that answers BOTH `capacityReadBroker` and `instanceStartBroker` for the
+ * resolved module path — one combined `.resolves()` call, because two separate stagings of the
  * identical path would collide (registerMock addresses purely by argument, and the later stage
  * silently wins).
  *
  * USAGE:
  * const proxy = laneProvisionBatchBrokerProxy();
  * proxy.setupQuestFound({ quest });
- * proxy.setupCapacityAndManifest({ suggested: 1, manifest: LaneManifestReadingStub() });
+ * proxy.setupCheckout({ quest });
+ * proxy.setupCapacityAndManifest({ quest, suggested: 1, manifest: LaneManifestReadingStub() });
  * // ...call laneProvisionBatchBroker...
  * const persisted = proxy.getLastPersistedQuest();
+ * proxy.getInstanceStartCalls(); // [{ specName, questId, guildId, seed, repoRoot }]
  */
 
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
+import { moduleResolveBrokerProxy } from '@dungeonmaster/shared/brokers/module/resolve/module-resolve-broker.proxy';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { questContract } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
+import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { laneRecordInstanceBrokerProxy } from '../record-instance/lane-record-instance-broker.proxy';
 
@@ -35,17 +41,38 @@ const RECORD_CYCLES: readonly undefined[] = new Array<undefined>(RECORD_CYCLE_CO
   undefined,
 );
 
+const SIEGELENSE_BROKERS_SPECIFIER = '@dungeonmaster/siegelense/brokers';
+const DEFAULT_REPO_ROOT = '/home/testuser';
+
+const modulePathFor = ({ repoRoot }: { repoRoot: string }): string =>
+  `${repoRoot}/node_modules/@dungeonmaster/siegelense/dist/brokers.js`;
+
 export const laneProvisionBatchBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
-  setupCapacityAndManifest: (params: { suggested: number; manifest: unknown }) => void;
+  setupCheckout: (params: { quest: Quest; repoRoot?: string }) => void;
+  setupMissingWorktree: (params: { quest: Quest }) => void;
+  setupCapacityAndManifest: (params: {
+    quest: Quest;
+    suggested: number;
+    manifest: unknown;
+    repoRoot?: string;
+  }) => void;
   getLastPersistedQuest: () => Parsed;
+  getCapacityCalls: () => readonly unknown[];
+  getInstanceStartCalls: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const recordInstanceProxy = laneRecordInstanceBrokerProxy();
   const importProxy = dynamicImportProxy();
-  // Reproduces the exact resolution the broker's own require.resolve() computes, in the same
-  // process and directory — the real address, not a guess.
-  const siegelenseBrokersPath = require.resolve('@dungeonmaster/siegelense/brokers');
+  const cwdProxy = questCwdResolveBrokerProxy();
+  const moduleProxy = moduleResolveBrokerProxy();
+  const capacityReadBroker = jest.fn();
+  const instanceStartBroker = jest.fn();
+
+  // A quest with a recorded worktree runs there; a quest with none runs at the repo root its
+  // guild resolves to. Returns the checkout the broker must resolve siegelense from.
+  const checkoutFor = ({ quest, repoRoot }: { quest: Quest; repoRoot: string }): string =>
+    quest.worktreePath === undefined ? repoRoot : quest.worktreePath;
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -87,22 +114,55 @@ export const laneProvisionBatchBrokerProxy = (): {
       });
     },
 
+    setupCheckout: ({
+      quest,
+      repoRoot = DEFAULT_REPO_ROOT,
+    }: {
+      quest: Quest;
+      repoRoot?: string;
+    }): void => {
+      if (quest.worktreePath === undefined) {
+        cwdProxy.setupLegacyQuest({ quest, repoRoot });
+      } else {
+        cwdProxy.setupWorktreePresent({ quest });
+      }
+      const checkout = checkoutFor({ quest, repoRoot });
+      moduleProxy.setupResolvesFromRunRoot({
+        specifier: SIEGELENSE_BROKERS_SPECIFIER,
+        repoRoot: checkout,
+        path: modulePathFor({ repoRoot: checkout }),
+      });
+    },
+
+    setupMissingWorktree: ({ quest }: { quest: Quest }): void => {
+      cwdProxy.setupWorktreeMissing({ quest });
+    },
+
     setupCapacityAndManifest: ({
+      quest,
       suggested,
       manifest,
+      repoRoot = DEFAULT_REPO_ROOT,
     }: {
+      quest: Quest;
       suggested: number;
       manifest: unknown;
+      repoRoot?: string;
     }): void => {
+      capacityReadBroker.mockResolvedValue({ suggested });
+      instanceStartBroker.mockResolvedValue(manifest);
       importProxy.returns({
-        path: siegelenseBrokersPath,
-        module: {
-          capacityReadBroker: jest.fn().mockResolvedValue({ suggested }),
-          instanceStartBroker: jest.fn().mockResolvedValue(manifest),
-        },
+        path: modulePathFor({ repoRoot: checkoutFor({ quest, repoRoot }) }),
+        module: { capacityReadBroker, instanceStartBroker },
       });
     },
 
     getLastPersistedQuest: recordInstanceProxy.getLastPersistedQuest,
+
+    getCapacityCalls: (): readonly unknown[] =>
+      capacityReadBroker.mock.calls.map((call: readonly [unknown]) => call[0]),
+
+    getInstanceStartCalls: (): readonly unknown[] =>
+      instanceStartBroker.mock.calls.map((call: readonly [unknown]) => call[0]),
   };
 };

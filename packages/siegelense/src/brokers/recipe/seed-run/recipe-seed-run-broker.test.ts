@@ -29,6 +29,7 @@ describe('recipeSeedRunBroker', () => {
         apiBaseUrl: API,
         homePath: HOME,
         parameters: {},
+        repoRoot: '/tmp/dm-siege-stub-repo',
       });
 
       expect(result).toStrictEqual({
@@ -49,6 +50,7 @@ describe('recipeSeedRunBroker', () => {
           apiBaseUrl: API,
           homePath: HOME,
           parameters: {},
+          repoRoot: '/tmp/dm-siege-stub-repo',
         }),
       ).rejects.toThrow(/No recipes package found at/u);
     });
@@ -63,6 +65,7 @@ describe('recipeSeedRunBroker', () => {
           apiBaseUrl: API,
           homePath: HOME,
           parameters: {},
+          repoRoot: '/tmp/dm-siege-stub-repo',
         }),
       ).rejects.toThrow(
         /^recipe 'guild-with-three-quests': its seed result did not match the expected shape — /u,

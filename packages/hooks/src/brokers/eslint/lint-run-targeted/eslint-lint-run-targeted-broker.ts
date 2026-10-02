@@ -7,7 +7,7 @@
  */
 import { ESLint, type Linter } from '#gateway/npm/eslint';
 import { resolve } from '#gateway/node/path';
-import { cwd, stderr } from '#gateway/node/process';
+import { stderr } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { rawEslintConfigContract } from '../../../contracts/raw-eslint-config/raw-eslint-config-contract';
@@ -24,30 +24,28 @@ import { rawEslintConfigContract } from '../../../contracts/raw-eslint-config/ra
  * @param content - The code content to lint
  * @param filePath - The file path (used for extension detection and rule matching)
  * @param config - The Linter configuration with rules to apply
- * @param cwd - The current working directory (defaults to cwd())
+ * @param cwd - The directory ESLint runs against (required)
  * @returns Array of lint results for the content
  */
 export const eslintLintRunTargetedBroker = async ({
   content,
   filePath,
   config,
-  cwd: customCwd,
+  cwd: workingDir,
 }: {
   content: string;
   filePath: string;
   config: unknown;
-  cwd?: string;
+  cwd: string;
 }): Promise<LintResult[]> => {
   if (!content.trim()) {
     return [];
   }
 
-  const resolvedWorkingDir = customCwd ?? cwd();
-
   try {
     // Create ESLint instance with ONLY the filtered rules
     const eslint = new ESLint({
-      cwd: resolvedWorkingDir,
+      cwd: workingDir,
       overrideConfigFile: true,
       overrideConfig: [config as Linter.Config],
     });
@@ -57,7 +55,7 @@ export const eslintLintRunTargetedBroker = async ({
     // - File extension detection (.ts, .tsx, etc.)
     // - Rule pattern matching
     // It doesn't actually read from disk since we're using lintText()
-    const absolutePath = resolve(resolvedWorkingDir, filePath);
+    const absolutePath = resolve(workingDir, filePath);
     let results = await eslint.lintText(content, { filePath: absolutePath });
 
     // If we get any TypeScript project parsing error, try again without project reference.
@@ -93,7 +91,7 @@ export const eslintLintRunTargetedBroker = async ({
 
       // Type assertion needed because config is unknown at broker level but typed at adapter boundary
       const fallbackEslint = new ESLint({
-        cwd: resolvedWorkingDir,
+        cwd: workingDir,
         overrideConfigFile: true,
         overrideConfig: [simplifiedConfig as Linter.Config],
       });

@@ -10,7 +10,6 @@
 import type { ESLint } from '#gateway/npm/eslint';
 import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 export const eslintLintRunTargetedBrokerProxy = (): {
@@ -23,7 +22,8 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     content: string;
     results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
   }) => void;
-  returnsLintResultsForDefaultCwd: (params: {
+  returnsLintResultsForCwd: (params: {
+    cwd: string;
     content: string;
     filePath: string;
     results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
@@ -33,7 +33,6 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   getLintTextCallsFor: (params: { content: string }) => readonly unknown[][];
   getStderrText: ReturnType<typeof stderrProxy>['getWrittenText'];
 } => {
-  const cwdGateway = cwdProxy();
   const stderrGateway = stderrProxy();
 
   const eslint = ESLintProxy();
@@ -56,14 +55,10 @@ export const eslintLintRunTargetedBrokerProxy = (): {
       eslint.lintTextReturns({ text: content, results });
     },
 
-    // Addressed by the staged '/default/cwd' (via the real resolve of it and the file path) rather
-    // than by content alone — this is what a caller that omits `cwd` actually resolves and lints
-    // against, so a broker that stops calling cwd() on that branch fails whatever test stages this.
-    returnsLintResultsForDefaultCwd: ({ content, filePath, results }): void => {
-      // A fixed directory, not the real process.cwd(), so a test on the no-cwd branch never
-      // depends on where jest runs.
-      cwdGateway.setupCwd({ value: '/default/cwd' });
-      const absolutePath = resolve('/default/cwd', filePath);
+    // Addressed by the file path resolved against the given cwd rather than by content alone, so a
+    // broker that resolves against any other directory fails whatever test stages this.
+    returnsLintResultsForCwd: ({ cwd, content, filePath, results }): void => {
+      const absolutePath = resolve(cwd, filePath);
       eslint.lintTextReturns({ text: content, filePath: absolutePath, results });
     },
 

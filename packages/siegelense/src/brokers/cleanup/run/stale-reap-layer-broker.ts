@@ -18,6 +18,7 @@
  * await staleReapLayerBroker({
  *   entry: RegistryEntryStub({ lastBeatMs: 0 }),
  *   nowMs: 1_700_000_000_000,
+ *   repoRoot: '/repo',
  * });
  * // Returns { reaped: ReapedInstance, portsReleased: readonly NetworkPort[] }
  */
@@ -32,14 +33,17 @@ import { instanceKillBroker } from '../../instance/kill/instance-kill-broker';
 export const staleReapLayerBroker = async ({
   entry,
   nowMs,
+  repoRoot,
 }: {
   entry: RegistryEntry;
   nowMs: number;
+  repoRoot: string;
 }): Promise<StaleReapLayerResult> => {
   const staleSinceMs = entry.lastBeatMs ?? entry.reservedAtMs;
 
   const killResult = await instanceKillBroker({
     instanceId: entry.id,
+    repoRoot,
     reason: 'reaped by cleanup after its heartbeat went stale',
   });
 
