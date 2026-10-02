@@ -68,6 +68,17 @@ describe('CliCreatePackageResponder', () => {
   it('EDGE: {args: --name widgets --type library --dry-run} => prints the plan and writes nothing', async () => {
     const proxy = CliCreatePackageResponderProxy();
     const projectRoot = '/repo';
+    const files = packageScaffoldFilesTransformer({
+      request: CreatePackageRequestStub({
+        packageName: '@acme/widgets',
+        directoryName: 'widgets',
+        packageType: 'library',
+        packagesDir: 'packages',
+        description: 'widgets package',
+      }),
+      usesPublishedJestBase: true,
+      workspaceScope: '@acme',
+    });
 
     proxy.setupRootPackageJson({
       projectRoot,
@@ -86,15 +97,77 @@ describe('CliCreatePackageResponder', () => {
     expect(proxy.getOutput()).toStrictEqual([
       'Scaffolding @acme/widgets at /repo/packages/widgets\n',
       '  package.json\n',
+      files[0]!.contents,
       '  tsconfig.json\n',
+      files[1]!.contents,
       '  tsconfig.build.json\n',
+      files[2]!.contents,
       '  jest.config.js\n',
+      files[3]!.contents,
       '  src/statics/statics.ts\n',
+      files[4]!.contents,
       '  src/statics/widgets/widgets-statics.ts\n',
+      files[5]!.contents,
       '  src/statics/widgets/widgets-statics.test.ts\n',
+      files[6]!.contents,
       'Would write 7 files. Nothing was written.\n',
     ]);
     expect(proxy.getWrittenFiles()).toStrictEqual([]);
+  });
+
+  it('VALID: {args: --name widgets --type library --dry-run} => printed contents of one planned file match what a real run writes to disk', async () => {
+    const projectRoot = '/repo';
+    const packageRoot = '/repo/packages/widgets';
+    const files = packageScaffoldFilesTransformer({
+      request: CreatePackageRequestStub({
+        packageName: '@acme/widgets',
+        directoryName: 'widgets',
+        packageType: 'library',
+        packagesDir: 'packages',
+        description: 'widgets package',
+      }),
+      usesPublishedJestBase: true,
+      workspaceScope: '@acme',
+    });
+
+    // Step 1: Real run writes files to disk
+    const realRunProxy = CliCreatePackageResponderProxy();
+    realRunProxy.setupRootPackageJson({
+      projectRoot,
+      contents: JSON.stringify(PackageJsonRawStub({ name: '@acme/repo' })),
+    });
+    realRunProxy.setupTargetMissing({ packageRoot, files });
+
+    const context = InstallContextStub({
+      value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/repo/.dungeonmaster' },
+    });
+
+    await CliCreatePackageResponder({
+      context,
+      args: ['--name', 'widgets', '--type', 'library'],
+    });
+
+    const writtenPackageJson = realRunProxy
+      .getWrittenFiles()
+      .find((file) => file.path === `${packageRoot}/package.json`);
+
+    // Step 2: Dry run prints planned files without writing
+    const dryRunProxy = CliCreatePackageResponderProxy();
+    dryRunProxy.setupRootPackageJson({
+      projectRoot,
+      contents: JSON.stringify(PackageJsonRawStub({ name: '@acme/repo' })),
+    });
+
+    await CliCreatePackageResponder({
+      context,
+      args: ['--name', 'widgets', '--type', 'library', '--dry-run'],
+    });
+
+    const dryRunWrites = dryRunProxy.getOutput();
+    const packageJsonLabelIndex = dryRunWrites.lastIndexOf('  package.json\n');
+    const printedPackageJson = dryRunWrites[packageJsonLabelIndex + 1];
+
+    expect(printedPackageJson).toBe(writtenPackageJson?.content);
   });
 
   it('EDGE: {packageName already in root dependencies} => still writes files but reports it was already registered', async () => {

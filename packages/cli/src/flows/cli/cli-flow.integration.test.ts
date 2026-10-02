@@ -266,6 +266,67 @@ describe('CliFlow', () => {
       expect(rootPackageJson).toMatch(/^ {4}"@probe\/widgets": "\*",?$/mu);
     });
 
+    it('VALID: {command: "create-package", args: --dry-run} => prints planned files and their contents matching what a real run writes to disk', async () => {
+      const realTestbed = installTestbedCreateBroker({
+        baseName: 'cli-flow-create-package-real-match',
+      });
+      realTestbed.writeFile({
+        relativePath: 'package.json',
+        content: `{\n  "name": "@probe/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"]\n}\n`,
+      });
+      const realStdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'create-package',
+        args: ['--name', 'widgets', '--type', 'library'],
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: realTestbed.guildPath,
+            dungeonmasterRoot: realTestbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      realStdout.restore();
+      const realWrittenPackageJson = realTestbed.readFile({
+        relativePath: 'packages/widgets/package.json',
+      });
+      realTestbed.cleanup();
+
+      const dryRunTestbed = installTestbedCreateBroker({
+        baseName: 'cli-flow-create-package-dry-run',
+      });
+      dryRunTestbed.writeFile({
+        relativePath: 'package.json',
+        content: `{\n  "name": "@probe/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"]\n}\n`,
+      });
+      const dryRunStdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'create-package',
+        args: ['--name', 'widgets', '--type', 'library', '--dry-run'],
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: dryRunTestbed.guildPath,
+            dungeonmasterRoot: dryRunTestbed.dungeonmasterPath,
+          },
+        }),
+      });
+
+      dryRunStdout.restore();
+      const dryRunWrites = dryRunStdout.getOutput();
+      const packageJsonIndex = dryRunWrites.indexOf('  package.json\n');
+      const printedPackageJson = dryRunWrites[packageJsonIndex + 1];
+      const packagesDir = dryRunTestbed.listDir({
+        relativePath: 'packages',
+      });
+
+      dryRunTestbed.cleanup();
+
+      expect(packagesDir).toBe(null);
+      expect(printedPackageJson).toBe(realWrittenPackageJson);
+    });
+
     it('INVALID: {command: "create-package", args: --type only} => throws naming the missing --name flag and writes nothing', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'cli-flow-create-package-missing-name',

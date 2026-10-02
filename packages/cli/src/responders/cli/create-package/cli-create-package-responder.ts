@@ -95,6 +95,9 @@ export const CliCreatePackageResponder = async ({
   stdout.write(`Scaffolding ${request.packageName} at ${packageRoot}\n`);
   files.forEach((file) => {
     stdout.write(`  ${file.relativePath}\n`);
+    if (parsedArgs.dryRun) {
+      stdout.write(file.contents);
+    }
   });
 
   if (parsedArgs.dryRun) {
