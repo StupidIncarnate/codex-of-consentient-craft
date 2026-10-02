@@ -27,7 +27,7 @@
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -105,7 +105,7 @@ export const OrchestrationStartResponderProxy = (): {
   const packageGraphMock = registerMock({ fn: PrepareQuestPackageGraphLayerResponder });
 
   // The queue-entry guild lookup at the end of a successful Start: one more find-quest-path fs
-  // round (for the guildId), then the guild-config read guildGetBroker performs.
+  // round (for the guildId), then the home-config read guildGetBroker performs.
   const setupPathResolution = ({ quest }: { quest: Quest }): void => {
     packageGraphMock.calledWith([{ quest: { id: quest.id } }]).resolves(undefined);
     const guildId = GuildIdStub();
@@ -140,7 +140,7 @@ export const OrchestrationStartResponderProxy = (): {
     // Same home as findQuestPathProxy above — one real process has one home, and
     // dungeonmasterHomeFindBroker() is a single shared, address-less mock.
     guildProxy.setupConfig({
-      config: GuildConfigStub({ guilds: [guild] }),
+      config: HomeConfigStub({ guilds: [guild] }),
       homeDir: '/home/testuser',
       homePath,
     });

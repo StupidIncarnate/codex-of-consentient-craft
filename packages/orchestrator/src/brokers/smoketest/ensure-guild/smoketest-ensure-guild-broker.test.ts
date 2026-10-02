@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { smoketestEnsureGuildBroker } from './smoketest-ensure-guild-broker';
@@ -24,7 +24,7 @@ describe('smoketestEnsureGuildBroker', () => {
       });
 
       proxy.setupGuildPresent({
-        config: GuildConfigStub({ guilds: [codexGuild] }),
+        config: HomeConfigStub({ guilds: [codexGuild] }),
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [
@@ -63,7 +63,7 @@ describe('smoketestEnsureGuildBroker', () => {
       });
 
       proxy.setupGuildPresent({
-        config: GuildConfigStub({ guilds: [codexGuild, otherGuild] }),
+        config: HomeConfigStub({ guilds: [codexGuild, otherGuild] }),
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [
@@ -107,7 +107,7 @@ describe('smoketestEnsureGuildBroker', () => {
       });
 
       proxy.setupGuildPresent({
-        config: GuildConfigStub({ guilds: [firstGuild, secondGuild] }),
+        config: HomeConfigStub({ guilds: [firstGuild, secondGuild] }),
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [
@@ -145,7 +145,7 @@ describe('smoketestEnsureGuildBroker', () => {
       });
 
       proxy.setupGuildPresent({
-        config: GuildConfigStub({ guilds: [otherGuild] }),
+        config: HomeConfigStub({ guilds: [otherGuild] }),
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [
@@ -169,7 +169,7 @@ describe('smoketestEnsureGuildBroker', () => {
       proxy.setupPassthrough();
 
       proxy.setupGuildPresent({
-        config: GuildConfigStub({ guilds: [] }),
+        config: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [],
@@ -202,7 +202,7 @@ describe('smoketestEnsureGuildBroker', () => {
       });
 
       proxy.setupGuildPresent({
-        config: GuildConfigStub({ guilds: [broken, codexGuild] }),
+        config: HomeConfigStub({ guilds: [broken, codexGuild] }),
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [

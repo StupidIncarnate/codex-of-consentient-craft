@@ -1,24 +1,24 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
-import { guildConfigWriteBroker } from './guild-config-write-broker';
-import { guildConfigWriteBrokerProxy } from './guild-config-write-broker.proxy';
+import { homeConfigWriteBroker } from './home-config-write-broker';
+import { homeConfigWriteBrokerProxy } from './home-config-write-broker.proxy';
 
-describe('guildConfigWriteBroker', () => {
+describe('homeConfigWriteBroker', () => {
   // With a home supplied, nothing stages dungeonmasterHomeFindBroker and nothing stages a joined
   // path — the write address IS '<supplied home>/config.json', computed for real. The path list
   // is the observation: a broker resolving the process-wide home would name a different file
   // there, so this assertion cannot pass under both resolutions.
   describe('caller-supplied home', () => {
     it('VALID: {home: /tmp/dm-home-target} => writes exactly one file, under that home', async () => {
-      const proxy = guildConfigWriteBrokerProxy();
-      const config = GuildConfigStub({ guilds: [] });
+      const proxy = homeConfigWriteBrokerProxy();
+      const config = HomeConfigStub({ guilds: [] });
 
       proxy.setupSuccessAt({
         configFilePath: '/tmp/dm-home-target/config.json',
       });
 
-      await guildConfigWriteBroker({
+      await homeConfigWriteBroker({
         config,
         home: '/tmp/dm-home-target',
       });
@@ -27,20 +27,20 @@ describe('guildConfigWriteBroker', () => {
     });
 
     it('VALID: {home: /tmp/dm-home-target} => writes the pretty-printed config to that file', async () => {
-      const proxy = guildConfigWriteBrokerProxy();
+      const proxy = homeConfigWriteBrokerProxy();
       const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Targeted Guild',
         path: '/tmp/dm-home-target/targeted-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupSuccessAt({
         configFilePath: '/tmp/dm-home-target/config.json',
       });
 
-      await guildConfigWriteBroker({
+      await homeConfigWriteBroker({
         config,
         home: '/tmp/dm-home-target',
       });
@@ -55,7 +55,7 @@ describe('guildConfigWriteBroker', () => {
 
   describe('successful write', () => {
     it('VALID: {config with guilds} => writes pretty-printed JSON', async () => {
-      const proxy = guildConfigWriteBrokerProxy();
+      const proxy = homeConfigWriteBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
       const guild = GuildStub({
@@ -64,7 +64,7 @@ describe('guildConfigWriteBroker', () => {
         path: '/home/user/my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupWriteSuccess({
         homeDir: '/home/user',
@@ -72,7 +72,7 @@ describe('guildConfigWriteBroker', () => {
         configFilePath,
       });
 
-      await guildConfigWriteBroker({ config });
+      await homeConfigWriteBroker({ config });
 
       const writtenContent = proxy.getWrittenContent();
 
@@ -80,10 +80,10 @@ describe('guildConfigWriteBroker', () => {
     });
 
     it('VALID: {config with empty guilds} => writes JSON with empty array', async () => {
-      const proxy = guildConfigWriteBrokerProxy();
+      const proxy = homeConfigWriteBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
-      const config = GuildConfigStub({ guilds: [] });
+      const config = HomeConfigStub({ guilds: [] });
 
       proxy.setupWriteSuccess({
         homeDir: '/home/user',
@@ -91,7 +91,7 @@ describe('guildConfigWriteBroker', () => {
         configFilePath,
       });
 
-      await guildConfigWriteBroker({ config });
+      await homeConfigWriteBroker({ config });
 
       const writtenContent = proxy.getWrittenContent();
 
@@ -101,10 +101,10 @@ describe('guildConfigWriteBroker', () => {
 
   describe('write errors', () => {
     it('ERROR: {write failure} => throws error', async () => {
-      const proxy = guildConfigWriteBrokerProxy();
+      const proxy = homeConfigWriteBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
-      const config = GuildConfigStub({ guilds: [] });
+      const config = HomeConfigStub({ guilds: [] });
 
       proxy.setupWriteFailure({
         homeDir: '/home/user',
@@ -113,9 +113,7 @@ describe('guildConfigWriteBroker', () => {
         error: new Error('EACCES: permission denied'),
       });
 
-      await expect(guildConfigWriteBroker({ config })).rejects.toThrow(
-        /EACCES: permission denied/u,
-      );
+      await expect(homeConfigWriteBroker({ config })).rejects.toThrow(/EACCES: permission denied/u);
     });
   });
 });

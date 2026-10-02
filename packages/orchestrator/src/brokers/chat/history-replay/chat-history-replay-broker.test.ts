@@ -2,7 +2,7 @@ import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
 } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -20,7 +20,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-1' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
@@ -59,7 +59,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-pasted-image' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const pastedImageLine = JSON.stringify({
         ...UserTextStringStreamLineStub({
@@ -97,7 +97,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-2' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
@@ -123,7 +123,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-no-main' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
       const agentId = 'noMainAgent';
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
@@ -167,7 +167,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-queue-only' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
@@ -200,7 +200,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-signal-back' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const toolUseId = 'toolu_01SignalBackToolUse1';
 
@@ -266,7 +266,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-bad-line' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
@@ -329,7 +329,7 @@ describe('chatHistoryReplayBroker', () => {
         id: guildId,
         path: '/home/user/repo/.dungeonmaster-dev',
       });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       // Walk-up resolves the guild's `.dungeonmaster-dev` path to the parent repo root.
@@ -378,7 +378,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-fallback' });
       const guild = GuildStub({ id: guildId, path: '/tmp/dm-e2e/my-guild' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/tmp/dm-e2e' });
       proxy.setupCwdResolveReject();
@@ -427,7 +427,7 @@ describe('chatHistoryReplayBroker', () => {
       const questId = QuestIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb64f1' });
       const sessionId = SessionIdStub({ value: 'test-session-quest-worktree' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupQuestWorktree({ questId, worktreePath: '/home/user/worktrees/quest-abc12345' });
@@ -471,7 +471,7 @@ describe('chatHistoryReplayBroker', () => {
       const questId = QuestIdStub({ value: '9c6c0e5a-6b8a-4a53-8f8a-6a5f6f6a6a5f' });
       const sessionId = SessionIdStub({ value: 'test-session-quest-repo-root' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupQuestRepoRoot({ questId, repoRoot: '/home/user/my-repo-root' });
@@ -516,7 +516,7 @@ describe('chatHistoryReplayBroker', () => {
       const questId = QuestIdStub({ value: 'b2f6a9f0-0a5a-4a2a-9a6a-6a6a6a6a6a6a' });
       const sessionId = SessionIdStub({ value: 'test-session-quest-worktree-missing' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupQuestWorktreeMissing({
@@ -547,7 +547,7 @@ describe('chatHistoryReplayBroker', () => {
       const questId = QuestIdStub({ value: '3d2f8a1c-7e4b-4c9d-8a1f-2b3c4d5e6f70' });
       const sessionId = SessionIdStub({ value: 'test-session-intake-at-repo-root' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupQuestWorktree({ questId, worktreePath: '/home/user/worktrees/quest-abc12345' });
@@ -594,7 +594,7 @@ describe('chatHistoryReplayBroker', () => {
       const intakeSessionId = SessionIdStub({ value: 'test-session-carved-intake' });
       const codeweaverSessionId = SessionIdStub({ value: 'test-session-carved-codeweaver' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId: intakeSessionId, homeDir: '/home/user' });
       proxy.setupQuestSession({
@@ -673,7 +673,7 @@ describe('chatHistoryReplayBroker', () => {
       const questId = QuestIdStub({ value: '7e1b4c26-8d3a-4f52-9b07-6c5d4e3f2a19' });
       const sessionId = SessionIdStub({ value: 'test-session-row-outlives-worktree' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupQuestWorktreeMissing({
@@ -727,7 +727,7 @@ describe('chatHistoryReplayBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-no-row-of-its-own' });
       const siblingSessionId = SessionIdStub({ value: 'test-session-sibling-with-a-row' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupQuestWorktree({ questId, worktreePath: '/home/user/worktrees/quest-abc12345' });
@@ -774,7 +774,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-subagent' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const taskToolUseId = 'toolu_01TaskDispatch7890abcd';
       const realAgentId = 'a750c8bc';
@@ -900,7 +900,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-early-subagent' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const taskToolUseId = 'toolu_01EarlyTask1234567';
       const realAgentId = 'earlysubagent';
@@ -1030,7 +1030,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-orphan' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const orphanRealAgentId = 'orphanagent';
 
@@ -1123,7 +1123,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-ordering' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const taskToolUseId = 'toolu_01OrderingTask12345';
       const realAgentId = 'orderingagent';
@@ -1313,7 +1313,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-inflight-task' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const taskToolUseId = 'toolu_01InFlightTask9999abcd';
       const realAgentId = 'inflightagent';
@@ -1445,7 +1445,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-nested-helper' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const cwToolUseId = 'toolu_01CodeweaverDispatch01';
       const cwRealAgentId = 'cwrealagent';
@@ -1566,7 +1566,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-depth2-parentchain' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const aToolUseId = 'toolu_01ParentA';
       const aReal = 'realparenta';
@@ -1692,7 +1692,7 @@ describe('chatHistoryReplayBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-unresolved-container' });
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
 
       const aReal = 'unregisteredparent';
       const bToolUseId = 'toolu_01GrandchildB99';

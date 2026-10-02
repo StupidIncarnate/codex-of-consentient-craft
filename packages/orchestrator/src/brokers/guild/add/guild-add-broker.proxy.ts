@@ -1,7 +1,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import type { Guild, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { Guild, HomeConfig } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,
   registerModuleMock,
@@ -13,8 +13,8 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { join } from '#gateway/node/path';
 
 import { guildAddBroker } from './guild-add-broker';
-import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
-import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+import { homeConfigReadBrokerProxy } from '../../home-config/read/home-config-read-broker.proxy';
+import { homeConfigWriteBrokerProxy } from '../../home-config/write/home-config-write-broker.proxy';
 
 registerModuleMock({ module: './guild-add-broker' });
 
@@ -24,7 +24,7 @@ const DEFAULT_GENERATED_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 export const guildAddBrokerProxy = (): {
   setupAddGuild: (params: {
-    existingConfig: GuildConfig;
+    existingConfig: HomeConfig;
     homeDir: string;
     homePath: string;
     guildsPath: string;
@@ -32,10 +32,10 @@ export const guildAddBrokerProxy = (): {
     questsDirPath: string;
   }) => void;
   setupAddGuildInSuppliedHome: (params: {
-    existingConfig: GuildConfig;
+    existingConfig: HomeConfig;
     configFilePath: string;
   }) => void;
-  setupDuplicatePath: (params: { existingConfig: GuildConfig }) => void;
+  setupDuplicatePath: (params: { existingConfig: HomeConfig }) => void;
   stageGeneratedId: (params: { id: string }) => void;
   // Runs the real broker for any object input with nothing else staged — a call that must fail on
   // its own input validation before it touches any I/O.
@@ -48,8 +48,8 @@ export const guildAddBrokerProxy = (): {
   dirsCreated: () => readonly unknown[];
   configFilesWritten: () => readonly unknown[];
 } => {
-  const configReadProxy = guildConfigReadBrokerProxy();
-  const configWriteProxy = guildConfigWriteBrokerProxy();
+  const configReadProxy = homeConfigReadBrokerProxy();
+  const configWriteProxy = homeConfigWriteBrokerProxy();
   const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
   const ensureDirHandle = ensureDirProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
@@ -95,7 +95,7 @@ export const guildAddBrokerProxy = (): {
       guildDirPath,
       questsDirPath,
     }: {
-      existingConfig: GuildConfig;
+      existingConfig: HomeConfig;
       homeDir: string;
       homePath: string;
       guildsPath: string;
@@ -130,7 +130,7 @@ export const guildAddBrokerProxy = (): {
       existingConfig,
       configFilePath,
     }: {
-      existingConfig: GuildConfig;
+      existingConfig: HomeConfig;
       configFilePath: string;
     }): void => {
       runRealBroker();
@@ -147,7 +147,7 @@ export const guildAddBrokerProxy = (): {
       ensureDirHandle.succeeds({ path: questsDir });
     },
 
-    setupDuplicatePath: ({ existingConfig }: { existingConfig: GuildConfig }): void => {
+    setupDuplicatePath: ({ existingConfig }: { existingConfig: HomeConfig }): void => {
       runRealBroker();
       configReadProxy.setupConfig({ config: existingConfig });
     },

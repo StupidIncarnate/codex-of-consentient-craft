@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
@@ -18,7 +18,7 @@ describe('guildAddBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
@@ -54,7 +54,7 @@ describe('guildAddBroker', () => {
       });
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+        existingConfig: HomeConfigStub({ guilds: [existingGuild] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
@@ -85,7 +85,7 @@ describe('guildAddBroker', () => {
       });
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+        existingConfig: HomeConfigStub({ guilds: [existingGuild] }),
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         guildsPath: '/home/user/.dungeonmaster/guilds',
@@ -122,7 +122,7 @@ describe('guildAddBroker', () => {
       });
 
       proxy.setupDuplicatePath({
-        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+        existingConfig: HomeConfigStub({ guilds: [existingGuild] }),
       });
 
       await expect(guildAddBroker({ name, path })).rejects.toThrow(
@@ -142,7 +142,7 @@ describe('guildAddBroker', () => {
       });
 
       proxy.setupDuplicatePath({
-        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+        existingConfig: HomeConfigStub({ guilds: [existingGuild] }),
       });
 
       await expect(guildAddBroker({ name, path })).rejects.toBeInstanceOf(GuildPathTakenError);
@@ -161,7 +161,7 @@ describe('guildAddBroker', () => {
       const questsDirPath = `/home/user/.dungeonmaster/guilds/${suppliedId}/quests`;
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
@@ -188,7 +188,7 @@ describe('guildAddBroker', () => {
       const guildsPath = '/home/user/.dungeonmaster/guilds';
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
@@ -207,7 +207,7 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
 
       proxy.setupAddGuildInSuppliedHome({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         configFilePath: '/tmp/dm-home-target/config.json',
       });
 
@@ -226,7 +226,7 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
 
       proxy.setupAddGuildInSuppliedHome({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         configFilePath: '/tmp/dm-home-target/config.json',
       });
 
@@ -243,7 +243,7 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
 
       proxy.setupAddGuildInSuppliedHome({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         configFilePath: '/tmp/dm-home-target/config.json',
       });
 
@@ -304,7 +304,7 @@ describe('guildAddBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
@@ -328,7 +328,7 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         guildsPath: '/home/user/.dungeonmaster/guilds',
@@ -355,7 +355,7 @@ describe('guildAddBroker', () => {
       const secondId = '016612e6-8f4a-726a-802b-10c043690d99';
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,
@@ -370,7 +370,7 @@ describe('guildAddBroker', () => {
       });
 
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user',
         homePath,
         guildsPath,

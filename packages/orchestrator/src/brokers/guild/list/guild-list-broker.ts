@@ -14,12 +14,12 @@ import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
-import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
+import { homeConfigReadBroker } from '../../home-config/read/home-config-read-broker';
+import { homeConfigWriteBroker } from '../../home-config/write/home-config-write-broker';
 import { pathIsAccessibleBroker } from '../../path/is-accessible/path-is-accessible-broker';
 
 export const guildListBroker = async (): Promise<GuildListItem[]> => {
-  const config = await guildConfigReadBroker();
+  const config = await homeConfigReadBroker();
   const { homePath } = dungeonmasterHomeFindBroker();
 
   let needsPersist = false;
@@ -32,7 +32,7 @@ export const guildListBroker = async (): Promise<GuildListItem[]> => {
   }
 
   if (needsPersist) {
-    await guildConfigWriteBroker({ config });
+    await homeConfigWriteBroker({ config });
   }
 
   const items = await Promise.all(

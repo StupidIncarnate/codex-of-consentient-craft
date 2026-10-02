@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { guildListBroker } from './guild-list-broker';
@@ -28,7 +28,7 @@ describe('guildListBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
         guildEntries: [
@@ -72,7 +72,7 @@ describe('guildListBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
         guildEntries: [
@@ -121,7 +121,7 @@ describe('guildListBroker', () => {
         '/home/user/.dungeonmaster/guilds/a99ef0d8-6ae0-1972-9617-694d449a8242/quests';
 
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [guild1, guild2] }),
+        config: HomeConfigStub({ guilds: [guild1, guild2] }),
         homeDir: '/home/user',
         homePath,
         guildEntries: [
@@ -191,7 +191,7 @@ describe('guildListBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [badGuild, goodGuild] }),
+        config: HomeConfigStub({ guilds: [badGuild, goodGuild] }),
         homeDir: '/home/user',
         homePath,
         guildEntries: [
@@ -247,7 +247,7 @@ describe('guildListBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
         guildEntries: [
@@ -295,7 +295,7 @@ describe('guildListBroker', () => {
         '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         homeDir: '/home/user',
         homePath,
         guildEntries: [

@@ -1,7 +1,7 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
@@ -175,7 +175,7 @@ export const OrchestrationResumeResponderProxy = (): {
       });
 
       guildGetProxy.setupConfig({
-        // Forwarded to guildConfigReadBrokerProxy's own setupConfig — this MUST be the SAME
+        // Forwarded to homeConfigReadBrokerProxy's own setupConfig — this MUST be the SAME
         // homeDir/homePath findQuestPathProxy.setupQuestFound staged just above: both proxies
         // compose dungeonmasterHomeFindBrokerProxy, whose homedir()/join() mocks are shared
         // process-wide, and the exact-tuple address each stages only matches a real call computed
@@ -183,7 +183,7 @@ export const OrchestrationResumeResponderProxy = (): {
         // guildsDir off whichever home was staged LAST, against fixtures built for the other one.
         homeDir: '/home/testuser',
         homePath,
-        config: GuildConfigStub({
+        config: HomeConfigStub({
           guilds: [
             GuildStub({
               id: guildId,

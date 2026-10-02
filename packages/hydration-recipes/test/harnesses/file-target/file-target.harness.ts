@@ -11,7 +11,7 @@
  * `home: target.home`, but `guildListBroker` (used by `guildQueryRouteBroker` and
  * `questOwningGuildFindBroker`) does not yet accept a home parameter and resolves the global env
  * var. Without setting the env var here, queries executed during tests see an empty guilds list.
- * Without the seeded `config.json`, `guildConfigReadBroker`'s ENOENT fallback never fires under
+ * Without the seeded `config.json`, `homeConfigReadBroker`'s ENOENT fallback never fires under
  * jest — it tests `cause instanceof Error`, and the cause is an `fs/promises` error from outside
  * the sandbox realm — so `guildAddBroker` fails outright on the very first guild. This mirrors
  * `packages/orchestrator/test/harnesses/orchestration-environment/orchestration-environment.harness.ts`'s

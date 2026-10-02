@@ -1,27 +1,27 @@
-import type { GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
-import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+import { homeConfigReadBrokerProxy } from '../../home-config/read/home-config-read-broker.proxy';
+import { homeConfigWriteBrokerProxy } from '../../home-config/write/home-config-write-broker.proxy';
 import { guildGetBroker } from './guild-get-broker';
 
 type Guild = ReturnType<typeof GuildStub>;
 
 export const guildGetBrokerProxy = (): {
   setupConfig: (params: {
-    config: GuildConfig;
+    config: HomeConfig;
     // A lookup id the config does not hold, so the real broker's not-found throw is reachable.
     missingGuildId?: Guild['id'];
-    // Forwarded to guildConfigReadBrokerProxy's own setupConfig — see its header for why a
+    // Forwarded to homeConfigReadBrokerProxy's own setupConfig — see its header for why a
     // composing test must pass the SAME homeDir/homePath a sibling quest-path proxy staged.
     homeDir?: string;
     homePath?: string;
   }) => void;
   setupDirectGuild: (params: { guild: Guild }) => void;
 } => {
-  const configReadProxy = guildConfigReadBrokerProxy();
-  const configWriteProxy = guildConfigWriteBrokerProxy();
+  const configReadProxy = homeConfigReadBrokerProxy();
+  const configWriteProxy = homeConfigWriteBrokerProxy();
 
   // registerMock wraps the live export directly — unlike registerModuleMock, it needs no
   // AST-hoisted jest.mock() to take effect, so this proxy composes safely from a caller in
@@ -38,7 +38,7 @@ export const guildGetBrokerProxy = (): {
       homeDir,
       homePath,
     }: {
-      config: GuildConfig;
+      config: HomeConfig;
       missingGuildId?: Guild['id'];
       homeDir?: string;
       homePath?: string;
@@ -55,7 +55,7 @@ export const guildGetBrokerProxy = (): {
         ...(homeDir === undefined ? {} : { homeDir }),
         ...(homePath === undefined ? {} : { homePath }),
       });
-      // guildGetBroker only calls guildConfigWriteBroker when the matched guild lacks a
+      // guildGetBroker only calls homeConfigWriteBroker when the matched guild lacks a
       // urlSlug (the backfill branch). Staging the write mocks unconditionally leaves two
       // never-consumed entries sitting in path.join's shared call-order queue whenever every
       // guild already carries a urlSlug — the common case. A later, unrelated real path.join

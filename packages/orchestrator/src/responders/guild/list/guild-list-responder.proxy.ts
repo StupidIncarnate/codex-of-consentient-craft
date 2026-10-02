@@ -1,6 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 
-import type { GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig } from '@dungeonmaster/shared/contracts';
 
 import { guildListBrokerProxy } from '../../../brokers/guild/list/guild-list-broker.proxy';
 import { GuildListResponder } from './guild-list-responder';
@@ -8,7 +8,7 @@ import { GuildListResponder } from './guild-list-responder';
 export const GuildListResponderProxy = (): {
   callResponder: typeof GuildListResponder;
   setupGuildList: (params: {
-    config: GuildConfig;
+    config: HomeConfig;
     homeDir: string;
     homePath: string;
     guildEntries: {
@@ -25,7 +25,7 @@ export const GuildListResponderProxy = (): {
     callResponder: GuildListResponder,
 
     setupGuildList: (params: {
-      config: GuildConfig;
+      config: HomeConfig;
       homeDir: string;
       homePath: string;
       guildEntries: {

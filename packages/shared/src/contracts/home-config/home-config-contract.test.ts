@@ -1,13 +1,13 @@
 import { GuildStub } from '../guild/guild.stub';
-import { guildConfigContract } from './guild-config-contract';
-import { GuildConfigStub } from './guild-config.stub';
+import { homeConfigContract } from './home-config-contract';
+import { HomeConfigStub } from './home-config.stub';
 
-describe('guildConfigContract', () => {
+describe('homeConfigContract', () => {
   describe('valid configs', () => {
     it('VALID: empty guilds => parses successfully', () => {
-      const config = GuildConfigStub();
+      const config = HomeConfigStub();
 
-      const result = guildConfigContract.parse(config);
+      const result = homeConfigContract.parse(config);
 
       expect(result).toStrictEqual({
         guilds: [],
@@ -16,17 +16,17 @@ describe('guildConfigContract', () => {
 
     it('VALID: config with guilds => parses successfully', () => {
       const guild = GuildStub();
-      const config = GuildConfigStub({
+      const config = HomeConfigStub({
         guilds: [guild],
       });
 
-      const result = guildConfigContract.parse(config);
+      const result = homeConfigContract.parse(config);
 
       expect(result.guilds).toStrictEqual([guild]);
     });
 
     it('VALID: missing guilds field => defaults to empty array', () => {
-      const result = guildConfigContract.parse({});
+      const result = homeConfigContract.parse({});
 
       expect(result.guilds).toStrictEqual([]);
     });
@@ -35,7 +35,7 @@ describe('guildConfigContract', () => {
   describe('invalid configs', () => {
     it('INVALID: invalid guild in array => throws validation error', () => {
       expect(() => {
-        guildConfigContract.parse({
+        homeConfigContract.parse({
           guilds: [{ id: 'not-a-uuid' }],
         });
       }).toThrow(/Invalid UUID/u);

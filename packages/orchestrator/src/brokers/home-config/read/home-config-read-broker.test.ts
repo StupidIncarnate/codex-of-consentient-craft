@@ -1,18 +1,18 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
-import { guildConfigReadBroker } from './guild-config-read-broker';
-import { guildConfigReadBrokerProxy } from './guild-config-read-broker.proxy';
+import { homeConfigReadBroker } from './home-config-read-broker';
+import { homeConfigReadBrokerProxy } from './home-config-read-broker.proxy';
 
-describe('guildConfigReadBroker', () => {
+describe('homeConfigReadBroker', () => {
   // With a home supplied, nothing stages dungeonmasterHomeFindBroker and nothing stages a joined
   // path — the read address IS '<supplied home>/config.json', computed for real. A broker that
   // resolved the process-wide home instead would read some other path and throw on an unmatched
   // call, so these two cases cannot both pass under one resolution.
   describe('caller-supplied home', () => {
     it('VALID: {home: /tmp/dm-home-target} => returns the config read from that home', async () => {
-      const proxy = guildConfigReadBrokerProxy();
+      const proxy = homeConfigReadBrokerProxy();
       const guild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Targeted Guild',
@@ -23,10 +23,10 @@ describe('guildConfigReadBroker', () => {
 
       proxy.setupConfigAt({
         configFilePath: '/tmp/dm-home-target/config.json',
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
-      const result = await guildConfigReadBroker({
+      const result = await homeConfigReadBroker({
         home: '/tmp/dm-home-target',
       });
 
@@ -44,14 +44,14 @@ describe('guildConfigReadBroker', () => {
     });
 
     it('VALID: {home: /tmp/dm-home-other} => reads that home instead, with only the other home staged', async () => {
-      const proxy = guildConfigReadBrokerProxy();
+      const proxy = homeConfigReadBrokerProxy();
 
       proxy.setupConfigAt({
         configFilePath: '/tmp/dm-home-other/config.json',
-        config: GuildConfigStub({ guilds: [] }),
+        config: HomeConfigStub({ guilds: [] }),
       });
 
-      const result = await guildConfigReadBroker({
+      const result = await homeConfigReadBroker({
         home: '/tmp/dm-home-other',
       });
 
@@ -60,8 +60,8 @@ describe('guildConfigReadBroker', () => {
   });
 
   describe('existing config', () => {
-    it('VALID: {config.json exists with guilds} => returns parsed GuildConfig', async () => {
-      const proxy = guildConfigReadBrokerProxy();
+    it('VALID: {config.json exists with guilds} => returns parsed HomeConfig', async () => {
+      const proxy = homeConfigReadBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
       const guild = GuildStub({
@@ -70,7 +70,7 @@ describe('guildConfigReadBroker', () => {
         path: '/home/user/my-guild',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const config = GuildConfigStub({ guilds: [guild] });
+      const config = HomeConfigStub({ guilds: [guild] });
       const configJson = JSON.stringify(config);
 
       proxy.setupConfigExists({
@@ -80,7 +80,7 @@ describe('guildConfigReadBroker', () => {
         configJson,
       });
 
-      const result = await guildConfigReadBroker();
+      const result = await homeConfigReadBroker();
 
       expect(result).toStrictEqual({
         guilds: [
@@ -96,7 +96,7 @@ describe('guildConfigReadBroker', () => {
     });
 
     it('VALID: {config.json exists with empty guilds} => returns config with empty array', async () => {
-      const proxy = guildConfigReadBrokerProxy();
+      const proxy = homeConfigReadBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
       const configJson = JSON.stringify({ guilds: [] });
@@ -108,7 +108,7 @@ describe('guildConfigReadBroker', () => {
         configJson,
       });
 
-      const result = await guildConfigReadBroker();
+      const result = await homeConfigReadBroker();
 
       expect(result).toStrictEqual({
         guilds: [],
@@ -118,7 +118,7 @@ describe('guildConfigReadBroker', () => {
 
   describe('missing config', () => {
     it('EMPTY: {config.json does not exist} => returns default config with empty guilds', async () => {
-      const proxy = guildConfigReadBrokerProxy();
+      const proxy = homeConfigReadBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
 
@@ -128,7 +128,7 @@ describe('guildConfigReadBroker', () => {
         configFilePath,
       });
 
-      const result = await guildConfigReadBroker();
+      const result = await homeConfigReadBroker();
 
       expect(result).toStrictEqual({
         guilds: [],
@@ -138,7 +138,7 @@ describe('guildConfigReadBroker', () => {
 
   describe('read errors', () => {
     it('ERROR: {non-ENOENT read failure} => throws error', async () => {
-      const proxy = guildConfigReadBrokerProxy();
+      const proxy = homeConfigReadBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const configFilePath = '/home/user/.dungeonmaster/config.json';
 
@@ -149,7 +149,7 @@ describe('guildConfigReadBroker', () => {
         error: FsErrorStub({ code: 'EACCES', path: configFilePath }),
       });
 
-      await expect(guildConfigReadBroker()).rejects.toThrow(
+      await expect(homeConfigReadBroker()).rejects.toThrow(
         /^EACCES: op '\/home\/user\/\.dungeonmaster\/config\.json'$/u,
       );
     });

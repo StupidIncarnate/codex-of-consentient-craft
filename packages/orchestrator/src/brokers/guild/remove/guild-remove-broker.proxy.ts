@@ -1,16 +1,16 @@
-import type { GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig } from '@dungeonmaster/shared/contracts';
 
-import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
-import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+import { homeConfigReadBrokerProxy } from '../../home-config/read/home-config-read-broker.proxy';
+import { homeConfigWriteBrokerProxy } from '../../home-config/write/home-config-write-broker.proxy';
 
 export const guildRemoveBrokerProxy = (): {
-  setupConfig: (params: { config: GuildConfig }) => void;
+  setupConfig: (params: { config: HomeConfig }) => void;
 } => {
-  const configReadProxy = guildConfigReadBrokerProxy();
-  const configWriteProxy = guildConfigWriteBrokerProxy();
+  const configReadProxy = homeConfigReadBrokerProxy();
+  const configWriteProxy = homeConfigWriteBrokerProxy();
 
   return {
-    setupConfig: ({ config }: { config: GuildConfig }): void => {
+    setupConfig: ({ config }: { config: HomeConfig }): void => {
       configReadProxy.setupConfig({ config });
       configWriteProxy.setupSuccess();
     },

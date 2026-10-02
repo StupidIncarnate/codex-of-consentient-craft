@@ -7,13 +7,13 @@
  * // Throws if guild not found or path already in use by another guild
  */
 
-import { guildContract, guildConfigContract } from '@dungeonmaster/shared/contracts';
+import { guildContract, homeConfigContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
-import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
-import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
+import { homeConfigReadBroker } from '../../home-config/read/home-config-read-broker';
+import { homeConfigWriteBroker } from '../../home-config/write/home-config-write-broker';
 
 export const guildUpdateBroker = async ({
   guildId,
@@ -24,7 +24,7 @@ export const guildUpdateBroker = async ({
   name?: string;
   path?: string;
 }): Promise<Guild> => {
-  const config = await guildConfigReadBroker();
+  const config = await homeConfigReadBroker();
 
   const existing = config.guilds.find((g) => g.id === guildId);
 
@@ -47,7 +47,7 @@ export const guildUpdateBroker = async ({
 
   const updatedGuilds = config.guilds.map((g) => (g.id === guildId ? updated : g));
 
-  await guildConfigWriteBroker({ config: guildConfigContract.parse({ guilds: updatedGuilds }) });
+  await homeConfigWriteBroker({ config: homeConfigContract.parse({ guilds: updatedGuilds }) });
 
   return updated;
 };
