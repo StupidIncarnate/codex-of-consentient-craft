@@ -216,7 +216,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
 
     // Contracts can import from statics, errors, and zod (specific package)
     {
-      code: 'import { z } from "zod";',
+      code: 'import { z } from "#gateway/npm/zod";',
       filename: '/project/src/contracts/user/user-contract.ts',
     },
     {
@@ -381,15 +381,15 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/flows/user/user-flow.tsx',
     },
     {
-      code: 'import express from "express";',
+      code: 'import express from "#gateway/npm/express";',
       filename: '/project/src/flows/server/server-flow.ts',
     },
     {
-      code: 'import { Hono } from "hono";',
+      code: 'import { Hono } from "#gateway/npm/hono";',
       filename: '/project/src/flows/api/api-flow.ts',
     },
     {
-      code: 'import { BrowserRouter } from "react-router-dom";',
+      code: 'import { BrowserRouter } from "#gateway/npm/react-router-dom";',
       filename: '/project/src/flows/app/app-flow.tsx',
     },
     {
@@ -519,7 +519,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'contracts',
             importedFolder: 'brokers',
             allowed:
-              'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types, @dungeonmaster/orchestrator',
+              'statics/, errors/, contracts/, #gateway/npm/zod, @dungeonmaster/shared/@types, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -536,7 +536,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'contracts',
             importedFolder: 'guards',
             allowed:
-              'statics/, errors/, contracts/, zod, @dungeonmaster/shared/@types, @dungeonmaster/orchestrator',
+              'statics/, errors/, contracts/, #gateway/npm/zod, @dungeonmaster/shared/@types, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -912,7 +912,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'flows',
             allowed:
-              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @tabler/icons-react, @testing-library/react, @testing-library/user-event',
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, #gateway/npm/react, #gateway/npm/mantine__core, #gateway/npm/mantine__hooks, #gateway/npm/ansi-to-react, #gateway/npm/react-router-dom, #gateway/npm/tabler__icons-react, #gateway/npm/testing-library__react, #gateway/npm/testing-library__user-event',
           },
         },
       ],
@@ -927,7 +927,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'responders',
             allowed:
-              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @tabler/icons-react, @testing-library/react, @testing-library/user-event',
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, #gateway/npm/react, #gateway/npm/mantine__core, #gateway/npm/mantine__hooks, #gateway/npm/ansi-to-react, #gateway/npm/react-router-dom, #gateway/npm/tabler__icons-react, #gateway/npm/testing-library__react, #gateway/npm/testing-library__user-event',
           },
         },
       ],
@@ -1030,7 +1030,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'flows',
             importedFolder: 'brokers',
             allowed:
-              'contracts/, transformers/, guards/, statics/, errors/, flows/, responders/, hono, react-router-dom, express, @modelcontextprotocol/sdk, zod-to-json-schema',
+              'contracts/, transformers/, guards/, statics/, errors/, flows/, responders/, #gateway/npm/hono, #gateway/npm/react-router-dom, #gateway/npm/express, #gateway/npm/modelcontextprotocol__sdk, #gateway/npm/zod-to-json-schema',
           },
         },
       ],
@@ -1045,7 +1045,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'flows',
             importedFolder: 'widgets',
             allowed:
-              'contracts/, transformers/, guards/, statics/, errors/, flows/, responders/, hono, react-router-dom, express, @modelcontextprotocol/sdk, zod-to-json-schema',
+              'contracts/, transformers/, guards/, statics/, errors/, flows/, responders/, #gateway/npm/hono, #gateway/npm/react-router-dom, #gateway/npm/express, #gateway/npm/modelcontextprotocol__sdk, #gateway/npm/zod-to-json-schema',
           },
         },
       ],

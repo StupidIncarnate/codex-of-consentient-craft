@@ -518,7 +518,7 @@ describe('CliFlow', () => {
 
       expect([monitoredLine, emptyFleetLine, trailingLine]).toStrictEqual([
         `MONITORED: ${machineStatics.monitored.join(', ')}`,
-        'No siegelense instances created in the last 6hr. Widen with --since beginning.',
+        'No siegelense instances created in the last 6hr. Widen with --since 1wk.',
         '',
       ]);
       expect(machineLine).toMatch(
