@@ -8,6 +8,7 @@ import { createPackageResolveRequestBrokerProxy } from '../../../brokers/create-
 import { packageRegisterBrokerProxy } from '../../../brokers/package/register/package-register-broker.proxy';
 import { packageScaffoldWriteBrokerProxy } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker.proxy';
 
+const INTERNAL_TESTING_OPTIONS_PATH = 'packages/testing/ts-jest/options.js';
 const JEST_CONFIG_BASE_FILENAME = 'jest.config.base.js';
 
 export const CliCreatePackageResponderProxy = (): {
@@ -16,10 +17,11 @@ export const CliCreatePackageResponderProxy = (): {
     packageRoot: string;
     files: readonly { relativePath: string; contents: string }[];
   }) => void;
-  // Stages the repo-root build config file as PRESENT, the shape of THIS checkout's own
+  // Stages the internal testing options file as PRESENT, the shape of THIS checkout's own
   // packages — setupRootPackageJson stages it absent by default, which is the shape of a
   // real consumer repo.
   setupMonorepoBuildConfig: (params: { projectRoot: string }) => void;
+  setupConsumerBuildConfig: (params: { projectRoot: string }) => void;
   getOutput: () => readonly unknown[];
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
@@ -48,6 +50,8 @@ export const CliCreatePackageResponderProxy = (): {
       // Covers packageRegisterBroker's OWN read of the same path plus its write, in case the
       // responder's registration step needs to persist a change.
       registerProxy.setupRootPackageJson({ projectRoot, contents });
+      const internalTestingOptionsPath = join(projectRoot, INTERNAL_TESTING_OPTIONS_PATH);
+      existsProxy.returns({ path: internalTestingOptionsPath, exists: false });
       const jestConfigBasePath = join(projectRoot, JEST_CONFIG_BASE_FILENAME);
       existsProxy.returns({ path: jestConfigBasePath, exists: false });
     },
@@ -63,6 +67,13 @@ export const CliCreatePackageResponderProxy = (): {
     },
 
     setupMonorepoBuildConfig: ({ projectRoot }: { projectRoot: string }): void => {
+      const internalTestingOptionsPath = join(projectRoot, INTERNAL_TESTING_OPTIONS_PATH);
+      existsProxy.returns({ path: internalTestingOptionsPath, exists: true });
+      const jestConfigBasePath = join(projectRoot, JEST_CONFIG_BASE_FILENAME);
+      existsProxy.returns({ path: jestConfigBasePath, exists: true });
+    },
+
+    setupConsumerBuildConfig: ({ projectRoot }: { projectRoot: string }): void => {
       const jestConfigBasePath = join(projectRoot, JEST_CONFIG_BASE_FILENAME);
       existsProxy.returns({ path: jestConfigBasePath, exists: true });
     },

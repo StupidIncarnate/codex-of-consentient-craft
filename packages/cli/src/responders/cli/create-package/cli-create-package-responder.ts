@@ -18,11 +18,11 @@
  * unreachable in this file — the throw below only narrows the type for it.
  *
  * A scaffolded package's `jest.config.js` also branches on context: this repo's OWN packages
- * require the repo-root `jest.config.base.js` (packages/CLAUDE.md's own jest section), which exists
- * only in THIS checkout, so a consumer repo gets no such file and needs the PUBLISHED
+ * require the internal `packages/testing/ts-jest/options.js` and repo-root `jest.config.base.js`,
+ * which exist only in THIS checkout, whereas a consumer repo needs the PUBLISHED
  * `@dungeonmaster/testing/jest-config-base` instead. `usesPublishedJestBase` answers that by asking
- * disk whether the repo-root file exists, once, here — `packageScaffoldFilesTransformer` stays pure
- * and only branches on the boolean it is handed.
+ * disk whether `packages/testing/ts-jest/options.js` exists, once, here —
+ * `packageScaffoldFilesTransformer` stays pure and only branches on the boolean it is handed.
  *
  * USAGE:
  * await CliCreatePackageResponder({ context, args: ['--name', 'widgets', '--type', 'library'] });
@@ -45,7 +45,7 @@ import { packageScaffoldConfigStatics } from '../../../statics/package-scaffold-
 import { createPackageArgsParseTransformer } from '../../../transformers/create-package-args-parse/create-package-args-parse-transformer';
 import { packageScaffoldFilesTransformer } from '../../../transformers/package-scaffold-files/package-scaffold-files-transformer';
 
-const JEST_CONFIG_BASE_FILENAME = 'jest.config.base.js';
+const INTERNAL_TESTING_OPTIONS_PATH = 'packages/testing/ts-jest/options.js';
 
 export const CliCreatePackageResponder = async ({
   context,
@@ -72,8 +72,8 @@ export const CliCreatePackageResponder = async ({
     );
   }
 
-  const jestConfigBasePath = join(context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME);
-  const usesPublishedJestBase = !existsSync(jestConfigBasePath);
+  const internalTestingOptionsPath = join(context.targetProjectRoot, INTERNAL_TESTING_OPTIONS_PATH);
+  const usesPublishedJestBase = !existsSync(internalTestingOptionsPath);
 
   // Zero args at a terminal prompts; zero args with no TTY falls through to the resolver, which
   // throws naming --name, so a script or agent can never hang on stdin — any args at all is

@@ -239,9 +239,9 @@ describe('CliCreatePackageResponder', () => {
     );
   });
 
-  // F6 regression pair: which jest.config.js body a scaffolded package gets depends on whether a
-  // repo-root jest.config.base.js exists on disk (this checkout) or not (a real consumer).
-  it('VALID: {repo-root jest.config.base.js exists} => scaffolded jest.config.js requires the repo-relative base', async () => {
+  // F6 regression pair: which jest.config.js body a scaffolded package gets depends on whether
+  // packages/testing/ts-jest/options.js exists on disk (this checkout) or not (a real consumer).
+  it('VALID: {internal testing options exist} => scaffolded jest.config.js requires the repo-relative base', async () => {
     const proxy = CliCreatePackageResponderProxy();
     const projectRoot = '/repo';
     const packageRoot = '/repo/packages/widgets';
@@ -279,7 +279,7 @@ describe('CliCreatePackageResponder', () => {
     );
   });
 
-  it('VALID: {no repo-root jest.config.base.js} => scaffolded jest.config.js requires the published testing base instead', async () => {
+  it('VALID: {no internal testing options} => scaffolded jest.config.js requires the published testing base instead', async () => {
     const proxy = CliCreatePackageResponderProxy();
     const projectRoot = '/repo';
     const packageRoot = '/repo/packages/widgets';
@@ -298,7 +298,7 @@ describe('CliCreatePackageResponder', () => {
     });
     proxy.setupTargetMissing({ packageRoot, files });
     // No setupMonorepoBuildConfig() call: fsExistsSyncAdapterProxy's own default is "not found", the
-    // shape of a real consumer repo, which has no repo-root jest.config.base.js of its own.
+    // shape of a real consumer repo, which has no internal packages/testing/ts-jest/options.js.
 
     const context = InstallContextStub({
       value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/repo/.dungeonmaster' },
@@ -316,6 +316,55 @@ describe('CliCreatePackageResponder', () => {
     expect(String(jestConfigFile?.content)).toMatch(
       /^const base = require\('@dungeonmaster\/testing\/jest-config-base'\);$/mu,
     );
+  });
+
+  // DEF-276 regression: a consumer repo may have its own root jest.config.base.js (like assayer does),
+  // but it lacks packages/testing/ts-jest/options.js. create-package must not mistake it for this
+  // monorepo and must use the published base rather than internal ../../packages/testing paths.
+  it('VALID: {consumer repo has root jest.config.base.js} => scaffolded jest.config.js requires published testing base and never names packages/testing/ts-jest/options.js', async () => {
+    const proxy = CliCreatePackageResponderProxy();
+    const projectRoot = '/consumer-repo';
+    const packageRoot = '/consumer-repo/packages/my-cli';
+    const files = packageScaffoldFilesTransformer({
+      request: CreatePackageRequestStub({
+        packageName: '@consumer/my-cli',
+        directoryName: 'my-cli',
+        packageType: 'cli-tool',
+        packagesDir: 'packages',
+      }),
+      usesPublishedJestBase: true,
+    });
+
+    proxy.setupRootPackageJson({
+      projectRoot,
+      contents: JSON.stringify(PackageJsonRawStub({ name: '@consumer/repo' })),
+    });
+    proxy.setupTargetMissing({ packageRoot, files });
+    proxy.setupConsumerBuildConfig({ projectRoot });
+
+    const context = InstallContextStub({
+      value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/consumer-repo/.dungeonmaster' },
+    });
+
+    await CliCreatePackageResponder({
+      context,
+      args: ['--name', 'my-cli', '--type', 'cli-tool'],
+    });
+
+    const writtenFiles = proxy.getWrittenFiles();
+    const jestConfigFile = writtenFiles.find(
+      (file) => file.path === '/consumer-repo/packages/my-cli/jest.config.js',
+    );
+
+    expect(jestConfigFile?.content).toBe(
+      `const base = require('@dungeonmaster/testing/jest-config-base');\n\nmodule.exports = {\n  ...base,\n  roots: ['<rootDir>/src', '<rootDir>/bin'],\n};\n`,
+    );
+
+    const fileWithTestingOptions = writtenFiles.find((file) =>
+      String(file.content).includes('packages/testing/ts-jest/options.js'),
+    );
+
+    expect(fileWithTestingOptions).toBe(undefined);
   });
 
   it('VALID: {root package.json has no "name"} => derives scope from targetProjectRoot directory basename', async () => {
