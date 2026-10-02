@@ -3,6 +3,7 @@ import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
+import { machineCgroupLimitsBrokerProxy } from '../cgroup-limits/machine-cgroup-limits-broker.proxy';
 import { machineOomCountBrokerProxy } from '../oom-count/machine-oom-count-broker.proxy';
 
 export const machineReadBrokerProxy = (): {
@@ -15,6 +16,11 @@ export const machineReadBrokerProxy = (): {
     diskBavail: number;
     diskBsize: number;
     vmstatContent: string;
+    cgroupLimits?: {
+      memoryMax?: string | null;
+      cpuMax?: string | null;
+      memoryCurrent?: string | null;
+    };
   }) => void;
   setupOomUnavailable: (params: {
     diskPath: string;
@@ -24,6 +30,11 @@ export const machineReadBrokerProxy = (): {
     loadAvg: readonly [number, number, number];
     diskBavail: number;
     diskBsize: number;
+    cgroupLimits?: {
+      memoryMax?: string | null;
+      cpuMax?: string | null;
+      memoryCurrent?: string | null;
+    };
   }) => void;
   setupDiskMissing: (params: {
     diskPath: string;
@@ -32,6 +43,11 @@ export const machineReadBrokerProxy = (): {
     coreCount: number;
     loadAvg: readonly [number, number, number];
     vmstatContent: string;
+    cgroupLimits?: {
+      memoryMax?: string | null;
+      cpuMax?: string | null;
+      memoryCurrent?: string | null;
+    };
   }) => void;
   setupDiskStatfsPermissionDenied: (params: {
     diskPath: string;
@@ -40,6 +56,16 @@ export const machineReadBrokerProxy = (): {
     coreCount: number;
     loadAvg: readonly [number, number, number];
     vmstatContent: string;
+    cgroupLimits?: {
+      memoryMax?: string | null;
+      cpuMax?: string | null;
+      memoryCurrent?: string | null;
+    };
+  }) => void;
+  setupCgroupLimits: (params?: {
+    memoryMax?: string | null;
+    cpuMax?: string | null;
+    memoryCurrent?: string | null;
   }) => void;
 } => {
   const freememHandle: MockHandle = registerMock({ fn: freemem });
@@ -66,6 +92,19 @@ export const machineReadBrokerProxy = (): {
 
   const statfsProxy = diskFreeBytesProxy();
   const oomProxy = machineOomCountBrokerProxy();
+  const cgroupProxy = machineCgroupLimitsBrokerProxy();
+
+  const stageCgroup = (limits?: {
+    memoryMax?: string | null;
+    cpuMax?: string | null;
+    memoryCurrent?: string | null;
+  }): void => {
+    if (limits === undefined) {
+      cgroupProxy.setupAllMissing();
+    } else {
+      cgroupProxy.setupLimits(limits);
+    }
+  };
 
   return {
     setupMachineReading: ({
@@ -77,6 +116,7 @@ export const machineReadBrokerProxy = (): {
       diskBavail,
       diskBsize,
       vmstatContent,
+      cgroupLimits,
     }: {
       diskPath: string;
       freeMemBytes: number;
@@ -86,6 +126,11 @@ export const machineReadBrokerProxy = (): {
       diskBavail: number;
       diskBsize: number;
       vmstatContent: string;
+      cgroupLimits?: {
+        memoryMax?: string | null;
+        cpuMax?: string | null;
+        memoryCurrent?: string | null;
+      };
     }): void => {
       stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       statfsProxy.returns({
@@ -94,6 +139,7 @@ export const machineReadBrokerProxy = (): {
         bsize: diskBsize,
       });
       oomProxy.setupVmstat({ content: vmstatContent });
+      stageCgroup(cgroupLimits);
     },
 
     setupOomUnavailable: ({
@@ -104,6 +150,7 @@ export const machineReadBrokerProxy = (): {
       loadAvg,
       diskBavail,
       diskBsize,
+      cgroupLimits,
     }: {
       diskPath: string;
       freeMemBytes: number;
@@ -112,6 +159,11 @@ export const machineReadBrokerProxy = (): {
       loadAvg: readonly [number, number, number];
       diskBavail: number;
       diskBsize: number;
+      cgroupLimits?: {
+        memoryMax?: string | null;
+        cpuMax?: string | null;
+        memoryCurrent?: string | null;
+      };
     }): void => {
       stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       statfsProxy.returns({
@@ -120,6 +172,7 @@ export const machineReadBrokerProxy = (): {
         bsize: diskBsize,
       });
       oomProxy.setupVmstatMissing();
+      stageCgroup(cgroupLimits);
     },
 
     setupDiskMissing: ({
@@ -129,6 +182,7 @@ export const machineReadBrokerProxy = (): {
       coreCount,
       loadAvg,
       vmstatContent,
+      cgroupLimits,
     }: {
       diskPath: string;
       freeMemBytes: number;
@@ -136,10 +190,16 @@ export const machineReadBrokerProxy = (): {
       coreCount: number;
       loadAvg: readonly [number, number, number];
       vmstatContent: string;
+      cgroupLimits?: {
+        memoryMax?: string | null;
+        cpuMax?: string | null;
+        memoryCurrent?: string | null;
+      };
     }): void => {
       stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       statfsProxy.missing({ path: diskPath });
       oomProxy.setupVmstat({ content: vmstatContent });
+      stageCgroup(cgroupLimits);
     },
 
     setupDiskStatfsPermissionDenied: ({
@@ -149,6 +209,7 @@ export const machineReadBrokerProxy = (): {
       coreCount,
       loadAvg,
       vmstatContent,
+      cgroupLimits,
     }: {
       diskPath: string;
       freeMemBytes: number;
@@ -156,10 +217,24 @@ export const machineReadBrokerProxy = (): {
       coreCount: number;
       loadAvg: readonly [number, number, number];
       vmstatContent: string;
+      cgroupLimits?: {
+        memoryMax?: string | null;
+        cpuMax?: string | null;
+        memoryCurrent?: string | null;
+      };
     }): void => {
       stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       statfsProxy.denied({ path: diskPath });
       oomProxy.setupVmstat({ content: vmstatContent });
+      stageCgroup(cgroupLimits);
+    },
+
+    setupCgroupLimits: (params?: {
+      memoryMax?: string | null;
+      cpuMax?: string | null;
+      memoryCurrent?: string | null;
+    }): void => {
+      cgroupProxy.setupLimits(params);
     },
   };
 };
