@@ -420,7 +420,7 @@ Unit B (E2E Sharding · worktree wp-unit-b) — [MERGED TO MASTER]
   #3   B5 [✓]
   #4   B6 [✓]
 
-Unit A (Duration History & Shared-Queue Pool · worktree wp-unit-a) — [GATING / READY TO MERGE]
+Unit A (Duration History & Shared-Queue Pool · worktree wp-unit-a) — [MERGED TO MASTER]
   #1   A1 [✓]  A2 [✓]  A3 [✓]
   #2   A4 [✓]  A5 [✓]  A6 [✓]
   #3   A7 [✓]
