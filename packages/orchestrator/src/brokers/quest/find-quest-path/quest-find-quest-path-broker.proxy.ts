@@ -239,6 +239,7 @@ export const questFindQuestPathBrokerProxy = (): {
     questPath: string;
     guildId: Guild['id'];
   }) => void;
+  setupRealBroker: () => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -284,6 +285,10 @@ export const questFindQuestPathBrokerProxy = (): {
   };
 
   return {
+    setupRealBroker: (): void => {
+      runRealBroker();
+    },
+
     setupResolves: ({
       questId,
       questPath,

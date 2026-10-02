@@ -31,6 +31,7 @@ import { questFieldsToModifyInputTransformer } from '../../../transformers/quest
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
 export const questUpdateRouteBroker = async ({
+  target,
   record,
   fields,
 }: {
@@ -41,12 +42,15 @@ export const questUpdateRouteBroker = async ({
   const questId = questContract.shape.id.parse(record.id);
   const input = questFieldsToModifyInputTransformer({ questId, fields });
 
-  const modifyResult = await questModifyBroker({ input });
+  const modifyResult = await questModifyBroker({ input, home: target.home });
   if (!modifyResult.success) {
     throw new Error(`questUpdateRouteBroker: modify failed — ${String(modifyResult.error)}`);
   }
 
-  const getResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
+  const getResult = await questGetBroker({
+    input: getQuestInputContract.parse({ questId }),
+    home: target.home,
+  });
   if (!getResult.success) {
     throw new Error(`questUpdateRouteBroker: reload failed — ${String(getResult.error)}`);
   }

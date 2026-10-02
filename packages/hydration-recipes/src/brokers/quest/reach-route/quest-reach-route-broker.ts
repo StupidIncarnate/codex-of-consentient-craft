@@ -13,11 +13,8 @@
  * `/brokers` subpath rather than through the main `.` barrel — importing anything from `.`
  * evaluates `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a
  * stale-process watchdog at module scope, and this package is a short-lived hydration tool, not
- * the long-running server those exist for. Both brokers still resolve their quest file via the
- * GLOBAL `process.env.DUNGEONMASTER_HOME`, never via `target.home` — the same escape-the-target
- * trap `packages/hydration-recipes/CLAUDE.md` already documents for `guildWriteRouteBroker` and
- * `operationWriteRouteBroker`. This route inherits it rather than fixing it: `fileTargetHarness`
- * sets that env var for the duration of a test for exactly this reason.
+ * the long-running server those exist for. Both brokers receive `home: target.home`, so all reads
+ * and writes resolve against the target's data directory alone.
  *
  * `extraFields` is what a create-time status difference needs to carry over: `questApiRouteBroker`
  * calls this route whenever a recipe's `setRaw`'d status folds past `created`, and the real create
@@ -97,6 +94,7 @@ export const questReachRouteBroker = async ({
   if (hasGateContent && from === EXPLORE_FLOWS_STATUS) {
     const contentResult = await questModifyBroker({
       input: questFieldsToModifyInputTransformer({ questId, fields: gateContentFields }),
+      home: target.home,
     });
     if (!contentResult.success) {
       throw new Error(
@@ -130,6 +128,7 @@ export const questReachRouteBroker = async ({
 
       const startedResult = await questGetBroker({
         input: getQuestInputContract.parse({ questId }),
+        home: target.home,
       });
       if (!startedResult.success) {
         throw new Error(
@@ -167,6 +166,7 @@ export const questReachRouteBroker = async ({
 
     const modifyResult = await questModifyBroker({
       input: questFieldsToModifyInputTransformer({ questId, fields: { status: hop } }),
+      home: target.home,
     });
     if (!modifyResult.success) {
       throw new Error(
@@ -177,6 +177,7 @@ export const questReachRouteBroker = async ({
     if (hasGateContent && hop === EXPLORE_FLOWS_STATUS) {
       const contentResult = await questModifyBroker({
         input: questFieldsToModifyInputTransformer({ questId, fields: gateContentFields }),
+        home: target.home,
       });
       if (!contentResult.success) {
         throw new Error(
@@ -186,7 +187,10 @@ export const questReachRouteBroker = async ({
     }
   }, Promise.resolve());
 
-  const getResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
+  const getResult = await questGetBroker({
+    input: getQuestInputContract.parse({ questId }),
+    home: target.home,
+  });
   if (!getResult.success) {
     throw new Error(
       `questReachRouteBroker: reload failed after walking to "${to}" — ${String(getResult.error)}`,

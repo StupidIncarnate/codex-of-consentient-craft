@@ -61,16 +61,11 @@ real route through `dmHttpRequestBroker` when the target carries a `baseUrl`, an
 actionable error on a write-only target rather than flipping the field and leaving the ledger
 empty — the exact silent drift `packages/orchestrator/CLAUDE.md` warns `writeQuestFile` produces.
 
-**`questModifyBroker` and `questGetBroker` escape the target the same way `StartOrchestrator` does.**
-Both resolve the quest file via the GLOBAL `process.env.DUNGEONMASTER_HOME`, never via
-`target.home` — confirmed by reading `quest-modify-broker.ts` and `quest-get-broker.ts` directly,
-neither takes a `target` parameter at all. `quest-reach-route-broker.ts` and
-`quest-update-route-broker.ts` both inherit this, as does `operationWriteRouteBroker`: closing it
-is a `@dungeonmaster/orchestrator` change (an optional `home` parameter threaded to every path the
-broker touches, the shape `guildAddBroker` now carries), not an ingredient one. `fileTargetHarness`
-sets that env var for a test's duration for exactly this reason — a caller building a `DmTarget` by
-hand and skipping the harness will see these routes read and write whatever `~/.dungeonmaster` the
-process already defaults to.
+**`questModifyBroker` and `questGetBroker` accept an optional `home` parameter.**
+Both resolve the quest file via `home` when supplied, falling back to the process-wide
+`DUNGEONMASTER_HOME`. `quest-reach-route-broker.ts`, `quest-update-route-broker.ts`, and
+`operationWriteRouteBroker` pass `home: target.home`, so all reads and writes resolve against the
+target's data directory alone and `fileTargetHarness` never needs to pin `DUNGEONMASTER_HOME`.
 
 **`quest-update-route-broker.ts` returns the reloaded `Quest` record, never `questModifyBroker`'s own
 result envelope.** `ModifyQuestResult` is `{ success, error?, failedChecks? }` — it carries no quest

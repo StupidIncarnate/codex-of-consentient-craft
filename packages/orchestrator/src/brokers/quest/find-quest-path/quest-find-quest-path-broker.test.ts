@@ -474,4 +474,51 @@ describe('questFindQuestPathBroker', () => {
       );
     });
   });
+
+  describe('home parameter', () => {
+    it('ERROR: {home: relative path} => throws absolute path error', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      proxy.setupRealBroker();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      await expect(questFindQuestPathBroker({ questId, home: 'relative/path' })).rejects.toThrow(
+        /^Path must be absolute \(start with \/ or C:\\ on Windows\)$/u,
+      );
+    });
+
+    it('VALID: {home: absolute path} => searches under the specified home directory', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const customHome = '/custom/dm-home';
+
+      proxy.setupQuestFound({
+        homeDir: '/custom',
+        homePath: customHome,
+        guildsDir: `${customHome}/guilds`,
+        guilds: [
+          {
+            dirName: guildId,
+            questsDirPath: `${customHome}/guilds/${guildId}/quests`,
+            questFolders: [
+              {
+                folderName: '001-add-auth',
+                questFilePath: `${customHome}/guilds/${guildId}/quests/001-add-auth/quest.json`,
+                questFolderPath: `${customHome}/guilds/${guildId}/quests/001-add-auth`,
+                contents: JSON.stringify(quest),
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questFindQuestPathBroker({ questId, home: customHome });
+
+      expect(result).toStrictEqual({
+        questPath: `${customHome}/guilds/${guildId}/quests/001-add-auth`,
+        guildId,
+      });
+    });
+  });
 });

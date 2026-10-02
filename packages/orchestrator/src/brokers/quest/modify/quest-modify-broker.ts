@@ -5,6 +5,9 @@
  * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', flows: [...] }) });
  * // Returns: { success: true } or { success: false, error: 'Quest not found' }
  *
+ * const scoped = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', flows: [...] }), home: '/tmp/dm-home' });
+ * // Reads, modifies, and persists under /tmp/dm-home alone — DUNGEONMASTER_HOME is never read
+ *
  * UPSERT SEMANTICS:
  * - Items with _delete: true => removed from quest
  * - Items with existing ID in quest => deep merge (scalar overwrite, id-arrays recurse)
@@ -40,6 +43,7 @@ import {
   hasQuestGateContentGuard,
   isQuestBlockedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
+import { isAbsolutePathGuard } from '../../../guards/is-absolute-path/is-absolute-path-guard';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { pathExists } from '#gateway/node/fs__promises';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
@@ -64,10 +68,16 @@ const JSON_INDENT_SPACES = 2;
 
 export const questModifyBroker = async ({
   input,
+  home,
 }: {
   input: ModifyQuestInput;
+  home?: string;
 }): Promise<ModifyQuestResult> => {
   try {
+    if (home !== undefined && !isAbsolutePathGuard({ path: home })) {
+      throw new Error('Path must be absolute (start with / or C:\\ on Windows)');
+    }
+
     // Every timestamp this payload writes is replaced with the server's clock BEFORE anything reads
     // the input, so no downstream branch can be handed an agent's value. It stamps what is INCOMING
     // rather than what is merged: an entry the caller did not send is carried through the merge
@@ -92,7 +102,10 @@ export const questModifyBroker = async ({
           });
         }
 
-        const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
+        const { questPath } = await questFindQuestPathBroker({
+          questId: validated.questId,
+          ...(home !== undefined && { home }),
+        });
 
         const questFilePath = join(questPath, locationsStatics.quest.questFile);
 

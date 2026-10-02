@@ -372,4 +372,19 @@ describe('questGetBroker', () => {
       });
     });
   });
+
+  describe('home parameter', () => {
+    it('ERROR: {home: relative path} => returns success: false with absolute path error', async () => {
+      const proxy = questGetBrokerProxy();
+      proxy.setupRealBroker();
+      const input = GetQuestInputStub({ questId: 'add-auth' });
+
+      const result = await questGetBroker({ input, home: 'relative/path' });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Path must be absolute (start with / or C:\\ on Windows)',
+      });
+    });
+  });
 });
