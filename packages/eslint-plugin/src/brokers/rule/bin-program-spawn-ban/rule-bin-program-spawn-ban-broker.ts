@@ -30,6 +30,7 @@ import { childProcessFunctionNamesStatics } from '../../../statics/child-process
 import { dirname } from '#gateway/node/path';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-layer-broker';
+import { resolveGatewayFunctionNamesLayerBroker } from './resolve-gateway-function-names-layer-broker';
 
 // Keyed by the linted file's directory. The scope comes from the npm-workspaces root above the
 // FILE being linted, never above this module: through a `file:` link this module sits inside
@@ -57,6 +58,12 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
             description:
               'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope of the npm-workspaces root above the linted file.',
           },
+          extraWrapperFunctions: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Additional gateway wrapper function names to watch for program spawns beyond default and detected gateway exports.',
+          },
         },
         additionalProperties: false,
       },
@@ -65,7 +72,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
   defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
-      options?: { scope?: string }[];
+      options?: { scope?: string; extraWrapperFunctions?: string[] }[];
     };
     const { filename } = ctx;
 
@@ -73,12 +80,12 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
       return {};
     }
 
+    const fileDir = dirname(filename);
     const optionScope = ctx.options[0]?.scope;
     const scope = ((): string => {
       if (optionScope !== undefined) {
         return optionScope;
       }
-      const fileDir = dirname(filename);
       const cachedScope = defaultScopeCache.get(fileDir);
       if (cachedScope !== undefined) {
         return cachedScope;
@@ -87,6 +94,20 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
       const resolvedScope = repoScopeResolveBroker({ startDir: fileDir });
       defaultScopeCache.set(fileDir, resolvedScope);
       return resolvedScope;
+    })();
+
+    const extraWrapperFunctions = ctx.options[0]?.extraWrapperFunctions;
+    const gatewayFunctionNames = ((): readonly string[] => {
+      if (typeof optionScope === 'string') {
+        return [
+          ...childProcessFunctionNamesStatics.gatewayFunctionNames,
+          ...(extraWrapperFunctions ?? []),
+        ];
+      }
+      return resolveGatewayFunctionNamesLayerBroker({
+        fileDir,
+        ...(Array.isArray(extraWrapperFunctions) ? { extraWrapperFunctions } : {}),
+      });
     })();
 
     const scopedGatewaySource = `${scope}/${gatewayLocationsStatics.folders.node}/child_process`;
@@ -127,12 +148,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
                 continue;
               }
 
-              if (
-                isGatewaySource &&
-                childProcessFunctionNamesStatics.gatewayFunctionNames.some(
-                  (name) => name === importedName,
-                )
-              ) {
+              if (isGatewaySource && gatewayFunctionNames.some((name) => name === importedName)) {
                 gatewayLocalNames.add(localName);
               }
               if (

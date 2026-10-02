@@ -11,10 +11,12 @@
  */
 import { repoScopeResolveBrokerProxy } from '../../repo-scope/resolve/repo-scope-resolve-broker.proxy';
 import { reportBinProgramSpawnLayerBrokerProxy } from './report-bin-program-spawn-layer-broker.proxy';
+import { resolveGatewayFunctionNamesLayerBrokerProxy } from './resolve-gateway-function-names-layer-broker.proxy';
 
 export const ruleBinProgramSpawnBanBrokerProxy = (): Record<PropertyKey, never> => {
   repoScopeResolveBrokerProxy();
   reportBinProgramSpawnLayerBrokerProxy();
+  resolveGatewayFunctionNamesLayerBrokerProxy();
 
   return {};
 };
