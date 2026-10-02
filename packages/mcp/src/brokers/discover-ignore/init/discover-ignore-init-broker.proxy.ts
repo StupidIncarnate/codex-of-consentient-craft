@@ -1,21 +1,40 @@
-import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
-
-// The broker reads '.gitignore' relative to process.cwd(), so this is the whole address.
-const GITIGNORE_PATH = '.gitignore';
+import { discoverIgnoreInitWalkUpLayerBrokerProxy } from './discover-ignore-init-walk-up-layer-broker.proxy';
 
 export const discoverIgnoreInitBrokerProxy = (): {
   setupGitignore: (params: { contents: string }) => void;
   setupNoGitignore: () => void;
+  setupGitignoreAt: (params: { dirPath: string; contents: string }) => void;
+  setupGitignoreFoundInParent: (params: {
+    startPath: string;
+    gitignoreDir: string;
+    contents: string;
+  }) => void;
 } => {
-  const readGateway = readFileIfExistsProxy();
+  const walkUpProxy = discoverIgnoreInitWalkUpLayerBrokerProxy();
 
   return {
     setupGitignore: ({ contents }: { contents: string }): void => {
-      readGateway.returns({ path: GITIGNORE_PATH, contents });
+      walkUpProxy.setupGitignoreAt({ dirPath: '.', contents });
     },
 
     setupNoGitignore: (): void => {
-      readGateway.missing({ path: GITIGNORE_PATH });
+      walkUpProxy.setupNoGitignore();
+    },
+
+    setupGitignoreAt: ({ dirPath, contents }: { dirPath: string; contents: string }): void => {
+      walkUpProxy.setupGitignoreAt({ dirPath, contents });
+    },
+
+    setupGitignoreFoundInParent: ({
+      startPath,
+      gitignoreDir,
+      contents,
+    }: {
+      startPath: string;
+      gitignoreDir: string;
+      contents: string;
+    }): void => {
+      walkUpProxy.setupGitignoreFoundInParent({ startPath, gitignoreDir, contents });
     },
   };
 };

@@ -4,37 +4,31 @@
  * unscoped searches. Called once from MCP startup and cached in discoverIgnoreState — nothing
  * downstream re-reads .gitignore, so a search costs no file operation to know what to skip.
  *
+ * If .gitignore is not found directly, walks up parent directories via
+ * discoverIgnoreInitWalkUpLayerBroker to locate the enclosing repository's .gitignore.
+ *
  * The static rules lead the merge and survive it: node_modules and dist must be skipped whether or
  * not a given repo bothers to gitignore them.
  *
- * KNOWN GAP: this reads `.gitignore` relative to the MCP server's own startup cwd, not a caller's
- * (there is no `_meta` yet at boot time to resolve against — see callerRepoRootResolveBroker for
- * the per-call mechanism this predates). A worktree-pinned caller's `discover` therefore scans
- * with the MAIN checkout's `.gitignore`, not its own worktree's copy. Usually harmless because
- * `.gitignore` is a single tracked file identical across every worktree of one repo; left as-is
- * because inventing a per-call cwd for a one-time startup read is a bigger change than the gap.
- *
  * USAGE:
- * const patterns = await discoverIgnoreInitBroker();
+ * const patterns = await discoverIgnoreInitBroker({ startPath });
  * // Returns the deduped union, or just the static rules when the repo keeps no .gitignore
  */
 
-import { readFileIfExists } from '#gateway/node/fs__promises';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { gitignoreToGlobTransformer } from '../../../transformers/gitignore-to-glob/gitignore-to-glob-transformer';
+import { discoverIgnoreInitWalkUpLayerBroker } from './discover-ignore-init-walk-up-layer-broker';
 
-// Deliberately relative: fs resolves it against process.cwd(), which is the same scan root
-// fileScannerBroker globs from, so the .gitignore read and the scan can never disagree about which
-// repo they mean. Resolving it through cwd + path adapters here would pull
-// a path-adapter proxy into this broker's proxy, and its jest.mock('path') would hoist across the
-// whole test file — stubbing out the real path.resolve folderConstraintsInitBroker needs under the
-// same startup responder.
-const GITIGNORE_FILENAME = '.gitignore';
-
-export const discoverIgnoreInitBroker = async (): Promise<readonly string[]> => {
+export const discoverIgnoreInitBroker = async ({
+  startPath,
+}: {
+  startPath?: string;
+} = {}): Promise<readonly string[]> => {
   const staticPatterns = fileDiscoveryStatics.globIgnorePatterns.map((pattern) => pattern);
 
-  const contents = await readFileIfExists(GITIGNORE_FILENAME);
+  const contents = await discoverIgnoreInitWalkUpLayerBroker({
+    startPath: startPath ?? '.',
+  });
 
   if (contents === null) {
     return staticPatterns;

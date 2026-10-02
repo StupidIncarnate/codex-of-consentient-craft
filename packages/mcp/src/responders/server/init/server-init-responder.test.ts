@@ -45,5 +45,25 @@ describe('ServerInitResponder', () => {
         '**/.git/**',
       ]);
     });
+
+    it('VALID: {.gitignore in parent directory} => walks up from cwd and populates state', async () => {
+      const proxy = ServerInitResponderProxy();
+
+      proxy.setupGitignoreFoundInParent({
+        startPath: '/repo/packages/mcp',
+        gitignoreDir: '/repo',
+        contents: 'worktrees/\n',
+      });
+
+      await proxy.callResponder();
+
+      expect(discoverIgnoreState.get()).toStrictEqual([
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.git/**',
+        '**/worktrees/**',
+      ]);
+    });
   });
 });

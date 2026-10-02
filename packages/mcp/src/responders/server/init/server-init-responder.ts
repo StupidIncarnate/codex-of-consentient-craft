@@ -9,6 +9,7 @@
  * // Loads folder constraints and the discover ignore list from disk into in-memory state
  */
 
+import { cwd } from '#gateway/node/process';
 import { discoverIgnoreInitBroker } from '../../../brokers/discover-ignore/init/discover-ignore-init-broker';
 import { folderConstraintsInitBroker } from '../../../brokers/folder-constraints/init/folder-constraints-init-broker';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
@@ -17,7 +18,7 @@ import { folderConstraintsState } from '../../../state/folder-constraints/folder
 export const ServerInitResponder = async (): Promise<void> => {
   const [{ folderConstraints }, ignorePatterns] = await Promise.all([
     folderConstraintsInitBroker(),
-    discoverIgnoreInitBroker(),
+    discoverIgnoreInitBroker({ startPath: cwd() }),
   ]);
 
   for (const [folderType, content] of folderConstraints) {

@@ -31,6 +31,28 @@ describe('discoverIgnoreInitBroker', () => {
     expect(result).toStrictEqual(['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']);
   });
 
+  it('VALID: {.gitignore in parent directory} => finds .gitignore walking up from child directory', async () => {
+    const brokerProxy = discoverIgnoreInitBrokerProxy();
+
+    brokerProxy.setupGitignoreFoundInParent({
+      startPath: '/repo/.agents/plugins/dungeonmaster',
+      gitignoreDir: '/repo',
+      contents: 'worktrees/\n',
+    });
+
+    const result = await discoverIgnoreInitBroker({
+      startPath: '/repo/.agents/plugins/dungeonmaster',
+    });
+
+    expect(result).toStrictEqual([
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
+      '**/worktrees/**',
+    ]);
+  });
+
   it('EMPTY: {.gitignore holding only comments} => returns the static rules alone', async () => {
     const brokerProxy = discoverIgnoreInitBrokerProxy();
 
