@@ -168,8 +168,7 @@ export const UserCardWidgetProxy = () => {
 
 ```typescript
 // widgets/user-card/user-card-widget.test.tsx
-import {screen} from '#gateway/npm/testing-library__react';
-import {mantineRenderMiddleware} from '@dungeonmaster/testing/middleware/mantine-render';
+import {render, screen} from '#gateway/npm/testing-library__react';
 import {UserCardWidget} from './user-card-widget';
 import {UserCardWidgetProxy} from './user-card-widget.proxy';
 import {UserStub} from '../../contracts/user/user.stub';
@@ -187,7 +186,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupUser({userId, user});
 
-            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
+            render({ui: <UserCardWidget userId={userId} />});
 
             expect(proxy.getUserName()).toBe('John Doe');
         });
@@ -199,7 +198,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupUser({userId, user});
 
-            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
+            render({ui: <UserCardWidget userId={userId} />});
 
             await proxy.triggerEdit();
 
@@ -214,7 +213,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupLoadingState({userId});
 
-            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
+            render({ui: <UserCardWidget userId={userId} />});
 
             expect(proxy.isLoading()).toBe(true);
         });
@@ -227,7 +226,7 @@ describe('UserCardWidget', () => {
 
             proxy.setupUserNotFound({userId});
 
-            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
+            render({ui: <UserCardWidget userId={userId} />});
 
             expect(proxy.hasError()).toBe(true);
         });
