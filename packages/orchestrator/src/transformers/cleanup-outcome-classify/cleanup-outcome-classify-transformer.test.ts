@@ -40,6 +40,14 @@ describe('cleanupOutcomeClassifyTransformer', () => {
 
       expect(result).toBe('done');
     });
+
+    it('VALID: {lockReleaseOutcome: "released"} => classifies done', () => {
+      const answer = CleanupCliAnswerStub({ lockReleaseOutcome: 'released' });
+
+      const result = cleanupOutcomeClassifyTransformer({ answer });
+
+      expect(result).toBe('done');
+    });
   });
 
   describe('assets aged', () => {

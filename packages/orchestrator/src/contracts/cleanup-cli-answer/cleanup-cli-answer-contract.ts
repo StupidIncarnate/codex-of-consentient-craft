@@ -25,13 +25,18 @@ export const cleanupCliAnswerContract = z
   .object({
     reaped: z.array(z.json()),
     portsReleased: z.array(z.json()),
-    lockReleased: z.boolean(),
+    lockReleased: z.boolean().optional(),
+    lockReleaseOutcome: z.enum(['released', 'none-held', 'failed']).optional(),
     assetsAged: z
       .object({
         instances: z.number().int().nonnegative().brand<'CleanupCliAnswerAssetsAgedInstances'>(),
       })
       .brand<'CleanupCliAnswerAssetsAged'>(),
   })
+  .refine(
+    (data) => data.lockReleased !== undefined || data.lockReleaseOutcome !== undefined,
+    { message: 'Expected lockReleased or lockReleaseOutcome' },
+  )
   .brand<'CleanupCliAnswer'>();
 
 export type CleanupCliAnswer = z.infer<typeof cleanupCliAnswerContract>;

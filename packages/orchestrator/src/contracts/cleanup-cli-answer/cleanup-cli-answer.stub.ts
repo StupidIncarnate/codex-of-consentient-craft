@@ -10,6 +10,7 @@ export const CleanupCliAnswerStub = ({
     reaped: [],
     portsReleased: [],
     lockReleased: false,
+    lockReleaseOutcome: 'none-held',
     assetsAged: { instances: 0 },
     ...props,
   });

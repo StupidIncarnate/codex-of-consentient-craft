@@ -20,10 +20,13 @@ export const cleanupOutcomeClassifyTransformer = ({
 }: {
   answer: CleanupCliAnswer;
 }): StepOutcome => {
+  const isLockReleased =
+    answer.lockReleaseOutcome === 'released' || answer.lockReleased === true;
+
   const touchedSomething =
     answer.reaped.length > 0 ||
     answer.portsReleased.length > 0 ||
-    answer.lockReleased ||
+    isLockReleased ||
     answer.assetsAged.instances > 0;
 
   return touchedSomething ? 'done' : 'empty';

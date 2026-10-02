@@ -10,6 +10,7 @@ describe('cleanupCliAnswerContract', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: false,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 0 },
       });
     });
@@ -25,7 +26,24 @@ describe('cleanupCliAnswerContract', () => {
         reaped: [{ id: 'inst_9b2c' }],
         portsReleased: [],
         lockReleased: true,
+        lockReleaseOutcome: 'none-held',
         assetsAged: { instances: 3 },
+      });
+    });
+
+    it('VALID: {lockReleaseOutcome from modern siegelense} => parses successfully', () => {
+      const result = cleanupCliAnswerContract.parse({
+        reaped: [],
+        portsReleased: [],
+        lockReleaseOutcome: 'released',
+        assetsAged: { instances: 0 },
+      });
+
+      expect(result).toStrictEqual({
+        reaped: [],
+        portsReleased: [],
+        lockReleaseOutcome: 'released',
+        assetsAged: { instances: 0 },
       });
     });
 
@@ -59,14 +77,14 @@ describe('cleanupCliAnswerContract', () => {
       ).toThrow(/to be >=0/u);
     });
 
-    it('INVALID: {missing lockReleased} => throws', () => {
+    it('INVALID: {missing lockReleased and lockReleaseOutcome} => throws', () => {
       expect(() =>
         cleanupCliAnswerContract.parse({
           reaped: [],
           portsReleased: [],
           assetsAged: { instances: 0 },
         }),
-      ).toThrow(/received undefined/u);
+      ).toThrow(/Expected lockReleased or lockReleaseOutcome/u);
     });
   });
 });
