@@ -39,19 +39,58 @@ describe('registryOpenBroker', () => {
       deleteEnv('DUNGEONMASTER_LOAD_DIR');
 
       const rawTables = database
-        .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'durations'")
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases') ORDER BY name ASC",
+        )
         .all();
       const tables = rawTables.map((row) => ({ ...row }));
 
       const rawIndices = database
         .prepare(
-          "SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_durations_lookup'",
+          "SELECT name FROM sqlite_master WHERE type = 'index' AND name IN ('idx_durations_lookup', 'idx_leases_tool_state') ORDER BY name ASC",
         )
         .all();
       const indices = rawIndices.map((row) => ({ ...row }));
 
-      expect(tables).toStrictEqual([{ name: 'durations' }]);
-      expect(indices).toStrictEqual([{ name: 'idx_durations_lookup' }]);
+      database
+        .prepare(
+          'INSERT INTO leases (lease_id, tool, label, owner_pid, state, expected_peak_mb, current_rss_mb, started_at_ms, last_beat_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        )
+        .run(
+          'lease-unit-1',
+          'ward',
+          'unit-test',
+          1234,
+          'starting',
+          512,
+          256,
+          1790900000000,
+          1790900000000,
+        );
+
+      const rawLeaseRows = database
+        .prepare('SELECT * FROM leases WHERE lease_id = ?')
+        .all('lease-unit-1');
+      const leaseRows = rawLeaseRows.map((row) => ({ ...row }));
+
+      expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }]);
+      expect(indices).toStrictEqual([
+        { name: 'idx_durations_lookup' },
+        { name: 'idx_leases_tool_state' },
+      ]);
+      expect(leaseRows).toStrictEqual([
+        {
+          lease_id: 'lease-unit-1',
+          tool: 'ward',
+          label: 'unit-test',
+          owner_pid: 1234,
+          state: 'starting',
+          expected_peak_mb: 512,
+          current_rss_mb: 256,
+          started_at_ms: 1790900000000,
+          last_beat_ms: 1790900000000,
+        },
+      ]);
     });
   });
 
