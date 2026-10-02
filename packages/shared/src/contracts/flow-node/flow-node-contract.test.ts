@@ -193,4 +193,27 @@ describe('flowNodeContract', () => {
       }).toThrow(/Unrecognized key/u);
     });
   });
+
+  describe('retired sign-off keys', () => {
+    it('VALID: {node carrying codeweaverSignoff, flowriderSignoff, and siegemasterSignoff} => strips retired keys and parses successfully', () => {
+      const result = flowNodeContract.parse({
+        id: 'login-page',
+        label: 'Login Page',
+        type: 'state',
+        packages: ['auth-service'],
+        observables: [],
+        codeweaverSignoff: { signed: true },
+        flowriderSignoff: 'approved',
+        siegemasterSignoff: 123,
+      });
+
+      expect(result).toStrictEqual({
+        id: 'login-page',
+        label: 'Login Page',
+        type: 'state',
+        packages: ['auth-service'],
+        observables: [],
+      });
+    });
+  });
 });

@@ -8,10 +8,9 @@
  *
  * USAGE:
  * await questLoadBroker({ questId: QuestIdStub() });
- * // Returns { flows, workItems } for that quest, each in file order. The two arrays fail
- * // INDEPENDENTLY: a quest with valid flows but no workItems key still returns those flows, and
- * // vice versa. Both come back [] when the quest cannot be found or its file cannot be parsed as
- * // JSON at all.
+ * // Returns { flows, workItems } for that quest, each in file order. Both come back [] when the
+ * // quest cannot be found or its file cannot be parsed as JSON at all. Flow parse failures throw
+ * // naming the rejected field so corruption is surfaced loudly rather than swallowed.
  */
 
 import { questLoadResultContract } from '../../../contracts/quest-load-result/quest-load-result-contract';
@@ -51,6 +50,15 @@ export const questLoadBroker = async ({
     'flows' in questJson ? flowContract.array().safeParse(questJson.flows) : undefined;
   const workItemsResult =
     'workItems' in questJson ? workItemContract.array().safeParse(questJson.workItems) : undefined;
+
+  if (flowsResult !== undefined && !flowsResult.success) {
+    const reason = flowsResult.error.issues
+      .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`Failed to parse flows for quest ${questId}: ${reason}`, {
+      cause: flowsResult.error,
+    });
+  }
 
   return questLoadResultContract.parse({
     flows: flowsResult?.success === true ? flowsResult.data : [],

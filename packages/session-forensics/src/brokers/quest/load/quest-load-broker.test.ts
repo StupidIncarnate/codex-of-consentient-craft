@@ -141,14 +141,57 @@ describe('questLoadBroker', () => {
       expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
 
-    it('EDGE: {a flows entry fails the contract} => returns [], no throw', async () => {
+    it('INVALID: {a flows entry fails the contract} => throws naming the parse reason', async () => {
       const proxy = questLoadBrokerProxy();
       const questId = QuestIdStub({ value: 'invalid-flow-entry-quest' });
       proxy.setupQuest({ questId, questJson: { flows: [{ id: 'incomplete-flow' }] } });
 
+      await expect(questLoadBroker({ questId })).rejects.toThrow(
+        /Failed to parse flows for quest invalid-flow-entry-quest/u,
+      );
+    });
+
+    it('VALID: {quest flows carrying retired sign-off keys on flow nodes} => successfully loads flows with retired keys stripped', async () => {
+      const proxy = questLoadBrokerProxy();
+      const questId = QuestIdStub({ value: 'retired-keys-quest' });
+      const legacyNode = FlowNodeStub({
+        id: 'legacy-node',
+        label: 'Legacy Node',
+        type: 'state',
+        packages: ['auth-service'],
+        observables: [],
+      });
+      const nodeWithRetiredKeys = Object.assign(
+        FlowNodeStub({
+          id: 'legacy-node',
+          label: 'Legacy Node',
+          type: 'state',
+          packages: ['auth-service'],
+          observables: [],
+        }),
+        {
+          codeweaverSignoff: { signed: true },
+          flowriderSignoff: 'approved',
+          siegemasterSignoff: 123,
+        },
+      );
+      const flowWithRetiredKeys = FlowStub({
+        id: 'flow-with-retired-keys',
+        nodes: [nodeWithRetiredKeys],
+      });
+      proxy.setupQuest({ questId, questJson: { flows: [flowWithRetiredKeys] } });
+
       const result = await questLoadBroker({ questId });
 
-      expect(result).toStrictEqual({ flows: [], workItems: [] });
+      expect(result).toStrictEqual({
+        flows: [
+          FlowStub({
+            id: 'flow-with-retired-keys',
+            nodes: [legacyNode],
+          }),
+        ],
+        workItems: [],
+      });
     });
   });
 });

@@ -252,4 +252,24 @@ describe('flowObservableContract', () => {
       }).toThrow(/received undefined/u);
     });
   });
+
+  describe('retired sign-off keys (case MK-28)', () => {
+    it('VALID: {observable carrying codeweaverSignoff} => drops retired key and parses cleanly', () => {
+      const result = flowObservableContract.parse({
+        id: 'login-redirects-to-dashboard',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        codeweaverSignoff: { signed: true },
+      });
+
+      expect(result).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        addedBy: 'spec',
+      });
+    });
+  });
 });
