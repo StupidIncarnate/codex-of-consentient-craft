@@ -406,6 +406,29 @@ describe('configDungeonmasterBroker', () => {
       expect(typescript.rules?.['@dungeonmaster/enforce-project-structure']).toBe('error');
       expect(typescript.rules?.['@dungeonmaster/enforce-proxy-child-creation']).toBe('error');
     });
+
+    it('VALID: {} => typescript config defaults workspacePackageNames in ban-workspace-export-mocks to empty array', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/ban-workspace-export-mocks']).toStrictEqual([
+        'error',
+        { workspacePackageNames: [] },
+      ]);
+    });
+
+    it('VALID: {workspacePackageNames} => threads CALLER-supplied workspacePackageNames into ban-workspace-export-mocks', () => {
+      configDungeonmasterBrokerProxy();
+
+      const workspacePackageNames = ['@dungeonmaster/orchestrator', '@dungeonmaster/server'];
+      const { typescript } = configDungeonmasterBroker({ workspacePackageNames });
+
+      expect(typescript.rules?.['@dungeonmaster/ban-workspace-export-mocks']).toStrictEqual([
+        'error',
+        { workspacePackageNames },
+      ]);
+    });
   });
 
   describe('startup short-circuit override', () => {

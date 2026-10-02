@@ -23,7 +23,9 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
 
-export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'composeProxy'> => ({
+export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<
+  'composeProxy' | 'emptyWorkspacePackageNames'
+> => ({
   meta: {
     type: 'problem',
     docs: {
@@ -33,6 +35,8 @@ export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'compos
     messages: {
       composeProxy:
         '"{{name}}" comes from workspace package "{{specifier}}". Compose that package\'s own proxy instead of mocking it directly with {{mockFunction}}.',
+      emptyWorkspacePackageNames:
+        'workspacePackageNames is empty. Pass workspacePackageNames from configWorkspacePackageNamesBroker to configDungeonmasterBroker in eslint.config.js.',
     },
     schema: [{ type: 'object' }],
   },
@@ -44,7 +48,14 @@ export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'compos
     const workspacePackageNames = ctx.options[0]?.workspacePackageNames ?? [];
 
     if (workspacePackageNames.length === 0) {
-      return {};
+      return {
+        Program: (node: TSESTree.Program): void => {
+          ctx.report({
+            node,
+            messageId: 'emptyWorkspacePackageNames',
+          });
+        },
+      };
     }
 
     const { filename } = ctx;

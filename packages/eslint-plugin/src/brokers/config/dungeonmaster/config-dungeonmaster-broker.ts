@@ -47,8 +47,7 @@ export const configDungeonmasterBroker = ({
   gatewayLintConfig?: GatewayLintConfig;
   // Read ONCE by the CALLER (eslint.config.js, via configWorkspacePackageNamesBroker) from the
   // workspaces root's own `workspaces` globs — ban-workspace-export-mocks' only rule option, so the
-  // rule itself reads no file. Defaults to `[]` so calling this broker with no argument (every
-  // existing test, every other consumer) still returns a config, with the rule reporting nothing.
+  // rule itself reads no file. ban-workspace-export-mocks reports when workspacePackageNames is empty.
   workspacePackageNames?: string[];
 } = {}): {
   typescript: TSESLint.FlatConfig.Config;

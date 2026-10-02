@@ -11,11 +11,6 @@ const WORKSPACE_PACKAGE_NAMES = [
 
 ruleTester.run('ban-workspace-export-mocks', ruleBanWorkspaceExportMocksBroker(), {
   valid: [
-    // --- no options configured: nothing is flagged ---
-    {
-      code: "import { StartOrchestrator } from '@dungeonmaster/orchestrator';\nregisterMock({ fn: StartOrchestrator.getQuest });",
-      filename: '/repo/packages/server/src/responders/quest/get/quest-get-responder.proxy.ts',
-    },
     // --- orchestrator's own proxy mocking its own package's export ---
     {
       code: "import { StartOrchestrator } from '@dungeonmaster/orchestrator';\nregisterMock({ fn: StartOrchestrator.getQuest });",
@@ -44,6 +39,27 @@ ruleTester.run('ban-workspace-export-mocks', ruleBanWorkspaceExportMocksBroker()
   ],
 
   invalid: [
+    // --- no options configured: reports emptyWorkspacePackageNames ---
+    {
+      code: "import { StartOrchestrator } from '@dungeonmaster/orchestrator';\nregisterMock({ fn: StartOrchestrator.getQuest });",
+      filename: '/repo/packages/server/src/responders/quest/get/quest-get-responder.proxy.ts',
+      errors: [
+        {
+          messageId: 'emptyWorkspacePackageNames',
+        },
+      ],
+    },
+    // --- empty workspacePackageNames option: reports emptyWorkspacePackageNames ---
+    {
+      code: "import { StartOrchestrator } from '@dungeonmaster/orchestrator';\nregisterMock({ fn: StartOrchestrator.getQuest });",
+      filename: '/repo/packages/server/src/responders/quest/get/quest-get-responder.proxy.ts',
+      options: [{ workspacePackageNames: [] }],
+      errors: [
+        {
+          messageId: 'emptyWorkspacePackageNames',
+        },
+      ],
+    },
     // --- server mocking orchestrator's export directly, real shape from quest-get-responder.proxy.ts ---
     {
       code: "import { StartOrchestrator } from '@dungeonmaster/orchestrator';\nregisterMock({ fn: StartOrchestrator.getQuest });",
