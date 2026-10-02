@@ -47,7 +47,7 @@
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.16.0"
   },
   "peerDependencies": {
     "@anthropic-ai/claude-code": "latest"
@@ -65,6 +65,7 @@
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/hooks": "*",
     "@dungeonmaster/hydration": "*",
+    "@dungeonmaster/load-balancer": "*",
     "@dungeonmaster/mcp": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
