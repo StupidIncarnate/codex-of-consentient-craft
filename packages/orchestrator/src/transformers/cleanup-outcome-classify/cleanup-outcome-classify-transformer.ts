@@ -20,8 +20,7 @@ export const cleanupOutcomeClassifyTransformer = ({
 }: {
   answer: CleanupCliAnswer;
 }): StepOutcome => {
-  const isLockReleased =
-    answer.lockReleaseOutcome === 'released' || answer.lockReleased === true;
+  const isLockReleased = answer.lockReleaseOutcome === 'released' || answer.lockReleased === true;
 
   const touchedSomething =
     answer.reaped.length > 0 ||

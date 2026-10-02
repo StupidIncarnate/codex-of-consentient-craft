@@ -33,10 +33,9 @@ export const cleanupCliAnswerContract = z
       })
       .brand<'CleanupCliAnswerAssetsAged'>(),
   })
-  .refine(
-    (data) => data.lockReleased !== undefined || data.lockReleaseOutcome !== undefined,
-    { message: 'Expected lockReleased or lockReleaseOutcome' },
-  )
+  .refine((data) => data.lockReleased !== undefined || data.lockReleaseOutcome !== undefined, {
+    message: 'Expected lockReleased or lockReleaseOutcome',
+  })
   .brand<'CleanupCliAnswer'>();
 
 export type CleanupCliAnswer = z.infer<typeof cleanupCliAnswerContract>;
