@@ -47,6 +47,7 @@
   "dependencies": {
     "@dungeonmaster/bin": "*",
     "@dungeonmaster/config": "*",
+    "@dungeonmaster/load-balancer": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*"

@@ -28,6 +28,12 @@
       "types": "./dist/src/statics/statics.d.ts",
       "import": "./dist/src/statics/statics.js",
       "require": "./dist/src/statics/statics.js"
+    },
+    "./brokers": {
+      "source": "./src/brokers/brokers.ts",
+      "types": "./dist/src/brokers/brokers.d.ts",
+      "import": "./dist/src/brokers/brokers.js",
+      "require": "./dist/src/brokers/brokers.js"
     }
   },
   "files": [

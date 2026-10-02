@@ -5,4 +5,4 @@
  * import { registryOpenBroker } from '@dungeonmaster/load-balancer/brokers';
  */
 
-export * from './registry/open/registry-open-broker';
+export { registryOpenBroker } from './registry/open/registry-open-broker';
