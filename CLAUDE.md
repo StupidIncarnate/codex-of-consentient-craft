@@ -103,9 +103,9 @@ and as panels that never mount — six unrelated-looking specs at once, none of 
 editing the repo while e2e runs (or running parallel agents that are), this is the first thing to suspect. Ward e2e
 (`check-run-e2e-broker.ts`) grabs a free port pair via `freePortPair` (`#gateway/node/net`) and passes them via `DUNGEONMASTER_PORT`
 and `DUNGEONMASTER_WEB_PORT`. It also names the Playwright JSON report after the server port and gives Playwright a
-per-port `outputDir`, so **several browser walks against the same package can run at once** — four is a sensible cap,
-since each one boots an API server, a Vite server and a browser. Jest integration tests use
-`installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
+per-port `outputDir`, so **several browser walks against the same package can run at once**: with `ward.e2eSharding` on,
+each ward e2e run starts up to 3 Playwright processes (shards), each with its own API server, Vite server and browser.
+Jest integration tests use `installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
 `<repo>/.dungeonmaster-dev`, or `~/.dungeonmaster` during tests.
 
 **Fencing resolution to a worktree takes a `ts.resolveModuleName` host that hides paths outside it.** The
