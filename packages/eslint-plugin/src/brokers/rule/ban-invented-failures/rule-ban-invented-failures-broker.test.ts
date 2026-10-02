@@ -61,5 +61,23 @@ ruleTester.run('ban-invented-failures', ruleBanInventedFailuresBroker(), {
       filename: '/project/src/brokers/config/load/config-load-broker.proxy.ts',
       errors: [{ messageId: 'inventedFailure' }],
     },
+    // A scenario method ending in Throws
+    {
+      code: 'orchestrator.getGuildThrows({ guildId, error: new Error(message) });',
+      filename: '/project/src/responders/guild/get/guild-get-responder.proxy.ts',
+      errors: [{ messageId: 'inventedFailure' }],
+    },
+    // A scenario method ending in Throws with fallback Error
+    {
+      code: 'orchestrator.addGuildThrows({ name, path, error: error ?? new Error(message) });',
+      filename: '/project/src/responders/guild/add/guild-add-responder.proxy.ts',
+      errors: [{ messageId: 'inventedFailure' }],
+    },
+    // A scenario method ending in Rejects in a test file
+    {
+      code: "proxy.setupRejects({ error: new Error('boom') });",
+      filename: '/project/src/responders/quest/verdict/verdict-responder.test.ts',
+      errors: [{ messageId: 'inventedFailure' }],
+    },
   ],
 });

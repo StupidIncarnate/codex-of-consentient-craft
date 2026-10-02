@@ -61,7 +61,17 @@ export const ruleBanInventedFailuresBroker = (): TSESLint.RuleModule<'inventedFa
               ? ancestor.callee.property.name
               : undefined;
 
-          return methodName === 'rejects' || methodName === 'throws' || methodName === 'implement';
+          if (methodName === undefined) {
+            return false;
+          }
+
+          return (
+            methodName === 'rejects' ||
+            methodName === 'throws' ||
+            methodName === 'implement' ||
+            methodName.endsWith('Throws') ||
+            methodName.endsWith('Rejects')
+          );
         });
 
         if (isFedToAnInventedFailureCall) {
