@@ -241,9 +241,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                     })
                     .catch((deleteError: unknown) => {
                       const message =
-                        deleteError instanceof Error && deleteError.message
-                          ? deleteError.message
-                          : 'Failed to delete quest';
+                        deleteError instanceof Error ? deleteError.message : String(deleteError);
                       notifications.show({ message, color: 'red' });
                       setConfirmingQuestId(null);
                       setDeletingQuestId(null);
