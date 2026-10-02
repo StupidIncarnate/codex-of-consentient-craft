@@ -19,10 +19,28 @@ import { eslintConfigFilesStatics } from '../../../statics/eslint-config-files/e
 const PACKAGE_NAME = '@dungeonmaster/eslint-plugin';
 
 const NEW_CONFIG_TEMPLATE = `const dungeonmaster = require('@dungeonmaster/eslint-plugin').default;
+const {
+    configDungeonmasterBroker,
+    configGatewayLintConfigBroker,
+    configWorkspacePackageNamesBroker,
+} = require('@dungeonmaster/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
 const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
-const dungeonmasterConfigs = dungeonmaster.configs.dungeonmaster;
-const dungeonmasterTestConfigs = dungeonmaster.configs.dungeonmasterTest;
+
+const gatewayLintConfig = configGatewayLintConfigBroker({
+    startDir: __dirname,
+});
+
+const workspacePackageNames = configWorkspacePackageNamesBroker({
+    startDir: __dirname,
+});
+
+const dungeonmasterConfigs = configDungeonmasterBroker({ gatewayLintConfig, workspacePackageNames });
+const dungeonmasterTestConfigs = configDungeonmasterBroker({
+    forTesting: true,
+    gatewayLintConfig,
+    workspacePackageNames,
+});
 
 module.exports = [
     // Compiled output is never lint's to grade — left off, a build anywhere in the workspace
@@ -101,7 +119,18 @@ export const InstallDetectConfigResponder = ({
     if (existsSync(configPath)) {
       const content = readFileSync(configPath);
 
-      if (content.includes('@dungeonmaster')) {
+      const missing: string[] = [];
+      if (!content.includes('@dungeonmaster')) {
+        missing.push('@dungeonmaster/eslint-plugin');
+      }
+      if (!content.includes('configGatewayLintConfigBroker')) {
+        missing.push('configGatewayLintConfigBroker');
+      }
+      if (!content.includes('configWorkspacePackageNamesBroker')) {
+        missing.push('configWorkspacePackageNamesBroker');
+      }
+
+      if (missing.length === 0) {
         return installResultContract.parse({
           packageName: PACKAGE_NAME,
           success: true,
@@ -110,11 +139,19 @@ export const InstallDetectConfigResponder = ({
         });
       }
 
+      const [first, second, third] = missing;
+      const itemsToAdd =
+        third === undefined
+          ? second === undefined
+            ? (first ?? '')
+            : `${first} and ${second}`
+          : `${first}, ${second}, and ${third}`;
+
       return installResultContract.parse({
         packageName: PACKAGE_NAME,
         success: true,
         action: 'skipped',
-        message: `Found ${configFile} - please add @dungeonmaster/eslint-plugin manually`,
+        message: `Found ${configFile} - please add ${itemsToAdd} manually`,
       });
     }
   }

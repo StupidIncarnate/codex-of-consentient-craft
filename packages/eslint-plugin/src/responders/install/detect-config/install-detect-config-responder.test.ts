@@ -46,10 +46,28 @@ describe('InstallDetectConfigResponder', () => {
       // the gateway's own short rule set (confirmed against a real scratch-consumer run, item G25).
       expect(content).toBe(
         `const dungeonmaster = require('@dungeonmaster/eslint-plugin').default;
+const {
+    configDungeonmasterBroker,
+    configGatewayLintConfigBroker,
+    configWorkspacePackageNamesBroker,
+} = require('@dungeonmaster/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
 const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
-const dungeonmasterConfigs = dungeonmaster.configs.dungeonmaster;
-const dungeonmasterTestConfigs = dungeonmaster.configs.dungeonmasterTest;
+
+const gatewayLintConfig = configGatewayLintConfigBroker({
+    startDir: __dirname,
+});
+
+const workspacePackageNames = configWorkspacePackageNamesBroker({
+    startDir: __dirname,
+});
+
+const dungeonmasterConfigs = configDungeonmasterBroker({ gatewayLintConfig, workspacePackageNames });
+const dungeonmasterTestConfigs = configDungeonmasterBroker({
+    forTesting: true,
+    gatewayLintConfig,
+    workspacePackageNames,
+});
 
 module.exports = [
     // Compiled output is never lint's to grade — left off, a build anywhere in the workspace
@@ -118,10 +136,81 @@ module.exports = [
 `,
       );
     });
+
+    it('VALID: {context: no existing config} => the written config calls configGatewayLintConfigBroker and configWorkspacePackageNamesBroker and configures dungeonmasterConfigs', () => {
+      const proxy = InstallDetectConfigResponderProxy();
+      proxy.setupNoConfigExists({ targetProjectRoot: '/test/project' });
+
+      proxy.callResponder({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/test/project',
+            dungeonmasterRoot: '/test/.dungeonmaster',
+          },
+        }),
+      });
+
+      const lines = String(
+        proxy.getWrittenConfigContent({ targetProjectRoot: '/test/project' }),
+      ).split('\n');
+
+      expect(lines.slice(0, 23)).toStrictEqual([
+        "const dungeonmaster = require('@dungeonmaster/eslint-plugin').default;",
+        'const {',
+        '    configDungeonmasterBroker,',
+        '    configGatewayLintConfigBroker,',
+        '    configWorkspacePackageNamesBroker,',
+        "} = require('@dungeonmaster/eslint-plugin');",
+        "const tsparser = require('@typescript-eslint/parser');",
+        "const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');",
+        '',
+        'const gatewayLintConfig = configGatewayLintConfigBroker({',
+        '    startDir: __dirname,',
+        '});',
+        '',
+        'const workspacePackageNames = configWorkspacePackageNamesBroker({',
+        '    startDir: __dirname,',
+        '});',
+        '',
+        'const dungeonmasterConfigs = configDungeonmasterBroker({ gatewayLintConfig, workspacePackageNames });',
+        'const dungeonmasterTestConfigs = configDungeonmasterBroker({',
+        '    forTesting: true,',
+        '    gatewayLintConfig,',
+        '    workspacePackageNames,',
+        '});',
+      ]);
+    });
   });
 
   describe('existing config with dungeonmaster', () => {
-    it('VALID: {context: eslint.config.js exists with @dungeonmaster} => skips installation', () => {
+    it('VALID: {context: eslint.config.js exists with @dungeonmaster and both brokers} => skips installation as already configured', () => {
+      const proxy = InstallDetectConfigResponderProxy();
+      proxy.setupConfigExists({
+        targetProjectRoot: '/test/project',
+        configFileName: 'eslint.config.js',
+        contents: `const dungeonmaster = require('@dungeonmaster/eslint-plugin');
+const { configGatewayLintConfigBroker, configWorkspacePackageNamesBroker } = require('@dungeonmaster/eslint-plugin');
+`,
+      });
+
+      const result = proxy.callResponder({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/test/project',
+            dungeonmasterRoot: '/test/.dungeonmaster',
+          },
+        }),
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/eslint-plugin',
+        success: true,
+        action: 'skipped',
+        message: 'ESLint already configured with dungeonmaster',
+      });
+    });
+
+    it('VALID: {context: eslint.config.js exists with @dungeonmaster but lacks both brokers} => skips with manual instruction naming both brokers', () => {
       const proxy = InstallDetectConfigResponderProxy();
       proxy.setupConfigExists({
         targetProjectRoot: '/test/project',
@@ -142,13 +231,68 @@ module.exports = [
         packageName: '@dungeonmaster/eslint-plugin',
         success: true,
         action: 'skipped',
-        message: 'ESLint already configured with dungeonmaster',
+        message:
+          'Found eslint.config.js - please add configGatewayLintConfigBroker and configWorkspacePackageNamesBroker manually',
+      });
+    });
+
+    it('VALID: {context: eslint.config.js has @dungeonmaster and gateway broker but lacks workspace broker} => skips naming workspace broker', () => {
+      const proxy = InstallDetectConfigResponderProxy();
+      proxy.setupConfigExists({
+        targetProjectRoot: '/test/project',
+        configFileName: 'eslint.config.js',
+        contents: `const dungeonmaster = require('@dungeonmaster/eslint-plugin');
+const { configGatewayLintConfigBroker } = require('@dungeonmaster/eslint-plugin');
+`,
+      });
+
+      const result = proxy.callResponder({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/test/project',
+            dungeonmasterRoot: '/test/.dungeonmaster',
+          },
+        }),
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/eslint-plugin',
+        success: true,
+        action: 'skipped',
+        message: 'Found eslint.config.js - please add configWorkspacePackageNamesBroker manually',
+      });
+    });
+
+    it('VALID: {context: eslint.config.js has @dungeonmaster and workspace broker but lacks gateway broker} => skips naming gateway broker', () => {
+      const proxy = InstallDetectConfigResponderProxy();
+      proxy.setupConfigExists({
+        targetProjectRoot: '/test/project',
+        configFileName: 'eslint.config.js',
+        contents: `const dungeonmaster = require('@dungeonmaster/eslint-plugin');
+const { configWorkspacePackageNamesBroker } = require('@dungeonmaster/eslint-plugin');
+`,
+      });
+
+      const result = proxy.callResponder({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/test/project',
+            dungeonmasterRoot: '/test/.dungeonmaster',
+          },
+        }),
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/eslint-plugin',
+        success: true,
+        action: 'skipped',
+        message: 'Found eslint.config.js - please add configGatewayLintConfigBroker manually',
       });
     });
   });
 
   describe('existing config without dungeonmaster', () => {
-    it('VALID: {context: eslint.config.js exists without @dungeonmaster} => skips with manual instruction', () => {
+    it('VALID: {context: eslint.config.js exists without @dungeonmaster} => skips with manual instruction naming all three items', () => {
       const proxy = InstallDetectConfigResponderProxy();
       proxy.setupConfigExists({
         targetProjectRoot: '/test/project',
@@ -169,11 +313,12 @@ module.exports = [
         packageName: '@dungeonmaster/eslint-plugin',
         success: true,
         action: 'skipped',
-        message: 'Found eslint.config.js - please add @dungeonmaster/eslint-plugin manually',
+        message:
+          'Found eslint.config.js - please add @dungeonmaster/eslint-plugin, configGatewayLintConfigBroker, and configWorkspacePackageNamesBroker manually',
       });
     });
 
-    it('VALID: {context: eslint.config.mjs exists without @dungeonmaster} => skips with manual instruction', () => {
+    it('VALID: {context: eslint.config.mjs exists without @dungeonmaster} => skips with manual instruction naming all three items', () => {
       const proxy = InstallDetectConfigResponderProxy();
       proxy.setupConfigExists({
         targetProjectRoot: '/test/project',
@@ -194,7 +339,8 @@ module.exports = [
         packageName: '@dungeonmaster/eslint-plugin',
         success: true,
         action: 'skipped',
-        message: 'Found eslint.config.mjs - please add @dungeonmaster/eslint-plugin manually',
+        message:
+          'Found eslint.config.mjs - please add @dungeonmaster/eslint-plugin, configGatewayLintConfigBroker, and configWorkspacePackageNamesBroker manually',
       });
     });
   });
