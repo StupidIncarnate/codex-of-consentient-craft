@@ -7,3 +7,4 @@
  */
 
 export * from './load-balancer/load-balancer-statics';
+export * from './machine/machine-statics';

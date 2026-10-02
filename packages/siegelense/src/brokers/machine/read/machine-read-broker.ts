@@ -19,8 +19,8 @@ import { diskFreeBytes } from '#gateway/node/fs__promises';
 import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 
-import { machineReadingContract } from '../../../contracts/machine-reading/machine-reading-contract';
-import type { MachineReading } from '../../../contracts/machine-reading/machine-reading-contract';
+import { machineReadingContract } from '@dungeonmaster/load-balancer/contracts';
+import type { MachineReading } from '@dungeonmaster/load-balancer/contracts';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 import { machineOomCountBroker } from '../oom-count/machine-oom-count-broker';
 

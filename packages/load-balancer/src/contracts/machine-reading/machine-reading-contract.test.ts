@@ -3,7 +3,7 @@ import { MachineReadingStub } from './machine-reading.stub';
 
 describe('machineReadingContract', () => {
   describe('valid readings', () => {
-    it('VALID: {the spec line 1171 block} => parses the complete populated reading', () => {
+    it('VALID: {complete populated reading} => parses the complete populated reading', () => {
       const reading = MachineReadingStub({
         freeMemMB: 980,
         totalMemMB: 16_000,

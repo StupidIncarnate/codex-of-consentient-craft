@@ -80,6 +80,7 @@
     "@dungeonmaster/bin": "*",
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
+    "@dungeonmaster/load-balancer": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*"

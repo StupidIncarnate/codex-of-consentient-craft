@@ -56,8 +56,6 @@ export * from './instance-status/instance-status-contract';
 
 export * from './last-step-reading/last-step-reading-contract';
 
-export * from './machine-reading/machine-reading-contract';
-
 export * from './monitored-metric/monitored-metric-contract';
 
 export * from './orphan-reading/orphan-reading-contract';

@@ -27,7 +27,7 @@ import { z } from '#gateway/npm/zod';
 
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { instanceStatusContract } from '../instance-status/instance-status-contract';
-import { machineReadingContract } from '../machine-reading/machine-reading-contract';
+import { machineReadingContract } from '@dungeonmaster/load-balancer/contracts';
 import { monitoredMetricContract } from '../monitored-metric/monitored-metric-contract';
 
 export const statusAnswerContract = z

@@ -1,0 +1,112 @@
+/**
+ * PURPOSE: Sums resident memory across every `/proc/<pid>` whose `pgrp` matches one of the given
+ * process-group ids — the `rssMB` portion of a machine reading.
+ * `null` means `/proc` itself is absent — a platform fact, checked separately from an empty `pgids`
+ * list so the two never collapse into the same answer: no children costs no memory (`0`), an
+ * unreadable machine costs nothing to say (`null`). A pid that exits mid-walk is not a failure, and
+ * it surfaces as either of two codes depending on WHEN it exits: `ENOENT` when `/proc/<pid>` is
+ * already gone before the read opens it, `ESRCH` when the process exits in the gap between that open
+ * succeeding and the read itself completing. Both codes mean the same fact — the process is gone,
+ * not a read that failed — so both are skipped rather than treated as a failure. Any other read
+ * failure (EACCES, a bad handle) propagates: swallowing it would make a status call under-report a
+ * live instance's memory as smaller than it really is.
+ *
+ * USAGE:
+ * await machineRssByPgidBroker({ pgids: [12345] });
+ * // Returns the summed resident memory in whole megabytes, or null if /proc is unavailable
+ */
+
+import { readdirIfExists, readFileIfExists, statIfExists } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { isNativeError } from '#gateway/node/util__types';
+
+import { machineStatics } from '../../../statics/machine/machine-statics';
+
+export const machineRssByPgidBroker = async ({
+  pgids,
+}: {
+  pgids: readonly number[];
+}): Promise<number | null> => {
+  const procRoot = machineStatics.procfs.root;
+
+  const procRootStat = await statIfExists(procRoot);
+  if (procRootStat === null) {
+    return null;
+  }
+
+  const entries = (await readdirIfExists(procRoot)) ?? [];
+  // A pid directory is every entry that is purely a positive integer — 'vmstat', 'self', 'uptime'
+  // and friends all fail Number.isInteger on their NaN conversion.
+  const pidEntries = entries.filter(
+    (entry) => Number.isInteger(Number(entry)) && Number(entry) >= 1,
+  );
+  const targetPgids = new Set(pgids.map((pgid) => pgid));
+
+  const residentPagesPerPid = await Promise.all(
+    pidEntries.map(async (pidEntry) => {
+      const statPath = join(procRoot, pidEntry, machineStatics.procfs.stat);
+
+      const statContent = await readFileIfExists(statPath).catch((error: unknown) => {
+        if (
+          error !== null &&
+          typeof error === 'object' &&
+          isNativeError(error) &&
+          'code' in error &&
+          error.code === 'ESRCH'
+        ) {
+          return null;
+        }
+        throw error;
+      });
+
+      if (statContent === null) {
+        return 0;
+      }
+
+      // The comm field is everything between the FIRST '(' and the LAST ')' and may itself
+      // contain spaces and parentheses, so only the text after the LAST ')' is safe to split on
+      // whitespace. The two blank placeholders below are never read for their own value — they
+      // exist only so `machineStatics.procfs.pgrpField` (counted from the man page's own
+      // pid/comm/state/ppid/pgrp order) lands on the right index of `remainderFields` without a
+      // magic-number offset.
+      const closeParenIndex = statContent.lastIndexOf(')');
+      const remainderFields = statContent
+        .slice(closeParenIndex + 1)
+        .trim()
+        .split(' ');
+      const fields = ['', '', ...remainderFields];
+      const pgrp = Number(fields[machineStatics.procfs.pgrpField]);
+
+      if (!targetPgids.has(pgrp)) {
+        return 0;
+      }
+
+      const statmPath = join(procRoot, pidEntry, machineStatics.procfs.statm);
+
+      const statmContent = await readFileIfExists(statmPath).catch((error: unknown) => {
+        if (
+          error !== null &&
+          typeof error === 'object' &&
+          isNativeError(error) &&
+          'code' in error &&
+          error.code === 'ESRCH'
+        ) {
+          return null;
+        }
+        throw error;
+      });
+
+      if (statmContent === null) {
+        return 0;
+      }
+
+      const statmFields = statmContent.trim().split(' ');
+      return Number(statmFields[machineStatics.procfs.rssPagesField]);
+    }),
+  );
+
+  const totalPages = residentPagesPerPid.reduce((sum, pages) => sum + pages, 0);
+  const totalBytes = totalPages * machineStatics.procfs.pageSizeBytes;
+
+  return Math.floor(totalBytes / machineStatics.units.bytesPerMegabyte);
+};

@@ -7,3 +7,4 @@
  */
 
 export * from './lease/lease-contract';
+export * from './machine-reading/machine-reading-contract';
