@@ -58,6 +58,7 @@ export const checkRunE2eBroker = async ({
     return projectResultContract.parse({
       projectFolder,
       status: 'skip',
+      ...(testNamePattern === undefined ? {} : { testNamePatternMatch: 'unmatched' as const }),
       errors: [],
       testFailures: [],
       filesCount: 0,
@@ -103,6 +104,7 @@ export const checkRunE2eBroker = async ({
     return projectResultContract.parse({
       projectFolder,
       status: 'skip',
+      ...(testNamePattern === undefined ? {} : { testNamePatternMatch: 'unmatched' as const }),
       errors: [],
       testFailures: [],
       filesCount: 0,

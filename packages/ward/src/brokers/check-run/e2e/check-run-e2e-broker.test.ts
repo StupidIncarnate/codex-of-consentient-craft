@@ -36,6 +36,33 @@ describe('checkRunE2eBroker', () => {
         }),
       );
     });
+
+    it('VALID: {not e2e-eligible, testNamePattern provided} => returns skip result with testNamePatternMatch unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupNotE2eEligible({ projectFolder });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'not e2e-eligible (packageType is not frontend-react or frontend-ink)',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
   });
 
   describe('eligible but missing playwright.config.ts', () => {
@@ -234,6 +261,34 @@ describe('checkRunE2eBroker', () => {
           discoveredCount: 0,
           projectFolder,
           status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching e2e test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {fileList with no e2e files, testNamePattern provided} => returns skip result with testNamePatternMatch unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: ['src/brokers/user/user-broker.ts', 'src/guards/is-admin/is-admin-guard.test.ts'],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 0,
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
           errors: [],
           testFailures: [],
           rawOutput: RawOutputStub({

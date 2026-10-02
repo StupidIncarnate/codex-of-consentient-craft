@@ -241,6 +241,29 @@ describe('commandRunBroker', () => {
       });
     });
 
+    it('ERROR: {passthrough names a real path, all file-scoped checks skip} => exits non-zero and names the path', async () => {
+      setExitCode(0);
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackageE2eOnlySkip();
+      proxy.setupExistingPath({ filePath: '/project/src/index.ts' });
+
+      const rootPath = '/project';
+      const config = WardConfigStub({ only: ['e2e'], passthrough: ['src/index.ts'] });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: getExitCode(),
+      }).toStrictEqual({
+        stdoutCalls: [
+          'run: 1739625600000-a38e\n',
+          `\n${noFilesProcessedStatics.heading}\n  src/index.ts\n\n${noFilesProcessedStatics.guidance}\n`,
+        ],
+        exitCode: 1,
+      });
+    });
+
     // THE SCOPE LIMIT, and the reason this reads the config the CALLER handed in rather than the one
     // `gitScopeLayerBroker` returns — both write the same `passthrough` field. A git diff
     // legitimately holds root-level files nothing lints, so failing here would redden ordinary

@@ -6,17 +6,16 @@
  *
  * USAGE:
  * hasNoFilesProcessedGuard({ wardResult: WardRunResultStub() });
- * // Returns: true when every non-skipped, file-scoped check reported filesCount 0
+ * // Returns: true when every file-scoped check reported filesCount 0
  *
  * TYPECHECK IS EXCLUDED BY CLASSIFICATION, not by a filter written at the call site. `tsc` has no
  * way to check individual files, so ward runs it whole-package whatever the scope is: measured live,
  * `npm run ward -- --only typecheck -- scripts/build-workspaces.mjs` reports 6145 files for a path
  * tsc never saw. Counting it would make this answer `false` for every run that includes typecheck.
  *
- * A SKIPPED CHECK IS NOT EVIDENCE EITHER WAY, so it is dropped rather than counted as zero. Jest's
- * "No tests found" on a file-scoped run becomes `status: 'skip'`, and a package that is not
- * e2e-eligible skips e2e outright; a run left with no file-scoped check at all — `--only typecheck`
- * — therefore answers `false` rather than indicting a scope nothing was asked to look at.
+ * A SKIPPED CHECK REPORTS 0 FILES PROCESSED. When every file-scoped check reports filesCount 0 (including
+ * checks that skipped because no tests matched or the package is not e2e-eligible), the run examined
+ * no files. When at least one file-scoped check processes files, this guard answers `false`.
  *
  * ONE CHECK PROCESSING SOMETHING IS ENOUGH. Jest's `--findRelatedTests` reports the related TEST
  * file rather than the source file it was handed, so a per-path answer is not derivable from what a
@@ -62,7 +61,6 @@ export const hasNoFilesProcessedGuard = ({
   const measuringChecks = wardResult.checks.filter(
     (check) =>
       HONORS_FILE_SCOPE_BY_CHECK_TYPE[check.checkType] &&
-      check.status !== 'skip' &&
       (check.projectResults.length === 0 ||
         check.projectResults.some(
           (projectResult) => !isCrashedProjectResultGuard({ projectResult }),

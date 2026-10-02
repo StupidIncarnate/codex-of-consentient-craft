@@ -124,8 +124,8 @@ describe('hasNoFilesProcessedGuard', () => {
     });
   });
 
-  // A skip is not evidence either way: Jest's "No tests found" on a scoped run becomes `skip`, and a
-  // package that is not e2e-eligible skips e2e outright. Neither says the scope was wrong.
+  // When every file-scoped check skips, filesCount is 0 across the run, so no files were processed.
+  // One check processing files is enough to answer false.
   describe('checks that skipped', () => {
     it('VALID: {unit skipped, lint processed one file} => returns false', () => {
       const wardResult = WardRunResultStub({
@@ -146,7 +146,7 @@ describe('hasNoFilesProcessedGuard', () => {
       expect(hasNoFilesProcessedGuard({ wardResult })).toBe(false);
     });
 
-    it('VALID: {every file-scoped check skipped} => returns false', () => {
+    it('VALID: {every file-scoped check skipped} => returns true', () => {
       const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
@@ -157,7 +157,7 @@ describe('hasNoFilesProcessedGuard', () => {
         ],
       });
 
-      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(false);
+      expect(hasNoFilesProcessedGuard({ wardResult })).toBe(true);
     });
   });
 
