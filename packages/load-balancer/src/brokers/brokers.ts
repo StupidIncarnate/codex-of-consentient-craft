@@ -5,6 +5,10 @@
  * import { registryOpenBroker } from '@dungeonmaster/load-balancer/brokers';
  */
 
+export { leaseBeatBroker } from './lease/beat/lease-beat-broker';
+export { leaseListLiveBroker } from './lease/list-live/lease-list-live-broker';
+export { leaseReleaseBroker } from './lease/release/lease-release-broker';
+export { leaseTakeBroker } from './lease/take/lease-take-broker';
 export { limitsReadBroker } from './limits/read/limits-read-broker';
 export { machineCgroupLimitsBroker } from './machine/cgroup-limits/machine-cgroup-limits-broker';
 export { machineOomCountBroker } from './machine/oom-count/machine-oom-count-broker';
