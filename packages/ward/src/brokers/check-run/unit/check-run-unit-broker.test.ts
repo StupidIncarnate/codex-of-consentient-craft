@@ -403,6 +403,29 @@ describe('checkRunUnitBroker', () => {
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
       ]);
     });
+
+    it('VALID: {jestWorkers: 17} => passes --maxWorkers=17%', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+        jestWorkers: 17,
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--maxWorkers=17%',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+      ]);
+    });
   });
 
   describe('file list filtering', () => {

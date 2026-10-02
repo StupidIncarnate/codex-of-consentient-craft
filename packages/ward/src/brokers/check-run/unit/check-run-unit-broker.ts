@@ -46,10 +46,12 @@ export const checkRunUnitBroker = async ({
   projectFolder,
   fileList,
   testNamePattern,
+  jestWorkers,
 }: {
   projectFolder: ProjectFolder;
   fileList: string[];
   testNamePattern?: string;
+  jestWorkers?: number;
 }): Promise<ProjectResult> => {
   const { bin, args } = checkCommandsStatics.unit;
   const cwd = projectFolder.path;
@@ -165,13 +167,17 @@ export const checkRunUnitBroker = async ({
   // allowed" — and answers with its usage banner and a non-zero exit, which ward reports as a
   // crash plus a DISCOVERY MISMATCH rather than anything naming the real cause. So the in-band
   // branch drops the budget the shared args carry.
-  const inBandArgs = args.filter((arg) => !arg.startsWith('--maxWorkers'));
+  const configuredArgs =
+    jestWorkers === undefined
+      ? [...args]
+      : args.map((arg) => (arg.startsWith('--maxWorkers') ? `--maxWorkers=${jestWorkers}%` : arg));
+  const inBandArgs = configuredArgs.filter((arg) => !arg.startsWith('--maxWorkers'));
   const finalArgs =
     unitFiles.length > 0
       ? allFiles
         ? [...inBandArgs, '--runInBand', '--detectOpenHandles', '--findRelatedTests', ...unitFiles]
-        : [...args, '--testPathPatterns', unitFiles.join('|')]
-      : [...args];
+        : [...configuredArgs, '--testPathPatterns', unitFiles.join('|')]
+      : [...configuredArgs];
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }

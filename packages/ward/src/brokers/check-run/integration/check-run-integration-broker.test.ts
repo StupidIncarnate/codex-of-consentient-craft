@@ -256,6 +256,30 @@ describe('checkRunIntegrationBroker', () => {
         '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
       ]);
     });
+
+    it('VALID: {jestWorkers: 17} => passes --maxWorkers=17%', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+        jestWorkers: 17,
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--maxWorkers=17%',
+        '--testTimeout=30000',
+        '--testPathPatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
+      ]);
+    });
   });
 
   describe('file list filtering', () => {

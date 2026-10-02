@@ -836,4 +836,38 @@ describe('cliArgsParseTransformer', () => {
       });
     });
   });
+
+  describe('--jestWorkers flag', () => {
+    it('EMPTY: absent flag => leaves jestWorkers undefined', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [],
+      });
+
+      expect(result.jestWorkers).toBe(undefined);
+    });
+
+    it('VALID: {args: ["--jestWorkers", "17"]} => returns jestWorkers 17', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: ['--jestWorkers', '17'],
+      });
+
+      expect(result).toStrictEqual({ jestWorkers: 17 });
+    });
+
+    it('INVALID: {args: ["--unknown"]} => error message flag list excludes --jestWorkers', () => {
+      cliArgsParseTransformerProxy();
+
+      expect(() =>
+        cliArgsParseTransformer({
+          args: ['--unknown'],
+        }),
+      ).toThrow(
+        /^Unknown flag: --unknown\n\nWard accepts only: --only, --onlyTests, --committed, --uncommitted\n\n/u,
+      );
+    });
+  });
 });

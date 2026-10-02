@@ -27,8 +27,17 @@ const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--committed', '--uncommit
 
 const USAGE = `Usage: npm run ward -- [--only <check-types>] [-- <files>]\n       npm run ward -- [--only <check-types>] --onlyTests <regex> -- <files>\n       npm run ward -- --committed\n       npm run ward -- --uncommitted\n       npm run ward -- --committed --uncommitted`;
 
-export const cliArgsParseTransformer = ({ args }: { args: string[] }): WardConfig => {
+export const cliArgsParseTransformer = ({
+  args,
+}: {
+  args: string[];
+}): WardConfig & { jestWorkers?: number } => {
   const parsed: Partial<WardConfig> = {};
+  const jestWorkersFlagIndex = args.indexOf(wardSpawnCommandStatics.jestWorkersFlag);
+  const jestWorkers =
+    jestWorkersFlagIndex >= 0 && args[jestWorkersFlagIndex + 1]
+      ? Number.parseInt(String(args[jestWorkersFlagIndex + 1]), 10)
+      : undefined;
 
   // A LOCAL BOOLEAN, NEVER A WardConfig FIELD. It answers one question — may `--onlyTests` stand
   // without a `-- <files>` list — and nothing downstream may route on it: the moment it became a
@@ -91,6 +100,13 @@ export const cliArgsParseTransformer = ({ args }: { args: string[] }): WardConfi
     }
 
     if (String(arg) === wardSpawnCommandStatics.parentScopedFlag) {
+      continue;
+    }
+
+    if (String(arg) === wardSpawnCommandStatics.jestWorkersFlag) {
+      if (args[i + 1]) {
+        i++;
+      }
       continue;
     }
 
@@ -167,5 +183,10 @@ export const cliArgsParseTransformer = ({ args }: { args: string[] }): WardConfi
     );
   }
 
-  return wardConfigContract.parse(parsed);
+  const config = wardConfigContract.parse(parsed);
+
+  return {
+    ...config,
+    ...(jestWorkers === undefined ? {} : { jestWorkers }),
+  };
 };

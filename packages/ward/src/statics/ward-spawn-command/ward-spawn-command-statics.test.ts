@@ -7,6 +7,7 @@ describe('wardSpawnCommandStatics', () => {
       entryScriptExtension: '.js',
       baseArgs: ['run'],
       parentScopedFlag: '--parentScoped',
+      jestWorkersFlag: '--jestWorkers',
     });
   });
 });

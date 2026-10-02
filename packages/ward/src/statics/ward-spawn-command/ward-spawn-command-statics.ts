@@ -20,4 +20,9 @@ export const wardSpawnCommandStatics = {
   // parent says so; `cliArgsParseTransformer` reads it as a local boolean and never as a
   // WardConfig field, so it stays out of the scope classifications.
   parentScopedFlag: '--parentScoped',
+  // PARENT-TO-CHILD ONLY, and deliberately absent from the flag list a user-facing error prints.
+  // The parent calculates each child's Jest worker share as a percentage of cores based on live
+  // concurrency, replacing the fixed 25% default. `cliArgsParseTransformer` reads it as a local
+  // number and never as a WardConfig field.
+  jestWorkersFlag: '--jestWorkers',
 } as const;

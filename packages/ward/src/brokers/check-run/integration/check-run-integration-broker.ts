@@ -47,10 +47,12 @@ export const checkRunIntegrationBroker = async ({
   projectFolder,
   fileList,
   testNamePattern,
+  jestWorkers,
 }: {
   projectFolder: ProjectFolder;
   fileList: string[];
   testNamePattern?: string;
+  jestWorkers?: number;
 }): Promise<ProjectResult> => {
   const { bin, args, relatedTestsIgnorePattern } = checkCommandsStatics.integration;
   const cwd = projectFolder.path;
@@ -127,13 +129,17 @@ export const checkRunIntegrationBroker = async ({
     }
   }
 
-  const baseArgs = [...args];
+  const configuredArgs =
+    jestWorkers === undefined
+      ? [...args]
+      : args.map((arg) => (arg.startsWith('--maxWorkers') ? `--maxWorkers=${jestWorkers}%` : arg));
+  const baseArgs = [...configuredArgs];
   if (hasDirs) {
     const dirPattern = dirs.map(String).join('|');
     const patternIndex = baseArgs.indexOf('--testPathPatterns');
     if (patternIndex >= 0) {
       const existingPattern = String(baseArgs[patternIndex + 1]);
-      baseArgs[patternIndex + 1] = `(?:${dirPattern}).*${existingPattern}` as (typeof baseArgs)[0];
+      baseArgs[patternIndex + 1] = `(?:${dirPattern}).*${existingPattern}`;
     }
   }
   // Only a scope naming FILES stays in band. A handful of files cannot fill a worker pool, and
