@@ -83,7 +83,7 @@ export const ruleBanLocatorPickBroker = (): TSESLint.RuleModule<'locatorPick' | 
         }
 
         const [firstArgument] = node.arguments;
-        if (!firstArgument || firstArgument.type !== AST_NODE_TYPES.Literal) {
+        if (firstArgument?.type !== AST_NODE_TYPES.Literal) {
           return;
         }
 

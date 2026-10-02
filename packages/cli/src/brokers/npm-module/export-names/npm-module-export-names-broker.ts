@@ -6,7 +6,9 @@
  * namespace, a property of an exported object). Every other name the module exports lands in
  * `types`, since it exists only to the type checker (an interface, a type alias, a namespace that
  * holds only types). A name `isReExportableNameGuard` refuses is left out, `default` among them,
- * since the passthrough re-exports the default on its own line. Both lists are sorted, so the barrel written
+ * since the passthrough re-exports the default on its own line, and so is a name its declarations mark
+ * `@deprecated`: re-exporting one is a `no-deprecated` lint error in the consumer's own gateway, and a
+ * caller who still needs it reaches it through the default. Both lists are sorted, so the barrel written
  * from them is stable. Reach for this only for an `export-equals` package; a package with ES exports
  * gets `export *` and needs no list.
  *
@@ -22,6 +24,7 @@ import {
   npmModuleExportNamesContract,
   type NpmModuleExportNames,
 } from '../../../contracts/npm-module-export-names/npm-module-export-names-contract';
+import { isDeprecatedSymbolGuard } from '../../../guards/is-deprecated-symbol/is-deprecated-symbol-guard';
 import { isReExportableNameGuard } from '../../../guards/is-re-exportable-name/is-re-exportable-name-guard';
 
 // Never read: resolution only needs a file inside the repo root to walk node_modules up from.
@@ -67,12 +70,14 @@ export const npmModuleExportNamesBroker = ({
   const values = new Set(
     checker
       .getPropertiesOfType(checker.getTypeOfSymbol(exportEquals))
+      .filter((symbol) => !isDeprecatedSymbolGuard({ symbol, checker }))
       .map((symbol) => symbol.getName())
       .filter((name) => isReExportableNameGuard({ name })),
   );
   const types = new Set(
     checker
       .getExportsOfModule(moduleSymbol)
+      .filter((symbol) => !isDeprecatedSymbolGuard({ symbol, checker }))
       .map((symbol) => symbol.getName())
       .filter((name) => isReExportableNameGuard({ name }) && !values.has(name)),
   );

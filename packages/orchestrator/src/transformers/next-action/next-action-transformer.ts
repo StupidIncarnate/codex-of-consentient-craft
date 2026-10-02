@@ -142,7 +142,7 @@ export const nextActionTransformer = ({
   // The family KEY, not the role: `wardFull` carries `role: 'ward'`, so the ledger's role is what a
   // caller has and the key is what both graphs are keyed on.
   const familyEntry = Object.entries(questFlow.families).find(
-    (entry) => entry[1] !== undefined && entry[1].role === operationItem.role,
+    (entry) => entry[1]?.role === operationItem.role,
   );
 
   if (familyEntry === undefined) {

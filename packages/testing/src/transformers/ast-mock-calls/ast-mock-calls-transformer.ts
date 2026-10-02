@@ -10,6 +10,7 @@ import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
 import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mock-fn-identifier-names-transformer';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
+import { isTypeOnlyImportClauseGuard } from '@dungeonmaster/shared/guards';
 
 export const astMockCallsTransformer = ({
   sourceFile,
@@ -81,7 +82,7 @@ export const astMockCallsTransformer = ({
 
     const moduleName = moduleSpecifier.text;
     const { importClause } = statement;
-    if (!importClause || importClause.isTypeOnly) {
+    if (!importClause || isTypeOnlyImportClauseGuard({ clause: importClause })) {
       continue;
     }
 

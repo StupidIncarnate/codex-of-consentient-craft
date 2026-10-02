@@ -16,7 +16,7 @@ export const DirectoryBrowserModalWidgetProxy = (): {
   clickSelect: () => Promise<void>;
   clickCancel: () => Promise<void>;
   clickDirectoryEntry: (params: { name: string }) => Promise<void>;
-  getCurrentPath: () => HTMLElement['textContent'];
+  getCurrentPath: () => Node['textContent'];
   isGoUpDisabled: () => boolean;
 } => {
   const browserProxy = useDirectoryBrowserBindingProxy();
@@ -46,7 +46,7 @@ export const DirectoryBrowserModalWidgetProxy = (): {
     clickDirectoryEntry: async ({ name }: { name: string }): Promise<void> => {
       await userEvent.click(screen.getByTestId(`DIR_ENTRY_${name}`), userEventStatics.options);
     },
-    getCurrentPath: (): HTMLElement['textContent'] => {
+    getCurrentPath: (): Node['textContent'] => {
       const element = screen.queryByTestId('CURRENT_PATH_DISPLAY');
       return element?.textContent ?? null;
     },

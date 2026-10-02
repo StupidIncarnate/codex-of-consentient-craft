@@ -15,15 +15,13 @@ export const HumanCheckPanelLayerWidgetProxy = (): ReturnType<
 > & {
   hasSection: () => boolean;
   rowCount: () => HTMLElement['childElementCount'];
-  rowDescriptions: () => HTMLElement['textContent'][];
-  hasReasonFieldFor: (params: { description: HTMLElement['textContent'] }) => boolean;
-  verdictTextFor: (params: {
-    description: HTMLElement['textContent'];
-  }) => HTMLElement['textContent'];
-  clickMetFor: (params: { description: HTMLElement['textContent'] }) => Promise<void>;
-  clickNotMetFor: (params: { description: HTMLElement['textContent'] }) => Promise<void>;
+  rowDescriptions: () => Node['textContent'][];
+  hasReasonFieldFor: (params: { description: Node['textContent'] }) => boolean;
+  verdictTextFor: (params: { description: Node['textContent'] }) => Node['textContent'];
+  clickMetFor: (params: { description: Node['textContent'] }) => Promise<void>;
+  clickNotMetFor: (params: { description: Node['textContent'] }) => Promise<void>;
   typeReasonFor: (params: {
-    description: HTMLElement['textContent'];
+    description: Node['textContent'];
     text: HTMLTextAreaElement['value'];
   }) => Promise<void>;
 } => {
@@ -33,7 +31,7 @@ export const HumanCheckPanelLayerWidgetProxy = (): ReturnType<
   const row = HumanCheckRowLayerWidgetProxy();
   const user = userEvent.setup(userEventStatics.options);
 
-  const rowFor = ({ description }: { description: HTMLElement['textContent'] }): HTMLElement => {
+  const rowFor = ({ description }: { description: Node['textContent'] }): HTMLElement => {
     const rows = screen.getAllByTestId('HUMAN_CHECK_ROW');
     const match = rows.find(
       (element) =>
@@ -49,8 +47,8 @@ export const HumanCheckPanelLayerWidgetProxy = (): ReturnType<
     description,
     text,
   }: {
-    description: HTMLElement['textContent'];
-    text: HTMLElement['textContent'];
+    description: Node['textContent'];
+    text: Node['textContent'];
   }): HTMLElement => {
     const buttons = within(rowFor({ description })).getAllByTestId('PIXEL_BTN');
     const match = buttons.find((button) => button.textContent === text);
@@ -65,27 +63,19 @@ export const HumanCheckPanelLayerWidgetProxy = (): ReturnType<
     hasSection: (): boolean => screen.queryByTestId('QUEST_SUMMARY_SECTION_HUMAN_CHECK') !== null,
     rowCount: (): HTMLElement['childElementCount'] =>
       screen.queryAllByTestId('HUMAN_CHECK_ROW').length,
-    rowDescriptions: (): HTMLElement['textContent'][] =>
+    rowDescriptions: (): Node['textContent'][] =>
       screen.queryAllByTestId('HUMAN_CHECK_DESCRIPTION').map((element) => element.textContent),
-    hasReasonFieldFor: ({ description }: { description: HTMLElement['textContent'] }): boolean =>
+    hasReasonFieldFor: ({ description }: { description: Node['textContent'] }): boolean =>
       within(rowFor({ description })).queryByTestId('HUMAN_CHECK_REASON') !== null,
-    verdictTextFor: ({
-      description,
-    }: {
-      description: HTMLElement['textContent'];
-    }): HTMLElement['textContent'] =>
+    verdictTextFor: ({ description }: { description: Node['textContent'] }): Node['textContent'] =>
       within(rowFor({ description })).queryByTestId('HUMAN_CHECK_VERDICT')?.textContent ?? null,
-    clickMetFor: async ({
-      description,
-    }: {
-      description: HTMLElement['textContent'];
-    }): Promise<void> => {
+    clickMetFor: async ({ description }: { description: Node['textContent'] }): Promise<void> => {
       await user.click(buttonFor({ description, text: 'MET' }));
     },
     clickNotMetFor: async ({
       description,
     }: {
-      description: HTMLElement['textContent'];
+      description: Node['textContent'];
     }): Promise<void> => {
       await user.click(buttonFor({ description, text: 'NOT MET' }));
     },
@@ -93,7 +83,7 @@ export const HumanCheckPanelLayerWidgetProxy = (): ReturnType<
       description,
       text,
     }: {
-      description: HTMLElement['textContent'];
+      description: Node['textContent'];
       text: HTMLTextAreaElement['value'];
     }): Promise<void> => {
       await user.type(within(rowFor({ description })).getByTestId('HUMAN_CHECK_REASON'), text);

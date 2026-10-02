@@ -115,10 +115,7 @@ export const mintNextActionTransformer = ({
     );
   });
 
-  const browserLimit =
-    maxConcurrent === undefined || maxConcurrent.counts !== 'browser-pieces'
-      ? null
-      : maxConcurrent.limit;
+  const browserLimit = maxConcurrent?.counts === 'browser-pieces' ? maxConcurrent.limit : null;
 
   const allowed = batch.flatMap((minted, index) => {
     if (browserLimit === null || browserFlags[index] !== true) {

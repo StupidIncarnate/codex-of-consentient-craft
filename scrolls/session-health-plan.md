@@ -56,7 +56,7 @@ These are the failure causes, grouped by the census agent:
 | 7 | `quest-work` refused a declared outcome, because the outcome is derived from marks | Agent mistake |
 | 8 | Other: bad `get-agent-prompt` args, a Read over 256 KB, scratch python errors | Agent mistake |
 
-The census also found **18 soft failures**. These are Bash results that exit 0 but contain `FAIL`, because
+The census also found **18 soft failures** (canonical cause `ward-red-hidden`). These are Bash results that exit 0 but contain `FAIL`, because
 `| tail` or a python wrapper swallowed the exit code. Any failure count has to catch these as well as
 `is_error`.
 
@@ -81,26 +81,32 @@ from that:
 2. **Never send a whole quest's transcripts to the browser for this feature.** `useQuestChatBinding` already
    holds every entry as `entriesByWorkItem`, and that will not scale. The View Context drawer fetches a window
    of entries around one call.
-3. **Store only a capped preview of each error.** Lines reach 1.11 MB. The full error text loads only when
-   someone opens that instance.
+3. **Keep long error text out of list rows.** Lines reach 1.11 MB. `tool_results.text` holds the text inline up to
+   4 KB and a blob above that, and lists show a preview computed at read time, so the full text loads only when someone
+   opens that instance.
 
 ## What the health feature shows
 
 ### Failure causes
 
-chronicle-llm sorts each failed tool call into a cause (`tool_calls.cause`), using shapes the census found in this quest's transcripts:
+chronicle-llm sorts each failed tool call into a cause (`tool_call_causes.cause`, with a `sub_cause`), using shapes the census found in this quest's transcripts. The names are the canonical list in `design.md` §8.1B, one vocabulary for every harness. A separately versioned classifier writes them (§8.1A), so a better rule never forces a re-normalize:
 
 | Cause | How it is detected |
 |---|---|
 | `hook-refusal` | Text starts with `PreToolUse:<Tool> hook error: [dungeonmaster-pre-…]`. The hook name becomes a sub-cause. |
-| `permission-denied` | Text is `Permission to use … has been denied.`, and the line has `toolDenialKind` |
+| `permission-denied` | Text is `Permission to use … has been denied.`, and the line has `toolDenialKind`. Sub-causes are `permission-rule` and `user-rejected`. |
+| `interrupted` | The user or the harness interrupted the call. Sub-causes are `user` and `harness`. |
+| `cancelled` | The harness cancelled the call (Antigravity status 6). |
 | `ward-red` | A ward command with `Exit code 1`. Sub-causes are which checks failed, or `slow-tests-only`. |
 | `ward-red-hidden` | A ward command that exits 0 but whose output contains `FAIL`. This is the soft failure. |
 | `mcp-refused` | An MCP result with `{"success":false,…}` or a zod message. The tool name and first error path become the sub-cause. |
-| `tool-error` | A tool's own error, such as Read over 256 KB |
-| `command-error` | Any other non-zero Bash exit |
+| `nonzero-exit` | Any other shell command that exits non-zero. The program name becomes the sub-cause. |
+| `tool-error` | A tool's own error, such as Read over 256 KB, a missing file or a bad argument. A short normalised code becomes the sub-cause. |
+| `timeout` | The call ran past its time limit |
+| `orphaned` | The call never got a result |
 
-Causes live in one statics table, so a new shape is one new row.
+A new shape is a new classifier rule. A classifier version bump re-runs only over calls whose status is not `ok`, plus
+the soft-failure candidates.
 
 ### Health metrics
 
@@ -112,7 +118,9 @@ first group.
 1. **Failed calls by cause**, with recovery time and turns until the next successful call.
 2. **Ward verdict mismatch.** This flags a ward exit code that disagrees with its check statuses. In this
    quest, run `a87e3c0a` exited 1 while every check passed. It spawned a repair agent that found nothing to
-   fix.
+   fix. A ward step's verdict is the `work_items` mirror's `ward_exit_code` against `ward_checks_json` (from
+   `quest.json` `wardResults[]` and its `ward-results/<id>.json`); an agent's own ward run through Bash is
+   `tool_results.details_json` `ward.{exitCode, checks, slowTestsOnly}`. chronicle-llm keeps no ward table.
 3. **Refusal loops.** The count of consecutive refused calls of one tool in one session. The last planner here
    made 7 refused `quest-work` plans in a row, then was killed.
 4. **Resumes and stalls.** The count of "CUT OFF mid-work" resumes, plus the longest idle gap inside a
@@ -120,8 +128,9 @@ first group.
    gap.
 5. **How a session ended.** The cases are `signalled`, `killed` and `running`. `killed` means the last line is
    a tool result with no follow-up.
-6. **Cost per session and per role.** This is read from the `cost-state` line near the end of each transcript.
-   Reading that one line is nearly free.
+6. **Cost per session and per role.** The headline is `usage` × `pricing` (design §9), summed per session and per role.
+   The `cost-state` line near the end of each transcript is a cross-check only, because it undercounts resumed
+   sessions; its newest figure is `rollup_session.last_reported_cost_usd`.
 
 **Phase two**
 
@@ -145,7 +154,7 @@ It shows:
 - one row per cause, with its count, and whether it is still rising
 - badges for a ward verdict mismatch, a refusal loop, or a killed session.
 
-The panel loads `GET /api/quests/:questId/health`, which queries `tool_calls`, `errors` and `rollup_quest`.
+The panel loads `GET /api/quests/:questId/health`, which queries `tool_calls`, `tool_call_causes`, `errors` and `rollup_quest`.
 It then updates from the same cursor-based push every chronicle-llm reader uses.
 
 **Drill-down.** Clicking a cause lists its instances, newest first, in pages of 50. Each instance shows the
@@ -154,7 +163,7 @@ error text.
 
 **View Context drawer.** No side drawer exists yet. The closest surface is
 `flow-node-detail-panel-layer-widget`, an absolutely positioned right-hand panel, which we copy. The drawer:
-- calls `GET /api/runs/:runId/window?toolCallId=…&before=40&after=20`, which reads that window of the
+- calls `GET /api/llm-sessions/:sessionId/window?toolCallId=…&before=40&after=20`, which reads that window of the
   `timeline` view
 - renders them with the existing `ChatEntryListWidget`, read-only
 - scrolls to the failed call and highlights it. This needs a scroll-to-entry feature, which does not exist yet.

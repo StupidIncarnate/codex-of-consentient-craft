@@ -25,7 +25,7 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
     node.type === AST_NODE_TYPES.CallExpression || node.type === AST_NODE_TYPES.NewExpression
       ? node.arguments[1]
       : undefined;
-  if (!variantsArg || variantsArg.type !== AST_NODE_TYPES.ArrayExpression) return;
+  if (variantsArg?.type !== AST_NODE_TYPES.ArrayExpression) return;
 
   for (const variant of variantsArg.elements) {
     if (!variant) continue;
@@ -36,7 +36,7 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
       variant.type === AST_NODE_TYPES.NewExpression
         ? variant.arguments
         : undefined) ?? [];
-    if (!shape || shape.type !== AST_NODE_TYPES.ObjectExpression) continue;
+    if (shape?.type !== AST_NODE_TYPES.ObjectExpression) continue;
 
     for (const prop of shape.properties) {
       if (prop.type !== AST_NODE_TYPES.Property) continue;

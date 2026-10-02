@@ -121,7 +121,7 @@ export const ChatPanelWidgetProxy = (): {
     clickStop: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('STOP_BUTTON'), userEventStatics.options);
     },
-    isInputEmpty: (): boolean => (screen.getByTestId('CHAT_INPUT').textContent ?? '').length === 0,
+    isInputEmpty: (): boolean => screen.getByTestId('CHAT_INPUT').textContent.length === 0,
     isStreamingVisible: (): boolean => screen.queryByTestId('STREAMING_INDICATOR') !== null,
     isStopButtonVisible: (): boolean => screen.queryByTestId('STOP_BUTTON') !== null,
     isSendButtonVisible: (): boolean => screen.queryByTestId('SEND_BUTTON') !== null,

@@ -37,8 +37,7 @@ export const computeTokenAnnotationsTransformer = ({
       // leave `prev` where it was, so the surviving delta spans the whole run instead of the
       // last hop; advancing it here would silently drop the run's earlier consumption.
       const nextItem = items[index + 1];
-      const nextToolUse =
-        nextItem !== undefined && nextItem.kind === 'tool-pair' ? nextItem.toolUse : null;
+      const nextToolUse = nextItem?.kind === 'tool-pair' ? nextItem.toolUse : null;
       const nextSource: 'session' | 'subagent' =
         nextToolUse !== null && 'source' in nextToolUse && nextToolUse.source === 'subagent'
           ? 'subagent'

@@ -33,7 +33,7 @@ describe('StreamingIndicatorWidget', () => {
 
       const text = screen.getByTestId('STREAMING_INDICATOR_TEXT');
 
-      expect(text.textContent?.startsWith('\u2726')).toBe(true);
+      expect(text.textContent.startsWith('\u2726')).toBe(true);
     });
   });
 });

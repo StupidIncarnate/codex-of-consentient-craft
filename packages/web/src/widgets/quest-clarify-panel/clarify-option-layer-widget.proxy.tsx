@@ -5,12 +5,12 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 export const ClarifyOptionLayerWidgetProxy = (): {
   clickOption: () => Promise<void>;
-  getOptionText: () => HTMLElement['textContent'];
+  getOptionText: () => Node['textContent'];
 } => ({
   clickOption: async (): Promise<void> => {
     await userEvent.click(screen.getByTestId('CLARIFY_OPTION'), userEventStatics.options);
   },
-  getOptionText: (): HTMLElement['textContent'] => {
+  getOptionText: (): Node['textContent'] => {
     const element = screen.queryByTestId('CLARIFY_OPTION');
     return element?.textContent ?? null;
   },

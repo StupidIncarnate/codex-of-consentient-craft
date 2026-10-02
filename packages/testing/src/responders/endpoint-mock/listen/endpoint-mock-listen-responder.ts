@@ -96,7 +96,7 @@ export const EndpointMockListenResponder = ({
       headers,
     }: {
       status: number;
-      body: BodyInit | null;
+      body: NonNullable<RequestInit['body']> | null;
       headers: Record<PropertyKey, string>;
     }): void => {
       server.use(

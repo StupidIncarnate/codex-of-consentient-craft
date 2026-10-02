@@ -96,8 +96,7 @@ export const layerContractCheckLayerBroker = ({
     const [owner, ...keys] = path;
     const root = astZodRootMethodTransformer({ node });
     if (
-      literal === null ||
-      literal.type !== AST_NODE_TYPES.Literal ||
+      literal?.type !== AST_NODE_TYPES.Literal ||
       typeof literal.value !== 'string' ||
       owner !== layerName ||
       literal.value.startsWith(zodObjectBrandStatics.gateway.brandPrefix) ||

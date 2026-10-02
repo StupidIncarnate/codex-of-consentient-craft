@@ -175,6 +175,8 @@ Applies to every ward run, in any repo, by any agent.
 
 Applies to every long-running command, in any repo, by any agent.
 
+**Wait for every edit's result before you start ward or a build.** The pre-edit hook refuses an edit that breaks a code standard — a conditional in a test is the usual one — and writes nothing. A check queued beside it grades a tree without your change.
+
 **A command can outlive the Bash call that started it.** Anything slow — a whole-repo ward, a build, an install, a browser run — crosses the call's timeout, and the harness moves it to the background. The call then returns saying so, carrying NO result. Give a long command `timeout: 600000` up front. `run_in_background: true` buys nothing: it blocks for that same timeout either way.
 
 **Your final response TERMINATES every background command you own, and no notification can follow it.** A command still running when you stop dies part-way, while your report reads clean and nothing tells you it happened.
@@ -284,12 +286,41 @@ It boots a throwaway instance, drives it with a batch of steps, and reads back r
 
 Applies in a consumer repo `dungeonmaster init` has touched — this monorepo's own four gateway packages already hold every wrapper, so nothing here is empty to fill in.
 
-**`packages/@gateway/npm/src/` fills itself.** `dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` entry a folder there: dungeonmaster's own wrapper when it ships one, otherwise a one-line passthrough barrel plus its test. An existing folder is never overwritten, so edit a generated one freely. `dungeonmaster gateway-sync` runs the same sync by hand.
+**`packages/@gateway/npm/src/` fills itself.** `dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` entry a folder there: dungeonmaster's own wrapper when one fits your installed version and compiles, otherwise a one-line passthrough barrel plus its test. An existing folder is never overwritten, so edit a generated one freely. `dungeonmaster gateway-sync` runs the same sync by hand.
 
 A barrel-only subpath needs no stub. Add a `.stub.ts` once you add a wrapper file. `packages/@gateway/node/` and `packages/@gateway/browser/` hold dungeonmaster's real source — a live, local worked example for the layout every gateway subpath uses: one folder per wrapper, holding the wrapper file plus its `.proxy.ts` and `.stub.ts`. For dungeonmaster's OWN npm/bin wrappers as a second worked example, read `node_modules/@dungeonmaster/npm/src` and `node_modules/@dungeonmaster/bin/src` — both ship real source, not `dist` only.
+
+A package Jest cannot load gets a module mock beside its wrapper, `packages/@gateway/npm/src/<folder>/<folder>.jest-mock.cjs`, and Jest loads it for every test that imports that gateway, with no config edit.
 
 `packages/@gateway/bin/` starts EMPTY, holding only a placeholder `src/index.d.ts`. Write a program's wrapper under `packages/@gateway/bin/src/<subpath>/` by hand, and delete the placeholder once the first real subpath exists.
 
 **Never import dungeonmaster's own gateway.** A wrapper imports only the consumer's own copy — never `@dungeonmaster/{npm,node,browser,bin}` from `node_modules`. Read the installed package only to copy a shape from.
 
 `dungeonmaster create-package` refuses a name scoped `@gateway` — a wrapper is not a scaffolded package. Add the folder by hand instead.
+
+---
+
+## Making Decisions
+
+Applies in any repo `dungeonmaster init` has touched.
+
+**Measure before you choose a direction.** Planning a feature, weigh its performance and read the real system: real files, real sizes, real counts. A guess is not a direction.
+
+**Take the maintainable, sustainable option, even when it is more work.** When one choice leaves the system healthier and the other is quicker, take the healthier one.
+
+**Decide a clear-cut choice yourself.** When something looks like it needs the user but one option wins and nothing else weighs equally, pick it, carry on, and tell the user in one line what you chose and why. Do not stop to ask.
+
+**Bring the user in only for a decision that is theirs:**
+
+| Theirs | Example |
+|---|---|
+| User experience | what a screen shows, how a flow feels |
+| Functionality or behaviour | a change to what the product does |
+| Scope or an agreed design | adding, dropping or reshaping what was agreed |
+| A true tie | options equal on the facts, so the choice is a preference |
+| Spend | money or quota beyond the task's normal cost |
+| Destructive, irreversible or outward-facing | deleting data, force-push, publishing, messaging people |
+| Data retention or privacy | what is kept, for how long, who can see it |
+| Naming and branding | what a product or feature is called |
+
+**Never re-ask what the user already decided.** When you report a decision, state the evidence behind it, and record it where the work's plan lives.

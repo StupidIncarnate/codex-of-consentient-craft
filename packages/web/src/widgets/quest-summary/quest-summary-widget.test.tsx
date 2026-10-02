@@ -58,7 +58,7 @@ describe('QuestSummaryWidget', () => {
       expect(screen.getByTestId('QUEST_SUMMARY_FLOW_NAME').textContent).toBe(
         'Login Flow [runtime]',
       );
-      expect(trackRows.map((row) => String(row.textContent))).toStrictEqual([
+      expect(trackRows.map((row) => row.textContent)).toStrictEqual([
         'FLOWRIDER1 met0 cant-meet0 unmet1 outstanding',
         'SIEGEMASTER0 met1 cant-meet2 unmet9 outstanding',
       ]);
@@ -170,13 +170,13 @@ describe('QuestSummaryWidget', () => {
       await screen.findByTestId('QUEST_SUMMARY');
 
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => el.textContent),
       ).toStrictEqual([
         '[cant-meet] [siegemaster] login-flow:terminal:dashboard',
         '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
       ]);
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_EVIDENCE').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_EVIDENCE').map((el) => el.textContent),
       ).toStrictEqual([
         'the sandbox refuses to bind port 3737, so no browser can reach the app',
         'the spec asserts the 400 body but nothing drives a non-JSON request yet',
@@ -216,10 +216,10 @@ describe('QuestSummaryWidget', () => {
       await screen.findByTestId('QUEST_SUMMARY');
 
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_TO_SETTLE').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_TO_SETTLE').map((el) => el.textContent),
       ).toStrictEqual(['→ Start the sandbox dev server on a free port, then re-walk this node.']);
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_SUCCESSOR').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_SUCCESSOR').map((el) => el.textContent),
       ).toStrictEqual(['→ nothing hands this over; a successor is owed the work']);
       expect(
         screen
@@ -266,13 +266,13 @@ describe('QuestSummaryWidget', () => {
       await screen.findByTestId('QUEST_SUMMARY');
 
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => el.textContent),
       ).toStrictEqual([
         '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
         '[cant-meet] [siegemaster] login-flow:observable:rejects-bleh-payload',
       ]);
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_EVIDENCE').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_EVIDENCE').map((el) => el.textContent),
       ).toStrictEqual([
         'no spec drives a non-JSON request at the login route yet',
         'a browser cannot post a non-JSON body through the login form',
@@ -313,7 +313,7 @@ describe('QuestSummaryWidget', () => {
 
       expect(proxy.hasDuplicateRowKeyWarning()).toBe(false);
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => el.textContent),
       ).toStrictEqual([
         '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
         '[cant-meet] [siegemaster] login-flow:observable:rejects-bleh-payload',
@@ -574,10 +574,10 @@ describe('QuestSummaryWidget', () => {
       await screen.findByTestId('QUEST_SUMMARY');
 
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_NOTE_GROUP_TITLE').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_NOTE_GROUP_TITLE').map((el) => el.textContent),
       ).toStrictEqual(['OPEN-QUESTION (1)', 'WALK-RESET (0)']);
       expect(
-        screen.getAllByTestId('QUEST_SUMMARY_NOTE_ROW').map((el) => String(el.textContent)),
+        screen.getAllByTestId('QUEST_SUMMARY_NOTE_ROW').map((el) => el.textContent),
       ).toStrictEqual([
         'Should a stale anchor notify per box or once per batch?siegemaster — The batch send drops boxes whose node id no longer exists in the flow.',
       ]);

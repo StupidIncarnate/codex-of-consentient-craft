@@ -49,7 +49,7 @@ export const resolveStaticStringLayerBroker = ({
   if (node.type === AST_NODE_TYPES.TemplateLiteral) {
     const [firstQuasi] = node.quasis;
     const text = firstQuasi?.value.cooked;
-    return text !== undefined && text.length > 0 ? text : undefined;
+    return typeof text === 'string' && text.length > 0 ? text : undefined;
   }
 
   if (node.type === AST_NODE_TYPES.Identifier) {

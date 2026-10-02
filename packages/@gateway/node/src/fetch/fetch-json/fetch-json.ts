@@ -33,7 +33,7 @@ export const fetchJson = async ({
 }): Promise<unknown> => {
   const requestHeaders: Record<string, string> = { ...headers };
   const isObjectBody = body !== undefined && typeof body !== 'string';
-  const requestBody: BodyInit | undefined =
+  const requestBody: RequestInit['body'] =
     body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body);
 
   if (

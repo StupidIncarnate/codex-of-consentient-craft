@@ -35,7 +35,7 @@ export const fetchWithStatus = async ({
   body?: unknown;
   timeoutMs?: number;
 }): Promise<{ status: number; statusText: string; ok: boolean; body: string }> => {
-  const requestBody: BodyInit | undefined =
+  const requestBody: RequestInit['body'] =
     body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body);
 
   const controller = new AbortController();

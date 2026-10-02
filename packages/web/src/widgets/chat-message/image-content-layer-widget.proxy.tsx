@@ -62,7 +62,7 @@ export const ImageContentLayerWidgetProxy = (): {
     // The container's own textContent already excludes every img and broken-placeholder span —
     // neither carries a text node — so stripping images out of the bubble is free.
     getBubbleText: (): NonNullable<HTMLElement['textContent']> =>
-      screen.getByTestId('IMAGE_CONTENT_LAYER').textContent ?? '',
+      screen.getByTestId('IMAGE_CONTENT_LAYER').textContent,
     getChildTestIds: (): readonly ReturnType<Element['getAttribute']>[] =>
       Array.from(screen.getByTestId('IMAGE_CONTENT_LAYER').children).map((child) =>
         child.getAttribute('data-testid'),

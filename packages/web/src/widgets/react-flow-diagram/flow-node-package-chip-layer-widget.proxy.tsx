@@ -2,18 +2,18 @@ import { screen } from '#gateway/npm/testing-library__react';
 
 interface FlowNodePackageChipLayerWidgetProxyResult {
   getChip: () => HTMLElement | null;
-  getChipName: () => HTMLElement['textContent'];
-  getChipAccent: () => HTMLElement['textContent'];
-  getChipPackageType: () => HTMLElement['textContent'];
+  getChipName: () => Node['textContent'];
+  getChipAccent: () => Node['textContent'];
+  getChipPackageType: () => Node['textContent'];
 }
 
 export const FlowNodePackageChipLayerWidgetProxy =
   (): FlowNodePackageChipLayerWidgetProxyResult => ({
     getChip: (): HTMLElement | null => screen.queryByTestId('FLOW_NODE_PACKAGE_CHIP'),
-    getChipName: (): HTMLElement['textContent'] =>
+    getChipName: (): Node['textContent'] =>
       screen.queryByTestId('FLOW_NODE_PACKAGE_CHIP')?.textContent ?? null,
-    getChipAccent: (): HTMLElement['textContent'] =>
+    getChipAccent: (): Node['textContent'] =>
       screen.queryByTestId('FLOW_NODE_PACKAGE_CHIP')?.getAttribute('data-package-accent') ?? null,
-    getChipPackageType: (): HTMLElement['textContent'] =>
+    getChipPackageType: (): Node['textContent'] =>
       screen.queryByTestId('FLOW_NODE_PACKAGE_CHIP')?.getAttribute('data-package-type') ?? null,
   });

@@ -30,7 +30,7 @@ export const checkUnboundTypePropertiesLayerBroker = ({
     if (hasRest) continue;
 
     const typeLiteral = patternNode.typeAnnotation?.typeAnnotation;
-    if (!typeLiteral || typeLiteral.type !== AST_NODE_TYPES.TSTypeLiteral) continue;
+    if (typeLiteral?.type !== AST_NODE_TYPES.TSTypeLiteral) continue;
 
     const boundNames = new Set(
       properties.flatMap((property) =>

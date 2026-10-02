@@ -13,6 +13,7 @@ import type { AdapterAnalysisAnalyzeScopeLayerResult } from '../../../contracts/
 import * as ts from '#gateway/npm/typescript';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
 import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
+import { isTypeOnlyImportClauseGuard } from '@dungeonmaster/shared/guards';
 
 export const adapterAnalysisAnalyzeScopeLayerBroker = ({
   sourceFile,
@@ -29,7 +30,7 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
       continue;
     }
     const clause = statement.importClause;
-    if (clause === undefined || clause.isTypeOnly) {
+    if (clause === undefined || isTypeOnlyImportClauseGuard({ clause })) {
       continue;
     }
     const module = statement.moduleSpecifier.text;

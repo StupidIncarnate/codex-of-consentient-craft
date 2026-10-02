@@ -72,3 +72,4 @@ export * from './startup-references-argv/startup-references-argv-guard';
 export * from './flow-returns-tool-registration/flow-returns-tool-registration-guard';
 export * from './startup-exports-async-namespace/startup-exports-async-namespace-guard';
 export * from './is-package-e2e-eligible/is-package-e2e-eligible-guard';
+export * from './is-type-only-import-clause/is-type-only-import-clause-guard';

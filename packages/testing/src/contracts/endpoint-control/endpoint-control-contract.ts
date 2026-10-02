@@ -25,7 +25,7 @@ export type EndpointControl = z.infer<typeof endpointControlContract> & {
   responds: (params: { status: number; body?: unknown }) => void;
   respondRaw: (params: {
     status: number;
-    body: BodyInit | null;
+    body: NonNullable<RequestInit['body']> | null;
     headers: Record<string, string>;
   }) => void;
   networkError: () => void;

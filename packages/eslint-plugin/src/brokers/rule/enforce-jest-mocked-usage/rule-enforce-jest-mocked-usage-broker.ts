@@ -67,11 +67,7 @@ export const ruleEnforceJestMockedUsageBroker = (): TSESLint.RuleModule<
           if (isAstMethodCallGuard({ node, object: 'jest', method: 'mock' })) {
             if (node.arguments.length > 0) {
               const [firstArg] = node.arguments;
-              if (
-                firstArg &&
-                firstArg.type === AST_NODE_TYPES.Literal &&
-                typeof firstArg.value === 'string'
-              ) {
+              if (firstArg?.type === AST_NODE_TYPES.Literal && typeof firstArg.value === 'string') {
                 if (firstArg.value.length > 0) {
                   jestMockedModules.set(firstArg.value, node);
                 }

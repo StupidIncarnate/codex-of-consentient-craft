@@ -12,25 +12,25 @@ import { document } from '#gateway/browser/document';
 export const GuildSessionListWidgetProxy = (): {
   hasHeader: () => boolean;
   hasEmptyState: () => boolean;
-  getUnreadableQuestRowTexts: () => readonly HTMLElement['textContent'][];
+  getUnreadableQuestRowTexts: () => readonly Node['textContent'][];
   isSessionVisible: (params: { testId: string }) => boolean;
   hasQuestBadge: (params: { testId: string }) => boolean;
-  getQuestBadgeText: (params: { testId: string }) => HTMLElement['textContent'];
-  getSessionDisplayText: (params: { testId: string }) => HTMLElement['textContent'];
-  getStatusText: (params: { testId: string }) => HTMLElement['textContent'];
+  getQuestBadgeText: (params: { testId: string }) => Node['textContent'];
+  getSessionDisplayText: (params: { testId: string }) => Node['textContent'];
+  getStatusText: (params: { testId: string }) => Node['textContent'];
   getStatusColor: (params: { testId: string }) => CSSStyleDeclaration['color'];
   getFilterValue: () => HTMLInputElement['value'] | null;
   clickSession: (params: { testId: string }) => Promise<void>;
   clickAddButton: () => Promise<void>;
   clickFilterOption: (params: { label: string }) => Promise<void>;
   isDeleteButtonVisible: (params: { testId: string }) => boolean;
-  getDeleteButtonAriaLabel: (params: { testId: string }) => HTMLElement['textContent'];
-  getDeleteButtonText: (params: { testId: string }) => HTMLElement['textContent'];
+  getDeleteButtonAriaLabel: (params: { testId: string }) => Node['textContent'];
+  getDeleteButtonText: (params: { testId: string }) => Node['textContent'];
   hasDeleteButtonSkullIcon: (params: { testId: string }) => boolean;
   clickDeleteButton: (params: { testId: string }) => Promise<void>;
   isPopoverVisible: (params: { testId: string }) => boolean;
-  getPopoverText: (params: { testId: string }) => HTMLElement['textContent'];
-  getVisiblePopoverTestIds: () => readonly HTMLElement['textContent'][];
+  getPopoverText: (params: { testId: string }) => Node['textContent'];
+  getVisiblePopoverTestIds: () => readonly Node['textContent'][];
   isBanishButtonDisabled: () => boolean;
   clickBanish: () => Promise<void>;
   clickSpare: () => Promise<void>;
@@ -45,17 +45,17 @@ export const GuildSessionListWidgetProxy = (): {
   return {
     hasHeader: (): boolean => screen.queryByText('SESSIONS') !== null,
     hasEmptyState: (): boolean => screen.queryByTestId('SESSION_EMPTY_STATE') !== null,
-    getUnreadableQuestRowTexts: (): readonly HTMLElement['textContent'][] =>
+    getUnreadableQuestRowTexts: (): readonly Node['textContent'][] =>
       screen.queryAllByTestId('UNREADABLE_QUEST_ROW').map((element) => element.textContent),
     isSessionVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
     hasQuestBadge: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
-    getQuestBadgeText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getQuestBadgeText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
     },
-    getSessionDisplayText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getSessionDisplayText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       if (!element) {
         return null;
@@ -63,7 +63,7 @@ export const GuildSessionListWidgetProxy = (): {
       const span = element.querySelector('span');
       return span?.textContent ?? null;
     },
-    getStatusText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getStatusText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
     },
@@ -90,11 +90,11 @@ export const GuildSessionListWidgetProxy = (): {
     },
     isDeleteButtonVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
-    getDeleteButtonAriaLabel: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getDeleteButtonAriaLabel: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.getAttribute('aria-label') ?? null;
     },
-    getDeleteButtonText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getDeleteButtonText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       return element?.textContent ?? null;
     },
@@ -107,12 +107,12 @@ export const GuildSessionListWidgetProxy = (): {
     },
     isPopoverVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
-    getPopoverText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+    getPopoverText: ({ testId }: { testId: string }): Node['textContent'] => {
       const element = screen.queryByTestId(testId);
       const paragraph = element?.querySelector('p');
       return paragraph?.textContent ?? element?.textContent ?? null;
     },
-    getVisiblePopoverTestIds: (): readonly HTMLElement['textContent'][] =>
+    getVisiblePopoverTestIds: (): readonly Node['textContent'][] =>
       Array.from(document.querySelectorAll('[data-testid^="QUEST_DELETE_POPOVER_"]')).map(
         (element) => element.getAttribute('data-testid'),
       ),

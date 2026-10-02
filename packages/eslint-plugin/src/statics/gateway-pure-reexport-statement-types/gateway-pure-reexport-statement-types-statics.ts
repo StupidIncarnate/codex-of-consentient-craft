@@ -6,9 +6,15 @@
  * because `gateway-colocation`'s own purity check is the one place this list needs to stay in sync.
  *
  * USAGE:
- * gatewayPureReexportStatementTypesStatics.types.includes('ExportAllDeclaration');
+ * gatewayPureReexportStatementTypesStatics.types.includes(AST_NODE_TYPES.ExportAllDeclaration);
  * // Returns true
  */
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+
 export const gatewayPureReexportStatementTypesStatics = {
-  types: ['ExportAllDeclaration', 'TSExportAssignment', 'TSImportEqualsDeclaration'] as const,
+  types: [
+    AST_NODE_TYPES.ExportAllDeclaration,
+    AST_NODE_TYPES.TSExportAssignment,
+    AST_NODE_TYPES.TSImportEqualsDeclaration,
+  ] as const,
 };

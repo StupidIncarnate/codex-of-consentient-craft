@@ -22,8 +22,10 @@ export const ImagesFlow = (): Hono => {
   app.get(apiRoutesStatics.images.serve, async (c) => {
     const path = c.req.query(apiRoutesStatics.images.pathQueryParam);
     const result = await ImageServeResponder({ path });
+    // Hono's body takes only ArrayBuffer-backed bytes, and @types/node types readFile's Buffer as
+    // possibly backed by a SharedArrayBuffer. The copy gives the bytes a plain ArrayBuffer of their own.
     return c.body(
-      result.bytes,
+      new Uint8Array(result.bytes),
       result.status as ContentfulStatusCode,
       result.contentType === null ? {} : { 'Content-Type': result.contentType },
     );

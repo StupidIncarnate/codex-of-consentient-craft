@@ -13,11 +13,7 @@ export const checkBindingInitializerLayerBroker = ({
 }: {
   identifierNode?: TSESTree.Node;
 }): TSESTree.Node | undefined => {
-  if (
-    !identifierNode ||
-    identifierNode.type !== AST_NODE_TYPES.Identifier ||
-    !identifierNode.name
-  ) {
+  if (identifierNode?.type !== AST_NODE_TYPES.Identifier || !identifierNode.name) {
     return undefined;
   }
 

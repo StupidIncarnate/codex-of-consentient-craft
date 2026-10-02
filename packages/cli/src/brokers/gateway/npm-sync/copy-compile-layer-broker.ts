@@ -84,6 +84,9 @@ export const copyCompileLayerBroker = ({
     resolveJsonModule: true,
     skipLibCheck: true,
     noEmit: true,
+    // Every `@types` package under the type roots. TypeScript 6 loads none when `types` is unset, and
+    // the wrappers reach Node's own modules (`node:stream`), which only `@types/node` declares.
+    types: ['*'],
     typeRoots: gatewayPackageTemplateStatics.typeRoots.map((typeRoot) =>
       join(npmPackageRoot, typeRoot),
     ),

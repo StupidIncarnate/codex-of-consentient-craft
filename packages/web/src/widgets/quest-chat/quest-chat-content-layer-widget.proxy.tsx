@@ -67,7 +67,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   // disconnected composer.
   pasteImageIntoComposer: (params: {
     attachment: ReturnType<typeof ComposerAttachmentStub>;
-    bytes: Uint8Array;
+    bytes: Uint8Array<ArrayBuffer>;
   }) => void;
   getComposerThumbnailAttachmentIds: () => readonly ReturnType<Element['getAttribute']>[];
   // Mirrors getFollowupRequestBody below, for the MAIN composer's mid-quest send — reaches through to

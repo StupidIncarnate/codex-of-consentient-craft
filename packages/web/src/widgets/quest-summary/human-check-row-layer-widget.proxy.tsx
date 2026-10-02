@@ -11,15 +11,15 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
 export const HumanCheckRowLayerWidgetProxy = (): ReturnType<typeof questHumanVerdictBrokerProxy> & {
-  descriptionText: () => HTMLElement['textContent'];
+  descriptionText: () => Node['textContent'];
   hasReasonField: () => boolean;
   typeReason: (params: { text: HTMLTextAreaElement['value'] }) => Promise<void>;
   clickMet: () => Promise<void>;
   clickNotMet: () => Promise<void>;
   isMetDisabled: () => boolean;
   isNotMetDisabled: () => boolean;
-  errorText: () => HTMLElement['textContent'];
-  verdictText: () => HTMLElement['textContent'];
+  errorText: () => Node['textContent'];
+  verdictText: () => Node['textContent'];
 } => {
   const broker = questHumanVerdictBrokerProxy();
   // Every control this row renders is a PixelBtnWidget. Its proxy mocks nothing — the buttons run
@@ -29,7 +29,7 @@ export const HumanCheckRowLayerWidgetProxy = (): ReturnType<typeof questHumanVer
   PixelBtnWidgetProxy();
   const user = userEvent.setup(userEventStatics.options);
 
-  const buttonByLabel = ({ text }: { text: HTMLElement['textContent'] }): HTMLElement => {
+  const buttonByLabel = ({ text }: { text: Node['textContent'] }): HTMLElement => {
     const row = screen.getByTestId('HUMAN_CHECK_ROW');
     const buttons = within(row).getAllByTestId('PIXEL_BTN');
     const match = buttons.find((button) => button.textContent === text);
@@ -41,7 +41,7 @@ export const HumanCheckRowLayerWidgetProxy = (): ReturnType<typeof questHumanVer
 
   return {
     ...broker,
-    descriptionText: (): HTMLElement['textContent'] =>
+    descriptionText: (): Node['textContent'] =>
       screen.queryByTestId('HUMAN_CHECK_DESCRIPTION')?.textContent ?? null,
     hasReasonField: (): boolean => screen.queryByTestId('HUMAN_CHECK_REASON') !== null,
     typeReason: async ({ text }: { text: HTMLTextAreaElement['value'] }): Promise<void> => {
@@ -55,9 +55,9 @@ export const HumanCheckRowLayerWidgetProxy = (): ReturnType<typeof questHumanVer
     },
     isMetDisabled: (): boolean => buttonByLabel({ text: 'MET' }).hasAttribute('disabled'),
     isNotMetDisabled: (): boolean => buttonByLabel({ text: 'NOT MET' }).hasAttribute('disabled'),
-    errorText: (): HTMLElement['textContent'] =>
+    errorText: (): Node['textContent'] =>
       screen.queryByTestId('HUMAN_CHECK_ERROR')?.textContent ?? null,
-    verdictText: (): HTMLElement['textContent'] =>
+    verdictText: (): Node['textContent'] =>
       screen.queryByTestId('HUMAN_CHECK_VERDICT')?.textContent ?? null,
   };
 };

@@ -58,7 +58,7 @@ export const HomeContentWidgetProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsWithSkips: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
   setupQuestsError: () => void;
-  getUnreadableQuestRowTexts: () => readonly HTMLElement['textContent'][];
+  getUnreadableQuestRowTexts: () => readonly Node['textContent'][];
   getShowToastCalls: () => unknown[];
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
@@ -66,7 +66,7 @@ export const HomeContentWidgetProxy = (): {
   clickAddGuild: () => Promise<void>;
   clickAddSession: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
-  getGuildsErrorText: () => HTMLElement['textContent'];
+  getGuildsErrorText: () => Node['textContent'];
   isSessionEmptyStateVisible: () => boolean;
   isSelectGuildMessageVisible: () => boolean;
   typeGuildName: (params: { value: string }) => Promise<void>;
@@ -149,7 +149,7 @@ export const HomeContentWidgetProxy = (): {
     }): void => {
       questsProxy.setupQuestsWithSkips({ quests, skipped });
     },
-    getUnreadableQuestRowTexts: (): readonly HTMLElement['textContent'][] =>
+    getUnreadableQuestRowTexts: (): readonly Node['textContent'][] =>
       sessionList.getUnreadableQuestRowTexts(),
     getShowToastCalls: (): unknown[] => notificationsHandle.callsMatching([isNotificationPayload]),
     setupQuestsError: (): void => {
@@ -171,7 +171,7 @@ export const HomeContentWidgetProxy = (): {
       await userEvent.click(addButton, userEventStatics.options);
     },
     isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
-    getGuildsErrorText: (): HTMLElement['textContent'] =>
+    getGuildsErrorText: (): Node['textContent'] =>
       screen.queryByTestId('HOME_GUILDS_ERROR')?.textContent ?? null,
     isSessionEmptyStateVisible: (): boolean => sessionList.hasEmptyState(),
     isSelectGuildMessageVisible: (): boolean => screen.queryByText('Select a guild') !== null,

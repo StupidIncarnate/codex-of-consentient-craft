@@ -24,10 +24,10 @@ export const FlowsLayerWidgetProxy = (): {
   countCommentButtonsOn: ReactFlowProxy['countCommentButtonsOn'];
   countCardsOn: ReactFlowProxy['countCardsOn'];
   hasCommentsSection: () => boolean;
-  getPanelCommentTexts: () => HTMLElement['textContent'][];
+  getPanelCommentTexts: () => Node['textContent'][];
   clickTab: (params: { index: number }) => Promise<void>;
-  getTabLabels: () => HTMLElement['textContent'][];
-  getMarkedTabLabels: () => HTMLElement['textContent'][];
+  getTabLabels: () => Node['textContent'][];
+  getMarkedTabLabels: () => Node['textContent'][];
   countTabQueueMarks: () => HTMLElement['childElementCount'];
   tabQueueMarkGlyphs: () => HTMLElement['className'][];
 } => {
@@ -59,7 +59,7 @@ export const FlowsLayerWidgetProxy = (): {
     countCommentButtonsOn: reactFlowProxy.countCommentButtonsOn,
     countCardsOn: reactFlowProxy.countCardsOn,
     hasCommentsSection: (): boolean => reactFlowProxy.hasCommentsSection(),
-    getPanelCommentTexts: (): HTMLElement['textContent'][] => reactFlowProxy.getPanelCommentTexts(),
+    getPanelCommentTexts: (): Node['textContent'][] => reactFlowProxy.getPanelCommentTexts(),
 
     // Addressed by position: every tab in the row shares one testid, so the index is what names
     // which flow the reader switched to.
@@ -70,12 +70,12 @@ export const FlowsLayerWidgetProxy = (): {
       }
       await user.click(tab);
     },
-    getTabLabels: (): HTMLElement['textContent'][] =>
+    getTabLabels: (): Node['textContent'][] =>
       screen.queryAllByTestId('FLOW_TAB').map((tab) => tab.textContent),
 
     // WHICH tabs carry the mark, named by their label rather than counted. A count alone passes on
     // a rule that marks the wrong tab, and every tab in the row shares one testid.
-    getMarkedTabLabels: (): HTMLElement['textContent'][] =>
+    getMarkedTabLabels: (): Node['textContent'][] =>
       screen
         .queryAllByTestId('FLOW_TAB')
         .filter((tab) => tab.querySelector('[data-testid="FLOW_TAB_QUEUE_MARK"]') !== null)

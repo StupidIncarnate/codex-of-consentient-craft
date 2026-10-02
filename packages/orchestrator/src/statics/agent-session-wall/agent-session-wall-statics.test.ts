@@ -5,7 +5,7 @@ describe('agentSessionWallStatics', () => {
     expect(agentSessionWallStatics).toStrictEqual({
       mcp: {
         serverName: 'dungeonmaster',
-        connectedStatus: 'connected',
+        wallStatuses: ['failed', 'needs-auth', 'disabled'],
       },
       marker: {
         text: 'DUNGEONMASTER-WALL:',

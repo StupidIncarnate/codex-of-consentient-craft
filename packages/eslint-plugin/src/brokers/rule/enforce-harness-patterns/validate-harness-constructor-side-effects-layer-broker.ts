@@ -26,7 +26,7 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
-    if (stmt && stmt.type === AST_NODE_TYPES.ReturnStatement) {
+    if (stmt?.type === AST_NODE_TYPES.ReturnStatement) {
       returnStatementIndex = i;
       break;
     }

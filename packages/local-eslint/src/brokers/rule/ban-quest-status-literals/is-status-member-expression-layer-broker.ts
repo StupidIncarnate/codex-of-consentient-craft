@@ -18,7 +18,7 @@ export const isStatusMemberExpressionLayerBroker = ({
   node?: TSESTree.Node | null;
   extraAllowlist?: readonly string[];
 }): boolean => {
-  if (node === null || node === undefined || node.type !== AST_NODE_TYPES.MemberExpression) {
+  if (node?.type !== AST_NODE_TYPES.MemberExpression) {
     return false;
   }
   const { property } = node;

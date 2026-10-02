@@ -32,7 +32,7 @@ export const CommentPopoverWidgetProxy = (): {
   getTextareaValue: () => HTMLTextAreaElement['value'];
   getTextareaRows: () => HTMLElement['ariaRowSpan'];
   getTextareaHeight: () => HTMLElement['style']['height'];
-  getQueuedText: () => HTMLElement['textContent'];
+  getQueuedText: () => Node['textContent'];
   getQueuedTextOverflowWrap: () => HTMLElement['style']['overflowWrap'];
   hasEditButton: () => boolean;
   hasDeleteButton: () => boolean;
@@ -115,7 +115,7 @@ export const CommentPopoverWidgetProxy = (): {
     getTextareaRows: (): HTMLElement['ariaRowSpan'] =>
       screen.getByTestId('COMMENT_TEXTAREA').getAttribute('rows'),
     getTextareaHeight: (): HTMLElement['style']['height'] => textarea().style.height,
-    getQueuedText: (): HTMLElement['textContent'] =>
+    getQueuedText: (): Node['textContent'] =>
       screen.queryByTestId('COMMENT_QUEUED_TEXT')?.textContent ?? null,
     // The inline declaration only — jsdom has no layout engine, so this guards the MECHANISM that
     // lets a token wrap. The painted outcome is measured in a browser by

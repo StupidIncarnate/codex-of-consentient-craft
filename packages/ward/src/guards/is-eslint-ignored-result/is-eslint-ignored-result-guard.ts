@@ -34,13 +34,13 @@ export const isEslintIgnoredResultGuard = ({ entry }: { entry?: unknown }): bool
 
   const { messages } = parsed.data;
 
-  if (messages === undefined || messages.length !== 1) {
+  if (messages?.length !== 1) {
     return false;
   }
 
   const [message] = messages;
 
-  if (message === undefined || message.ruleId !== null || message.message === undefined) {
+  if (message?.ruleId !== null || message.message === undefined) {
     return false;
   }
 

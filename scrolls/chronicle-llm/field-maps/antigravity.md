@@ -19,29 +19,30 @@ joined to its database (`tmp/agy-live-stdout.txt`, `tmp/agy-live-changes.json`).
 | `Timestamp` | a message `{1: seconds since epoch, 2: nanos}`. Convert to ms: `1*1000 + 2/1e6`. Written `ts` below. |
 | `Duration` | the same two-field shape, as an elapsed time. |
 | proto3 zero | a field equal to 0 or empty is OMITTED on the wire. `metadata.20.2` absent on step 0 means 0. Normalizers must default absent ints to 0. |
-| `<conv>` | the conversation uuid; `run_id = 'antigravity:<conv>'`. |
+| `<conv>` | the conversation uuid; `llm_sessions.natural_key = 'antigravity:<conv>'`. |
 | `[bytes]` | opaque, kept in the raw archive, never broken out. |
 
 **Ids used throughout** (derived keys, never invented per read):
 
 | Table row | Key | Source |
 |---|---|---|
-| `runs` | `antigravity:<conv>` | file name of `conversations/<conv>.db` == `trajectory_meta.cascade_id` == `steps.metadata.20.4` (C: all 307 equal) |
-| `events` | `<run_id>:step:<idx>` | `steps.idx`; also `steps.metadata.20.2` (C: equals `idx` for every step; absent when idx = 0) |
+| `llm_sessions` | `antigravity:<conv>` | file name of `conversations/<conv>.db` == `trajectory_meta.cascade_id` == `steps.metadata.20.4` (C: all 307 equal) |
+| `events` | `<session>:step:<idx>` | `steps.idx`; also `steps.metadata.20.2` (C: equals `idx` for every step; absent when idx = 0) |
 | `messages` (API call) | `antigravity:<conv>:gen:<gen idx>` | `gen_metadata.idx`; a step's generation is `steps.metadata.20.3` (C, section 1.7) |
-| `turns` | `<run_id>:<execution_id>` | `steps.metadata.12` == `executor_metadata.9` (C) |
-| `tool_calls` | `<run_id>:<call_id>`, suffixed `~2`, `~3` for a repeat of the same id in one run | see section 7.2: `call_<n>` ids REPEAT inside one conversation (31 times) and across conversations (628 ids) |
-| `errors` | `<run_id>:step:<idx>` for a type-17 step, `<run_id>:gen:<gen idx>` for a failed generation | |
-| `background_tasks` | `<run_id>:task-<n>` | `task_details.1` is `<conv>/task-<n>`, `n` = idx of the launching step (C) |
+| `turns` | `<session>:turn:<execution_id>` | `steps.metadata.12` == `executor_metadata.9` (C) |
+| `tool_calls` (`tool_results` is keyed through the call by `tool_results.tool_call_ref`) | `antigravity:<conv>:<call_id>` (equal to `<session>:<call_id>`), suffixed `~2`, `~3` for a repeat of the same id in one session | the global key is `<harness>:<native call id>` (design §4.2). agy's `call_<n>` is NOT unique across conversations (628 ids occur in more than one), so the harness-native identity of a call is the pair `<conv>:<call_id>`. A resume reopens the same `.db` instead of copying steps into a new file, so no copy ever re-inserts a call. See section 7.2: the id also REPEATS inside one conversation (31 times) |
+| `errors` | `<session>:<idx>` for a type-17 step, `<session>:gen_metadata@<gen idx>` for a failed generation (`<pos>` of its raw record, the second form carrying the source table) | |
+| `background_tasks` | `<session>:task:task-<n>` | `task_details.1` is `<conv>/task-<n>`, `n` = idx of the launching step (C) |
 
 **Versions.** The conversation databases carry NO harness version. It lives outside them (section 8). Eras seen:
 `<=1.2.5` (only evidence: one `last-stdin.json` written 2026-09-17), `1.2.7` from 2026-09-22 01:25 UTC,
 `1.2.12` from 2026-09-27 18:15 UTC, `1.2.14` from 2026-10-01 19:54 UTC (three conversations). Conversations per era
 (by first step time): 200 before the first log, 43 on 1.2.7, 58 on 1.2.12, 3 on 1.2.14. SQLite `user_version` is 1 for all.
 
-**Open mode.** A conversation `.db` with a `-wal` file next to it (about nine today) opens `mode=ro` only; every other
-one opens `mode=ro&immutable=1`. Both a cold read and the live capture saw agy recreate empty `-wal`/`-shm` files when a
-plain `mode=ro` reader closes, so prefer `immutable=1` or a copy for the cold ones.
+**Open mode.** Every conversation `.db` opens `mode=ro`, never `immutable=1` (design §5.1). A resume can reopen a
+"closed" conversation at any moment, and `immutable` would hide its writes. Both a cold read and the live capture saw agy
+recreate empty `-wal`/`-shm` files when a plain `mode=ro` reader closes a database that had none. That is harmless: the
+reader removes only the empty pair it created.
 
 ## 1. `conversations/<conv>.db`
 
@@ -85,10 +86,10 @@ Status values (`steps.status` always equals `step_payload.1.4`, C: 73,165 of 73,
 | 8 | GENERATING | no | never | live: planner 8 then 3, the text streams in `step_payload` while at 8 | provisional message |
 | 9 | WAITING for approval | no | only inside a history | final rows hold `1,2,9,2,3` (6 steps) | time in 9 is user wait |
 | 3 | DONE | yes | 72,111 | | `'ok'` |
-| 4 | INVALID | yes | 9 (all type 132, history `1,4`) | the tool name does not exist (`git status`, `mcp_dungeonmaster_dungeonmaster_bash`) or an argument is missing (`missing property 'ToolName'`); `error_details` present | `'error'`, cause `invalid-tool` |
+| 4 | INVALID | yes | 9 (all type 132, history `1,4`) | the tool name does not exist (`git status`, `mcp_dungeonmaster_dungeonmaster_bash`) or an argument is missing (`missing property 'ToolName'`); `error_details` present | `'error'`, `tool_call_causes.cause` `tool-error`, `sub_cause` `invalid-tool` |
 | 5 | CLEARED | yes | 150 type 15, 141 type 132, 5 type 14, 9 type 101, 1 type 23, ALL in `fe62b455` idx 0 to 305 | I: the step keeps only `{1,4,5}` of its payload; the body (`20`, `19`, `140`, `30`, `114`) is stripped; history still ends in 3 (or 7) | NOT a new result: keep the earlier row (section 9) |
-| 6 | CANCELED | yes | 116 type 132 (102 `run_command` with `task_details`, 10 `run_command` without, 3 `call_mcp_tool`, 1 `manage_task`); history `1,2,6` | I: the final transition is 6, completion time `metadata.8` is set, the model carried on (the next step exists). The earlier fieldmap called this "RUNNING never finalized"; that is wrong, it is terminal | `'interrupted'` |
-| 7 | ERROR | yes | 623 type 132 (history `1,2,7`), 2 of type 132 with col 5 | `error_details` populated | `'error'`, `'denied'` by cause (section 7.5) |
+| 6 | CANCELED | yes | 116 type 132 (102 `run_command` with `task_details`, 10 `run_command` without, 3 `call_mcp_tool`, 1 `manage_task`); history `1,2,6` | I: the final transition is 6, completion time `metadata.8` is set, the model carried on (the next step exists). The earlier fieldmap called this "RUNNING never finalized"; that is wrong, it is terminal | `'cancelled'`, `tool_call_causes.cause` `cancelled` |
+| 7 | ERROR | yes | 623 type 132 (history `1,2,7`), 2 of type 132 with col 5 | `error_details` populated | `'error'`, `'denied'` by cause (section 7.5; the cause itself is a `tool_call_causes` row) |
 
 Complete (status column, history) pairs in the corpus: 14 `(3|3)` 472; 14 `(5|3)` 5; 15 `(3|8,3)` 35,342; 15 `(5|8,3)` 150;
 17 `(3|3)` 492; 23 `(3|3)` 150; 23 `(5|3)` 1; 101 `(3|3)` 2,142; 101 `(5|3)` 9; 132 `(3|1,2,3)` 33,507;
@@ -103,28 +104,28 @@ C: `step_payload.5` is byte-identical to the `metadata` column for 73,165 of 73,
 the column and `step_payload.5.*` is the same data (not repeated below).
 
 Count in corpus: every step. Versions: `1.2.5?` to `1.2.14`. Feeds: `events`, `messages`, `turns`, `tool_calls`,
-`usage`, `runs`.
+`usage`, `llm_sessions`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
 | `metadata.1` | `Timestamp` the step row was created | `1790884517` s `165045583` ns | `events.ts`; `tool_calls.requested_at` (type 132); `messages.started_at` (type 15) | present on every step; for a planner step this is when the request started |
 | `metadata.3` | source enum | `4` user, `2` model, `5` system | `events.is_meta` (always 0, see Notes); `turns.origin` hint | C: type 14 always 4, 15 and 132 always 2, 17/23/101 always 5. `transcript_full.jsonl` spells them `USER_EXPLICIT`, `MODEL`, `SYSTEM`. Every type-101 step is shown to the model, so `is_meta = 0`; only a message file with `hideFromUser` sets `is_meta = 1` |
 | `metadata.4` | ToolCallMetadata: the call this step is | `{1:'call_872251',2:'run_command',3:'{"CommandLine":"ls -la"}'}` | see `.4.*` | type 132 only (34,402 of 34,402) |
-| `metadata.4.1` | call id | `call_872251`, `call_778352`, `call_391817` | `tool_calls.native_call_id`; `tool_calls.tool_call_id` (key, with the `~n` rule) | NOT unique: see 7.2 |
+| `metadata.4.1` | call id | `call_872251`, `call_778352`, `call_391817` | `tool_calls.native_call_id`; `tool_calls.natural_key` = `antigravity:<conv>:<value>` (key, with the `~n` rule; `tool_results` shares it) | NOT unique: see 7.2 |
 | `metadata.4.2` | tool name | `run_command`, `view_file`, `call_mcp_tool` | `tool_calls.tool_name` | for `call_mcp_tool` the real tool is in the args (section 1.5) |
-| `metadata.4.3` | arguments as a JSON string | `{"CommandLine":"ls -la packages/local-eslint/src/g…` | `tool_calls.input_json` / `input_blob_hash` / `input_summary` | includes UI labels `toolAction` and `toolSummary`, strip them from `input_json` |
+| `metadata.4.3` | arguments as a JSON string | `{"CommandLine":"ls -la packages/local-eslint/src/g…` | `tool_calls.input_json` / `input_blob_ref` / `input_summary` | includes UI labels `toolAction` and `toolSummary`, strip them from `input_json` |
 | `metadata.4.7.2.1` | thought signature bytes for this call | `0169147d136670d6dd1e9bfe57540e0928489b06…` | raw only | opaque; 34,177 rows; Gemini thought signature |
 | `metadata.6` | `Timestamp`: model finished (type 15) or tool execution began (type 132) | | `messages` generation end; `tool_calls.started_at` fallback | for a tool step it equals the `RUNNING` transition only when no permission wait happened; prefer `metadata.26` status 2 |
 | `metadata.7` | `Timestamp`, equals `.6` in every sampled row | | raw only | I: end of the model/exec start; redundant |
 | `metadata.8` | `Timestamp` completed | | `events` completion; `messages.completed_at`; `tool_calls.completed_at`; `usage.ts` | C (live): stdout `duration_seconds` == `metadata.8` minus `metadata.1` (to the millisecond, steps 1 to 10). Absent on user inputs except 3 rows |
 | `metadata.9` | ModelUsageStats | see section 1.4 | `usage.*` | type 15 only |
 | `metadata.11` | model enum number | `1319`, `1318`, `1322`, `1036`, `1026` | `usage.model` via enum map (section 1.4) | equals `metadata.9.1` (C) |
-| `metadata.12` | execution id (the turn) | `4e0eba7a-71e5-41fc-b53a-6d504c147d24` | `events.turn_id`, `turns.turn_id` | C: equals `executor_metadata.9` and `gen_metadata.4`; absent on 14 rows with no turn |
+| `metadata.12` | execution id (the turn) | `4e0eba7a-71e5-41fc-b53a-6d504c147d24` | `events.turn_ref`, `turns.natural_key` | C: equals `executor_metadata.9` and `gen_metadata.4`; absent on 14 rows with no turn |
 | `metadata.20.1` | trajectory id | `af1d3b62-4a1c-47a7-9fb4-905783ae00ec` | raw only | C: equals `trajectory_meta.trajectory_id` |
 | `metadata.20.2` | this step's `idx` | `1`, `3`, `5` | key check | C: equals `idx` in every step |
-| `metadata.20.3` | the generation (`gen_metadata.idx`) that produced this step | `0`, `1`, `2` | `events.message_id = '<conv>:gen:<20.3>'` | C: for every type 15 and 132 step, and 100% match to the `gen_metadata.2` list. For 14, 17, 23 and 101 it is the count of generations so far, not an owner |
-| `metadata.20.4` | conversation id | `7b87f551-f82a-4c08-af52-dea8303cb855` | `runs.native_id` check | |
-| `metadata.26[]` | repeated `{1: status, 2: Timestamp}`, the full transition history | planner `8,3`; tool `1,2,3`; with approval `1,2,9,2,3` | `tool_calls.started_at` (status 2 ts); `tool_calls.waiting_ms` PROPOSED (9 to 2 gap) | C: the FINAL row holds the whole list (the live sampler saw one entry mid-flight). `metadata.8 - metadata.1` equals the last entry |
+| `metadata.20.3` | the generation (`gen_metadata.idx`) that produced this step | `0`, `1`, `2` | `events.message_ref` (the `messages` row `antigravity:<conv>:gen:<20.3>`) | C: for every type 15 and 132 step, and 100% match to the `gen_metadata.2` list. For 14, 17, 23 and 101 it is the count of generations so far, not an owner |
+| `metadata.20.4` | conversation id | `7b87f551-f82a-4c08-af52-dea8303cb855` | `llm_sessions.native_id` check | |
+| `metadata.26[]` | repeated `{1: status, 2: Timestamp}`, the full transition history | planner `8,3`; tool `1,2,3`; with approval `1,2,9,2,3` | `tool_calls.started_at` (status 2 ts); `tool_calls.waiting_ms` (9 to 2 gap) | C: the FINAL row holds the whole list (the live sampler saw one entry mid-flight). `metadata.8 - metadata.1` equals the last entry |
 | `metadata.28` | summarizer ModelUsageStats | type 23 only: `{2:{2:3104,3:3041,5:56872,6:24,7:'bot-…',9:1383,10:1658}}` | `usage.*` for the compaction call | section 1.6; `28.4` is a hash string (`3052bf6b99929a5c`), U |
 | `metadata.29` | the provider's own tool call id and name, when the model is Claude | `{1:'toolu_vrtx_01RWE1s9…',2:'run_command',3:'{…}'}` | `tool_calls.native_call_id` alternative | 5 rows, first seen 2026-09-22 (1.2.7); `4.1` stays `call_<n>`; keep `4.1` as the key |
 | `metadata.32` | `Timestamp`, equals `.8` within ms | | raw only | present on 34,393 of 34,402 type-132 and 35,492 type-15 rows; I: UI render time |
@@ -142,10 +143,10 @@ prompt, origin `queued`).
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `step_payload.19.2` | the raw user text | `Run \`echo hi\` then reply with one word.` | `events.text_preview`, `content_blocks` text (`blob_hash` when over 4 KB) | present on 472; absent on the 5 CLEARED rows. `transcript_full.jsonl` wraps it in `<USER_REQUEST>…</USER_REQUEST>`; the DB text is unwrapped |
+| `step_payload.19.2` | the raw user text | `Session \`echo hi\` then reply with one word.` | `content_blocks.text` (inline up to 4 KB, else `content_blocks.blob_ref`) | present on 472; absent on the 5 CLEARED rows. `transcript_full.jsonl` wraps it in `<USER_REQUEST>…</USER_REQUEST>`; the DB text is unwrapped |
 | `step_payload.19.3` / `.19.3.1` | the same text in a wrapper message | `19.3.1` equals `19.2` | raw only | C: `19.3.1` equals `19.2` on 374 rows; `19.3.2` empty on 4 rows (media, U) |
 | `step_payload.19.4` | empty string | | raw only | 301 rows |
-| `step_payload.19.12` | per-turn run configuration snapshot (first turn of a run) | `{1:{1:1320,13:{42:{2:['command(*)',…]}},46:{…},57:{…}},12:'file:///home/…'}` | raw only | 301 rows. Large, repeated every turn; the archive dedupes by hash. Sub-paths: `.1.1` model enum, `.1.13.42.2` allow-list rules (`command(*)`, `mcp(*)`, `read_file(<path>)`), `.1.15.1` model enum, `.1.42.11` the system-info string, `.1.46.2/3/4/5/6/7/8/11` prompt section names, enabled tools (`view_file`, `run_command`…), message-delivery and stop-check hooks, `.1.57.1.5` skill names, `.1.57.2.2` sub-agent type names, `.12` workspace folder URI, `.3.17` int `1` |
+| `step_payload.19.12` | per-turn run configuration snapshot (first turn of a session) | `{1:{1:1320,13:{42:{2:['command(*)',…]}},46:{…},57:{…}},12:'file:///home/…'}` | raw only | 301 rows. Large, repeated every turn; the archive dedupes by hash. Sub-paths: `.1.1` model enum, `.1.13.42.2` allow-list rules (`command(*)`, `mcp(*)`, `read_file(<path>)`), `.1.15.1` model enum, `.1.42.11` the system-info string, `.1.46.2/3/4/5/6/7/8/11` prompt section names, enabled tools (`view_file`, `run_command`…), message-delivery and stop-check hooks, `.1.57.1.5` skill names, `.1.57.2.2` sub-agent type names, `.12` workspace folder URI, `.3.17` int `1` |
 | `step_payload.19.13` | the same snapshot on later turns | 173 rows | raw only | same shape as `19.12`; `19.12.1.13.54` vanished after 2026-09-22 05:49 (1.2.7) |
 | `step_payload.19.18.3.1` | `{1: 0, 3: 1}` | | raw only | 301 rows, U |
 
@@ -159,11 +160,11 @@ Count 35,492 (35,342 DONE, 150 CLEARED). Versions all. Feeds `messages`, `usage`
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `step_payload.20.1` | assistant text | `I have started the ward checks for \`packages/local…` | `content_blocks` text (`block_type 'text'`), `events.text_preview` | only 2,235 of 35,342 DONE planner steps have text (a step that only calls tools has none) |
+| `step_payload.20.1` | assistant text | `I have started the ward checks for \`packages/local…` | `content_blocks.text` (`block_type 'text'`; inline up to 4 KB, else `content_blocks.blob_ref`) | only 2,235 of 35,342 DONE planner steps have text (a step that only calls tools has none) |
 | `step_payload.20.8` | the same text again | | raw only | C: 2,226 equal `20.1`; 9 rows have `20.1` only |
 | `step_payload.20.3` | model thinking summary | `**Prioritizing Tool Usage**\n\nI'm focusing intent…` | `content_blocks` `'thinking'` | 6,740 rows; text, not just a signature (unlike Claude's empty thinking) |
 | `step_payload.20.11` | `Duration` spent thinking | `{1:3,2:36956385}` | raw only | 6,740 rows, always with `20.3` |
-| `step_payload.20.6` | provider message id | `bot-61cf1612-fe15-4e5d-b64f-c4e314d9183b` | `messages.message_id` suffix: native id | C: equals `metadata.9.7` (35,342 of 35,351 comparable) |
+| `step_payload.20.6` | provider message id | `bot-61cf1612-fe15-4e5d-b64f-c4e314d9183b` | raw only (the message key is `<session>:gen:<idx>`; this id cross-checks `metadata.9.7`) | C: equals `metadata.9.7` (35,342 of 35,351 comparable) |
 | `step_payload.20.7[]` | one tool call the model made | `{1:'call_872251',2:'run_command',3:'{"CommandLine":…}'}` | `tool_calls` + `content_blocks` `'tool_use'` | 34,261 calls in 34,079 steps (0 to 9 per step). `.7.1` id, `.7.2` name, `.7.3` args JSON, `.7.7.2.1` thought signature bytes (34,036). Joins to the type-132 step by call id, see 7.2 |
 | `step_payload.20.12` | stop reason enum | `2` (35,319), `18` (12), `17` (9), `16` (1), `14` (1) | `messages.stop_reason`: `'tool_use'` when `20.7` is non-empty, `'end_turn'` when `2` without calls, `'agy:<n>'` otherwise | I: 2 is normal. `17` follows a tool step; `18` is followed by an error step or a user turn. Meaning of 14 to 18 UNCONFIRMED, so the raw number stays |
 | `step_payload.20.13[]` | web citation `{1:{1:{1:start,2:end,3:url}},2:snippet}` | url of a GitHub file | raw only | 1 row |
@@ -180,7 +181,7 @@ Count 35,492 (35,342 DONE, 150 CLEARED). Versions all. Feeds `messages`, `usage`
 | `metadata.9.4` | cache WRITE tokens | never present | `usage.cache_write_tokens = 0`, `cache_write_5m/1h = NULL` | C: absent in every row, Gemini and Claude alike. agy cannot tell us cache writes |
 | `metadata.9.5` | cache READ tokens | `16277`, `16265`, `20378` | `usage.cache_read_tokens` (0 when absent) | absent on 1,626 rows; stdout `cache_read_tokens` equals it |
 | `metadata.9.6` | provider id | `24` (35,440), `26` (52) | `usage.provider`: `24` is `'google'`, `26` is `'anthropic'` | C: 26 only on the `claude-*` models |
-| `metadata.9.7` | provider message id | `bot-d8b3c696-5eab-49cb-8a8d-737c5157c264` | `messages.message_id` suffix: native id in `details` | |
+| `metadata.9.7` | provider message id | `bot-d8b3c696-5eab-49cb-8a8d-737c5157c264` | raw only (cross-check of `20.6`) | |
 | `metadata.9.8` | `{1:'sessionID', 2:'-3750763034362895579'}` | | raw only | |
 | `metadata.9.9` | thinking (reasoning) tokens | `11`, `12`, `7` | `usage.reasoning_tokens` (0 when absent) | absent on 2,129 rows |
 | `metadata.9.10` | response (visible output) tokens | `82`, `80`, `87` | raw only | `usage.output_tokens` already contains it |
@@ -190,7 +191,7 @@ Derived columns for `usage`:
 
 | `usage` column | Derivation |
 |---|---|
-| `message_id` | `antigravity:<conv>:gen:<metadata.20.3>` |
+| `message_ref` | the `messages` row `antigravity:<conv>:gen:<metadata.20.3>` |
 | `ts` | `metadata.8` |
 | `model` | `gen_metadata.1.19` of the same generation (`gemini-3.8-flash`, `claude-opus-4-6-thinking`); fall back to the enum map |
 | `input_tokens` | `9.2` |
@@ -198,7 +199,7 @@ Derived columns for `usage`:
 | `cache_write_tokens` | `0` |
 | `output_tokens` | `9.3` (reasoning is inside it) |
 | `reasoning_tokens` | `9.9 or 0` |
-| `context_tokens` | `9.2 + 9.5` (what the model saw). agy's own gauge `gen_metadata.1.9.10.1` is about 7,000 higher (26,428 against 19,005 on the first live call) and stays raw |
+| `context_tokens` | `9.2 + 9.5` (what the model saw). agy's own gauge `gen_metadata.1.9.10.1` is about 7,000 higher (26,428 against 19,005 on the first live call) and goes to `usage.context_gauge_tokens` |
 | `context_limit` | `gen_metadata.1.9.10.4` (`256000` for 34,116 rows, `128000` for 1,430, `160000` for 55) |
 | `est_cost_usd` | `pricing` by model name; `gemini-3.8-flash-tiered` (enum 1322) is a tiered price |
 | `service_tier`, `speed`, `web_*`, `prompt_eval_ms`, `eval_ms` | NULL |
@@ -224,13 +225,13 @@ Envelope: section 1.2. Result and payload:
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
 | `step_payload.140.1[]` | the arguments as repeated `{1: key, 2: value}` strings | `Cwd`, `WaitMsBeforeAsync`, `toolAction`, `toolSummary`, `CommandLine` | `tool_calls.input_json` (rebuild from `metadata.4.3`, which is the same data as JSON) | 34,259 rows; `toolAction`/`toolSummary` are UI labels in 34,398 steps (`Running tests`, `Run ward e2e tests`), drop them. Keys by tool (C): `run_command`: `CommandLine`, `Cwd`, `WaitMsBeforeAsync`, `IsDaemon`, `RunPersistent`, `RequestedTerminalID`; `view_file`: `AbsolutePath`, `StartLine`, `EndLine`, `ContentOffset`; `replace_file_content`: `TargetFile`, `TargetContent`, `ReplacementContent`, `StartLine`, `EndLine`, `AllowMultiple`, `Description`, `Instruction`; `write_to_file`: `TargetFile`, `CodeContent`, `Overwrite`, `Description`, `ArtifactMetadata`; `call_mcp_tool`: `ServerName`, `ToolName`, `Arguments`; `manage_task`: `Action`, `TaskId`, `Input`; `schedule`: `Prompt`, `DurationSeconds`, `TimerCondition`, `CronExpression`; `send_message`: `Recipient`, `Message`; `invoke_subagent`: `Subagents[]{TypeName, Role, Prompt, Model, Workspace}`; `manage_subagents`: `Action`, `ConversationIds[]`; `search_web`: `query`; `list_dir`: `DirectoryPath`; `ask_question`: `questions[]` |
-| `step_payload.140.2.1` | result text shown to the model | `\nThe command exited with code 0.\nOutput:\npackag…` | `tool_results.text_preview`, `blob_hash`, `shape 'text'` | 33,790 rows; for `run_command` it embeds the exit code. Not always the full output: `output.txt` (below) is the full copy when the output was spilled (C: 46 of 94 sampled differ) |
+| `step_payload.140.2.1` | result text shown to the model | `\nThe command exited with code 0.\nOutput:\npackag…` | `tool_results.text` (inline up to 4 KB, else `tool_results.blob_ref`), `tool_results.shape 'text'` | 33,790 rows; for `run_command` it embeds the exit code. Not always the full output: `output.txt` (below) is the full copy when the output was spilled (C: 46 of 94 sampled differ) |
 | `step_payload.140.2.2[]` | result key/values | `{1:'task_id',2:'0199dc7f-…/task-241'}`, `tool_name`, `task_description`, `killed_conversation_ids` | `tool_results.details_json` | 6,396 rows (`manage_task`, `manage_subagents`) |
 | `step_payload.140.2.3` | render card `{1 title, 2 body, 5 verb, 6 icon, 7 kind}` | `Root Agent`, `Messaged`, `send`; `Checked task`, `timer` | `tool_results.shape 'object'`; duplicate of `render_info` | 7,242 rows (`send_message`, `manage_task`, `manage_subagents`, `schedule`); 818 carry a body |
 | `step_payload.140.2.4` | image result `{1: mime, 5: file path}` | `image/png`, `/home/…/brain/28…` | `content_blocks` `'image'` with `mime`; `artifacts` | 10 rows |
 | `step_payload.140.2.6` | typed result: a `google.protobuf.Any` of `gemini_coder.Step` | `{1:'type.googleapis.com/gemini_coder.Step', 2:{…}}` | see below | 26,516 rows |
 | `step_payload.140.2.7` | file URI of the spilled output | `file:///home/…/brain/<conv>/.system_generated/steps/2/output.txt` | `tool_results.persisted_path` | 20,117 rows; the file is the Claude `tool-results/` analogue |
-| `step_payload.31.2` / `.31.3` | error text (the same twice) | `invalid arguments:\n- missing property 'ToolName'`, `tool call denied by pre-tool hook: 🛑 New code qua…` | `tool_results.text_preview`, `tool_calls.cause` | 632 rows, equal to the `error_details` column (C) |
+| `step_payload.31.2` / `.31.3` | error text (the same twice) | `invalid arguments:\n- missing property 'ToolName'`, `tool call denied by pre-tool hook: 🛑 New code qua…` | `tool_results.text`, `tool_call_causes.cause` | 632 rows, equal to the `error_details` column (C) |
 | `step_payload.133`, `.147` | permission-request side data | `133.2.1 = {1:'read_file',2:'/home/…/.claude/statusline-command.sh'}`; `147.2.1 = <conv>` | raw only | 3 and 6 rows, U |
 | `step_payload.148` | async command descriptor | `{1:'<conv>/task-42',2:'file://…/tasks/task-42.log',4:'npm run ward -- …',7:'Run ward checks'}` | equals the `task_details` column | 1,634 rows (C) |
 
@@ -240,12 +241,12 @@ Envelope: section 1.2. Result and payload:
 
 | Tool | Embedded type (`.1`) | Body field | Body fields (path under `140.2.6.2`) | Maps to |
 |---|---|---|---|---|
-| `run_command` | 21 | `28` | `.28.2` cwd, `.28.6` EXIT CODE (explicit 0 on 5,774; absent on async and error rows), `.28.12` WaitMsBeforeAsync in ms, `.28.17/.18` terminal ids (`term-status`, `dm-walkthrough`), `.28.21` combined output, `.28.23` and `.28.25` the command line, `.28.26` output after an async completion, `.28.28` and `.28.35` int flags, `.28.31` shell (`bash`), `.31.2` error (`context canceled`, `failed to use persistent terminal…`) | `tool_results.exit_code`, `details_json` {cwd, wait_ms, terminal, shell}; `tool_results.text_preview` |
+| `run_command` | 21 | `28` | `.28.2` cwd, `.28.6` EXIT CODE (explicit 0 on 5,774; absent on async and error rows), `.28.12` WaitMsBeforeAsync in ms, `.28.17/.18` terminal ids (`term-status`, `dm-walkthrough`), `.28.21` combined output, `.28.23` and `.28.25` the command line, `.28.26` output after an async completion, `.28.28` and `.28.35` int flags, `.28.31` shell (`bash`), `.31.2` error (`context canceled`, `failed to use persistent terminal…`) | `tool_results.exit_code`, `details_json` {cwd, wait_ms, terminal, shell}; `tool_results.text` |
 | `view_file` | 8 | `14` | `.14.1` file URI, `.14.2` start line, `.14.3` end line, `.14.4` content, `.14.11` and `.14.20` line counts, `.14.12` byte size, `.14.15` image `{1 mime,5 path}`, `.14.17` and `.14.18` skill link (`antigravity-guide`, `orchestrate`) when a skill file is read | `file_touches` (`op 'read'`); `details_json` {bytes, total lines} |
 | `replace_file_content`, `write_to_file` | 5 | `10` | `.10.28.1` lines ADDED, `.10.28.2` lines REMOVED (C: matches the diff, +8 −2 on a 37-line replacement of 31), `.10.13.9` `target content not found in file` on failure, `.10.15` fuzzy-match diagnostic, `.10.26` the description, `.10.23` artifact metadata `{2 summary}` (10 rows) | `file_touches.lines_added`, `lines_removed` (`op 'edit'`, or `'create'` for `write_to_file` with `Overwrite=false`, else `'write'`) |
 | `call_mcp_tool` | 38 | `47` | `.47.1` server name (`dungeonmaster_dungeonmaster`), `.47.2` `{1 call id, 2 tool name, 3 args JSON}`, `.47.3` result JSON text, `.47.8` spilled output URI | `tool_calls.tool_server = .47.1`; `tool_name` becomes `mcp__<server>__<tool>`; `tool_results.shape 'mcp-blocks'` |
-| `invoke_subagent` | 127 | `143` | `.143.9[]` `{1 typeName, 2 role, 3 prompt, 4 int, 7 model enum, 8 int}`, `.143.10[]` `{1 child conversation id, 2 log URI, 3 workspace URI}` | `tool_calls.spawned_run_id` (the first child; one call can create several); `runs` |
-| `search_web` | 33 | `42` | `.42.1` query, `.42.5` answer text, `.42.6.1`, `.42.7` ints | `tool_results.text_preview` |
+| `invoke_subagent` | 127 | `143` | `.143.9[]` `{1 typeName, 2 role, 3 prompt, 4 int, 7 model enum, 8 int}`, `.143.10[]` `{1 child conversation id, 2 log URI, 3 workspace URI}` | `tool_calls.spawned_session_ref` (the first child; one call can create several); `llm_sessions` |
+| `search_web` | 33 | `42` | `.42.1` query, `.42.5` answer text, `.42.6.1`, `.42.7` ints | `tool_results.text` |
 | `list_dir` | 9 | `15` | `.15.1` directory URI, `.15.3[]` entries `{1 name, 2 is dir, 4 size}` | `file_touches` `'read'` (optional) |
 | `list_resources` | 51 | `62` | `.62.1` server | raw only |
 | `ask_question` | 138 | `154` | `.154.1` `{1 question, 2[] {1 id, 2 option}, 4, 6}` | raw only |
@@ -260,16 +261,16 @@ Failure and the status column: section 7.5. Timing for the tool: `requested_at =
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `error_details.2` | error text | `declaring permissions: cortex tool view_file: convert tool call for permissions: model output error: invalid tool call e…`, `tool call denied by pre-tool hook: BLOCKED: Native search tools…`, `MCP tool call to server "dungeonmaster_dungeonmaster" timed out after 3m0s…` | `tool_results.text_preview`; classifies `tool_calls.cause` (7.5) | |
+| `error_details.2` | error text | `declaring permissions: cortex tool view_file: convert tool call for permissions: model output error: invalid tool call e…`, `tool call denied by pre-tool hook: BLOCKED: Native search tools…`, `MCP tool call to server "dungeonmaster_dungeonmaster" timed out after 3m0s…` | `tool_results.text`; classifies `tool_call_causes.cause` (7.5) | |
 | `error_details.3` | the same text | | raw only | C: equals `.2` in all 632 |
 
 **`task_details` column** (async or timer step). Count 1,634 (1,230 `run_command` DONE, 302 `schedule`, 102 `run_command` CANCELED).
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `task_details.1` | task id `<conv>/task-<step idx>` | `00b6776a-5abc-4011-9059-a6ac20450bd0/task-42` | `background_tasks.task_id` (`<run_id>:task-42`); `tool_calls.background_task_id` | C: the number is the launching step's idx |
+| `task_details.1` | task id `<conv>/task-<step idx>` | `00b6776a-5abc-4011-9059-a6ac20450bd0/task-42` | `background_tasks.natural_key` (`<session>:task:task-42`); `tool_calls.background_task_ref` | C: the number is the launching step's idx |
 | `task_details.2` | URI of the task's log file | `file:///home/…/brain/<conv>/.system_generated/tasks/task-42.log` | `tool_results.persisted_path`; `artifacts` | |
-| `task_details.4` | command line | `npm run ward -- -- packages/local-eslint…` | `background_tasks` description; `tool_calls.input_summary` | |
+| `task_details.4` | command line | `npm run ward -- -- packages/local-eslint…` | `background_tasks.description`; `tool_calls.input_summary` | |
 | `task_details.7` | short description | `Run ward checks` | `background_tasks.result_preview` seed | |
 
 **`render_info` column.** Count 7,242, the UI card for `send_message`, `manage_task`, `manage_subagents`, `schedule`.
@@ -287,7 +288,7 @@ Feeds `compactions`, `usage` (the summarizer call), `events` (kind `compaction`)
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `step_payload.30.5` | the compaction summary (markdown) | `### 1. Outstanding User Requests\n- **Implement ES…` | `compactions.summary_blob_hash`; `content_blocks` text | 150 rows |
+| `step_payload.30.5` | the compaction summary (markdown) | `### 1. Outstanding User Requests\n- **Implement ES…` | `compactions.summary_blob_ref`; `content_blocks` text | 150 rows |
 | `step_payload.30.12` | this checkpoint's own step idx | `207`, `35`, `315` | key check | C: equals `metadata.20.2`. The earlier map called it "covers up to"; it does not |
 | `step_payload.30.15` | URI of the transcript file at the time | `file:///home/…/brain/<conv>/.system_generated/logs/…` | raw only | 28 rows |
 | `step_payload.30.19` | the original user prompt, repeated | `You are the Batch Worker subagent for Phase 1 of t…` | raw only | 297 values in 150 rows |
@@ -295,7 +296,7 @@ Feeds `compactions`, `usage` (the summarizer call), `events` (kind `compaction`)
 | `step_payload.30.21[]` | background tasks still open `{1 task id, 2 tool, 3 description, 4 command, 6 step idx, 7 log URI}` | `0510aa41-…/task-370`, `run_command` | `background_tasks` hint | 40 entries |
 | `step_payload.30.26[]` | accumulated state `{1 key, 2 label, 4 payload Any}` | keys `background_tasks`, `file_diffs`, `skill_used`, `active_goal` | raw only | 259 entries |
 | `step_payload.30.1`, `.11`, `.20`, `.24`, `.25`, `.27`, `.28`, `.29` | counters and hashes | `30.27` `0` ×124, `30.28` `b5d23c6ed2864d379743547f99455e96` | raw only | U; `30.28`/`30.29` are 1.2.12+ |
-| `metadata.28.2` | usage of the summarizer call | `{2:3104, 3:3041, 5:56872, 6:24, 7:'bot-d6ebdff2-…', 9:1383, 10:1658}` | `usage` row: `message_id = <conv>:ckpt:<idx>`, `input_tokens = 28.2.2`, `output_tokens = 28.2.3`, `cache_read_tokens = 28.2.5`, `reasoning_tokens = 28.2.9` | C: same shape as `metadata.9`; there is NO model field (`28.2.1` absent). Use the model of the preceding planner step and mark the `messages` row `is_synthetic = 0`. `provider` from `28.2.6` |
+| `metadata.28.2` | usage of the summarizer call | `{2:3104, 3:3041, 5:56872, 6:24, 7:'bot-d6ebdff2-…', 9:1383, 10:1658}` | `usage` row: `usage.message_ref` = the `messages` row `<session>:ckpt:<idx>`, `input_tokens = 28.2.2`, `output_tokens = 28.2.3`, `cache_read_tokens = 28.2.5`, `reasoning_tokens = 28.2.9` | C: same shape as `metadata.9`; there is NO model field (`28.2.1` absent). Use the model of the preceding planner step and mark the `messages` row `is_synthetic = 0`. `provider` from `28.2.6` |
 
 `compactions.trigger` is NULL (nothing on the row says auto or manual). `compactions.pre_tokens` is derived: the
 `context_tokens` of the last planner step before the checkpoint (there is no field).
@@ -321,7 +322,7 @@ C: a generation's step list (`data.2`) contains every type-15 and type-132 step 
 | `data.1.17.5` | error kind int | `1` (468), `3` (48) | `errors.kind` hint | U |
 | `data.1.17.7[]` | retry info `{1: int, 2: hash}` | | raw only | 85 rows |
 | `data.5` | top-level request error | `request failed: Post "https://daily-cloudcode-pa.g…`, `context canceled` | `errors.message` (`kind 'api-error'`) | 122 rows |
-| `data.1.9.10.1` | agy's context-window gauge | `47427`, `26428` | raw only | about 7,000 above input plus cache read |
+| `data.1.9.10.1` | agy's context-window gauge | `47427`, `26428` | `usage.context_gauge_tokens` | about 7,000 above input plus cache read |
 | `data.1.9.10.4` | context window size | `256000`, `128000`, `160000` | `usage.context_limit` | |
 | `data.1.9.10.3` | context breakdown (System Prompt, Tools, Chat Messages) | | raw only | last row of each file |
 | `data.1.9.1`, `.1.9.2` | ints (`18446744073709551615` ×19,417) | | raw only | U |
@@ -329,8 +330,8 @@ C: a generation's step list (`data.2`) contains every type-15 and type-132 step 
 | `data.1.12` | `Duration`: post-processing | `{2:230670291}` | raw only | C: equals `metadata.8 - metadata.6` |
 | `data.1.14` | int, 1 to 8 | `8`, `3` | raw only | 83 rows, U |
 | `data.1.20[]` | key/value strings | `last_step_index`, `model_enum`, `trajectory_id`, `request_id` (`<trajectory>-<n>`), `used_claude`, `used_claude_conservative`, `used_non_gemini_model`, `last_execution_id` | `messages.request_id` ← the `request_id` value; `used_claude` is the Claude flag | 7 entries per row |
-| `data.2` | packed varints: the step idxs this generation produced | `0x0102` is steps 1 and 2 | `events.message_id` join | |
-| `data.4` | execution id | `2bd87c6d-d720-46b9-8605-52a220a6303f` | `messages.turn_id` | C: equals `steps.metadata.12` |
+| `data.2` | packed varints: the step idxs this generation produced | `0x0102` is steps 1 and 2 | `events.message_ref` join | |
+| `data.4` | execution id | `2bd87c6d-d720-46b9-8605-52a220a6303f` | `messages.turn_ref` | C: equals `steps.metadata.12` |
 | `data.8` | 20 bytes | `889cb630a5c5c930f0b18f31f6b18f31f5e99531` | raw only | hash, U |
 | `data.10` | int `1` | | raw only | 536 rows, U |
 | `data.1.1`, `data.1.2[]`, `data.1.16[]`, `data.3.*` | THE FULL REQUEST SNAPSHOT: system prompt (`1.1`), the whole message list (`1.2`, `{1 bot id, 2 role 2/4/1, 3 content, 4 int, 6 tool call, 7 call id, 11 thinking, 18 step idx, 19 image}`), prompt sections (`1.16`), request config (`3.*`: `3.28` model plus effort, `3.6` token window, `3.57`) | `<Agent System Instructions>\nYou are the Batch Wor…` | raw only (the archive keeps it) | present ONLY in the newest row of a live conversation: the previous row is rewritten without it when the next one lands (section 9). A cold file has it on the last row alone (298 rows). 123 KB to 129 KB per row live |
@@ -345,11 +346,11 @@ flipped to IDLE) and is never rewritten. Feeds `turns`, `usage` (effort), `error
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `data.9` | execution id | `4e0eba7a-71e5-41fc-b53a-6d504c147d24` | `turns.turn_id` | C: equals `steps.metadata.12` |
+| `data.9` | execution id | `4e0eba7a-71e5-41fc-b53a-6d504c147d24` | `turns.natural_key` | C: equals `steps.metadata.12` |
 | `data.1` | execution kind enum | `4` (1,091), `2` (103), `1` (29) | `turns.origin` hint | U |
 | `data.2` | generations in this execution | `3`, `1` | raw only | C (live): 3 and 1 |
 | `data.3` | last step idx of this execution | `8`, `10` | `turns.ended_at` lookup | C (live): steps 0 to 8, then 9 to 10 |
-| `data.10.1.28` | model plus reasoning effort | `gemini-3.8-flash-low`, `gemini-3.8-flash-medium`, `gemini-3.1-pro-low` | `runs.model_first` (strip nothing); `usage.reasoning_effort` PROPOSED | C (live): equals the `--model` flag and stdout `init.model` |
+| `data.10.1.28` | model plus reasoning effort | `gemini-3.8-flash-low`, `gemini-3.8-flash-medium`, `gemini-3.1-pro-low` | `llm_sessions.model_first` comes from `gen_metadata.1.19` instead; this whole path is HELD BACK in phase 1 (`messages.effort` in phase 1 so `schema_drift` sees the source field; migration 0002 adds it, design §11.1) | C (live): equals the `--model` flag and stdout `init.model` |
 | `data.10.1.1`, `.10.1.15.1` | model enum | `1319`, `1320` | raw only | |
 | `data.10.1.6` | context window | `65536` | raw only | |
 | `data.10.1.13.42.2[]` | permission allow-list rules | `command(*)`, `mcp(*)`, `read_file(<path>)` | raw only | |
@@ -366,23 +367,23 @@ flipped to IDLE) and is never rewritten. Feeds `turns`, `usage` (effort), `error
 ### 1.9 `trajectory_metadata_blob.data` and `trajectory_meta`
 
 Count 307 each, one per file. Written at conversation creation, before any step (live: at +1.6 s); never seen changing.
-Feeds `runs`.
+Feeds `llm_sessions`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
 | `trajectory_meta.trajectory_id` | trajectory uuid | `af1d3b62-4a1c-47a7-9fb4-905783ae00ec` | raw only | equals `steps.metadata.20.1` (C) |
-| `trajectory_meta.cascade_id` | the conversation id | `7b87f551-…` | `runs.native_id` | C: equals the file name (307 of 307) |
+| `trajectory_meta.cascade_id` | the conversation id | `7b87f551-…` | `llm_sessions.native_id` | C: equals the file name (307 of 307) |
 | `trajectory_meta.trajectory_type` | `4` | | raw only | constant |
 | `trajectory_meta.source` | `17` | | raw only | constant |
-| `data.1.1`, `data.1.2` | workspace folder URIs | `file:///home/brutus-home/projects/codex-of-consentient-craft` | `runs.cwd` (strip `file://`), `runs.repo_path` | 269 rows; absent when no workspace |
-| `data.1.3.1`, `.1.3.2` | git repo name and remote | `StupidIncarnate/codex-of-consentient-craft`, `git@github.com:StupidIncarnate/codex-of-consentient-craft.git` | `runs.repo_path` hint (remote only, never stored with a token) | 261 rows |
-| `data.1.4` | git branch | `master`, `gateway-pivot` | `runs.git_branch` | 261 rows |
-| `data.2` | `Timestamp` the conversation was created | `1790040805` | `runs.started_at` | 307 rows |
+| `data.1.1`, `data.1.2` | workspace folder URIs | `file:///home/brutus-home/projects/codex-of-consentient-craft` | `llm_sessions.cwd` (strip `file://`), `llm_sessions.repo_path` | 269 rows; absent when no workspace |
+| `data.1.3.1`, `.1.3.2` | git repo name and remote | `StupidIncarnate/codex-of-consentient-craft`, `git@github.com:StupidIncarnate/codex-of-consentient-craft.git` | `llm_sessions.repo_path` hint (remote only, never stored with a token) | 261 rows |
+| `data.1.4` | git branch | `master`, `gateway-pivot` | `llm_sessions.git_branch` | 261 rows |
+| `data.2` | `Timestamp` the conversation was created | `1790040805` | `llm_sessions.started_at` | 307 rows |
 | `data.3` | an opaque uuid | `a666067b-cfbd-4313-a87b-0fd2140e27d7` | raw only | C: NOT the trajectory id, NOT any conversation id, NOT the parent's trajectory (the earlier map was wrong); equals `raw_summary.17.3` |
-| `data.5` | PARENT conversation id (children only) | `fe62b455-c1c7-46d3-b856-75aac0191f41` | `runs.parent_run_id`; `runs.kind = 'subagent'` | 175 rows; C: equals the `subagents/<child>.json` parent and `summaries.parent_conversation_id` |
-| `data.6` | root conversation id | `fe62b455-…` | `runs.spawn_depth` support | C: equals `data.5` for the 175 children, equals the file's OWN id for the 132 roots. Depth is 0 or 1 only |
-| `data.7` | workspace URI | `file:///home/…` | `runs.cwd` | 269 rows |
-| `data.8` | sub-agent descriptor `{1 typeName, 2 role, 3 initial prompt, 4 int 1, 7 model enum, 8 int}` | `batch_worker`, `Phase 1 ESLint Rules Worker`, `You are the Batch Worker subagent…` | `runs.agent_type = 8.1`, `runs.agent_role = 8.2`, `runs.description = preview of 8.3` | 175 rows; `8.8` is 1, 3 or 4 (U); `8.7` is the model enum (`1319` ×84, `1322` ×47, `1036` ×43) |
+| `data.5` | PARENT conversation id (children only) | `fe62b455-c1c7-46d3-b856-75aac0191f41` | `llm_sessions.parent_session_ref`; `llm_sessions.kind = 'subagent'` | 175 rows; C: equals the `subagents/<child>.json` parent and `summaries.parent_conversation_id` |
+| `data.6` | root conversation id | `fe62b455-…` | `llm_sessions.spawn_depth` support | C: equals `data.5` for the 175 children, equals the file's OWN id for the 132 roots. Depth is 0 or 1 only |
+| `data.7` | workspace URI | `file:///home/…` | `llm_sessions.cwd` | 269 rows |
+| `data.8` | sub-agent descriptor `{1 typeName, 2 role, 3 initial prompt, 4 int 1, 7 model enum, 8 int}` | `batch_worker`, `Phase 1 ESLint Rules Worker`, `You are the Batch Worker subagent…` | `llm_sessions.agent_type = 8.1`, `llm_sessions.agent_role = 8.2`, `llm_sessions.description = preview of 8.3` | 175 rows; `8.8` is 1, 3 or 4 (U); `8.7` is the model enum (`1319` ×84, `1322` ×47, `1036` ×43) |
 | `data.4` | the sub-agent's resolved config (`4.1` typeName, `4.7` config tree, `4.8` description) | `Work subagent for executing code changes…` | raw only | 175 rows |
 | `data.10` | sub-agent config (system prompt sections, tool names, model config) | `Identity`, `view_file`, `search_web`, `sandbox` | raw only | 175 rows (9 with a custom system prompt) |
 | `data.15` | 20 bytes | | raw only | 132 rows (roots), hash, U |
@@ -395,27 +396,27 @@ Feeds `runs`.
 
 One SQLite file (WAL), one table `conversation_summaries`. Count 307 rows (one per conversation), `raw_summary` non-NULL in
 all. Versions all. **Updated in place** through a conversation's life (the live capture: `step_count` 0 then 1 then 8 then 9
-then 11, `status` RUNNING then IDLE then RUNNING then IDLE, `title` filled after the first reply). Feeds `runs`.
+then 11, `status` RUNNING then IDLE then RUNNING then IDLE, `title` filled after the first reply). Feeds `llm_sessions`.
 `sources.kind = 'sqlite-summaries'`, `raw_records.sub_table = 'conversation_summaries'`, `pos` = the SQLite rowid,
 `record_type = 'summary'`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `conversation_id` | conversation uuid, PK | `00b6776a-5abc-4011-9059-a6ac20450bd0` | `runs.native_id` (join key) | |
-| `title` | auto-generated title | `Asking For A Joke`, `System And File Operations` | `runs.title` | empty on 178 rows (children, and runs before the first reply) |
-| `preview` | first prompt, truncated | `You are a sub-agent on the brands and gateways epic in the repo at /ho…` | `runs.description` fallback | |
+| `conversation_id` | conversation uuid, PK | `00b6776a-5abc-4011-9059-a6ac20450bd0` | `llm_sessions.native_id` (join key) | |
+| `title` | auto-generated title | `Asking For A Joke`, `System And File Operations` | `llm_sessions.title` | empty on 178 rows (children, and sessions before the first reply) |
+| `preview` | first prompt, truncated | `You are a sub-agent on the brands and gateways epic in the repo at /ho…` | `llm_sessions.description` fallback | |
 | `step_count` | steps written | `4`, `5` | raw only | lags the DB (30 of 304 behind, 4 ahead); never a watermark |
-| `last_modified_time` | datetime text | `2026-09-18 00:34:57.158548924+00:00`; `0001-01-01 00:00:00+00:00` for 3 empty conversations | `runs.last_activity_at` | file mtime is later by 30 s median, 36 min max |
-| `workspace_uris` | JSON array text | `["file:///home/brutus-home/projects/codex-of-consentient-craft"]` | `runs.workspace_uris_json` | empty string on 38 rows |
-| `status` | run status enum | `CASCADE_RUN_STATUS_IDLE` (all cold rows), `CASCADE_RUN_STATUS_RUNNING` (live) | `runs.end_state`: `'running'` for RUNNING, else `'exited'` | the only live signal that a run is open |
-| `source` | always empty | `''` | `runs.entrypoint` set to `'agy'` | |
+| `last_modified_time` | datetime text | `2026-09-18 00:34:57.158548924+00:00`; `0001-01-01 00:00:00+00:00` for 3 empty conversations | `llm_sessions.last_activity_at` | file mtime is later by 30 s median, 36 min max |
+| `workspace_uris` | JSON array text | `["file:///home/brutus-home/projects/codex-of-consentient-craft"]` | `llm_sessions.workspace_uris_json` | empty string on 38 rows |
+| `status` | run status enum | `CASCADE_RUN_STATUS_IDLE` (all cold rows), `CASCADE_RUN_STATUS_RUNNING` (live) | `llm_sessions.end_state`: `'running'` for RUNNING, else `'exited'` | the only live signal that a session is open |
+| `source` | always empty | `''` | `llm_sessions.entrypoint` set to `'agy'` | |
 | `project_id` | | `default-cli-project` | raw only | |
-| `agent_name` | sub-agent type name | `self`, `prompt-writer`, `batch_worker` | `runs.agent_type` check | 132 empty (roots) |
-| `parent_conversation_id` | | `fe62b455-c1c7-46d3-b856-75aac0191f41` | `runs.parent_run_id` | 175 non-empty |
-| `nesting_depth` | `0` (132) or `1` (175) | | `runs.spawn_depth` | |
+| `agent_name` | sub-agent type name | `self`, `prompt-writer`, `batch_worker` | `llm_sessions.agent_type` check | 132 empty (roots) |
+| `parent_conversation_id` | | `fe62b455-c1c7-46d3-b856-75aac0191f41` | `llm_sessions.parent_session_ref` | 175 non-empty |
+| `nesting_depth` | `0` (132) or `1` (175) | | `llm_sessions.spawn_depth` | |
 | `battle_id`, `winning_conversation_id`, `group_id` | always empty | | raw only | |
-| `not_fully_idle` | 0/1 | `0` ×307 | raw only | live: 1 while a child runs under a finished parent |
-| `killed` | 0/1 | `1` ×68 | `runs.end_state = 'killed'` | |
+| `not_fully_idle` | 0/1 | `0` ×307 | raw only | live: 1 while a child sessions under a finished parent |
+| `killed` | 0/1 | `1` ×68 | `llm_sessions.end_state = 'killed'` | |
 | `last_user_input_time` | datetime text | `2026-09-18 00:34:35.344696413+00:00` | `turns.started_at` hint | `0001-01-01` on 7 rows |
 | `last_user_input_step_index` | | `-1` ×289, `2`, `4764` | raw only | |
 | `app_data_dir` | | `antigravity-cli` | raw only | |
@@ -431,17 +432,17 @@ Maps: `raw only` (every field is a duplicate of a column or of `trajectory_metad
 
 ### `subagents/<child>.json` — the parent's link to one child (written when the sub-agent is spawned, rewritten when it is killed)
 
-Count 175, one per child. Versions all. Feeds `runs` (parent link), `tool_calls.spawned_run_id`.
+Count 175, one per child. Versions all. Feeds `llm_sessions` (parent link), `tool_calls.spawned_session_ref`.
 `sources.kind = 'subagent-link-json'`, `record_type = 'subagent-link'`, `pos = 0`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `conversationId` | the child | `d0f4641b-0a2c-4c22-8959-b551c8c7f8db` | `runs.native_id` of the child | the file name is the same id |
-| `subagentDescriptor.typeName` | | `prompt-writer`, `self`, `batch_worker` | `runs.agent_type` | |
-| `subagentDescriptor.role` | | `Track Denominator Rebuilder`, `Fixup Agent` | `runs.agent_role` | |
-| `state` | | `SUBAGENT_STATE_ALIVE`, `SUBAGENT_STATE_KILLED` | `runs.end_state` (`'killed'`) | in-place update ALIVE to KILLED: `raw_revisions.expected = 1` |
-| `spawnStepIndex` | parent step idx of the `invoke_subagent` step | `591`, `447`, `40` | `runs.spawned_by_tool_call_id` = that step's `metadata.4.1` | C: 175 of 175 resolve to an `invoke_subagent` step |
-| `workspaceUris[]` | | `file:///home/…` | `runs.workspace_uris_json` | |
+| `conversationId` | the child | `d0f4641b-0a2c-4c22-8959-b551c8c7f8db` | `llm_sessions.native_id` of the child | the file name is the same id |
+| `subagentDescriptor.typeName` | | `prompt-writer`, `self`, `batch_worker` | `llm_sessions.agent_type` | |
+| `subagentDescriptor.role` | | `Track Denominator Rebuilder`, `Fixup Agent` | `llm_sessions.agent_role` | |
+| `state` | | `SUBAGENT_STATE_ALIVE`, `SUBAGENT_STATE_KILLED` | `llm_sessions.end_state` (`'killed'`) | in-place update ALIVE to KILLED: `raw_records.revision_expected = 1` |
+| `spawnStepIndex` | parent step idx of the `invoke_subagent` step | `591`, `447`, `40` | `llm_sessions.spawned_by_tool_call_ref` = that step's `metadata.4.1` | C: 175 of 175 resolve to an `invoke_subagent` step |
+| `workspaceUris[]` | | `file:///home/…` | `llm_sessions.workspace_uris_json` | |
 
 Read it with `trajectory_metadata_blob.5` as the cross-check. The `invoke_subagent` result text (`140.2.1`) also holds
 `{conversationId,…}`, and one call can create SEVERAL children (`Subagents[]`), so several child files can share one
@@ -449,26 +450,28 @@ Read it with `trajectory_metadata_blob.5` as the cross-check. The `invoke_subage
 
 ### `messages/<uuid>.json` — one inter-agent or task-completion message
 
-Count 2,019, plus `read.json` and an `undelivered/` folder. Versions all. Feeds `agent_messages` PROPOSED,
-`events` of the recipient (kind `system`, subtype `agent_message` or `task_notification`), `background_tasks`.
-`sources.kind = 'agent-message-json'` PROPOSED, `record_type = 'agent-message'`.
+Count 2,019, plus `read.json` and an `undelivered/` folder. Versions all. Feeds ONE `events` row in the recipient: the
+arrival, kind `agent-message`, `natural_key = '<recipient session>:msg:<message uuid>'` (the delivering type-101 step,
+section 7, maps onto the same row), subtype `task-notification` when the sender is a task or `system`, else `peer`;
+its body in `content_blocks`. Also feeds `background_tasks`.
+`sources.kind = 'agent-message-json'`, `record_type = 'agent-message'`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `id` | message id; the file name | `eb1c85a4-6747-4c14-9aa0-d4f360413384` | `agent_messages.message_id` | C: equals `step_payload.114.4.1` of the delivering type-101 step |
-| `recipient` | recipient conversation | `f3f59f57-f05f-442a-8de1-264085b73ce1` | `agent_messages.recipient_run_id` | |
-| `sender` | a conversation id, or `<conv>/task-<n>` for a background task, or `system` | `f3f59f57-…/task-2` | `agent_messages.sender_run_id` / `sender_task_id` | |
-| `priority` | | `MESSAGE_PRIORITY_HIGH`, `MESSAGE_PRIORITY_LOW` | `agent_messages.priority` | step side: `114.4.5` is `3` for HIGH, `1` for LOW (I) |
-| `timestamp` | RFC 3339 with nanoseconds, UTC | `2026-09-19T09:07:26.272047323Z` | `agent_messages.ts`, `events.ts` | |
-| `renderDetails.messageTitle` | | `Run ward e2e tests finished`, `Message from Line Counter (research)` | `agent_messages.title` | 1,990 files |
-| `content` | the text | `Task id "f3f59f57-…/task-2" finished with re…` | `agent_messages.text_preview` | 2,016 files |
-| `sourceMetadata.tool.conversationId`, `.stepIndex`, `.toolCall.{id,name,argumentsJson,thinkingSignature}` | the tool call that produced it (a `send_message`, or the `run_command` that started a task) | `call_536885`, `send_message` | `agent_messages.source_tool_call_id` | 1,518 files |
+| `id` | message id; the file name | `eb1c85a4-6747-4c14-9aa0-d4f360413384` | `events.natural_key` (`<recipient session>:msg:<id>`), `events.details_json.messageId`, `events.link_key = 'antigravity:msg:<id>'` | C: equals `step_payload.114.4.1` of the delivering type-101 step |
+| `recipient` | recipient conversation | `f3f59f57-f05f-442a-8de1-264085b73ce1` | `events.session_ref` (a stub session when the recipient is not read yet) | |
+| `sender` | a conversation id, or `<conv>/task-<n>` for a background task, or `system` | `f3f59f57-…/task-2` | `events.details_json.peerSessionKey` (the sender's `llm_sessions.natural_key`) / `details_json.senderTaskId` | |
+| `priority` | | `MESSAGE_PRIORITY_HIGH`, `MESSAGE_PRIORITY_LOW` | `events.details_json.priority` | step side: `114.4.5` is `3` for HIGH, `1` for LOW (I) |
+| `timestamp` | RFC 3339 with nanoseconds, UTC | `2026-09-19T09:07:26.272047323Z` | `events.ts` | |
+| `renderDetails.messageTitle` | | `Run ward e2e tests finished`, `Message from Line Counter (research)` | `events.details_json.title` | 1,990 files |
+| `content` | the text | `Task id "f3f59f57-…/task-2" finished with re…` | `content_blocks.text` of the arrival event (blob over 4 KB) | 2,016 files |
+| `sourceMetadata.tool.conversationId`, `.stepIndex`, `.toolCall.{id,name,argumentsJson,thinkingSignature}` | the tool call that produced it (a `send_message`, or the `run_command` that started a task) | `call_536885`, `send_message` | `events.tool_call_ref` (the send); that call's own event gets the same `link_key` | 1,518 files |
 | `hideFromUser` | | `true` | `events.is_meta = 1` | 112 files |
 | `stepPayload` | base64 protobuf of the delivered step | `CA4gAyoQCgwIlu231QYQoLSbvwEYBJoB…` | raw only | 3 files |
 
-`messages/read.json` is `{<message id>: true}`, rewritten as messages are read (`raw_revisions.expected = 1`);
-Maps to: `agent_messages.read_at` PROPOSED (a boolean only, no time). `messages/undelivered/<uuid>` (5 files, empty folder in
-the live run) holds a message not yet delivered: `raw only`.
+`messages/read.json` is `{<message id>: true}`, rewritten as messages are read (`raw_records.revision_expected = 1`);
+Maps to: `events.details_json.read` (a boolean only, no time). `messages/undelivered/<uuid>` (5 files, empty folder in
+the live session) holds a message not yet delivered: `raw only`.
 
 ### `logs/transcript_full.jsonl` and `logs/transcript.jsonl` — the harness's own text transcript
 
@@ -498,7 +501,7 @@ the same lines split into files.
 | `steps/<idx>/output.txt` | 20,185 | full output of tool step `<idx>`; the URI is `140.2.7` | `tool_results.persisted_path`, `artifacts` (`origin 'spill-file'`, read once) |
 | `steps/<idx>/content.md` | 1 | | `raw only` |
 | `tasks/task-<n>.log` | 1,635 | the output of async command `task-<n>`; the URI is `task_details.2` | `background_tasks.result_preview`, `artifacts` (`'spill-file'`) |
-| `terminals/.env` | 17 | terminal environment (may hold secrets) | NEVER read or archived |
+| `terminals/.env` | 17 | terminal environment | not a source: no source kind reads it |
 | `.tempmediaStorage/*.png`, `.user_uploaded/` | 10 | images | `artifacts` (`'image'`) |
 | `scratch/`, `.agents/agents/<type>/*.md`, `brain/<conv>/*.md/.json` | few | files the agent wrote | `raw only`, not read |
 
@@ -506,31 +509,31 @@ the same lines split into files.
 
 ### `history.jsonl` — one line per prompt typed at the interactive prompt
 
-Count 270 lines, from 2026-09-17. `-p` runs are NOT in it (the live capture's conversation is absent). Feeds
-`runs.is_interactive`. `sources.kind = 'history-jsonl'` PROPOSED (or `transcript-jsonl`), `record_type = 'history'`.
+Count 270 lines, from 2026-09-17. `-p` sessions are NOT in it (the live capture's conversation is absent). Feeds
+`llm_sessions.is_interactive`. `sources.kind = 'history-jsonl'` (or `transcript-jsonl`), `record_type = 'history'`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
 | `display` | text typed | `hello`, `joke?`, `/logout` | `raw only` (a preview for debugging) | |
 | `timestamp` | ms since epoch | `1789691636365` | `turns.started_at` hint | |
-| `workspace` | cwd of the prompt | `/home/brutus-home/projects/codex-of-consentient-craft` | `runs.cwd` fallback | |
-| `type` | `slash_command` | | `interventions` (mode-change) optional | 46 lines |
-| `conversationId` | | `f3a2f70f-078b-4297-83b1-7cd9412475d4` | `runs.is_interactive = 1` | 235 lines; absent on slash commands |
+| `workspace` | cwd of the prompt | `/home/brutus-home/projects/codex-of-consentient-craft` | `llm_sessions.cwd` fallback | |
+| `type` | `slash_command` | | optional: an `events` row of kind `intervention`, subtype `slash-command` (command in `details_json`) | 46 lines |
+| `conversationId` | | `f3a2f70f-078b-4297-83b1-7cd9412475d4` | `llm_sessions.is_interactive = 1` | 235 lines; absent on slash commands |
 
 ### `last-stdin.json` — the statusline command's stdin payload (last written)
 
 Count 1 file (written 2026-09-17). `raw only`, but it is the ONLY evidence of the oldest version:
 `{"version":"1.2.5","model":{"id":"Gemini 3.8 Flash (Medium)","effort":"medium"},"context_window":{…},"quota":{"3p-5h":{…}}}`.
-Feeds `harness_versions` PROPOSED.
+Feeds `harness_versions`.
 
 ### `log/cli-<YYYYMMDD_HHMMSS>.log` — language-server logs (local time in the name)
 
 Count 64. First useful line: `I0927 11:14:41.543353 66 server.go:1635] Language server version: 1.2.7`. Feeds
-`harness_versions` PROPOSED. Not otherwise parsed.
+`harness_versions`. Not otherwise parsed.
 
 ## 5. Live stdout: `agy -p --output-format stream-json`
 
-NDJSON, one JSON object per line, three event kinds (C: `tmp/agy-live-stdout.txt`, one run of 4 root steps and one
+NDJSON, one JSON object per line, three event kinds (C: `tmp/agy-live-stdout.txt`, one session of 4 root steps and one
 sub-agent; 0 non-JSON lines in the stream). Text mode (`-p` alone) prints the final text at the end only.
 `sources.kind = 'stdout-spool'`, `record_type = 'stdout/init'`, `'stdout/step_update'`, `'stdout/result'`.
 The stream has NO timestamps: stamp each line with the server's receive time.
@@ -541,17 +544,17 @@ from the row. `step_update` is emitted several times per index (`ACTIVE`, then `
 
 ### `init` — first line
 
-Count 1 per run. Feeds `run_inits`.
+Count 1 per session. Feeds `llm_sessions` (the last init's facts; agy prints one).
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
 | `event` | `init` | | record kind | |
-| `conversation_id` | the run | `7b87f551-f82a-4c08-af52-dea8303cb855` | `runs.native_id` | |
-| `init.model` | requested model plus effort | `gemini-3.8-flash-low` | `run_inits.model`, `runs.model_first` | C: equals `executor_metadata.10.1.28` |
-| `init.cwd` | | `/home/brutus-home/projects/codex-of-consentient-craft/tmp/agy-live-ws` | `runs.cwd` | |
-| `init.tools[]` | the tool names (58 in this run) | `ask_question`, `run_command`, `view_file`, `call_mcp_tool` | `run_inits.tools_json` | |
-| `init.permission_mode` | | `always-proceed` (the `--dangerously-skip-permissions` run) | `run_inits.permission_mode`, `runs.permission_mode` | no database equivalent |
-| (none) | harness version | | `run_inits.harness_version` from `harness_versions` | init carries no version |
+| `conversation_id` | the session | `7b87f551-f82a-4c08-af52-dea8303cb855` | `llm_sessions.native_id` | |
+| `init.model` | requested model plus effort | `gemini-3.8-flash-low` | `llm_sessions.model_first` | C: equals `executor_metadata.10.1.28` |
+| `init.cwd` | | `/home/brutus-home/projects/codex-of-consentient-craft/tmp/agy-live-ws` | `llm_sessions.cwd` | |
+| `init.tools[]` | the tool names (58 in this session) | `ask_question`, `run_command`, `view_file`, `call_mcp_tool` | `llm_sessions.init_tools_json` | |
+| `init.permission_mode` | | `always-proceed` (the `--dangerously-skip-permissions` session) | `llm_sessions.permission_mode` | no database equivalent |
+| (none) | harness version | | `llm_sessions.harness_version_last` from `harness_versions` | init carries no version |
 
 ### `step_update` — one line per step state change
 
@@ -567,34 +570,34 @@ Count 1 per state per step (live: 56 lines for 11 steps; 42 of them carry a `tex
 | `step_update.tool_name` | | `run_command`, `view_file`, `invoke_subagent` | `tool_calls.tool_name` | equals `metadata.4.2` |
 | `step_update.tool_info.name` | | | | same |
 | `step_update.tool_info.parameters.*` | the arguments (a subset: no `Cwd`, no UI labels) | `{"CommandLine":"ls -la"}`, `{"AbsolutePath":"/home/…/notes.txt"}` | `tool_calls.input_json` provisional | the row's `metadata.4.3` is the full set |
-| `step_update.tool_info.output` | the result | `total 44\r\ndrwxrwsr-x …`, `5 lines, 23 bytes` | `tool_results.text_preview` provisional | for `run_command` it is the raw output, for `view_file` a summary; neither equals `140.2.1` |
-| `step_update.tool_info.error.type` | | `TOOL_ERROR` | `tool_calls.cause` hint | |
-| `step_update.tool_info.error.message` | | `declaring permissions: cortex tool view_file: …` | `tool_results.text_preview` | equals `error_details.2` |
-| `step_update.subagent_info.subagents[].{type_name,role,initial_prompt,conversation_id,log_uri,workspace_uris[]}` | the spawned child | `research`, `Line Counter`, `39687e5e-1dca-465f-b580-1debda6317d3` | `runs` (child, `spawned_by_tool_call_id`), `tool_calls.spawned_run_id` | arrives on the ACTIVE line, BEFORE the child's link file; the earliest pairing |
+| `step_update.tool_info.output` | the result | `total 44\r\ndrwxrwsr-x …`, `5 lines, 23 bytes` | `tool_results.text` provisional | for `run_command` it is the raw output, for `view_file` a summary; neither equals `140.2.1` |
+| `step_update.tool_info.error.type` | | `TOOL_ERROR` | `tool_call_causes.cause` hint | |
+| `step_update.tool_info.error.message` | | `declaring permissions: cortex tool view_file: …` | `tool_results.text` | equals `error_details.2` |
+| `step_update.subagent_info.subagents[].{type_name,role,initial_prompt,conversation_id,log_uri,workspace_uris[]}` | the spawned child | `research`, `Line Counter`, `39687e5e-1dca-465f-b580-1debda6317d3` | `llm_sessions` (child, `spawned_by_tool_call_ref`), `tool_calls.spawned_session_ref` | arrives on the ACTIVE line, BEFORE the child's link file; the earliest pairing |
 | `step_update.text_delta` | a chunk of the assistant text | `I have`, ` launched the sub-agent ` | `content_blocks` provisional | the full text is the concatenation of every delta for that index; the DONE line carries the LAST chunk only |
 | `step_update.duration_seconds` | | `1.997977314`, `5.475748639` | `tool_calls.latency_ms`, `messages` duration | C: equals `metadata.8 - metadata.1` (live, 10 of 10), so for a tool it includes queue time before RUNNING |
 | `step_update.usage.{input_tokens, output_tokens, thinking_tokens, cache_read_tokens, total_tokens}` | on `agent_response` DONE only | `{19005, 208, 0, 0, 19213}` | `usage` provisional | C: equal to `metadata.9.2`, `.3`, `.9`, `.5`; `total_tokens` is input plus output without cache |
 
 ### `result` — last line
 
-Count 1 per run. Feeds `run_results`, `cost_snapshots` (no cost, so none).
+Count 1 per session. Feeds `session_results` (no cost, so `rollup_session.last_reported_cost_usd` stays NULL).
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
 | `result.conversation_id` | | | join | |
-| `result.status` | | `SUCCESS` | `run_results.subtype 'success'`, `is_error 0` | other values not observed (U) |
-| `result.response` | the final text (the planner texts after the last tool, joined) | `I have launched the sub-agent… ### Summary of Actions…` | `run_results.result_preview` | |
-| `result.duration_seconds` | wall time of the whole run | `23.345944875` | `run_results.duration_ms` | |
-| `result.num_turns` | | `1` | `run_results.num_turns` | C: counts user inputs, NOT executor rows (the live run had 2) |
-| `result.usage.{input_tokens, output_tokens, thinking_tokens, cache_read_tokens, total_tokens}` | SUM over the ROOT conversation's planner steps only | `{31010, 873, 0, 48800, 31883}` | `run_results.model_usage_json` | C: 31,010 is 19,005 + 3,524 + 4,078 + 4,403; the sub-agent's tokens are NOT included, so a quest total needs every child run |
+| `result.status` | | `SUCCESS` | `session_results.subtype 'success'`, `is_error 0` | other values not observed (U) |
+| `result.response` | the final text (the planner texts after the last tool, joined) | `I have launched the sub-agent… ### Summary of Actions…` | `session_results.result_preview` | |
+| `result.duration_seconds` | wall time of the whole session | `23.345944875` | `session_results.duration_ms` | |
+| `result.num_turns` | | `1` | `session_results.num_turns` | C: counts user inputs, NOT executor rows (the live session had 2) |
+| `result.usage.{input_tokens, output_tokens, thinking_tokens, cache_read_tokens, total_tokens}` | SUM over the ROOT conversation's planner steps only | `{31010, 873, 0, 48800, 31883}` | `session_results.model_usage_json` | C: 31,010 is 19,005 + 3,524 + 4,078 + 4,403; the sub-agent's tokens are NOT included, so a quest total needs every child session |
 | (none) | cost, `ttft_ms`, `duration_api_ms`, `terminal_reason`, permission denials, MCP status | | NULL | agy reports none |
 
 ## 6. Tables built from all of the above (one row builder per table)
 
 | Table | Row | Built from |
 |---|---|---|
-| `runs` | one per `conversations/<conv>.db` | section 1.9, section 2, section 3 subagent link, `history.jsonl` |
-| `run_inits`, `run_results` | one per `-p` run | section 5 |
+| `llm_sessions` | one per `conversations/<conv>.db` | section 1.9, section 2, section 3 subagent link, `history.jsonl` |
+| `llm_sessions` (`init_*`), `session_results` | one `session_results` row per `-p` session; the init fills the session row | section 5 |
 | `turns` | one per `executor_metadata` row, plus an open turn for steps whose `metadata.12` has no executor row yet | `steps.metadata.12`, `executor_metadata.9`; `started_at` is the first step's `metadata.1`; `ended_at` the last step's `metadata.8`; `origin` `'user'` when the first step is type 14, `'task-notification'` for a type-101 `task_notification`, `'queued'` for `agent_message` |
 | `messages` | one per generation that has a planner step (role `assistant`), one per type-14 step (role `user`), one per type-101 step (role `system`), one per type-23 step (the summarizer call) | 1.4, 1.6, 1.7 |
 | `events` | one per step | all step sections; `seq = idx`; `origin 'transcript'`, `'both'` once a stdout line matched |
@@ -606,7 +609,8 @@ Count 1 per run. Feeds `run_results`, `cost_snapshots` (no cost, so none).
 | `errors` | each type-17 step, each failed generation, each `executor_metadata.12` | 7.5 |
 | `compactions` | one per type-23 step | 1.6 |
 | `hook_runs` | each `metadata.34` `deny`, each `Stop hook blocked termination` type-101, each `JSON hook …failed` error | 7.6 |
-| `interventions` | none: agy keeps no mid-run queue; a type-14 step after the first in a run is a new turn | |
+| `events` kind `intervention` | none: agy keeps no mid-session queue; a type-14 step after the first in a session is a new turn | |
+| `events` kind `agent-message` | one per type-101 step of kind `agent_message` or `task_notification`, merged with its `messages/<uuid>.json` file on `<recipient session>:msg:<uuid>` | 7.1, `messages/*.json` |
 | `attachments` | none broken out; the context snapshots stay raw | |
 
 ## 7. Joins and rules
@@ -614,22 +618,25 @@ Count 1 per run. Feeds `run_results`, `cost_snapshots` (no cost, so none).
 ### 7.1 Type 101: SYSTEM_MESSAGE
 
 Count 2,151 (2,142 DONE, 9 CLEARED). Versions all; `114.4.1.6`..`.12` first seen 2026-09-22 03:40 UTC (1.2.7).
-Feeds `turns` (origin), `events` (kind `system`), `background_tasks` (completion), `hook_runs`, `agent_messages`.
+Feeds `turns` (origin), `events`, `background_tasks` (completion), `hook_runs`. A step of message kind `agent_message` or
+`task_notification` is the ARRIVAL of an agent message: its event is kind `agent-message`, keyed
+`<recipient session>:msg:<114.4.1>` so it and the message file land on one row, with `link_key =
+'antigravity:msg:<114.4.1>'`. Every other type-101 step is an event of kind `system`.
 
 | Field path | Meaning in context | Examples | Maps to | Notes |
 |---|---|---|---|---|
-| `step_payload.114.1` | the full text as shown to the model | `[Message] timestamp=2026-09-19T20:59:37Z sender=00b6776a-…/task-42 priority=MESSAGE_PRIORITY_HIGH content=Task id "…` | `events.text_preview`, `content_blocks` | three shapes (C): `task_notification` 1,794; `agent_message` 184; no kind, plain text: `Stop hook blocked termination:…` ×140, and `[Message] … sender=system … [Notice] All your subagents and background tasks have been stopped due to server restart` ×24 |
-| `step_payload.114.2.1` | title | `Run ward checks finished`, `Wait for ward completion was canceled` | `agent_messages.title`; `background_tasks.result_preview` | 1,536 rows |
+| `step_payload.114.1` | the full text as shown to the model | `[Message] timestamp=2026-09-19T20:59:37Z sender=00b6776a-…/task-42 priority=MESSAGE_PRIORITY_HIGH content=Task id "…` | `content_blocks.text` (inline up to 4 KB, else `content_blocks.blob_ref`) | three shapes (C): `task_notification` 1,794; `agent_message` 184; no kind, plain text: `Stop hook blocked termination:…` ×140, and `[Message] … sender=system … [Notice] All your subagents and background tasks have been stopped due to server restart` ×24 |
+| `step_payload.114.2.1` | title | `Run ward checks finished`, `Wait for ward completion was canceled` | `events.details_json.title`; `background_tasks.result_preview` | 1,536 rows |
 | `step_payload.114.2.4`, `.114.4.11` | int `1` | | raw only | 108 rows each, the LOW-priority ones |
 | `step_payload.114.2.10.1` | `Task id "<conv>/task-N" finished with result…` | | `background_tasks.result_preview` | |
-| `step_payload.114.3` | message kind | `task_notification`, `agent_message` | `events.subtype` | 1,978 rows |
-| `step_payload.114.4.1` | message id (the file under `messages/`) | `39c8f267-a93f-491d-a4ca-e20f9e7723d8` | `agent_messages.message_id` | |
-| `step_payload.114.4.2` | recipient conversation | | `agent_messages.recipient_run_id` | |
-| `step_payload.114.4.3` | sender `<conv>/task-N` or a conversation id | `00b6776a-…/task-42` | `background_tasks.task_id` (ends it) | |
+| `step_payload.114.3` | message kind | `task_notification`, `agent_message` | `events.kind = 'agent-message'`; `events.subtype` `task-notification` or `peer` | 1,978 rows |
+| `step_payload.114.4.1` | message id (the file under `messages/`) | `39c8f267-a93f-491d-a4ca-e20f9e7723d8` | `events.natural_key` (`<recipient session>:msg:<id>`), `events.link_key`, `events.details_json.messageId` | |
+| `step_payload.114.4.2` | recipient conversation | | `events.session_ref` | |
+| `step_payload.114.4.3` | sender `<conv>/task-N` or a conversation id | `00b6776a-…/task-42` | `background_tasks.natural_key` (ends it) | |
 | `step_payload.114.4.4`, `.114.4.10` | the text, a title card | | raw only | |
-| `step_payload.114.4.5` | priority enum | `3` (1,894), `1` (108) | `agent_messages.priority` | I |
+| `step_payload.114.4.5` | priority enum | `3` (1,894), `1` (108) | `events.details_json.priority` | I |
 | `step_payload.114.4.6` | `Timestamp` of the message | | `background_tasks.ended_at` | |
-| `step_payload.114.4.12.1` | the originating tool call `{1 conv, 2 step idx, 3 {1 call id, 2 name, 3 args}}` | `call_812395`, `run_command` | `background_tasks.tool_call_id` | 1,513 rows |
+| `step_payload.114.4.12.1` | the originating tool call `{1 conv, 2 step idx, 3 {1 call id, 2 name, 3 args}}` | `call_812395`, `run_command` | `background_tasks.tool_call_ref` | 1,513 rows |
 
 ### 7.2 Tool call join: planner `20.7` to its type-132 step
 
@@ -639,23 +646,24 @@ missing a tool step. The planner step is always before its tool steps; the tool 
 
 Rules:
 
-1. A tool step belongs to the planner step of the same generation: `tool_calls.message_id = <conv>:gen:<metadata.20.3>`. This
+1. A tool step belongs to the planner step of the same generation: `tool_calls.message_ref = <conv>:gen:<metadata.20.3>`. This
    join needs no call id and is exact.
 2. The planner's `20.7` entry supplies the request: `tool_calls.requested_at` is the tool step's `metadata.1`.
 3. **`call_<n>` repeats.** 31 call ids occur twice in ONE conversation (a `view_file` at idx 28 and a `run_command`
-   at idx 439 share `call_391817`), and 628 of 33,764 ids occur in more than one conversation. So the key is
-   `tool_call_id = '<run_id>:<call_id>'`, and the second occurrence in a run (in idx order) becomes `…:<call_id>~2`.
+   at idx 439 share `call_391817`), and 628 of 33,764 ids occur in more than one conversation. So the global key is
+   `tool_calls.natural_key = 'antigravity:<conv>:<call_id>'` (the harness prefix plus the conversation-scoped native id, which equals
+   `<session>:<call_id>`), and the second occurrence in a session (in idx order) becomes `…:<call_id>~2`.
    Pair repeats by order: the k-th planner `20.7` entry with a given id to the k-th type-132 step with that id.
 4. A call made by a Claude model carries the provider's id in `metadata.29.1` (`toolu_vrtx_…`); keep `4.1` as the key.
 5. A pending call (planner done, tool step at status 1 or 2) is `tool_calls.status = 'pending'` or `'running'`.
 6. `call_mcp_tool`: `tool_server` is `ServerName` (`dungeonmaster_dungeonmaster`, not `dungeonmaster`), `tool_name`
    is `mcp__<ServerName>__<ToolName>`. Cross-harness comparison needs a name map (open question 3).
-7. `invoke_subagent` result `140.2.1` is JSON with `conversationId`; `spawned_run_id` is the first child, the rest come
+7. `invoke_subagent` result `140.2.1` is JSON with `conversationId`; `tool_calls.spawned_session_ref` is the first child, the rest come
    from `subagents/*.json` with the same `spawnStepIndex`.
 
 ### 7.3 Turns, messages and the generation join
 
-`messages.message_id = <run_id>:gen:<idx>`; its `native` id is `20.6` (`bot-…`), `request_id` is `metadata.9.11`;
+`messages.natural_key = <session>:gen:<idx>`; the provider's id `20.6` (`bot-…`) stays raw, `messages.request_id` is `metadata.9.11`;
 `started_at = metadata.1` of the planner step; `completed_at = metadata.8`; `model = gen_metadata.1.19`; `stop_reason`
 from `20.12` (1.4). A generation with no planner step (109 failed requests, 1.7) has no message: it becomes an `errors`
 row. A turn is the set of steps sharing `metadata.12`.
@@ -666,23 +674,23 @@ Input is UNCACHED (`9.2`), cache read is separate (`9.5`), cache write does not 
 (`9.3`). So `context_tokens = 9.2 + 9.5` and `cache_write_tokens = 0`. Example (live, step 5): `9.2 = 3524`, `9.5 = 16277`,
 `9.3 = 186` gives `input 3524`, `cache_read 16277`, `output 186`, `context 19801`. A checkpoint adds its own row from `metadata.28.2`.
 
-### 7.5 Failures to `tool_calls.status` and `cause`
+### 7.5 Failures to `tool_calls.status` and `tool_call_causes.cause`
 
-Status first, then the text of `error_details.2`:
+Status first, then the text of `error_details.2`. `cause` and `sub_cause` are the canonical names of design §8.1B, written to `tool_call_causes` by the separately versioned classifier (§8.1A), not by the frozen normalizer; `status` and `denial_kind` stay on `tool_calls`:
 
 | Source | Becomes `status` | `denial_kind` | `cause` | `sub_cause` |
 |---|---|---|---|---|
-| status 7 and text starts `tool call denied by pre-tool hook:` (183) | `'denied'` | `'hook'` | `hook-denied` | `quality-violations` for `🛑 New code quality…`, `native-search-blocked`, `git-rewrite-blocked`, `jest-blocked` |
-| status 7 and text starts `permission check failed for` | `'denied'` | `'permission'` | `permission-denied` | |
-| status 7 and text starts `declaring permissions: cortex tool` and contains `invalid_args` (269) | `'error'` | | `invalid-args` | `file-not-found` when it contains `no such file or directory` |
-| status 7 and `ContentOffset N exceeds line range size`, `recipient "parent" not found`, `cannot kill task` | `'error'` | | `invalid-args` | |
-| status 7 and text starts `calling "tools/call":` (about 50) | `'error'` | | `mcp-error` | `invalid-args` for a zod `invalid_enum_value`/`invalid_type`, `unknown-package` |
-| status 7 and `MCP tool call to server … timed out after` | `'error'` | | `timeout` | `mcp` |
-| status 7 and `JSON hook "…" failed` | `'error'` | | `hook-error` | |
-| status 7 and `Could not successfully apply any edits` or `fallback failed` | `'error'` | | `edit-no-match` | |
-| status 4 INVALID | `'error'` | | `invalid-tool` | |
-| status 6 CANCELED | `'interrupted'` | | `canceled` | |
-| status 3 and `run_command` exit code (`28.6`) not 0 | `'error'` | | `nonzero-exit` | `tool_results.exit_code = 28.6` |
+| status 7 and text starts `tool call denied by pre-tool hook:` (183) | `'denied'` | `'hook'` | `hook-refusal` | the hook name when the text names one, else the class of refusal: `quality-violations` for `🛑 New code quality…`, `native-search-blocked`, `git-rewrite-blocked`, `jest-blocked` |
+| status 7 and text starts `permission check failed for` | `'denied'` | `'permission'` | `permission-denied` | `permission-rule` |
+| status 7 and text starts `declaring permissions: cortex tool` and contains `invalid_args` (269) | `'error'` | | `tool-error` | `invalid-args`, or `file-not-found` when it contains `no such file or directory` |
+| status 7 and `ContentOffset N exceeds line range size`, `recipient "parent" not found`, `cannot kill task` | `'error'` | | `tool-error` | `invalid-args` |
+| status 7 and text starts `calling "tools/call":` (about 50) | `'error'` | | `mcp-refused` | the tool name plus the first error path (a zod `invalid_enum_value`/`invalid_type` names the path; `unknown-package` has none) |
+| status 7 and `MCP tool call to server … timed out after` | `'error'` | | `timeout` | |
+| status 7 and `JSON hook "…" failed` | `'error'` | | `tool-error` | `hook-error` |
+| status 7 and `Could not successfully apply any edits` or `fallback failed` | `'error'` | | `tool-error` | `edit-no-match` |
+| status 4 INVALID | `'error'` | | `tool-error` | `invalid-tool` |
+| status 6 CANCELED | `'cancelled'` (terminal) | | `cancelled` | |
+| status 3 and `run_command` exit code (`28.6`) not 0 | `'error'` | | `nonzero-exit` (`ward-red` when the command is a ward run) | the program name; the code is `tool_results.exit_code = 28.6` |
 | status 5 CLEARED | unchanged: do not downgrade a recorded `'ok'` | | | |
 
 Other failures: a type-17 step becomes an `errors` row. `24.3.2` text decides `kind`: `API error (attempt N): RESOURCE_EXHAUSTED (code 429)…`
@@ -697,7 +705,7 @@ are retries with no generation row), `.24.3.7` HTTP code, `.24.3.9` title, `.24.
 ### 7.6 Hooks
 
 `metadata.34` `deny` entries (183, the hook's refusal text in `34.5`) become `hook_runs` (`hook_event 'PreToolUse'`, `outcome
-'blocking-error'`, `tool_call_id`, `output_preview = 34.5`). `allow` entries (37,386) are raw only: they are policy
+'blocking-error'`, `hook_runs.tool_call_ref`, `output_preview = 34.5`). `allow` entries (37,386) are raw only: they are policy
 evaluations, and nothing marks them as a hook. A type-101 whose text starts `Stop hook blocked termination` (140 rows)
 becomes `hook_runs` (`'Stop'`, `'blocking-error'`). `error_details` `JSON hook "jsonhook__dungeonmaster-guard_PreToolUse_0_0" failed:
 command failed: signal: killed` is `hook_runs` (`'PreToolUse'`, `hook_name 'dungeonmaster-guard'`, `'non-blocking-error'`).
@@ -711,7 +719,7 @@ The database, the summaries, the brain files and stdout carry no version. Eviden
 Rule: the harness version of a source or record is the version of the newest log whose start time is at or before the
 record's `ts` (log file time is local; the corpus machine is UTC-7, so UTC is the name plus 7 h). Before the earliest log it is
 `unknown`, assigned the nearest normalizer and logged as `schema_drift` `unknown-harness-version`. Because the logs
-rotate, the ingest copies each `(version, first log start)` pair into `harness_versions` (PROPOSED) the first time it
+rotate, the ingest copies each `(version, first log start)` pair into `harness_versions` the first time it
 sees it.
 
 Drift observed across eras (C: `tmp/fm-agy-census2.json`, first and last time each path was seen):
@@ -727,12 +735,12 @@ Drift observed across eras (C: `tmp/fm-agy-census2.json`, first and last time ea
 
 No field changed type.
 
-## 9. In-place updates, `raw_records` and `raw_revisions`
+## 9. In-place updates, `raw_records` revisions
 
 C: the live capture (`tmp/agy-live-changes.json`, 200 ms sampling, so counts are lower bounds): terminal steps never changed
 after their final write; `gen_metadata` row N was rewritten when row N+1 landed.
 
-`raw_revisions.expected = 1` for ALL of these; any other change to a stored position is `expected = 0` and a
+`raw_records.revision_expected = 1` on the new revision for ALL of these; any other change to a stored position is `revision_expected = 0` and a
 `schema_drift` `record-rewritten`:
 
 | Source row | In-place change | Why it is expected |
@@ -763,37 +771,39 @@ stale 49 to 62 KB `-wal` files. WAL growth per write was not observed with `fs.w
 `stdout/step_update`, `stdout/result`. Every path in sections 1 to 5 is a `schema_observations` row; the `parsed = 1`
 set is the paths the Maps-to columns above read, everything marked `raw only` is `parsed = 0`.
 
-## Proposed schema changes
+## Where the earlier proposals landed in `schema.md`
 
-| Change | Type | Reason |
-|---|---|---|
-| `harness_versions(harness TEXT, version TEXT, first_seen_at INTEGER, last_seen_at INTEGER, evidence TEXT, PRIMARY KEY (harness, version))` | new table | agy's version lives only in rotating `cli-*.log` files and one statusline file, never in the data. The ingest must copy it before the log is deleted, or old conversations lose their version. Claude Code can use it too (a `version` field per line, summarised) |
-| `agent_messages(message_id TEXT PRIMARY KEY, sender_run_id TEXT, sender_task_id TEXT, recipient_run_id TEXT NOT NULL, priority TEXT, ts INTEGER NOT NULL, title TEXT, text_preview TEXT, text_chars INTEGER, blob_hash TEXT, hidden INTEGER NOT NULL DEFAULT 0, source_tool_call_id TEXT, read INTEGER, raw_id INTEGER, normalizer TEXT)` | new table | `messages/*.json` is agy's first-class channel (2,019 files): which agent told which, when, and whether it was read. Neither `messages` (API calls) nor `events` carries a sender, a recipient or a read flag |
-| `sources.kind` gains `'agent-message-json'`, `'history-jsonl'`, `'cli-log'` | enum values | three more file kinds to track; `'subagent-link-json'` already exists |
-| `usage.reasoning_effort TEXT` | column | agy sets it per turn (`-low`, `-medium`, `-high` on `executor_metadata.10.1.28`) and it changes cost and latency; the model name alone loses it |
-| `tool_calls.waiting_ms INTEGER` | column | time spent at status 9 (waiting for user approval): 6 steps today, but it separates user time from tool time in `active_ms` |
-| `tool_calls` key rule: `tool_call_id` may end in `~<n>` | convention, no DDL | `call_<n>` ids repeat inside one conversation (31 cases); document in `schema.md` conventions |
-| `messages.message_id` for the summarizer call: `<conv>:ckpt:<idx>` | convention, no DDL | a CHECKPOINT carries its own usage but is not a generation |
-| `turns.origin` value `'queued'` and `'task-notification'` are used for agy | none | already in the CHECK list; stated for the normalizer |
-| `errors.kind` adds `'rate-limit'` use for agy `RESOURCE_EXHAUSTED` | none | already in the list |
-| `usage.context_gauge_tokens INTEGER` | optional column | agy's own gauge (`gen_metadata.1.9.10.1`) runs about 7,000 above input plus cache read; only add it if the dashboard must show agy's number |
-| `runs.end_state` allows `'killed'` for `summaries.killed` | none | already in the list |
+Every proposal this file once made is in the final schema.
+
+| Source | Column or table |
+|---|---|
+| the version found in rotating `cli-*.log` files and the statusline file | `harness_versions` (`evidence` `cli-log`, `statusline`) |
+| `messages/*.json` | the arrival `events` row in the recipient (kind `agent-message`, `natural_key` `<recipient session>:msg:<message uuid>`, `link_key` `antigravity:msg:<message uuid>`, `tool_call_ref` the send, `is_meta` for `hideFromUser`), its text in `content_blocks`, and `details_json` `{peerSessionKey, senderTaskId, messageId, priority, title, read}` (agy keeps a read flag only, no read time) |
+| `agent-message-json`, `history-jsonl`, `cli-log` file kinds | `sources.kind` values |
+| `executor_metadata.10.1.28` effort suffix | `messages.effort` (HELD BACK in phase 1 so `schema_drift` sees the source field; migration 0002 adds it, design §11.1) |
+| time at status 9 | `tool_calls.waiting_ms` |
+| `call_<n>` repeated inside one conversation | `tool_calls.natural_key` ends in `~<n>` (schema conventions, "Repeated native ids") |
+| summarizer call of a CHECKPOINT | `messages.natural_key` = `<session>:ckpt:<idx>`, with its `usage` row |
+| agy's own context gauge `gen_metadata.1.9.10.1` | `usage.context_gauge_tokens` |
+| `summaries.killed` | `llm_sessions.end_state` = `'killed'` |
+| `RESOURCE_EXHAUSTED` | `errors.kind` = `'rate-limit'` |
+| turn origins `queued` and `task-notification` | `turns.origin` values |
 
 ## Open questions
 
 1. **Status 5 and 6 names.** `CLEARED` and `CANCELED` are inferred from behaviour (a body-stripped prefix of one conversation; an async command that
-   ends with a completion time and a following step), not from a published enum. A run that deliberately cancels a command and one that clears
+   ends with a completion time and a following step), not from a published enum. A session that deliberately cancels a command and one that clears
    history would settle it.
 2. **When is a conversation write visible?** The sampler polled at 200 ms and agy writes the `-wal`; I could not observe `fs.watch` on the `-wal`.
-   If `fs.watch` fires per write, the "re-read open rows" rule needs no polling timer; if not, an mtime poll is needed while a run is `RUNNING`.
+   If `fs.watch` fires per write, the "re-read open rows" rule needs no polling timer; if not, an mtime poll is needed while a session is `RUNNING`.
 3. **MCP server names.** agy names the server `dungeonmaster_dungeonmaster` (the `.agents/plugins/dungeonmaster` plugin plus the server); Claude's is
    `dungeonmaster`. Should `tool_server` be normalised (strip the repeated prefix), or kept per harness and mapped in a view?
 4. **Stop reason enum.** `20.12 = 2` is normal (35,319 of 35,342); `14`, `16`, `17`, `18` look abnormal but only 23 rows exist.
 5. **Cost.** `gemini-3.8-flash-tiered` (enum 1322, 2,698 calls) is priced by a tier threshold we do not know; Anthropic models through agy report no cache
    writes, so the Claude estimate will under-count against Claude Code's own transcripts.
-6. **`-p` runs and `history.jsonl`.** `-p` runs write no history line, so `is_interactive` is `0` for them and for every child; confirm with a
-   second headless run that no other file marks the entrypoint (the stdout spool is the only marker today).
-7. **Retention.** `~/.gemini/antigravity-cli` starts 2026-09-17 and no retention setting was found; `terminals/.env` files may hold secrets and must
-   never enter the archive.
-8. **Child result tokens.** A `-p` `result.usage` excludes sub-agents. The quest roll-up must therefore sum child runs from their own databases, not
+6. **`-p` sessions and `history.jsonl`.** `-p` sessions write no history line, so `is_interactive` is `0` for them and for every child; confirm with a
+   second headless session that no other file marks the entrypoint (the stdout spool is the only marker today).
+7. **Retention.** `~/.gemini/antigravity-cli` starts 2026-09-17 and no retention setting was found; `terminals/.env` is not a source.
+   Anything that IS archived has its secrets replaced in place with `REDACTED-SECRET-<kind>` (design §13.2).
+8. **Child result tokens.** A `-p` `result.usage` excludes sub-agents. The quest roll-up must therefore sum child sessions from their own databases, not
    from the parent's stdout.

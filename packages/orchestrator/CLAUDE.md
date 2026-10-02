@@ -1393,10 +1393,13 @@ unsignalled exit, or one with no session to resume, is recorded as `wall`.
 **A session cut off from `quest-work` is walled by the spawn layer.** Its only route to `wall` is an
 MCP tool, so a dead dungeonmaster MCP server leaves it nothing to say it with.
 `agentSessionWallReasonTransformer` reads two stdout lines: the `system/init` line listing the
-dungeonmaster server with any status but `connected`, and the final `result` line holding a
+dungeonmaster server as `failed`, `needs-auth` or `disabled`, and the final `result` line holding a
 `DUNGEONMASTER-WALL: <reason>` line, which both task prompts tell a session to end on when `quest-work`
 is unreachable. The first wall line kills the child, and `questSessionWallRecordBroker` records the
-item `failed` / `wall` with the reason, so the router blocks the quest on its next scan.
+item `failed` / `wall` with the reason, so the router blocks the quest on its next scan. **`pending`
+is not a wall.** The CLI writes the init line about 3s after spawn without waiting on a
+project-scoped server, so a server still starting under load reads `pending`, then connects, and the
+session gets its tools on its later turns.
 
 **An API overload is not a crash.** A dispatched child that exits non-zero after emitting a 529 / `overloaded_error`
 marker lost the upstream API, not its own work. `spawn-one-agent-layer-broker` owns that case BELOW orphan recovery:

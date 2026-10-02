@@ -8,6 +8,8 @@
  *
  * WHEN-TO-USE: Only the no-hardcoded-package-names rule should consume this. Application code that needs to know what kind of package it is resolves `packageType` from disk instead.
  */
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+
 export const packageNameLiteralStatics = {
   // Names that carry a frontend/backend ROLE. These are the names a session reaches for when it
   // means "the UI" or "the API", and the ones a different repo will spell differently — or carry
@@ -50,9 +52,9 @@ export const packageNameLiteralStatics = {
   // Node types that wrap an expression without changing what it is, so the position that decides
   // whether a value is a branch or data sits one level further out.
   transparentExpressionWrapperTypes: [
-    'TSAsExpression',
-    'TSSatisfiesExpression',
-    'TSNonNullExpression',
+    AST_NODE_TYPES.TSAsExpression,
+    AST_NODE_TYPES.TSSatisfiesExpression,
+    AST_NODE_TYPES.TSNonNullExpression,
   ],
   // Path substrings whose files may carry these names as data — the rule's own home, which has to
   // spell them out to match them.

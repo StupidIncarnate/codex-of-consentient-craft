@@ -66,7 +66,7 @@ export const ruleBanInlineHelpersInTestScenariosBroker =
           const { id, init } = node;
 
           // Only flag arrow functions with block bodies (not simple expressions/constants)
-          if (init === null || init.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
+          if (init?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
             return;
           }
 

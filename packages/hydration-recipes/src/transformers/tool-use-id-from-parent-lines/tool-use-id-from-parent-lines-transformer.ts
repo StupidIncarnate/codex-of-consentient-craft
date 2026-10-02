@@ -51,7 +51,7 @@ export const toolUseIdFromParentLinesTransformer = ({
 
   // `content` items are a `type`-discriminated union (`text` | `tool_result`); only the
   // `tool_result` arm carries `tool_use_id`.
-  if (firstContentItem === undefined || firstContentItem.type !== 'tool_result') {
+  if (firstContentItem?.type !== 'tool_result') {
     return undefined;
   }
 

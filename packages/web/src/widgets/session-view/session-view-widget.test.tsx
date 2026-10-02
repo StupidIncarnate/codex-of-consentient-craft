@@ -318,7 +318,7 @@ describe('SessionViewWidget', () => {
 
       const messageTexts = screen
         .queryAllByTestId('CHAT_MESSAGE')
-        .map((message) => String(message.textContent));
+        .map((message) => message.textContent);
       const matchIdx = messageTexts.findIndex((text) => text.includes('SESSION_ENTRY_TEXT'));
 
       expect(matchIdx).toBe(0);

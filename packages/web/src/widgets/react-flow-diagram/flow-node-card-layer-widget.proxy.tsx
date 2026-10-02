@@ -13,9 +13,9 @@ interface FlowNodeCardLayerWidgetProxyResult {
   isSelected: () => boolean;
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
-  getPackageChipNames: () => HTMLElement['textContent'][];
-  getPackageChipColors: () => HTMLElement['textContent'][];
-  getPackageChipTypes: () => HTMLElement['textContent'][];
+  getPackageChipNames: () => Node['textContent'][];
+  getPackageChipColors: () => Node['textContent'][];
+  getPackageChipTypes: () => Node['textContent'][];
 }
 
 export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResult => {
@@ -38,7 +38,7 @@ export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResu
     getCommentBadge: (): HTMLElement | null => screen.queryByTestId('COMMENT_COUNT_BADGE'),
     // Read from INSIDE the FLOW_NODE_PACKAGES row rather than by chip testid alone, so a chip that
     // escaped the row (and therefore the height ELK reserved for it) is not counted as rendered.
-    getPackageChipNames: (): HTMLElement['textContent'][] =>
+    getPackageChipNames: (): Node['textContent'][] =>
       Array.from(
         screen
           .queryByTestId('FLOW_NODE_PACKAGES')
@@ -47,11 +47,11 @@ export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResu
     // The palette token each chip resolved for its package's KIND, read off `data-package-accent`
     // rather than the applied CSS: jsdom rewrites a hex to `rgb(...)`, so a style read would be
     // comparing two notations of the same colour.
-    getPackageChipColors: (): HTMLElement['textContent'][] =>
+    getPackageChipColors: (): Node['textContent'][] =>
       screen
         .queryAllByTestId('FLOW_NODE_PACKAGE_CHIP')
         .map((chip) => chip.getAttribute('data-package-accent')),
-    getPackageChipTypes: (): HTMLElement['textContent'][] =>
+    getPackageChipTypes: (): Node['textContent'][] =>
       screen
         .queryAllByTestId('FLOW_NODE_PACKAGE_CHIP')
         .map((chip) => chip.getAttribute('data-package-type')),

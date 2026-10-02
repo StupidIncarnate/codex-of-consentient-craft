@@ -23,7 +23,7 @@ export const astFunctionTypeTransformer = ({
 
   // Check if parent is VariableDeclarator to get return type annotation
   const { parent } = node;
-  if (!parent || parent.type !== AST_NODE_TYPES.VariableDeclarator) {
+  if (parent?.type !== AST_NODE_TYPES.VariableDeclarator) {
     return 'unknown';
   }
 

@@ -32,7 +32,7 @@ export const stepDispatchRoleTransformer = ({
   // A DETERMINISTIC step names no prompt because it spawns no session — it runs a handler through
   // `stepHandlerRunBroker`. Answering for one would name a prompt for a dispatch that never happens,
   // and a model for a session nothing spawns.
-  if (node === undefined || node.kind !== 'prompt' || node.prompt === undefined) {
+  if (node?.kind !== 'prompt' || node.prompt === undefined) {
     return stepDispatchRoleContract.parse({ prompt: null, model: undefined });
   }
 

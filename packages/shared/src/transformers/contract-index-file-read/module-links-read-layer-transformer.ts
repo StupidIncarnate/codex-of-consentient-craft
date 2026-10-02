@@ -7,6 +7,7 @@
  * // Returns { imports: [{ localName, importedName, specifier, isTypeOnly }], reExports: [{ kind, exportedName, sourceName, specifier }] }
  */
 import * as ts from '#gateway/npm/typescript';
+import { isTypeOnlyImportClauseGuard } from '../../guards/is-type-only-import-clause/is-type-only-import-clause-guard';
 
 export const moduleLinksReadLayerTransformer = ({
   sourceFile,
@@ -39,7 +40,7 @@ export const moduleLinksReadLayerTransformer = ({
             localName: element.name.text,
             importedName: (element.propertyName ?? element.name).text,
             specifier: statement.moduleSpecifier.text,
-            isTypeOnly: clause.isTypeOnly || element.isTypeOnly,
+            isTypeOnly: isTypeOnlyImportClauseGuard({ clause }) || element.isTypeOnly,
           });
         }
       }

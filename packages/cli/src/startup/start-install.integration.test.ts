@@ -52,7 +52,7 @@ describe('StartInstall', () => {
           'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
-      expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
+      expect(packageJsonContent).toMatch(/^\s*"typescript": "\^6\.0\.3"$/mu);
       // String-exact: the real on-disk write ends in one trailing newline.
       expect(String(packageJsonContent).endsWith('\n')).toBe(true);
       expect(String(packageJsonContent).endsWith('\n\n')).toBe(false);

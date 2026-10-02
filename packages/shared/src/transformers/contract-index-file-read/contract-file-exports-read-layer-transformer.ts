@@ -38,8 +38,7 @@ export const contractFileExportsReadLayerTransformer = ({
     .flatMap((statement) => statement.declarationList.declarations)
     .flatMap((declaration) =>
       ts.isIdentifier(declaration.name) &&
-      declaration.type !== undefined &&
-      declaration.type.kind === ts.SyntaxKind.TypeOperator &&
+      declaration.type?.kind === ts.SyntaxKind.TypeOperator &&
       declaration.type.getText() === 'unique symbol'
         ? [declaration.name.text]
         : [],

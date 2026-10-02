@@ -7,7 +7,7 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 export const QuestApprovedModalWidgetProxy = (): {
   hasModal: () => boolean;
-  getTitle: () => HTMLElement['textContent'];
+  getTitle: () => Node['textContent'];
   clickBeginQuest: () => Promise<void>;
   clickKeepChatting: () => Promise<void>;
   hasNewQuestButton: () => boolean;
@@ -16,7 +16,7 @@ export const QuestApprovedModalWidgetProxy = (): {
 
   return {
     hasModal: (): boolean => screen.queryByTestId('QUEST_APPROVED_MODAL_TITLE') !== null,
-    getTitle: (): HTMLElement['textContent'] => {
+    getTitle: (): Node['textContent'] => {
       const element = screen.queryByTestId('QUEST_APPROVED_MODAL_TITLE');
       return element?.textContent ?? null;
     },

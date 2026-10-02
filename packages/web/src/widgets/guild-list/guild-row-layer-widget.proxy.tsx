@@ -5,17 +5,17 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 export const GuildRowLayerWidgetProxy = (): {
   isItemSelected: (params: { testId: string }) => boolean;
-  getItemName: (params: { testId: string }) => HTMLElement['textContent'];
+  getItemName: (params: { testId: string }) => Node['textContent'];
   clickItem: (params: { testId: string }) => Promise<void>;
-  getInvalidMarkerText: (params: { testId: string }) => HTMLElement['textContent'];
+  getInvalidMarkerText: (params: { testId: string }) => Node['textContent'];
 } => ({
-  getInvalidMarkerText: ({ testId }: { testId: string }): HTMLElement['textContent'] =>
+  getInvalidMarkerText: ({ testId }: { testId: string }): Node['textContent'] =>
     screen.queryByTestId(testId)?.textContent ?? null,
   isItemSelected: ({ testId }: { testId: string }): boolean => {
     const element = screen.getByTestId(testId);
     return element.style.color === 'rgb(251, 191, 36)';
   },
-  getItemName: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+  getItemName: ({ testId }: { testId: string }): Node['textContent'] => {
     const element = screen.queryByTestId(testId);
     return element?.textContent ?? null;
   },
