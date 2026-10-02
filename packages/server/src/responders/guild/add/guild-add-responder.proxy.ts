@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -36,7 +37,7 @@ export const GuildAddResponderProxy = (): {
       orchestrator.addGuildThrows({
         name,
         path,
-        error: error ?? new Error(message ?? 'Failed to add guild'),
+        error: error ?? NativeErrorStub({ message: message ?? 'Failed to add guild' }),
       });
     },
     getAddGuildCalls: (): RecordedCalls => orchestrator.addGuildGetCalls(),
