@@ -1,4 +1,7 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 import { findAncestorDirectoryLayerBrokerProxy } from './find-ancestor-directory-layer-broker.proxy';
 
 const REPO_ROOT_MARKER = '.dungeonmaster.json';
@@ -11,9 +14,19 @@ export const resolveGatewayScopeLayerBrokerProxy = (): {
     repoRoot: string;
     rootPackageJson: Record<PropertyKey, unknown>;
   }) => void;
+  setupGatewayPackage: ({
+    repoRoot,
+    folder,
+    packageJson,
+  }: {
+    repoRoot: string;
+    folder: string;
+    packageJson: Record<PropertyKey, unknown>;
+  }) => void;
   setupNoRepoRootAt: ({ dirPath }: { dirPath: string }) => void;
 } => {
   const readProxy = readFileSyncProxy();
+  const existsProxy = existsSyncProxy();
   const ancestorProxy = findAncestorDirectoryLayerBrokerProxy();
 
   return {
@@ -33,6 +46,29 @@ export const resolveGatewayScopeLayerBrokerProxy = (): {
       readProxy.returns({
         path: `${repoRoot}/package.json`,
         contents: JSON.stringify(rootPackageJson),
+      });
+      for (const folder of Object.values(gatewayLocationsStatics.folders)) {
+        existsProxy.returns({
+          path: join(repoRoot, 'packages', '@gateway', folder, 'package.json'),
+          exists: false,
+        });
+      }
+    },
+
+    setupGatewayPackage: ({
+      repoRoot,
+      folder,
+      packageJson,
+    }: {
+      repoRoot: string;
+      folder: string;
+      packageJson: Record<PropertyKey, unknown>;
+    }): void => {
+      const packagePath = join(repoRoot, 'packages', '@gateway', folder, 'package.json');
+      existsProxy.returns({ path: packagePath, exists: true });
+      readProxy.returns({
+        path: packagePath,
+        contents: JSON.stringify(packageJson),
       });
     },
 

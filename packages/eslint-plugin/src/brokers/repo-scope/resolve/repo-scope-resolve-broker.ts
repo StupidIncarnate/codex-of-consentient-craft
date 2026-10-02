@@ -15,15 +15,18 @@
  * `workspaceRootPackageJsonContract` already guarantees `name` is a non-empty string once a
  * package.json parses as the workspaces root, so there is nothing missing for a fallback to stand in
  * for, and every caller here needs the `PackageName` brand the direct transformer returns, not
- * `workspaceScopeFromRootNameTransformer`'s `PathSegment`.
+ * `workspaceScopeFromRootNameTransformer`'s `PathSegment`. Reads the scope from gateway packages'
+ * own names under packages/@gateway/ first, so an unscoped root package name does not corrupt the scope.
  *
  * USAGE:
  * repoScopeResolveBroker({ startDir: '/repo/packages/hooks/src/brokers/x' });
- * // Returns '@dungeonmaster' as branded PackageName, read from /repo/package.json's name
+ * // Returns '@dungeonmaster' as branded PackageName, read from gateway packages or /repo/package.json
  */
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
+import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
 export const repoScopeResolveBroker = ({ startDir }: { startDir: string }): string => {
   const packageJsonPath = `${startDir}/package.json`;
@@ -33,6 +36,23 @@ export const repoScopeResolveBroker = ({ startDir }: { startDir: string }): stri
     const workspaceRoot = workspaceRootPackageJsonContract.safeParse(JSON.parse(contents));
 
     if (workspaceRoot.success) {
+      for (const folder of Object.values(gatewayLocationsStatics.folders)) {
+        const gatewayPackageJsonPath = `${startDir}/packages/@gateway/${folder}/package.json`;
+        if (existsSync(gatewayPackageJsonPath)) {
+          try {
+            const gatewayContents = readFileSync(gatewayPackageJsonPath);
+            const parsed = gatewayConsumerPackageJsonContract.safeParse(
+              JSON.parse(gatewayContents),
+            );
+            if (parsed.success && parsed.data.name.startsWith('@')) {
+              return packageScopeFromNameTransformer({ rootPackageName: parsed.data.name });
+            }
+          } catch {
+            // Malformed JSON falls through to next gateway package or root name
+          }
+        }
+      }
+
       return packageScopeFromNameTransformer({ rootPackageName: workspaceRoot.data.name });
     }
   }

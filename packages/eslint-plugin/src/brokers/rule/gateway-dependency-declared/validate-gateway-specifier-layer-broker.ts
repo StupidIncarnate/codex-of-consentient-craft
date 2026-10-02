@@ -28,8 +28,10 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import { gatewayImportsTargetTransformer } from '../../../transformers/gateway-imports-target/gateway-imports-target-transformer';
 import { packageNameFromSpecifierTransformer } from '../../../transformers/package-name-from-specifier/package-name-from-specifier-transformer';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname } from '#gateway/node/path';
 import { findNearestPackageJsonLayerBroker } from './find-nearest-package-json-layer-broker';
+import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
 export const validateGatewaySpecifierLayerBroker = ({
   node,
@@ -57,7 +59,29 @@ export const validateGatewaySpecifierLayerBroker = ({
   if (!target) {
     const remainder = specifier.slice(gatewayLocationsStatics.importPrefix.length + 1);
     const [folder] = remainder.split('/');
-    const scope = packageScopeFromNameTransformer({ rootPackageName: packageJson.name });
+    const scope = ((): string => {
+      if (packageJson.name.startsWith('@')) {
+        return packageScopeFromNameTransformer({ rootPackageName: packageJson.name });
+      }
+
+      const packageDir = dirname(packageJsonPath);
+      for (const folderName of Object.values(gatewayLocationsStatics.folders)) {
+        const gatewayPackagePath = `${packageDir}/packages/@gateway/${folderName}/package.json`;
+        if (existsSync(gatewayPackagePath)) {
+          try {
+            const raw = readFileSync(gatewayPackagePath);
+            const parsed = gatewayConsumerPackageJsonContract.safeParse(JSON.parse(raw));
+            if (parsed.success && parsed.data.name.startsWith('@')) {
+              return packageScopeFromNameTransformer({ rootPackageName: parsed.data.name });
+            }
+          } catch {
+            // Fall through
+          }
+        }
+      }
+
+      return packageScopeFromNameTransformer({ rootPackageName: packageJson.name });
+    })();
 
     context.report({
       node,

@@ -28,6 +28,24 @@ describe('repoScopeResolveBroker', () => {
 
       expect(result).toBe('@dungeonmaster');
     });
+
+    it('VALID: {startDir: workspaces root with unscoped name, has gateway package} => returns scope from gateway package', () => {
+      const proxy = repoScopeResolveBrokerProxy();
+      const startDir = '/repo';
+      proxy.setupWorkspaceRoot({
+        dirPath: startDir,
+        packageJson: { name: 'acme-monorepo', workspaces: ['packages/*'] },
+      });
+      proxy.setupGatewayPackage({
+        dirPath: startDir,
+        folder: 'node',
+        packageJson: { name: '@acme/node' },
+      });
+
+      const result = repoScopeResolveBroker({ startDir });
+
+      expect(result).toBe('@acme');
+    });
   });
 
   describe('workspaces root found after walking up', () => {
