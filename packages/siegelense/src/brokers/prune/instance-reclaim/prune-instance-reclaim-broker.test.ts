@@ -1,3 +1,10 @@
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
+import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
+
 import { CitationGapStub } from '../../../contracts/citation-gap/citation-gap.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
@@ -318,7 +325,7 @@ describe('pruneInstanceReclaimBroker', () => {
       expect(proxy.getDeletedPaths()).toStrictEqual([`${EVIDENCE}/runs/run_1/step1.png`]);
     });
 
-    it('VALID: {--kind transcript with a log, a run transcript+return pair and a console buffer, all aged} => nothing selected, nothing unlinked, and the row is not tombstoned', async () => {
+    it('VALID: {--kind run with a log, a run transcript+return pair and a console buffer, all aged} => only the run files and buffer are unlinked, the log survives, and the row is not tombstoned', async () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
@@ -354,6 +361,15 @@ describe('pruneInstanceReclaimBroker', () => {
         dirPath: `${EVIDENCE}/runs/run_1`,
         entries: [],
       });
+      proxy.setupDeleteSucceeds({
+        filePath: `${EVIDENCE}/console.jsonl`,
+      });
+      proxy.setupDeleteSucceeds({
+        filePath: `${EVIDENCE}/runs/run_1.jsonl`,
+      });
+      proxy.setupDeleteSucceeds({
+        filePath: `${EVIDENCE}/runs/run_1.json`,
+      });
 
       const result = await pruneInstanceReclaimBroker({
         entry: RegistryEntryStub({
@@ -364,12 +380,185 @@ describe('pruneInstanceReclaimBroker', () => {
           bootedAtMs: NOW_MS - 120_000,
           lastBeatMs: null,
         }),
-        query: PruneQueryStub({ kind: 'transcript' }),
+        query: PruneQueryStub({ kind: 'run' }),
         olderThanMs: SEVEN_DAYS_MS,
         nowMs: NOW_MS,
       });
 
-      expect(result).toStrictEqual({ removal: null, refusal: null, gaps: [] });
+      expect(result).toStrictEqual({
+        removal: {
+          id: 'inst_9b2c0001',
+          kind: 'run',
+          freedBytes: 1344,
+          freedMB: 0,
+          tombstoned: false,
+        },
+        refusal: null,
+        gaps: [OPEN_ISSUE_GAP],
+      });
+      expect(proxy.getDeletedPaths()).toStrictEqual([
+        `${EVIDENCE}/console.jsonl`,
+        `${EVIDENCE}/runs/run_1.jsonl`,
+        `${EVIDENCE}/runs/run_1.json`,
+      ]);
+    });
+
+    it('VALID: {--kind log with a log, a run transcript+return pair and a console buffer, all aged} => only the log is unlinked, run files and buffer survive', async () => {
+      const proxy = pruneInstanceReclaimBrokerProxy();
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: EVIDENCE,
+      });
+      proxy.setupFile({
+        filePath: `${EVIDENCE}/api-server.log`,
+        sizeBytes: 512,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupFile({
+        filePath: `${EVIDENCE}/console.jsonl`,
+        sizeBytes: 256,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupDir({
+        dirPath: `${EVIDENCE}/runs`,
+        entries: ['run_1.jsonl', 'run_1.json', 'run_1'],
+      });
+      proxy.setupFile({
+        filePath: `${EVIDENCE}/runs/run_1.jsonl`,
+        sizeBytes: 1024,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupFile({
+        filePath: `${EVIDENCE}/runs/run_1.json`,
+        sizeBytes: 64,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupDir({
+        dirPath: `${EVIDENCE}/runs/run_1`,
+        entries: [],
+      });
+      proxy.setupDeleteSucceeds({
+        filePath: `${EVIDENCE}/api-server.log`,
+      });
+
+      const result = await pruneInstanceReclaimBroker({
+        entry: RegistryEntryStub({
+          id: INSTANCE_ID,
+          state: 'killed',
+          questId: null,
+          guildId: null,
+          bootedAtMs: NOW_MS - 120_000,
+          lastBeatMs: null,
+        }),
+        query: PruneQueryStub({ kind: 'log' }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
+      });
+
+      expect(result).toStrictEqual({
+        removal: {
+          id: 'inst_9b2c0001',
+          kind: 'log',
+          freedBytes: 512,
+          freedMB: 0,
+          tombstoned: false,
+        },
+        refusal: null,
+        gaps: [OPEN_ISSUE_GAP],
+      });
+      expect(proxy.getDeletedPaths()).toStrictEqual([`${EVIDENCE}/api-server.log`]);
+    });
+
+    it('VALID: {--kind run with a cited run} => refused naming the citation, and nothing is unlinked', async () => {
+      const proxy = pruneInstanceReclaimBrokerProxy();
+      const guild = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const guildDir = `${HOME}/guilds/${guild}`;
+      const quest = 'add-auth';
+      const questFolder = `${guildDir}/quests/${quest}`;
+      const questFile = `${questFolder}/quest.json`;
+      const worktree = '/repo/worktrees/add-auth-7bc217a1';
+      const plansDir = `${worktree}/.quest-plans`;
+      const guildEvidence = `${ROOT}/guilds/${guild}/instances/${INSTANCE_ID}`;
+
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: HOME,
+        rootPath: ROOT,
+        evidencePath: guildEvidence,
+      });
+      proxy.setupQuestFolder({
+        homeDir: HOME_DIR,
+        homePath: HOME,
+        guildPath: guildDir,
+        guildQuestsPath: `${guildDir}/quests`,
+        questFolderPath: questFolder,
+      });
+      proxy.setupQuestRecord({
+        filePath: questFile,
+        contents: JSON.stringify(
+          QuestStub({
+            id: QuestIdStub({ value: quest }),
+            status: 'in_progress',
+            worktreePath: worktree,
+            planningNotes: {
+              blightLedger: [],
+              operationPlans: [],
+              questNotes: [
+                QuestNoteStub({
+                  id: 'walked-auth',
+                  kind: 'walked',
+                  instanceId: SiegeInstanceIdStub({ value: String(INSTANCE_ID) }),
+                  runId: SiegeRunIdStub({ value: 'run_1' }),
+                }),
+              ],
+            },
+          }),
+        ),
+      });
+      proxy.setupPlansDir({ dirPath: plansDir, entries: [] });
+      proxy.setupDir({
+        dirPath: `${guildEvidence}/runs`,
+        entries: ['run_1.jsonl', 'run_1.json', 'run_1'],
+      });
+      proxy.setupFile({
+        filePath: `${guildEvidence}/runs/run_1.jsonl`,
+        sizeBytes: 1024,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupFile({
+        filePath: `${guildEvidence}/runs/run_1.json`,
+        sizeBytes: 64,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupDir({
+        dirPath: `${guildEvidence}/runs/run_1`,
+        entries: [],
+      });
+
+      const result = await pruneInstanceReclaimBroker({
+        entry: RegistryEntryStub({
+          id: INSTANCE_ID,
+          state: 'killed',
+          questId: QuestIdStub({ value: quest }),
+          guildId: GuildIdStub({ value: guild }),
+          bootedAtMs: NOW_MS - 120_000,
+          lastBeatMs: null,
+        }),
+        query: PruneQueryStub({ kind: 'run' }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
+      });
+
+      expect(result).toStrictEqual({
+        removal: null,
+        refusal: {
+          id: 'inst_9b2c0001',
+          why: `run_1 cited by a WALKED note on open quest add-auth (in_progress) in ${questFile}`,
+        },
+        gaps: [OPEN_ISSUE_GAP],
+      });
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
 

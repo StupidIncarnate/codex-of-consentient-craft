@@ -28,13 +28,10 @@ export const locationsPruneAssetPathsFindBroker = ({
 }): LocationsPruneAssetPathsFindResult => {
   const buffers = locationsBufferPathsFindBroker({ evidencePath });
 
-  const names = [
+  const logNames = [
     locationsStatics.siegelense.apiLog,
     locationsStatics.siegelense.webLog,
     locationsStatics.siegelense.driverLog,
-    locationsStatics.siegelense.heartbeat,
-    locationsStatics.siegelense.bootFailure,
-    locationsStatics.siegelense.shutdownReason,
   ];
 
   return locationsPruneAssetPathsFindResultContract.parse({
@@ -42,9 +39,8 @@ export const locationsPruneAssetPathsFindBroker = ({
     // Where `playwrightSessionAdapter`'s `recordVideo.dir` writes — `--kind video` has to list this
     // directory to have anything to match at all.
     videoDir: join(evidencePath, evidenceFileStatics.naming.videoDir),
-    // The process's own record of what it did — the two server logs, the driver log, and the three
-    // small state files a post-mortem reads for WHY an instance stopped.
-    logs: names.map((name) => join(evidencePath, name)),
+    // The process's own record of what it did — the two server logs and the driver log.
+    logs: logNames.map((name) => join(evidencePath, name)),
     // The three instance-level capture buffers. They span every run rather than one, which is why
     // they sit beside the logs here rather than under `runs/`.
     transcripts: [buffers.console, buffers.network, buffers.websocket],

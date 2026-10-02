@@ -10,12 +10,12 @@ describe('pruneAssetClassifyTransformer', () => {
       expect(pruneAssetClassifyTransformer({ fileName: 'walk.webm' })).toBe('video');
     });
 
-    it('VALID: {fileName: "run_2.jsonl"} => returns log, not transcript — a run reading is never a Claude-style session transcript', () => {
-      expect(pruneAssetClassifyTransformer({ fileName: 'run_2.jsonl' })).toBe('log');
+    it('VALID: {fileName: "run_2.jsonl"} => returns run — a run transcript is classified as run alongside stored readings and capture buffers', () => {
+      expect(pruneAssetClassifyTransformer({ fileName: 'run_2.jsonl' })).toBe('run');
     });
 
     it('VALID: {fileName: "run_2.json"} => the stored return pairs with it under the same kind, so a kind selector never splits a run in half', () => {
-      expect(pruneAssetClassifyTransformer({ fileName: 'run_2.json' })).toBe('log');
+      expect(pruneAssetClassifyTransformer({ fileName: 'run_2.json' })).toBe('run');
     });
   });
 

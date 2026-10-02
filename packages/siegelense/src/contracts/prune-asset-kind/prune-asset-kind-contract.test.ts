@@ -18,7 +18,7 @@ describe('pruneAssetKindContract', () => {
 
   describe('the closed set', () => {
     it('VALID: {options} => video first, because it is the one a caller reclaiming space reaches for', () => {
-      expect(pruneAssetKindContract.options).toStrictEqual(['video', 'shot', 'transcript', 'log']);
+      expect(pruneAssetKindContract.options).toStrictEqual(['video', 'shot', 'log', 'run']);
     });
   });
 
