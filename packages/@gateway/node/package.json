@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Gateway package: everything the Node runtime provides, modules and globals alike",
   "sideEffects": false,
+  "engines": {
+    "node": ">=22.16.0"
+  },
   "imports": {
     "#gateway/npm/*": "@dungeonmaster/npm/*",
     "#gateway/node/*": "@dungeonmaster/node/*",
