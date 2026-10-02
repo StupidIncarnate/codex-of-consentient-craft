@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Runs `dungeonmaster siegelense cleanup --json` from the quest's repo root and classifies
+ * PURPOSE: Runs `dungeonmaster siegelense cleanup --json` from the checkout the quest's work lives in and classifies
  * what it reaped, released and aged. Spawns the CLI rather than importing
  * `@dungeonmaster/siegelense` directly — the orchestrator cannot depend on that package without
  * closing the cycle `orchestrator → siegelense → cli → orchestrator` (`@dungeonmaster/siegelense`
@@ -29,6 +29,7 @@
  */
 
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
+import { packageBinResolveBroker } from '@dungeonmaster/shared/brokers';
 import { getEnv } from '#gateway/node/process';
 
 import { cleanupCliAnswerContract } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer-contract';
@@ -36,8 +37,7 @@ import { stepHandlerResultContract } from '../../../contracts/step-handler-resul
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
 import { cleanupOutcomeClassifyTransformer } from '../../../transformers/cleanup-outcome-classify/cleanup-outcome-classify-transformer';
-import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
-import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 const CLI_SUCCESS_EXIT_CODE = 0;
@@ -53,13 +53,18 @@ export const stepHandlerCleanupBroker = async ({
   workItemId: WorkItem['id'];
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {
-  const repoRoot = await questRepoRootBroker({ questId });
-  const cwd = repoRoot;
+  const resolution = await questCwdResolveBroker({ questId });
+  if (resolution.kind === 'missing-worktree') {
+    throw new Error(
+      `Cannot run cleanup for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
+    );
+  }
+  const { cwd } = resolution;
 
   const cliOverride = getEnv('DUNGEONMASTER_CLI_PATH');
   const cli =
     cliOverride === undefined
-      ? await dungeonmasterBinResolveBroker({ binName: cleanupCliCallStatics.call.bin, cwd })
+      ? await packageBinResolveBroker({ binName: cleanupCliCallStatics.call.bin, repoRoot: cwd })
       : { command: cliOverride, leadingArgs: [] };
 
   const { exitCode, output } = await streamLines({

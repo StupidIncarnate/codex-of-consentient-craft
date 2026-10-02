@@ -3,6 +3,8 @@ import { fileScannerBrokerProxy } from './file-scanner-broker.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 
+const DEFAULT_ROOT = '/default/cwd';
+
 describe('fileScannerBroker', () => {
   describe('no filters', () => {
     it('VALID: {} => returns all matched files with metadata', async () => {
@@ -23,7 +25,7 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -56,7 +58,7 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -84,7 +86,7 @@ const privateFunction = () => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -115,7 +117,7 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ glob: glob! });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, glob: glob! });
 
       expect(results).toStrictEqual([
         {
@@ -155,7 +157,7 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ grep: grep! });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, grep: grep! });
 
       expect(results).toStrictEqual([
         {
@@ -190,7 +192,7 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ grep: grep! });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, grep: grep! });
 
       expect(results).toStrictEqual([]);
     });
@@ -237,7 +239,11 @@ describe('rule', () => {
         pattern,
       });
 
-      const results = await fileScannerBroker({ grep: grep!, strict: strict! });
+      const results = await fileScannerBroker({
+        rootPath: DEFAULT_ROOT,
+        grep: grep!,
+        strict: strict!,
+      });
 
       expect(results).toStrictEqual([
         {
@@ -311,7 +317,7 @@ describe('rule', () => {
         pattern,
       });
 
-      const results = await fileScannerBroker({ grep: grep! });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, grep: grep! });
 
       expect(results).toStrictEqual([]);
     });
@@ -329,7 +335,11 @@ line5`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ grep: grep!, context: context! });
+      const results = await fileScannerBroker({
+        rootPath: DEFAULT_ROOT,
+        grep: grep!,
+        context: context!,
+      });
 
       expect(results).toStrictEqual([
         {
@@ -379,7 +389,7 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`;
         ],
       });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       const implResult = results.filter((r) => r.path === '/project/src/brokers/user-broker.ts');
 
@@ -432,7 +442,7 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`;
         ],
       });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       const implResult = results.filter((r) => r.path === '/project/src/brokers/data-broker.ts');
 
@@ -466,7 +476,7 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -494,7 +504,7 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [], pattern });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([]);
     });
@@ -522,7 +532,7 @@ export const orphanGuard = (): boolean => true;`;
         pattern,
       });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -592,7 +602,7 @@ export const orphanGuard = (): boolean => true;`;
         pattern,
       });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -627,7 +637,7 @@ export const orphanGuard = (): boolean => true;`;
         pattern,
       });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([]);
     });
@@ -650,7 +660,7 @@ export const orphanGuard = (): boolean => true;`;
         pattern,
       });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results).toStrictEqual([
         {
@@ -691,7 +701,7 @@ export const orphanGuard = (): boolean => true;`;
         pattern,
       });
 
-      const results = await fileScannerBroker({ glob: glob!, grep: grep! });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, glob: glob!, grep: grep! });
 
       expect(results).toStrictEqual([
         {
@@ -725,7 +735,7 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ grep: grep! });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, grep: grep! });
 
       expect(results).toStrictEqual([
         {
@@ -759,7 +769,11 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ grep: grep!, strict: strict! });
+      const results = await fileScannerBroker({
+        rootPath: DEFAULT_ROOT,
+        grep: grep!,
+        strict: strict!,
+      });
 
       expect(results).toStrictEqual([]);
     });
@@ -781,7 +795,7 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern, ignorePatterns });
 
-      const results = await fileScannerBroker({ ignorePatterns });
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT, ignorePatterns });
 
       expect(results.map((r) => r.path)).toStrictEqual(['/project/src/guards/sentinel-guard.ts']);
     });
@@ -796,7 +810,11 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern, ignorePatterns });
 
-      const results = await fileScannerBroker({ glob: glob!, ignorePatterns });
+      const results = await fileScannerBroker({
+        rootPath: DEFAULT_ROOT,
+        glob: glob!,
+        ignorePatterns,
+      });
 
       expect(results.map((r) => r.path)).toStrictEqual([
         '/project/tmp/src/guards/sentinel-guard.ts',
@@ -811,7 +829,7 @@ export const orphanGuard = (): boolean => true;`;
 
       proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({});
+      const results = await fileScannerBroker({ rootPath: DEFAULT_ROOT });
 
       expect(results.map((r) => r.path)).toStrictEqual(['/project/src/guards/sentinel-guard.ts']);
     });
@@ -827,7 +845,7 @@ export const orphanGuard = (): boolean => true;`;
         error: FsErrorStub({ code: 'EACCES', path: '/default/cwd', syscall: 'scandir' }),
       });
 
-      await expect(fileScannerBroker({})).rejects.toThrow(
+      await expect(fileScannerBroker({ rootPath: DEFAULT_ROOT })).rejects.toThrow(
         /^glob failed for pattern "\/default\/cwd\/\*\*\/\*": EACCES: scandir '\/default\/cwd'$/u,
       );
     });

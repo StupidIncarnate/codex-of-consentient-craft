@@ -9,7 +9,9 @@
 
 import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 
+import { cwd } from '#gateway/node/process';
+
 import { orchestrationModeGetBroker } from '../../../brokers/orchestration-mode/get/orchestration-mode-get-broker';
 
 export const OrchestrationModeGetResponder = async (): Promise<OrchestrationMode> =>
-  orchestrationModeGetBroker();
+  orchestrationModeGetBroker({ startDir: cwd() });

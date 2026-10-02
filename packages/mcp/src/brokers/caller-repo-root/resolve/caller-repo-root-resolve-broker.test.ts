@@ -9,11 +9,11 @@ describe('callerRepoRootResolveBroker', () => {
     it('VALID: {meta carries a hook caller in a worktree} => resolves from the WORKTREE', async () => {
       const proxy = callerRepoRootResolveBrokerProxy();
       const callerCwd = '/repo/codex-of-consentient-craft/worktrees/siegelense';
-      proxy.setupServerCwd({ cwd: SERVER_CWD });
       proxy.setupRepoRootAtStart({ startPath: callerCwd });
 
       const result = await callerRepoRootResolveBroker({
         meta: { 'dungeonmaster/caller': { cwd: callerCwd, sessionId: SESSION_ID } },
+        serverCwd: SERVER_CWD,
       });
 
       expect(result).toStrictEqual({
@@ -25,11 +25,11 @@ describe('callerRepoRootResolveBroker', () => {
 
     it('VALID: {hook caller cwd with no .dungeonmaster.json above it} => returns that cwd with configFound: false', async () => {
       const proxy = callerRepoRootResolveBrokerProxy();
-      proxy.setupServerCwd({ cwd: SERVER_CWD });
       proxy.setupRepoRootNotFound({ startPath: '/tmp/scratch' });
 
       const result = await callerRepoRootResolveBroker({
         meta: { 'dungeonmaster/caller': { cwd: '/tmp/scratch', sessionId: SESSION_ID } },
+        serverCwd: SERVER_CWD,
       });
 
       expect(result).toStrictEqual({
@@ -43,10 +43,12 @@ describe('callerRepoRootResolveBroker', () => {
   describe('falls back to the server cwd, loudly labeled', () => {
     it('EMPTY: {meta is undefined} => resolves from the SERVER cwd, source: server-cwd-fallback', async () => {
       const proxy = callerRepoRootResolveBrokerProxy();
-      proxy.setupServerCwd({ cwd: SERVER_CWD });
       proxy.setupRepoRootAtStart({ startPath: SERVER_CWD });
 
-      const result = await callerRepoRootResolveBroker({ meta: undefined });
+      const result = await callerRepoRootResolveBroker({
+        meta: undefined,
+        serverCwd: SERVER_CWD,
+      });
 
       expect(result).toStrictEqual({
         repoRoot: SERVER_CWD,
@@ -57,11 +59,11 @@ describe('callerRepoRootResolveBroker', () => {
 
     it('EMPTY: {meta carries no caller context} => resolves from the SERVER cwd, source: server-cwd-fallback', async () => {
       const proxy = callerRepoRootResolveBrokerProxy();
-      proxy.setupServerCwd({ cwd: SERVER_CWD });
       proxy.setupRepoRootAtStart({ startPath: SERVER_CWD });
 
       const result = await callerRepoRootResolveBroker({
         meta: { 'claudecode/toolUseId': 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts' },
+        serverCwd: SERVER_CWD,
       });
 
       expect(result).toStrictEqual({
@@ -75,10 +77,12 @@ describe('callerRepoRootResolveBroker', () => {
   describe('no .dungeonmaster.json found anywhere up the tree', () => {
     it('EDGE: {meta undefined, no config above the server cwd} => falls back to the LITERAL server cwd, configFound: false', async () => {
       const proxy = callerRepoRootResolveBrokerProxy();
-      proxy.setupServerCwd({ cwd: SERVER_CWD });
       proxy.setupRepoRootNotFound({ startPath: SERVER_CWD });
 
-      const result = await callerRepoRootResolveBroker({ meta: undefined });
+      const result = await callerRepoRootResolveBroker({
+        meta: undefined,
+        serverCwd: SERVER_CWD,
+      });
 
       expect(result).toStrictEqual({
         repoRoot: SERVER_CWD,

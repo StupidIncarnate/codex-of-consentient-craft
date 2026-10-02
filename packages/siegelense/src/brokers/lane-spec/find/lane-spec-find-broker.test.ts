@@ -21,7 +21,7 @@ describe('laneSpecFindBroker', () => {
         ],
       });
 
-      const result = await laneSpecFindBroker({ specName });
+      const result = await laneSpecFindBroker({ specName, repoRoot: '/default/cwd' });
 
       expect(result.browser).toBe(false);
     });
@@ -41,7 +41,7 @@ describe('laneSpecFindBroker', () => {
         ],
       });
 
-      const result = await laneSpecFindBroker({ specName });
+      const result = await laneSpecFindBroker({ specName, repoRoot: '/default/cwd' });
 
       expect(result.browser).toBe(true);
     });
@@ -66,7 +66,7 @@ describe('laneSpecFindBroker', () => {
         ],
       });
 
-      const result = await laneSpecFindBroker({ specName });
+      const result = await laneSpecFindBroker({ specName, repoRoot: '/default/cwd' });
 
       expect(
         result.processes.map((process) => ({
@@ -104,7 +104,7 @@ describe('laneSpecFindBroker', () => {
       const specName = 'api';
       proxy.setupE2eAbsent();
 
-      const caughtError = (await laneSpecFindBroker({ specName }).catch(
+      const caughtError = (await laneSpecFindBroker({ specName, repoRoot: '/default/cwd' }).catch(
         (error: unknown) => error,
       )) as E2eNotConfiguredError;
 
@@ -123,7 +123,9 @@ describe('laneSpecFindBroker', () => {
       const specName = 'api';
       proxy.setupDevServerAbsent();
 
-      await expect(laneSpecFindBroker({ specName })).rejects.toThrow(E2eNotConfiguredError);
+      await expect(laneSpecFindBroker({ specName, repoRoot: '/default/cwd' })).rejects.toThrow(
+        E2eNotConfiguredError,
+      );
     });
   });
 
@@ -135,7 +137,9 @@ describe('laneSpecFindBroker', () => {
         processes: [DevServerE2eProcessStub(e2eProcessPlaceholderStatics.process)],
       });
 
-      await expect(laneSpecFindBroker({ specName })).rejects.toThrow(E2eNotConfiguredError);
+      await expect(laneSpecFindBroker({ specName, repoRoot: '/default/cwd' })).rejects.toThrow(
+        E2eNotConfiguredError,
+      );
     });
   });
 
@@ -144,7 +148,7 @@ describe('laneSpecFindBroker', () => {
       laneSpecFindBrokerProxy();
       const specName = 'nightly';
 
-      await expect(laneSpecFindBroker({ specName })).rejects.toThrow(
+      await expect(laneSpecFindBroker({ specName, repoRoot: '/default/cwd' })).rejects.toThrow(
         /^Unknown lane spec "nightly"\. Known specs: stack, api$/u,
       );
     });

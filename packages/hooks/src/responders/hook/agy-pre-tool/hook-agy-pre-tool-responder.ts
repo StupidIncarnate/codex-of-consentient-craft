@@ -16,6 +16,7 @@ import { stripWardPipeCommandTransformer } from '../../../transformers/strip-war
 import { gitDestructiveBlockStatics } from '../../../statics/git-destructive-block/git-destructive-block-statics';
 import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
 import { violationMessageStatics } from '../../../statics/violation-message/violation-message-statics';
+import { cwd } from '#gateway/node/process';
 import { violationsCheckNewBroker } from '../../../brokers/violations/check-new/violations-check-new-broker';
 import { writeToolInputContract } from '../../../contracts/write-tool-input/write-tool-input-contract';
 import { editToolInputContract } from '../../../contracts/edit-tool-input/edit-tool-input-contract';
@@ -102,12 +103,9 @@ export const HookAgyPreToolResponder = async ({
     });
 
     const firstWorkspace = workspacePaths?.[0];
-    const cwd = firstWorkspace ? firstWorkspace : undefined;
+    const workingDir = firstWorkspace ? firstWorkspace : cwd();
 
-    const result = await violationsCheckNewBroker({
-      toolInput,
-      ...(cwd === undefined ? {} : { cwd }),
-    });
+    const result = await violationsCheckNewBroker({ toolInput, cwd: workingDir });
 
     if (result.hasNewViolations) {
       return agyPreToolDecisionContract.parse({
@@ -138,12 +136,9 @@ export const HookAgyPreToolResponder = async ({
     });
 
     const firstWorkspace = workspacePaths?.[0];
-    const cwd = firstWorkspace ? firstWorkspace : undefined;
+    const workingDir = firstWorkspace ? firstWorkspace : cwd();
 
-    const result = await violationsCheckNewBroker({
-      toolInput,
-      ...(cwd === undefined ? {} : { cwd }),
-    });
+    const result = await violationsCheckNewBroker({ toolInput, cwd: workingDir });
 
     if (result.hasNewViolations) {
       return agyPreToolDecisionContract.parse({

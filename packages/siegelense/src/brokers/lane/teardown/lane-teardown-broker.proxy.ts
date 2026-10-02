@@ -19,11 +19,13 @@ type FileDescriptor = number;
 // so a test's `session.evidencePath` has to sit under this exact `rootPath` for the mapping to mean
 // anything — these two getters are what a test reads to build a LaneSessionStub that matches.
 const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
+const REPO_ROOT = '/repo';
 const REPO_LOCAL_EVIDENCE_PATH =
   '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1';
 
 export const laneTeardownBrokerProxy = (): {
   getEvidencePath: () => string;
+  getRepoRoot: () => string;
   getExpectedRepoLocalEvidencePath: () => string;
   setupLiveGroup: (params: { pgid: ProcessGroupId }) => void;
   setupAlreadyGoneGroup: (params: { pgid: ProcessGroupId }) => void;
@@ -64,6 +66,7 @@ export const laneTeardownBrokerProxy = (): {
 
   return {
     getEvidencePath: (): string => EVIDENCE_PATH,
+    getRepoRoot: (): string => REPO_ROOT,
     getExpectedRepoLocalEvidencePath: (): string => REPO_LOCAL_EVIDENCE_PATH,
 
     setupLiveGroup: ({ pgid }: { pgid: ProcessGroupId }): void => {
@@ -102,7 +105,7 @@ export const laneTeardownBrokerProxy = (): {
 
     setupEvidenceResolved: (): void => {
       evidenceProxy.setupLinkResolvesToRoot({
-        cwdPath: '/repo',
+        repoRoot: REPO_ROOT,
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',

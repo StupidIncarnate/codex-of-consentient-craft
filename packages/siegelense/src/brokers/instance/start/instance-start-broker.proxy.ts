@@ -3,13 +3,10 @@ import { randomUUID } from '#gateway/node/crypto';
 import { tmpdir } from '#gateway/node/os';
 import { dirname, join } from '#gateway/node/path';
 import { execPath } from '#gateway/node/process';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
-import { execPathProxy } from '#gateway/node/process/exec-path/exec-path.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -31,7 +28,7 @@ import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-bro
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
 import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
 import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/spawn-detached.proxy';
-import { cliPackageBinResolveBrokerProxy } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker.proxy';
+import { packageBinResolveBrokerProxy } from '@dungeonmaster/shared/brokers/package-bin/resolve/package-bin-resolve-broker.proxy';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -61,9 +58,12 @@ const BOOT_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/boot.lock`;
 // scope anywhere else in this file. `locationsStatics` itself is a plain object, never mocked.
 const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/${locationsStatics.repoRoot.dungeonmasterAssets}/${locationsStatics.repoRoot.siegelenseLink}`;
 const TMP_DIR_VALUE = '/tmp';
-// cliPackageBinResolveBroker resolves @dungeonmaster/cli's package root through a REAL
-// require.resolve() call (never mocked — see cliPackageBinResolveBrokerProxy's own comment).
-const CLI_BIN_RELATIVE_VALUE = './dist/bin/dungeonmaster.js';
+// The CLI as the repo root's own install lays it out — staged under CWD_PATH_VALUE only, so a
+// broker that resolved the bin from anywhere else (this process's own install) finds nothing staged.
+const CLI_PACKAGE_NAME_VALUE = '@dungeonmaster/cli';
+const CLI_MANIFEST_PATH_VALUE = `${CWD_PATH_VALUE}/node_modules/${CLI_PACKAGE_NAME_VALUE}/package.json`;
+const CLI_BIN_PATH_VALUE = `${CWD_PATH_VALUE}/node_modules/${CLI_PACKAGE_NAME_VALUE}/dist/bin/dungeonmaster.js`;
+const CLI_RAW_MANIFEST_VALUE = '{"bin":{"dungeonmaster":"./dist/bin/dungeonmaster.js"}}';
 const MINTED_UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
 const MINTED_INSTANCE_ID_VALUE = `inst_${MINTED_UUID_VALUE.split('-').join('')}`;
 // The minted instance's evidence directory when reserved with no owning quest or guild
@@ -141,6 +141,7 @@ export const instanceStartBrokerProxy = (): {
   getBootLockReleasedPaths: () => unknown[];
   getLastRegistryWriteContent: () => unknown;
   getStderrMessages: () => readonly string[];
+  getDriverSpawnCountFor: (params: { instanceId: InstanceId }) => number;
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
   setupClock: (params: { nowMs: number }) => void;
@@ -185,7 +186,6 @@ export const instanceStartBrokerProxy = (): {
   // valid LaneSpec — a later stageLaneSpec() call overrides that same address.
   const laneSpecFindProxy = laneSpecFindBrokerProxy();
   laneSpecHashBrokerProxy();
-  cwdResolveBrokerProxy();
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — this
   // broker's own five joins (driver log, throwaway home, api log, web log) and every join a
   // composed child proxy resolves transitively all share it.
@@ -212,16 +212,19 @@ export const instanceStartBrokerProxy = (): {
 
   const openFdProxy = openForAppendSyncProxy();
   const spawnProxy = spawnDetachedProxy();
-  const cliBinProxy = cliPackageBinResolveBrokerProxy();
-  cliBinProxy.manifestDeclaresBin({ binRelative: CLI_BIN_RELATIVE_VALUE });
+  const cliBinProxy = packageBinResolveBrokerProxy();
+  cliBinProxy.setupManifestInRunRoot({
+    packageName: CLI_PACKAGE_NAME_VALUE,
+    repoRoot: CWD_PATH_VALUE,
+    manifestPath: CLI_MANIFEST_PATH_VALUE,
+    rawManifest: CLI_RAW_MANIFEST_VALUE,
+  });
   // #gateway/node/os is a raw passthrough of the Node 'os' module (no per-function wrapper, so no
   // gateway proxy to compose); `tmpdir` takes no argument, so the empty address is the honest one.
   const tmpdirHandle: MockHandle = registerMock({ fn: tmpdir });
   const pollProxy = instanceStartBootPollLayerBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
-  cwdProxy(); // gateway proxy import — inert, satisfies enforce-proxy-child-creation
   const stderrRecorder = stderrProxy();
-  execPathProxy();
   envSnapshotProxy();
 
   // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
@@ -294,10 +297,10 @@ export const instanceStartBrokerProxy = (): {
     // OWN failure (a seed) runs the catch block's bootLockReleaseBroker call for the first time in
     // a happy-boot test finds no lock left to release, exactly as a real released lock reads.
     bootLockReleaseProxy.setupNoLock();
-    // The link check, the repo-root config lookup and the cwd every broker reads, all off one
-    // addressed cwd and home.
+    // The link check and the repo-root config lookup every broker reads, all off one addressed
+    // repo root and home.
     repoLinkProxy.setupLinkResolvesToRoot({
-      cwdPath: CWD_PATH_VALUE,
+      repoRoot: CWD_PATH_VALUE,
       linkPath: LINK_PATH_FILE,
       homeDir: HOME_DIR_VALUE,
       homePath: HOME_PATH,
@@ -324,15 +327,11 @@ export const instanceStartBrokerProxy = (): {
       nowMs: 1,
     });
 
-    // Must mirror the real cliPackageBinResolveBroker's own require.resolve('@dungeonmaster/cli') +
-    // join(dirname(...), ...) exactly. dirname is mocked by shared proxies composed above; the one
-    // path this scenario walks is staged as an exact-address real passthrough, which serves this
-    // call and the adapter's.
-    const cliEntryPath = require.resolve('@dungeonmaster/cli');
+    // packageBinResolveBroker takes dirname() of the manifest it resolved; the one path this
+    // scenario walks is staged as an exact-address real passthrough.
     registerMock({ fn: dirname })
-      .calledWith([cliEntryPath])
+      .calledWith([CLI_MANIFEST_PATH_VALUE])
       .implement(requireActual<{ dirname: typeof dirname }>({ module: 'path' }).dirname);
-    const expectedDriverBinPath = join(dirname(cliEntryPath), CLI_BIN_RELATIVE_VALUE);
 
     const driverLogPath = `${evidencePath}/driver.log`;
     openFdProxy.returns({ path: driverLogPath, fd: 17 });
@@ -340,15 +339,14 @@ export const instanceStartBrokerProxy = (): {
     spawnProxy.setupSuccess({
       command: execPath,
       args: [
-        expectedDriverBinPath,
+        CLI_BIN_PATH_VALUE,
         'siegelense',
         'driver',
         '--instance',
         instanceId,
         ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
       ],
-      // The repo root cwdResolveBroker walks to: the `.dungeonmaster.json` staged on `access` sits
-      // directly in the staged cwd.
+      // The driver runs in the repo root the caller named, whatever this process's own cwd is.
       cwd: CWD_PATH_VALUE,
       pid: 4821,
     });
@@ -497,6 +495,15 @@ export const instanceStartBrokerProxy = (): {
     getStderrMessages: (): readonly string[] =>
       stderrRecorder.getWrites().map((chunk) => String(chunk)),
 
+    // Counts the spawns that match the FULL address: node as the run root resolved it, the repo
+    // root's own CLI bin script, this instance's driver argv, and `cwd` = the repo root.
+    getDriverSpawnCountFor: ({ instanceId }: { instanceId: InstanceId }): number =>
+      spawnProxy.getSpawnedOptions({
+        command: execPath,
+        args: [CLI_BIN_PATH_VALUE, 'siegelense', 'driver', '--instance', instanceId],
+        cwd: CWD_PATH_VALUE,
+      }).length,
+
     mintInstanceId: (): InstanceId => InstanceIdStub({ value: MINTED_INSTANCE_ID_VALUE }),
 
     stageLaneSpec: ({ processes }: { processes: readonly DevServerE2eProcess[] }): void => {
@@ -568,8 +575,6 @@ export const instanceStartBrokerProxy = (): {
     // the ONE branch that throws immediately, with no retry and no Date.now() sequencing to stage.
     stageBootLockAcquireFailsWithReadError: ({ registry }: { registry: Registry }): void => {
       stageRegistryAndLocks({ registry });
-      // No link lookup is reached, but reserve's git-branch lookup reads cwd().
-      repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
       // Same reasoning as stageBoot's own evidence-dir stage: reserve creates the instance's
       // evidence directory before boot-lock-acquire ever runs. This scenario takes no
       // evidencePath param (it never reaches a boot attempt), so it addresses the one fixed

@@ -10,12 +10,14 @@ const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
 const WEB_SPEC = 'stack';
 const HEADLESS_SPEC = 'api';
 const BEAT_MS = 1_757_808_000_000;
+// The root laneSpecFindBrokerProxy stages its config under.
+const REPO_ROOT = '/default/cwd';
 
 // The digests are REAL: laneSpecHashBrokerProxy stages nothing, so each spec's profile directory is
 // its genuine content hash — which is what makes "a changed spec reads a different directory" a
 // property of the tree rather than of a stub.
 const specHashFor = async ({ specName }: { specName: string }): Promise<string> =>
-  laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName }) });
+  laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName, repoRoot: REPO_ROOT }) });
 
 const profilesPathFor = async ({ specName }: { specName: string }): Promise<string> =>
   `${ROOT_PATH_VALUE}/profiles/${await specHashFor({ specName })}`;
@@ -27,7 +29,7 @@ describe('profileReadBroker', () => {
       const profilesPath = await profilesPathFor({ specName: HEADLESS_SPEC });
       proxy.setupProfileTree({ profilesPath, sampleFileNames: [], bootFileNames: [] });
 
-      const result = await profileReadBroker({ specName: HEADLESS_SPEC });
+      const result = await profileReadBroker({ specName: HEADLESS_SPEC, repoRoot: REPO_ROOT });
 
       expect(result).toStrictEqual({
         specName: 'api',
@@ -63,7 +65,7 @@ describe('profileReadBroker', () => {
       const profilesPath = await profilesPathFor({ specName: WEB_SPEC });
       proxy.setupProfileTree({ profilesPath, sampleFileNames: [], bootFileNames: [] });
 
-      const result = await profileReadBroker({ specName: WEB_SPEC });
+      const result = await profileReadBroker({ specName: WEB_SPEC, repoRoot: REPO_ROOT });
 
       expect(result).toStrictEqual({
         specName: 'stack',
@@ -157,7 +159,7 @@ describe('profileReadBroker', () => {
         }),
       });
 
-      const result = await profileReadBroker({ specName: WEB_SPEC });
+      const result = await profileReadBroker({ specName: WEB_SPEC, repoRoot: REPO_ROOT });
 
       expect(result).toStrictEqual({
         specName: 'stack',
@@ -201,7 +203,7 @@ describe('profileReadBroker', () => {
         json: '{"instanceId": "not-an-instance-id"}',
       });
 
-      const result = await profileReadBroker({ specName: HEADLESS_SPEC });
+      const result = await profileReadBroker({ specName: HEADLESS_SPEC, repoRoot: REPO_ROOT });
 
       expect(result).toStrictEqual({
         specName: 'api',
@@ -240,7 +242,7 @@ describe('profileReadBroker', () => {
         }),
       });
 
-      const result = await profileReadBroker({ specName: HEADLESS_SPEC });
+      const result = await profileReadBroker({ specName: HEADLESS_SPEC, repoRoot: REPO_ROOT });
 
       expect(result).toStrictEqual({
         specName: 'api',

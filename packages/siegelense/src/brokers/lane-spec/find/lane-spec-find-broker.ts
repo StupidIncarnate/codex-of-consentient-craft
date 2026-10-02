@@ -10,11 +10,10 @@
  * that has opted in yet.
  *
  * USAGE:
- * await laneSpecFindBroker({ specName: 'api' });
+ * await laneSpecFindBroker({ specName: 'api', repoRoot });
  * // Resolves the browserless LaneSpec built from this repo's own devServer.e2e.processes
  */
 
-import { cwd } from '#gateway/node/process';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { configResolveBroker, e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
 
@@ -24,7 +23,13 @@ import { laneSpecConventionStatics } from '../../../statics/lane-spec-convention
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-not-configured-error';
 
-export const laneSpecFindBroker = async ({ specName }: { specName: string }): Promise<LaneSpec> => {
+export const laneSpecFindBroker = async ({
+  specName,
+  repoRoot,
+}: {
+  specName: string;
+  repoRoot: string;
+}): Promise<LaneSpec> => {
   const browser =
     specName === laneSpecConventionStatics.browsered
       ? true
@@ -39,11 +44,11 @@ export const laneSpecFindBroker = async ({ specName }: { specName: string }): Pr
   }
 
   // The config-find chain dirname()s startPath on its first iteration — it expects a FILE, so hand
-  // it the repo-root config file itself (<cwd>/.dungeonmaster.json), NOT the bare cwd directory: a
-  // bare directory dirname()s to cwd's PARENT, walking above the repo root and missing the config.
+  // it the repo-root config file itself (<repoRoot>/.dungeonmaster.json), NOT the bare directory: a
+  // bare directory dirname()s to its PARENT, walking above the repo root and missing the config.
   // Built by template concatenation, never `join`: joining is unneeded when only one segment is
   // ever appended onto a value already known to be a directory.
-  const startPath = `${cwd()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
+  const startPath = `${repoRoot}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
   const config = await configResolveBroker({ filePath: startPath });
   const configuredProcesses = config.devServer?.e2e?.processes;
 

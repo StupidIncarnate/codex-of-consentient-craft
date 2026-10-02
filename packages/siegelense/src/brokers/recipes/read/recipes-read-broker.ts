@@ -9,7 +9,7 @@
  * same path free.
  *
  * USAGE:
- * const listing = await recipesReadBroker();
+ * const listing = await recipesReadBroker({ repoRoot });
  * // Returns RecipesListing — [] means the package declares no recipes yet, not an installation
  * // problem
  */
@@ -24,8 +24,12 @@ import {
 } from '../../../contracts/recipes-listing/recipes-listing-contract';
 import { RecipesListingExportInvalidError } from '../../../errors/recipes-listing-export-invalid/recipes-listing-export-invalid-error';
 
-export const recipesReadBroker = async (): Promise<RecipesListing> => {
-  const entryPath = await recipesLocateBroker();
+export const recipesReadBroker = async ({
+  repoRoot,
+}: {
+  repoRoot: string;
+}): Promise<RecipesListing> => {
+  const entryPath = recipesLocateBroker({ repoRoot });
   const recipesModule = await dynamicImport({ path: entryPath });
 
   const listingExportName = recipesConventionStatics.exports.listing;

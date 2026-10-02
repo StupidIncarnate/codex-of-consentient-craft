@@ -44,6 +44,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe(
@@ -81,7 +82,7 @@ describe('servedBuildStaleReadBroker', () => {
         modifiedAtMs: BUILT_AT_MS + 60_000,
       });
 
-      await servedBuildStaleReadBroker({ specName: 'stack' });
+      await servedBuildStaleReadBroker({ specName: 'stack', repoRoot: proxy.repoRoot() });
 
       expect(proxy.getCheckIgnoreArgs()).toStrictEqual([
         'check-ignore',
@@ -123,6 +124,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe(
@@ -160,6 +162,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe('');
@@ -188,6 +191,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe('');
@@ -199,7 +203,10 @@ describe('servedBuildStaleReadBroker', () => {
       const proxy = servedBuildStaleReadBrokerProxy();
       proxy.setupLane({ processes: [DevServerE2eProcessStub()], buildCommand: 'npm run build' });
 
-      const result = await servedBuildStaleReadBroker({ specName: 'api' });
+      const result = await servedBuildStaleReadBroker({
+        specName: 'api',
+        repoRoot: proxy.repoRoot(),
+      });
 
       expect({ result, checkIgnoreArgs: proxy.getCheckIgnoreArgs() }).toStrictEqual({
         result: '',
@@ -225,6 +232,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe('');
@@ -248,6 +256,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe('');
@@ -269,7 +278,10 @@ describe('servedBuildStaleReadBroker', () => {
       });
       proxy.setupGitNotInstalled();
 
-      const result = await servedBuildStaleReadBroker({ specName: 'stack' });
+      const result = await servedBuildStaleReadBroker({
+        specName: 'stack',
+        repoRoot: proxy.repoRoot(),
+      });
 
       expect(result).toBe('');
     });
@@ -293,6 +305,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe('');
@@ -318,6 +331,7 @@ describe('servedBuildStaleReadBroker', () => {
 
       const result = await servedBuildStaleReadBroker({
         specName: 'stack',
+        repoRoot: proxy.repoRoot(),
       });
 
       expect(result).toBe('');

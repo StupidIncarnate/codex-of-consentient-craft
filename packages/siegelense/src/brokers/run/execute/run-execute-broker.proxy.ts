@@ -33,21 +33,20 @@ type BufferKind = 'console' | 'network' | 'websocket';
 
 const EVIDENCE_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1';
 
-// `CWD_PATH_VALUE` is staged directly on `repoLinkProxy.setupCwd` below (the address
-// `locationsRepoLinkPathFindBroker`'s own `cwd()` call reads), so the repo-root walk is the ONLY
-// thing about that call this file ever addresses. This file stages `existsSync`/`realpath` for the
+// `REPO_ROOT_VALUE` is the `repoRoot` every lane this proxy builds carries, which `runExecuteBroker`
+// hands to `locationsRepoLinkPathFindBroker`. This file stages `existsSync`/`realpath` for the
 // link check directly (below) rather than composing `locationsRepoLinkPathFindBrokerProxy`'s own
 // `setupLinkAbsent`/`setupLinkResolvesToRoot` scenario methods, the same convention
 // instance-kill-broker.proxy.ts uses for the identical broker — `runExecuteBroker` itself makes
 // several OTHER real `path.join` calls (locationsRunPathsFindBroker's three joins, run first),
 // resolved for real through `#gateway/node/path`'s own `join`, unrelated to this file's own staging
 // here.
-const CWD_PATH_VALUE = '/default/cwd';
-// A REAL `path.join(CWD_PATH_VALUE, '.dungeonmaster-assets', 'siegelense-assets')` — matches what
+const REPO_ROOT_VALUE = '/default/cwd';
+// A REAL `path.join(REPO_ROOT_VALUE, '.dungeonmaster-assets', 'siegelense-assets')` — matches what
 // the broker's own unstaged `join` call (via `#gateway/node/path`, staged by
 // locationsRepoLinkPathFindBrokerProxy's own sticky real-passthrough default) computes, so this
 // address is exactly what a real run would check.
-const LINK_PATH = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
+const LINK_PATH = `${REPO_ROOT_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 
 // `stageRepoLinkPresent` stages the home through `repoLinkProxy.setupHomeOnly` (forwarded from
 // locationsRootPathFindBrokerProxy) so `locationsRootPathFindBroker` resolves to
@@ -65,7 +64,7 @@ const SIEGELENSE_ROOT_VALUE = `${HOME_PATH_VALUE}/siegelense`;
 const HOME_ROOTED_EVIDENCE_PATH = `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`;
 const SEED_HOME_PATH = '/tmp/dm-siege-inst_seed';
 
-const REPO_LOCAL_EVIDENCE_PATH = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_2`;
+const REPO_LOCAL_EVIDENCE_PATH = `${REPO_ROOT_VALUE}/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_2`;
 
 export const runExecuteBrokerProxy = (): {
   evidencePath: () => string;
@@ -178,9 +177,9 @@ export const runExecuteBrokerProxy = (): {
   // `linkPresent: false` and the real `shotsDir` it was given, unchanged, unless it calls
   // `stageRepoLinkPresent` below.
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
-  // Unconditional: locationsRepoLinkPathFindBroker calls cwd() on every invocation and walks up
-  // from it to `.dungeonmaster.json`, which the absent-link scenario finds at CWD_PATH_VALUE itself.
-  repoLinkProxy.setupLinkAbsent({ cwdPath: CWD_PATH_VALUE, linkPath: LINK_PATH });
+  // Unconditional: locationsRepoLinkPathFindBroker joins the link path under the lane's repoRoot on
+  // every invocation, which the absent-link scenario stages at REPO_ROOT_VALUE.
+  repoLinkProxy.setupLinkAbsent({ repoRoot: REPO_ROOT_VALUE, linkPath: LINK_PATH });
 
   // The three real buffer paths for EVIDENCE_PATH, computed with the REAL (pure, deterministic)
   // resolver — the same convention run-execute-broker.proxy.ts already uses for
@@ -237,14 +236,14 @@ export const runExecuteBrokerProxy = (): {
       return paths;
     },
 
-    // A `.dungeonmaster-assets/siegelense-assets` symlink at CWD_PATH_VALUE, resolving to
+    // A `.dungeonmaster-assets/siegelense-assets` symlink at REPO_ROOT_VALUE, resolving to
     // SIEGELENSE_ROOT_VALUE. Every stage
     // here is keyed on its EXACT argument (a path, or `[]` for homedir's own no-args call), so it
     // is safe regardless of how many other real `#gateway/node/path` `join` calls happen before or
-    // after it — see this file's header comment on CWD_PATH_VALUE for why that matters.
+    // after it — see this file's header comment on REPO_ROOT_VALUE for why that matters.
     stageRepoLinkPresent: (): void => {
       repoLinkProxy.setupLinkResolvesToRoot({
-        cwdPath: CWD_PATH_VALUE,
+        repoRoot: REPO_ROOT_VALUE,
         linkPath: LINK_PATH,
         homeDir: HOME_DIR_VALUE,
         homePath: HOME_PATH,
@@ -257,6 +256,7 @@ export const runExecuteBrokerProxy = (): {
 
     cleanLane: (): LaneSession =>
       LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: {
           goto: jest.fn().mockResolvedValue(undefined),
@@ -274,6 +274,7 @@ export const runExecuteBrokerProxy = (): {
     }): { lane: LaneSession; gotoPaths: () => readonly unknown[] } => {
       const gotoMock = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         homePath: SEED_HOME_PATH,
         ports: { api: apiPort, web: apiPort + 1 },
@@ -335,6 +336,7 @@ export const runExecuteBrokerProxy = (): {
           url === failingPath ? Promise.reject(error) : Promise.resolve(undefined),
         );
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
       });
@@ -351,6 +353,7 @@ export const runExecuteBrokerProxy = (): {
     }): { lane: LaneSession; gotoCallCount: () => number } => {
       const gotoMock = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: {
           goto: gotoMock,
@@ -379,6 +382,7 @@ export const runExecuteBrokerProxy = (): {
       newNetworkLines: readonly string[];
     }): LaneSession =>
       LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: {
           goto: jest.fn().mockResolvedValue(undefined),
@@ -410,6 +414,7 @@ export const runExecuteBrokerProxy = (): {
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: {
           goto: gotoMock,
@@ -447,6 +452,7 @@ export const runExecuteBrokerProxy = (): {
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: {
           countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
@@ -474,6 +480,7 @@ export const runExecuteBrokerProxy = (): {
     } => {
       const captureMock = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath,
         browser: { goto: jest.fn().mockResolvedValue(undefined), capture: captureMock },
       });
@@ -485,7 +492,7 @@ export const runExecuteBrokerProxy = (): {
     },
 
     headlessLane: (): LaneSession =>
-      LaneSessionStub({ evidencePath: EVIDENCE_PATH, browser: null }),
+      LaneSessionStub({ repoRoot: REPO_ROOT_VALUE, evidencePath: EVIDENCE_PATH, browser: null }),
 
     laneRecordingTranscriptGrowth: ({
       transcriptPath,
@@ -498,6 +505,7 @@ export const runExecuteBrokerProxy = (): {
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
       });
@@ -551,6 +559,7 @@ export const runExecuteBrokerProxy = (): {
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
+        repoRoot: REPO_ROOT_VALUE,
         evidencePath: EVIDENCE_PATH,
         browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
       });

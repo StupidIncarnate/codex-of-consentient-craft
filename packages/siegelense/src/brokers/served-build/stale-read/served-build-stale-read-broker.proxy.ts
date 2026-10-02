@@ -2,8 +2,6 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -12,8 +10,8 @@ import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-co
 import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-broker.proxy';
 
 // `git check-ignore` is spawned as `git`, the changed-since walk as `sh`, so each is addressed by
-// its own command. The repo root is the cwd staged below, resolved "at start" — the same seed the
-// broker reads.
+// its own command. `repoRoot()` is the value a test hands the broker as its `repoRoot`; every stage
+// below is addressed under it.
 export const servedBuildStaleReadBrokerProxy = (): {
   repoRoot: () => string;
   setupLane: (params: { processes: readonly DevServerE2eProcess[]; buildCommand?: string }) => void;
@@ -31,16 +29,12 @@ export const servedBuildStaleReadBrokerProxy = (): {
   getChangedSinceArgs: () => unknown;
 } => {
   laneSpecFindBrokerProxy();
-  const cwdStagingProxy = cwdProxy();
-  const cwdResolveProxy = cwdResolveBrokerProxy();
   const configProxy = configResolveBrokerProxy();
   RunNotFoundErrorProxy();
   const spawnProxy = runProxy();
   const statProxy = statIfExistsProxy();
 
   const root = '/default/cwd';
-  cwdStagingProxy.setupCwd({ value: root });
-  cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: root });
   const startPath = `${root}/${dungeonmasterHomeStatics.paths.projectConfigFile}`;
 
   return {

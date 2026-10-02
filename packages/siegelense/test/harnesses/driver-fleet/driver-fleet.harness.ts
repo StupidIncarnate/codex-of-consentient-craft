@@ -124,6 +124,16 @@ export const driverFleetHarness = (): {
   afterAll: () => Promise<void>;
 } => {
   const trackedInstanceIds = new Set<SiegeInstance['id']>();
+  // The directory `configureApiLane` wrote the lane's `.dungeonmaster.json` into — the repo root
+  // every kill below resolves its repo-local paths against.
+  const configuredRepoRoot: { current: string | null } = { current: null };
+
+  const repoRootOrThrow = (): string => {
+    if (configuredRepoRoot.current === null) {
+      throw new Error('driverFleetHarness: configureApiLane must run before a kill');
+    }
+    return configuredRepoRoot.current;
+  };
 
   // Stopgap for a confirmed, separately-owned gap: a fresh DUNGEONMASTER_HOME has no `siegelense/`
   // directory yet — `dungeonmaster init`'s InstallLinkCreateResponder is what normally creates it,
@@ -163,6 +173,7 @@ export const driverFleetHarness = (): {
     });
 
     writeFileSync(`${configDir}/.dungeonmaster.json`, JSON.stringify(config));
+    configuredRepoRoot.current = configDir;
   };
 
   const evidenceDir = ({ instanceId }: { instanceId: SiegeInstance['id'] }): string =>
@@ -187,6 +198,7 @@ export const driverFleetHarness = (): {
       questId: null,
       guildId: null,
       seed: null,
+      repoRoot: repoRootOrThrow(),
       ...(idleTimeoutMs === undefined ? {} : { idleTimeoutMs }),
     });
     trackedInstanceIds.add(manifest.instanceId);
@@ -197,7 +209,7 @@ export const driverFleetHarness = (): {
     instanceId,
   }: {
     instanceId: SiegeInstance['id'];
-  }): Promise<KillResult> => instanceKillBroker({ instanceId });
+  }): Promise<KillResult> => instanceKillBroker({ instanceId, repoRoot: repoRootOrThrow() });
 
   const sigkillDriverPid = ({ pid }: { pid: string }): void => {
     kill(Number(pid), 'SIGKILL');
@@ -388,11 +400,13 @@ export const driverFleetHarness = (): {
       }
     });
 
-    await instanceKillBroker({ instanceId }).catch((error: unknown) => {
-      stderr.write(
-        `[driver-fleet.harness] instanceKillBroker failed reaping ${instanceId}: ${String(error)}\n`,
-      );
-    });
+    await instanceKillBroker({ instanceId, repoRoot: repoRootOrThrow() }).catch(
+      (error: unknown) => {
+        stderr.write(
+          `[driver-fleet.harness] instanceKillBroker failed reaping ${instanceId}: ${String(error)}\n`,
+        );
+      },
+    );
   };
 
   const afterAll = async (): Promise<void> => {

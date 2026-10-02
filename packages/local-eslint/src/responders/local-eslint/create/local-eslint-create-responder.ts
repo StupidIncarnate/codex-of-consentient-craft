@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Assembles the local-eslint plugin object with repo-internal rules (ban-quest-status-literals, no-bare-location-literals, no-hardcoded-package-names, ban-locator-pick, ban-sync-seeding-methods, ban-direct-io-in-test-scenarios, graph-reachability, ban-self-located-repo-lookup).
+ * PURPOSE: Assembles the local-eslint plugin object with repo-internal rules (ban-quest-status-literals, no-bare-location-literals, no-hardcoded-package-names, ban-locator-pick, ban-sync-seeding-methods, ban-direct-io-in-test-scenarios, graph-reachability, ban-self-located-repo-lookup, ban-ambient-module-resolve).
  *
  * USAGE:
  * const plugin = LocalEslintCreateResponder();
- * // Returns { rules: { 'ban-quest-status-literals': RuleModule, 'no-bare-location-literals': RuleModule, 'no-hardcoded-package-names': RuleModule, 'ban-locator-pick': RuleModule, 'ban-sync-seeding-methods': RuleModule, 'ban-direct-io-in-test-scenarios': RuleModule, 'graph-reachability': RuleModule, 'ban-self-located-repo-lookup': RuleModule } }
+ * // Returns { rules: { 'ban-quest-status-literals': RuleModule, 'no-bare-location-literals': RuleModule, 'no-hardcoded-package-names': RuleModule, 'ban-locator-pick': RuleModule, 'ban-sync-seeding-methods': RuleModule, 'ban-direct-io-in-test-scenarios': RuleModule, 'graph-reachability': RuleModule, 'ban-self-located-repo-lookup': RuleModule, 'ban-ambient-module-resolve': RuleModule } }
  *
  * WHEN-TO-USE: Internal to the dungeonmaster monorepo only — this plugin is never published to npm.
  */
@@ -14,6 +14,8 @@ import { ruleBanLocatorPickBroker } from '../../../brokers/rule/ban-locator-pick
 import { ruleBanSyncSeedingMethodsBroker } from '../../../brokers/rule/ban-sync-seeding-methods/rule-ban-sync-seeding-methods-broker';
 import { ruleBanDirectIoInTestScenariosBroker } from '../../../brokers/rule/ban-direct-io-in-test-scenarios/rule-ban-direct-io-in-test-scenarios-broker';
 import { ruleBanSelfLocatedRepoLookupBroker } from '../../../brokers/rule/ban-self-located-repo-lookup/rule-ban-self-located-repo-lookup-broker';
+import { ruleBanAmbientModuleResolveBroker } from '../../../brokers/rule/ban-ambient-module-resolve/rule-ban-ambient-module-resolve-broker';
+import { ruleEnforceQuestCwdResolveBroker } from '../../../brokers/rule/enforce-quest-cwd-resolve/rule-enforce-quest-cwd-resolve-broker';
 import { ruleGraphReachabilityBroker } from '../../../brokers/rule/graph-reachability/rule-graph-reachability-broker';
 
 export const LocalEslintCreateResponder = (): {
@@ -28,6 +30,8 @@ export const LocalEslintCreateResponder = (): {
     >;
     readonly 'graph-reachability': ReturnType<typeof ruleGraphReachabilityBroker>;
     readonly 'ban-self-located-repo-lookup': ReturnType<typeof ruleBanSelfLocatedRepoLookupBroker>;
+    readonly 'enforce-quest-cwd-resolve': ReturnType<typeof ruleEnforceQuestCwdResolveBroker>;
+    readonly 'ban-ambient-module-resolve': ReturnType<typeof ruleBanAmbientModuleResolveBroker>;
   };
 } =>
   ({
@@ -40,5 +44,7 @@ export const LocalEslintCreateResponder = (): {
       'ban-direct-io-in-test-scenarios': ruleBanDirectIoInTestScenariosBroker(),
       'graph-reachability': ruleGraphReachabilityBroker(),
       'ban-self-located-repo-lookup': ruleBanSelfLocatedRepoLookupBroker(),
+      'enforce-quest-cwd-resolve': ruleEnforceQuestCwdResolveBroker(),
+      'ban-ambient-module-resolve': ruleBanAmbientModuleResolveBroker(),
     },
   }) as const;

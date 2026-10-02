@@ -12,6 +12,7 @@ describe('stepVideoBroker', () => {
     const result = await stepVideoBroker({
       session,
       action: 'start',
+      repoRoot: proxy.repoRoot,
     });
 
     expect(getVideoActionCalls()).toStrictEqual([[{ action: 'start' }]]);
@@ -30,6 +31,7 @@ describe('stepVideoBroker', () => {
     const result = await stepVideoBroker({
       session,
       action: 'stop',
+      repoRoot: proxy.repoRoot,
     });
 
     expect(getVideoActionCalls()).toStrictEqual([[{ action: 'stop' }]]);
@@ -50,10 +52,11 @@ describe('stepVideoBroker', () => {
       const result = await stepVideoBroker({
         session,
         action: 'stop',
+        repoRoot: proxy.repoRoot,
       });
 
       expect(result).toBe(
-        'video recording stopped — saved to /default/cwd/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/video/abc.webm',
+        'video recording stopped — saved to /default/repo-root/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/video/abc.webm',
       );
     });
   });

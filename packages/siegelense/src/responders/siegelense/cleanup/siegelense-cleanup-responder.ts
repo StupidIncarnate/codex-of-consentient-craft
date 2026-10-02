@@ -14,7 +14,9 @@
  * // Writes the CleanupAnswer as one JSON document
  */
 
-import { stdout } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
+import { cwd, stdout } from '#gateway/node/process';
 
 import { cleanupRunBroker } from '../../../brokers/cleanup/run/cleanup-run-broker';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
@@ -27,7 +29,16 @@ export const SiegelenseCleanupResponder = async (
     isJson?: boolean;
   } = { isJson: false },
 ): Promise<void> => {
-  const answer = await cleanupRunBroker();
+  const startPath = cwd();
+  const repoRoot = await cwdResolveBroker({ startPath, kind: 'repo-root' }).catch(
+    (error: unknown) => {
+      if (error instanceof ProjectRootNotFoundError) {
+        return startPath;
+      }
+      throw error;
+    },
+  );
+  const answer = await cleanupRunBroker({ repoRoot });
   stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`

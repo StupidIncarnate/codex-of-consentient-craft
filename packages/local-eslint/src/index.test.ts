@@ -6,11 +6,13 @@ describe('local-eslint index', () => {
       const result = StartLocalEslint();
 
       expect(Object.keys(result.rules).sort()).toStrictEqual([
+        'ban-ambient-module-resolve',
         'ban-direct-io-in-test-scenarios',
         'ban-locator-pick',
         'ban-quest-status-literals',
         'ban-self-located-repo-lookup',
         'ban-sync-seeding-methods',
+        'enforce-quest-cwd-resolve',
         'graph-reachability',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
@@ -21,11 +23,13 @@ describe('local-eslint index', () => {
   describe('default export', () => {
     it('VALID: {} => default export is the plugin instance with every repo-local rule', () => {
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
+        'ban-ambient-module-resolve',
         'ban-direct-io-in-test-scenarios',
         'ban-locator-pick',
         'ban-quest-status-literals',
         'ban-self-located-repo-lookup',
         'ban-sync-seeding-methods',
+        'enforce-quest-cwd-resolve',
         'graph-reachability',
         'no-bare-location-literals',
         'no-hardcoded-package-names',

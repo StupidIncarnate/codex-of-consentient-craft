@@ -44,7 +44,8 @@
  * // Same, but the driver it spawns serves the raised ceiling instead of driverStatics.idle.timeoutMs
  */
 
-import { stderr, stdout } from '#gateway/node/process';
+import { cwd, stderr, stdout } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
@@ -76,11 +77,13 @@ export const SiegelenseStartResponder = async ({
   idleTimeoutMs?: number | undefined;
   isJson?: boolean | undefined;
 }): Promise<void> => {
+  // `start` is a CLI call: the checkout it runs in is the one whose lane it boots.
+  const repoRoot = await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' });
   const resolvedGuildId: Guild['id'] | null =
     guildId !== null || questId === null ? guildId : await questOwningGuildFindBroker({ questId });
 
   if (seed !== null) {
-    const listing = await recipesReadBroker();
+    const listing = await recipesReadBroker({ repoRoot });
     const seedEntry = listing.find((candidate) => candidate.recipeName === seed);
     if (seedEntry === undefined) {
       throw new RecipeUnknownError({
@@ -98,7 +101,7 @@ export const SiegelenseStartResponder = async ({
 
   // Stderr, never stdout: stdout stays the one document `start` promises. A check that throws is
   // reported and the boot goes ahead — the warning is advice, and the lane is what was asked for.
-  const staleWarning = await servedBuildStaleReadBroker({ specName }).catch(
+  const staleWarning = await servedBuildStaleReadBroker({ specName, repoRoot }).catch(
     (error: unknown) =>
       `[siegelense start] the stale-build check failed, so nothing says whether this lane's compiled output is current: ${error instanceof Error ? error.message : String(error)}\n`,
   );
@@ -108,8 +111,8 @@ export const SiegelenseStartResponder = async ({
 
   const manifest = await instanceStartBroker(
     idleTimeoutMs === undefined
-      ? { specName, questId, guildId: resolvedGuildId, seed }
-      : { specName, questId, guildId: resolvedGuildId, seed, idleTimeoutMs },
+      ? { specName, questId, guildId: resolvedGuildId, seed, repoRoot }
+      : { specName, questId, guildId: resolvedGuildId, seed, idleTimeoutMs, repoRoot },
   );
   stdout.write(
     isJson

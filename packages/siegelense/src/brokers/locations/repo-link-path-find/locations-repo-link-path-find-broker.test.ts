@@ -10,14 +10,14 @@ describe('locationsRepoLinkPathFindBroker', () => {
       const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkResolvesToRoot({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         rootPath: '/home/user/.dungeonmaster/siegelense',
       });
 
-      const result = await locationsRepoLinkPathFindBroker({ homePath });
+      const result = await locationsRepoLinkPathFindBroker({ homePath, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(
         RepoLocalPathStub({
@@ -34,11 +34,11 @@ describe('locationsRepoLinkPathFindBroker', () => {
       const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkAbsent({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
       });
 
-      const result = await locationsRepoLinkPathFindBroker({ homePath });
+      const result = await locationsRepoLinkPathFindBroker({ homePath, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(RepoLocalPathStub({ path: homePath, linkPresent: false }));
     });
@@ -48,11 +48,11 @@ describe('locationsRepoLinkPathFindBroker', () => {
       const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkAbsent({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
       });
 
-      await locationsRepoLinkPathFindBroker({ homePath });
+      await locationsRepoLinkPathFindBroker({ homePath, repoRoot: '/repo' });
 
       expect(proxy.getJoinedSegments()).toStrictEqual([
         '/repo',
@@ -68,7 +68,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
       const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkPointsElsewhere({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
@@ -76,7 +76,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
         elsewhereTarget: '/other/checkout/.dungeonmaster/siegelense',
       });
 
-      const result = await locationsRepoLinkPathFindBroker({ homePath });
+      const result = await locationsRepoLinkPathFindBroker({ homePath, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(RepoLocalPathStub({ path: homePath, linkPresent: false }));
     });

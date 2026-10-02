@@ -2,7 +2,7 @@
  * PURPOSE: Resolves the dungeonmaster server's currently-bound `{baseUrl, port}` for the get-server-config MCP tool — slash commands use the result to point the browser at the running server
  *
  * USAGE:
- * const { baseUrl, port } = questGetServerConfigBroker();
+ * const { baseUrl, port } = questGetServerConfigBroker({ startDir: '/path/to/repo' });
  * // baseUrl: 'http://dungeonmaster.localhost:3737', port: 3737 (branded NetworkPort)
  *
  * WHEN-TO-USE: Called by the `get-server-config` MCP tool (wired in step 9). The /dumpster-create
@@ -19,8 +19,12 @@ import {
   type QuestGetServerConfigResult,
 } from '../../../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
-export const questGetServerConfigBroker = (): QuestGetServerConfigResult => {
-  const port = portResolveBroker();
+export const questGetServerConfigBroker = ({
+  startDir,
+}: {
+  startDir: string;
+}): QuestGetServerConfigResult => {
+  const port = portResolveBroker({ startDir });
   const baseUrl = `http://${environmentStatics.hostname}:${String(port)}`;
 
   return questGetServerConfigResultContract.parse({ baseUrl, port });

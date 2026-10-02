@@ -69,7 +69,7 @@ export const chatStreamProcessHandleBroker = ({
   processor: ChatLineProcessor;
 } => {
   const processor = chatLineProcessTransformer({
-    serverBaseUrl: questGetServerConfigBroker().baseUrl,
+    serverBaseUrl: questGetServerConfigBroker({ startDir: cwd }).baseUrl,
   });
   const sessionSource = 'session';
   // Memoized once any line carrying it (typically system/init) is seen. The processor's

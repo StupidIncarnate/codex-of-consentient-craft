@@ -23,10 +23,10 @@
  * `instanceLifecycleStatics.reservation.staleAfterMs`, `dead` once past it.
  *
  * USAGE:
- * await statusReadBroker({ instanceId: null });
+ * await statusReadBroker({ instanceId: null, repoRoot: '/repo' });
  * // Returns the whole fleet's StatusAnswer
  *
- * await statusReadBroker({ instanceId: InstanceIdStub() });
+ * await statusReadBroker({ instanceId: InstanceIdStub(), repoRoot: '/repo' });
  * // Returns a StatusAnswer with at most one entry, fully populated
  */
 
@@ -51,10 +51,12 @@ const SINCE_WINDOWS_MS = {
 
 export const statusReadBroker = async ({
   instanceId,
+  repoRoot,
   branch = null,
   since = instanceId === null ? '6h' : null,
 }: {
   instanceId: SiegeInstance['id'] | null;
+  repoRoot: string;
   branch?: string | null;
   since?: '1h' | '6h' | '1d' | '1wk' | null;
 }): Promise<StatusAnswer> => {
@@ -117,6 +119,7 @@ export const statusReadBroker = async ({
         named: instanceId !== null,
         nowMs,
         oomKillsSinceBoot: machine.oomKillsSinceBoot,
+        repoRoot,
       }),
     ),
   );

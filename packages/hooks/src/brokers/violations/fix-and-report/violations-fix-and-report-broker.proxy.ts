@@ -7,12 +7,10 @@
  */
 import { eslintLoadConfigBrokerProxy } from '../../eslint/load-config/eslint-load-config-broker.proxy';
 import { eslintLintRunWithFixBrokerProxy } from '../../eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.proxy';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
 export const violationsFixAndReportBrokerProxy = (): {
   setupFixAndReport: (params?: { hasViolations?: boolean }) => void;
 } => {
-  cwdProxy();
   const loadConfigProxy = eslintLoadConfigBrokerProxy();
   const lintWithFixProxy = eslintLintRunWithFixBrokerProxy();
   loadConfigProxy.returnsConfig({
@@ -25,6 +23,7 @@ export const violationsFixAndReportBrokerProxy = (): {
       if (hasViolations) {
         // Configure lint to return error-level violations after auto-fix
         lintWithFixProxy.returnsLintResults({
+          cwd: '/test',
           filePath: '/test/file.ts',
           results: [
             {
@@ -46,6 +45,7 @@ export const violationsFixAndReportBrokerProxy = (): {
       } else {
         // No violations remaining after auto-fix
         lintWithFixProxy.returnsLintResults({
+          cwd: '/test',
           filePath: '/test/file.ts',
           results: [
             {

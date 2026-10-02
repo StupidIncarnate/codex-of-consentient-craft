@@ -486,3 +486,6 @@ export * from './agent/agent-contract';
 export * from './siege-instance/siege-instance-contract';
 export * from './siege-run/siege-run-contract';
 export * from './session/session-contract';
+export * from './bin-command/bin-command-contract';
+export * from './package-bin-manifest/package-bin-manifest-contract';
+export * from './module-resolution/module-resolution-contract';

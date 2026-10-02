@@ -35,6 +35,9 @@ describe('httpBackendPackageResolveBroker', () => {
       proxy.setupOwnDependencies({
         dependencyNames: ['@dungeonmaster/nonexistent-test-package', '@dungeonmaster/server'],
       });
+      proxy.setupCandidateUnresolvable({
+        candidateName: '@dungeonmaster/nonexistent-test-package',
+      });
       proxy.setupCandidateHono({ candidateName: '@dungeonmaster/server' });
 
       const result = await httpBackendPackageResolveBroker();

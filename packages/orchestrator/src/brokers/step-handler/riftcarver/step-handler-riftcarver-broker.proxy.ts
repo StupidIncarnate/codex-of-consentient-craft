@@ -20,6 +20,7 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { dirname } from '#gateway/node/path';
+import { execPath } from '#gateway/node/process';
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
@@ -27,6 +28,7 @@ import { pushProxy } from '#gateway/bin/git/push/push.proxy';
 import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.proxy';
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
+import { packageBinResolveBrokerProxy } from '@dungeonmaster/shared/brokers/package-bin/resolve/package-bin-resolve-broker.proxy';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 import {
   baseBranchNameContract,
@@ -39,7 +41,6 @@ import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testi
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 import { wardCommandStatics } from '../../../statics/ward-command/ward-command-statics';
-import { dungeonmasterBinResolveBrokerProxy } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker.proxy';
 import { gitDetectBaseBranchBrokerProxy } from '../../git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { riftcarverPersistResultBrokerProxy } from '../../riftcarver/persist-result/riftcarver-persist-result-broker.proxy';
 import { worktreePrepareBrokerProxy } from '../../worktree/prepare/worktree-prepare-broker.proxy';
@@ -70,13 +71,17 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 const GIT_SUCCESS = 0;
 const GIT_FAILURE = 128;
 const TYPECHECK_FAILURE = 1;
-// Matches stepHandlerRiftcarverBroker's own typecheck spawn — `wardCommandStatics.bin`, the same
-// command name `step-handler-ward-broker.proxy.ts` stages on the shared `streamLines`/`spawn` mock.
-// Staging stays deferred to `setupQuest`/`setupTypecheckFails` (never unconditional at
+// The typecheck is `node <ward entry script> run --only typecheck`, the ward package resolved from the
+// worktree. Its address carries the worktree as cwd, which keeps it apart from
+// `step-handler-ward-broker.proxy.ts`'s own `run` spawn on the same node. Staging stays deferred to `setupQuest`/`setupTypecheckFails` (never unconditional at
 // construction) so an inert composition of this proxy — `stepHandlerRunBrokerProxy` builds one
 // purely to satisfy `enforce-proxy-child-creation` — never registers an address the ward handler
 // proxy's own staging could collide with.
-const TYPECHECK_COMMAND = wardCommandStatics.bin;
+const WARD_PACKAGE = '@dungeonmaster/ward';
+const WARD_MANIFEST_PATH = `${WORKTREE_PATH}/node_modules/${WARD_PACKAGE}/package.json`;
+const WARD_MANIFEST = JSON.stringify({
+  bin: { [wardCommandStatics.bin]: './dist/bin/ward-entry.js' },
+});
 
 export const stepHandlerRiftcarverBrokerProxy = (): {
   setupQuest: (params: { quest: QuestInput }) => void;
@@ -96,9 +101,9 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   stderrProxy();
   getEnvProxy();
   const typecheckSpawn = streamLinesProxy();
-  const binProxy = dungeonmasterBinResolveBrokerProxy();
-  // The resolve broker walks up from the run folder with `dirname`, which a composed proxy mocks
-  // (guildPathWalkUpLayerBrokerProxy), so every level of that walk is staged by its own address.
+  const binProxy = packageBinResolveBrokerProxy();
+  // A composed proxy mocks `dirname` (guildPathWalkUpLayerBrokerProxy), so every level of the walk
+  // below and the resolved manifest's own directory are staged by their own address.
   const realPath = requireActual<{ dirname: typeof dirname }>({ module: 'path' });
   const dirnameHandle = registerMock({ fn: dirname });
   const stageWalkUp = ({ dirPath }: { dirPath: string }): void => {
@@ -109,6 +114,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     }
   };
   stageWalkUp({ dirPath: WORKTREE_PATH });
+  dirnameHandle.calledWith([WARD_MANIFEST_PATH]).returns(realPath.dirname(WARD_MANIFEST_PATH));
   locationsWorktreePathFindBrokerProxy();
   const isAccessibleProxy = pathExistsProxy();
   const gitCurrentBranchProxy = currentBranchProxy();
@@ -196,10 +202,15 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   // The typecheck spawn is staged per-quest inside `setupQuest`/`setupTypecheckFails` below, once
   // `typecheckOutcome` holds the scenario's real values.
   const stageTypecheckSpawn = (): void => {
-    // No local ward is installed in these scenarios, so the spawn uses the bare name.
-    binProxy.setupNotInstalledAnywhere({ binName: TYPECHECK_COMMAND });
+    binProxy.setupManifestInRunRoot({
+      packageName: WARD_PACKAGE,
+      repoRoot: WORKTREE_PATH,
+      manifestPath: WARD_MANIFEST_PATH,
+      rawManifest: WARD_MANIFEST,
+    });
     typecheckSpawn.setupSuccess({
-      command: TYPECHECK_COMMAND,
+      command: execPath,
+      cwd: WORKTREE_PATH,
       exitCode: typecheckOutcome.exitCode,
       stdoutLines: typecheckOutcome.lines.map((line) => line),
     });
@@ -287,9 +298,9 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
         .filter((args) => Array.isArray(args) && args[0] === 'worktree' && args[1] === 'add'),
 
     getTypecheckSpawns: (): readonly unknown[] => {
-      const args = typecheckSpawn.getSpawnedArgs({ command: TYPECHECK_COMMAND });
+      const args = typecheckSpawn.getSpawnedArgs({ command: execPath });
       return typecheckSpawn
-        .getOptionsFor({ command: TYPECHECK_COMMAND })
+        .getOptionsFor({ command: execPath })
         .map((options) => ({ args, cwd: options.cwd }));
     },
 

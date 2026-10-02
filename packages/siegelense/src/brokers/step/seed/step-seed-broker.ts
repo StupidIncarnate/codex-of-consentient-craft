@@ -39,7 +39,7 @@ export const stepSeedBroker = async ({
     );
   }
 
-  const listing = await recipesReadBroker();
+  const listing = await recipesReadBroker({ repoRoot: lane.repoRoot });
   const wantedRecipeName: string = step.recipe;
   const entry = listing.find((candidate) => candidate.recipeName === wantedRecipeName);
   if (entry === undefined) {
@@ -76,7 +76,7 @@ export const stepSeedBroker = async ({
     });
   }
 
-  const entryPath = await recipesLocateBroker();
+  const entryPath = recipesLocateBroker({ repoRoot: lane.repoRoot });
   const recipesModule = await dynamicImport({ path: entryPath });
   const seedRunExportName = recipesConventionStatics.exports.seed;
   const seedRunExport =

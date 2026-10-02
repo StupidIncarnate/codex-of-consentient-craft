@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Bans `process.cwd()` outside a configurable allowlist of CLI entry points and path-resolver folders
+ * PURPOSE: Bans `process.cwd()` and calls of the gateway process wrapper's `cwd` outside the entry layer (startup/, responders/) and the wrapper itself, so a broker takes its location as a parameter
  *
  * USAGE:
  * const rule = ruleNoBareProcessCwdBroker();
@@ -8,6 +8,8 @@
  * WHEN-TO-USE: When registering ESLint rules to prevent cwd-as-target bugs (wrong cwd at spawn time, install scripts run from sub-package, hook payload trusted blindly, etc.)
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import { isGatewayCwdCallGuard } from '../../../guards/is-gateway-cwd-call/is-gateway-cwd-call-guard';
 import { isProcessCwdCallGuard } from '../../../guards/is-process-cwd-call/is-process-cwd-call-guard';
 import { isHarnessOrProxyFileGuard } from '../../../guards/is-harness-or-proxy-file/is-harness-or-proxy-file-guard';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -20,11 +22,11 @@ export const ruleNoBareProcessCwdBroker = (): TSESLint.RuleModule<'bareProcessCw
     type: 'problem',
     docs: {
       description:
-        'Ban process.cwd() outside CLI entry points (start-install.ts) and path-resolver brokers. Walk up from a known anchor and pass an absolute path through your call chain.',
+        'Ban process.cwd() and a cwd() imported from the gateway process wrapper outside the entry layer (startup/, responders/). The entry layer reads where it runs and passes a repo root down.',
     },
     messages: {
       bareProcessCwd:
-        'process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead.',
+        'Reading the ambient cwd belongs to the entry layer (startup/, responders/): it reads where it runs and passes a repo root down. Take the location as a required parameter, and for quest work get it from questCwdResolveBroker.',
     },
     schema: [
       {
@@ -89,9 +91,32 @@ export const ruleNoBareProcessCwdBroker = (): TSESLint.RuleModule<'bareProcessCw
       return {};
     }
 
+    const cwdLocalNames = new Set<string>();
+    const namespaceLocalNames = new Set<string>();
+
     return {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        if (node.source.value !== noBareProcessCwdStatics.gateway.processModule) {
+          return;
+        }
+        for (const specifier of node.specifiers) {
+          if (specifier.type === AST_NODE_TYPES.ImportNamespaceSpecifier) {
+            namespaceLocalNames.add(specifier.local.name);
+          }
+          if (
+            specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+            specifier.imported.type === AST_NODE_TYPES.Identifier &&
+            specifier.imported.name === noBareProcessCwdStatics.gateway.cwdExport
+          ) {
+            cwdLocalNames.add(specifier.local.name);
+          }
+        }
+      },
       CallExpression: (node: TSESTree.CallExpression): void => {
-        if (!isProcessCwdCallGuard({ node })) {
+        if (
+          !isProcessCwdCallGuard({ node }) &&
+          !isGatewayCwdCallGuard({ node, cwdLocalNames, namespaceLocalNames })
+        ) {
           return;
         }
         ctx.report({

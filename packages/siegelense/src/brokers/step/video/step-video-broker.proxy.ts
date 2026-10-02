@@ -1,6 +1,6 @@
 // PURPOSE: Builds a BrowserSession whose `videoAction` is a jest.fn(), and exposes its call list
 // so a test can assert the exact `{action}` stepVideoBroker drove it with, and customize the returned
-// VideoResult. Defaults `locationsRepoLinkPathFindBroker`'s own call to "no symlink at cwd" (DEF-80's
+// VideoResult. Defaults `locationsRepoLinkPathFindBroker`'s own call to "no symlink at the repo root" (DEF-80's
 // fallback: a `stop` answer's path passes through unchanged) through
 // `locationsRepoLinkPathFindBrokerProxy`'s `setupLinkAbsent`, whose join stage is keyed on the exact
 // link segments, so sibling verb proxies' own `join` calls are unaffected.
@@ -13,15 +13,16 @@ import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-
 type BrowserSession = ReturnType<typeof BrowserSessionStub>;
 type VideoResult = ReturnType<typeof VideoResultStub>;
 
-// `locationsRepoLinkPathFindBroker`'s own `cwd()` call has no default — every scenario stages it.
-const CWD_PATH_VALUE = '/default/cwd';
-const LINK_PATH = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
+// The repo root every test hands the broker; the link path below is staged against it.
+const REPO_ROOT_VALUE = '/default/repo-root';
+const LINK_PATH = `${REPO_ROOT_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 // `stageRepoLinkPresent` resolves the link to SIEGELENSE_ROOT_VALUE under HOME_PATH.
 const HOME_DIR_VALUE = '/home/default';
 const HOME_PATH = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const SIEGELENSE_ROOT_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster/siegelense`;
 
 export const stepVideoBrokerProxy = (): {
+  repoRoot: string;
   session: (params?: { result?: VideoResult }) => {
     session: BrowserSession;
     getVideoActionCalls: () => readonly unknown[];
@@ -31,9 +32,10 @@ export const stepVideoBrokerProxy = (): {
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   // No `.dungeonmaster-assets/siegelense-assets` link anywhere, by default — a `stop` answer's path
   // passes through unchanged unless a test calls `stageRepoLinkPresent`.
-  repoLinkProxy.setupLinkAbsent({ cwdPath: CWD_PATH_VALUE, linkPath: LINK_PATH });
+  repoLinkProxy.setupLinkAbsent({ repoRoot: REPO_ROOT_VALUE, linkPath: LINK_PATH });
 
   return {
+    repoRoot: REPO_ROOT_VALUE,
     session: (params?: {
       result?: VideoResult;
     }): {
@@ -52,7 +54,7 @@ export const stepVideoBrokerProxy = (): {
 
     stageRepoLinkPresent: (): void => {
       repoLinkProxy.setupLinkResolvesToRoot({
-        cwdPath: CWD_PATH_VALUE,
+        repoRoot: REPO_ROOT_VALUE,
         linkPath: LINK_PATH,
         homeDir: HOME_DIR_VALUE,
         homePath: HOME_PATH,

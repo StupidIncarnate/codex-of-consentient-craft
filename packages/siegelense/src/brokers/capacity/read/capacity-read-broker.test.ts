@@ -42,6 +42,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -93,6 +94,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 3,
       });
@@ -143,6 +145,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -210,6 +213,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -271,6 +275,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -336,6 +341,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -401,6 +407,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -454,6 +461,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: null,
       });
@@ -492,6 +500,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'stack',
         poolSize: null,
       });
@@ -538,6 +547,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 5,
       });
@@ -581,6 +591,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 99_999,
       });
@@ -633,6 +644,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });
@@ -684,6 +696,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
         specName: 'api',
         poolSize: 1,
       });

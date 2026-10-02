@@ -2,7 +2,7 @@
  * PURPOSE: Fetches orchestration status from the dungeonmaster server's HTTP endpoint
  *
  * USAGE:
- * const status = await orchestratorGetQuestStatusBroker({ processId });
+ * const status = await orchestratorGetQuestStatusBroker({ processId, startDir: '/path/to/repo' });
  * // Returns: OrchestrationStatus by hitting GET /api/process/:processId on the dev/prod server.
  * // The MCP runs as a separate node process spawned by Claude CLI, so it cannot reach the
  * // server's in-memory orchestrationProcessesState directly — it bridges via HTTP.
@@ -18,10 +18,12 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 export const orchestratorGetQuestStatusBroker = async ({
   processId,
+  startDir,
 }: {
   processId: string;
+  startDir: string;
 }): Promise<OrchestrationStatus> => {
-  const port = portResolveBroker();
+  const port = portResolveBroker({ startDir });
   // Use environmentStatics.hostname (the same hostname the server binds to via
   // honoServeAdapter) instead of "localhost". Node's fetch DNS-resolves the
   // hostname; "localhost" can pick the wrong family (IPv4 127.0.0.1 vs IPv6 ::1)

@@ -6,8 +6,10 @@
  * // Returns: { baseUrl, port } — the running server config
  */
 
+import { cwd } from '#gateway/node/process';
+
 import { questGetServerConfigBroker } from '../../../brokers/quest/get-server-config/quest-get-server-config-broker';
 import type { QuestGetServerConfigResult } from '../../../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
 export const QuestGetServerConfigResponder = (): QuestGetServerConfigResult =>
-  questGetServerConfigBroker();
+  questGetServerConfigBroker({ startDir: cwd() });

@@ -1,5 +1,6 @@
 import { PackageJsonStub } from '@dungeonmaster/shared/contracts/package-json/package-json.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+import { moduleResolveBrokerProxy } from '@dungeonmaster/shared/brokers/module/resolve/module-resolve-broker.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 // The broker resolves its OWN package.json by walking up from its own __dirname via
@@ -13,9 +14,11 @@ export const webBundlePackageResolveBrokerProxy = (): {
   setupOwnDependencies: (params: { dependencyNames: readonly string[] }) => void;
   setupCandidateReact: (params: { candidateName: string }) => void;
   setupCandidateNoReact: (params: { candidateName: string }) => void;
+  setupCandidateUnresolvable: (params: { candidateName: string }) => void;
 } => {
   const cwdProxy = cwdResolveBrokerProxy();
   cwdProxy.setupProjectRootFoundAtStart({ startPath: OWN_PACKAGE_ROOT });
+  const moduleProxy = moduleResolveBrokerProxy();
   const fsProxy = readFileSyncProxy();
 
   return {
@@ -29,22 +32,38 @@ export const webBundlePackageResolveBrokerProxy = (): {
       });
     },
 
-    // candidateName must be a REAL, resolvable package specifier — require.resolve runs for real
-    // in the broker (Node's own module resolution is what genuinely locates a sibling scoped
-    // package; nothing here can honestly fake that) — a workspace package with no `exports` field
-    // restricting its subpaths, e.g. '@dungeonmaster/web'. The content returned is
-    // test-controlled.
+    // The candidate's package.json resolves from the package's own root, the same address the
+    // broker passes to moduleResolveBroker; the content read from that path is test-controlled.
     setupCandidateReact: ({ candidateName }: { candidateName: string }): void => {
+      const path = `${OWN_PACKAGE_ROOT}/node_modules/${candidateName}/package.json`;
+      moduleProxy.setupResolvesFromRunRoot({
+        specifier: `${candidateName}/package.json`,
+        repoRoot: OWN_PACKAGE_ROOT,
+        path,
+      });
       fsProxy.returns({
-        path: require.resolve(`${candidateName}/package.json`),
+        path,
         contents: JSON.stringify(PackageJsonStub({ dependencies: { react: '^19.0.0' } })),
       });
     },
 
     setupCandidateNoReact: ({ candidateName }: { candidateName: string }): void => {
+      const path = `${OWN_PACKAGE_ROOT}/node_modules/${candidateName}/package.json`;
+      moduleProxy.setupResolvesFromRunRoot({
+        specifier: `${candidateName}/package.json`,
+        repoRoot: OWN_PACKAGE_ROOT,
+        path,
+      });
       fsProxy.returns({
-        path: require.resolve(`${candidateName}/package.json`),
+        path,
         contents: JSON.stringify(PackageJsonStub({ dependencies: {} })),
+      });
+    },
+
+    setupCandidateUnresolvable: ({ candidateName }: { candidateName: string }): void => {
+      moduleProxy.setupResolvesNowhere({
+        specifier: `${candidateName}/package.json`,
+        repoRoot: OWN_PACKAGE_ROOT,
       });
     },
   };

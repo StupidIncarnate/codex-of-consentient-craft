@@ -52,6 +52,21 @@ describe('SiegelenseStatusResponder', () => {
     });
   });
 
+  describe('run from a folder with no repo above it', () => {
+    it('EMPTY: {instanceId: null, cwd has no .dungeonmaster.json above it} => still answers, handing statusReadBroker the cwd as repoRoot', async () => {
+      const proxy = SiegelenseStatusResponderProxy();
+      const answer = StatusAnswerStub({ instances: [] });
+      proxy.stageNoRepoAboveCwd();
+      proxy.stageAnswer({ answer, instanceId: null });
+
+      await SiegelenseStatusResponder({ instanceId: null, isJson: true });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+      ]);
+    });
+  });
+
   describe('an instance named, that id not in the registry', () => {
     it('ERROR: {instanceId: inst_deadbeef} => throws InstanceUnknownError and statusReadBroker is never reached', async () => {
       const proxy = SiegelenseStatusResponderProxy();

@@ -7,7 +7,7 @@ describe('orchestrationModeGetBroker', () => {
       const proxy = orchestrationModeGetBrokerProxy();
       proxy.setupMode({ mode: 'node' });
 
-      const result = await orchestrationModeGetBroker();
+      const result = await orchestrationModeGetBroker({ startDir: '/default/cwd' });
 
       expect(result).toBe('node');
     });
@@ -16,7 +16,7 @@ describe('orchestrationModeGetBroker', () => {
       const proxy = orchestrationModeGetBrokerProxy();
       proxy.setupMode({ mode: 'claude' });
 
-      const result = await orchestrationModeGetBroker();
+      const result = await orchestrationModeGetBroker({ startDir: '/default/cwd' });
 
       expect(result).toBe('claude');
     });
@@ -27,7 +27,7 @@ describe('orchestrationModeGetBroker', () => {
       const proxy = orchestrationModeGetBrokerProxy();
       proxy.setupConfigNotFound();
 
-      const result = await orchestrationModeGetBroker();
+      const result = await orchestrationModeGetBroker({ startDir: '/default/cwd' });
 
       expect(result).toBe('claude');
     });
@@ -38,7 +38,9 @@ describe('orchestrationModeGetBroker', () => {
       const proxy = orchestrationModeGetBrokerProxy();
       proxy.setupConfigError({ error: new Error('malformed config') });
 
-      await expect(orchestrationModeGetBroker()).rejects.toThrow(/malformed config/u);
+      await expect(orchestrationModeGetBroker({ startDir: '/default/cwd' })).rejects.toThrow(
+        /malformed config/u,
+      );
     });
   });
 });

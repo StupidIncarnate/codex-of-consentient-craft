@@ -19,7 +19,7 @@
  * since a caller asking "did you touch anything of mine" needs the first reason it would have hit.
  *
  * USAGE:
- * await cleanupRunBroker();
+ * await cleanupRunBroker({ repoRoot: '/repo' });
  * // Returns { reaped, portsReleased, lockReleaseOutcome, assetsAged, leftAlone }
  */
 
@@ -37,7 +37,11 @@ import { assetsAgeLayerBroker } from './assets-age-layer-broker';
 import { lockReleaseLayerBroker } from './lock-release-layer-broker';
 import { staleReapLayerBroker } from './stale-reap-layer-broker';
 
-export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
+export const cleanupRunBroker = async ({
+  repoRoot,
+}: {
+  repoRoot: string;
+}): Promise<CleanupAnswer> => {
   const nowMs = now();
   const registry = await registryReadBroker();
 
@@ -72,7 +76,7 @@ export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
     );
 
   const reapResults = await Promise.all(
-    staleEntries.map(async (entry) => staleReapLayerBroker({ entry, nowMs })),
+    staleEntries.map(async (entry) => staleReapLayerBroker({ entry, nowMs, repoRoot })),
   );
 
   const { lockReleaseOutcome } = await lockReleaseLayerBroker({ nowMs });

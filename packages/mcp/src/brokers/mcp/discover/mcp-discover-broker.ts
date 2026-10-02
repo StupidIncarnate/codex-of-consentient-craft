@@ -19,7 +19,6 @@ import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-f
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
-import { cwd } from '#gateway/node/process';
 import { treeItemContract } from '../../../contracts/tree-item/tree-item-contract';
 
 export const mcpDiscoverBroker = async ({
@@ -29,10 +28,8 @@ export const mcpDiscoverBroker = async ({
 }: {
   input: DiscoverInput;
   ignorePatterns?: readonly string[];
-  // The resolved project root to scan from — see fileScannerBroker's own rootPath for why the
-  // cwd() fallback below exists only for standalone/test callers, never for the
-  // real MCP call site (architectureHandleResponder always passes this explicitly).
-  rootPath?: string;
+  // The resolved project root to scan from, passed by the responder via callerRepoRootResolveBroker.
+  rootPath: string;
 }): Promise<McpDiscoverResult> => {
   // Validate input
   const validated = discoverInputContract.parse(input);
@@ -44,7 +41,7 @@ export const mcpDiscoverBroker = async ({
     ...(validated.context !== undefined && { context: validated.context }),
     ...(validated.strict !== undefined && { strict: validated.strict }),
     ...(ignorePatterns !== undefined && { ignorePatterns }),
-    ...(rootPath !== undefined && { rootPath }),
+    rootPath,
   });
 
   // Map FileMetadata to DiscoverResultItem format (fileType -> type, signature.raw -> signature)
@@ -84,9 +81,8 @@ export const mcpDiscoverBroker = async ({
 
   // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {
-    const cwdPath = rootPath ?? cwd();
     const globSuffix = globResolveTransformer({ glob: validated.glob });
-    const pattern = `${cwdPath}/${globSuffix}`;
+    const pattern = `${rootPath}/${globSuffix}`;
 
     // The probes below must see the same tree the scan just saw, or the hint explains an absence
     // the caller never had — so they resolve the ignore list exactly as fileScannerBroker does.
@@ -98,7 +94,7 @@ export const mcpDiscoverBroker = async ({
     // When grep was set, check if the glob itself matched files before grep filtered them out.
     // This prevents the misleading "append /**" directory hint when the real problem is grep.
     if (validated.grep) {
-      const fileHits = (await globFind(pattern, { cwd: cwdPath, ignore })).map(
+      const fileHits = (await globFind(pattern, { cwd: rootPath, ignore })).map(
         (foundPath) => foundPath,
       );
       if (fileHits.length > 0) {
@@ -115,7 +111,7 @@ export const mcpDiscoverBroker = async ({
     }
 
     // Fall-through: glob matched no files. Probe for directories and suggest `/**`.
-    const directoryHits = (await globFind(pattern, { cwd: cwdPath, nodir: false, ignore })).map(
+    const directoryHits = (await globFind(pattern, { cwd: rootPath, nodir: false, ignore })).map(
       (foundPath) => foundPath,
     );
 

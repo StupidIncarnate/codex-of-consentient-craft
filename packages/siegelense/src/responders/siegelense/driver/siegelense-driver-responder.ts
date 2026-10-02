@@ -35,8 +35,9 @@
  * // Same, but the served lane reaps itself after 1_800_000ms of no traffic instead of the default
  */
 
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
-import { getPid, stderr } from '#gateway/node/process';
+import { cwd, getPid, stderr } from '#gateway/node/process';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
 import { bootLockReleaseBroker } from '../../../brokers/boot-lock/release/boot-lock-release-broker';
@@ -60,6 +61,8 @@ export const SiegelenseDriverResponder = async ({
   instanceId: SiegeInstance['id'];
   idleTimeoutMs?: number;
 }): Promise<void> => {
+  // The driver is spawned with `cwd: repoRoot`, so where it runs IS the checkout it serves.
+  const repoRoot = await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' });
   const registry = await registryReadBroker();
   const entry = registry.instances.find((row) => row.id === instanceId);
 
@@ -73,7 +76,7 @@ export const SiegelenseDriverResponder = async ({
     );
   }
 
-  const spec = await laneSpecFindBroker({ specName: entry.specName });
+  const spec = await laneSpecFindBroker({ specName: entry.specName, repoRoot });
   const homePath = locationsInstanceHomePathFindBroker({ instanceId });
   const evidencePath = locationsInstanceEvidencePathFindBroker({
     instanceId,
@@ -97,6 +100,7 @@ export const SiegelenseDriverResponder = async ({
         instanceId,
         homePath,
         evidencePath,
+        repoRoot,
       });
     } catch (bootError) {
       await bootLockReleaseBroker({ instanceId });

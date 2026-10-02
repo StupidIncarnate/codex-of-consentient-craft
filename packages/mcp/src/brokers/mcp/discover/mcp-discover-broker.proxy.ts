@@ -6,7 +6,7 @@
  * never imports, which is why read-file staging always goes through fileScannerBrokerProxy
  * instead: only file-scanner-broker.ts imports `readFile`). Every `pattern` param here is the
  * SUFFIX (e.g. `'**\/*.ts'`), the same convention fileScannerBrokerProxy's own `setupFiles` uses
- * — never the full `${cwdPath}/${globSuffix}` the broker computes internally — because
+ * — never the full `${rootPath}/${globSuffix}` the broker computes internally — because
  * `globResolveTransformer` leaves an already-wildcarded glob unchanged (no trailing `/**\/*`
  * appended), so only the real transformer's output, not a hand-guessed one, is safe to stage.
  *
@@ -18,7 +18,6 @@
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
 // Placeholder content for a file glob genuinely matched but grep then filters out — any real
 // content works here, as long as it never contains a grep pattern a setupGrepFilteredEmpty
@@ -43,11 +42,7 @@ export const mcpDiscoverBrokerProxy = (): {
     pattern: string;
   }) => void;
 } => {
-  const cwdStage = cwdProxy();
-  const stageDefaultCwd = (): void => {
-    cwdStage.setupCwd({ value: '/default/cwd' });
-  };
-  // The scan root the broker resolves for both fileScannerBroker's own scan and this broker's
+  // The scan root the tests pass for both fileScannerBroker's own scan and this broker's
   // own directory-hint probe.
   const scanRoot = '/default/cwd';
   const fileScannerProxy = fileScannerBrokerProxy();
@@ -63,7 +58,6 @@ export const mcpDiscoverBrokerProxy = (): {
       contents: string;
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       fileScannerProxy.setupFiles({ files: [{ filepath, contents }], pattern });
     },
 
@@ -74,7 +68,6 @@ export const mcpDiscoverBrokerProxy = (): {
       files: readonly { filepath: string; contents: string }[];
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       fileScannerProxy.setupFiles({ files, pattern });
     },
 
@@ -85,7 +78,6 @@ export const mcpDiscoverBrokerProxy = (): {
       directoryPaths: readonly string[];
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       // The scanner's own file scan finds nothing (staged through fileScannerProxy, which owns
       // the read-file gateway too); this hint's OWN directory probe is the one direct glob call
       // mcp-discover-broker.ts itself makes, at the SAME full pattern (root + suffix, computed
@@ -106,7 +98,6 @@ export const mcpDiscoverBrokerProxy = (): {
       filePaths: readonly string[];
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       // The scanner's own file scan and this hint's file-hit probe reach the gateway's glob with
       // IDENTICAL arguments — same pattern, same nodir — so they cannot be told apart by address
       // and must share one answer: glob genuinely matches these files. Staging them through
@@ -131,7 +122,6 @@ export const mcpDiscoverBrokerProxy = (): {
       contents: string;
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       fileScannerProxy.setupFilesAtRoot({ rootPath, files: [{ filepath, contents }], pattern });
     },
   };

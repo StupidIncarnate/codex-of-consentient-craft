@@ -16,7 +16,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
 
       proxy.returns({ processId, status });
 
-      const result = await orchestratorGetQuestStatusBroker({ processId });
+      const result = await orchestratorGetQuestStatusBroker({ processId, startDir: '/repo' });
 
       expect(result).toStrictEqual(status);
     });
@@ -29,9 +29,9 @@ describe('orchestratorGetQuestStatusBroker', () => {
 
       proxy.setupServerError({ processId, message: 'Process not found: proc-missing' });
 
-      await expect(orchestratorGetQuestStatusBroker({ processId })).rejects.toThrow(
-        /Process not found: proc-missing/u,
-      );
+      await expect(
+        orchestratorGetQuestStatusBroker({ processId, startDir: '/repo' }),
+      ).rejects.toThrow(/Process not found: proc-missing/u);
     });
 
     it('ERROR: {fetch fails with generic error} => rethrows original message', async () => {
@@ -40,9 +40,9 @@ describe('orchestratorGetQuestStatusBroker', () => {
 
       proxy.setupServerError({ processId, message: 'Internal server error' });
 
-      await expect(orchestratorGetQuestStatusBroker({ processId })).rejects.toThrow(
-        /Internal server error/u,
-      );
+      await expect(
+        orchestratorGetQuestStatusBroker({ processId, startDir: '/repo' }),
+      ).rejects.toThrow(/Internal server error/u);
     });
   });
 });

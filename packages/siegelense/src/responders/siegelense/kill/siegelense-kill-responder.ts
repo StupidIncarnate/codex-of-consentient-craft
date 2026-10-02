@@ -16,7 +16,9 @@
  * // Writes the KillResult as one JSON document to stdout, or throws InstanceUnknownError first
  */
 
-import { stdout } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
+import { cwd, stdout } from '#gateway/node/process';
 
 import { instanceKillBroker } from '../../../brokers/instance/kill/instance-kill-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
@@ -38,7 +40,16 @@ export const SiegelenseKillResponder = async ({
     throw new InstanceUnknownError({ instanceId });
   }
 
-  const result = await instanceKillBroker({ instanceId });
+  const startPath = cwd();
+  const repoRoot = await cwdResolveBroker({ startPath, kind: 'repo-root' }).catch(
+    (error: unknown) => {
+      if (error instanceof ProjectRootNotFoundError) {
+        return startPath;
+      }
+      throw error;
+    },
+  );
+  const result = await instanceKillBroker({ instanceId, repoRoot });
   stdout.write(
     isJson
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`

@@ -2,6 +2,8 @@ import { mcpDiscoverBroker } from './mcp-discover-broker';
 import { mcpDiscoverBrokerProxy } from './mcp-discover-broker.proxy';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 
+const DEFAULT_ROOT = '/default/cwd';
+
 describe('mcpDiscoverBroker', () => {
   describe('input validation', () => {
     it('ERROR: invalid context type => throws parse error', async () => {
@@ -11,7 +13,7 @@ describe('mcpDiscoverBroker', () => {
 
       // Force invalid context value (negative) to trigger zod parse failure
       await expect(
-        mcpDiscoverBroker({ input: { ...input, context: -1 as never } }),
+        mcpDiscoverBroker({ input: { ...input, context: -1 as never }, rootPath: DEFAULT_ROOT }),
       ).rejects.toThrow('expected number to be >=0');
     });
   });
@@ -27,7 +29,7 @@ describe('mcpDiscoverBroker', () => {
       });
 
       const input = DiscoverInputStub();
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: '',
@@ -45,7 +47,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ glob: '**/*.ts' });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: expect.stringMatching(/^\s+standalone-guard \(guard\) - standalone guard$/mu),
@@ -63,7 +65,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ grep: 'ENOENT' });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       // Tree output should contain the file and its grep hit on line 5
       expect(result).toStrictEqual({
@@ -82,7 +84,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ glob: '**/*.ts', grep: 'guard' });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: expect.stringMatching(/^\s+standalone-guard \(guard\) - standalone guard$/mu),
@@ -100,7 +102,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ grep: 'guard', context: 2 });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: expect.stringMatching(/^\s+standalone-guard \(guard\) - standalone guard$/mu),
@@ -118,7 +120,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ grep: 'NOMATCH' });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: '',
@@ -138,7 +140,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ verbose: true });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [
@@ -166,7 +168,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({ grep: 'ENOENT', verbose: true });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [
@@ -195,7 +197,7 @@ describe('mcpDiscoverBroker', () => {
       });
 
       const input = DiscoverInputStub({ verbose: true });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [],
@@ -223,7 +225,7 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({
         glob: 'packages/eslint-plugin/src/brokers/rule/explicit-return-types*',
       });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [
@@ -250,7 +252,7 @@ describe('mcpDiscoverBroker', () => {
       });
 
       const input = DiscoverInputStub({ glob: 'totally-fake-folder' });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: '',
@@ -277,7 +279,7 @@ describe('mcpDiscoverBroker', () => {
         glob: 'packages/web/src/**',
         grep: 'nonexistent-token',
       });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [
@@ -317,7 +319,7 @@ describe('mcpDiscoverBroker', () => {
       });
 
       const input = DiscoverInputStub({ verbose: true });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       // All three files should appear (multi-dot files are regular results now)
       expect(result).toStrictEqual({
@@ -369,7 +371,7 @@ describe('mcpDiscoverBroker', () => {
         glob: '**/*.ts',
         grep: 'OrchestrationEventType',
       });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [
@@ -396,7 +398,7 @@ describe('mcpDiscoverBroker', () => {
         grep: 'OrchestrationEventType',
         strict: true,
       });
-      const result = await mcpDiscoverBroker({ input });
+      const result = await mcpDiscoverBroker({ input, rootPath: DEFAULT_ROOT });
 
       expect(result).toStrictEqual({
         results: [

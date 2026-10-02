@@ -27,7 +27,7 @@ export const questWorkRecordBrokerProxy = (): {
   // Stages the lane's `kill` call for an `outcome` record on a `needsLane` item. Not called by a
   // test whose work item is not `needsLane` — the broker never reaches the dynamic import at all
   // in that case, so nothing needs to be staged for it.
-  setupLaneKill: () => void;
+  setupLaneKill: (params: { quest: Quest }) => void;
   getKilledInstanceIds: () => readonly unknown[];
 } => {
   questFindQuestPathBrokerProxy();
@@ -71,8 +71,8 @@ export const questWorkRecordBrokerProxy = (): {
 
     getPersistedQuests: (): readonly unknown[] => patchProxy.getPersistedQuests(),
 
-    setupLaneKill: (): void => {
-      killProxy.setupStopped({ stopped: true });
+    setupLaneKill: ({ quest }: { quest: Quest }): void => {
+      killProxy.setupStopped({ quest, stopped: true });
     },
 
     getKilledInstanceIds: (): readonly unknown[] => killProxy.getKilledInstanceIds(),

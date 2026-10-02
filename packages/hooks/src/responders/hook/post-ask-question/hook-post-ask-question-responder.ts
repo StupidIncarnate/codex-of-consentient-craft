@@ -66,7 +66,7 @@ export const HookPostAskQuestionResponder = async ({
   }
   const { answers } = responseParsed.data;
 
-  const port = portResolveBroker();
+  const port = portResolveBroker({ startDir: hookData.cwd });
   const baseUrl = `http://${environmentStatics.hostname}:${String(port)}`;
   const sessionId = String(hookData.session_id);
   const url = `${baseUrl}/api/quests/by-session/${sessionId}`;

@@ -35,6 +35,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(proxy.getRegistryAndBootLockWriteOrder()).toStrictEqual([
@@ -60,6 +61,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(proxy.getWrittenBootLock()).toStrictEqual({
@@ -89,6 +91,7 @@ describe('instanceStartBroker', () => {
         guildId: null,
         seed: null,
         idleTimeoutMs: 1_800_000,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.instanceId).toBe(instanceId);
@@ -110,9 +113,34 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.instanceId).toBe(instanceId);
+    });
+  });
+
+  describe('the repo root the caller names', () => {
+    it("VALID: {repoRoot differs from the process cwd} => spawns the driver with cwd set to repoRoot, running the CLI bin that repoRoot's own install holds", async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+      });
+
+      await instanceStartBroker({
+        specName: 'api',
+        questId: null,
+        guildId: null,
+        seed: null,
+        repoRoot: '/default/cwd',
+      });
+
+      expect(proxy.getDriverSpawnCountFor({ instanceId })).toBe(1);
     });
   });
 
@@ -133,7 +161,13 @@ describe('instanceStartBroker', () => {
       });
 
       await expect(
-        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+        instanceStartBroker({
+          specName,
+          questId: null,
+          guildId: null,
+          seed: null,
+          repoRoot: '/default/cwd',
+        }),
       ).rejects.toThrow(LaneBootFailedError);
 
       expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
@@ -162,6 +196,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       }).catch((error: unknown) => error);
 
       expect(thrownError instanceof DriverBootFailedError).toBe(true);
@@ -188,9 +223,13 @@ describe('instanceStartBroker', () => {
         driverMessage: 'the api process exited before opening its port',
       });
 
-      await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
-        (error: unknown) => error,
-      );
+      await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+        repoRoot: '/default/cwd',
+      }).catch((error: unknown) => error);
 
       const expectedRegistry = RegistryStub({
         instances: [
@@ -223,9 +262,13 @@ describe('instanceStartBroker', () => {
         nowMs,
       });
 
-      await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
-        (error: unknown) => error,
-      );
+      await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+        repoRoot: '/default/cwd',
+      }).catch((error: unknown) => error);
 
       const expectedRegistry = RegistryStub({
         instances: [
@@ -260,7 +303,13 @@ describe('instanceStartBroker', () => {
       proxy.stageInstanceReleaseWriteFails({ code: 'EACCES' });
 
       await expect(
-        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+        instanceStartBroker({
+          specName,
+          questId: null,
+          guildId: null,
+          seed: null,
+          repoRoot: '/default/cwd',
+        }),
       ).rejects.toThrow(LaneBootFailedError);
 
       expect(proxy.getStderrMessages()).toStrictEqual([
@@ -309,6 +358,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       }).catch((error: unknown) => error);
 
       expect(String(thrownError)).toBe(
@@ -333,6 +383,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.baseUrl).toBe(null);
@@ -377,6 +428,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.baseUrl).toBe('http://dungeonmaster.localhost:40501');
@@ -407,6 +459,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.apiUrl).toBe('http://dungeonmaster.localhost:40502');
@@ -432,6 +485,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.aheadOfMe).toBe(2);
@@ -459,6 +513,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.aheadOfMe).toBe(1);
@@ -494,6 +549,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.aheadOfMe).toBe(1);
@@ -517,6 +573,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.queuedMs).toBe(34_000);
@@ -548,6 +605,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(proxy.getStderrMessages()).toStrictEqual([
@@ -572,6 +630,7 @@ describe('instanceStartBroker', () => {
           questId: null,
           guildId: null,
           seed: null,
+          repoRoot: '/default/cwd',
         }),
       ).rejects.toStrictEqual(
         new Error(
@@ -596,6 +655,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.evidence.path).toBe(
@@ -622,6 +682,7 @@ describe('instanceStartBroker', () => {
         questId,
         guildId,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.evidence.path).toBe(
@@ -645,6 +706,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.evidence).toStrictEqual({
@@ -667,6 +729,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.logs).toStrictEqual({
@@ -702,7 +765,13 @@ describe('instanceStartBroker', () => {
       proxy.stageSeedFails();
       proxy.stageShutdownReasonWriteSucceeds({ evidencePath: UNOWNED_EVIDENCE_PATH });
 
-      const startPromise = instanceStartBroker({ specName, questId: null, guildId: null, seed });
+      const startPromise = instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed,
+        repoRoot: '/default/cwd',
+      });
 
       await expect(startPromise).rejects.toThrow(missingMessage);
       expect(proxy.getKillConnectionCountFor({ instanceId })).toBe(2);
@@ -723,9 +792,13 @@ describe('instanceStartBroker', () => {
       proxy.stageSeedFails();
       proxy.stageShutdownReasonWriteSucceeds({ evidencePath: UNOWNED_EVIDENCE_PATH });
 
-      await instanceStartBroker({ specName, questId: null, guildId: null, seed }).catch(
-        (error: unknown) => error,
-      );
+      await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed,
+        repoRoot: '/default/cwd',
+      }).catch((error: unknown) => error);
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: UNOWNED_EVIDENCE_PATH })).toStrictEqual(
         {
@@ -746,7 +819,13 @@ describe('instanceStartBroker', () => {
       });
 
       await expect(
-        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+        instanceStartBroker({
+          specName,
+          questId: null,
+          guildId: null,
+          seed: null,
+          repoRoot: '/default/cwd',
+        }),
       ).rejects.toThrow(/^EMFILE: open '\/home\/user\/\.dungeonmaster\/siegelense\/boot\.lock'$/u);
 
       const expectedRegistry = RegistryStub({
@@ -784,6 +863,7 @@ describe('instanceStartBroker', () => {
           questId: null,
           guildId: null,
           seed: null,
+          repoRoot: '/default/cwd',
         }),
       ).rejects.toThrow(
         /^Refusing to start api: this machine cannot hold another instance right now — profile 2600MB peak \/ 1800MB steady at pool size 3, from 1 runs; free RAM 3111MB less 512MB headroom; nothing else up; no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
@@ -815,6 +895,7 @@ describe('instanceStartBroker', () => {
           questId: null,
           guildId: null,
           seed: null,
+          repoRoot: '/default/cwd',
         }),
       ).rejects.toThrow(
         /^Refusing to start api: this machine cannot hold another instance right now — no measured profile for api, so this suggests the default of 2 instances; run a pool of 2 once and siegelense records a profile for next time; free RAM 16000MB less 512MB headroom; 3 siege instances already up \(3 still reserving\); the policy pool of 3 is full\. Run/u,
@@ -838,6 +919,7 @@ describe('instanceStartBroker', () => {
         questId: null,
         guildId: null,
         seed: null,
+        repoRoot: '/default/cwd',
       });
 
       expect(result.instanceId).toBe(instanceId);

@@ -1,12 +1,12 @@
 /**
  * PURPOSE: Proxy for stepHandlerCleanupBroker — mocks the child-process spawn boundary and
- * questRepoRootBroker (its own dedicated test suite), matching the ward/riftcarver/commit handler
+ * questCwdResolveBroker (its own dedicated test suite), matching the ward/riftcarver/commit handler
  * proxies' shape.
  *
- * Stages the handler's own spawn through `streamLinesProxy()` directly, addressed by `command`
- * alone: `cleanupCliCallStatics.call.bin` (`'dungeonmaster'`) never collides with `WARD_COMMAND`
- * (`'dungeonmaster-ward'`), so no `args`/`cwd` refinement is needed here even when this proxy is
- * composed alongside ward's and riftcarver's (`stepHandlerRunBrokerProxy`).
+ * Stages the handler's own spawn through `streamLinesProxy()` directly. The CLI is resolved from the
+ * run root, so the spawn is `node <cli entry script> siegelense ...`; the args predicate (the
+ * subcommand in the slot after the entry script) keeps it apart from ward's and riftcarver's spawns
+ * on the same node when this proxy is composed alongside them (`stepHandlerRunBrokerProxy`).
  *
  * USAGE:
  * const proxy = stepHandlerCleanupBrokerProxy();
@@ -19,25 +19,33 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { dirname } from '#gateway/node/path';
 import { execPath } from '#gateway/node/process';
+import { packageBinResolveBrokerProxy } from '@dungeonmaster/shared/brokers/package-bin/resolve/package-bin-resolve-broker.proxy';
 import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { CleanupCliAnswerStub } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer.stub';
+import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
+import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
+
+type CleanupCliAnswer = ReturnType<typeof CleanupCliAnswerStub>;
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
+import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import {
   registerMock,
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
-import type { CleanupCliAnswer } from '../../../contracts/cleanup-cli-answer/cleanup-cli-answer-contract';
-import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
-import { dungeonmasterBinResolveBrokerProxy } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker.proxy';
-import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
-import { questRepoRootBrokerProxy } from '../../quest/repo-root/quest-repo-root-broker.proxy';
-
-registerModuleMock({ module: '../../quest/repo-root/quest-repo-root-broker' });
+registerModuleMock({ module: '../../quest/cwd-resolve/quest-cwd-resolve-broker' });
 
 const CLEANUP_COMMAND = cleanupCliCallStatics.call.bin;
+const CLI_PACKAGE = '@dungeonmaster/cli';
 const REPO_ROOT = '/repo';
+const DEFAULT_CLI_MANIFEST = JSON.stringify({
+  name: CLI_PACKAGE,
+  bin: { [CLEANUP_COMMAND]: './dist/bin/dungeonmaster.js' },
+});
 
 export const stepHandlerCleanupBrokerProxy = (): {
+  setupWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   cleanupExits: (params: {
     questId: Quest['id'];
     exitCode: number;
@@ -52,49 +60,72 @@ export const stepHandlerCleanupBrokerProxy = (): {
     installedAt: string;
     manifestJson: string;
   }) => void;
+  cleanupExitsViaLocalCliInWorktree: (params: {
+    questId: Quest['id'];
+    worktreePath: string;
+    exitCode: number;
+    answer: CleanupCliAnswer;
+    manifestJson: string;
+  }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
 } => {
-  // Inert — satisfies enforce-proxy-child-creation. The module mock above replaces
-  // questRepoRootBroker's export; this proxy's own internal staging is never exercised.
-  questRepoRootBrokerProxy();
-  const repoRootMock = registerMock({ fn: questRepoRootBroker });
+  questCwdResolveBrokerProxy();
+  const cwdMock = registerMock({ fn: questCwdResolveBroker });
 
   RunNotFoundErrorProxy();
   getEnvProxy();
-  const binProxy = dungeonmasterBinResolveBrokerProxy();
-  // The resolve broker walks up from the run folder with `dirname`, which a composed proxy mocks
-  // (guildPathWalkUpLayerBrokerProxy), so every level of that walk is staged by its own address.
+  const binProxy = packageBinResolveBrokerProxy();
+  // `dirname` is mocked by a composed proxy (guildPathWalkUpLayerBrokerProxy), so the resolved
+  // manifest's directory is staged by its own address and answered by the real implementation.
   const realPath = requireActual<{ dirname: typeof dirname }>({ module: 'path' });
   const dirnameHandle = registerMock({ fn: dirname });
-  const stageWalkUp = ({ dirPath }: { dirPath: string }): void => {
-    const parent = realPath.dirname(dirPath);
-    dirnameHandle.calledWith([dirPath]).returns(parent);
-    if (parent !== dirPath) {
-      stageWalkUp({ dirPath: parent });
-    }
-  };
-  stageWalkUp({ dirPath: REPO_ROOT });
   const cleanupSpawn = streamLinesProxy();
-  const runResult: { exitCode: number; output: string } = {
-    exitCode: 0,
-    output: '{}',
-  };
-  const spawned: { command: string } = { command: CLEANUP_COMMAND };
-  const stageCleanupSpawn = (): void => {
+  const stageCleanup = ({
+    repoRoot,
+    manifestJson,
+    exitCode,
+    output,
+  }: {
+    repoRoot: string;
+    manifestJson: string;
+    exitCode: number;
+    output: string;
+  }): void => {
+    const manifestPath = `${repoRoot}/node_modules/${CLI_PACKAGE}/package.json`;
+    dirnameHandle.calledWith([manifestPath]).returns(realPath.dirname(manifestPath));
+    binProxy.setupManifestInRunRoot({
+      packageName: CLI_PACKAGE,
+      repoRoot,
+      manifestPath,
+      rawManifest: manifestJson,
+    });
     cleanupSpawn.setupSuccess({
-      command: spawned.command,
-      exitCode: runResult.exitCode,
-      stdoutLines: runResult.output.split('\n').filter((entry) => entry.length > 0),
+      command: execPath,
+      args: (args: readonly unknown[]): boolean => args[1] === cleanupCliCallStatics.call.args[0],
+      exitCode,
+      stdoutLines: output.split('\n').filter((entry) => entry.length > 0),
     });
   };
-  stageCleanupSpawn();
   const stageRepoRoot = ({ questId }: { questId: Quest['id'] }): void => {
-    repoRootMock.calledWith([{ questId }]).resolves(REPO_ROOT);
+    cwdMock
+      .calledWith([{ questId }])
+      .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: REPO_ROOT }));
   };
 
   return {
+    setupWorktreeMissing: ({
+      questId,
+      worktreePath,
+    }: {
+      questId: Quest['id'];
+      worktreePath: string;
+    }): void => {
+      cwdMock
+        .calledWith([{ questId }])
+        .resolves(QuestCwdResolutionStub({ kind: 'missing-worktree', worktreePath }));
+    },
     cleanupExits: ({
       questId,
       exitCode,
@@ -105,10 +136,12 @@ export const stepHandlerCleanupBrokerProxy = (): {
       answer: CleanupCliAnswer;
     }): void => {
       stageRepoRoot({ questId });
-      binProxy.setupNotInstalledAnywhere({ binName: CLEANUP_COMMAND });
-      runResult.exitCode = exitCode;
-      runResult.output = JSON.stringify(answer);
-      stageCleanupSpawn();
+      stageCleanup({
+        repoRoot: REPO_ROOT,
+        manifestJson: DEFAULT_CLI_MANIFEST,
+        exitCode,
+        output: JSON.stringify(answer),
+      });
     },
 
     cleanupFails: ({
@@ -121,18 +154,17 @@ export const stepHandlerCleanupBrokerProxy = (): {
       output: string;
     }): void => {
       stageRepoRoot({ questId });
-      binProxy.setupNotInstalledAnywhere({ binName: CLEANUP_COMMAND });
-      runResult.exitCode = exitCode;
-      runResult.output = output;
-      stageCleanupSpawn();
+      stageCleanup({ repoRoot: REPO_ROOT, manifestJson: DEFAULT_CLI_MANIFEST, exitCode, output });
     },
 
     cleanupPrintsInvalidJson: ({ questId }: { questId: Quest['id'] }): void => {
       stageRepoRoot({ questId });
-      binProxy.setupNotInstalledAnywhere({ binName: CLEANUP_COMMAND });
-      runResult.exitCode = 0;
-      runResult.output = 'not json';
-      stageCleanupSpawn();
+      stageCleanup({
+        repoRoot: REPO_ROOT,
+        manifestJson: DEFAULT_CLI_MANIFEST,
+        exitCode: 0,
+        output: 'not json',
+      });
     },
 
     cleanupExitsViaLocalCli: ({
@@ -149,26 +181,45 @@ export const stepHandlerCleanupBrokerProxy = (): {
       manifestJson: string;
     }): void => {
       stageRepoRoot({ questId });
-      binProxy.setupInstalled({
-        cwd: REPO_ROOT,
-        binName: CLEANUP_COMMAND,
-        installedAt,
+      stageCleanup({
+        repoRoot: installedAt,
         manifestJson,
+        exitCode,
+        output: JSON.stringify(answer),
       });
-      spawned.command = execPath;
-      runResult.exitCode = exitCode;
-      runResult.output = JSON.stringify(answer);
-      stageCleanupSpawn();
+    },
+
+    cleanupExitsViaLocalCliInWorktree: ({
+      questId,
+      worktreePath,
+      exitCode,
+      answer,
+      manifestJson,
+    }: {
+      questId: Quest['id'];
+      worktreePath: string;
+      exitCode: number;
+      answer: CleanupCliAnswer;
+      manifestJson: string;
+    }): void => {
+      cwdMock
+        .calledWith([{ questId }])
+        .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: worktreePath }));
+      stageCleanup({
+        repoRoot: worktreePath,
+        manifestJson,
+        exitCode,
+        output: JSON.stringify(answer),
+      });
     },
 
     getSpawnedCommand: (): unknown => {
-      const calls = cleanupSpawn.getOptionsFor({ command: spawned.command });
-      return calls.length > 0 ? spawned.command : undefined;
+      const calls = cleanupSpawn.getOptionsFor({ command: execPath });
+      return calls.length > 0 ? execPath : undefined;
     },
 
-    getSpawnedArgs: (): unknown => cleanupSpawn.getSpawnedArgs({ command: spawned.command }),
+    getSpawnedArgs: (): unknown => cleanupSpawn.getSpawnedArgs({ command: execPath }),
 
-    getSpawnedCwd: (): unknown =>
-      cleanupSpawn.getOptionsFor({ command: spawned.command }).at(-1)?.cwd,
+    getSpawnedCwd: (): unknown => cleanupSpawn.getOptionsFor({ command: execPath }).at(-1)?.cwd,
   };
 };

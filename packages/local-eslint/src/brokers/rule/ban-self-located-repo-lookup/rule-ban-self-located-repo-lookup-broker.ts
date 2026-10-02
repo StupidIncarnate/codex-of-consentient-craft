@@ -28,7 +28,7 @@ export const ruleBanSelfLocatedRepoLookupBroker = (): TSESLint.RuleModule<'selfL
     },
     messages: {
       selfLocatedLookup:
-        "{{resolver}}() is given a path built from this module's own location (__dirname, __filename or import.meta). A consumer that links dungeonmaster through `file:` runs this module from inside the dungeonmaster checkout, so the walk finds dungeonmaster's repo instead of the consumer's. Pass a path from the input instead: the linted file's directory, the cwd or startDir the caller passed in, or process.cwd() in a CLI entry point.",
+        "{{resolver}}() is given a path built from this module's own location (__dirname, __filename or import.meta). A consumer that links dungeonmaster through `file:` runs this module from inside the dungeonmaster checkout, so the walk finds dungeonmaster's repo instead of the consumer's. Pass a path from the input instead: the linted file's directory, or a repo root the caller passed in. Only an entry point (startup/, responders/) reads where it runs.",
     },
     schema: [],
   },

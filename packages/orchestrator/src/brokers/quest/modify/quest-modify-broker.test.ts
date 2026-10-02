@@ -2364,6 +2364,103 @@ describe('questModifyBroker', () => {
         'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
       ]);
     });
+
+    it('VALID: {carved quest, existing contract whose source exists only under the worktree} => accepted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const worktreePath = '/home/testuser/worktrees/add-auth';
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'submit-form' })],
+          }),
+        ],
+        contracts: [],
+        worktreePath,
+      });
+
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreePresent({ worktreePath });
+      proxy.setupContractSourceResolvesOnce({
+        source: `${worktreePath}/packages/shared/src/contracts/email-address/email-address-contract.ts`,
+      });
+
+      const result = await questModifyBroker({
+        input: ModifyQuestInputStub({
+          questId: 'add-auth',
+          contracts: [
+            {
+              id: 'e47bc10b-58cc-4372-a567-0e02b2c3d479',
+              name: 'EmailAddress',
+              kind: 'data',
+              status: 'existing',
+              source: 'packages/shared/src/contracts/email-address/email-address-contract.ts',
+              nodeId: 'submit-form',
+              properties: [{ name: 'value', type: 'EmailAddress', description: 'Email value' }],
+            },
+          ],
+        }),
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it('INVALID: {carved quest, existing contract whose source exists only under the repo root} => returns Contract Source Resolution failedCheck', async () => {
+      const proxy = questModifyBrokerProxy();
+      const worktreePath = '/home/testuser/worktrees/add-auth';
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'submit-form' })],
+          }),
+        ],
+        contracts: [],
+        worktreePath,
+      });
+
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreePresent({ worktreePath });
+      proxy.setupContractSourceResolvesOnce({
+        source: `${proxy.getProjectRoot()}/packages/shared/src/contracts/email-address/email-address-contract.ts`,
+      });
+
+      const result = await questModifyBroker({
+        input: ModifyQuestInputStub({
+          questId: 'add-auth',
+          contracts: [
+            {
+              id: 'f47bc10b-58cc-4372-a567-0e02b2c3d479',
+              name: 'EmailAddress',
+              kind: 'data',
+              status: 'existing',
+              source: 'packages/shared/src/contracts/email-address/email-address-contract.ts',
+              nodeId: 'submit-form',
+              properties: [{ name: 'value', type: 'EmailAddress', description: 'Email value' }],
+            },
+          ],
+        }),
+      });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Contract source path resolution failed',
+        failedChecks: [
+          {
+            name: 'Contract Source Resolution',
+            passed: false,
+            details:
+              "Contract 'EmailAddress' has status 'existing' but source 'packages/shared/src/contracts/email-address/email-address-contract.ts' does not resolve on disk. Set status to 'new', or correct the source path.",
+          },
+        ],
+      });
+    });
   });
 
   describe('valid transition passes all tiers', () => {

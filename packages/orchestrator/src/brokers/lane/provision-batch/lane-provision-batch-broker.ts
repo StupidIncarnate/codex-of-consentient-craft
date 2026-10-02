@@ -6,17 +6,22 @@
  * that is NOT `spawn-agents`, or whose batch does not `needsLane`, passes straight through
  * unchanged — capacity is spent only where it was measured for.
  *
- * `capacityReadBroker` AND `instanceStartBroker` are pulled off ONE `require.resolve` +
+ * Every lane serves the QUEST's own checkout, never this process's: `questCwdResolveBroker` names
+ * the quest's worktree (or the repo root before one is carved), `moduleResolveBroker` loads
+ * `@dungeonmaster/siegelense/brokers` from that checkout's `node_modules`, and the same checkout is
+ * handed to `capacityReadBroker` and `instanceStartBroker` as `repoRoot`, so the lane's API, web,
+ * recipes and config are the quest's. A quest whose recorded worktree is gone THROWS: a lane that
+ * would silently fall back to the main checkout would walk code the quest never touched.
+ *
+ * `capacityReadBroker` AND `instanceStartBroker` are pulled off ONE `moduleResolveBroker` +
  * `dynamicImport` (`#gateway/node/module`) call, never two — the orchestrator cannot depend on
  * `@dungeonmaster/siegelense` (it is a cycle), so this is the same route `cli-siegelense-responder.ts`
- * takes, and BOTH functions resolve the IDENTICAL `@dungeonmaster/siegelense/brokers` path. Two
- * independent resolutions (this broker calling out to a separate capacity-only broker and a
- * separate start-only broker, each doing its own import) would give this file's own proxy nothing
- * to key the two calls apart by — mocking that path is addressed purely by the path argument, so
- * two separate stagings for it COLLIDE, the later one silently winning and leaving the earlier
- * caller's function missing off the resolved module. ONE resolution, ONE staged module, is what
- * keeps both callable in the same test. `dynamicImport` hands back `unknown`, so the loaded module
- * is parsed through `siegelenseLaneProvisionModuleContract` rather than cast.
+ * takes, and BOTH functions resolve the IDENTICAL path. Two independent resolutions would give this
+ * file's own proxy nothing to key the two calls apart by — mocking that path is addressed purely by
+ * the path argument, so two separate stagings for it COLLIDE, the later one silently winning and
+ * leaving the earlier caller's function missing off the resolved module. `dynamicImport` hands back
+ * `unknown`, so the loaded module is parsed through `siegelenseLaneProvisionModuleContract` rather
+ * than cast.
  *
  * A BATCH IS ONE STEP OF ONE FAMILY BY CONSTRUCTION (`selectBatchLayerBroker`'s own invariant), so
  * `needsLane` is either true for every item in `step.agents` or true for none of them — checking the
@@ -34,6 +39,7 @@
  * // Returns the NextStep unchanged for a non-lane batch, or trimmed + lane-started for a lane one
  */
 
+import { moduleResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 
@@ -44,6 +50,7 @@ import type { NextStep } from '../../../contracts/next-step/next-step-contract';
 import { siegelenseLaneProvisionModuleContract } from '../../../contracts/siegelense-lane-provision-module/siegelense-lane-provision-module-contract';
 import { laneStatics } from '../../../statics/lane/lane-statics';
 import { laneManifestToWorkItemInstanceTransformer } from '../../../transformers/lane-manifest-to-work-item-instance/lane-manifest-to-work-item-instance-transformer';
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { laneRecordInstanceBroker } from '../record-instance/lane-record-instance-broker';
 
@@ -67,7 +74,18 @@ export const laneProvisionBatchBroker = async ({
     return step;
   }
 
-  const modulePath = require.resolve(SIEGELENSE_BROKERS_MODULE_NAME);
+  const resolution = await questCwdResolveBroker({ questId: quest.id });
+  if (resolution.kind === 'missing-worktree') {
+    throw new Error(
+      `Cannot start a lane for quest ${quest.id}: worktree not found: ${resolution.worktreePath}`,
+    );
+  }
+  const repoRoot = resolution.cwd;
+
+  const { path: modulePath } = moduleResolveBroker({
+    specifier: SIEGELENSE_BROKERS_MODULE_NAME,
+    repoRoot,
+  });
 
   const siegelenseBrokers = siegelenseLaneProvisionModuleContract.parse(
     await dynamicImport({ path: modulePath }).catch((error: unknown) => {
@@ -82,6 +100,7 @@ export const laneProvisionBatchBroker = async ({
     await siegelenseBrokers.capacityReadBroker({
       specName: laneStatics.defaults.specName,
       poolSize: null,
+      repoRoot,
     }),
   );
   const bounded = step.agents.slice(0, capacity.suggested);
@@ -111,6 +130,7 @@ export const laneProvisionBatchBroker = async ({
         // owns its quests, so there is no quest this router dispatches for that has none.
         guildId,
         seed: null,
+        repoRoot,
       });
       const manifest = laneManifestReadingContract.parse(rawManifest);
       const instance = laneManifestToWorkItemInstanceTransformer({ manifest });

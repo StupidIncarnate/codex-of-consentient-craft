@@ -12,7 +12,7 @@
  */
 import { readFileSync } from '#gateway/node/fs';
 import { packageJsonContract } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker, moduleResolveBroker } from '@dungeonmaster/shared/brokers';
 
 const HTTP_BACKEND_DEPENDENCY_SIGNAL = 'hono';
 const SCOPE_PREFIX = '@dungeonmaster/';
@@ -33,7 +33,14 @@ export const httpBackendPackageResolveBroker = async (): Promise<string> => {
   const matches = candidateNames.filter((candidateName) => {
     try {
       const candidatePackageJson = packageJsonContract.parse(
-        JSON.parse(readFileSync(require.resolve(`${candidateName}/package.json`))) as unknown,
+        JSON.parse(
+          readFileSync(
+            moduleResolveBroker({
+              specifier: `${candidateName}/package.json`,
+              repoRoot: projectRoot,
+            }).path,
+          ),
+        ) as unknown,
       );
       return Object.keys(candidatePackageJson.dependencies ?? {}).includes(
         HTTP_BACKEND_DEPENDENCY_SIGNAL,

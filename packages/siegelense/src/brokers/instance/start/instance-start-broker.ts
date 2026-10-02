@@ -58,16 +58,17 @@
  * behind it forever.
  *
  * USAGE:
- * await instanceStartBroker({ specName: 'dungeonmaster-stack', questId: null, guildId: null, seed: null });
+ * await instanceStartBroker({ specName: 'stack', questId: null, guildId: null, seed: null, repoRoot });
  * // Returns an InstanceManifest once the driver answers `ping`, or throws DriverBootFailedError /
  * // LaneBootFailedError after releasing boot.lock and this attempt's reservation
  *
  * await instanceStartBroker({
- *   specName: 'dungeonmaster-stack',
+ *   specName: 'stack',
  *   questId: null,
  *   guildId: null,
  *   seed: 'guild-with-three-quests',
  *   idleTimeoutMs: 1_800_000,
+ *   repoRoot,
  * });
  * // Same, but appends `--idle-timeout-ms 1800000` to the spawned driver's own argv, raising the
  * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs
@@ -77,12 +78,11 @@ import { spawnDetached } from '#gateway/node/child_process';
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
-import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
+import { envSnapshot, stderr } from '#gateway/node/process';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { packageBinResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import { tmpdir } from '#gateway/node/os';
-import { cliPackageBinResolveBroker } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
 import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
@@ -118,14 +118,16 @@ export const instanceStartBroker = async ({
   guildId,
   seed,
   idleTimeoutMs,
+  repoRoot,
 }: {
   specName: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
   seed: string | null;
   idleTimeoutMs?: number;
+  repoRoot: string;
 }): Promise<InstanceManifest> => {
-  const spec = await laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName, repoRoot });
   const specHash = laneSpecHashBroker({ spec });
 
   const registryBeforeReserve = await registryReadBroker();
@@ -167,7 +169,7 @@ export const instanceStartBroker = async ({
 
   await Promise.all(
     staleEntries.map(async (staleEntry) => {
-      const reapResult = await instanceKillBroker({ instanceId: staleEntry.id });
+      const reapResult = await instanceKillBroker({ instanceId: staleEntry.id, repoRoot });
       stderr.write(
         `instanceStartBroker: reaped stale instance ${staleEntry.id} — heartbeat gone cold, signalled pgids [${reapResult.reapedPgids.join(', ')}]\n`,
       );
@@ -183,12 +185,18 @@ export const instanceStartBroker = async ({
   // `why` sentence carried into the error says which of the two fired. `poolSize: null` takes
   // capacity's own default, the most CONTENDED group the profile holds: a refusal should err toward
   // refusing rather than toward an OOM.
-  const capacity = await capacityReadBroker({ specName, poolSize: null });
+  const capacity = await capacityReadBroker({ specName, poolSize: null, repoRoot });
   if (capacity.suggested === 0) {
     throw new CapacityRefusedError({ specName, why: capacity.why });
   }
 
-  const reservedEntry = await instanceReserveBroker({ specName, specHash, questId, guildId });
+  const reservedEntry = await instanceReserveBroker({
+    specName,
+    specHash,
+    questId,
+    guildId,
+    repoRoot,
+  });
 
   // Acquiring the lock sits BEFORE the try below on purpose (queuedMs measures the wait, not a
   // boot), which means a throw here — `BootLockHeldError`, machine-wide contention past the wait
@@ -227,15 +235,15 @@ export const instanceStartBroker = async ({
     const driverLogPath = join(evidencePath, locationsStatics.siegelense.driverLog);
     const driverLogFd = openForAppendSync(driverLogPath);
 
-    const cwdSeed = cwd();
-    const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
-
-    // Spawns the CLI's own resolved bin script through the CURRENT node binary rather than the
-    // bare command 'dungeonmaster' — PATH can resolve that name to an unrelated checkout (a
-    // global npm link, a second session's worktree, an older consumer install), and the wrong
-    // binary boots quietly, reading back as a boot timeout rather than as the wrong process. See
-    // cliPackageBinResolveBroker's own PURPOSE for how it locates the right one everywhere.
-    const driverBinPath = cliPackageBinResolveBroker();
+    // The CLI's bin script is resolved as `repoRoot` sees it, never as this process's own install
+    // does: the orchestrator calls this from the main checkout's server on behalf of a quest
+    // worktree, and a bare 'dungeonmaster' name would resolve through PATH to whatever checkout was
+    // linked globally. Both boot quietly and read back as a boot timeout rather than as the wrong
+    // process.
+    const driverBin = await packageBinResolveBroker({
+      binName: 'dungeonmaster',
+      repoRoot,
+    });
 
     // `env` must be passed explicitly, never omitted. Leaving it undefined asks Node to default to
     // `process.env`, and from inside a live Jest worker that default resolves against a STALE
@@ -254,11 +262,11 @@ export const instanceStartBroker = async ({
     );
 
     spawnDetached({
-      command: execPath,
+      command: driverBin.command,
       // `locationsStatics.siegelense.dir` doubles as the CLI subcommand name here — both are the
       // literal string 'siegelense', and `no-bare-location-literals` bans typing it a second time.
       args: [
-        driverBinPath,
+        ...driverBin.leadingArgs,
         locationsStatics.siegelense.dir,
         'driver',
         '--instance',
@@ -374,10 +382,10 @@ export const instanceStartBroker = async ({
 
     const [evidenceRepoLocal, apiLogRepoLocal, webLogRepoLocal, driverLogRepoLocal] =
       await Promise.all([
-        locationsRepoLinkPathFindBroker({ homePath: evidencePath }),
-        locationsRepoLinkPathFindBroker({ homePath: apiLogPath }),
-        locationsRepoLinkPathFindBroker({ homePath: webLogPath }),
-        locationsRepoLinkPathFindBroker({ homePath: driverLogPath }),
+        locationsRepoLinkPathFindBroker({ homePath: evidencePath, repoRoot }),
+        locationsRepoLinkPathFindBroker({ homePath: apiLogPath, repoRoot }),
+        locationsRepoLinkPathFindBroker({ homePath: webLogPath, repoRoot }),
+        locationsRepoLinkPathFindBroker({ homePath: driverLogPath, repoRoot }),
       ]);
 
     // A browserless spec (spec line 2145: "just another spec") never assigns any process the
@@ -425,6 +433,7 @@ export const instanceStartBroker = async ({
             apiBaseUrl: `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
             homePath,
             parameters: {},
+            repoRoot,
           }).catch((seedError: unknown) => {
             // Named here, not derived from `bootError` in the catch below — this is the ONE place
             // that knows the failure came from the seed step specifically, rather than from the
@@ -475,7 +484,7 @@ export const instanceStartBroker = async ({
     // risked losing: a kill that itself throws (a socket edge case, a filesystem error) must never
     // leave the reservation dangling just because the fuller cleanup above it failed.
     try {
-      await instanceKillBroker({ instanceId: reservedEntry.id });
+      await instanceKillBroker({ instanceId: reservedEntry.id, repoRoot });
     } catch (killError: unknown) {
       stderr.write(
         `instanceStartBroker: stopping ${reservedEntry.id} after a failed boot failed, falling back to releasing the reservation: ${String(killError)}\n`,

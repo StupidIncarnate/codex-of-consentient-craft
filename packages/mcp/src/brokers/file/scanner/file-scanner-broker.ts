@@ -21,7 +21,6 @@ import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import { cwd } from '#gateway/node/process';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
@@ -44,14 +43,11 @@ export const fileScannerBroker = async ({
   context?: ContextLines;
   strict?: StrictGrep;
   ignorePatterns?: readonly string[];
-  // The resolved project root to scan from. Every MCP call site resolves this explicitly via
-  // callerRepoRootResolveBroker and always passes it — the `cwd()` default below
-  // exists only for standalone/test callers, and relying on it at a real call site silently
-  // reproduces the worktree-blindness bug this parameter exists to fix.
-  rootPath?: string;
+  // The resolved project root to scan from, passed by the responder via callerRepoRootResolveBroker.
+  rootPath: string;
 }): Promise<readonly FileMetadata[]> => {
   // 1. Resolve glob pattern and scan from the resolved root + shared package
-  const cwdPath = rootPath ?? cwd();
+  const cwdPath = rootPath;
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
   const pattern = `${cwdPath}/${globSuffix}`;
 

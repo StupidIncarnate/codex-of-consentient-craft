@@ -1,6 +1,5 @@
 import { resolve } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { hookConfigDefaultBrokerProxy } from '../default/hook-config-default-broker.proxy';
 import { hookConfigMergeBrokerProxy } from '../merge/hook-config-merge-broker.proxy';
@@ -10,7 +9,6 @@ export const hookConfigLoadBrokerProxy = (): {
   setupConfigPath: (params: { workingDir: string; filename: string; path: string }) => void;
   setupConfigExists: (params: { filePath: string; exists: boolean }) => void;
 } => {
-  cwdProxy();
   const resolveHandle = registerMock({ fn: resolve });
   const fsProxy = existsSyncProxy();
   hookConfigDefaultBrokerProxy();

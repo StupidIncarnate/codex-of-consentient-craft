@@ -130,7 +130,7 @@ describe('stepHandlerWardBroker', () => {
   });
 
   describe('args pass through verbatim, with the subcommand prepended', () => {
-    it('VALID: {args: [--committed, --uncommitted]} => spawns [run, --committed, --uncommitted]', async () => {
+    it('VALID: {args: [--committed, --uncommitted]} => spawns node on the worktree ward entry script with [run, --committed, --uncommitted]', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
@@ -144,10 +144,15 @@ describe('stepHandlerWardBroker', () => {
         onLine: () => undefined,
       });
 
-      expect(proxy.getSpawnedWardArgs()).toStrictEqual(['run', '--committed', '--uncommitted']);
+      expect(proxy.getSpawnedWardArgs()).toStrictEqual([
+        '/repo/worktrees/add-auth/node_modules/@dungeonmaster/ward/dist/bin/ward-entry.js',
+        'run',
+        '--committed',
+        '--uncommitted',
+      ]);
     });
 
-    it('VALID: {args: []} => spawns [run] — the full ward, not the branch gate', async () => {
+    it('VALID: {args: []} => spawns the worktree ward entry script with [run] — the full ward, not the branch gate', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
         questId: QUEST_ID,
@@ -161,33 +166,9 @@ describe('stepHandlerWardBroker', () => {
         onLine: () => undefined,
       });
 
-      expect(proxy.getSpawnedWardArgs()).toStrictEqual(['run']);
-    });
-  });
-
-  describe('a ward installed in the quest worktree', () => {
-    it('VALID: {local ward in the worktree} => spawns node on its entry script with [run, ...args]', async () => {
-      const proxy = stepHandlerWardBrokerProxy();
-      proxy.wardInstalledLocally({
-        questId: QUEST_ID,
-        exitCode: wardExitCodeStatics.exitCodes.pass,
-        manifestJson: JSON.stringify({
-          name: '@dungeonmaster/ward',
-          bin: { 'dungeonmaster-ward': './dist/bin/ward-entry.js' },
-        }),
-      });
-
-      await stepHandlerWardBroker({
-        args: ['--committed'],
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-        onLine: () => undefined,
-      });
-
-      expect(proxy.getSpawnedLocalWardArgs()).toStrictEqual([
+      expect(proxy.getSpawnedWardArgs()).toStrictEqual([
         '/repo/worktrees/add-auth/node_modules/@dungeonmaster/ward/dist/bin/ward-entry.js',
         'run',
-        '--committed',
       ]);
     });
   });

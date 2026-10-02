@@ -1,6 +1,14 @@
+import { moduleResolveBrokerProxy } from '@dungeonmaster/shared/brokers/module/resolve/module-resolve-broker.proxy';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
 import { CliSiegelenseResponder } from './cli-siegelense-responder';
+
+const USER_CWD = '/repo/worktrees/quest-a';
+const SIEGELENSE_SPECIFIER = '@dungeonmaster/siegelense/startup';
+// The module resolves from the user's cwd, so the dynamic import is addressed by the path that
+// resolution answers with.
+const SIEGELENSE_PATH = `${USER_CWD}/node_modules/@dungeonmaster/siegelense/dist/startup.js`;
 
 export const CliSiegelenseResponderProxy = (): {
   callResponder: typeof CliSiegelenseResponder;
@@ -8,21 +16,30 @@ export const CliSiegelenseResponderProxy = (): {
   setupImportFailure: (params: { error: Error }) => void;
 } => {
   const importProxy = dynamicImportProxy();
-  // The responder resolves its module specifier via require.resolve('@dungeonmaster/siegelense/startup')
-  // — not a literal we can write ahead of time (it depends on the host's node_modules layout). Calling
-  // the identical require.resolve() here, in the same process and directory, reproduces the exact
-  // address the responder's own call computes, so this is the real value, not a guess.
-  const siegelensePath = require.resolve('@dungeonmaster/siegelense/startup');
+  const cwdStage = cwdProxy();
+  const moduleStage = moduleResolveBrokerProxy();
 
   return {
     callResponder: CliSiegelenseResponder,
 
     setupModule: ({ StartSiegelense }: { StartSiegelense: jest.Mock }): void => {
-      importProxy.returns({ path: siegelensePath, module: { StartSiegelense } });
+      cwdStage.setupCwd({ value: USER_CWD });
+      moduleStage.setupResolvesFromRunRoot({
+        specifier: SIEGELENSE_SPECIFIER,
+        repoRoot: USER_CWD,
+        path: SIEGELENSE_PATH,
+      });
+      importProxy.returns({ path: SIEGELENSE_PATH, module: { StartSiegelense } });
     },
 
     setupImportFailure: ({ error }: { error: Error }): void => {
-      importProxy.rejects({ path: siegelensePath, error });
+      cwdStage.setupCwd({ value: USER_CWD });
+      moduleStage.setupResolvesFromRunRoot({
+        specifier: SIEGELENSE_SPECIFIER,
+        repoRoot: USER_CWD,
+        path: SIEGELENSE_PATH,
+      });
+      importProxy.rejects({ path: SIEGELENSE_PATH, error });
     },
   };
 };

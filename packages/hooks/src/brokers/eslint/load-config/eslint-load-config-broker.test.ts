@@ -18,20 +18,6 @@ describe('eslintLoadConfigBroker', () => {
       expect(result).toStrictEqual({ rules: { 'no-unused-vars': 'error' } });
     });
 
-    it('VALID: {filePath: "default-cwd.ts"} => resolves the config for that file with the default cwd', async () => {
-      const proxy = eslintLoadConfigBrokerProxy();
-      proxy.returnsConfig({
-        filePath: 'default-cwd.ts',
-        config: { rules: { 'default-cwd-marker': 'error' } },
-      });
-
-      const result = await eslintLoadConfigBroker({
-        filePath: 'default-cwd.ts',
-      });
-
-      expect(result).toStrictEqual({ rules: { 'default-cwd-marker': 'error' } });
-    });
-
     it('VALID: same cwd and file asked twice => second call is served from cache without asking ESLint', async () => {
       const proxy = eslintLoadConfigBrokerProxy();
       proxy.returnsConfig({

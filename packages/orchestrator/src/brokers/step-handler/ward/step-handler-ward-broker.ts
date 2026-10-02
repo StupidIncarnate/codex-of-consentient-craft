@@ -16,7 +16,7 @@
  * never reads it — the terminal work-item write it would have justified is routing, and the router
  * owns that now.
  *
- * The ward it spawns is the one installed nearest the quest's cwd (dungeonmasterBinResolveBroker),
+ * The ward it spawns is the one the quest's cwd resolves (packageBinResolveBroker),
  * unless `WARD_CLI_PATH` overrides it.
  *
  * `streamLines` rejects with `RunNotFoundError` when the OS never starts `dungeonmaster-ward` at
@@ -34,6 +34,7 @@
  * // { outcome: 'done' | 'empty' | 'unmet' | 'wall', detail, resultRef: 'wardResults/<id>' }
  */
 
+import { packageBinResolveBroker } from '@dungeonmaster/shared/brokers';
 import { getEnv } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
@@ -46,7 +47,6 @@ import { stepHandlerResultContract } from '../../../contracts/step-handler-resul
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
-import { dungeonmasterBinResolveBroker } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
@@ -82,7 +82,7 @@ export const stepHandlerWardBroker = async ({
   const override = getEnv('WARD_CLI_PATH');
   const ward =
     override === undefined
-      ? await dungeonmasterBinResolveBroker({ binName: WARD_COMMAND, cwd: startPath })
+      ? await packageBinResolveBroker({ binName: WARD_COMMAND, repoRoot: startPath })
       : { command: override, leadingArgs: [] };
 
   const { exitCode: rawExitCode, output: rawOutput } = await streamLines({

@@ -8,11 +8,15 @@
  *
  * USAGE:
  * const { instanceKillBroker } = siegelenseInstanceKillModuleContract.parse(await dynamicImport({ path }));
- * await instanceKillBroker({ instanceId: 'inst_7f3a9c21' });
+ * await instanceKillBroker({ instanceId: 'inst_7f3a9c21', repoRoot: '/repo/worktrees/quest-a' });
  */
 import { z } from '#gateway/npm/zod';
 
-export type InstanceKillBrokerFn = (params: { instanceId: string }) => Promise<unknown>;
+export type InstanceKillBrokerFn = (params: {
+  instanceId: string;
+  repoRoot: string;
+  reason?: string;
+}) => Promise<unknown>;
 
 const instanceKillBrokerFnContract = z.custom<InstanceKillBrokerFn>(
   (value) => typeof value === 'function',

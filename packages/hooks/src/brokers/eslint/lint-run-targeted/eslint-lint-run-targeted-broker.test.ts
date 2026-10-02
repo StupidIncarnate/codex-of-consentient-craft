@@ -29,6 +29,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       const config = FlatConfigStub({ rules: { 'prefer-const': 'warn' } });
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: 'const x = 1;',
         filePath: 'test.ts',
         config,
@@ -86,16 +87,17 @@ describe('eslintLintRunTargetedBroker()', () => {
     });
   });
 
-  describe('default cwd', () => {
-    it('VALID: {content, filePath, config, no cwd} => resolves against the default cwd', async () => {
+  describe('cwd resolution', () => {
+    it('VALID: {content, filePath, config, cwd: "/project"} => lints the path resolved against that cwd', async () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
 
-      proxy.returnsLintResultsForDefaultCwd({
+      proxy.returnsLintResultsForCwd({
+        cwd: '/project',
         content: 'const marker = 1;',
         filePath: 'marker.ts',
         results: [
           {
-            filePath: '/default/cwd/marker.ts',
+            filePath: '/project/marker.ts',
             messages: [],
             errorCount: 0,
             warningCount: 0,
@@ -105,6 +107,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/project',
         content: 'const marker = 1;',
         filePath: 'marker.ts',
         config,
@@ -112,7 +115,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       expect(results).toStrictEqual([
         {
-          filePath: '/default/cwd/marker.ts',
+          filePath: '/project/marker.ts',
           messages: [],
           errorCount: 0,
           warningCount: 0,
@@ -126,6 +129,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       eslintLintRunTargetedBrokerProxy();
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: '',
         filePath: 'test.ts',
         config,
@@ -138,6 +142,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       eslintLintRunTargetedBrokerProxy();
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: '   ',
         filePath: 'test.ts',
         config,
@@ -150,6 +155,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       eslintLintRunTargetedBrokerProxy();
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: '\n\t  \n',
         filePath: 'test.ts',
         config,
@@ -185,6 +191,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: 'const x = 1',
         filePath: 'file.ts',
         config,
@@ -247,6 +254,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: 'any x; let y = 1; function f() {}',
         filePath: 'multi.ts',
         config,
@@ -309,6 +317,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: 'syntax error code',
         filePath: 'norule.ts',
         config,
@@ -361,6 +370,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const config = FlatConfigStub();
 
       const results = await eslintLintRunTargetedBroker({
+        cwd: '/home/test',
         content: 'const x = 1',
         filePath: 'project.ts',
         config,

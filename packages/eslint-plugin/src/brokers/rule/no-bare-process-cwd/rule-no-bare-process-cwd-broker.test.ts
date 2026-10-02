@@ -36,6 +36,58 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
       code: 'const dir = process.cwd();',
       filename: '/repo/packages/server/src/brokers/foo/bar.proxy.ts',
     },
+    // VALID: process.cwd() in the entry layer
+    {
+      code: 'const dir = process.cwd();',
+      filename: '/repo/packages/server/src/startup/start-server.ts',
+    },
+    {
+      code: 'const dir = process.cwd();',
+      filename: '/repo/packages/server/src/responders/x/x-responder.ts',
+    },
+    // VALID: gateway cwd() in the entry layer, named, aliased and namespace forms
+    {
+      code: "import { cwd } from '#gateway/node/process'; const dir = cwd();",
+      filename: '/repo/packages/server/src/responders/x/x-responder.ts',
+    },
+    {
+      code: "import { cwd as processCwd } from '#gateway/node/process'; const dir = processCwd();",
+      filename: '/repo/packages/server/src/startup/start-x.ts',
+    },
+    {
+      code: "import * as p from '#gateway/node/process'; const dir = p.cwd();",
+      filename: '/repo/packages/server/src/startup/start-x.ts',
+    },
+    // VALID: gateway cwd() in a tool's config file, which the tool loads as its process entry
+    {
+      code: "import { cwd } from '#gateway/node/process'; const dir = cwd();",
+      filename: '/repo/packages/web/vite.config.ts',
+    },
+    // VALID: a local function named cwd is not the gateway's
+    {
+      code: 'const cwd = () => "/x"; const dir = cwd();',
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+    },
+    // VALID: cwd imported from another module is not the gateway's
+    {
+      code: "import { cwd } from './local-cwd'; const dir = cwd();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+    },
+    // VALID: another export of the gateway process module
+    {
+      code: "import { env } from '#gateway/node/process'; const dir = env();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+    },
+    // VALID: namespace member other than cwd
+    {
+      code: "import * as p from '#gateway/node/process'; const dir = p.env();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+    },
+    // VALID: gateway cwd() in a test file
+    {
+      code: "import { cwd } from '#gateway/node/process'; const dir = cwd();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.test.ts',
+    },
     // VALID: code that does not call process.cwd()
     {
       code: 'const dir = process.env.HOME;',
@@ -66,8 +118,32 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
         const a = process.cwd();
         const b = process.cwd();
       `,
-      filename: '/repo/packages/server/src/responders/foo/foo-responder.ts',
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
       errors: [{ messageId: 'bareProcessCwd' }, { messageId: 'bareProcessCwd' }],
+    },
+    // INVALID: gateway cwd() in a broker
+    {
+      code: "import { cwd } from '#gateway/node/process'; const dir = cwd();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'bareProcessCwd' }],
+    },
+    // INVALID: aliased gateway cwd import
+    {
+      code: "import { cwd as processCwd } from '#gateway/node/process'; const dir = processCwd();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'bareProcessCwd' }],
+    },
+    // INVALID: namespace form
+    {
+      code: "import * as p from '#gateway/node/process'; const dir = p.cwd();",
+      filename: '/repo/packages/server/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'bareProcessCwd' }],
+    },
+    // INVALID: gateway cwd() in a transformer, alongside other gateway imports
+    {
+      code: "import { env, cwd } from '#gateway/node/process'; export const t = () => cwd();",
+      filename: '/repo/packages/web/src/transformers/foo/foo-transformer.ts',
+      errors: [{ messageId: 'bareProcessCwd' }],
     },
     // INVALID: process.cwd() in a gateway wrapper that is NOT the sanctioned process/ module
     {

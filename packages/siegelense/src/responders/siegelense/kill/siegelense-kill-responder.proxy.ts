@@ -11,6 +11,8 @@
  * proxy.stageKillResult({ result });
  */
 
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
@@ -22,6 +24,9 @@ import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry
 import type { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
+
+// The directory the responder reads as where it runs; the repo root it hands down is this same path.
+const CWD_VALUE = '/default/cwd';
 
 type Registry = ReturnType<typeof RegistryStub>;
 type KillResult = ReturnType<typeof KillResultStub>;
@@ -38,6 +43,10 @@ export const SiegelenseKillResponderProxy = (): {
   registryReadBrokerProxy();
   instanceKillBrokerProxy();
 
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: CWD_VALUE });
+  const resolveProxy = cwdResolveBrokerProxy();
+  resolveProxy.setupRepoRootFoundAtStart({ startPath: CWD_VALUE });
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const instanceKillHandle = registerMock({ fn: instanceKillBroker });
   const stdout = stdoutProxy();
@@ -48,7 +57,9 @@ export const SiegelenseKillResponderProxy = (): {
     },
 
     stageKillResult: ({ result }: { result: KillResult }): void => {
-      instanceKillHandle.calledWith([{ instanceId: result.instanceId }]).resolves(result);
+      instanceKillHandle
+        .calledWith([{ instanceId: result.instanceId, repoRoot: CWD_VALUE }])
+        .resolves(result);
     },
 
     stageKillThrows: ({
@@ -58,7 +69,7 @@ export const SiegelenseKillResponderProxy = (): {
       error: Error;
       instanceId: SiegeInstance['id'];
     }): void => {
-      instanceKillHandle.calledWith([{ instanceId }]).rejects(error);
+      instanceKillHandle.calledWith([{ instanceId, repoRoot: CWD_VALUE }]).rejects(error);
     },
 
     getStdoutWrites: (): unknown[] => [...stdout.getWrites()],

@@ -19,6 +19,7 @@ describe('profileSoloReadLayerBroker', () => {
 
       const result = await profileSoloReadLayerBroker({
         specName: 'stack',
+        repoRoot: '/repo',
       });
 
       expect(result).toStrictEqual({
@@ -43,6 +44,7 @@ describe('profileSoloReadLayerBroker', () => {
 
       const result = await profileSoloReadLayerBroker({
         specName: 'stack',
+        repoRoot: '/repo',
       });
 
       expect(result).toStrictEqual({
@@ -70,6 +72,7 @@ describe('profileSoloReadLayerBroker', () => {
 
       const result = await profileSoloReadLayerBroker({
         specName: 'stack',
+        repoRoot: '/repo',
       });
 
       expect(result).toBe(null);
@@ -86,6 +89,7 @@ describe('profileSoloReadLayerBroker', () => {
 
       const result = await profileSoloReadLayerBroker({
         specName: 'ghost',
+        repoRoot: '/repo',
       });
 
       expect(result).toBe(null);

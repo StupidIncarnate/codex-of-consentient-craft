@@ -13,6 +13,7 @@ describe('laneSessionContract', () => {
         ports: { api: 4100, web: 4101 },
         homePath: '/tmp/dm-siege-inst_1',
         evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
+        repoRoot: '/repo',
         baseUrl: 'http://127.0.0.1:4100',
         apiBaseUrl: 'http://127.0.0.1:4100',
         pgids: [pgid],
@@ -25,6 +26,7 @@ describe('laneSessionContract', () => {
         ports: { api: 4100, web: 4101 },
         homePath: '/tmp/dm-siege-inst_1',
         evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
+        repoRoot: '/repo',
         baseUrl: 'http://127.0.0.1:4100',
         apiBaseUrl: 'http://127.0.0.1:4100',
         pgids: [pgid],
@@ -41,6 +43,7 @@ describe('laneSessionContract', () => {
         ports: { api: 4200, web: 4201 },
         homePath: '/tmp/dm-siege-inst_2',
         evidencePath: '/tmp/dm-siege-inst_2-evidence',
+        repoRoot: '/repo',
         baseUrl: 'http://127.0.0.1:4200',
         apiBaseUrl: 'http://127.0.0.1:4200',
         pgids: [4243, 4244],
@@ -58,6 +61,7 @@ describe('laneSessionContract', () => {
           ports: { api: 4100, web: 4101 },
           homePath: '/tmp/dm-siege-inst_1',
           evidencePath: '/tmp/dm-siege-inst_1-evidence',
+          repoRoot: '/repo',
           baseUrl: 'http://127.0.0.1:4100',
           apiBaseUrl: 'http://127.0.0.1:4100',
           pgids: [4242],
@@ -67,12 +71,30 @@ describe('laneSessionContract', () => {
       ).toThrow(/Invalid input/u);
     });
 
+    it('INVALID: {repoRoot: a relative path} => throws because the repo root must be absolute', () => {
+      expect(() =>
+        laneSessionContract.parse({
+          specName: 'dungeonmaster-api',
+          ports: { api: 4100, web: 4101 },
+          homePath: '/tmp/dm-siege-inst_1',
+          evidencePath: '/tmp/dm-siege-inst_1-evidence',
+          repoRoot: 'worktrees/quest-a',
+          baseUrl: 'http://127.0.0.1:4100',
+          apiBaseUrl: 'http://127.0.0.1:4100',
+          pgids: [4242],
+          browser: null,
+          logFds: [7],
+        }),
+      ).toThrow(/Path must be absolute/u);
+    });
+
     it('INVALID: {specName missing} => throws naming the missing member', () => {
       expect(() =>
         laneSessionContract.parse({
           ports: { api: 4100, web: 4101 },
           homePath: '/tmp/dm-siege-inst_1',
           evidencePath: '/tmp/dm-siege-inst_1-evidence',
+          repoRoot: '/repo',
           baseUrl: 'http://127.0.0.1:4100',
           apiBaseUrl: 'http://127.0.0.1:4100',
           pgids: [4242],

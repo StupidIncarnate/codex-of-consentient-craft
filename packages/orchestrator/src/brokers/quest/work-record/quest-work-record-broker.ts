@@ -114,7 +114,10 @@ export const questWorkRecordBroker = async ({
             workItem.payload?.[workItemContract.shape.payload.unwrap().keyType.parse('instance')],
           );
           if (parsedInstance.success) {
-            await laneKillBroker({ instanceId: parsedInstance.data.instanceId });
+            await laneKillBroker({
+              questId,
+              instanceId: parsedInstance.data.instanceId,
+            });
           }
         }
 

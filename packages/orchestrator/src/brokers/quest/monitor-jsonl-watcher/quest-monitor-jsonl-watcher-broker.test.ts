@@ -36,6 +36,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -80,6 +81,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => null,
         chatProcessId,
@@ -124,6 +126,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => null,
         chatProcessId,
@@ -175,6 +178,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuest,
         chatProcessId,
@@ -249,6 +253,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -294,6 +299,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -345,6 +351,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -453,6 +460,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -545,6 +553,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -643,6 +652,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -706,6 +716,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       const handle = questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
@@ -755,6 +766,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       const handle = questMonitorJsonlWatcherBroker({
+        projectDir: '/home/user/project',
         sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,

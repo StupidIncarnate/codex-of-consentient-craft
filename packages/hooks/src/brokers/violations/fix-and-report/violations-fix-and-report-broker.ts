@@ -14,7 +14,6 @@ import {
   hookPostEditResponderResultContract,
   type HookPostEditResponderResult,
 } from '../../../contracts/hook-post-edit-responder-result/hook-post-edit-responder-result-contract';
-import { cwd } from '#gateway/node/process';
 
 /**
  * Runs ESLint with auto-fix and reports remaining error-level violations.
@@ -27,17 +26,16 @@ import { cwd } from '#gateway/node/process';
  * 5. Formats and returns remaining violations
  *
  * @param toolInput - The tool input (Write, Edit, or MultiEdit)
- * @param cwd - The current working directory (defaults to process.cwd())
+ * @param cwd - The checkout the hook acts for (required)
  * @returns Result with error-level violations and formatted message
  */
 export const violationsFixAndReportBroker = async ({
   toolInput,
-  cwd: cwdParam,
+  cwd: workingDir,
 }: {
   toolInput: ToolInput;
-  cwd?: string;
+  cwd: string;
 }): Promise<HookPostEditResponderResult> => {
-  const workingDir = cwdParam ?? cwd();
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {

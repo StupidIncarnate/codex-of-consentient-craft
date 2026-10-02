@@ -12,7 +12,7 @@
  * // Returns PackageName('@dungeonmaster/web') — throws if none or several dependencies qualify
  */
 import { packageJsonContract } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker, moduleResolveBroker } from '@dungeonmaster/shared/brokers';
 import { readFileSync } from '#gateway/node/fs';
 
 const WEB_BUNDLE_DEPENDENCY_SIGNAL = 'react';
@@ -34,7 +34,14 @@ export const webBundlePackageResolveBroker = async (): Promise<string> => {
   const matches = candidateNames.filter((candidateName) => {
     try {
       const candidatePackageJson = packageJsonContract.parse(
-        JSON.parse(readFileSync(require.resolve(`${candidateName}/package.json`))) as unknown,
+        JSON.parse(
+          readFileSync(
+            moduleResolveBroker({
+              specifier: `${candidateName}/package.json`,
+              repoRoot: projectRoot,
+            }).path,
+          ),
+        ) as unknown,
       );
       return Object.keys(candidatePackageJson.dependencies ?? {}).includes(
         WEB_BUNDLE_DEPENDENCY_SIGNAL,

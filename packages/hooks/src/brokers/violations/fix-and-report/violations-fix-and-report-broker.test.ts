@@ -109,7 +109,7 @@ describe('violationsFixAndReportBroker', () => {
         new_string: 'new',
       });
 
-      const result = await violationsFixAndReportBroker({ toolInput });
+      const result = await violationsFixAndReportBroker({ cwd: '/test', toolInput });
 
       expect(result.violations).toStrictEqual([
         {

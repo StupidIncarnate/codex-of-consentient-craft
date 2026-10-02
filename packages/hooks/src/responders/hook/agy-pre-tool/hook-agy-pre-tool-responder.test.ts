@@ -128,6 +128,37 @@ describe('HookAgyPreToolResponder', () => {
     });
   });
 
+  describe('write_to_file without workspacePaths', () => {
+    it('INVALID: {no workspacePaths, violations} => checks against the process cwd and returns deny', async () => {
+      const proxy = HookAgyPreToolResponderProxy();
+      proxy.setupProcessCwd({ value: '/test' });
+      proxy.setupViolationCheck({ hasViolations: true });
+
+      const result = await HookAgyPreToolResponder({
+        hookInput: {
+          toolCall: {
+            name: 'write_to_file',
+            args: {
+              TargetFile: '/test/file.ts',
+              CodeContent: 'console.log(1);',
+            },
+          },
+        },
+      });
+
+      expect(result).toStrictEqual({
+        decision: 'deny',
+        reason:
+          '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     This rule violation should be fixed to maintain code quality.\n' +
+          '     Line 1:1 - Unexpected console statement\n' +
+          '\n' +
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      });
+    });
+  });
+
   describe('replace_file_content', () => {
     it('VALID: clean edit => returns allow', async () => {
       const proxy = HookAgyPreToolResponderProxy();

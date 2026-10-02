@@ -14,7 +14,7 @@
  * would bury the table. The row shows no profile line instead of a crashed `status` call.
  *
  * USAGE:
- * await profileSoloReadLayerBroker({ specName: 'stack' });
+ * await profileSoloReadLayerBroker({ specName: 'stack', repoRoot });
  * // Returns the CapacityProfile at pool size 1, the pessimistic nearest group if none was ever
  * // measured solo, or null when the spec has no profile at all
  */
@@ -27,10 +27,12 @@ const SOLO_POOL_SIZE = 1;
 
 export const profileSoloReadLayerBroker = async ({
   specName,
+  repoRoot,
 }: {
   specName: string;
+  repoRoot: string;
 }): Promise<CapacityProfile | null> => {
-  const profile = await profileReadBroker({ specName }).catch((): null => null);
+  const profile = await profileReadBroker({ specName, repoRoot }).catch((): null => null);
 
   if (profile === null) {
     return null;

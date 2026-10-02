@@ -26,7 +26,7 @@ describe('recipesReadBroker', () => {
         moduleExports: { [recipesConventionStatics.exports.listing]: () => [entryA, entryB] },
       });
 
-      const result = await recipesReadBroker();
+      const result = await recipesReadBroker({ repoRoot: '/repo' });
 
       expect(result).toStrictEqual([entryA, entryB]);
     });
@@ -41,7 +41,7 @@ describe('recipesReadBroker', () => {
         moduleExports: { [recipesConventionStatics.exports.listing]: () => [] },
       });
 
-      const result = await recipesReadBroker();
+      const result = await recipesReadBroker({ repoRoot: '/repo' });
 
       expect(result).toStrictEqual([]);
     });
@@ -56,7 +56,7 @@ describe('recipesReadBroker', () => {
         moduleExports: {},
       });
 
-      await expect(recipesReadBroker()).rejects.toStrictEqual(
+      await expect(recipesReadBroker({ repoRoot: '/repo' })).rejects.toStrictEqual(
         new RecipesListingExportInvalidError({
           entryPath: ENTRY_PATH,
           exportName: recipesConventionStatics.exports.listing,
@@ -75,7 +75,7 @@ describe('recipesReadBroker', () => {
         moduleExports: { [recipesConventionStatics.exports.listing]: 'not-a-function' },
       });
 
-      await expect(recipesReadBroker()).rejects.toStrictEqual(
+      await expect(recipesReadBroker({ repoRoot: '/repo' })).rejects.toStrictEqual(
         new RecipesListingExportInvalidError({
           entryPath: ENTRY_PATH,
           exportName: recipesConventionStatics.exports.listing,
@@ -103,7 +103,9 @@ describe('recipesReadBroker', () => {
         },
       });
 
-      await expect(recipesReadBroker()).rejects.toThrow(MISSING_RUNS_ZOD_MESSAGE);
+      await expect(recipesReadBroker({ repoRoot: '/repo' })).rejects.toThrow(
+        MISSING_RUNS_ZOD_MESSAGE,
+      );
     });
   });
 });

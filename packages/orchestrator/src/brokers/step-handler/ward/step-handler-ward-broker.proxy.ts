@@ -7,12 +7,11 @@
  * is computed for real and matched below rather than stubbed, which is what makes the detail-write
  * assertion meaningful.
  *
- * `streamLinesProxy().setupSuccess` now addresses by `command` AND `args` (F51 gave it the same
- * `args`/`cwd` refinement `runProxy` already had), so this handler's own spawn — args
- * `[RUN_SUBCOMMAND, ...]` — stages apart from `wardDetailBrokerProxy`'s `run` call for the SAME
- * `WARD_COMMAND` with args `['detail', ...]`: both reduce to the one shared raw `spawn` mock, and
- * the args predicate below matches only a `run`-subcommand call, leaving `wardDetailBrokerProxy`'s
- * own `{command: WARD_COMMAND}` (no args) stage to answer the `detail` call by elimination.
+ * The ward is resolved from the quest worktree, so every spawn is `node <entry script> ...`.
+ * `streamLinesProxy().setupSuccess` addresses by `command` AND `args`, so this handler's own spawn —
+ * the entry script then `RUN_SUBCOMMAND` — stages apart from `wardDetailBrokerProxy`'s `run` call on
+ * the same node, whose args carry `detail` in that slot: both reduce to the one shared raw `spawn`
+ * mock, and each args predicate matches only its own subcommand.
  *
  * USAGE:
  * const proxy = stepHandlerWardBrokerProxy();
@@ -29,6 +28,7 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 import type { Quest } from '@dungeonmaster/shared/contracts';
+import { packageBinResolveBrokerProxy } from '@dungeonmaster/shared/brokers/package-bin/resolve/package-bin-resolve-broker.proxy';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -40,7 +40,6 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
-import { dungeonmasterBinResolveBrokerProxy } from '../../dungeonmaster-bin/resolve/dungeonmaster-bin-resolve-broker.proxy';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
@@ -58,8 +57,12 @@ const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 // the args predicate below keys on to stage this handler's own spawn apart from
 // wardDetailBrokerProxy's `run` call for the same WARD_COMMAND (args `['detail', ...]`).
 const WARD_COMMAND = 'dungeonmaster-ward';
+const WARD_PACKAGE = '@dungeonmaster/ward';
 const RUN_SUBCOMMAND = 'run';
 const DEFAULT_WORKTREE_PATH = '/repo/worktrees/add-auth';
+const DEFAULT_WARD_MANIFEST = JSON.stringify({
+  bin: { [WARD_COMMAND]: './dist/bin/ward-entry.js' },
+});
 
 export const stepHandlerWardBrokerProxy = (): {
   setupWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
@@ -70,15 +73,9 @@ export const stepHandlerWardBrokerProxy = (): {
     detailJson: string;
   }) => void;
   wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: number }) => void;
-  wardInstalledLocally: (params: {
-    questId: Quest['id'];
-    exitCode: number;
-    manifestJson: string;
-  }) => void;
   getWrittenOutputLog: () => unknown;
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
-  getSpawnedLocalWardArgs: () => unknown;
 } => {
   getEnvProxy();
   // `join` has no dedicated proxy (a plain pass-through re-export — see `#gateway/node/path`'s own
@@ -109,10 +106,9 @@ export const stepHandlerWardBrokerProxy = (): {
   questModifyBrokerProxy();
   RunNotFoundErrorProxy();
   const wardSpawn = streamLinesProxy();
-  // The resolver reads the same manifest mock `wardDetailBrokerProxy`'s own composed resolver
-  // stages; both stagings are addressed by the identical manifest-path suffix, so the second
-  // `setupNotInstalledAnywhere` re-registers an equal answer rather than competing with the first.
-  const binProxy = dungeonmasterBinResolveBrokerProxy();
+  // The resolver reads the same manifest `wardDetailBrokerProxy`'s own composed resolver stages;
+  // both stagings carry the identical address and answer, so the second re-registers an equal one.
+  const binProxy = packageBinResolveBrokerProxy();
 
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
@@ -125,10 +121,33 @@ export const stepHandlerWardBrokerProxy = (): {
     .calledWith([])
     .returns('2024-01-15T10:00:00.000Z');
 
-  // The args predicate matches only a `run`-subcommand spawn on WARD_COMMAND, so this stage never
-  // answers wardDetailBrokerProxy's own `run` call (args `['detail', ...]`) for the same command —
-  // see the file header.
-  const isRunSubcommand = (value: readonly unknown[]): boolean => value[0] === RUN_SUBCOMMAND;
+  // The args predicate matches only a `run`-subcommand spawn (the slot after the entry script), so
+  // this stage never answers wardDetailBrokerProxy's own `detail` call — see the file header.
+  const isRunSubcommand = (value: readonly unknown[]): boolean => value[1] === RUN_SUBCOMMAND;
+
+  const stageWard = ({
+    exitCode,
+    stdoutLines,
+    manifestJson,
+  }: {
+    exitCode: number;
+    stdoutLines: string[];
+    manifestJson: string;
+  }): void => {
+    binProxy.setupManifestInRunRoot({
+      packageName: WARD_PACKAGE,
+      repoRoot: DEFAULT_WORKTREE_PATH,
+      manifestPath: `${DEFAULT_WORKTREE_PATH}/node_modules/${WARD_PACKAGE}/package.json`,
+      rawManifest: manifestJson,
+    });
+    wardSpawn.setupSuccess({
+      command: execPath,
+      args: isRunSubcommand,
+      cwd: DEFAULT_WORKTREE_PATH,
+      exitCode,
+      stdoutLines,
+    });
+  };
 
   // The quest-scoped answers every ward run reads: its worktree, its folder, and the write of its
   // ward result, each addressed by the arguments `stepHandlerWardBroker` passes for that quest.
@@ -175,14 +194,12 @@ export const stepHandlerWardBrokerProxy = (): {
       detailJson: string;
     }): void => {
       stageQuest({ questId });
-      binProxy.setupNotInstalledAnywhere({ binName: WARD_COMMAND });
-      wardSpawn.setupSuccess({
-        command: WARD_COMMAND,
-        args: isRunSubcommand,
+      stageWard({
         exitCode,
         stdoutLines: [`run: ${runId}`, 'lint: PASS'],
+        manifestJson: DEFAULT_WARD_MANIFEST,
       });
-      detailProxy.setupSuccess({ output: detailJson });
+      detailProxy.setupSuccess({ startPath: DEFAULT_WORKTREE_PATH, output: detailJson });
     },
 
     wardExitsWithoutRunId: ({
@@ -193,48 +210,17 @@ export const stepHandlerWardBrokerProxy = (): {
       exitCode: number;
     }): void => {
       stageQuest({ questId });
-      binProxy.setupNotInstalledAnywhere({ binName: WARD_COMMAND });
-      wardSpawn.setupSuccess({
-        command: WARD_COMMAND,
-        args: isRunSubcommand,
+      stageWard({
         exitCode,
         stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
-      });
-    },
-
-    // A ward installed in the quest worktree itself: the spawn is `node <entry script> run ...`, and
-    // the empty output carries no run id, so the detail broker is never reached.
-    wardInstalledLocally: ({
-      questId,
-      exitCode,
-      manifestJson,
-    }: {
-      questId: Quest['id'];
-      exitCode: number;
-      manifestJson: string;
-    }): void => {
-      stageQuest({ questId });
-      binProxy.setupInstalled({
-        cwd: DEFAULT_WORKTREE_PATH,
-        binName: WARD_COMMAND,
-        installedAt: DEFAULT_WORKTREE_PATH,
-        manifestJson,
-      });
-      wardSpawn.setupSuccess({
-        command: execPath,
-        cwd: DEFAULT_WORKTREE_PATH,
-        exitCode,
-        stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
+        manifestJson: DEFAULT_WARD_MANIFEST,
       });
     },
 
     getWrittenOutputLog: (): unknown => fsWriteProxy.writtenContentsFor({ path: outputLogPath }),
 
-    getSpawnedLocalWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: execPath }),
+    getSpawnedWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: execPath }),
 
-    getSpawnedWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: WARD_COMMAND }),
-
-    getSpawnedWardCwd: (): unknown =>
-      wardSpawn.getOptionsFor({ command: WARD_COMMAND }).at(-1)?.cwd,
+    getSpawnedWardCwd: (): unknown => wardSpawn.getOptionsFor({ command: execPath }).at(-1)?.cwd,
   };
 };

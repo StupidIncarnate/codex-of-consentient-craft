@@ -9,6 +9,7 @@
 
 import { resolveCallerRepoRootLayerResultContract } from '../../../contracts/resolve-caller-repo-root-layer-result/resolve-caller-repo-root-layer-result-contract';
 import type { ResolveCallerRepoRootLayerResult } from '../../../contracts/resolve-caller-repo-root-layer-result/resolve-caller-repo-root-layer-result-contract';
+import { cwd } from '#gateway/node/process';
 import { callerRepoRootResolveBroker } from '../../../brokers/caller-repo-root/resolve/caller-repo-root-resolve-broker';
 
 export const ResolveCallerRepoRootLayerResponder = async ({
@@ -16,4 +17,6 @@ export const ResolveCallerRepoRootLayerResponder = async ({
 }: {
   meta: Record<string, unknown> | undefined;
 }): Promise<ResolveCallerRepoRootLayerResult> =>
-  resolveCallerRepoRootLayerResultContract.parse(await callerRepoRootResolveBroker({ meta }));
+  resolveCallerRepoRootLayerResultContract.parse(
+    await callerRepoRootResolveBroker({ meta, serverCwd: cwd() }),
+  );

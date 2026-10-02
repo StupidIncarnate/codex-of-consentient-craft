@@ -42,7 +42,7 @@ describe('SiegelenseStartResponder', () => {
 
       expect(proxy.getOwningGuildFindCallsMatching({ questId })).toStrictEqual([]);
       expect(proxy.getStartCallsMatching({ specName, questId, guildId, seed: null })).toStrictEqual(
-        [[{ specName, questId, guildId, seed: null }]],
+        [[{ specName, questId, guildId, seed: null, repoRoot: '/default/cwd' }]],
       );
     });
 
@@ -118,7 +118,9 @@ describe('SiegelenseStartResponder', () => {
 
       expect(
         proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed: null }),
-      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed: null }]]);
+      ).toStrictEqual([
+        [{ specName, questId: null, guildId: null, seed: null, repoRoot: '/default/cwd' }],
+      ]);
     });
   });
 
@@ -151,7 +153,9 @@ describe('SiegelenseStartResponder', () => {
 
       expect(
         proxy.getStartCallsMatching({ specName, questId, guildId: resolvedGuildId, seed: null }),
-      ).toStrictEqual([[{ specName, questId, guildId: resolvedGuildId, seed: null }]]);
+      ).toStrictEqual([
+        [{ specName, questId, guildId: resolvedGuildId, seed: null, repoRoot: '/default/cwd' }],
+      ]);
       expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
     });
   });
@@ -204,7 +208,9 @@ describe('SiegelenseStartResponder', () => {
 
       expect(
         proxy.getStartCallsMatching({ specName, questId: null, guildId, seed: null }),
-      ).toStrictEqual([[{ specName, questId: null, guildId, seed: null }]]);
+      ).toStrictEqual([
+        [{ specName, questId: null, guildId, seed: null, repoRoot: '/default/cwd' }],
+      ]);
       expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
     });
   });
@@ -225,7 +231,9 @@ describe('SiegelenseStartResponder', () => {
 
       expect(
         proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed }),
-      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed }]]);
+      ).toStrictEqual([
+        [{ specName, questId: null, guildId: null, seed, repoRoot: '/default/cwd' }],
+      ]);
       expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
     });
 
@@ -270,7 +278,9 @@ describe('SiegelenseStartResponder', () => {
 
       expect(
         proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed }),
-      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed }]]);
+      ).toStrictEqual([
+        [{ specName, questId: null, guildId: null, seed, repoRoot: '/default/cwd' }],
+      ]);
       expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
     });
 
@@ -315,7 +325,9 @@ describe('SiegelenseStartResponder', () => {
 
       expect(
         proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed }),
-      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed }]]);
+      ).toStrictEqual([
+        [{ specName, questId: null, guildId: null, seed, repoRoot: '/default/cwd' }],
+      ]);
     });
   });
 

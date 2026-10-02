@@ -75,7 +75,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupOrphanAlive: (params: { pgid: ProcessGroupId }) => void;
   setupOrphanGone: (params: { pgid: ProcessGroupId }) => void;
   setupRepoLinkResolves: (params: {
-    cwdPath: string;
+    repoRoot: string;
     linkPath: string;
     homeDir: string;
     homePath: string;
@@ -195,7 +195,7 @@ export const instanceEntryLayerBrokerProxy = (): {
     },
 
     setupRepoLinkResolves: (params: {
-      cwdPath: string;
+      repoRoot: string;
       linkPath: string;
       homeDir: string;
       homePath: string;

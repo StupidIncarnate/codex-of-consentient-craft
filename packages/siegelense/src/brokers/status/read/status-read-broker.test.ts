@@ -77,7 +77,7 @@ describe('statusReadBroker', () => {
         proxy.setupProcListing({ pids: [] });
       }
 
-      const result = await statusReadBroker({ instanceId: null });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(
         StatusAnswerStub({
@@ -128,7 +128,7 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const result = await statusReadBroker({ instanceId: null });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(
         StatusAnswerStub({
@@ -209,7 +209,7 @@ describe('statusReadBroker', () => {
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
       proxy.setupRepoLinkResolves({
-        cwdPath: '/repo',
+        repoRoot: '/repo',
         linkPath: '/repo/.dungeonmaster-assets/siegelense-assets',
         homeDir,
         homePath,
@@ -246,7 +246,7 @@ describe('statusReadBroker', () => {
         ],
       });
 
-      const result = await statusReadBroker({ instanceId });
+      const result = await statusReadBroker({ instanceId, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(
         StatusAnswerStub({
@@ -327,7 +327,7 @@ describe('statusReadBroker', () => {
         vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
       });
 
-      const result = await statusReadBroker({ instanceId });
+      const result = await statusReadBroker({ instanceId, repoRoot: '/repo' });
 
       expect(result).toStrictEqual(
         StatusAnswerStub({
@@ -402,7 +402,11 @@ describe('statusReadBroker', () => {
       proxy.setupRunsDirEntries({ evidencePath: evidencePath1, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null, branch: 'feat/branch-a' });
+      const result = await statusReadBroker({
+        instanceId: null,
+        repoRoot: '/repo',
+        branch: 'feat/branch-a',
+      });
 
       expect(result.instances).toStrictEqual([
         {
@@ -477,7 +481,7 @@ describe('statusReadBroker', () => {
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null, since: '1h' });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo', since: '1h' });
 
       expect(result.instances).toStrictEqual([
         {
@@ -551,7 +555,7 @@ describe('statusReadBroker', () => {
       });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null, since: '1h' });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo', since: '1h' });
 
       expect(result.instances).toStrictEqual([
         {
@@ -646,7 +650,7 @@ describe('statusReadBroker', () => {
       });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null, since: '1wk' });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo', since: '1wk' });
 
       expect(result.instances).toStrictEqual([
         {
@@ -736,7 +740,7 @@ describe('statusReadBroker', () => {
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null, since: '1wk' });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo', since: '1wk' });
 
       expect(result.instances).toStrictEqual([
         {
@@ -811,7 +815,7 @@ describe('statusReadBroker', () => {
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
-      const result = await statusReadBroker({ instanceId: null });
+      const result = await statusReadBroker({ instanceId: null, repoRoot: '/repo' });
 
       expect(result.instances).toStrictEqual([
         {

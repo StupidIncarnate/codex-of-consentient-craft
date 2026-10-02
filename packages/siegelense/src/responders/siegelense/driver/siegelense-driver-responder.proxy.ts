@@ -29,6 +29,8 @@
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { getPidProxy } from '#gateway/node/process/get-pid/get-pid.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
@@ -58,6 +60,9 @@ import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 type ReadingCount = number;
 
+// The directory the driver reads as where it runs; the repo root it hands laneBootBroker is this path.
+const CWD_VALUE = '/default/cwd';
+
 const SHARED_PATH_VALUE = '/tmp/dm-siege-sockets/inst-driver-test.sock';
 // Mirrors osTmpdirAdapterProxy's own default, composed transitively via
 // locationsSocketPathFindBrokerProxy and never overridden here.
@@ -85,6 +90,10 @@ export const SiegelenseDriverResponderProxy = (): {
   getStderrText: () => string;
 } => {
   const pidProxy = getPidProxy();
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: CWD_VALUE });
+  const resolveProxy = cwdResolveBrokerProxy();
+  resolveProxy.setupRepoRootFoundAtStart({ startPath: CWD_VALUE });
   // The responder logs a failed boot-failure-marker write to stderr; recorded here, off the runner's output.
   const stderrLog = stderrProxy();
   laneBootBrokerProxy();
@@ -151,7 +160,7 @@ export const SiegelenseDriverResponderProxy = (): {
       lane: LaneSession;
       instanceId: SiegeInstance['id'];
     }): void => {
-      laneBootHandle.calledWith([{ instanceId }]).resolves(lane);
+      laneBootHandle.calledWith([{ instanceId, repoRoot: CWD_VALUE }]).resolves(lane);
       registryUpdateHandle
         .calledWith([{ mutate: (value: unknown): boolean => typeof value === 'function' }])
         .implement(
@@ -169,7 +178,7 @@ export const SiegelenseDriverResponderProxy = (): {
       error: Error;
       instanceId: SiegeInstance['id'];
     }): void => {
-      laneBootHandle.calledWith([{ instanceId }]).rejects(error);
+      laneBootHandle.calledWith([{ instanceId, repoRoot: CWD_VALUE }]).rejects(error);
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       bootFailureMarkerWriteHandle.calledWith([{ message: error.message }]).resolves({
         message: error.message,
@@ -186,7 +195,7 @@ export const SiegelenseDriverResponderProxy = (): {
       markerWriteError: Error;
       instanceId: SiegeInstance['id'];
     }): void => {
-      laneBootHandle.calledWith([{ instanceId }]).rejects(error);
+      laneBootHandle.calledWith([{ instanceId, repoRoot: CWD_VALUE }]).rejects(error);
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       bootFailureMarkerWriteHandle
         .calledWith([{ message: error.message }])

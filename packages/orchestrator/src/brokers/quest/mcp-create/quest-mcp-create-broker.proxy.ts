@@ -1,4 +1,3 @@
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { join } from '#gateway/node/path';
 import type { AddQuestInput, Guild, GuildListItem, Session } from '@dungeonmaster/shared/contracts';
 import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
@@ -45,7 +44,6 @@ export const questMcpCreateBrokerProxy = (): {
   // The repo-root walk runs for real over the staged fs; guildAddBroker is module-mocked so its
   // internals never run.
   const cwdResolveProxy = cwdResolveBrokerProxy();
-  const cwdSetup = cwdProxy();
   guildAddBrokerProxy();
   questUserAddBrokerProxy();
 
@@ -66,7 +64,6 @@ export const questMcpCreateBrokerProxy = (): {
       cwd: string;
       repoRoot: string;
     }): void => {
-      cwdSetup.setupCwd({ value: currentWorkingDirectory });
       if (repoRoot === currentWorkingDirectory) {
         cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: currentWorkingDirectory });
         return;
@@ -78,7 +75,6 @@ export const questMcpCreateBrokerProxy = (): {
     },
 
     setupResolveFallback: ({ cwd: currentWorkingDirectory }: { cwd: string }): void => {
-      cwdSetup.setupCwd({ value: currentWorkingDirectory });
       cwdResolveProxy.setupRepoRootNotFound({ startPath: currentWorkingDirectory });
     },
 
@@ -91,7 +87,6 @@ export const questMcpCreateBrokerProxy = (): {
       cwd: string;
       error: Error;
     }): void => {
-      cwdSetup.setupCwd({ value: currentWorkingDirectory });
       joinHandle
         .calledWith([currentWorkingDirectory, dungeonmasterHomeStatics.paths.projectConfigFile])
         .throws(error);

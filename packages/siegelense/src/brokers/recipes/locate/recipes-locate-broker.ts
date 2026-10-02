@@ -7,23 +7,18 @@
  * two refusals apart and would send an already-scaffolded repo back through `init` for nothing.
  *
  * USAGE:
- * const entryPath = await recipesLocateBroker();
+ * const entryPath = recipesLocateBroker({ repoRoot });
  * // Returns AbsoluteFilePath — '<repoRoot>/packages/hydration-recipes/dist/index.js'
  */
 
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { RecipesPackageMissingError } from '../../../errors/recipes-package-missing/recipes-package-missing-error';
 import { RecipesBuildMissingError } from '../../../errors/recipes-build-missing/recipes-build-missing-error';
 
-export const recipesLocateBroker = async (): Promise<string> => {
-  const cwdPath = cwd();
-  const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
-
+export const recipesLocateBroker = ({ repoRoot }: { repoRoot: string }): string => {
   const packagePath = join(
     repoRoot,
     recipesConventionStatics.package.workspaceDirName,

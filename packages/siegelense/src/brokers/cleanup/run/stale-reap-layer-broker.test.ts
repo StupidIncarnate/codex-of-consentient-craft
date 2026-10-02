@@ -30,7 +30,7 @@ describe('staleReapLayerBroker', () => {
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
-      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS });
+      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS, repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: { id: INSTANCE_ID, staleFor: '9h', killed: [pgidOne, pgidTwo], homeRemoved: true },
@@ -65,7 +65,7 @@ describe('staleReapLayerBroker', () => {
         homePath: HOME_PATH,
       });
 
-      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS });
+      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS, repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: { id: INSTANCE_ID, staleFor: '1m', killed: [], homeRemoved: true },
@@ -91,7 +91,7 @@ describe('staleReapLayerBroker', () => {
         homePath: HOME_PATH,
       });
 
-      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS });
+      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS, repoRoot: proxy.repoRoot });
 
       expect(result).toStrictEqual({
         reaped: { id: INSTANCE_ID, staleFor: '9h', killed: [], homeRemoved: true },

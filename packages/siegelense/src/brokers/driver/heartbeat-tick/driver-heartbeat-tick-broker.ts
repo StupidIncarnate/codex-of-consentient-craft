@@ -49,6 +49,7 @@ export const driverHeartbeatTickBroker = async ({
   await profileSampleRecordBroker({
     instanceId,
     specName: lane.specName,
+    repoRoot: lane.repoRoot,
     rssMB: heartbeat.rssMB,
     beatAtMs: heartbeat.beatAtMs,
   }).catch((error: unknown) => {

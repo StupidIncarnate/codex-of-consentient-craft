@@ -18,7 +18,10 @@ describe('instanceKillBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverStops({ socketPath: SOCKET_PATH });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.stopped).toBe(true);
       expect(proxy.getConnectionCountFor({ socketPath: SOCKET_PATH })).toBe(1);
@@ -30,7 +33,10 @@ describe('instanceKillBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverStops({ socketPath: SOCKET_PATH });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.evidenceKept.path).toBe(
         '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21',
@@ -46,7 +52,10 @@ describe('instanceKillBroker', () => {
       const pgidTwo = 45_716;
       proxy.setupDriverStops({ socketPath: SOCKET_PATH, killed: [pgidOne, pgidTwo] });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect({ killed: result.killed, reapedPgids: result.reapedPgids }).toStrictEqual({
         killed: [pgidOne, pgidTwo],
@@ -60,7 +69,10 @@ describe('instanceKillBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverStopsWithMalformedPayload({ socketPath: SOCKET_PATH });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect({ stopped: result.stopped, killed: result.killed }).toStrictEqual({
         stopped: true,
@@ -87,7 +99,10 @@ describe('instanceKillBroker', () => {
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.reapedPgids).toStrictEqual([pgidOne, pgidTwo]);
       // SIGTERM, then SIGKILL once the grace probe still sees it alive — the same escalation
@@ -113,7 +128,7 @@ describe('instanceKillBroker', () => {
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
-      await instanceKillBroker({ instanceId: INSTANCE_ID });
+      await instanceKillBroker({ instanceId: INSTANCE_ID, repoRoot: proxy.repoRoot });
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped 2 orphaned process groups outside the idle timeout',
@@ -140,6 +155,7 @@ describe('instanceKillBroker', () => {
 
       await instanceKillBroker({
         instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
         reason: 'reaped by cleanup after its heartbeat went stale',
       });
 
@@ -155,7 +171,7 @@ describe('instanceKillBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableNoPgids({ socketPath: SOCKET_PATH, homePath: HOME_PATH });
 
-      await instanceKillBroker({ instanceId: INSTANCE_ID });
+      await instanceKillBroker({ instanceId: INSTANCE_ID, repoRoot: proxy.repoRoot });
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toBe(null);
     });
@@ -166,7 +182,10 @@ describe('instanceKillBroker', () => {
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableNoPgids({ socketPath: SOCKET_PATH, homePath: HOME_PATH });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.reapedPgids).toStrictEqual([]);
       expect(proxy.getRemovedPaths()).toStrictEqual([HOME_PATH]);
@@ -190,7 +209,10 @@ describe('instanceKillBroker', () => {
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.reapedPgids).toStrictEqual([livePgid]);
       expect(proxy.getKillGroupCallsFor({ pgid: alreadyGonePgid })).toStrictEqual([]);
@@ -216,7 +238,10 @@ describe('instanceKillBroker', () => {
         });
         proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
 
-        const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+        const result = await instanceKillBroker({
+          instanceId: INSTANCE_ID,
+          repoRoot: proxy.repoRoot,
+        });
 
         expect(result.reapedPgids).toStrictEqual([]);
         expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual([]);
@@ -235,7 +260,10 @@ describe('instanceKillBroker', () => {
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.alreadyKilledAtMs).toBe(1_700_000_123_000);
       expect(proxy.getRemovedPaths()).toStrictEqual([]);
@@ -246,7 +274,10 @@ describe('instanceKillBroker', () => {
       const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: null, state: 'killed' });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.alreadyKilledAtMs).toBe(null);
     });
@@ -261,7 +292,7 @@ describe('instanceKillBroker', () => {
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
 
-      await instanceKillBroker({ instanceId: INSTANCE_ID });
+      await instanceKillBroker({ instanceId: INSTANCE_ID, repoRoot: proxy.repoRoot });
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toBe(null);
     });
@@ -271,7 +302,10 @@ describe('instanceKillBroker', () => {
       const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: null, state: 'killed' });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
 
-      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+      const result = await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
 
       expect(result.stopped).toBe(true);
     });

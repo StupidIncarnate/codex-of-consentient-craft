@@ -31,7 +31,9 @@
  * // Writes that one instance in full, as the rendered table, or throws InstanceUnknownError first
  */
 
-import { stdout } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
+import { cwd, stdout } from '#gateway/node/process';
 
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { statusReadBroker } from '../../../brokers/status/read/status-read-broker';
@@ -59,7 +61,19 @@ export const SiegelenseStatusResponder = async ({
     }
   }
 
-  const answer = await statusReadBroker({ instanceId, branch, since });
+  // `status` also answers from a folder that is no repo at all (the fleet is machine-wide, not
+  // repo-owned). The repo root only feeds a row's repo-local evidence link and a dead row's solo
+  // profile, and a folder with no repo has neither, so its own path stands in for the root.
+  const startPath = cwd();
+  const repoRoot = await cwdResolveBroker({ startPath, kind: 'repo-root' }).catch(
+    (error: unknown) => {
+      if (error instanceof ProjectRootNotFoundError) {
+        return startPath;
+      }
+      throw error;
+    },
+  );
+  const answer = await statusReadBroker({ instanceId, repoRoot, branch, since });
   stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`

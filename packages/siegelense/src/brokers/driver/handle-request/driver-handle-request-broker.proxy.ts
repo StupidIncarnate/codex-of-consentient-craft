@@ -65,6 +65,7 @@ export const driverHandleRequestBrokerProxy = (): {
     laneForKill: ({ homePath }: { homePath: string }): LaneSession =>
       LaneSessionStub({
         evidencePath: laneTeardownProxy.getEvidencePath(),
+        repoRoot: laneTeardownProxy.getRepoRoot(),
         homePath,
         pgids: [KILL_LANE_PGID],
       }),

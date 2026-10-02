@@ -27,7 +27,7 @@ describe('questIndexLoadBroker', () => {
         },
       });
 
-      const result = await questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({
         userRequest: 'Add real-time notifications',
@@ -45,7 +45,7 @@ describe('questIndexLoadBroker', () => {
       const questId = QuestIdStub({ value: 'ghost-quest' });
       proxy.setupMissingQuest();
 
-      const result = await questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({
         userRequest: undefined,
@@ -63,7 +63,7 @@ describe('questIndexLoadBroker', () => {
       const questId = QuestIdStub({ value: 'no-keys-quest' });
       proxy.setupQuest({ questId, questJson: { someOtherField: 'value' } });
 
-      const result = await questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({
         userRequest: undefined,
@@ -87,7 +87,7 @@ describe('questIndexLoadBroker', () => {
         },
       });
 
-      const result = await questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({
         userRequest: 'Fix the bug',
@@ -107,7 +107,7 @@ describe('questIndexLoadBroker', () => {
         questJson: { userRequest: 42, workItems: [workItem] },
       });
 
-      const result = await questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({
         userRequest: undefined,
@@ -125,7 +125,7 @@ describe('questIndexLoadBroker', () => {
       const questId = QuestIdStub({ value: 'invalid-json-quest' });
       proxy.setupQuestRawContent({ questId, content: '{ this is not json' });
 
-      const result = await questIndexLoadBroker({ questId });
+      const result = await questIndexLoadBroker({ questId, startDir: '/repo' });
 
       expect(result).toStrictEqual({
         userRequest: undefined,

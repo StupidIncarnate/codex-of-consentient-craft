@@ -13,7 +13,8 @@
  * // Writes the CapacityAnswer as one JSON document
  */
 
-import { stdout } from '#gateway/node/process';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwd, stdout } from '#gateway/node/process';
 
 import { capacityReadBroker } from '../../../brokers/capacity/read/capacity-read-broker';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
@@ -28,7 +29,8 @@ export const SiegelenseCapacityResponder = async ({
   poolSize: number | null;
   isJson?: boolean;
 }): Promise<void> => {
-  const answer = await capacityReadBroker({ specName, poolSize });
+  const repoRoot = await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' });
+  const answer = await capacityReadBroker({ specName, poolSize, repoRoot });
 
   stdout.write(
     isJson

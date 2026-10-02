@@ -13,10 +13,10 @@
  * over.
  *
  * USAGE:
- * await stepVideoBroker({ session, action: 'start' });
+ * await stepVideoBroker({ session, action: 'start', repoRoot: '/repo' });
  * // Returns 'video recording started' as ContentText
  *
- * await stepVideoBroker({ session, action: 'stop' });
+ * await stepVideoBroker({ session, action: 'stop', repoRoot: '/repo' });
  * // Returns 'video recording stopped — saved to <repo-local path>' as ContentText
  */
 
@@ -31,9 +31,11 @@ import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-
 export const stepVideoBroker = async ({
   session,
   action,
+  repoRoot,
 }: {
   session: BrowserSession;
   action: VideoAction;
+  repoRoot: string;
 }): Promise<string> => {
   const result = await session.videoAction({ action });
 
@@ -47,6 +49,7 @@ export const stepVideoBroker = async ({
 
   const { path: reportedPath } = await locationsRepoLinkPathFindBroker({
     homePath: result.path,
+    repoRoot,
   });
 
   return videoReadingRenderTransformer({

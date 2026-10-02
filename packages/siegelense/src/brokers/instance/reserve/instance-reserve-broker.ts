@@ -22,14 +22,14 @@
  * reservation outright.
  *
  * USAGE:
- * await instanceReserveBroker({ specName, specHash, questId, guildId });
+ * await instanceReserveBroker({ specName, specHash, questId, guildId, repoRoot });
  * // Returns the written RegistryEntry — a reservation, evidence directory already minted
  */
 
 import { currentBranch } from '#gateway/bin/git';
 import { randomUUID } from '#gateway/node/crypto';
 import { now } from '#gateway/node/Date';
-import { cwd, pid } from '#gateway/node/process';
+import { pid } from '#gateway/node/process';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { freePortPair } from '#gateway/node/net';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
@@ -51,11 +51,13 @@ export const instanceReserveBroker = async ({
   specHash,
   questId,
   guildId,
+  repoRoot,
 }: {
   specName: string;
   specHash: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
+  repoRoot: string;
 }): Promise<RegistryEntry> => {
   // randomUUID() dashes stripped — the whole hex payload, comfortably above
   // instanceIdContract's 4-char minimum, with no length arithmetic to hold a magic number.
@@ -70,7 +72,7 @@ export const instanceReserveBroker = async ({
   // Independent calls — the branch read and the port-candidate fan-out share no data — so they
   // run together rather than the branch read adding its own latency in front of the ports.
   const [resolvedBranch, rawPairs] = await Promise.all([
-    currentBranch({ cwd: cwd() }).catch((error: unknown) => {
+    currentBranch({ cwd: repoRoot }).catch((error: unknown) => {
       if (isGitNotARepositoryErrorGuard({ error })) {
         return null;
       }

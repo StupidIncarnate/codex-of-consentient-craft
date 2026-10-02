@@ -97,3 +97,5 @@ export * from './locations/usage-ledger-path-find/locations-usage-ledger-path-fi
 export * from './locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker';
 export * from './contract-index/build/contract-index-build-broker';
 export * from './owner-index/build/owner-index-build-broker';
+export * from './module/resolve/module-resolve-broker';
+export * from './package-bin/resolve/package-bin-resolve-broker';

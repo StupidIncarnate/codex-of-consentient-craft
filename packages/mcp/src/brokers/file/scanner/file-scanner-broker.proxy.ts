@@ -5,7 +5,7 @@
  * — because the gateway's `globProxy` has no zero-arg catch-all the way the local adapter proxy
  * it replaces did: an unaddressed call throws instead of quietly resolving empty, so both
  * addresses are computed here the same way the broker derives them, from the same
- * `cwd`/`resolvePackageRoot` inputs.
+ * `rootPath`/`resolvePackageRoot` inputs.
  *
  * USAGE:
  * const brokerProxy = fileScannerBrokerProxy();
@@ -19,7 +19,6 @@ import { resolvePackageRootProxy } from '#gateway/node/module/resolve-package-ro
 import { resolvePackageRoot } from '#gateway/node/module';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import type { FsError } from '#gateway/node/fs';
 
 const BROAD_GLOB_PREFIX = '**';
@@ -45,11 +44,7 @@ export const fileScannerBrokerProxy = (): {
   }) => void;
   setupGlobFailure: (params: { pattern: string; error: Error }) => void;
 } => {
-  const cwdStage = cwdProxy();
-  const stageDefaultCwd = (): void => {
-    cwdStage.setupCwd({ value: '/default/cwd' });
-  };
-  // The scan root the broker will resolve, read from the same gateway the broker calls.
+  // The scan root the tests pass to the broker.
   const scanRoot = '/default/cwd';
   const readFileGateway = readFileProxy();
   resolvePackageRootProxy();
@@ -124,7 +119,6 @@ export const fileScannerBrokerProxy = (): {
       pattern: string;
       ignorePatterns?: readonly string[];
     }): void => {
-      stageDefaultCwd();
       stageScans({
         root: scanRoot,
         pattern,
@@ -146,7 +140,6 @@ export const fileScannerBrokerProxy = (): {
       }[];
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       stageScans({
         root: scanRoot,
         pattern,
@@ -162,9 +155,8 @@ export const fileScannerBrokerProxy = (): {
       }
     },
 
-    // For a call that passes an explicit `rootPath` — an address independent of the
-    // cwd() default, proving the broker scanned from the PASSED root rather than
-    // silently falling back to its own cwd.
+    // For a call that passes an explicit `rootPath` — an address other than the
+    // default scan root, proving the broker scanned from the PASSED root.
     setupFilesAtRoot: ({
       rootPath,
       files,
@@ -174,7 +166,6 @@ export const fileScannerBrokerProxy = (): {
       files: readonly { filepath: string; contents: string }[];
       pattern: string;
     }): void => {
-      stageDefaultCwd();
       stageScans({
         root: rootPath,
         pattern,
@@ -190,7 +181,6 @@ export const fileScannerBrokerProxy = (): {
     // the gateway's own try/catch — proving the broker's rejection now carries the gateway's
     // pattern-naming message rather than a raw, unwrapped one.
     setupGlobFailure: ({ pattern, error }: { pattern: string; error: Error }): void => {
-      stageDefaultCwd();
       globGateway.throws({
         pattern: `${scanRoot}/${pattern}`,
         options: { cwd: scanRoot, ignore: ignoreFor({ pattern }) },

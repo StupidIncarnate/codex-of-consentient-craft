@@ -172,6 +172,7 @@ export const stepResetBroker = async ({
           apiBaseUrl: lane.apiBaseUrl,
           homePath: lane.homePath,
           parameters: {},
+          repoRoot: lane.repoRoot,
         });
 
   const restored: string = to === null ? 'instance' : to;

@@ -9,7 +9,7 @@
  *
  * When the hook supplied no caller (a repo whose settings predate the hook, or a client other than
  * Claude Code) this broker falls back to the server's own cwd — the MCP stdio child's own
- * `process.cwd()`, shared by every sub-agent in a session and never moved by any one of them — and
+ * working directory (passed in by the responder), shared by every sub-agent in a session and never moved by any one of them — and
  * reports the fallback in `source` so the caller can see it happened, instead of silently repeating
  * the "worktree comes back empty" bug this broker exists to fix.
  *
@@ -21,21 +21,24 @@
  * a clean "resolved from the caller's own working directory".
  *
  * USAGE:
- * const { repoRoot, source, configFound } = await callerRepoRootResolveBroker({ meta });
+ * const { repoRoot, source, configFound } = await callerRepoRootResolveBroker({ meta, serverCwd });
  */
 
 import { callerRepoRootResolveResultContract } from '../../../contracts/caller-repo-root-resolve-result/caller-repo-root-resolve-result-contract';
 import type { CallerRepoRootResolveResult } from '../../../contracts/caller-repo-root-resolve-result/caller-repo-root-resolve-result-contract';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { cwd } from '#gateway/node/process';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
 import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
 export const callerRepoRootResolveBroker = async ({
   meta,
+  serverCwd,
 }: {
   meta: Record<string, unknown> | undefined;
+  // The MCP server's own working directory, read by the calling responder; the start path when the
+  // hook stamped no caller.
+  serverCwd: string;
 }): Promise<CallerRepoRootResolveResult> => {
   const caller = metaCallerContextTransformer({ meta });
 
@@ -62,7 +65,6 @@ export const callerRepoRootResolveBroker = async ({
     }
   }
 
-  const serverCwd = cwd();
   try {
     const repoRoot = await cwdResolveBroker({ startPath: serverCwd, kind: 'repo-root' });
     return callerRepoRootResolveResultContract.parse({

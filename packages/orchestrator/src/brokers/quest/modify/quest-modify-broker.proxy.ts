@@ -21,6 +21,7 @@ import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exi
 import { join, resolve } from '#gateway/node/path';
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -34,7 +35,9 @@ import { questModifyBroker } from './quest-modify-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
-import { questRepoRootBrokerProxy } from '../repo-root/quest-repo-root-broker.proxy';
+import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
+import { questGetBroker } from '../get/quest-get-broker';
+import { questRepoRootBroker } from '../repo-root/quest-repo-root-broker';
 import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-modify-lock-broker.proxy';
 import { resolvePackageEntryFactsLayerBrokerProxy } from './resolve-package-entry-facts-layer-broker.proxy';
 
@@ -65,12 +68,17 @@ export const questModifyBrokerProxy = (): {
   setupContractSourceResolvesOnce: (params: { source: string }) => void;
   setupPackageLocationResolves: (params: { location: string }) => void;
   getProjectRoot: () => string;
+  // The quest's recorded worktree exists on disk, so its declared paths are judged against it.
+  setupWorktreePresent: (params: { worktreePath: string }) => void;
   setupAssertionIds: (params: {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getCallInputs: () => readonly unknown[];
 } => {
+  // Built first: it composes its own quest lookup proxies, and the ones built after it are the
+  // ones whose staging must win.
+  questCwdResolveBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   // Server-stamped assertion ids come from randomUUID. Passthrough so every test gets a real
   // uuid by default; tests that assert on the stamped id queue deterministic values via setupAssertionIds.
@@ -107,11 +115,29 @@ export const questModifyBrokerProxy = (): {
   // Answers the package-entry disk probes: nothing resolves and no workspace root lists siblings
   // until a test says otherwise via setupPackageLocationResolves.
   resolvePackageEntryFactsLayerBrokerProxy();
-  // The quest's own repo root, answered outright: the real broker would re-run the quest lookup and
-  // consume a second copy of the path/read staging setupQuestFound seeds for questModifyBroker's own
-  // lookup.
-  const repoRootProxy = questRepoRootBrokerProxy();
-  repoRootProxy.setupRepoRoot({ repoRoot: PROJECT_ROOT });
+  // The checkout the quest's work lives in. questCwdResolveBroker runs REAL: a quest with no
+  // recorded worktree reaches the repo root this proxy answers outright (the real repo-root broker
+  // would re-run the quest lookup and consume a second copy of the path/read staging), and a quest
+  // with one reaches that worktree. Its own quest read is answered by a predicate-addressed
+  // default that serves the quest setupQuestFound staged, never by a queued file read, so it cannot
+  // consume staging a composing proxy seeded for its own lookups, and an exact `{ input }` staging
+  // such a proxy makes outranks it.
+  const staged: { quest?: Quest } = {};
+  const isGetCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'input' in call;
+  registerMock({ fn: questGetBroker })
+    .calledWith([isGetCall])
+    .implement(async () =>
+      Promise.resolve(
+        staged.quest === undefined
+          ? GetQuestResultStub({ success: false, error: 'No quest staged on the modify proxy' })
+          : GetQuestResultStub({ success: true, quest: staged.quest }),
+      ),
+    );
+  const repoRootMock = registerMock({ fn: questRepoRootBroker });
+  const isQuestIdInput = (input: unknown): boolean =>
+    typeof input === 'object' && input !== null && 'questId' in input;
+  repoRootMock.calledWith([isQuestIdInput]).resolves(PROJECT_ROOT);
 
   // Any `{ input }` call. `setupQuestFound` stages the real implementation at this address, and
   // setupReject/setupResolveSuccessOnce/setupResolveFailureOnce below stage live one-shots at the
@@ -165,6 +191,17 @@ export const questModifyBrokerProxy = (): {
         .calledWith([questFolderPath, locationsStatics.quest.questFile])
         .returns(questFilePath);
 
+      // questCwdResolveBroker's own quest read, then the worktree probe where one is recorded. Paths
+      // inside a recorded worktree default to "not found", as paths under PROJECT_ROOT do.
+      staged.quest = quest;
+      if (quest.worktreePath !== undefined) {
+        const { worktreePath } = quest;
+        fsAccessProxy.throwsMatchingPath({
+          path: (value: unknown): boolean => String(value).startsWith(`${worktreePath}/`),
+          error: FsErrorStub({ code: 'ENOENT' }),
+        });
+      }
+
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
@@ -213,6 +250,10 @@ export const questModifyBrokerProxy = (): {
     },
 
     getProjectRoot: (): string => PROJECT_ROOT,
+
+    setupWorktreePresent: ({ worktreePath }: { worktreePath: string }): void => {
+      fsAccessProxy.present({ path: worktreePath });
+    },
 
     setupAssertionIds: ({
       ids,

@@ -140,7 +140,10 @@ export const runExecuteBroker = async ({
   // through a valid directory symlink reaches the identical file. `linkPresent: false` falls the
   // alias back to this same real `shotsDir`, so a repo that never ran `dungeonmaster init` writes
   // and reports exactly as it did before this resolution existed.
-  const { path: reportedShotsDir } = await locationsRepoLinkPathFindBroker({ homePath: shotsDir });
+  const { path: reportedShotsDir } = await locationsRepoLinkPathFindBroker({
+    homePath: shotsDir,
+    repoRoot: lane.repoRoot,
+  });
 
   const bufferPaths = locationsBufferPathsFindBroker({ evidencePath: lane.evidencePath });
 

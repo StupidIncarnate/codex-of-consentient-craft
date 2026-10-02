@@ -4,7 +4,6 @@ import { eslintLoadConfigBrokerProxy } from '../../eslint/load-config/eslint-loa
 import { eslintLintRunTargetedBrokerProxy } from '../../eslint/lint-run-targeted/eslint-lint-run-targeted-broker.proxy';
 import { eslintIsPathIgnoredBrokerProxy } from '../../eslint/is-path-ignored/eslint-is-path-ignored-broker.proxy';
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
-import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { dirname, join } from '#gateway/node/path';
 
@@ -14,7 +13,6 @@ export const violationsCheckNewBrokerProxy = (): {
   setPathIgnored: (params: { ignored: boolean }) => void;
   setLintIgnoredPaths: (params: { enabled: boolean }) => void;
 } => {
-  cwdProxy();
   const envProxy = getEnvProxy();
   const lintIgnoredPathsName = 'DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS';
   // Every setup method stages the current value: a later staging wins, so one method restaging

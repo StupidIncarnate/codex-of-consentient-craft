@@ -69,6 +69,7 @@ describe('driverHeartbeatTickBroker', () => {
         {
           instanceId: 'inst_7f3a9c21',
           specName: 'dungeonmaster-api',
+          repoRoot: '/tmp/dm-siege-stub-repo',
           rssMB: 1840,
           beatAtMs: nowMs,
         },
@@ -95,6 +96,7 @@ describe('driverHeartbeatTickBroker', () => {
         {
           instanceId: 'inst_7f3a9c21',
           specName: 'dungeonmaster-api',
+          repoRoot: '/tmp/dm-siege-stub-repo',
           rssMB: null,
           beatAtMs: nowMs,
         },

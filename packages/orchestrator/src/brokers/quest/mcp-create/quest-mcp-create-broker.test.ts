@@ -26,7 +26,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({ userRequest, startDir: '/home/dev/my-guild' });
 
       expect(result).toStrictEqual({
         questId,
@@ -54,7 +54,10 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({
+        userRequest,
+        startDir: '/home/dev/repo/packages/web',
+      });
 
       expect(result).toStrictEqual({
         questId,
@@ -94,7 +97,10 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [firstGuild, targetGuild, lastGuild] });
       proxy.setupSuccessfulAdd({ guildId: targetGuild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({
+        userRequest,
+        startDir: '/home/dev/target-guild',
+      });
 
       expect(result).toStrictEqual({
         questId,
@@ -115,7 +121,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({ userRequest, startDir: '/home/dev/existing' });
 
       expect(proxy.getGuildAddCalls()).toStrictEqual([]);
       expect(result.guildSlug).toBe('existing-guild');
@@ -137,7 +143,10 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({
+        userRequest,
+        startDir: '/home/dev/another-guild',
+      });
 
       expect(result.guildSlug).toBe('another-guild');
     });
@@ -156,7 +165,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild' });
 
       expect(result.questId).toBe('99999999-9999-4999-9999-999999999999');
     });
@@ -180,7 +189,10 @@ describe('questMcpCreateBroker', () => {
       proxy.setupAutoCreatedGuild({ guild: createdGuild });
       proxy.setupSuccessfulAdd({ guildId: createdGuild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({
+        userRequest,
+        startDir: '/home/dev/codex-of-consentient-craft',
+      });
 
       expect(proxy.getGuildAddCalls()).toStrictEqual([
         {
@@ -210,7 +222,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({ userRequest, startDir: '/home/dev/fresh-repo' });
 
       expect(proxy.getGuildAddCalls()).toStrictEqual([]);
       expect(result).toStrictEqual({
@@ -233,7 +245,10 @@ describe('questMcpCreateBroker', () => {
       proxy.setupAutoCreatedGuild({ guild: createdGuild });
       proxy.setupSuccessfulAdd({ guildId: createdGuild.id, questId });
 
-      const result = await questMcpCreateBroker({ userRequest });
+      const result = await questMcpCreateBroker({
+        userRequest,
+        startDir: '/home/dev/codex-of-consentient-craft',
+      });
 
       expect(proxy.getGuildAddCalls()).toStrictEqual([
         {
@@ -264,7 +279,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      await questMcpCreateBroker({ userRequest, questType });
+      await questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild', questType });
 
       expect(proxy.getLastQuestAddCall().questType).toBe('bug-hunt');
     });
@@ -283,7 +298,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      await questMcpCreateBroker({ userRequest });
+      await questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild' });
 
       expect(proxy.getLastQuestAddCall().questType).toBe(undefined);
     });
@@ -303,7 +318,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      await questMcpCreateBroker({ userRequest, sessionId });
+      await questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild', sessionId });
 
       expect(proxy.getLastQuestAddCall().sessionId).toBe('77777777-7777-4777-9777-777777777777');
     });
@@ -322,7 +337,7 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
-      await questMcpCreateBroker({ userRequest });
+      await questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild' });
 
       expect(proxy.getLastQuestAddCall().sessionId).toBe(undefined);
     });
@@ -333,7 +348,9 @@ describe('questMcpCreateBroker', () => {
       const proxy = questMcpCreateBrokerProxy();
       proxy.setupResolveError({ cwd: '/home/dev/guild', error: new Error('disk read failed') });
 
-      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(/disk read failed/u);
+      await expect(
+        questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild' }),
+      ).rejects.toThrow(/disk read failed/u);
     });
 
     it('ERROR: {questUserAddBroker returns failure} => throws with the underlying error message', async () => {
@@ -349,7 +366,9 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupAddFailure({ guildId: guild.id, error: 'persist failed' });
 
-      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(/persist failed/u);
+      await expect(
+        questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild' }),
+      ).rejects.toThrow(/persist failed/u);
     });
 
     it('ERROR: {questUserAddBroker returns success but no questId} => throws with the unknown-error fallback message', async () => {
@@ -365,9 +384,9 @@ describe('questMcpCreateBroker', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupAddSuccessWithoutQuestId({ guildId: guild.id });
 
-      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(
-        /Failed to create quest: unknown error/u,
-      );
+      await expect(
+        questMcpCreateBroker({ userRequest, startDir: '/home/dev/guild' }),
+      ).rejects.toThrow(/Failed to create quest: unknown error/u);
     });
   });
 });
