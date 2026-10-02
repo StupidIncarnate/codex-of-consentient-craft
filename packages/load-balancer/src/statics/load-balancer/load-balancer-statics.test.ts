@@ -10,6 +10,16 @@ describe('loadBalancerStatics', () => {
         fileName: 'registry-v1.db',
         busyTimeoutMs: 5000,
       },
+      lease: {
+        heartbeatIntervalMs: 5000,
+        staleAfterMs: 30000,
+      },
+      memory: {
+        headroomMB: 512,
+      },
+      cpu: {
+        minAllowed: 1,
+      },
     });
   });
 });

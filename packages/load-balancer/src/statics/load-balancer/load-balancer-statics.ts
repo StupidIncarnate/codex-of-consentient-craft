@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Starting point for this package's statics — replace with real config values as the
- * package grows.
+ * PURPOSE: Machine load balancer configuration constants, registry settings, lease timing, and capacity knobs.
  *
  * USAGE:
- * loadBalancerStatics.packageName;
+ * loadBalancerStatics.lease.heartbeatIntervalMs;
+ * // Returns 5000
  */
 
 export const loadBalancerStatics = {
@@ -13,5 +13,15 @@ export const loadBalancerStatics = {
     homeRelativeDir: '.dungeonmaster/load',
     fileName: 'registry-v1.db',
     busyTimeoutMs: 5000,
+  },
+  lease: {
+    heartbeatIntervalMs: 5000,
+    staleAfterMs: 30000,
+  },
+  memory: {
+    headroomMB: 512,
+  },
+  cpu: {
+    minAllowed: 1,
   },
 } as const;
