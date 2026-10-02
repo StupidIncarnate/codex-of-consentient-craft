@@ -35,7 +35,10 @@ export const operationWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<OperationItem> => {
   const { questId, ...operationInput } = operationFieldsContract.parse(fields);
-  const getResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
+  const getResult = await questGetBroker({
+    input: getQuestInputContract.parse({ questId }),
+    home: target.home,
+  });
 
   if (!getResult.success || !getResult.quest) {
     throw new Error(`operationWriteRouteBroker: quest ${questId} not found`);

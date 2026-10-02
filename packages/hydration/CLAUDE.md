@@ -116,7 +116,7 @@ belonging to a parent it did not create.
 A recipe pinned to one route serves only the callers that offer it. Putting the choice on the
 ingredient instead is what lets an integration test with no server into the catalogue at all: a
 caller with no `baseUrl` can only run ingredients that declare a `write` route, and the types say
-so.
+so. A route that reaches code resolving its own storage location escapes the target.
 
 ## A `write` route must declare `copies:`
 

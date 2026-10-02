@@ -7,6 +7,9 @@
  * const { questPath, guildId } = await questFindQuestPathBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
  * // Returns: { questPath: AbsoluteFilePath, guildId: GuildId } or throws if not found
  *
+ * const { questPath, guildId } = await questFindQuestPathBroker({ questId: QuestIdStub({ value: 'add-auth' }), home: '/tmp/dm-home' });
+ * // Searches under /tmp/dm-home alone — DUNGEONMASTER_HOME is never read
+ *
  * TWO PHASES, ONE ANSWER. `questCreateBroker` names a quest's folder with the literal `questId` and
  * `guildAddBroker` names a guild's directory with the literal `guildId`, and nothing renames either
  * afterwards — so the canonical path is PROBED first, one `existsSync` per guild directory, and the
@@ -38,15 +41,21 @@ import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
+import { isAbsolutePathGuard } from '../../../guards/is-absolute-path/is-absolute-path-guard';
 import { isSafePathSegmentGuard } from '../../../guards/is-safe-path-segment/is-safe-path-segment-guard';
 import { matchCandidatesLayerBroker } from './match-candidates-layer-broker';
 
 export const questFindQuestPathBroker = async ({
   questId,
+  home,
 }: {
   questId: Quest['id'];
+  home?: string;
 }): Promise<QuestFindQuestPathResult> => {
-  const { homePath } = dungeonmasterHomeFindBroker();
+  if (home !== undefined && !isAbsolutePathGuard({ path: home })) {
+    throw new Error('Path must be absolute (start with / or C:\\ on Windows)');
+  }
+  const homePath = home ?? dungeonmasterHomeFindBroker().homePath;
 
   const guildsDir = join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
 

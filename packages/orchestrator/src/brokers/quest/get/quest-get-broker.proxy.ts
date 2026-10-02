@@ -40,6 +40,7 @@ export const questGetBrokerProxy = (): {
   // Answers the NEXT call for one exact `input` only, so a later call to the same address can be
   // staged differently.
   setupResolvesOnce: (params: { input: GetInput; result: GetResult }) => void;
+  setupRealBroker: () => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle = registerMock({ fn: join });
@@ -53,6 +54,10 @@ export const questGetBrokerProxy = (): {
     typeof call === 'object' && call !== null && 'input' in call;
 
   return {
+    setupRealBroker: (): void => {
+      getMock.calledWith([isGetCall]).implement(realMod.questGetBroker as never);
+    },
+
     setupResolves: ({ input, result }: { input: GetInput; result: GetResult }): void => {
       getMock.calledWith([{ input }]).resolves(result);
     },
