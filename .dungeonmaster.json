@@ -9,7 +9,8 @@
     "slotCount": 1
   },
   "ward": {
-    "concurrency": 4
+    "concurrency": 4,
+    "e2eSharding": true
   },
   "devServer": {
     "buildCommand": "npm run build",
