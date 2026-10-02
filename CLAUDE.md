@@ -273,10 +273,6 @@ different sibling repo. Blocked session-wide: Bash `grep`/`find`/`rg`, the nativ
 tools, bare `tsc`, and bare `npx eslint`. The `discover` / `get-project-map` MCP tools only see this
 repo's `packages/**`, so they cannot search a sibling repo either.
 
-Workarounds: search file contents with a `python3` one-liner (`os.walk` + regex); read files with the
-`Read` tool; typecheck through the target repo's own npm script that wraps tsc (`npm run build`),
-since the hook keys on the command token, not the working directory. `ls` and
-`npx playwright test <spec>` are not blocked.
 
 ## Product Framing
 
