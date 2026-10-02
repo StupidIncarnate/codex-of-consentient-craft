@@ -120,7 +120,7 @@ describe('siegelenseHelpStatics', () => {
       ],
       refusals: [],
       output:
-        'By default, one summary line — run id, status, steps run and duration — plus the first failure (`STOPPED AT` when the batch halted there, `FIRST FAILURE … (continued: --stop-on never)` when it ran on) and any screenshot paths captured. A screenshot or look captures the viewport only: when the page continues past it, that step\'s reading ends with a `CUT OFF — page 900px tall; 400px below the viewport` line, and a `scroll` step (`{"step":"scroll","by":400}`, `"to":"bottom"`, or a `target`/`ref`) moves the page and reads back the new position. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps\' own payloads; query those afterward with `dungeonmaster siegelense results`.',
+        'By default, one summary line — run id, status, steps run and duration — plus the first failure (`STOPPED AT` when the batch halted there, `FIRST FAILURE … (continued: --stop-on never)` when it ran on) and any screenshot paths captured. A screenshot or look captures the viewport only: when the page continues past it, that step\'s reading ends with a `CUT OFF — page 900px tall; 400px below the viewport` line, and a `scroll` step (`{"step":"scroll","by":400}`, `"to":"bottom"`, or a `target`/`ref`) moves the page and reads back the new position. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps\' own payloads; query those afterward with `dungeonmaster siegelense results`. Exit codes: 0 when the run executed and every step passed (a step marked `expect: error` that errors counts as a pass); 1 when siegelense refused or crashed (unknown instance id, bad `--steps`, unknown step); 2 when the run executed and a step failed or timed out (`status: failed` or `status: timeout`).',
       example:
         'dungeonmaster siegelense run --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c --steps \'[{"step":"goto","path":"/"}]\'',
     });
@@ -540,5 +540,13 @@ describe('siegelenseHelpStatics', () => {
       'Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.',
       'An --instance id with no record in the registry is refused rather than answered.',
     ]);
+  });
+
+  it('VALID: {calls.run.output} => states the three exit codes (0 pass, 1 refusal/crash, 2 failed/timeout) (DEF-118)', () => {
+    expect(
+      siegelenseHelpStatics.calls.run.output.endsWith(
+        'Exit codes: 0 when the run executed and every step passed (a step marked `expect: error` that errors counts as a pass); 1 when siegelense refused or crashed (unknown instance id, bad `--steps`, unknown step); 2 when the run executed and a step failed or timed out (`status: failed` or `status: timeout`).',
+      ),
+    ).toBe(true);
   });
 });

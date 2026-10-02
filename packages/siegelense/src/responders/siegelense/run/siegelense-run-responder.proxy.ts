@@ -15,6 +15,7 @@
  * proxy.stageStepsFileContent({ filePath, content: '[{"step":"goto","path":"/"}]' });
  */
 
+import { setExitCodeProxy } from '#gateway/node/process/set-exit-code/set-exit-code.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -56,6 +57,7 @@ export const SiegelenseRunResponderProxy = (): {
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const instanceRunHandle = registerMock({ fn: instanceRunBroker });
   const stdout = stdoutProxy();
+  setExitCodeProxy();
 
   return {
     stageRegistry: ({ registry }: { registry: Registry }): void => {

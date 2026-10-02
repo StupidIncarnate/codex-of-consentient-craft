@@ -341,4 +341,26 @@ describe('docsStatics', () => {
       ]);
     });
   });
+
+  describe('walking and attacking state the three exit codes for run (DEF-118)', () => {
+    it('VALID: {walking and attacking} => state exit code 0 (pass), exit code 1 (refusal/crash), exit code 2 (failed/timeout)', () => {
+      const walkingBatchSection = docsStatics.scopes.walking.sections.find(
+        (candidate) => candidate.heading === 'WHAT A BATCH RETURNS, AND WHERE THE PAYLOADS ARE',
+      );
+      const attackingExpectSection = docsStatics.scopes.attacking.sections.find(
+        (candidate) => candidate.heading === 'EXPECT: ERROR',
+      );
+
+      const expectedSentence =
+        'The run command reports three exit codes. Exit 0: the run executed and every step passed (a step marked expect: error that errors counts as a pass). Exit 1: siegelense refused or crashed (unknown instance id, bad --steps, unknown step). Exit 2: the run executed, and a step failed or timed out (status: failed or status: timeout).';
+
+      expect({
+        walkingStatesExitCodes: walkingBatchSection?.lines.includes(expectedSentence),
+        attackingStatesExitCodes: attackingExpectSection?.lines.includes(expectedSentence),
+      }).toStrictEqual({
+        walkingStatesExitCodes: true,
+        attackingStatesExitCodes: true,
+      });
+    });
+  });
 });

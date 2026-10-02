@@ -152,6 +152,7 @@ export const docsStatics = {
             'Every log entry and network request automatically includes the step number it happened during. You do not have to guess which step caused an error.',
             'If you click a button and the tool reports zero network requests, that is a valuable finding. It proves the button did nothing.',
             'You can filter the results using --where-path, --where-method, --where-level, and --where-steps. You can also limit the output data using --fields. Filtering the data helps you avoid reading massive log files.',
+            'The run command reports three exit codes. Exit 0: the run executed and every step passed (a step marked expect: error that errors counts as a pass). Exit 1: siegelense refused or crashed (unknown instance id, bad --steps, unknown step). Exit 2: the run executed, and a step failed or timed out (status: failed or status: timeout).',
           ],
         },
         {
@@ -242,6 +243,7 @@ export const docsStatics = {
             'dungeonmaster siegelense run --instance <id> --steps \'[{"step":"type","target":"[data-testid=\\"AMOUNT_INPUT\\"]","value":"-99999999999999","expect":"error"}]\'',
             'If a step marked "expect": "error" actually succeeds, the batch stops there and reports it as a failure: declared expect: \'error\' but succeeded. The application accepting an action it should have refused is itself a bug.',
             'If you do not include "expect": "error", the tool assumes the step should succeed, and an unexpected failure there is exactly what --stop-on governs.',
+            'The run command reports three exit codes. Exit 0: the run executed and every step passed (a step marked expect: error that errors counts as a pass). Exit 1: siegelense refused or crashed (unknown instance id, bad --steps, unknown step). Exit 2: the run executed, and a step failed or timed out (status: failed or status: timeout).',
           ],
         },
         {
