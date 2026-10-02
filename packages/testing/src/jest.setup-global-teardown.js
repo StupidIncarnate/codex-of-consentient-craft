@@ -11,8 +11,9 @@
 
 const { readdirSync, rmSync } = require('fs');
 const { tmpdir } = require('os');
-const { join } = require('path');
+const { basename, isAbsolute, join, relative, resolve } = require('path');
 
+const SANDBOX_PREFIX = 'dungeonmaster-jest-sandbox-';
 const CLAUDE_DIR_NAME = '.claude';
 const CLAUDE_PROJECTS_DIR_NAME = 'projects';
 // Mirrors claudePathSlugEncoderTransformer's own encoding rule (every non-alphanumeric character
@@ -25,7 +26,7 @@ const NON_ALPHANUMERIC_PATTERN = /[^a-zA-Z0-9]/gu;
 // can leave behind.
 const SESSION_FORENSICS_PREFIX = 'session-forensics-flow-integration-test-';
 
-module.exports = function globalTeardown() {
+function globalTeardown() {
   const sandboxHome = process.env.HOME;
   const realHome = process.env.DUNGEONMASTER_TEST_REAL_HOME;
 
@@ -65,8 +66,32 @@ module.exports = function globalTeardown() {
       );
     }
   } finally {
-    if (sandboxHome !== undefined) {
-      rmSync(sandboxHome, { recursive: true, force: true });
+    const resolvedTmpDir = resolve(tmpdir());
+    const resolvedSandboxHome =
+      sandboxHome !== undefined && sandboxHome !== '' ? resolve(sandboxHome) : undefined;
+    const resolvedRealHome =
+      realHome !== undefined && realHome !== '' ? resolve(realHome) : undefined;
+
+    const relFromTmp =
+      resolvedSandboxHome !== undefined ? relative(resolvedTmpDir, resolvedSandboxHome) : '..';
+    const isUnderTmpDir =
+      relFromTmp.length > 0 && !relFromTmp.startsWith('..') && !isAbsolute(relFromTmp);
+    const hasSandboxPrefix =
+      resolvedSandboxHome !== undefined && basename(resolvedSandboxHome).startsWith(SANDBOX_PREFIX);
+
+    if (
+      realHome !== undefined &&
+      sandboxHome !== undefined &&
+      sandboxHome !== realHome &&
+      resolvedSandboxHome !== resolvedRealHome &&
+      isUnderTmpDir &&
+      hasSandboxPrefix
+    ) {
+      rmSync(resolvedSandboxHome, { recursive: true, force: true });
     }
   }
-};
+}
+
+globalTeardown.SANDBOX_PREFIX = SANDBOX_PREFIX;
+
+module.exports = globalTeardown;
