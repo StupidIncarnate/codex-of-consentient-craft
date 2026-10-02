@@ -19,6 +19,9 @@
  * lost two sign-offs, then reported 15 units settled over the 13 actually written. Strict turns that
  * into a parse error naming the key. `modifyQuestInputContract` inherits it through `.extend()`, so
  * the refusal lands on the caller's own payload rather than on a whole-quest re-parse afterwards.
+ *
+ * Parsing drops retired sign-off keys (`codeweaverSignoff`, `flowriderSignoff`, `siegemasterSignoff`)
+ * so older quest files load cleanly without dropping `.strict()` for unrecognised keys like `edges`.
  */
 
 import { z } from '#gateway/npm/zod';
@@ -26,17 +29,17 @@ import { z } from '#gateway/npm/zod';
 import { flowNodeTypeContract } from '../flow-node-type/flow-node-type-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 
-export const flowNodeContract = z
+const flowNodeBaseContract = z
   .object({
     id: z
       .string()
       .min(1)
       .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
-      .brand<'FlowNodeId'>(),
-    label: z.string().min(1).brand<'FlowNodeLabel'>(),
+      .brand<'FlowNodeBaseId'>(),
+    label: z.string().min(1).brand<'FlowNodeBaseLabel'>(),
     type: flowNodeTypeContract,
     packages: z
-      .array(z.string().min(1).brand<'FlowNodePackages'>())
+      .array(z.string().min(1).brand<'FlowNodeBasePackages'>())
       .min(1)
       .describe(
         "The packages this node lands in, every one of them also present in quest.packagesAffected. Authored with the node, because the observables that would hint at it do not exist yet. A node carrying more than one is a seam: it spans a package boundary, and it owns the glue verification units no single-package slice can. This list is what routes a node's terminal and branch units, which carry no observable to read a package from.",
@@ -44,6 +47,37 @@ export const flowNodeContract = z
     observables: z.array(flowObservableContract).default([]),
   })
   .strict()
-  .brand<'FlowNode'>();
+  .brand<'FlowNodeBase'>();
 
-export type FlowNode = z.infer<typeof flowNodeContract>;
+export const flowNodeContract = Object.assign(
+  z.preprocess((value) => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      return value;
+    }
+    const record = value as Record<string, unknown>;
+    if (
+      !('codeweaverSignoff' in record) &&
+      !('flowriderSignoff' in record) &&
+      !('siegemasterSignoff' in record)
+    ) {
+      return value;
+    }
+    const clean: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(record)) {
+      if (
+        key !== 'codeweaverSignoff' &&
+        key !== 'flowriderSignoff' &&
+        key !== 'siegemasterSignoff'
+      ) {
+        clean[key] = val;
+      }
+    }
+    return clean;
+  }, flowNodeBaseContract),
+  {
+    shape: flowNodeBaseContract.shape,
+    extend: flowNodeBaseContract.extend.bind(flowNodeBaseContract),
+  },
+);
+
+export type FlowNode = z.infer<typeof flowNodeBaseContract>;

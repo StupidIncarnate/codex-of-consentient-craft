@@ -52,6 +52,36 @@ describe('questContract', () => {
       });
     });
 
+    it('VALID: {quest with retired sign-off keys on flow nodes} => parses cleanly with retired keys dropped', () => {
+      const node = FlowNodeStub({
+        id: 'start-node',
+        label: 'Start Node',
+        type: 'state',
+        packages: ['auth-service'],
+        observables: [],
+      });
+      const nodeWithRetiredKeys = Object.assign(node, {
+        codeweaverSignoff: { signed: true },
+        flowriderSignoff: 'approved',
+        siegemasterSignoff: 123,
+      });
+      const quest = QuestStub({
+        flows: [FlowStub({ nodes: [nodeWithRetiredKeys] })],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.flows[0]?.nodes).toStrictEqual([
+        {
+          id: 'start-node',
+          label: 'Start Node',
+          type: 'state',
+          packages: ['auth-service'],
+          observables: [],
+        },
+      ]);
+    });
+
     it('VALID: completed quest => parses successfully', () => {
       const quest = QuestStub({
         status: 'complete',
