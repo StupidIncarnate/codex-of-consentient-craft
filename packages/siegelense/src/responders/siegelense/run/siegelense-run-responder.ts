@@ -12,7 +12,8 @@
  * answers `DriverUnreachableError` — a driver problem — instead of what it actually is. Writes the
  * resulting `RunResult` to stdout as a concise human summary by default, or as raw JSON when
  * `--json` is given (`packages/siegelense/CLAUDE.md`: "`run` returns a status; `results` returns
- * payloads").
+ * payloads"). Sets process exit code to 0 when every step passed, or 2 when the run executed and a
+ * step failed or timed out.
  *
  * USAGE:
  * await SiegelenseRunResponder({
@@ -23,7 +24,7 @@
 
 import { readFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import { stdout } from '#gateway/node/process';
+import { setExitCode, stdout } from '#gateway/node/process';
 
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
@@ -71,4 +72,10 @@ export const SiegelenseRunResponder = async ({
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : runAnswerRenderTransformer({ result }),
   );
+
+  if (result.status === 'failed' || result.status === 'timeout') {
+    setExitCode(siegelenseOutputStatics.exitCodes.runFailed);
+  } else {
+    setExitCode(siegelenseOutputStatics.exitCodes.success);
+  }
 };

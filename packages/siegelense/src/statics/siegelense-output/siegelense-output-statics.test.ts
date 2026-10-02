@@ -11,6 +11,11 @@ describe('siegelenseOutputStatics', () => {
         help: '--help',
         helpShort: '-h',
       },
+      exitCodes: {
+        success: 0,
+        refusal: 1,
+        runFailed: 2,
+      },
     });
   });
 });

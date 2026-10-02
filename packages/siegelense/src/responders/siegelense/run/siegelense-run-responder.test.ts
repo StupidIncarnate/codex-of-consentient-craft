@@ -1,3 +1,5 @@
+import { getExitCode, setExitCode } from '#gateway/node/process';
+
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -166,6 +168,71 @@ describe('SiegelenseRunResponder', () => {
           },
         ],
       ]);
+    });
+  });
+
+  describe('process exit code based on run status (DEF-118)', () => {
+    it("VALID: {status: 'done'} => sets process exit code to 0", async () => {
+      setExitCode(undefined);
+      const proxy = SiegelenseRunResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      const registry = RegistryStub({
+        instances: [RegistryEntryStub({ id: instanceId, state: 'alive' })],
+      });
+      const runResult = RunResultStub({ instanceId, status: 'done' });
+      proxy.stageRegistry({ registry });
+      proxy.stageRunResult({ result: runResult });
+
+      await SiegelenseRunResponder({
+        args: ['--instance', instanceId, '--steps', JSON.stringify([{ step: 'goto', path: '/' }])],
+      });
+
+      const exitCode = getExitCode();
+      setExitCode(0);
+
+      expect(exitCode).toBe(siegelenseOutputStatics.exitCodes.success);
+    });
+
+    it("VALID: {status: 'failed'} => sets process exit code to 2", async () => {
+      setExitCode(0);
+      const proxy = SiegelenseRunResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      const registry = RegistryStub({
+        instances: [RegistryEntryStub({ id: instanceId, state: 'alive' })],
+      });
+      const runResult = RunResultStub({ instanceId, status: 'failed' });
+      proxy.stageRegistry({ registry });
+      proxy.stageRunResult({ result: runResult });
+
+      await SiegelenseRunResponder({
+        args: ['--instance', instanceId, '--steps', JSON.stringify([{ step: 'goto', path: '/' }])],
+      });
+
+      const exitCode = getExitCode();
+      setExitCode(0);
+
+      expect(exitCode).toBe(siegelenseOutputStatics.exitCodes.runFailed);
+    });
+
+    it("VALID: {status: 'timeout'} => sets process exit code to 2", async () => {
+      setExitCode(0);
+      const proxy = SiegelenseRunResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      const registry = RegistryStub({
+        instances: [RegistryEntryStub({ id: instanceId, state: 'alive' })],
+      });
+      const runResult = RunResultStub({ instanceId, status: 'timeout' });
+      proxy.stageRegistry({ registry });
+      proxy.stageRunResult({ result: runResult });
+
+      await SiegelenseRunResponder({
+        args: ['--instance', instanceId, '--steps', JSON.stringify([{ step: 'goto', path: '/' }])],
+      });
+
+      const exitCode = getExitCode();
+      setExitCode(0);
+
+      expect(exitCode).toBe(siegelenseOutputStatics.exitCodes.runFailed);
     });
   });
 });
