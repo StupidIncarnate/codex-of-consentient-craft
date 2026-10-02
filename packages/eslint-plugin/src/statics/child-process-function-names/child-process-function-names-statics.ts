@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Names the process-start functions `bin-program-spawn-ban` watches: the gateway's own
- * curated `@<scope>/node/child_process` exports (real names in
+ * PURPOSE: Names the default process-start functions `bin-program-spawn-ban` watches: the gateway's
+ * own curated `@<scope>/node/child_process` exports (real names in
  * `packages/@gateway/node/src/child_process/child_process.ts`) and the raw Node `child_process`
- * functions they wrap.
+ * functions they wrap. A consumer repo's own gateway exports or extra wrapper functions extend this list.
  * `singleStringRawFunctionNames` is the subset whose one argument is a combined "command args..."
  * string rather than a separate `args` array — `exec`/`execSync`, never `spawn`/`execFile*`/`spawnSync`.
  *

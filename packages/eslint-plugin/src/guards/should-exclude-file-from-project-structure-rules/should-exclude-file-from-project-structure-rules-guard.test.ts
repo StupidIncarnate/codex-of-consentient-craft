@@ -45,6 +45,23 @@ describe('shouldExcludeFileFromProjectStructureRulesGuard', () => {
     it('VALID: {filename: "utils.ts"} => returns true', () => {
       expect(shouldExcludeFileFromProjectStructureRulesGuard({ filename: 'utils.ts' })).toBe(true);
     });
+
+    it('VALID: {filename: "/repo/test/fixtures/consumer-scope/packages/@gateway/node/src/child_process/child_process.ts"} => returns true', () => {
+      expect(
+        shouldExcludeFileFromProjectStructureRulesGuard({
+          filename:
+            '/repo/test/fixtures/consumer-scope/packages/@gateway/node/src/child_process/child_process.ts',
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {filename: "/repo/src/.test-tmp/fixture.ts"} => returns true', () => {
+      expect(
+        shouldExcludeFileFromProjectStructureRulesGuard({
+          filename: '/repo/src/.test-tmp/fixture.ts',
+        }),
+      ).toBe(true);
+    });
   });
 
   describe('files directly in /src/', () => {

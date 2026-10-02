@@ -65,10 +65,34 @@ ruleTester.run(
         code: "import { run } from '@acme/node/child_process'; run({ command: 'node', args: [], cwd: '/repo' });",
         filename: CONSUMER_FILE,
       },
+      {
+        code: "import { spawnFireAndForget } from '@acme/node/child_process'; spawnFireAndForget({ command: 'node', args: [], cwd: '/repo' });",
+        filename: CONSUMER_FILE,
+      },
     ],
     invalid: [
       {
         code: "import { run } from '@acme/node/child_process'; run({ command: 'git', args: ['status'], cwd: '/repo' });",
+        filename: CONSUMER_FILE,
+        errors: [
+          {
+            messageId: 'binProgramSpawn',
+            data: { program: 'git', binFunction: 'currentBranch', gatewayPath: '#gateway/bin/git' },
+          },
+        ],
+      },
+      {
+        code: "import { spawnFireAndForget } from '@acme/node/child_process'; spawnFireAndForget({ command: 'git', args: ['status'], cwd: '/repo' });",
+        filename: CONSUMER_FILE,
+        errors: [
+          {
+            messageId: 'binProgramSpawn',
+            data: { program: 'git', binFunction: 'currentBranch', gatewayPath: '#gateway/bin/git' },
+          },
+        ],
+      },
+      {
+        code: "import { spawnFireAndForget } from '#gateway/node/child_process'; spawnFireAndForget({ command: 'git', args: ['status'], cwd: '/repo' });",
         filename: CONSUMER_FILE,
         errors: [
           {

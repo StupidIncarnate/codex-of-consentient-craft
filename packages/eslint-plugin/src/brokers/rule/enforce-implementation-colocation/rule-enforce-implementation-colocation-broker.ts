@@ -95,7 +95,11 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
         }
 
         // Only check files in /src/ directory
-        if (!filename.includes('/src/')) {
+        if (
+          !filename.includes('/src/') ||
+          filename.includes('/test/fixtures/') ||
+          filename.includes('/.test-tmp/')
+        ) {
           return;
         }
 

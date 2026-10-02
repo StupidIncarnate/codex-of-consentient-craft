@@ -75,6 +75,27 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
       filename: '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts',
       options: [{ scope: '@dungeonmaster' }],
     },
+
+    // --- an extra wrapper function configured via options allows a non-banned program ---
+    {
+      code: "import { spawnFireAndForget } from '@dungeonmaster/node/child_process'; spawnFireAndForget({ command: 'tsc', args: ['--noEmit'], cwd: '/repo' });",
+      filename: '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts',
+      options: [{ scope: '@dungeonmaster', extraWrapperFunctions: ['spawnFireAndForget'] }],
+    },
+
+    // --- an extra wrapper function configured via options allows a non-banned program through #gateway ---
+    {
+      code: "import { spawnFireAndForget } from '#gateway/node/child_process'; spawnFireAndForget({ command: 'tsc', args: ['--noEmit'], cwd: '/repo' });",
+      filename: '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts',
+      options: [{ scope: '@dungeonmaster', extraWrapperFunctions: ['spawnFireAndForget'] }],
+    },
+
+    // --- an unconfigured gateway wrapper function name is not tracked when no barrel exists on disk ---
+    {
+      code: "import { unconfiguredWrapper } from '@dungeonmaster/node/child_process'; unconfiguredWrapper({ command: 'git', args: ['status'], cwd: '/repo' });",
+      filename: '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
   ],
 
   invalid: [
@@ -350,6 +371,40 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
         {
           messageId: 'binProgramSpawn',
           data: { program: 'git', binFunction: 'currentBranch', gatewayPath: '#gateway/bin/git' },
+        },
+      ],
+    },
+
+    // --- an extra wrapper function configured via options flags a banned program spawn ---
+    {
+      code: "import { spawnFireAndForget } from '@dungeonmaster/node/child_process'; spawnFireAndForget({ command: 'git', args: ['status'], cwd: '/repo' });",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster', extraWrapperFunctions: ['spawnFireAndForget'] }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: {
+            program: 'git',
+            binFunction: 'currentBranch',
+            gatewayPath: '#gateway/bin/git',
+          },
+        },
+      ],
+    },
+
+    // --- an extra wrapper function configured via options flags a banned program spawn through #gateway ---
+    {
+      code: "import { spawnFireAndForget } from '#gateway/node/child_process'; spawnFireAndForget({ command: 'git', args: ['status'], cwd: '/repo' });",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster', extraWrapperFunctions: ['spawnFireAndForget'] }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: {
+            program: 'git',
+            binFunction: 'currentBranch',
+            gatewayPath: '#gateway/bin/git',
+          },
         },
       ],
     },
