@@ -150,4 +150,19 @@ test.describe('Quest Start Pipeline', () => {
       questId,
     });
   });
+
+  test('INVALID: POST /api/quests/:questId/start throws loudly on non-200 response', async ({
+    request,
+  }) => {
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    const missingQuestId = 'non-existent-quest-id';
+
+    await expect(
+      dispatch.startQuestViaStartRoute({
+        questId: missingQuestId,
+      }),
+    ).rejects.toThrow(
+      /^dispatchHarness\.startQuestViaStartRoute: \/api\/quests\/non-existent-quest-id\/start answered 400: \{"error":"Quest not found"\}$/u,
+    );
+  });
 });
