@@ -193,7 +193,7 @@ parameter at all and resolves the GLOBAL `process.env.DUNGEONMASTER_HOME`. A tes
 `seed` step caller) that only builds a `DmTarget` and never sets this env var writes its quest and
 guild FILES correctly under `target.home` and then cannot find the quest it needs.
 `test/harnesses/file-target/file-target.harness.ts` sets and restores this env var (and seeds an
-empty `config.json`, since `guildConfigReadBroker`'s ENOENT fallback tests `cause instanceof Error`
+empty `config.json`, since `homeConfigReadBroker`'s ENOENT fallback tests `cause instanceof Error`
 and under jest the cause is an `fs/promises` error from outside the sandbox realm) for exactly this
 reason — reach for that harness rather than building a `DmTarget` by hand in a new test.
 

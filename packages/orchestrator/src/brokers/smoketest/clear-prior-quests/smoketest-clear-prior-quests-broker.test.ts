@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -51,7 +51,7 @@ const primeGuildAndQuestsPath = ({
   proxy: ReturnType<typeof smoketestClearPriorQuestsBrokerProxy>;
 }): void => {
   proxy.setupSmoketestGuildPresent({
-    config: GuildConfigStub({
+    config: HomeConfigStub({
       guilds: [
         GuildStub({
           id: SMOKETEST_GUILD_ID,

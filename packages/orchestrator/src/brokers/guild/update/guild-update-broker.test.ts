@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -20,7 +20,7 @@ describe('guildUpdateBroker', () => {
       const newName = 'New Name';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
       const result = await guildUpdateBroker({ guildId, name: newName });
@@ -46,7 +46,7 @@ describe('guildUpdateBroker', () => {
       const newPath = '/home/user/new-path';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
       const result = await guildUpdateBroker({ guildId, path: newPath });
@@ -73,7 +73,7 @@ describe('guildUpdateBroker', () => {
       const newPath = '/home/user/new-path';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
       const result = await guildUpdateBroker({ guildId, name: newName, path: newPath });
@@ -104,7 +104,7 @@ describe('guildUpdateBroker', () => {
       const newName = 'Updated Second';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild1, guild2] }),
+        config: HomeConfigStub({ guilds: [guild1, guild2] }),
       });
 
       const result = await guildUpdateBroker({ guildId, name: newName });
@@ -126,7 +126,7 @@ describe('guildUpdateBroker', () => {
       const newName = 'New Name';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [] }),
+        config: HomeConfigStub({ guilds: [] }),
       });
 
       await expect(guildUpdateBroker({ guildId, name: newName })).rejects.toThrow(
@@ -150,7 +150,7 @@ describe('guildUpdateBroker', () => {
       const duplicatePath = '/home/user/taken-path';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild1, guild2] }),
+        config: HomeConfigStub({ guilds: [guild1, guild2] }),
       });
 
       await expect(guildUpdateBroker({ guildId, path: duplicatePath })).rejects.toThrow(
@@ -174,7 +174,7 @@ describe('guildUpdateBroker', () => {
       const duplicatePath = '/home/user/taken-path';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild1, guild2] }),
+        config: HomeConfigStub({ guilds: [guild1, guild2] }),
       });
 
       await expect(guildUpdateBroker({ guildId, path: duplicatePath })).rejects.toBeInstanceOf(
@@ -194,7 +194,7 @@ describe('guildUpdateBroker', () => {
       const samePath = '/home/user/my-app';
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
       const result = await guildUpdateBroker({ guildId, path: samePath });

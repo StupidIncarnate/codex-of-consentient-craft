@@ -1,13 +1,13 @@
 /**
- * PURPOSE: Proxy for guild-config-read-broker that mocks filesystem and path operations
+ * PURPOSE: Proxy for home-config-read-broker that mocks filesystem and path operations
  *
  * USAGE:
- * const proxy = guildConfigReadBrokerProxy();
- * proxy.setupConfig({ config: GuildConfigStub({ guilds: [] }) });
+ * const proxy = homeConfigReadBrokerProxy();
+ * proxy.setupConfig({ config: HomeConfigStub({ guilds: [] }) });
  */
 
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -20,9 +20,9 @@ const DEFAULT_HOME_DIR = '/home/user';
 const DEFAULT_HOME_PATH = '/home/user/.dungeonmaster';
 const DEFAULT_CONFIG_FILE_PATH = '/home/user/.dungeonmaster/config.json';
 
-export const guildConfigReadBrokerProxy = (): {
+export const homeConfigReadBrokerProxy = (): {
   setupConfig: (params: {
-    config: GuildConfig;
+    config: HomeConfig;
     // A real process has one home. Omit these to get this proxy's own fixture home; pass the SAME
     // homeDir/homePath a sibling proxy composed in the same test staged (e.g.
     // questFindQuestPathBrokerProxy's own setupQuestFound) when that sibling's real resolution also
@@ -31,7 +31,7 @@ export const guildConfigReadBrokerProxy = (): {
     homeDir?: string;
     homePath?: string;
   }) => void;
-  setupConfigAt: (params: { configFilePath: string; config: GuildConfig }) => void;
+  setupConfigAt: (params: { configFilePath: string; config: HomeConfig }) => void;
   setupConfigExists: (params: {
     homeDir: string;
     homePath: string;
@@ -63,7 +63,7 @@ export const guildConfigReadBrokerProxy = (): {
       homeDir = DEFAULT_HOME_DIR,
       homePath = DEFAULT_HOME_PATH,
     }: {
-      config: GuildConfig;
+      config: HomeConfig;
       homeDir?: string;
       homePath?: string;
     }): void => {
@@ -87,7 +87,7 @@ export const guildConfigReadBrokerProxy = (): {
       config,
     }: {
       configFilePath: string;
-      config: GuildConfig;
+      config: HomeConfig;
     }): void => {
       readFileHandle.returns({ path: configFilePath, contents: JSON.stringify(config) });
     },

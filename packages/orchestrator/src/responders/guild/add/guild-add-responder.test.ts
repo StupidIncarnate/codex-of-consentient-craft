@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
 
@@ -7,7 +7,7 @@ describe('GuildAddResponder', () => {
     it('VALID: {name, path} => delegates to guildAddBroker and returns created guild', async () => {
       const proxy = GuildAddResponderProxy();
       proxy.setupAddGuild({
-        existingConfig: GuildConfigStub({ guilds: [] }),
+        existingConfig: HomeConfigStub({ guilds: [] }),
         homeDir: '/home/user/.dungeonmaster',
         homePath: '/home/user/.dungeonmaster',
         guildsPath: '/home/user/.dungeonmaster/guilds',

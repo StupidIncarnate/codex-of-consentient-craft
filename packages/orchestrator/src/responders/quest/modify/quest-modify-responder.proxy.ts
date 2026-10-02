@@ -2,7 +2,7 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -67,7 +67,7 @@ export const QuestModifyResponderProxy = (): {
     // Same home as findQuestPathProxy above — one real process has one home, and
     // dungeonmasterHomeFindBroker() is a single shared, address-less mock.
     guildProxy.setupConfig({
-      config: GuildConfigStub({ guilds: [guild] }),
+      config: HomeConfigStub({ guilds: [guild] }),
       homeDir: '/home/testuser',
       homePath,
     });

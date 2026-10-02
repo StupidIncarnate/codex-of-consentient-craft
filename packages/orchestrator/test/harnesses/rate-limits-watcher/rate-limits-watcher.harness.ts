@@ -298,7 +298,7 @@ export const rateLimitsWatcherHarness = (): {
       setEnv('DUNGEONMASTER_HOME', tempDir);
       setEnv('DUNGEONMASTER_RATE_LIMITS_POLL_MS', String(POLL_INTERVAL_MS));
 
-      // An empty guild config, written rather than left absent. guildConfigReadBroker's ENOENT
+      // An empty guild config, written rather than left absent. homeConfigReadBroker's ENOENT
       // branch turns on `cause instanceof Error`, and an error node's own fs raised outside jest's
       // vm realm fails that check — so a home with no config.json makes the play gate throw here
       // while it returns the default everywhere else.

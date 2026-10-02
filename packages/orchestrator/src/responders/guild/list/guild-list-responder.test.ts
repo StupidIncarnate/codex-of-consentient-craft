@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { GuildListResponderProxy } from './guild-list-responder.proxy';
@@ -9,7 +9,7 @@ describe('GuildListResponder', () => {
       const proxy = GuildListResponderProxy();
       const guild = GuildStub({});
       proxy.setupGuildList({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         homeDir: '/home/user/.dungeonmaster',
         homePath: '/home/user/.dungeonmaster',
         guildEntries: [

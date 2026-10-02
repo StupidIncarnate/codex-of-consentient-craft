@@ -130,7 +130,7 @@ export const orchestrationEnvironmentHarness = (): {
     },
     // The same files `setupHome` lays down, for a SECOND home the test reaches by handing its path
     // to a broker rather than by pointing DUNGEONMASTER_HOME at it. `config.json` in particular is
-    // not optional here: `guildConfigReadBroker`'s ENOENT fallback tests `cause instanceof Error`,
+    // not optional here: `homeConfigReadBroker`'s ENOENT fallback tests `cause instanceof Error`,
     // and under jest the cause is an `fs/promises` error from outside the sandbox realm, so that
     // check reads false and the read throws instead of defaulting to `{ guilds: [] }`.
     //

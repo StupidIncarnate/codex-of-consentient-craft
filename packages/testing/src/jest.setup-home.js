@@ -74,7 +74,7 @@ if (process[ONCE_PER_WORKER_FLAG] !== true) {
 
 mkdirSync(homePath, { recursive: true });
 
-// Written rather than left absent: guildConfigReadBroker's ENOENT branch turns on
+// Written rather than left absent: homeConfigReadBroker's ENOENT branch turns on
 // `cause instanceof Error`, and an error node's own fs raised outside jest's vm realm fails that
 // check — so a home with no config.json throws where an empty one returns the default.
 writeFileSync(join(homePath, GUILD_CONFIG_FILENAME), JSON.stringify({ guilds: [] }));

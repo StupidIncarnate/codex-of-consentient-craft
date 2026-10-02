@@ -12,7 +12,7 @@
  * import) the same way `file-target.harness.ts` re-validates a quest file's raw JSON through
  * `QuestStub`.
  *
- * Seeds `config.json` before every run — `guildConfigReadBroker`'s ENOENT fallback never fires
+ * Seeds `config.json` before every run — `homeConfigReadBroker`'s ENOENT fallback never fires
  * without one, and the route fails outright on the very first guild otherwise (confirmed by reading
  * `packages/hydration-recipes/test/harnesses/file-target/file-target.harness.ts`'s own header,
  * which this package cannot import — it lives under another package's `test/`, not its public

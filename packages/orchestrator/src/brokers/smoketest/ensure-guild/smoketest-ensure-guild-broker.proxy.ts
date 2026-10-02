@@ -1,4 +1,4 @@
-import type { GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig } from '@dungeonmaster/shared/contracts';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
@@ -19,7 +19,7 @@ type GuildId = ReturnType<typeof GuildIdStub>;
 
 export const smoketestEnsureGuildBrokerProxy = (): {
   setupGuildPresent: (params: {
-    config: GuildConfig;
+    config: HomeConfig;
     homeDir: string;
     homePath: string;
     guildEntries: readonly {
@@ -82,7 +82,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       homeRepoRoot,
       guildRepoRoots,
     }: {
-      config: GuildConfig;
+      config: HomeConfig;
       homeDir: string;
       homePath: string;
       guildEntries: readonly {
@@ -94,7 +94,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       guildRepoRoots?: readonly (string | null)[];
     }): void => {
       // dungeonmasterHomeFindBroker() is called an extra, EARLIER time here — directly by this
-      // broker itself — on top of the calls guildConfigReadBroker and guildListBroker each make
+      // broker itself — on top of the calls homeConfigReadBroker and guildListBroker each make
       // internally once guildListBroker() runs below. This stage and guildListBroker's own
       // internal restage of the identical {homeDir, homePath} pair both address the SAME exact
       // `join`/`homedir` tuples, so the second registration simply re-affirms the first rather

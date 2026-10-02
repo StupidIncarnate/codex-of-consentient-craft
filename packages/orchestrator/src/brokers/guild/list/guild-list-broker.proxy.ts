@@ -1,5 +1,5 @@
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
-import type { GuildConfig, GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig, GuildListItem } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -11,17 +11,17 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import type { DirEntrySync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
-import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+import { homeConfigReadBrokerProxy } from '../../home-config/read/home-config-read-broker.proxy';
+import { homeConfigWriteBrokerProxy } from '../../home-config/write/home-config-write-broker.proxy';
 import { pathIsAccessibleBrokerProxy } from '../../path/is-accessible/path-is-accessible-broker.proxy';
 import { guildListBroker } from './guild-list-broker';
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 
 registerModuleMock({ module: './guild-list-broker' });
 
 export const guildListBrokerProxy = (): {
   setupGuildList: (params: {
-    config: GuildConfig;
+    config: HomeConfig;
     homeDir: string;
     homePath: string;
     guildEntries: {
@@ -33,8 +33,8 @@ export const guildListBrokerProxy = (): {
   setupEmptyConfig: (params: { homeDir: string; homePath: string }) => void;
   setupDirectListing: (params: { items: readonly GuildListItem[] }) => void;
 } => {
-  const configReadProxy = guildConfigReadBrokerProxy();
-  const configWriteProxy = guildConfigWriteBrokerProxy();
+  const configReadProxy = homeConfigReadBrokerProxy();
+  const configWriteProxy = homeConfigWriteBrokerProxy();
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
@@ -58,7 +58,7 @@ export const guildListBrokerProxy = (): {
       homePath,
       guildEntries,
     }: {
-      config: GuildConfig;
+      config: HomeConfig;
       homeDir: string;
       homePath: string;
       guildEntries: {
@@ -67,10 +67,10 @@ export const guildListBrokerProxy = (): {
         questDirEntries: DirEntrySync[];
       }[];
     }): void => {
-      // homeDir/homePath forwarded to guildConfigReadBrokerProxy's own setupConfig — its exact
+      // homeDir/homePath forwarded to homeConfigReadBrokerProxy's own setupConfig — its exact
       // join()/homedir() addresses must agree with this proxy's OWN setupHomePath below, since
       // both stage the SAME shared gateway mocks; a bare setupConfig({config}) here would stage
-      // its address off guildConfigReadBrokerProxy's own DEFAULT home instead of this test's.
+      // its address off homeConfigReadBrokerProxy's own DEFAULT home instead of this test's.
       configReadProxy.setupConfig({ config, homeDir, homePath });
       homeFindProxy.setupHomePath({ homeDir, homePath });
       if (config.guilds.some((guild) => !guild.urlSlug)) {
@@ -103,7 +103,7 @@ export const guildListBrokerProxy = (): {
     },
 
     setupEmptyConfig: ({ homeDir, homePath }: { homeDir: string; homePath: string }): void => {
-      configReadProxy.setupConfig({ config: GuildConfigStub({ guilds: [] }), homeDir, homePath });
+      configReadProxy.setupConfig({ config: HomeConfigStub({ guilds: [] }), homeDir, homePath });
       homeFindProxy.setupHomePath({ homeDir, homePath });
     },
 

@@ -2,7 +2,7 @@ import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-m
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -37,7 +37,7 @@ describe('ChatReplayResponder', () => {
       const guild = GuildStub({ id: guildId });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -100,7 +100,7 @@ describe('ChatReplayResponder', () => {
       });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -159,7 +159,7 @@ describe('ChatReplayResponder', () => {
       });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -202,7 +202,7 @@ describe('ChatReplayResponder', () => {
       proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -249,7 +249,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestDirectoriesFailure({ error: FileMissingErrorStub({ path: questsPath }) });
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -340,7 +340,7 @@ describe('ChatReplayResponder', () => {
       // loses the race for the "most recent" stage, throws unmatched, and the responder's own
       // catch swallows it silently — no chat-output frame ever fires.
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -397,7 +397,7 @@ describe('ChatReplayResponder', () => {
       proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -455,7 +455,7 @@ describe('ChatReplayResponder', () => {
       proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -501,7 +501,7 @@ describe('ChatReplayResponder', () => {
       proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -546,7 +546,7 @@ describe('ChatReplayResponder', () => {
       proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -629,7 +629,7 @@ describe('ChatReplayResponder', () => {
       // loses the race for the "most recent" stage, throws unmatched, and the responder's own
       // catch swallows it silently — no chat-output frame ever fires.
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -694,7 +694,7 @@ describe('ChatReplayResponder', () => {
       proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });
@@ -822,7 +822,7 @@ describe('ChatReplayResponder', () => {
       const guild = GuildStub({ id: guildId });
 
       proxy.setupGuild({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
         sessionId,
         homeDir: '/home/testuser',
       });

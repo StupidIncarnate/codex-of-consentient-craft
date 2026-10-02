@@ -142,7 +142,7 @@ export * from './guild/guild-contract';
 
 export * from './guild-list-item/guild-list-item-contract';
 
-export * from './guild-config/guild-config-contract';
+export * from './home-config/home-config-contract';
 
 export * from './directory-entry/directory-entry-contract';
 

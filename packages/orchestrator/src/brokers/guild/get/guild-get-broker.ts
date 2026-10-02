@@ -11,11 +11,11 @@ import type { Guild } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
-import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
-import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
+import { homeConfigReadBroker } from '../../home-config/read/home-config-read-broker';
+import { homeConfigWriteBroker } from '../../home-config/write/home-config-write-broker';
 
 export const guildGetBroker = async ({ guildId }: { guildId: Guild['id'] }): Promise<Guild> => {
-  const config = await guildConfigReadBroker();
+  const config = await homeConfigReadBroker();
 
   const guild = config.guilds.find((g) => g.id === guildId);
 
@@ -25,7 +25,7 @@ export const guildGetBroker = async ({ guildId }: { guildId: Guild['id'] }): Pro
 
   if (!guild.urlSlug) {
     guild.urlSlug = nameToUrlSlugTransformer({ name: guild.name });
-    await guildConfigWriteBroker({ config });
+    await homeConfigWriteBroker({ config });
   }
 
   return guild;

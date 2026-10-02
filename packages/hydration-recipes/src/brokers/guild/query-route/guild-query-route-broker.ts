@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The guild ingredient's `query` route — lists every registered guild, then narrows to
  * the ones matching `where`. Reach for `guildListBroker` (the orchestrator's `/brokers` subpath)
- * rather than `guildConfigReadBroker` directly: the latter is internal, absent from every
+ * rather than `homeConfigReadBroker` directly: the latter is internal, absent from every
  * orchestrator export surface. `guildListBroker` is reached BY PATH rather than through the main
  * `@dungeonmaster/orchestrator` barrel: importing anything from that barrel evaluates
  * `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a stale-process watchdog

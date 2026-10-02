@@ -35,7 +35,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { guildContract, guildConfigContract } from '@dungeonmaster/shared/contracts';
+import { guildContract, homeConfigContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -43,8 +43,8 @@ import { join } from '#gateway/node/path';
 import { isAbsolutePathGuard } from '../../../guards/is-absolute-path/is-absolute-path-guard';
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildUniqueUrlSlugTransformer } from '../../../transformers/guild-unique-url-slug/guild-unique-url-slug-transformer';
-import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
-import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
+import { homeConfigReadBroker } from '../../home-config/read/home-config-read-broker';
+import { homeConfigWriteBroker } from '../../home-config/write/home-config-write-broker';
 
 export const guildAddBroker = async ({
   name,
@@ -63,7 +63,7 @@ export const guildAddBroker = async ({
   const homePath = home;
   const homeOverride = homePath === undefined ? {} : { home: homePath };
 
-  const config = await guildConfigReadBroker(homeOverride);
+  const config = await homeConfigReadBroker(homeOverride);
 
   const duplicate = config.guilds.find((guild) => guild.path === path);
   if (duplicate) {
@@ -97,8 +97,8 @@ export const guildAddBroker = async ({
     createdAt: new Date().toISOString(),
   });
 
-  await guildConfigWriteBroker({
-    config: guildConfigContract.parse({ guilds: [...config.guilds, guild] }),
+  await homeConfigWriteBroker({
+    config: homeConfigContract.parse({ guilds: [...config.guilds, guild] }),
     ...homeOverride,
   });
 

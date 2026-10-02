@@ -1,7 +1,7 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { GuildConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
+import type { HomeConfig, QuestSource, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -19,7 +19,7 @@ registerModuleMock({ module: './smoketest-clear-prior-quests-broker' });
 
 export const smoketestClearPriorQuestsBrokerProxy = (): {
   setupSmoketestGuildPresent: (params: {
-    config: GuildConfig;
+    config: HomeConfig;
     homeDir: string;
     homePath: string;
     guildEntries: readonly {
@@ -76,7 +76,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       homePath,
       guildEntries,
     }: {
-      config: GuildConfig;
+      config: HomeConfig;
       homeDir: string;
       homePath: string;
       guildEntries: readonly {

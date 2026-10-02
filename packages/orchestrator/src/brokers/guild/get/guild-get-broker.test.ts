@@ -1,4 +1,4 @@
-import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { HomeConfigStub } from '@dungeonmaster/shared/contracts/home-config/home-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -18,7 +18,7 @@ describe('guildGetBroker', () => {
       });
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
       const result = await guildGetBroker({ guildId });
@@ -48,7 +48,7 @@ describe('guildGetBroker', () => {
       });
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild1, guild2] }),
+        config: HomeConfigStub({ guilds: [guild1, guild2] }),
       });
 
       const result = await guildGetBroker({ guildId });
@@ -76,7 +76,7 @@ describe('guildGetBroker', () => {
       });
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [guild] }),
+        config: HomeConfigStub({ guilds: [guild] }),
       });
 
       const result = await guildGetBroker({ guildId });
@@ -97,7 +97,7 @@ describe('guildGetBroker', () => {
       const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [] }),
+        config: HomeConfigStub({ guilds: [] }),
         missingGuildId: guildId,
       });
 
@@ -116,7 +116,7 @@ describe('guildGetBroker', () => {
       });
 
       proxy.setupConfig({
-        config: GuildConfigStub({ guilds: [otherGuild] }),
+        config: HomeConfigStub({ guilds: [otherGuild] }),
         missingGuildId: guildId,
       });
 
