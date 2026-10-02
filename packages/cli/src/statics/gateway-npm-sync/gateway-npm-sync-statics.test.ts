@@ -16,8 +16,9 @@ describe('gatewayNpmSyncStatics', () => {
       packageJson: {
         fileName: 'package.json',
         nameKey: 'name',
-        dependencyKeys: ['dependencies'],
+        dependencyKeys: ['dependencies', 'devDependencies'],
         recordKey: 'dependencies',
+        devRecordKey: 'devDependencies',
       },
       dropped: {
         names: ['dungeonmaster'],

@@ -1,7 +1,7 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { GuildRowLayerWidget } from './guild-row-layer-widget';
 import { GuildRowLayerWidgetProxy } from './guild-row-layer-widget.proxy';
 
@@ -12,7 +12,7 @@ describe('GuildRowLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Test Guild' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <GuildRowLayerWidget guild={guild} selectedGuildId={null} onSelect={jest.fn()} />,
       });
 
@@ -25,7 +25,7 @@ describe('GuildRowLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'jod', path: 'jo', valid: false });
 
-      mantineRenderMiddleware({
+      render({
         ui: <GuildRowLayerWidget guild={guild} selectedGuildId={null} onSelect={jest.fn()} />,
       });
 
@@ -42,7 +42,7 @@ describe('GuildRowLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Selected Guild' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <GuildRowLayerWidget guild={guild} selectedGuildId={guildId} onSelect={jest.fn()} />,
       });
 
@@ -55,7 +55,7 @@ describe('GuildRowLayerWidget', () => {
       const otherId = GuildIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
       const guild = GuildListItemStub({ id: guildId, name: 'Unselected Guild' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <GuildRowLayerWidget guild={guild} selectedGuildId={otherId} onSelect={jest.fn()} />,
       });
 
@@ -70,7 +70,7 @@ describe('GuildRowLayerWidget', () => {
       const guild = GuildListItemStub({ id: guildId, name: 'Clickable Guild' });
       const onSelect = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <GuildRowLayerWidget guild={guild} selectedGuildId={null} onSelect={onSelect} />,
       });
 

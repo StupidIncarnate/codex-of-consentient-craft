@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   ToolResultMarkdownPartStub,
   ToolResultPartStub,
@@ -18,7 +17,7 @@ describe('ToolResultPartLayerWidget', () => {
       ToolResultPartLayerWidgetProxy();
       const part = ToolResultPartStub({ text: 'file contents here' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -32,7 +31,7 @@ describe('ToolResultPartLayerWidget', () => {
       ToolResultPartLayerWidgetProxy();
       const part = ToolResultPartStub({ label: 'model', text: 'sonnet' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -46,7 +45,7 @@ describe('ToolResultPartLayerWidget', () => {
       ToolResultPartLayerWidgetProxy();
       const part = ToolResultPartStub({ label: 'stdout', text: 'building...\nfailed at step 2' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -67,7 +66,7 @@ describe('ToolResultPartLayerWidget', () => {
         source: '# Operator\n\nYou own ONE operation item.',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -82,7 +81,7 @@ describe('ToolResultPartLayerWidget', () => {
         source: '# Architecture Overview\n\nLLMs squirrel code away.',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 

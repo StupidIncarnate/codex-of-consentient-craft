@@ -1,7 +1,6 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ToggleTestIdStub } from '../../contracts/toggle-test-id/toggle-test-id.stub';
 import { ShowEarlierToggleWidget } from './show-earlier-toggle-widget';
 import { ShowEarlierToggleWidgetProxy } from './show-earlier-toggle-widget.proxy';
@@ -11,7 +10,7 @@ describe('ShowEarlierToggleWidget', () => {
     it('VALID: {hiddenCount: 1, expanded: false} => shows "▸ Show 1 earlier entry"', () => {
       ShowEarlierToggleWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ShowEarlierToggleWidget
             hiddenCount={1}
@@ -30,7 +29,7 @@ describe('ShowEarlierToggleWidget', () => {
     it('VALID: {hiddenCount: 5, expanded: false} => shows "▸ Show 5 earlier entries"', () => {
       ShowEarlierToggleWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ShowEarlierToggleWidget
             hiddenCount={5}
@@ -49,7 +48,7 @@ describe('ShowEarlierToggleWidget', () => {
     it('VALID: {hiddenCount: 5, expanded: true} => shows "▾ Hide 5 earlier entries"', () => {
       ShowEarlierToggleWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ShowEarlierToggleWidget
             hiddenCount={5}
@@ -68,7 +67,7 @@ describe('ShowEarlierToggleWidget', () => {
     it('VALID: {hiddenCount: 1, expanded: true} => shows "▾ Hide 1 earlier entry"', () => {
       ShowEarlierToggleWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ShowEarlierToggleWidget
             hiddenCount={1}
@@ -90,7 +89,7 @@ describe('ShowEarlierToggleWidget', () => {
       ShowEarlierToggleWidgetProxy();
       const onToggle = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ShowEarlierToggleWidget
             hiddenCount={3}
@@ -115,7 +114,7 @@ describe('ShowEarlierToggleWidget', () => {
       const proxy = ShowEarlierToggleWidgetProxy();
       proxy.setupAutoScrollReleased();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ShowEarlierToggleWidget
             hiddenCount={3}

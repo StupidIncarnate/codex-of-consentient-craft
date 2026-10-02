@@ -2,7 +2,7 @@
  * PURPOSE: Tests for HomeContentWidget - guild selection and session list rendering
  */
 
-import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
+import { act, render, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { readItem, writeItem } from '#gateway/browser/localStorage';
 import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
 import { MemoryRouter, Route, Routes, useLocation } from '#gateway/npm/react-router-dom';
@@ -14,7 +14,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { HomeContentWidget } from './home-content-widget';
 import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 
@@ -35,7 +34,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -59,7 +58,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuildsError();
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -90,7 +89,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -116,7 +115,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -149,7 +148,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -198,7 +197,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -240,7 +239,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -272,7 +271,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -302,7 +301,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -345,7 +344,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [GuildListItemStub({ name: 'Some Guild' })] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -378,7 +377,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -408,7 +407,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -465,7 +464,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -535,7 +534,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [session] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -614,7 +613,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [session] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -686,7 +685,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -757,7 +756,7 @@ describe('HomeContentWidget', () => {
       proxy.setupDeleteQuest();
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -813,7 +812,7 @@ describe('HomeContentWidget', () => {
       proxy.setupDeleteQuestNotOk({ status: 409, bodyText: 'Quest is currently running' });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -875,7 +874,7 @@ describe('HomeContentWidget', () => {
       });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -912,7 +911,7 @@ describe('HomeContentWidget', () => {
       });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />

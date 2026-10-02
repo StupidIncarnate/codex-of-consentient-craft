@@ -1,7 +1,6 @@
 import React from '#gateway/npm/react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
 
@@ -24,7 +23,7 @@ describe('FlowEdgeWidget', () => {
       FlowEdgeWidgetProxy();
       const { label } = FlowEdgeStub({ label: LONG_LABEL });
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
@@ -46,7 +45,7 @@ describe('FlowEdgeWidget', () => {
       FlowEdgeWidgetProxy();
       const { label } = FlowEdgeStub({ label: LONG_LABEL });
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
@@ -67,7 +66,7 @@ describe('FlowEdgeWidget', () => {
     it('EMPTY: {no data.label} => no FLOW_EDGE_LABEL rendered', () => {
       FlowEdgeWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
@@ -93,7 +92,7 @@ describe('FlowEdgeWidget', () => {
 
       // An L-shaped route (down, then across). midIndex = (3-1)>>1 = 1, so the label sits at the
       // midpoint of segment [pt1 -> pt2] = ((100+100)/2, (0+80)/2) = (100, 40).
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
@@ -125,7 +124,7 @@ describe('FlowEdgeWidget', () => {
       const { label } = FlowEdgeStub({ label: 'yes' });
 
       // Two points, one segment. midIndex = (2-1)>>1 = 0, midpoint of [pt0 -> pt1] = (30, 0).
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
@@ -156,7 +155,7 @@ describe('FlowEdgeWidget', () => {
       const { label } = FlowEdgeStub({ label: 'no' });
 
       // No route, so the mock's getBezierPath (labelX = labelY = 0) pins the midpoint at (0, 0).
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
@@ -185,7 +184,7 @@ describe('FlowEdgeWidget', () => {
       // Source (400) sits below target (0), so it is a loop: it arcs out to the right by loop.detour
       // (max(0,0)+60 = 60), giving points [(0,400),(60,400),(60,0),(0,0)]. The label rides the
       // vertical run at x=60, y=(400+0)/2 = 200.
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'loop-1',
           source: 'tail',
@@ -211,7 +210,7 @@ describe('FlowEdgeWidget', () => {
       FlowEdgeWidgetProxy();
       const { label } = FlowEdgeStub({ label: 'yes' });
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',

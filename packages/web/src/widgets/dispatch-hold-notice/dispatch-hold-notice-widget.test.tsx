@@ -1,6 +1,6 @@
 import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { DispatchHoldNoticeWidget } from './dispatch-hold-notice-widget';
 import { DispatchHoldNoticeWidgetProxy } from './dispatch-hold-notice-widget.proxy';
 
@@ -12,7 +12,7 @@ describe('DispatchHoldNoticeWidget', () => {
       resumeAt: '2026-09-20T06:00:00.000Z',
     });
 
-    mantineRenderMiddleware({ ui: <DispatchHoldNoticeWidget hold={hold} /> });
+    render({ ui: <DispatchHoldNoticeWidget hold={hold} /> });
 
     expect(proxy.noticeText()).toBe(
       'HELD — 7d window at 93% — dispatch holds until it resets · resumes in 7d1h',
@@ -27,7 +27,7 @@ describe('DispatchHoldNoticeWidget', () => {
       resumeAt: '2026-09-13T05:19:29.242Z',
     });
 
-    mantineRenderMiddleware({ ui: <DispatchHoldNoticeWidget hold={hold} /> });
+    render({ ui: <DispatchHoldNoticeWidget hold={hold} /> });
 
     expect(proxy.noticeText()).toBe(
       'HELD — the API refused a request on the 7d window — dispatch holds, then retries · resumes in 30m',
@@ -41,7 +41,7 @@ describe('DispatchHoldNoticeWidget', () => {
       resumeAt: '2026-09-13T04:00:00.000Z',
     });
 
-    mantineRenderMiddleware({ ui: <DispatchHoldNoticeWidget hold={hold} /> });
+    render({ ui: <DispatchHoldNoticeWidget hold={hold} /> });
 
     expect(proxy.noticeText()).toBe('HELD — 7d window at 93% · resumes in 0m');
   });

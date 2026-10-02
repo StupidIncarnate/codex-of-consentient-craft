@@ -1,7 +1,6 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestClarifyPanelWidget } from './quest-clarify-panel-widget';
 import { QuestClarifyPanelWidgetProxy } from './quest-clarify-panel-widget.proxy';
 import { document } from '#gateway/browser/document';
@@ -22,7 +21,7 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -49,7 +48,7 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -82,7 +81,7 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -112,7 +111,7 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -149,7 +148,7 @@ describe('QuestClarifyPanelWidget', () => {
       const secondOption = firstQuestion.options[1]!;
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -192,7 +191,7 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -229,7 +228,7 @@ describe('QuestClarifyPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -274,7 +273,7 @@ describe('QuestClarifyPanelWidget', () => {
       const firstQuestion = parsed.questions[0]!;
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -308,7 +307,7 @@ describe('QuestClarifyPanelWidget', () => {
       const firstQuestion = parsed.questions[0]!;
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}
@@ -340,7 +339,7 @@ describe('QuestClarifyPanelWidget', () => {
       const firstQuestion = parsed.questions[0]!;
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestClarifyPanelWidget
             questions={parsed.questions}

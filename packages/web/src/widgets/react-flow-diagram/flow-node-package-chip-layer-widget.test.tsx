@@ -1,5 +1,5 @@
 import { ReactFlowPackageChipStub } from '../../contracts/react-flow-package-chip/react-flow-package-chip.stub';
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { FlowNodePackageChipLayerWidget } from './flow-node-package-chip-layer-widget';
 import { FlowNodePackageChipLayerWidgetProxy } from './flow-node-package-chip-layer-widget.proxy';
@@ -13,7 +13,7 @@ describe('FlowNodePackageChipLayerWidget', () => {
         packageType: 'frontend-react',
       });
 
-      mantineRenderMiddleware({ ui: <FlowNodePackageChipLayerWidget pkg={pkg} /> });
+      render({ ui: <FlowNodePackageChipLayerWidget pkg={pkg} /> });
 
       expect(proxy.getChipName()).toBe('storefront-ui');
       expect(proxy.getChipAccent()).toBe(packageTypeStyleStatics.accent['frontend-react']);
@@ -24,7 +24,7 @@ describe('FlowNodePackageChipLayerWidget', () => {
       const proxy = FlowNodePackageChipLayerWidgetProxy();
       const pkg = ReactFlowPackageChipStub({ name: 'shared-kit', packageType: 'library' });
 
-      mantineRenderMiddleware({ ui: <FlowNodePackageChipLayerWidget pkg={pkg} /> });
+      render({ ui: <FlowNodePackageChipLayerWidget pkg={pkg} /> });
 
       expect(proxy.getChipPackageType()).toBe('library');
     });
@@ -37,7 +37,7 @@ describe('FlowNodePackageChipLayerWidget', () => {
         name: 'never-declared',
       });
 
-      mantineRenderMiddleware({ ui: <FlowNodePackageChipLayerWidget pkg={pkg} /> });
+      render({ ui: <FlowNodePackageChipLayerWidget pkg={pkg} /> });
 
       expect(proxy.getChipName()).toBe('never-declared');
       expect(proxy.getChipAccent()).toBe(packageTypeStyleStatics.unresolved);

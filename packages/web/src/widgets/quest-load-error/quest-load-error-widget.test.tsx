@@ -1,6 +1,6 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { QuestLoadErrorWidget } from './quest-load-error-widget';
 import { QuestLoadErrorWidgetProxy } from './quest-load-error-widget.proxy';
 
@@ -13,7 +13,7 @@ describe('QuestLoadErrorWidget', () => {
     it('ERROR: {questId, a field-level parse reason} => names the quest file and shows the reason verbatim', () => {
       const proxy = QuestLoadErrorWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestLoadErrorWidget questId={QUEST_ID} reason={PARSE_REASON} />,
       });
 
@@ -28,7 +28,7 @@ describe('QuestLoadErrorWidget', () => {
     it('VALID: {a reason containing a long unbroken path} => the reason row can wrap', () => {
       const proxy = QuestLoadErrorWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestLoadErrorWidget questId={QUEST_ID} reason={PARSE_REASON} />,
       });
 

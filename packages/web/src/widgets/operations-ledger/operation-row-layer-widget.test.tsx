@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { OperationRowLayerWidget } from './operation-row-layer-widget';
 import { OperationRowLayerWidgetProxy } from './operation-row-layer-widget.proxy';
 
@@ -13,7 +12,7 @@ describe('OperationRowLayerWidget', () => {
       OperationRowLayerWidgetProxy();
       const operation = OperationItemStub({ status: 'complete' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
       });
 
@@ -24,7 +23,7 @@ describe('OperationRowLayerWidget', () => {
       OperationRowLayerWidgetProxy();
       const operation = OperationItemStub({ status: 'in_progress' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
       });
 
@@ -35,7 +34,7 @@ describe('OperationRowLayerWidget', () => {
       OperationRowLayerWidgetProxy();
       const operation = OperationItemStub({ status: 'pending' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
       });
 
@@ -48,7 +47,7 @@ describe('OperationRowLayerWidget', () => {
       OperationRowLayerWidgetProxy();
       const operation = OperationItemStub({ role: 'codeweaver', text: 'build the broker' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
       });
 
@@ -66,7 +65,7 @@ describe('OperationRowLayerWidget', () => {
       });
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={flows} />,
       });
 
@@ -87,7 +86,7 @@ describe('OperationRowLayerWidget', () => {
         FlowStub({ id: 'view-comments', name: 'View persisted comments' }),
       ];
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={flows} />,
       });
 
@@ -105,7 +104,7 @@ describe('OperationRowLayerWidget', () => {
       });
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={flows} />,
       });
 
@@ -120,7 +119,7 @@ describe('OperationRowLayerWidget', () => {
       });
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={flows} />,
       });
 
@@ -137,7 +136,7 @@ describe('OperationRowLayerWidget', () => {
         status: 'complete',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
       });
 
@@ -154,7 +153,7 @@ describe('OperationRowLayerWidget', () => {
       });
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderMiddleware({
+      render({
         ui: <OperationRowLayerWidget operation={operation} flows={flows} />,
       });
 

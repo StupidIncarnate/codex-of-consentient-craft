@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { ToolResultContentWidget } from './tool-result-content-widget';
 import { ToolResultContentWidgetProxy } from './tool-result-content-widget.proxy';
@@ -12,7 +11,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {one-line reply} => renders it verbatim in a single text node', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultContentWidget content={'file contents here'} color={DIM} />,
       });
 
@@ -23,7 +22,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {build log} => renders it verbatim, so the lines survive', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget
             content={'> @dungeonmaster/web@1.0.0 build\n> tsc\n\ndone in 4s'}
@@ -41,7 +40,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {verbatim reply, fontSize omitted} => renders at the markdown body size', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ToolResultContentWidget content={'short'} color={DIM} />,
       });
 
@@ -53,7 +52,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {scalars beside a markdown property} => captions the document and inlines the scalars', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget
             content={JSON.stringify({
@@ -77,7 +76,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {markdown property} => renders its heading as a heading, not as literal hashes', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget
             content={JSON.stringify({ prompt: '# Operator\n\nYou own ONE operation item.' })}
@@ -97,7 +96,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {multi-line non-markdown property} => breaks its lines without parsing it', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget
             content={JSON.stringify({ exitCode: 1, stdout: 'building...\nfailed at step 2' })}
@@ -120,7 +119,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {indented ledger under a heading} => keeps every break and indent', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget
             content={
@@ -144,7 +143,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {indented ledger} => the paragraph declares pre-wrap so the browser keeps them', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget content={'## Contracts\n\n#a — one\n  prop: two'} color={DIM} />
         ),
@@ -158,7 +157,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {markdown document, no JSON} => renders formatted with no caption', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ToolResultContentWidget
             content={'# Architecture Overview\n\nLLMs squirrel code away.'}

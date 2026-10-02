@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   MarkdownBlockStub,
   MarkdownCodeBlockStub,
@@ -15,7 +14,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {kind: paragraph} => renders its spans', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({ ui: <MarkdownBlockLayerWidget block={MarkdownBlockStub()} /> });
+      render({ ui: <MarkdownBlockLayerWidget block={MarkdownBlockStub()} /> });
 
       expect(screen.getByTestId('MARKDOWN_PARAGRAPH').textContent).toBe('plain words');
     });
@@ -25,7 +24,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {level: 1} => renders three points above body size', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 1 })} />,
       });
 
@@ -40,7 +39,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {level: 3} => renders one point above body size', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 })} />,
       });
 
@@ -50,7 +49,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('EDGE: {level: 6} => flattens to body size', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 6 })} />,
       });
 
@@ -64,7 +63,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {level: 2} => carries the section gap above it and a legible rule under it', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 2 })} />,
       });
 
@@ -84,7 +83,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {level: 3} => takes the section gap but no rule', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 })} />,
       });
 
@@ -101,7 +100,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {isFirst} => drops the gap so a document does not open on empty space', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 1 })} isFirst={true} />
         ),
@@ -120,7 +119,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {depth: 0} => renders the marker beside the text with no indent', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownListItemBlockStub()} />,
       });
 
@@ -137,7 +136,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {depth: 2} => indents by two steps', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownListItemBlockStub({ depth: 2 })} />,
       });
 
@@ -149,7 +148,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {kind: code-block} => renders the content with newlines preserved', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MarkdownBlockLayerWidget
             block={MarkdownCodeBlockStub({ content: 'line one\nline two' })}
@@ -175,7 +174,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {kind: quote} => renders its spans behind a left border', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MarkdownBlockLayerWidget
             block={MarkdownBlockStub({
@@ -197,7 +196,7 @@ describe('MarkdownBlockLayerWidget', () => {
     it('VALID: {kind: rule} => renders an empty hairline', () => {
       MarkdownBlockLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownBlockLayerWidget block={MarkdownBlockStub({ kind: 'rule' })} />,
       });
 

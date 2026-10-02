@@ -1,9 +1,8 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { RiftcarverDetailStub } from '../../contracts/riftcarver-detail/riftcarver-detail.stub';
 
 import { RiftcarverResultDetailLayerWidget } from './riftcarver-result-detail-layer-widget';
@@ -17,7 +16,7 @@ describe('RiftcarverResultDetailLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const riftcarverResult = RiftcarverResultStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <RiftcarverResultDetailLayerWidget
             questId={questId}
@@ -37,7 +36,7 @@ describe('RiftcarverResultDetailLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const riftcarverResult = RiftcarverResultStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <RiftcarverResultDetailLayerWidget
             questId={questId}

@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { NoteRowLayerWidget } from './note-row-layer-widget';
 import { NoteRowLayerWidgetProxy } from './note-row-layer-widget.proxy';
 
@@ -18,7 +17,7 @@ describe('NoteRowLayerWidget', () => {
         detail: 'The batch send drops boxes whose node id no longer exists in the flow.',
       });
 
-      mantineRenderMiddleware({ ui: <NoteRowLayerWidget note={note} /> });
+      render({ ui: <NoteRowLayerWidget note={note} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_NOTE_ROW').textContent).toBe(
         'Should a stale anchor notify per box or once per batch?siegemaster — The batch send drops boxes whose node id no longer exists in the flow.',

@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
@@ -20,7 +19,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -40,7 +39,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="decision" />
         ),
@@ -60,7 +59,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="action" />,
       });
 
@@ -78,7 +77,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -96,7 +95,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="terminal" />
         ),
@@ -118,7 +117,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 3,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -134,7 +133,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -152,7 +151,7 @@ describe('FlowNodeCardLayerWidget', () => {
         packages: [{ name: 'storefront-ui', packageType: 'frontend-react' }],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -174,7 +173,7 @@ describe('FlowNodeCardLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="action" />,
       });
 
@@ -191,7 +190,7 @@ describe('FlowNodeCardLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -216,7 +215,7 @@ describe('FlowNodeCardLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -233,7 +232,7 @@ describe('FlowNodeCardLayerWidget', () => {
         packages: [{ name: 'shared-kit', packageType: 'library' }],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -246,7 +245,7 @@ describe('FlowNodeCardLayerWidget', () => {
       const proxy = FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({ packages: [{ name: 'never-declared' }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -265,7 +264,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={true} type="state" />,
       });
 
@@ -281,7 +280,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -302,7 +301,7 @@ describe('FlowNodeCardLayerWidget', () => {
         flowId: 'login-flow',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -319,7 +318,7 @@ describe('FlowNodeCardLayerWidget', () => {
         contractCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -337,7 +336,7 @@ describe('FlowNodeCardLayerWidget', () => {
         questId: 'quest-a',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -356,7 +355,7 @@ describe('FlowNodeCardLayerWidget', () => {
         commentCount: 2,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -373,7 +372,7 @@ describe('FlowNodeCardLayerWidget', () => {
         commentCount: 2,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -391,7 +390,7 @@ describe('FlowNodeCardLayerWidget', () => {
         commentCount: 0,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -409,7 +408,7 @@ describe('FlowNodeCardLayerWidget', () => {
         commentCount: 2,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 
@@ -430,7 +429,7 @@ describe('FlowNodeCardLayerWidget', () => {
         flowId: 'login-flow',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
       });
 

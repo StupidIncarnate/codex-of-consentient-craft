@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FormDropdownWidget } from './form-dropdown-widget';
 import { FormDropdownWidgetProxy } from './form-dropdown-widget.proxy';
 
@@ -12,7 +11,7 @@ describe('FormDropdownWidget', () => {
       const options = ['low', 'medium', 'high'];
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -25,7 +24,7 @@ describe('FormDropdownWidget', () => {
       const options = ['a', 'b', 'c'];
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -46,7 +45,7 @@ describe('FormDropdownWidget', () => {
       const color = '#ff0000';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FormDropdownWidget value={value} options={options} onChange={onChange} color={color} />
         ),
@@ -63,7 +62,7 @@ describe('FormDropdownWidget', () => {
       const options = ['a'];
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -79,7 +78,7 @@ describe('FormDropdownWidget', () => {
       const width = '200px';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FormDropdownWidget value={value} options={options} onChange={onChange} width={width} />
         ),
@@ -98,7 +97,7 @@ describe('FormDropdownWidget', () => {
       const options = ['low', 'medium', 'high'];
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -115,7 +114,7 @@ describe('FormDropdownWidget', () => {
       const options = ['a'];
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 

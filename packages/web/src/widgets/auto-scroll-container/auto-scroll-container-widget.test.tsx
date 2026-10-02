@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { AutoScrollContainerWidget } from './auto-scroll-container-widget';
 import { AutoScrollContainerWidgetProxy } from './auto-scroll-container-widget.proxy';
 
@@ -10,7 +9,7 @@ describe('AutoScrollContainerWidget', () => {
       AutoScrollContainerWidgetProxy();
       const testId = 'scroll-area';
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AutoScrollContainerWidget testId={testId}>
             <span data-testid="child">child content</span>
@@ -25,7 +24,7 @@ describe('AutoScrollContainerWidget', () => {
       const proxy = AutoScrollContainerWidgetProxy();
       const testId = 'scroll-area';
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AutoScrollContainerWidget testId={testId}>
             <span>child</span>
@@ -39,7 +38,7 @@ describe('AutoScrollContainerWidget', () => {
     it('VALID: {no testId} => renders scroll container without data-testid', () => {
       AutoScrollContainerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AutoScrollContainerWidget>
             <span data-testid="child">child</span>

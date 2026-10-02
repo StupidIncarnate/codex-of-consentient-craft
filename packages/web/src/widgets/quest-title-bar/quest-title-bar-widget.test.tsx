@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestTitleBarWidget } from './quest-title-bar-widget';
 import { QuestTitleBarWidgetProxy } from './quest-title-bar-widget.proxy';
 
@@ -12,7 +11,7 @@ describe('QuestTitleBarWidget', () => {
       const proxy = QuestTitleBarWidgetProxy();
       const { title } = QuestStub({ title: 'Add Authentication' });
 
-      mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} /> });
+      render({ ui: <QuestTitleBarWidget title={title} /> });
 
       expect(proxy.hasTitleBar()).toBe(true);
       expect(proxy.hasTitleText()).toBe(true);
@@ -25,7 +24,7 @@ describe('QuestTitleBarWidget', () => {
       const proxy = QuestTitleBarWidgetProxy();
       const { title } = QuestStub({ title: 'Add Authentication' });
 
-      mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={jest.fn()} /> });
+      render({ ui: <QuestTitleBarWidget title={title} onAbandon={jest.fn()} /> });
 
       expect(proxy.hasAbandonButton()).toBe(true);
     });
@@ -34,7 +33,7 @@ describe('QuestTitleBarWidget', () => {
       const proxy = QuestTitleBarWidgetProxy();
       const { title } = QuestStub({ title: 'Add Authentication' });
 
-      mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} /> });
+      render({ ui: <QuestTitleBarWidget title={title} /> });
 
       expect(proxy.hasAbandonButton()).toBe(false);
     });
@@ -44,7 +43,7 @@ describe('QuestTitleBarWidget', () => {
       const { title } = QuestStub({ title: 'Add Authentication' });
       const onAbandon = jest.fn();
 
-      mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
+      render({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
 
       await proxy.clickAbandon();
 
@@ -59,7 +58,7 @@ describe('QuestTitleBarWidget', () => {
       const { title } = QuestStub({ title: 'Add Authentication' });
       const onAbandon = jest.fn();
 
-      mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
+      render({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
 
       await proxy.clickAbandon();
       await proxy.clickConfirmAbandon();
@@ -72,7 +71,7 @@ describe('QuestTitleBarWidget', () => {
       const { title } = QuestStub({ title: 'Add Authentication' });
       const onAbandon = jest.fn();
 
-      mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
+      render({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
 
       await proxy.clickAbandon();
       await proxy.clickCancelAbandon();

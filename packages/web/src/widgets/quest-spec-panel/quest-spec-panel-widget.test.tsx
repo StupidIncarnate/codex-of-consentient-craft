@@ -1,4 +1,4 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
@@ -13,7 +13,6 @@ import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-ite
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
 import { QuestSpecPanelWidgetProxy } from './quest-spec-panel-widget.proxy';
@@ -27,7 +26,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ title: 'Add Authentication' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -47,7 +46,7 @@ describe('QuestSpecPanelWidget', () => {
         flows: [FlowStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -64,7 +63,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -85,7 +84,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       const onModify = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -112,7 +111,7 @@ describe('QuestSpecPanelWidget', () => {
         flows: [FlowStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -137,7 +136,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       const onModify = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -161,7 +160,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -188,7 +187,7 @@ describe('QuestSpecPanelWidget', () => {
         flows: [FlowStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestSpecPanelWidget quest={quest} onSendComments={proxy.onSendComments} />,
       });
 
@@ -206,7 +205,7 @@ describe('QuestSpecPanelWidget', () => {
         flows: [FlowStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -230,7 +229,7 @@ describe('QuestSpecPanelWidget', () => {
         flows: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -255,7 +254,7 @@ describe('QuestSpecPanelWidget', () => {
         operations: [OperationItemStub({ role: 'codeweaver' })],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -280,7 +279,7 @@ describe('QuestSpecPanelWidget', () => {
         operations: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -304,7 +303,7 @@ describe('QuestSpecPanelWidget', () => {
         flows: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -327,7 +326,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'created' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -344,7 +343,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'pending' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -361,7 +360,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_flows' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -378,7 +377,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -395,7 +394,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'flows_approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -412,7 +411,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_observables' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -429,7 +428,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_observables' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -446,7 +445,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -467,7 +466,7 @@ describe('QuestSpecPanelWidget', () => {
         userRequest: 'Add login with OAuth' as Quest['userRequest'],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -485,7 +484,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -519,7 +518,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -542,7 +541,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ operations: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -565,7 +564,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -592,7 +591,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -623,7 +622,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -648,7 +647,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -674,7 +673,7 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'still queued while reading DETAILS' })],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -704,7 +703,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <QuestSpecPanelWidget quest={quest} readOnly={true} /> });
+      render({ ui: <QuestSpecPanelWidget quest={quest} readOnly={true} /> });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
 
@@ -721,7 +720,7 @@ describe('QuestSpecPanelWidget', () => {
         userRequest: 'a very long request '.repeat(50),
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -750,7 +749,7 @@ describe('QuestSpecPanelWidget', () => {
         status: 'created',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -772,7 +771,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'pending' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -794,7 +793,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_flows' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -816,7 +815,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -840,7 +839,7 @@ describe('QuestSpecPanelWidget', () => {
         status: 'flows_approved',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -862,7 +861,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_observables' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -884,7 +883,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_observables' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -906,7 +905,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -937,7 +936,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -958,7 +957,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ designDecisions: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -977,7 +976,7 @@ describe('QuestSpecPanelWidget', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
       });
 
@@ -988,7 +987,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1009,7 +1008,7 @@ describe('QuestSpecPanelWidget', () => {
         title: 'Read Only Quest',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
       });
 
@@ -1034,7 +1033,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1064,7 +1063,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       const onSubmitAnswers = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1083,7 +1082,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1101,7 +1100,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1123,7 +1122,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1141,7 +1140,7 @@ describe('QuestSpecPanelWidget', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1159,7 +1158,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
       const onAbandon = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1185,7 +1184,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
       const onAbandon = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1208,7 +1207,7 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
       const onAbandon = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1236,7 +1235,7 @@ describe('QuestSpecPanelWidget', () => {
         const proxy = QuestSpecPanelWidgetProxy();
         const quest: Quest = QuestStub({ status, flows: [FlowStub()] });
 
-        mantineRenderMiddleware({
+        render({
           ui: (
             <QuestSpecPanelWidget
               quest={quest}
@@ -1271,7 +1270,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1303,7 +1302,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1359,7 +1358,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1411,7 +1410,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
       });
 
@@ -1440,7 +1439,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1467,7 +1466,7 @@ describe('QuestSpecPanelWidget', () => {
         workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1495,7 +1494,7 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1519,7 +1518,7 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1543,7 +1542,7 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1567,7 +1566,7 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1594,7 +1593,7 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
       });
 
@@ -1613,7 +1612,7 @@ describe('QuestSpecPanelWidget', () => {
       proxy.setupQueuedComments({ questId: quest.id, entries: [entry] });
       const { onSendComments } = proxy;
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1652,7 +1651,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1690,7 +1689,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestSpecPanelWidget
             quest={quest}
@@ -1725,7 +1724,7 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
       });
 

@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 
@@ -14,7 +13,7 @@ describe('DesignDecisionsLayerWidget', () => {
       DesignDecisionsLayerWidgetProxy();
       const decision = DesignDecisionStub({ title: 'Use JWT' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <DesignDecisionsLayerWidget designDecisions={[decision]} />,
       });
 
@@ -25,7 +24,7 @@ describe('DesignDecisionsLayerWidget', () => {
       DesignDecisionsLayerWidgetProxy();
       const decision = DesignDecisionStub({ rationale: 'Stateless auth' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <DesignDecisionsLayerWidget designDecisions={[decision]} />,
       });
 
@@ -38,7 +37,7 @@ describe('DesignDecisionsLayerWidget', () => {
         relatedNodeIds: ['login-page'],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <DesignDecisionsLayerWidget designDecisions={[decision]} />,
       });
 
@@ -49,7 +48,7 @@ describe('DesignDecisionsLayerWidget', () => {
       DesignDecisionsLayerWidgetProxy();
       const decisions: DesignDecision[] = [];
 
-      mantineRenderMiddleware({
+      render({
         ui: <DesignDecisionsLayerWidget designDecisions={decisions} />,
       });
 

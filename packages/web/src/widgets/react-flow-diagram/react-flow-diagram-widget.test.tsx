@@ -1,4 +1,4 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
@@ -12,7 +12,6 @@ import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-co
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { ReactFlowDiagramWidget } from './react-flow-diagram-widget';
 import { ReactFlowDiagramWidgetProxy } from './react-flow-diagram-widget.proxy';
@@ -23,7 +22,7 @@ describe('ReactFlowDiagramWidget', () => {
       ReactFlowDiagramWidgetProxy();
       const flow = FlowStub({ nodes: [], edges: [] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       expect(screen.queryByTestId('FLOW_DIAGRAM')).toBe(null);
       expect(screen.queryByTestId('REACT_FLOW_CANVAS')).toBe(null);
@@ -41,7 +40,7 @@ describe('ReactFlowDiagramWidget', () => {
       const flow = FlowStub({ nodes: [node], edges: [] });
 
       // No setupPositions call — the elk mock never resolves, so positions stay null.
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       expect(screen.queryByTestId('FLOW_DIAGRAM')).toBe(null);
       expect(screen.queryByTestId('REACT_FLOW_CANVAS')).toBe(null);
@@ -60,7 +59,7 @@ describe('ReactFlowDiagramWidget', () => {
       // Return an empty children list — node id is absent from the position map.
       proxy.setupPositions({ children: [] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -77,7 +76,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -110,7 +109,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -151,7 +150,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -187,7 +186,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -224,7 +223,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -259,7 +258,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} packagesAffected={[]} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} packagesAffected={[]} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -297,7 +296,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'press-warp', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -341,7 +340,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
@@ -384,7 +383,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -422,7 +421,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
@@ -463,7 +462,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -498,7 +497,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
@@ -519,7 +518,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupLayoutError({ error: new Error('ELK layout failed') });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM_ERROR')).toBeInTheDocument();
@@ -550,7 +549,7 @@ describe('ReactFlowDiagramWidget', () => {
 
         proxy.setupPositions({ children: [{ id: input, x: 0, y: 0 }] });
 
-        mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+        render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
         await waitFor(() => {
           expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -576,7 +575,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} contracts={contracts} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} contracts={contracts} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE_BADGE')).toBeInTheDocument();
@@ -596,7 +595,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} contracts={[]} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} contracts={[]} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -625,7 +624,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(proxy.hasRecipeCallout()).toBe(true);
@@ -649,7 +648,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -687,7 +686,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -723,7 +722,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_EDGE_LABEL')).toBeInTheDocument();
@@ -745,7 +744,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -766,7 +765,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -789,7 +788,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -823,7 +822,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -853,7 +852,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ReactFlowDiagramWidget flow={flow} contracts={[contract]} />,
       });
 
@@ -879,7 +878,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} contracts={[]} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} contracts={[]} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -921,7 +920,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(proxy.getObservableDescriptions().map((el) => el.textContent)).toStrictEqual([
@@ -955,7 +954,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
@@ -983,7 +982,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
@@ -1007,7 +1006,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1049,7 +1048,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} comments={[]} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} comments={[]} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -1075,7 +1074,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1111,7 +1110,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1161,7 +1160,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1212,7 +1211,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1273,7 +1272,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1328,7 +1327,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1383,7 +1382,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'shared-node', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget
             flow={flow}
@@ -1430,7 +1429,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ReactFlowDiagramWidget flow={flow} contracts={contracts} comments={[]} />,
       });
 
@@ -1477,7 +1476,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      const rendered = mantineRenderMiddleware({
+      const rendered = render({
         ui: (
           <ReactFlowDiagramWidget
             flow={FlowStub({ id: 'login-flow', nodes: [node, survivor], edges: [] })}
@@ -1546,7 +1545,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      const rendered = mantineRenderMiddleware({
+      const rendered = render({
         ui: (
           <ReactFlowDiagramWidget
             flow={FlowStub({
@@ -1616,7 +1615,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -1644,7 +1643,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -1671,7 +1670,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -1699,7 +1698,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -1727,7 +1726,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1753,7 +1752,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1784,7 +1783,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1815,7 +1814,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1848,7 +1847,7 @@ describe('ReactFlowDiagramWidget', () => {
       // run would call the mock a second time with no configured return, reject, and log.
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      const { rerender } = mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      const { rerender } = render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1879,7 +1878,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      const { rerender } = mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      const { rerender } = render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1926,7 +1925,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      const { rerender } = mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      const { rerender } = render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -1980,7 +1979,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      const { rerender } = mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      const { rerender } = render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
@@ -2033,7 +2032,7 @@ describe('ReactFlowDiagramWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ReactFlowDiagramWidget flow={flow} commentQuestId={QuestIdStub({ value: 'quest-a' })} />
         ),
@@ -2066,7 +2065,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderMiddleware({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      render({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();

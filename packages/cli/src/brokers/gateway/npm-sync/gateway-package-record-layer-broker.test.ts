@@ -34,6 +34,40 @@ describe('gatewayPackageRecordLayerBroker', () => {
     );
   });
 
+  it('VALID: {a new devDependency} => records it in devDependencies, not dependencies', async () => {
+    const proxy = gatewayPackageRecordLayerBrokerProxy();
+    proxy.setupPackageJson({
+      npmPackageRoot: NPM_PACKAGE_ROOT,
+      packageJson: { name: '@acme/npm', dependencies: { zod: '^4.0.0' }, files: ['dist'] },
+    });
+
+    const result = await gatewayPackageRecordLayerBroker({
+      npmPackageRoot: NPM_PACKAGE_ROOT,
+      dependencies: [
+        GatewayNpmDependencyStub({
+          name: 'vitest',
+          range: '^3.0.0',
+          folder: 'vitest',
+          location: 'devDependencies',
+        }),
+      ],
+    });
+
+    expect(result).toBe(true);
+    expect(proxy.writtenPackageJson({ npmPackageRoot: NPM_PACKAGE_ROOT })).toBe(
+      `${JSON.stringify(
+        {
+          name: '@acme/npm',
+          dependencies: { zod: '^4.0.0' },
+          files: ['dist'],
+          devDependencies: { vitest: '^3.0.0' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+  });
+
   it('VALID: {no dependencies field yet} => creates it', async () => {
     const proxy = gatewayPackageRecordLayerBrokerProxy();
     proxy.setupPackageJson({

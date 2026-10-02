@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
 import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowRowLayerWidget } from './flow-row-layer-widget';
 import { FlowRowLayerWidgetProxy } from './flow-row-layer-widget.proxy';
 
@@ -18,7 +17,7 @@ describe('FlowRowLayerWidget', () => {
         tracks: [],
       });
 
-      mantineRenderMiddleware({ ui: <FlowRowLayerWidget flow={flow} /> });
+      render({ ui: <FlowRowLayerWidget flow={flow} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_FLOW_NAME').textContent).toBe(
         'Login Flow [runtime]',
@@ -51,7 +50,7 @@ describe('FlowRowLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <FlowRowLayerWidget flow={flow} /> });
+      render({ ui: <FlowRowLayerWidget flow={flow} /> });
 
       const trackRows = screen.getAllByTestId('QUEST_SUMMARY_TRACK_ROW');
 
@@ -83,7 +82,7 @@ describe('FlowRowLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <FlowRowLayerWidget flow={flow} /> });
+      render({ ui: <FlowRowLayerWidget flow={flow} /> });
 
       expect(
         screen.getAllByTestId('QUEST_SUMMARY_TRACK_UNMET').map((cell) => cell.textContent),
@@ -115,7 +114,7 @@ describe('FlowRowLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <FlowRowLayerWidget flow={flow} /> });
+      render({ ui: <FlowRowLayerWidget flow={flow} /> });
 
       const trackRows = screen.getAllByTestId('QUEST_SUMMARY_TRACK_ROW');
 
@@ -129,7 +128,7 @@ describe('FlowRowLayerWidget', () => {
       FlowRowLayerWidgetProxy();
       const flow = QuestSummaryFlowStub({ id: 'login-flow', tracks: [] });
 
-      mantineRenderMiddleware({ ui: <FlowRowLayerWidget flow={flow} /> });
+      render({ ui: <FlowRowLayerWidget flow={flow} /> });
 
       expect(screen.queryAllByTestId('QUEST_SUMMARY_TRACK_ROW')).toStrictEqual([]);
     });

@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DumpsterRaccoonWidget } from './dumpster-raccoon-widget';
 import { DumpsterRaccoonWidgetProxy } from './dumpster-raccoon-widget.proxy';
 
@@ -9,7 +8,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {default} => renders widget container with test id', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget />,
       });
 
@@ -19,7 +18,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {default} => renders raccoon and fire pixel sprites', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget />,
       });
 
@@ -34,7 +33,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {default} => renders loading text', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget />,
       });
 
@@ -44,7 +43,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {default} => fills its parent on the panel surface', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget />,
       });
 
@@ -63,7 +62,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {ornament} => sizes to its sprites and paints no surface of its own', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget ornament={true} />,
       });
 
@@ -78,7 +77,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {ornament} => drops the loading caption, because nothing is loading', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget ornament={true} />,
       });
 
@@ -88,7 +87,7 @@ describe('DumpsterRaccoonWidget', () => {
     it('VALID: {ornament} => still renders both sprites', () => {
       DumpsterRaccoonWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <DumpsterRaccoonWidget ornament={true} />,
       });
 

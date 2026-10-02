@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { MapFrameWidget } from './map-frame-widget';
 import { MapFrameWidgetProxy } from './map-frame-widget.proxy';
 
@@ -9,7 +8,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {children} => renders children inside frame', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span data-testid="CHILD">Hello</span>
@@ -24,7 +23,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {default props} => renders all four corner decorations', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span>content</span>
@@ -41,7 +40,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {default props} => applies border styling from theme', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span>content</span>
@@ -65,7 +64,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {default props} => uses minHeight 0 and default maxWidth', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span>content</span>
@@ -89,7 +88,7 @@ describe('MapFrameWidget', () => {
 
       const maxWidth = 900;
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget maxWidth={maxWidth}>
             <span>content</span>
@@ -107,7 +106,7 @@ describe('MapFrameWidget', () => {
 
       const padding = 32;
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget padding={padding}>
             <span>content</span>
@@ -123,7 +122,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {top corners} => positions top-left and top-right absolutely', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span>content</span>
@@ -149,7 +148,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {bottom corners} => positions bottom-left and bottom-right absolutely', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span>content</span>
@@ -179,7 +178,7 @@ describe('MapFrameWidget', () => {
     it('VALID: {bottom-right corner} => positions at bottom-right', () => {
       MapFrameWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MapFrameWidget>
             <span>content</span>

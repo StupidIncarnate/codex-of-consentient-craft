@@ -36,6 +36,9 @@ const generatedBarrelPath = ({ consumerRoot }) =>
 const npmGatewayDependencies = ({ consumerRoot }) =>
   readJson(join(npmGatewayDir({ consumerRoot }), 'package.json')).dependencies ?? {};
 
+const npmGatewayDevDependencies = ({ consumerRoot }) =>
+  readJson(join(npmGatewayDir({ consumerRoot }), 'package.json')).devDependencies ?? {};
+
 // The consumer declares the SAME ranges this checkout's own npm gateway declares, read off disk, so
 // the root dependencies and the copied wrappers never disagree about which version they target.
 export const ownWrappedRootDependencies = () => {
@@ -310,12 +313,13 @@ export const runAgentInstallAssertions = async ({ report, consumerRoot }) => {
     label: `npm install -D ${DEV_ONLY_PACKAGE}`,
   });
   report.check(
-    `a devDependency-only package (${DEV_ONLY_PACKAGE}) gets no packages/@gateway/npm/src folder and no gateway dependency`,
-    !existsSync(join(npmGatewaySrc({ consumerRoot }), DEV_ONLY_PACKAGE)) &&
-      npmGatewayDependencies({ consumerRoot })[DEV_ONLY_PACKAGE] === undefined,
-    existsSync(join(npmGatewaySrc({ consumerRoot }), DEV_ONLY_PACKAGE))
-      ? readdirSync(npmGatewaySrc({ consumerRoot })).join(', ')
-      : '',
+    `a devDependency-only package (${DEV_ONLY_PACKAGE}) gets a packages/@gateway/npm/src folder and is recorded in devDependencies, not dependencies`,
+    existsSync(join(npmGatewaySrc({ consumerRoot }), DEV_ONLY_PACKAGE)) &&
+      npmGatewayDependencies({ consumerRoot })[DEV_ONLY_PACKAGE] === undefined &&
+      typeof npmGatewayDevDependencies({ consumerRoot })[DEV_ONLY_PACKAGE] === 'string',
+    !existsSync(join(npmGatewaySrc({ consumerRoot }), DEV_ONLY_PACKAGE))
+      ? `missing folder in ${readdirSync(npmGatewaySrc({ consumerRoot })).join(', ')}`
+      : `deps: ${JSON.stringify(npmGatewayDependencies({ consumerRoot }))}, devDeps: ${JSON.stringify(npmGatewayDevDependencies({ consumerRoot }))}`,
   );
 
   // `npm ci` refuses a lockfile out of step with any workspace package.json, so this passing is the

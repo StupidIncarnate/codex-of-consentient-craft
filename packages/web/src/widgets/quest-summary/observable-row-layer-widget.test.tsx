@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts/quest-summary-observable/quest-summary-observable.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ObservableRowLayerWidget } from './observable-row-layer-widget';
 import { ObservableRowLayerWidgetProxy } from './observable-row-layer-widget.proxy';
 
@@ -20,7 +19,7 @@ describe('ObservableRowLayerWidget', () => {
         description: 'POST /api/auth/login returns 400 for a non-JSON body',
       });
 
-      mantineRenderMiddleware({ ui: <ObservableRowLayerWidget observable={observable} /> });
+      render({ ui: <ObservableRowLayerWidget observable={observable} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_OBSERVABLE_ADDED_BY').textContent).toBe(
         'added by siegemaster',

@@ -10,8 +10,7 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
+import { act, render, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
@@ -22,7 +21,7 @@ import { AppWidget } from './app-widget';
 import { AppWidgetProxy } from './app-widget.proxy';
 
 const renderApp = (): void => {
-  mantineRenderMiddleware({
+  render({
     ui: (
       <MemoryRouter initialEntries={['/']}>
         <Routes>

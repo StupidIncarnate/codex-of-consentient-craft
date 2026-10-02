@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { SectionHeaderWidget } from './section-header-widget';
 import { SectionHeaderWidgetProxy } from './section-header-widget.proxy';
 
@@ -10,7 +9,7 @@ describe('SectionHeaderWidget', () => {
       SectionHeaderWidgetProxy();
       const label = 'OBJECTIVES';
 
-      mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} /> });
+      render({ ui: <SectionHeaderWidget label={label} /> });
 
       expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('OBJECTIVES');
     });
@@ -20,7 +19,7 @@ describe('SectionHeaderWidget', () => {
       const label = 'STEPS';
       const count = 5;
 
-      mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} count={count} /> });
+      render({ ui: <SectionHeaderWidget label={label} count={count} /> });
 
       expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('STEPS');
 
@@ -34,7 +33,7 @@ describe('SectionHeaderWidget', () => {
       const label = 'ITEMS';
       const count = 0;
 
-      mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} count={count} /> });
+      render({ ui: <SectionHeaderWidget label={label} count={count} /> });
 
       const countElement = screen.getByTestId('SECTION_HEADER_COUNT');
 
@@ -47,7 +46,7 @@ describe('SectionHeaderWidget', () => {
       SectionHeaderWidgetProxy();
       const label = 'HEADER';
 
-      mantineRenderMiddleware({ ui: <SectionHeaderWidget label={label} /> });
+      render({ ui: <SectionHeaderWidget label={label} /> });
 
       expect(screen.queryByTestId('SECTION_HEADER_COUNT')).toBe(null);
     });

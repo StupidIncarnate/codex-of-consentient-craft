@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PixelBtnWidget } from './pixel-btn-widget';
 import { PixelBtnWidgetProxy } from './pixel-btn-widget.proxy';
 
@@ -11,7 +10,7 @@ describe('PixelBtnWidget', () => {
       const label = 'CREATE';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
+      render({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
 
       expect(proxy.hasLabel({ text: 'CREATE' })).toBe(true);
     });
@@ -22,7 +21,7 @@ describe('PixelBtnWidget', () => {
       const variant = 'primary';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} />,
       });
 
@@ -37,7 +36,7 @@ describe('PixelBtnWidget', () => {
       const variant = 'ghost';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} />,
       });
 
@@ -51,7 +50,7 @@ describe('PixelBtnWidget', () => {
       const label = 'X';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} icon={true} />,
       });
 
@@ -65,7 +64,7 @@ describe('PixelBtnWidget', () => {
       const label = 'SAVE';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
+      render({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
 
       const button = screen.getByTestId('PIXEL_BTN');
 
@@ -80,7 +79,7 @@ describe('PixelBtnWidget', () => {
       const variant = 'danger';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} />,
       });
 
@@ -95,7 +94,7 @@ describe('PixelBtnWidget', () => {
       const variant = 'danger';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} />,
       });
 
@@ -111,7 +110,7 @@ describe('PixelBtnWidget', () => {
       const label = 'NOPE';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
       });
 
@@ -125,7 +124,7 @@ describe('PixelBtnWidget', () => {
       const label = 'NOPE';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
       });
 
@@ -139,7 +138,7 @@ describe('PixelBtnWidget', () => {
       const label = 'NOPE';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
       });
 
@@ -153,7 +152,7 @@ describe('PixelBtnWidget', () => {
       const label = 'NOPE';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} disabled={true} />,
       });
 
@@ -165,7 +164,7 @@ describe('PixelBtnWidget', () => {
       const label = 'GO';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
+      render({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
 
       expect(proxy.isDisabled()).toBe(false);
     });
@@ -175,7 +174,7 @@ describe('PixelBtnWidget', () => {
       const label = 'GO';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} disabled={false} />,
       });
 
@@ -190,7 +189,7 @@ describe('PixelBtnWidget', () => {
       const variant = 'danger';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={onClick} variant={variant} disabled={true} />,
       });
 
@@ -212,7 +211,7 @@ describe('PixelBtnWidget', () => {
       const label = 'CLICK ME';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
+      render({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
 
       await proxy.clickButton();
 
@@ -226,7 +225,7 @@ describe('PixelBtnWidget', () => {
       const label = 'DEFAULT';
       const onClick = jest.fn();
 
-      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
+      render({ ui: <PixelBtnWidget label={label} onClick={onClick} /> });
 
       const button = screen.getByTestId('PIXEL_BTN');
 
@@ -240,7 +239,7 @@ describe('PixelBtnWidget', () => {
       const label = 'CREATE';
       const testId = 'GUILD_CREATE_BUTTON';
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelBtnWidget label={label} onClick={jest.fn()} testId={testId} />,
       });
 
@@ -252,7 +251,7 @@ describe('PixelBtnWidget', () => {
       PixelBtnWidgetProxy();
       const label = 'GO';
 
-      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={jest.fn()} /> });
+      render({ ui: <PixelBtnWidget label={label} onClick={jest.fn()} /> });
 
       expect(screen.getByTestId('PIXEL_BTN').textContent).toBe('GO');
     });

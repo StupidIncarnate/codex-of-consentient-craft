@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FormInputWidget } from './form-input-widget';
 import { FormInputWidgetProxy } from './form-input-widget.proxy';
 import { document } from '#gateway/browser/document';
@@ -12,7 +11,7 @@ describe('FormInputWidget', () => {
       const value = 'hello';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      render({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       expect(proxy.getValue()).toBe('hello');
     });
@@ -23,7 +22,7 @@ describe('FormInputWidget', () => {
       const placeholder = 'Enter...';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormInputWidget value={value} onChange={onChange} placeholder={placeholder} />,
       });
 
@@ -38,7 +37,7 @@ describe('FormInputWidget', () => {
       const color = '#ff0000';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormInputWidget value={value} onChange={onChange} color={color} />,
       });
 
@@ -52,7 +51,7 @@ describe('FormInputWidget', () => {
       const value = 'test';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      render({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       const input = screen.getByTestId('FORM_INPUT');
 
@@ -65,7 +64,7 @@ describe('FormInputWidget', () => {
       const width = '200px';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormInputWidget value={value} onChange={onChange} width={width} />,
       });
 
@@ -80,7 +79,7 @@ describe('FormInputWidget', () => {
       const mt = 8;
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormInputWidget value={value} onChange={onChange} mt={mt} />,
       });
 
@@ -96,7 +95,7 @@ describe('FormInputWidget', () => {
       const value = '';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      render({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       await proxy.changeValue({ value: 'world' });
 
@@ -110,7 +109,7 @@ describe('FormInputWidget', () => {
       const value = '';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormInputWidget value={value} onChange={onChange} autoFocus={true} />,
       });
 
@@ -124,7 +123,7 @@ describe('FormInputWidget', () => {
       const value = '';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FormInputWidget value={value} onChange={onChange} />,
       });
 
@@ -138,7 +137,7 @@ describe('FormInputWidget', () => {
       const value = 'test';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      render({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       const input = screen.getByTestId('FORM_INPUT');
 
@@ -150,7 +149,7 @@ describe('FormInputWidget', () => {
       const value = 'test';
       const onChange = jest.fn();
 
-      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      render({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       const input = screen.getByTestId('FORM_INPUT');
 

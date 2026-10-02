@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowDetailPanelCommentRowLayerWidget } from './flow-detail-panel-comment-row-layer-widget';
 import { FlowDetailPanelCommentRowLayerWidgetProxy } from './flow-detail-panel-comment-row-layer-widget.proxy';
 
@@ -16,7 +15,7 @@ describe('FlowDetailPanelCommentRowLayerWidget', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
       });
 
-      mantineRenderMiddleware({ ui: <FlowDetailPanelCommentRowLayerWidget comment={comment} /> });
+      render({ ui: <FlowDetailPanelCommentRowLayerWidget comment={comment} /> });
 
       expect(proxy.getRow()).toBeInTheDocument();
       expect(proxy.getText()).toBe('This assertion looks wrong');
@@ -31,7 +30,7 @@ describe('FlowDetailPanelCommentRowLayerWidget', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
       });
 
-      mantineRenderMiddleware({ ui: <FlowDetailPanelCommentRowLayerWidget comment={comment} /> });
+      render({ ui: <FlowDetailPanelCommentRowLayerWidget comment={comment} /> });
 
       expect(proxy.getText()).toBe('first line\nsecond line');
       expect(screen.getByTestId('FLOW_DETAIL_PANEL_COMMENT_TEXT').style.whiteSpace).toBe(

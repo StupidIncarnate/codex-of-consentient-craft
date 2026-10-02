@@ -6,7 +6,7 @@ import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue
 import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { QueuePageWidget } from './queue-page-widget';
 import { QueuePageWidgetProxy } from './queue-page-widget.proxy';
 
@@ -18,7 +18,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -51,7 +51,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -88,7 +88,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -123,7 +123,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -154,7 +154,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -185,7 +185,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -206,7 +206,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId, queryByTestId } = mantineRenderMiddleware({
+      const { findByTestId, queryByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -227,7 +227,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -246,7 +246,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'node-playing' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -272,7 +272,7 @@ describe('QueuePageWidget', () => {
         }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -302,7 +302,7 @@ describe('QueuePageWidget', () => {
         }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -324,7 +324,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -356,7 +356,7 @@ describe('QueuePageWidget', () => {
       });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />
@@ -380,7 +380,7 @@ describe('QueuePageWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupRateLimits({ snapshot: null });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QueuePageWidget />

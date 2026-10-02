@@ -28,7 +28,12 @@ describe('passthroughPlanLayerBroker', () => {
 
     expect(result).toStrictEqual([
       {
-        dependency: { name: 'left-pad', range: '^1.3.0', folder: 'left-pad' },
+        dependency: {
+          name: 'left-pad',
+          range: '^1.3.0',
+          folder: 'left-pad',
+          location: 'dependencies',
+        },
         shape: 'untyped',
       },
     ]);
@@ -45,7 +50,15 @@ describe('passthroughPlanLayerBroker', () => {
     });
 
     expect(result).toStrictEqual([
-      { dependency: { name: 'zod', range: '^4.0.0', folder: 'zod' }, shape: 'named-and-default' },
+      {
+        dependency: {
+          name: 'zod',
+          range: '^4.0.0',
+          folder: 'zod',
+          location: 'dependencies',
+        },
+        shape: 'named-and-default',
+      },
     ]);
   });
 
@@ -89,7 +102,12 @@ describe('passthroughPlanLayerBroker', () => {
 
     expect(result).toStrictEqual([
       {
-        dependency: { name: 'left-pad', range: '^1.3.0', folder: 'left-pad' },
+        dependency: {
+          name: 'left-pad',
+          range: '^1.3.0',
+          folder: 'left-pad',
+          location: 'dependencies',
+        },
         shape: 'export-equals',
         exportNames: { values: ['version'], types: ['Options'] },
       },

@@ -1,6 +1,6 @@
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { UserRequestLayerWidget } from './user-request-layer-widget';
 import { UserRequestLayerWidgetProxy } from './user-request-layer-widget.proxy';
@@ -19,7 +19,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: `Look at ![Pasted Image 1](${STORED_PATH}) and say what it is`,
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getChildTestIds()).toStrictEqual([
         'USER_REQUEST_TEXT_SEGMENT',
@@ -38,7 +38,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: `Look at ![Pasted Image 1](${STORED_PATH}) and say what it is`,
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getRequestText()).toBe('Look at  and say what it is');
     });
@@ -49,7 +49,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: `Look at ![Pasted Image 1](${STORED_PATH}) and say what it is`,
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getImageSrcs()).toStrictEqual([SERVED_SRC]);
     });
@@ -60,7 +60,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: `Look at ![Pasted Image 1](${STORED_PATH}) and say what it is`,
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getImageMaxHeight({ index: 0 })).toBe(
         `${String(webConfigStatics.pastedImage.userRequestThumbnailMaxHeightPx)}px`,
@@ -74,7 +74,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: '![Pasted Image 1](/q/images/a.png) then ![Pasted Image 2](/q/images/b.png)',
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getImageSrcs()).toStrictEqual([
         '/api/images?path=%2Fq%2Fimages%2Fa.png',
@@ -90,7 +90,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: `Look at ![Pasted Image 1](${STORED_PATH}) and say what it is`,
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
       proxy.failImage({ index: 0 });
 
       expect(proxy.getChildTestIds()).toStrictEqual([
@@ -109,7 +109,7 @@ describe('UserRequestLayerWidget', () => {
         userRequest: `Look at ![Pasted Image 1](${STORED_PATH}) now`,
       });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
       proxy.failImage({ index: 0 });
 
       const sizePx = `${String(webConfigStatics.pastedImage.brokenThumbnailSizePx)}px`;
@@ -127,7 +127,7 @@ describe('UserRequestLayerWidget', () => {
       const proxy = UserRequestLayerWidgetProxy();
       const { userRequest } = QuestStub({ userRequest: 'before [Pasted Image 1] after' });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getChildTestIds()).toStrictEqual([
         'USER_REQUEST_TEXT_SEGMENT',
@@ -143,7 +143,7 @@ describe('UserRequestLayerWidget', () => {
       const proxy = UserRequestLayerWidgetProxy();
       const { userRequest } = QuestStub({ userRequest: 'Add login with OAuth' });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getChildTestIds()).toStrictEqual(['USER_REQUEST_TEXT_SEGMENT']);
       expect(proxy.getRequestText()).toBe('Add login with OAuth');
@@ -156,7 +156,7 @@ describe('UserRequestLayerWidget', () => {
       const proxy = UserRequestLayerWidgetProxy();
       const { userRequest } = QuestStub({ userRequest: 'Check /tmp/nope.png please' });
 
-      mantineRenderMiddleware({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
+      render({ ui: <UserRequestLayerWidget userRequest={userRequest} /> });
 
       expect(proxy.getRequestText()).toBe('Check /tmp/nope.png please');
       expect(proxy.getImageSrcs()).toStrictEqual([]);

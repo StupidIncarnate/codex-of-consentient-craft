@@ -1,8 +1,7 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 
 import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
 import { DirectoryBrowserModalWidget } from './directory-browser-modal-widget';
 import { DirectoryBrowserModalWidgetProxy } from './directory-browser-modal-widget.proxy';
@@ -15,7 +14,7 @@ describe('DirectoryBrowserModalWidget', () => {
       proxy.setupEntries({ entries: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
           ),
@@ -32,7 +31,7 @@ describe('DirectoryBrowserModalWidget', () => {
       proxy.setupEntries({ entries: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
           ),
@@ -49,7 +48,7 @@ describe('DirectoryBrowserModalWidget', () => {
       proxy.setupEntries({ entries: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
           ),
@@ -66,7 +65,7 @@ describe('DirectoryBrowserModalWidget', () => {
       proxy.setupEntries({ entries: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
           ),
@@ -83,7 +82,7 @@ describe('DirectoryBrowserModalWidget', () => {
       proxy.setupEntries({ entries: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: (
             <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
           ),
@@ -105,7 +104,7 @@ describe('DirectoryBrowserModalWidget', () => {
       });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={onSelect} />,
         });
         await Promise.resolve();
@@ -128,7 +127,7 @@ describe('DirectoryBrowserModalWidget', () => {
       proxy.setupEntries({ entries: [] });
 
       await act(async () => {
-        mantineRenderMiddleware({
+        render({
           ui: <DirectoryBrowserModalWidget opened={true} onClose={onClose} onSelect={jest.fn()} />,
         });
         await Promise.resolve();
