@@ -357,7 +357,14 @@ export const dispatchHarness = ({
     }: {
       questId: string;
     }): Promise<{ status: DmHttpResponse['status']; processId: string }> => {
-      const response = await request.post(`/api/quests/${questId}/start`);
+      const startRoute = `/api/quests/${questId}/start`;
+      const response = await request.post(startRoute);
+      if (response.status() !== 200) {
+        const bodyText = await response.text();
+        throw new Error(
+          `dispatchHarness.startQuestViaStartRoute: ${startRoute} answered ${String(response.status())}: ${bodyText}`,
+        );
+      }
       const body: unknown = await response.json();
       return {
         status: dmHttpResponseContract.shape.status.parse(response.status()),
