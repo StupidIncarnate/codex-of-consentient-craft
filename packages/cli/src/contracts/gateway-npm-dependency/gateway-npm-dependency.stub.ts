@@ -11,5 +11,6 @@ export const GatewayNpmDependencyStub = ({
     name: 'left-pad',
     range: '^1.3.0',
     folder: 'left-pad',
+    location: 'dependencies',
     ...props,
   });

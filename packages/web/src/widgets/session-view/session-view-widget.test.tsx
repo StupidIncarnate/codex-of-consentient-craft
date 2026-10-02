@@ -8,10 +8,9 @@ import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-it
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
+import { act, render, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { SessionViewWidget } from './session-view-widget';
 import { SessionViewWidgetProxy } from './session-view-widget.proxy';
 
@@ -28,7 +27,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={['/my-guild/session/f47ac10b-58cc-4372-a567-0e02b2c3d479']}>
             <Routes>
@@ -59,7 +58,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -137,7 +136,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -183,7 +182,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -258,7 +257,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -338,7 +337,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -393,7 +392,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -470,7 +469,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -553,7 +552,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>
@@ -636,7 +635,7 @@ describe('SessionViewWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
             <Routes>

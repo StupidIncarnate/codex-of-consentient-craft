@@ -2,7 +2,7 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
 import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts/quest-summary-observable/quest-summary-observable.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { HumanCheckPanelLayerWidget } from './human-check-panel-layer-widget';
 import { HumanCheckPanelLayerWidgetProxy } from './human-check-panel-layer-widget.proxy';
 
@@ -13,7 +13,7 @@ describe('HumanCheckPanelLayerWidget', () => {
     it('EMPTY: {criteria: []} => renders no section at all', () => {
       const proxy = HumanCheckPanelLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <HumanCheckPanelLayerWidget questId={QUEST_ID} criteria={[]} notes={[]} />,
       });
 
@@ -30,7 +30,7 @@ describe('HumanCheckPanelLayerWidget', () => {
         description: 'The dungeon-raid transition never stutters',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <HumanCheckPanelLayerWidget questId={QUEST_ID} criteria={[criterion]} notes={[]} />,
       });
 
@@ -54,7 +54,7 @@ describe('HumanCheckPanelLayerWidget', () => {
         detail: 'Watched it end to end.',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <HumanCheckPanelLayerWidget questId={QUEST_ID} criteria={[criterion]} notes={[note]} />,
       });
 
@@ -84,7 +84,7 @@ describe('HumanCheckPanelLayerWidget', () => {
         detail: 'Visibly janky.',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <HumanCheckPanelLayerWidget
             questId={QUEST_ID}
@@ -116,7 +116,7 @@ describe('HumanCheckPanelLayerWidget', () => {
       });
       proxy.setupRecorded();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <HumanCheckPanelLayerWidget
             questId={QUEST_ID}

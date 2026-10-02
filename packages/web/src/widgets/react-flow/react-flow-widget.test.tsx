@@ -1,8 +1,7 @@
 import { document } from '#gateway/browser/document';
 import React from '#gateway/npm/react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { ReactFlowWidget } from './react-flow-widget';
@@ -14,7 +13,7 @@ describe('ReactFlowWidget', () => {
     it('VALID: {nodes: [3 nodes], edges: []} => REACT_FLOW_CANVAS present with exactly 3 FLOW_NODE elements', () => {
       ReactFlowWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(ReactFlowWidget, {
           nodes: [
             {
@@ -53,7 +52,7 @@ describe('ReactFlowWidget', () => {
       const FlowNode = ({ id }: { id: string }) =>
         React.createElement('div', { 'data-testid': 'FLOW_NODE', 'data-node-id': id });
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(ReactFlowWidget, {
           nodes: [
             {
@@ -85,7 +84,7 @@ describe('ReactFlowWidget', () => {
         contractCount: 2,
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(ReactFlowWidget, {
           nodes: [{ id: 'click-target', position: { x: 0, y: 0 }, data: clickedData }],
           edges: [],
@@ -106,7 +105,7 @@ describe('ReactFlowWidget', () => {
     it('EDGE: {click FLOW_NODE, onNodeClick undefined} => does not throw', async () => {
       ReactFlowWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(ReactFlowWidget, {
           nodes: [
             {
@@ -129,7 +128,7 @@ describe('ReactFlowWidget', () => {
 
       const onPaneClick = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(ReactFlowWidget, {
           nodes: [],
           edges: [],
@@ -146,7 +145,7 @@ describe('ReactFlowWidget', () => {
     it('EDGE: {click pane, onPaneClick undefined} => does not throw', async () => {
       ReactFlowWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(ReactFlowWidget, {
           nodes: [],
           edges: [],

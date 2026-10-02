@@ -59,7 +59,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: react / untyped: react / passthrough instead of our wrapper: react (not installed, ours ^19.0.0)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: react, eslint__compat, eslint__eslintrc, playwright__test, typescript-eslint__eslint-plugin, typescript-eslint__parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / untyped: react, @eslint/compat, @eslint/eslintrc, @playwright/test, @typescript-eslint/eslint-plugin, @typescript-eslint/parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / passthrough instead of our wrapper: react (not installed, ours ^19.0.0) / passthrough instead of our wrapper: @playwright/test (not installed, ours ^1.58.2) / passthrough instead of our wrapper: @typescript-eslint/eslint-plugin (not installed, ours ^8.58.0) / passthrough instead of our wrapper: @typescript-eslint/parser (not installed, ours ^8.58.0) / passthrough instead of our wrapper: eslint (not installed, ours ^9.36.0) / passthrough instead of our wrapper: eslint-plugin-eslint-comments (not installed, ours ^3.2.0) / passthrough instead of our wrapper: eslint-plugin-jest (not installed, ours ^29.0.1) / passthrough instead of our wrapper: tsx (not installed, ours ^4.0.0) / passthrough instead of our wrapper: typescript (not installed, ours >=5.8.3 <7)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^6\.0\.3"$/mu);
@@ -126,12 +126,13 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: react / untyped: react / passthrough instead of our wrapper: react (not installed, ours ^19.0.0)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: react, eslint__compat, eslint__eslintrc, playwright__test, typescript-eslint__eslint-plugin, typescript-eslint__parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / untyped: react, @eslint/compat, @eslint/eslintrc, @playwright/test, @typescript-eslint/eslint-plugin, @typescript-eslint/parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / passthrough instead of our wrapper: react (not installed, ours ^19.0.0) / passthrough instead of our wrapper: @playwright/test (not installed, ours ^1.58.2) / passthrough instead of our wrapper: @typescript-eslint/eslint-plugin (not installed, ours ^8.58.0) / passthrough instead of our wrapper: @typescript-eslint/parser (not installed, ours ^8.58.0) / passthrough instead of our wrapper: eslint (not installed, ours ^9.36.0) / passthrough instead of our wrapper: eslint-plugin-eslint-comments (not installed, ours ^3.2.0) / passthrough instead of our wrapper: eslint-plugin-jest (not installed, ours ^29.0.1) / passthrough instead of our wrapper: tsx (not installed, ours ^4.0.0) / passthrough instead of our wrapper: typescript (not installed, ours >=5.8.3 <7)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe('// existing user config\n');
     });
 
     it('VALID: {context: target has no widgets/react or ink signals} => skips playwright.config.ts without writing it', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'flow-not-e2e-eligible',
       });
@@ -158,12 +159,13 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: eslint__compat, eslint__eslintrc, playwright__test, typescript-eslint__eslint-plugin, typescript-eslint__parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / untyped: @eslint/compat, @eslint/eslintrc, @playwright/test, @typescript-eslint/eslint-plugin, @typescript-eslint/parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / passthrough instead of our wrapper: @playwright/test (not installed, ours ^1.58.2) / passthrough instead of our wrapper: @typescript-eslint/eslint-plugin (not installed, ours ^8.58.0) / passthrough instead of our wrapper: @typescript-eslint/parser (not installed, ours ^8.58.0) / passthrough instead of our wrapper: eslint (not installed, ours ^9.36.0) / passthrough instead of our wrapper: eslint-plugin-eslint-comments (not installed, ours ^3.2.0) / passthrough instead of our wrapper: eslint-plugin-jest (not installed, ours ^29.0.1) / passthrough instead of our wrapper: tsx (not installed, ours ^4.0.0) / passthrough instead of our wrapper: typescript (not installed, ours >=5.8.3 <7)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe(null);
     });
 
     it('VALID: {context: target has npm workspaces} => skips jest.config.js without writing it', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'flow-workspaces-root',
       });
@@ -196,7 +198,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; packages/@gateway/npm/src already has a folder for every dependency; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: eslint__compat, eslint__eslintrc, playwright__test, typescript-eslint__eslint-plugin, typescript-eslint__parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / untyped: @eslint/compat, @eslint/eslintrc, @playwright/test, @typescript-eslint/eslint-plugin, @typescript-eslint/parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, prettier, ts-jest, tsx, typescript / passthrough instead of our wrapper: @playwright/test (not installed, ours ^1.58.2) / passthrough instead of our wrapper: @typescript-eslint/eslint-plugin (not installed, ours ^8.58.0) / passthrough instead of our wrapper: @typescript-eslint/parser (not installed, ours ^8.58.0) / passthrough instead of our wrapper: eslint (not installed, ours ^9.36.0) / passthrough instead of our wrapper: eslint-plugin-eslint-comments (not installed, ours ^3.2.0) / passthrough instead of our wrapper: eslint-plugin-jest (not installed, ours ^29.0.1) / passthrough instead of our wrapper: tsx (not installed, ours ^4.0.0) / passthrough instead of our wrapper: typescript (not installed, ours >=5.8.3 <7)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(jestConfigContent).toBe(null);
     });
@@ -204,6 +206,7 @@ describe('InstallFlow', () => {
 
   describe('setup-gateway', () => {
     it('VALID: {scoped root name, two packages — one with a build config and its own paths, one with an existing imports entry} => scaffolds the four gateway packages, wires every package in, and a second run changes nothing', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'flow-gateway-scoped',
       });
@@ -342,9 +345,23 @@ describe('InstallFlow', () => {
           ward: 'dungeonmaster-ward',
         },
         devDependencies: {
+          '@eslint/compat': '^1.3.1',
+          '@eslint/eslintrc': '^3.3.1',
+          '@playwright/test': '^1.58.2',
           '@types/node': '^24.0.15',
-          typescript: '^5.8.3',
+          '@typescript-eslint/eslint-plugin': '~8.58.2',
+          '@typescript-eslint/parser': '~8.58.2',
+          eslint: '^9.36.0',
+          'eslint-config-prettier': '^10.1.5',
+          'eslint-plugin-eslint-comments': '^3.2.0',
+          'eslint-plugin-jest': '^29.0.1',
+          'eslint-plugin-prettier': '^5.5.1',
+          jest: '^30.0.4',
           'jest-environment-jsdom': '^30.0.0',
+          prettier: '^3.6.2',
+          'ts-jest': '^29.4.14',
+          tsx: '^4.0.0',
+          typescript: '^5.8.3',
         },
         publishConfig: { access: 'public' },
       });
@@ -352,11 +369,7 @@ describe('InstallFlow', () => {
         testbed.readFile({
           relativePath: 'packages/@gateway/npm/src/index.d.ts',
         }),
-      )
-        .toBe(`// Keeps this package compiling while it holds no subpath: tsc refuses a config that matches no
-// file. Delete it once the first src/<subpath>/<subpath>.ts exists.
-export {};
-`);
+      ).toBe(null);
 
       // node and browser arrive holding dungeonmaster's own source, copied from the installed
       // packages: a wrapper folder with its companions. Browser's jsdom polyfill is a
@@ -527,6 +540,7 @@ export {};
     });
 
     it('VALID: {unscoped root name} => names the gateway packages from a scope built off that name', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: 'flow-gateway-unscoped',
       });
@@ -608,9 +622,23 @@ export {};
           ward: 'dungeonmaster-ward',
         },
         devDependencies: {
+          '@eslint/compat': '^1.3.1',
+          '@eslint/eslintrc': '^3.3.1',
+          '@playwright/test': '^1.58.2',
           '@types/node': '^24.0.15',
-          typescript: '^5.8.3',
+          '@typescript-eslint/eslint-plugin': '~8.58.2',
+          '@typescript-eslint/parser': '~8.58.2',
+          eslint: '^9.36.0',
+          'eslint-config-prettier': '^10.1.5',
+          'eslint-plugin-eslint-comments': '^3.2.0',
+          'eslint-plugin-jest': '^29.0.1',
+          'eslint-plugin-prettier': '^5.5.1',
+          jest: '^30.0.4',
           'jest-environment-jsdom': '^30.0.0',
+          prettier: '^3.6.2',
+          'ts-jest': '^29.4.14',
+          tsx: '^4.0.0',
+          typescript: '^5.8.3',
         },
         publishConfig: { access: 'public' },
       });
@@ -684,7 +712,7 @@ export {};
           success: true,
           action: 'created',
           message:
-            'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: left-pad / untyped: left-pad); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
+            'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; set the root postinstall script to run dungeonmaster gateway-sync; scaffolded gateway packages: npm, node, browser, bin; synced packages/@gateway/npm/src (generated: left-pad, eslint__compat, eslint__eslintrc, playwright__test, typescript-eslint__eslint-plugin, typescript-eslint__parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, left-pad-dev, prettier, ts-jest, tsx, typescript / untyped: left-pad, @eslint/compat, @eslint/eslintrc, @playwright/test, @typescript-eslint/eslint-plugin, @typescript-eslint/parser, eslint, eslint-config-prettier, eslint-plugin-eslint-comments, eslint-plugin-jest, eslint-plugin-prettier, jest, left-pad-dev, prettier, ts-jest, tsx, typescript / passthrough instead of our wrapper: @playwright/test (not installed, ours ^1.58.2) / passthrough instead of our wrapper: @typescript-eslint/eslint-plugin (not installed, ours ^8.58.0) / passthrough instead of our wrapper: @typescript-eslint/parser (not installed, ours ^8.58.0) / passthrough instead of our wrapper: eslint (not installed, ours ^9.36.0) / passthrough instead of our wrapper: eslint-plugin-eslint-comments (not installed, ours ^3.2.0) / passthrough instead of our wrapper: eslint-plugin-jest (not installed, ours ^29.0.1) / passthrough instead of our wrapper: tsx (not installed, ours ^4.0.0) / passthrough instead of our wrapper: typescript (not installed, ours >=5.8.3 <7)); tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
         },
         secondRun: {
           packageName: '@dungeonmaster/cli',
@@ -708,7 +736,25 @@ export {};
       expect(npmGatewayPackageJson).toMatch(
         /^ {2}"dependencies": \{\n {4}"left-pad": "\^1\.3\.0"\n {2}\},?$/mu,
       );
-      expect(npmGatewaySrc).toStrictEqual(['left-pad']);
+      expect(npmGatewaySrc).toStrictEqual([
+        'eslint',
+        'eslint-config-prettier',
+        'eslint-plugin-eslint-comments',
+        'eslint-plugin-jest',
+        'eslint-plugin-prettier',
+        'eslint__compat',
+        'eslint__eslintrc',
+        'jest',
+        'left-pad',
+        'left-pad-dev',
+        'playwright__test',
+        'prettier',
+        'ts-jest',
+        'tsx',
+        'typescript',
+        'typescript-eslint__eslint-plugin',
+        'typescript-eslint__parser',
+      ]);
       expect(leftPadBarrel).toBe(`/**
  * PURPOSE: Pass-through for the npm package 'left-pad'. Code outside the gateway imports left-pad
  * through here instead of the raw package, so a future guard or override on left-pad lands in

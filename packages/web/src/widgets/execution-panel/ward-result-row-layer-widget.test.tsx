@@ -1,10 +1,8 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
 import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
-
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 
 import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
 import { WardResultRowLayerWidgetProxy } from './ward-result-row-layer-widget.proxy';
@@ -15,7 +13,7 @@ describe('WardResultRowLayerWidget', () => {
       WardResultRowLayerWidgetProxy();
       const wardResult = WardResultStub({ exitCode: 0 });
 
-      mantineRenderMiddleware({
+      render({
         ui: <WardResultRowLayerWidget wardResult={wardResult} />,
       });
 
@@ -26,7 +24,7 @@ describe('WardResultRowLayerWidget', () => {
       WardResultRowLayerWidgetProxy();
       const wardResult = WardResultStub({ exitCode: 1, wardMode: 'committed' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <WardResultRowLayerWidget wardResult={wardResult} />,
       });
 
@@ -41,7 +39,7 @@ describe('WardResultRowLayerWidget', () => {
       const proxy = WardResultRowLayerWidgetProxy();
       const wardResult = WardResultStub({ exitCode: 1 });
 
-      mantineRenderMiddleware({
+      render({
         ui: <WardResultRowLayerWidget wardResult={wardResult} />,
       });
 
@@ -55,7 +53,7 @@ describe('WardResultRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const wardResult = WardResultStub({ exitCode: 1, wardMode: 'committed' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <WardResultRowLayerWidget wardResult={wardResult} questId={questId} />,
       });
 
@@ -72,7 +70,7 @@ describe('WardResultRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const wardResult = WardResultStub({ exitCode: 1 });
 
-      mantineRenderMiddleware({
+      render({
         ui: <WardResultRowLayerWidget wardResult={wardResult} questId={questId} />,
       });
 

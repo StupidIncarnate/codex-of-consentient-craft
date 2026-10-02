@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FormTagListWidget } from './form-tag-list-widget';
 import { FormTagListWidgetProxy } from './form-tag-list-widget.proxy';
 
@@ -11,7 +10,7 @@ describe('FormTagListWidget', () => {
       const label = 'Tags';
       const items = ['alpha', 'beta'];
 
-      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
+      render({ ui: <FormTagListWidget label={label} items={items} /> });
 
       expect(screen.getByTestId('FORM_TAG_LABEL')).toBeInTheDocument();
     });
@@ -21,7 +20,7 @@ describe('FormTagListWidget', () => {
       const label = 'Tags';
       const items = ['alpha', 'beta'];
 
-      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
+      render({ ui: <FormTagListWidget label={label} items={items} /> });
 
       const tagItems = screen.getAllByTestId('FORM_TAG_ITEM');
       const tagTexts = tagItems.map((el) => el.textContent);
@@ -34,7 +33,7 @@ describe('FormTagListWidget', () => {
       const label = 'Tags';
       const items = ['alpha', 'beta'];
 
-      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
+      render({ ui: <FormTagListWidget label={label} items={items} /> });
 
       expect(screen.queryByTestId('FORM_TAG_EMPTY')).toBe(null);
     });
@@ -46,7 +45,7 @@ describe('FormTagListWidget', () => {
       const label = 'Tags';
       const items: string[] = [];
 
-      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
+      render({ ui: <FormTagListWidget label={label} items={items} /> });
 
       const emptyText = screen.getByTestId('FORM_TAG_EMPTY');
 
@@ -58,7 +57,7 @@ describe('FormTagListWidget', () => {
       const label = 'Tags';
       const items: string[] = [];
 
-      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
+      render({ ui: <FormTagListWidget label={label} items={items} /> });
 
       expect(screen.queryAllByTestId('FORM_TAG_ITEM')).toStrictEqual([]);
     });

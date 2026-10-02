@@ -1,16 +1,16 @@
 /**
- * PURPOSE: Lists every third-party npm package a consumer repo declares in `dependencies` — of the
- * root package.json and of every workspace package — as the gateway folder each one needs under
- * `packages/@gateway/npm/src/`. `devDependencies` are never read: they are tooling, which shipped
- * code does not import through the gateway. The first declaration met wins the
- * range (root first, then workspace packages in directory order). Workspace package names, the
- * gateway packages' own names among them, are never wrapped, and neither is anything in
- * `gatewayNpmSyncStatics.dropped`. Reach for this over `gatewayExistingPackagesListBroker`, which
- * lists package directories, not what they depend on.
+ * PURPOSE: Lists every third-party npm package a consumer repo declares in `dependencies` or
+ * `devDependencies` — of the root package.json and of every workspace package — as the gateway
+ * folder each one needs under `packages/@gateway/npm/src/`. A package declared in `dependencies`
+ * anywhere is recorded as a production dependency; a package declared only in `devDependencies` is
+ * recorded as a devDependency. The first declaration met wins the range (root first, then workspace
+ * packages in directory order). Workspace package names, the gateway packages' own names among them,
+ * are never wrapped, and neither is anything in `gatewayNpmSyncStatics.dropped`. Reach for this over
+ * `gatewayExistingPackagesListBroker`, which lists package directories, not what they depend on.
  *
  * USAGE:
  * await gatewayNpmDependenciesListBroker({ repoRoot: '/repo' });
- * // Returns [{ name: 'zod', range: '^4.0.0', folder: 'zod' }, { name: '@hono/node-server', range: '^1.0.0', folder: 'hono__node-server' }]
+ * // Returns [{ name: 'zod', range: '^4.0.0', folder: 'zod', location: 'dependencies' }, ...]
  */
 
 import { readFile } from '#gateway/node/fs__promises';
@@ -57,13 +57,21 @@ export const gatewayNpmDependenciesListBroker = async ({
     rootPackageJson,
     ...workspacePackageJsons.slice(0, workspaceDirs.length),
   ];
-  const ranges = new Map<string, string>();
+  const dependenciesMap = new Map<
+    string,
+    { range: string; location: 'dependencies' | 'devDependencies' }
+  >();
+
   for (const packageJson of declaringPackageJsons) {
     for (const dependencyKey of dependencyKeys) {
       const declared = dependencyMapContract.parse(packageJson?.[dependencyKey] ?? {});
       for (const [name, range] of Object.entries(declared)) {
-        if (!ranges.has(name)) {
-          ranges.set(name, range);
+        const existing = dependenciesMap.get(name);
+        const loc = dependencyKey === 'devDependencies' ? 'devDependencies' : 'dependencies';
+        if (!existing) {
+          dependenciesMap.set(name, { range, location: loc });
+        } else if (existing.location === 'devDependencies' && loc === 'dependencies') {
+          dependenciesMap.set(name, { range: existing.range, location: 'dependencies' });
         }
       }
     }
@@ -71,17 +79,18 @@ export const gatewayNpmDependenciesListBroker = async ({
 
   const { names: droppedNames, prefixes: droppedPrefixes } = gatewayNpmSyncStatics.dropped;
 
-  return [...ranges.entries()]
+  return [...dependenciesMap.entries()]
     .filter(
       ([name]) =>
         !workspaceNames.has(name) &&
         !droppedNames.some((droppedName) => droppedName === name) &&
         !droppedPrefixes.some((prefix) => name.startsWith(prefix)),
     )
-    .map(([name, range]) =>
+    .map(([name, { range, location }]) =>
       gatewayNpmDependencyContract.parse({
         name,
         range,
+        location,
         folder: gatewayPathFromImportSourceTransformer({
           importSource: name,
           builtinModules: [],

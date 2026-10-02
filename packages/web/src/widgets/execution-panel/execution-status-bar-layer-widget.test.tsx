@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 
@@ -9,7 +8,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
     it('EMPTY: {totalCount: 0, source: ledger} => renders AWAITING PLAN text', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={0} source="ledger" />,
       });
 
@@ -21,7 +20,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
     it('EMPTY: {totalCount: 0, source: projection} => renders AWAITING PLAN text regardless of source', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={0} source="projection" />,
       });
 
@@ -35,7 +34,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
     it('VALID: {completedCount: 3, totalCount: 8, source: ledger} => renders the count labeled OPERATIONS', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionStatusBarLayerWidget completedCount={3} totalCount={8} source="ledger" />,
       });
 
@@ -47,7 +46,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
     it('VALID: {completedCount: 0, totalCount: 5, source: ledger} => renders zero completion', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={5} source="ledger" />,
       });
 
@@ -61,7 +60,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
     it('VALID: {completedCount: 1, totalCount: 4, source: projection} => renders the count labeled STEPS', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionStatusBarLayerWidget completedCount={1} totalCount={4} source="projection" />,
       });
 
@@ -75,7 +74,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
     it('VALID: {any props} => renders border-bottom', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={8} source="ledger" />,
       });
 

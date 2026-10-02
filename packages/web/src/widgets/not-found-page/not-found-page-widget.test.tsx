@@ -1,12 +1,11 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { NotFoundPageWidget } from './not-found-page-widget';
 import { NotFoundPageWidgetProxy } from './not-found-page-widget.proxy';
 
 const renderAt = ({ url }: { url: string }): void => {
-  mantineRenderMiddleware({
+  render({
     ui: (
       <MemoryRouter initialEntries={[url]}>
         <Routes>

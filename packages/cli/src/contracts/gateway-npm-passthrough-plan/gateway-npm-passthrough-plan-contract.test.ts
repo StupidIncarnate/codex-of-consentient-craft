@@ -4,7 +4,12 @@ import { GatewayNpmPassthroughPlanStub } from './gateway-npm-passthrough-plan.st
 describe('gatewayNpmPassthroughPlanContract', () => {
   it('VALID: {} => stub holds a named left-pad passthrough', () => {
     expect(GatewayNpmPassthroughPlanStub()).toStrictEqual({
-      dependency: { name: 'left-pad', range: '^1.3.0', folder: 'left-pad' },
+      dependency: {
+        name: 'left-pad',
+        range: '^1.3.0',
+        folder: 'left-pad',
+        location: 'dependencies',
+      },
       shape: 'named',
     });
   });
@@ -16,7 +21,12 @@ describe('gatewayNpmPassthroughPlanContract', () => {
     });
 
     expect(result).toStrictEqual({
-      dependency: { name: 'hono/ws', range: '^4.0.0', folder: 'hono__ws' },
+      dependency: {
+        name: 'hono/ws',
+        range: '^4.0.0',
+        folder: 'hono__ws',
+        location: 'dependencies',
+      },
       shape: 'untyped',
     });
   });
@@ -29,7 +39,12 @@ describe('gatewayNpmPassthroughPlanContract', () => {
     });
 
     expect(result).toStrictEqual({
-      dependency: { name: 'debug', range: '^4.0.0', folder: 'debug' },
+      dependency: {
+        name: 'debug',
+        range: '^4.0.0',
+        folder: 'debug',
+        location: 'dependencies',
+      },
       shape: 'export-equals',
       exportNames: { values: ['enable'], types: ['Debugger'] },
     });

@@ -1,6 +1,5 @@
-import { fireEvent, screen } from '#gateway/npm/testing-library__react';
+import { fireEvent, render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   AssistantTextChatEntryStub,
   AssistantThinkingChatEntryStub,
@@ -19,7 +18,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub({ content: 'I need auth' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
       const messageText = message.textContent;
@@ -33,7 +32,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const messageStyle = screen.getByTestId('CHAT_MESSAGE').style;
 
@@ -47,7 +46,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -58,7 +57,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub({ content: 'line one\nline two' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
       const text = screen.getByTestId('CHAT_MESSAGE_TEXT');
@@ -73,7 +72,7 @@ describe('ChatMessageWidget', () => {
       const src = 'http://host/api/images?path=%2Fp%2Fx.png';
       const entry = UserChatEntryStub({ content: `![Pasted Image 1](${src})` });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
       const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
@@ -88,7 +87,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'Let me explore' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
       const messageText = message.textContent;
@@ -100,7 +99,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -125,7 +124,7 @@ describe('ChatMessageWidget', () => {
         content: 'Both harnesses import `navigationHarness`. Claims **verified**.',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       expect({
         code: screen.queryAllByTestId('MARKDOWN_CODE').map((node) => node.textContent),
@@ -142,7 +141,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: '## Gate 5\n\n- first\n- second' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       expect({
         headings: screen.queryAllByTestId('MARKDOWN_HEADING').map((node) => node.textContent),
@@ -154,7 +153,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -173,7 +172,7 @@ describe('ChatMessageWidget', () => {
       });
       const tokenBadgeLabel = '2.1k context';
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,
       });
 
@@ -205,7 +204,7 @@ describe('ChatMessageWidget', () => {
       });
       const tokenBadgeLabel = '2.1k';
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} tokenBadgeLabel={tokenBadgeLabel} />,
       });
 
@@ -218,7 +217,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       expect(screen.queryByTestId('TOKEN_BADGE')).toBe(null);
     });
@@ -232,7 +231,7 @@ describe('ChatMessageWidget', () => {
         toolInput: '{"path":"/src"}',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const row = screen.getByTestId('TOOL_ROW');
       const name = screen.getByTestId('TOOL_ROW_NAME');
@@ -245,7 +244,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const row = screen.getByTestId('TOOL_ROW');
 
@@ -259,7 +258,7 @@ describe('ChatMessageWidget', () => {
         toolInput: '{"path":"/src"}',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const summary = screen.getByTestId('TOOL_ROW_SUMMARY');
 
@@ -270,7 +269,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} isLoading={true} />,
       });
 
@@ -283,7 +282,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} isLoading={false} />,
       });
 
@@ -299,7 +298,7 @@ describe('ChatMessageWidget', () => {
         content: 'file data here',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -310,7 +309,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolResultChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -327,7 +326,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub({ content: 'Do this subtask', source: 'subagent' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -340,7 +339,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub({ source: 'subagent' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -359,7 +358,7 @@ describe('ChatMessageWidget', () => {
         source: 'subagent',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
       const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
@@ -382,7 +381,7 @@ describe('ChatMessageWidget', () => {
         source: 'subagent',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -393,7 +392,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ source: 'subagent' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -414,7 +413,7 @@ describe('ChatMessageWidget', () => {
         source: 'subagent',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const row = screen.getByTestId('TOOL_ROW');
 
@@ -429,7 +428,7 @@ describe('ChatMessageWidget', () => {
         source: 'subagent',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const name = screen.getByTestId('TOOL_ROW_NAME');
 
@@ -445,7 +444,7 @@ describe('ChatMessageWidget', () => {
         isError: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -459,7 +458,7 @@ describe('ChatMessageWidget', () => {
         isError: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -477,7 +476,7 @@ describe('ChatMessageWidget', () => {
         isError: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -493,7 +492,7 @@ describe('ChatMessageWidget', () => {
         isError: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -509,7 +508,7 @@ describe('ChatMessageWidget', () => {
         isError: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -528,7 +527,7 @@ describe('ChatMessageWidget', () => {
         content: 'Sibling tool call errored',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -543,7 +542,7 @@ describe('ChatMessageWidget', () => {
         content: 'Sibling tool call errored',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -563,7 +562,7 @@ describe('ChatMessageWidget', () => {
         summary: 'Agent finished work',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -574,7 +573,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = TaskNotificationChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -592,7 +591,7 @@ describe('ChatMessageWidget', () => {
         durationMs: 12000,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -607,7 +606,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = TaskNotificationChatEntryStub({ summary: undefined });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -623,7 +622,7 @@ describe('ChatMessageWidget', () => {
         toolInput: '{"skill":"commit","args":""}',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const name = screen.getByTestId('TOOL_ROW_NAME');
       const row = screen.getByTestId('TOOL_ROW');
@@ -639,7 +638,7 @@ describe('ChatMessageWidget', () => {
         toolInput: '{"skill":"commit"}',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} isLoading={true} />,
       });
 
@@ -657,7 +656,7 @@ describe('ChatMessageWidget', () => {
         content: longContent,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -671,7 +670,7 @@ describe('ChatMessageWidget', () => {
         content: longContent,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const showButton = screen.getByTestId('CHAT_MESSAGE_TRUNCATION_TOGGLE');
 
@@ -692,7 +691,7 @@ describe('ChatMessageWidget', () => {
       proxy.setupAutoScrollReleased();
       const entry = AssistantToolResultChatEntryStub({ content: 'x'.repeat(300) });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       expect(proxy.isAutoScrollHeld()).toBe(false);
 
@@ -705,7 +704,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolResultChatEntryStub({ content: 'short' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -718,7 +717,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = SystemErrorChatEntryStub({ content: 'Server failed' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -729,7 +728,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = SystemErrorChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -748,7 +747,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Let me think about this' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const row = screen.getByTestId('THINKING_ROW');
       const label = screen.getByTestId('THINKING_ROW_LABEL');
@@ -761,7 +760,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Short thought' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const content = screen.getByTestId('THINKING_ROW_CONTENT');
 
@@ -773,7 +772,7 @@ describe('ChatMessageWidget', () => {
       const longContent = 'x'.repeat(300);
       const entry = AssistantThinkingChatEntryStub({ content: longContent });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const content = screen.getByTestId('THINKING_ROW_CONTENT');
 
@@ -784,7 +783,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const row = screen.getByTestId('THINKING_ROW');
 
@@ -795,7 +794,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ model: 'claude-opus-4-6' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const label = screen.getByTestId('THINKING_ROW_LABEL');
 
@@ -808,7 +807,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} roleLabel="chaoswhisperer" />,
       });
 
@@ -821,7 +820,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} roleLabel="codeweaver" />,
       });
 
@@ -834,7 +833,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} roleLabel="ward" />,
       });
 
@@ -847,7 +846,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} roleLabel="spiritmender" />,
       });
 
@@ -860,7 +859,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} roleLabel="siegemaster" />,
       });
 
@@ -873,7 +872,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -884,7 +883,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response', source: 'subagent' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatMessageWidget entry={entry} roleLabel="ward" />,
       });
 
@@ -904,7 +903,7 @@ describe('ChatMessageWidget', () => {
         model: 'claude-sonnet-4-20250514',
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -915,7 +914,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'Hello' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -933,7 +932,7 @@ describe('ChatMessageWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const agentSection = screen.getByTestId('AGENT_PROMPT_SECTION');
 
@@ -949,7 +948,7 @@ describe('ChatMessageWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
@@ -962,7 +961,7 @@ describe('ChatMessageWidget', () => {
       ChatMessageWidgetProxy();
       const entry = UserChatEntryStub({ content: 'Just a normal message' });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
       const messageText = message.textContent;
@@ -979,7 +978,7 @@ describe('ChatMessageWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderMiddleware({ ui: <ChatMessageWidget entry={entry} /> });
+      render({ ui: <ChatMessageWidget entry={entry} /> });
 
       const agentSection = screen.getByTestId('AGENT_PROMPT_SECTION');
 

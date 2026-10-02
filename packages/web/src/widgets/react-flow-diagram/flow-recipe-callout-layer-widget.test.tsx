@@ -1,6 +1,6 @@
 import { FlowRecipeStub } from '@dungeonmaster/shared/contracts/flow-recipe/flow-recipe.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { FlowRecipeCalloutLayerWidget } from './flow-recipe-callout-layer-widget';
 import { FlowRecipeCalloutLayerWidgetProxy } from './flow-recipe-callout-layer-widget.proxy';
 
@@ -13,7 +13,7 @@ describe('FlowRecipeCalloutLayerWidget', () => {
         FlowRecipeStub({ id: 'admin-onboard', instanceId: 'inst_11b2c333', runId: 'run_5' }),
       ];
 
-      mantineRenderMiddleware({ ui: <FlowRecipeCalloutLayerWidget recipes={recipes} /> });
+      render({ ui: <FlowRecipeCalloutLayerWidget recipes={recipes} /> });
 
       expect(proxy.hasCallout()).toBe(true);
       expect(proxy.getRecipeNames()).toStrictEqual(['pc-walk-1', 'admin-onboard']);
@@ -28,7 +28,7 @@ describe('FlowRecipeCalloutLayerWidget', () => {
     it('EMPTY: {no recipes} => renders no callout at all', () => {
       const proxy = FlowRecipeCalloutLayerWidgetProxy();
 
-      mantineRenderMiddleware({ ui: <FlowRecipeCalloutLayerWidget recipes={[]} /> });
+      render({ ui: <FlowRecipeCalloutLayerWidget recipes={[]} /> });
 
       expect(proxy.hasCallout()).toBe(false);
     });

@@ -3,11 +3,17 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | complete |
 | Package | cli |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
-| Note | 2026-10-02: User will handle differently; on hold |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 2, 2026-10-01 |
+
+## Resolution
+
+- `gateway-npm-sync-statics.ts`: added `devDependencies` to `dependencyKeys` and defined `devRecordKey: 'devDependencies'`.
+- `gateway-npm-dependencies-list-broker.ts`: collects `devDependencies` from all workspace packages, tagging them with `location: 'devDependencies'` (or promoting to `'dependencies'` if listed in production dependencies anywhere).
+- `gateway-package-record-layer-broker.ts`: records dev dependencies into `@gateway/npm/package.json`'s `devDependencies` and prod dependencies into `dependencies`.
+- Restored custom MantineProvider-injecting `render` wrapper under `packages/@gateway/npm/src/testing-library__react/render/`, removed `gateway.restrictedTo` from `.dungeonmaster.json`, migrated callers to import from `#gateway/npm/testing-library__react`, and updated architecture docs to emphasize that gateways are active configuring boundaries.
 
 ## What is wrong
 

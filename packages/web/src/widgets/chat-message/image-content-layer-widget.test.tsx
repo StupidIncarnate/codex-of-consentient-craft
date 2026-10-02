@@ -1,9 +1,8 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 
 import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageContentLayerWidget } from './image-content-layer-widget';
 import { ImageContentLayerWidgetProxy } from './image-content-layer-widget.proxy';
@@ -26,7 +25,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -41,7 +40,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `A![Pasted Image 1](${SRC_A})B` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -65,7 +64,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${servedUrl})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -80,7 +79,7 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -102,7 +101,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -117,7 +116,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -135,7 +134,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `Here is the diagram: ![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -158,7 +157,7 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -176,7 +175,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `Look at ![Pasted Image 1](${servedUrl}) now` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -195,7 +194,7 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -216,7 +215,7 @@ describe('ImageContentLayerWidget', () => {
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
       proxy.rememberImages({ uuid, dataUrls: [dataUrl] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -238,7 +237,7 @@ describe('ImageContentLayerWidget', () => {
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-        mantineRenderMiddleware({
+        render({
           ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
         });
 
@@ -257,7 +256,7 @@ describe('ImageContentLayerWidget', () => {
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-        mantineRenderMiddleware({
+        render({
           ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
         });
 
@@ -275,7 +274,7 @@ describe('ImageContentLayerWidget', () => {
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-        mantineRenderMiddleware({
+        render({
           ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
         });
 
@@ -294,7 +293,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -323,7 +322,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -351,7 +350,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -379,7 +378,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -407,7 +406,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `before ![Pasted Image 1](${SRC_A}) after` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -426,7 +425,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -444,7 +443,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -468,7 +467,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -495,7 +494,7 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -516,7 +515,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      const { rerender } = mantineRenderMiddleware({
+      const { rerender } = render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -537,7 +536,7 @@ describe('ImageContentLayerWidget', () => {
         (candidate): candidate is UserEntry => candidate.role === 'user',
       )!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 

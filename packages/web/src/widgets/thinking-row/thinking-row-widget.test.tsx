@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { AssistantThinkingChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import type { ThinkingRowWidgetProps } from './thinking-row-widget';
 import { ThinkingRowWidget } from './thinking-row-widget';
@@ -14,7 +13,7 @@ describe('ThinkingRowWidget', () => {
       ThinkingRowWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Let me think about this' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ThinkingRowWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -30,7 +29,7 @@ describe('ThinkingRowWidget', () => {
       const longContent = 'x'.repeat(2000);
       const entry = AssistantThinkingChatEntryStub({ content: longContent });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ThinkingRowWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -43,7 +42,7 @@ describe('ThinkingRowWidget', () => {
       ThinkingRowWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ThinkingRowWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -58,7 +57,7 @@ describe('ThinkingRowWidget', () => {
       ThinkingRowWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ model: 'claude-opus-4-6' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ThinkingRowWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -71,7 +70,7 @@ describe('ThinkingRowWidget', () => {
       ThinkingRowWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ThinkingRowWidget entry={entry as ThinkingEntry} />,
       });
 

@@ -1,4 +1,4 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import {
@@ -9,7 +9,6 @@ import {
   TaskToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ChatEntryListWidget } from './chat-entry-list-widget';
 import { ChatEntryListWidgetProxy } from './chat-entry-list-widget.proxy';
 
@@ -18,7 +17,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {assistant text + tool pair} => renders message and flat tool row', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -44,7 +43,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {subagent task tool_use} => renders subagent chain header', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -66,7 +65,7 @@ describe('ChatEntryListWidget', () => {
     it('EMPTY: {no entries, not streaming} => renders nothing', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatEntryListWidget entries={[]} isStreaming={false} />,
       });
 
@@ -79,7 +78,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {isStreaming true, flag on} => appends streaming indicator at end', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: 'hi' })]}
@@ -95,7 +94,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {isStreaming false, flag on} => no streaming indicator', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: 'hi' })]}
@@ -111,7 +110,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {isStreaming true, flag off} => no streaming indicator', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: 'hi' })]}
@@ -128,7 +127,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {entry with usage, flag on} => renders context divider after the message', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -154,7 +153,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {entry with usage, flag off} => does not render context divider', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -179,7 +178,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {tool_use with usage, flag on} => renders context divider after the tool row', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -207,7 +206,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {text, two back-to-back tool calls, text} => one divider for the whole tool run, carrying its combined delta', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -269,7 +268,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {two settled tool pairs while streaming} => every row is collapsed', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -300,7 +299,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {settled pair then an unpaired tool call while streaming} => only the call in flight is open', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -326,7 +325,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {multiple thinking entries} => all thinking contents render', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -348,7 +347,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {multiple tool pairs separated by text} => all tool rows render', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -372,7 +371,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {interleaved thinking + tool pairs + text} => all sections render in order', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -405,7 +404,7 @@ describe('ChatEntryListWidget', () => {
     it('EDGE: {single tool pair, single thinking} => both render', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -431,7 +430,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {last thinking has empty content} => renders streaming indicator in place of empty thinking row', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -455,7 +454,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {flag off, multiple thinking} => all thinking rows render', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -477,7 +476,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {last entry is unmatched tool_use, isStreaming true} => renders ToolRowWidget with loading state', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' })]}
@@ -494,7 +493,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {roleLabel provided} => ChatMessageWidget renders role as label', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: 'hi' })]}
@@ -528,7 +527,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail false (default) with text/tool/text/tool/text} => all 3 text messages render in order, no toggle', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ChatEntryListWidget entries={buildSevenEntryFixture()} isStreaming={false} />,
       });
 
@@ -543,7 +542,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true with text/tool/text/tool/text} => only LAST text renders + toggle visible', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={buildSevenEntryFixture()}
@@ -565,7 +564,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true with anchor text + subsequent tool} => last text and tool both visible, earlier text hidden', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -594,7 +593,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, no message anchor (only tool pairs)} => only last tool-pair renders + toggle', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -619,7 +618,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, single entry} => no toggle (nothing hidden)', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: LAST })]}
@@ -638,7 +637,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, click "Show N earlier"} => earlier entries become visible and toggle flips to "Hide"', async () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={buildSevenEntryFixture()}
@@ -680,7 +679,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, anchor text + 3 sequential tool-pairs} => only anchor + LAST tool visible, intermediate tools hidden, toggle reads "Show 2 earlier entries"', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={buildAnchorPlusThreeToolPairsFixture()}
@@ -704,7 +703,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, anchor text + 3 sequential tool-pairs, click Show earlier} => all 4 units visible in order, toggle flips to "Hide 2 earlier entries"', async () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={buildAnchorPlusThreeToolPairsFixture()}
@@ -731,7 +730,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, anchor + 3 tool-pairs, click toggle twice} => collapses back to anchor + LAST tool only', async () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={buildAnchorPlusThreeToolPairsFixture()}
@@ -757,7 +756,7 @@ describe('ChatEntryListWidget', () => {
     it('EDGE: {collapseToTail true, zero text anchor, 3 tool-pairs in a row} => only LAST tool visible, toggle reads "Show 2 earlier entries"', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -786,7 +785,7 @@ describe('ChatEntryListWidget', () => {
     it('EDGE: {collapseToTail true, zero text anchor, 3 tool-pairs, click Show earlier} => expand reveals all 3 tools in order', async () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -815,7 +814,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {collapseToTail true, earlier tools + text anchor + 2 sub-agent chains} => anchor text + BOTH chain headers visible, earlier tools hidden', () => {
       ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -886,7 +885,7 @@ describe('ChatEntryListWidget', () => {
       it('VALID: {collapseToTail true, defaultShowAllEarlier omitted} => only LAST text renders, toggle offers to Show', () => {
         ChatEntryListWidgetProxy();
 
-        mantineRenderMiddleware({
+        render({
           ui: (
             <ChatEntryListWidget
               entries={buildSevenEntryFixture()}
@@ -910,7 +909,7 @@ describe('ChatEntryListWidget', () => {
       it('VALID: {collapseToTail true, defaultShowAllEarlier true} => all 3 texts and both tool rows render, toggle offers to Hide', () => {
         ChatEntryListWidgetProxy();
 
-        mantineRenderMiddleware({
+        render({
           ui: (
             <ChatEntryListWidget
               entries={buildSevenEntryFixture()}
@@ -937,7 +936,7 @@ describe('ChatEntryListWidget', () => {
       it('VALID: {collapseToTail true, defaultShowAllEarlier true, reader clicks the toggle} => FIRST and MIDDLE disappear again', async () => {
         ChatEntryListWidgetProxy();
 
-        mantineRenderMiddleware({
+        render({
           ui: (
             <ChatEntryListWidget
               entries={buildSevenEntryFixture()}
@@ -961,7 +960,7 @@ describe('ChatEntryListWidget', () => {
       it('VALID: {collapseToTail true, defaultShowAllEarlier true, list holds a sub-agent chain} => the chain shows its own earlier entries too', () => {
         ChatEntryListWidgetProxy();
 
-        mantineRenderMiddleware({
+        render({
           ui: (
             <ChatEntryListWidget
               entries={[
@@ -1019,7 +1018,7 @@ describe('ChatEntryListWidget', () => {
     it('VALID: {entries containing a Task tool use} => renders a SUBAGENT_CHAIN element', () => {
       const proxy = ChatEntryListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ChatEntryListWidget
             entries={[
@@ -1054,7 +1053,7 @@ describe('ChatEntryListWidget', () => {
         }),
       ];
 
-      const { rerender } = mantineRenderMiddleware({
+      const { rerender } = render({
         ui: (
           <ChatEntryListWidget
             entries={entries}

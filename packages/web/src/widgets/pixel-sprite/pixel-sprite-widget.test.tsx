@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PixelSpriteWidget } from './pixel-sprite-widget';
 import { PixelSpriteWidgetProxy } from './pixel-sprite-widget.proxy';
 
@@ -14,7 +13,7 @@ describe('PixelSpriteWidget', () => {
       const width = 8;
       const height = 20;
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 
@@ -37,7 +36,7 @@ describe('PixelSpriteWidget', () => {
       const width = 4;
       const height = 4;
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 
@@ -54,7 +53,7 @@ describe('PixelSpriteWidget', () => {
       const width = 8;
       const height = 20;
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} flip />,
       });
 
@@ -76,7 +75,7 @@ describe('PixelSpriteWidget', () => {
       const width = 8;
       const height = 20;
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 
@@ -99,7 +98,7 @@ describe('PixelSpriteWidget', () => {
       const width = 8;
       const height = 20;
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} flip />,
       });
 
@@ -116,7 +115,7 @@ describe('PixelSpriteWidget', () => {
       const width = 8;
       const height = 20;
 
-      mantineRenderMiddleware({
+      render({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 

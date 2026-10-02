@@ -1,6 +1,6 @@
 import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { UnreadableQuestRowLayerWidget } from './unreadable-quest-row-layer-widget';
 import { UnreadableQuestRowLayerWidgetProxy } from './unreadable-quest-row-layer-widget.proxy';
 
@@ -13,7 +13,7 @@ describe('UnreadableQuestRowLayerWidget', () => {
         reason: "workItems.1.role: received 'pathseeker'",
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <UnreadableQuestRowLayerWidget skippedQuestFile={skippedQuestFile} />,
       });
 

@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   MarkdownBoldSpanStub,
   MarkdownCodeSpanStub,
@@ -15,7 +14,7 @@ describe('MarkdownSpanLayerWidget', () => {
     it('VALID: {kind: text} => renders the run as an inline span', () => {
       MarkdownSpanLayerWidgetProxy();
 
-      mantineRenderMiddleware({ ui: <MarkdownSpanLayerWidget span={MarkdownSpanStub()} /> });
+      render({ ui: <MarkdownSpanLayerWidget span={MarkdownSpanStub()} /> });
 
       const span = screen.getByTestId('MARKDOWN_TEXT_SPAN');
 
@@ -30,7 +29,7 @@ describe('MarkdownSpanLayerWidget', () => {
     it('VALID: {kind: code} => marks code with the inset chip and body text, not an accent colour', () => {
       MarkdownSpanLayerWidgetProxy();
 
-      mantineRenderMiddleware({ ui: <MarkdownSpanLayerWidget span={MarkdownCodeSpanStub()} /> });
+      render({ ui: <MarkdownSpanLayerWidget span={MarkdownCodeSpanStub()} /> });
 
       const span = screen.getByTestId('MARKDOWN_CODE');
 
@@ -56,7 +55,7 @@ describe('MarkdownSpanLayerWidget', () => {
     it('VALID: {kind: bold} => renders at the bold weight', () => {
       MarkdownSpanLayerWidgetProxy();
 
-      mantineRenderMiddleware({ ui: <MarkdownSpanLayerWidget span={MarkdownBoldSpanStub()} /> });
+      render({ ui: <MarkdownSpanLayerWidget span={MarkdownBoldSpanStub()} /> });
 
       const span = screen.getByTestId('MARKDOWN_BOLD');
 
@@ -69,7 +68,7 @@ describe('MarkdownSpanLayerWidget', () => {
     it('VALID: {kind: italic} => renders in italic', () => {
       MarkdownSpanLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <MarkdownSpanLayerWidget span={MarkdownSpanStub({ kind: 'italic' })} />,
       });
 
@@ -86,7 +85,7 @@ describe('MarkdownSpanLayerWidget', () => {
     it('VALID: {kind: link} => renders an anchor carrying the href and a safe target', () => {
       MarkdownSpanLayerWidgetProxy();
 
-      mantineRenderMiddleware({ ui: <MarkdownSpanLayerWidget span={MarkdownLinkSpanStub()} /> });
+      render({ ui: <MarkdownSpanLayerWidget span={MarkdownLinkSpanStub()} /> });
 
       const span = screen.getByTestId('MARKDOWN_LINK');
 

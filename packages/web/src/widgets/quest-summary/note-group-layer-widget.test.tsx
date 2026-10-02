@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
 import { QuestSummaryNoteGroupStub } from '@dungeonmaster/shared/contracts/quest-summary-note-group/quest-summary-note-group.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { NoteGroupLayerWidget } from './note-group-layer-widget';
 import { NoteGroupLayerWidgetProxy } from './note-group-layer-widget.proxy';
 
@@ -16,7 +15,7 @@ describe('NoteGroupLayerWidget', () => {
         notes: [QuestNoteStub()],
       });
 
-      mantineRenderMiddleware({ ui: <NoteGroupLayerWidget group={group} /> });
+      render({ ui: <NoteGroupLayerWidget group={group} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_NOTE_GROUP_TITLE').textContent).toBe(
         'OPEN-QUESTION (1)',
@@ -27,7 +26,7 @@ describe('NoteGroupLayerWidget', () => {
       NoteGroupLayerWidgetProxy();
       const group = QuestSummaryNoteGroupStub({ id: 'walk-reset', notes: [] });
 
-      mantineRenderMiddleware({ ui: <NoteGroupLayerWidget group={group} /> });
+      render({ ui: <NoteGroupLayerWidget group={group} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_NOTE_GROUP_TITLE').textContent).toBe(
         'WALK-RESET (0)',
@@ -57,7 +56,7 @@ describe('NoteGroupLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({ ui: <NoteGroupLayerWidget group={group} /> });
+      render({ ui: <NoteGroupLayerWidget group={group} /> });
 
       expect(
         screen.getAllByTestId('QUEST_SUMMARY_NOTE_ROW').map((row) => row.textContent),

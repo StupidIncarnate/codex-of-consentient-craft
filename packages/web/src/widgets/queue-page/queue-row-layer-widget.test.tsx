@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QueueRowLayerWidget } from './queue-row-layer-widget';
 import { QueueRowLayerWidgetProxy } from './queue-row-layer-widget.proxy';
 
@@ -18,7 +17,7 @@ describe('QueueRowLayerWidget', () => {
         status: 'in_progress',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget entry={entry} index={0} total={2} isActive={false} />
@@ -40,7 +39,7 @@ describe('QueueRowLayerWidget', () => {
         guildSlug: 'guild-two',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget entry={entry} index={1} total={2} isActive={false} />
@@ -60,7 +59,7 @@ describe('QueueRowLayerWidget', () => {
       QueueRowLayerWidgetProxy();
       const entry = QuestQueueEntryStub({ questId: 'q-a', questTitle: 'Alpha Quest' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={true} />
@@ -85,7 +84,7 @@ describe('QueueRowLayerWidget', () => {
       QueueRowLayerWidgetProxy();
       const entry = QuestQueueEntryStub({ questId: 'q-a', questTitle: 'Alpha Quest' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={false} />
@@ -116,7 +115,7 @@ describe('QueueRowLayerWidget', () => {
         error: { message: 'boom', at: '2024-01-15T10:06:00.000Z' },
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={false} />
@@ -133,7 +132,7 @@ describe('QueueRowLayerWidget', () => {
       QueueRowLayerWidgetProxy();
       const entry = QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Healthy' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={false} />

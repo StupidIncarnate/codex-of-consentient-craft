@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { FlowTabLayerWidget } from './flow-tab-layer-widget';
 import { FlowTabLayerWidgetProxy } from './flow-tab-layer-widget.proxy';
@@ -27,7 +26,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub({ name: 'Login Flow' });
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
@@ -38,7 +37,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = EmptyNameFlowStub({ id: 'flow-c' });
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={2} isActive={false} onSelect={() => undefined} />,
     });
 
@@ -49,7 +48,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub({ name: 'A'.repeat(30) });
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
@@ -61,7 +60,7 @@ describe('FlowTabLayerWidget', () => {
     const longName = 'B'.repeat(30);
     const flow = FlowStub({ name: longName });
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
@@ -72,7 +71,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub();
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={0} isActive={true} onSelect={() => undefined} />,
     });
 
@@ -83,7 +82,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub();
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
@@ -95,7 +94,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub();
     const onSelect = jest.fn();
 
-    mantineRenderMiddleware({
+    render({
       ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={onSelect} />,
     });
     await proxy.clickTab();
@@ -113,7 +112,7 @@ describe('FlowTabLayerWidget', () => {
       });
       const flow = FlowStub({ id: 'login-flow' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowTabLayerWidget
             flow={flow}
@@ -138,7 +137,7 @@ describe('FlowTabLayerWidget', () => {
       });
       const flow = FlowStub({ id: 'login-flow' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />
         ),
@@ -153,7 +152,7 @@ describe('FlowTabLayerWidget', () => {
       proxy.setupEmptyQueue();
       const flow = FlowStub({ id: 'login-flow' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowTabLayerWidget
             flow={flow}

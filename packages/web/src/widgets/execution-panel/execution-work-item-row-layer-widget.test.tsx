@@ -1,4 +1,4 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
@@ -10,7 +10,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer-widget';
 import { ExecutionWorkItemRowLayerWidgetProxy } from './execution-work-item-row-layer-widget.proxy';
@@ -49,7 +48,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const operation = OperationItemStub({ id: OPERATION_ID, text: 'build the broker' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -72,7 +71,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         relatedDataItems: [`operations/${OPERATION_ID}`],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -91,7 +90,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const operation = OperationItemStub({ id: OPERATION_ID, text: 'build the broker' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -112,7 +111,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         status: 'in_progress',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -134,7 +133,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const operation = OperationItemStub({ id: OPERATION_ID, text: 'build the broker' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -159,7 +158,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         status: 'in_progress',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -179,7 +178,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         status: 'in_progress',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -198,7 +197,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         dependsOn: [WORK_ITEM_ID],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -223,7 +222,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         dependsOn: [WORK_ITEM_ID],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -248,7 +247,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         dependsOn: [WORK_ITEM_ID],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -272,7 +271,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         dependsOn: [WORK_ITEM_ID],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -293,7 +292,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         dependsOn: [WORK_ITEM_ID, OTHER_WORK_ITEM_ID],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -331,7 +330,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const wardResult = WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -354,7 +353,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         relatedDataItems: [`wardResults/${WARD_RESULT_ID}`],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -380,7 +379,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         outcome: 'repairable',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -405,7 +404,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         relatedDataItems: ['riftcarverResults/not-a-uuid'],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -425,7 +424,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         insertedBy: QuestWorkItemIdStub({ value: OTHER_WORK_ITEM_ID }),
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -440,7 +439,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         status: 'in_progress',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -459,7 +458,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const entry = AssistantTextChatEntryStub({ content: 'Capturing the spec...' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -480,7 +479,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         status: 'pending',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
       });
 
@@ -499,7 +498,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const entry = AssistantTextChatEntryStub({ content: 'Writing auth-login-broker.ts' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
@@ -527,7 +526,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const entry = AssistantTextChatEntryStub({ content: 'Exploring codebase...' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}

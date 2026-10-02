@@ -6,7 +6,7 @@
  * USAGE:
  * const proxy = CommentQueueBarWidgetProxy();
  * proxy.setupQueuedComments({ questId, entries: [CommentQueueEntryStub()] });
- * mantineRenderMiddleware({ ui: <CommentQueueBarWidget questId={questId} onSend={proxy.onSend} /> });
+ * render({ ui: <CommentQueueBarWidget questId={questId} onSend={proxy.onSend} /> });
  */
 
 import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';

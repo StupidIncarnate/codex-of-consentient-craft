@@ -1,9 +1,8 @@
-import { waitFor } from '#gateway/npm/testing-library__react';
+import { render, waitFor } from '#gateway/npm/testing-library__react';
 
 import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
 import { DispatchToggleWidget } from './dispatch-toggle-widget';
 import { DispatchToggleWidgetProxy } from './dispatch-toggle-widget.proxy';
@@ -14,7 +13,7 @@ describe('DispatchToggleWidget', () => {
       const proxy = DispatchToggleWidgetProxy();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -25,7 +24,7 @@ describe('DispatchToggleWidget', () => {
       const proxy = DispatchToggleWidgetProxy();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'node-playing' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -36,7 +35,7 @@ describe('DispatchToggleWidget', () => {
       const proxy = DispatchToggleWidgetProxy();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      render({ ui: <DispatchToggleWidget /> });
 
       expect(proxy.hasToggle()).toBe(false);
     });
@@ -48,7 +47,7 @@ describe('DispatchToggleWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
       proxy.setupPlay({ state: DispatchStateStub({ mode: 'node-playing' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
       await proxy.clickToggle();
@@ -68,7 +67,7 @@ describe('DispatchToggleWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'node-playing' }) });
       proxy.setupPause({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
       await proxy.clickToggle();
@@ -88,7 +87,7 @@ describe('DispatchToggleWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -126,7 +125,7 @@ describe('DispatchToggleWidget', () => {
         }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_HOLD_NOTICE');
 
@@ -141,7 +140,7 @@ describe('DispatchToggleWidget', () => {
       const proxy = DispatchToggleWidgetProxy();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -154,7 +153,7 @@ describe('DispatchToggleWidget', () => {
         state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -167,7 +166,7 @@ describe('DispatchToggleWidget', () => {
         state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -182,7 +181,7 @@ describe('DispatchToggleWidget', () => {
         state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -195,7 +194,7 @@ describe('DispatchToggleWidget', () => {
         state: DispatchStateStub({ mode: 'node-playing', hold: DispatchHoldStub() }),
       });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -209,7 +208,7 @@ describe('DispatchToggleWidget', () => {
       });
       proxy.setupPause({ state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
       await proxy.clickToggle();
@@ -225,7 +224,7 @@ describe('DispatchToggleWidget', () => {
       const proxy = DispatchToggleWidgetProxy();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 
@@ -237,7 +236,7 @@ describe('DispatchToggleWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
 
-      const { findByTestId } = mantineRenderMiddleware({ ui: <DispatchToggleWidget /> });
+      const { findByTestId } = render({ ui: <DispatchToggleWidget /> });
 
       await findByTestId('DISPATCH_TOGGLE');
 

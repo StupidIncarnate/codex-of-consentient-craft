@@ -1,8 +1,7 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { GuildListWidget } from './guild-list-widget';
 import { GuildListWidgetProxy } from './guild-list-widget.proxy';
 
@@ -13,7 +12,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget guilds={[]} selectedGuildId={null} onSelect={onSelect} onAdd={onAdd} />
         ),
@@ -29,7 +28,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -52,7 +51,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -74,7 +73,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -97,7 +96,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -119,7 +118,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget guilds={[]} selectedGuildId={null} onSelect={onSelect} onAdd={onAdd} />
         ),
@@ -137,7 +136,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget guilds={[]} selectedGuildId={null} onSelect={onSelect} onAdd={onAdd} />
         ),
@@ -151,7 +150,7 @@ describe('GuildListWidget', () => {
     it('VALID: {guilds: []} => the + button carries GUILD_ADD_BUTTON and not PIXEL_BTN', () => {
       GuildListWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <GuildListWidget
             guilds={[]}

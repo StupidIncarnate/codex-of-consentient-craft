@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PlanSectionWidget } from './plan-section-widget';
 import { PlanSectionWidgetProxy } from './plan-section-widget.proxy';
 
@@ -14,7 +13,7 @@ describe('PlanSectionWidget', () => {
       const itemA = 'step-a';
       const itemB = 'step-b';
 
-      mantineRenderMiddleware({
+      render({
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
       });
 
@@ -27,7 +26,7 @@ describe('PlanSectionWidget', () => {
       const itemA = 'step-a';
       const itemB = 'step-b';
 
-      mantineRenderMiddleware({
+      render({
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
       });
 
@@ -42,7 +41,7 @@ describe('PlanSectionWidget', () => {
       const title = 'STEPS';
       const items: string[] = [];
 
-      mantineRenderMiddleware({
+      render({
         ui: <PlanSectionWidget title={title} items={items} renderItem={renderItem} />,
       });
 
@@ -56,7 +55,7 @@ describe('PlanSectionWidget', () => {
       const title = 'STEPS';
       const itemA = 'step-a';
 
-      mantineRenderMiddleware({
+      render({
         ui: <PlanSectionWidget title={title} items={[itemA]} renderItem={renderItem} />,
       });
 

@@ -1,4 +1,4 @@
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { FlowObservableNodeDataStub } from '../../contracts/flow-observable-node-data/flow-observable-node-data.stub';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
@@ -13,7 +13,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         description: 'redirects to dashboard',
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getNode()).toBeInTheDocument();
       expect(proxy.getType()?.textContent).toBe('ui-state');
@@ -27,7 +27,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         description: 'POSTs credentials to /auth/login',
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getType()?.textContent).toBe('api-call');
       expect(proxy.getDescription()?.textContent).toBe('POSTs credentials to /auth/login');
@@ -43,7 +43,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         description: 'the token pattern is read from the shared statics',
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getReadCheck()?.textContent).toBe('read-check');
       expect(proxy.getType()?.textContent).toBe('custom');
@@ -55,7 +55,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
       const data = FlowObservableNodeDataStub({ outcomeType: 'custom', verifyByReading: true });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.readCheckSharesRowWithType()).toBe(true);
     });
@@ -64,7 +64,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
       const data = FlowObservableNodeDataStub({ outcomeType: 'custom' });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getReadCheck()).toBe(null);
     });
@@ -77,7 +77,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         package: { name: 'storefront-ui', packageType: 'frontend-react' },
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getPackage()?.textContent).toBe('storefront-ui');
     });
@@ -92,7 +92,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         package: { name: 'orders-api', packageType: 'http-backend' },
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.packageSharesRowWithType()).toBe(true);
     });
@@ -103,7 +103,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         package: { name: 'orders-api', packageType: 'http-backend' },
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getPackageColor()).toBe(packageTypeStyleStatics.accent['http-backend']);
       expect(proxy.getPackageType()).toBe('http-backend');
@@ -113,7 +113,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
       const data = FlowObservableNodeDataStub({ package: { name: 'never-declared' } });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getPackageColor()).toBe(packageTypeStyleStatics.unresolved);
       expect(proxy.getPackageType()).toBe(null);
@@ -130,7 +130,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         nodeId: 'login-page',
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.countCommentButtons()).toBe(1);
     });
@@ -140,7 +140,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       proxy.setupEmptyQueue();
       const data = FlowObservableNodeDataStub({});
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.countCommentButtons()).toBe(0);
     });
@@ -151,7 +151,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
       const data = FlowObservableNodeDataStub({ commentCount: 1 });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getCommentBadge()?.textContent).toBe('1');
     });
@@ -160,7 +160,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
       const data = FlowObservableNodeDataStub({ commentCount: 0 });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getCommentBadge()).toBe(null);
     });
@@ -170,7 +170,7 @@ describe('FlowObservableNodeLayerWidget', () => {
       proxy.setupEmptyQueue();
       const data = FlowObservableNodeDataStub({ commentCount: 2 });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getCommentBadge()?.textContent).toBe('2');
       expect(proxy.countCommentButtons()).toBe(0);
@@ -186,7 +186,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         commentCount: 2,
       });
 
-      mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+      render({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
       expect(proxy.getCommentBadge()?.textContent).toBe('2');
       expect(proxy.countCommentButtons()).toBe(1);

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { render, screen, waitFor } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -7,7 +7,6 @@ import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/
 import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowsLayerWidget } from './flows-layer-widget';
@@ -32,7 +31,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ name: 'Login Flow' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -43,7 +42,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ entryPoint: '/login' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -54,7 +53,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ exitPoints: ['/dashboard', '/settings'] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -67,7 +66,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ scope: 'packages/web' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -78,7 +77,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub();
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -89,7 +88,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ flowType: 'runtime' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -100,7 +99,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ flowType: 'operational' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -121,7 +120,7 @@ describe('FlowsLayerWidget', () => {
         flowType: 'operational',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[runtimeFlow, operationalFlow]} />,
       });
 
@@ -142,7 +141,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ name: 'Solo Flow' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -155,7 +154,7 @@ describe('FlowsLayerWidget', () => {
       const flowA = EmptyNameFlowStub({ id: 'flow-a' });
       const flowB = FlowStub({ id: 'flow-b', name: 'Other' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flowA, flowB]} />,
       });
 
@@ -171,7 +170,7 @@ describe('FlowsLayerWidget', () => {
       const flowA = FlowStub({ id: 'flow-a', name: longName });
       const flowB = FlowStub({ id: 'flow-b', name: 'Other' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flowA, flowB]} />,
       });
 
@@ -185,7 +184,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ flowType: 'runtime' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -199,7 +198,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ flowType: 'operational' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -213,7 +212,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ name: 'Login Flow', flowType: 'runtime' });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -232,7 +231,7 @@ describe('FlowsLayerWidget', () => {
         edges: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -257,7 +256,7 @@ describe('FlowsLayerWidget', () => {
         nodeId: 'login-page',
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} contracts={[contract]} />,
       });
 
@@ -277,7 +276,7 @@ describe('FlowsLayerWidget', () => {
         edges: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -292,7 +291,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ nodes: [], edges: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -303,7 +302,7 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const flows: Flow[] = [];
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={flows} />,
       });
 
@@ -322,7 +321,7 @@ describe('FlowsLayerWidget', () => {
       const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
       const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} commentQuestId={QuestIdStub({ value: 'quest-a' })} />,
       });
 
@@ -339,7 +338,7 @@ describe('FlowsLayerWidget', () => {
       const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
       const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -356,7 +355,7 @@ describe('FlowsLayerWidget', () => {
       const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
       const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowsLayerWidget
             flows={[flow]}
@@ -380,7 +379,7 @@ describe('FlowsLayerWidget', () => {
       const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
       const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
@@ -409,7 +408,7 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
       });
 
@@ -432,7 +431,7 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
       });
 
@@ -456,7 +455,7 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
       });
       await proxy.clickTab({ index: 1 });
@@ -475,7 +474,7 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
       });
 
@@ -499,7 +498,7 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} />,
       });
 
@@ -523,7 +522,7 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
       });
 

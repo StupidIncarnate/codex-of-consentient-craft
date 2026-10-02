@@ -1,4 +1,4 @@
-import { waitFor } from '#gateway/npm/testing-library__react';
+import { render, waitFor } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
@@ -6,7 +6,6 @@ import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-stat
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
 import { QuestQueueBarWidget } from './quest-queue-bar-widget';
 import { QuestQueueBarWidgetProxy } from './quest-queue-bar-widget.proxy';
@@ -18,7 +17,7 @@ describe('QuestQueueBarWidget', () => {
       const proxy = QuestQueueBarWidgetProxy();
       proxy.setupEntries({ entries: [] });
 
-      const { queryByTestId } = mantineRenderMiddleware({
+      const { queryByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -42,7 +41,7 @@ describe('QuestQueueBarWidget', () => {
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'Alpha' })],
       });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -66,7 +65,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -88,7 +87,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -116,7 +115,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -135,7 +134,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId, queryByTestId } = mantineRenderMiddleware({
+      const { findByTestId, queryByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -156,7 +155,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -183,7 +182,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -206,7 +205,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -229,7 +228,7 @@ describe('QuestQueueBarWidget', () => {
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
       });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -275,7 +274,7 @@ describe('QuestQueueBarWidget', () => {
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
       });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -332,7 +331,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head, tail] });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -360,7 +359,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -382,7 +381,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId, queryByTestId } = mantineRenderMiddleware({
+      const { findByTestId, queryByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />
@@ -413,7 +412,7 @@ describe('QuestQueueBarWidget', () => {
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestQueueBarWidget />

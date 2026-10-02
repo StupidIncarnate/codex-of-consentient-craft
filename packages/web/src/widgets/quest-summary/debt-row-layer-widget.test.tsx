@@ -1,8 +1,7 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DebtRowLayerWidget } from './debt-row-layer-widget';
 import { DebtRowLayerWidgetProxy } from './debt-row-layer-widget.proxy';
 
@@ -20,7 +19,7 @@ describe('DebtRowLayerWidget', () => {
         toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
       });
 
-      mantineRenderMiddleware({ ui: <DebtRowLayerWidget entry={entry} /> });
+      render({ ui: <DebtRowLayerWidget entry={entry} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_DEBT_UNIT').textContent).toBe(
         '[cant-meet] [siegemaster] login-flow:terminal:dashboard',
@@ -42,7 +41,7 @@ describe('DebtRowLayerWidget', () => {
         toSettle: 'Drive this observable from an API-level walk instead of the browser.',
       });
 
-      mantineRenderMiddleware({ ui: <DebtRowLayerWidget entry={entry} /> });
+      render({ ui: <DebtRowLayerWidget entry={entry} /> });
 
       const lines = Array.from(screen.getByTestId('QUEST_SUMMARY_DEBT_ROW').children);
 
@@ -71,7 +70,7 @@ describe('DebtRowLayerWidget', () => {
         evidence: 'the spec asserts the 400 body but nothing drives a non-JSON request yet',
       });
 
-      mantineRenderMiddleware({ ui: <DebtRowLayerWidget entry={entry} /> });
+      render({ ui: <DebtRowLayerWidget entry={entry} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_DEBT_UNIT').textContent).toBe(
         '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
@@ -92,7 +91,7 @@ describe('DebtRowLayerWidget', () => {
         evidence: 'no spec drives a non-JSON request at the login route yet',
       });
 
-      mantineRenderMiddleware({ ui: <DebtRowLayerWidget entry={entry} /> });
+      render({ ui: <DebtRowLayerWidget entry={entry} /> });
 
       const lines = Array.from(screen.getByTestId('QUEST_SUMMARY_DEBT_ROW').children);
 
@@ -120,7 +119,7 @@ describe('DebtRowLayerWidget', () => {
         evidence: 'the handler has no unit test for the non-JSON branch',
       });
 
-      mantineRenderMiddleware({ ui: <DebtRowLayerWidget entry={entry} /> });
+      render({ ui: <DebtRowLayerWidget entry={entry} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_DEBT_UNIT').textContent).toBe(
         '[unmet] [codeweaver] login-flow:observable:rejects-bleh-payload',

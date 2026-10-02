@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionRowMintedByBadgeLayerWidget } from './execution-row-minted-by-badge-layer-widget';
 import { ExecutionRowMintedByBadgeLayerWidgetProxy } from './execution-row-minted-by-badge-layer-widget.proxy';
 
@@ -8,7 +7,7 @@ describe('ExecutionRowMintedByBadgeLayerWidget', () => {
   it('VALID: {mintedByLabel: "walk pt: 1"} => renders a badge naming the row it returns to', () => {
     ExecutionRowMintedByBadgeLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: <ExecutionRowMintedByBadgeLayerWidget mintedByLabel={'walk pt: 1'} />,
     });
 
@@ -20,7 +19,7 @@ describe('ExecutionRowMintedByBadgeLayerWidget', () => {
   it('EMPTY: {mintedByLabel: undefined} => renders nothing', () => {
     ExecutionRowMintedByBadgeLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: <ExecutionRowMintedByBadgeLayerWidget mintedByLabel={undefined} />,
     });
 

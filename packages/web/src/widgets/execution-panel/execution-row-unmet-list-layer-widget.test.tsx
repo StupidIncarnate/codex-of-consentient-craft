@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionRowUnmetListLayerWidget } from './execution-row-unmet-list-layer-widget';
 import { ExecutionRowUnmetListLayerWidgetProxy } from './execution-row-unmet-list-layer-widget.proxy';
 
@@ -11,7 +10,7 @@ describe('ExecutionRowUnmetListLayerWidget', () => {
   it('VALID: {workItem with one unmet observation} => renders its unit id and evidence', () => {
     ExecutionRowUnmetListLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: (
         <ExecutionRowUnmetListLayerWidget
           workItem={WorkItemStub({
@@ -33,7 +32,7 @@ describe('ExecutionRowUnmetListLayerWidget', () => {
   it('VALID: {workItem with a met and an unmet observation} => renders only the unmet one', () => {
     ExecutionRowUnmetListLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: (
         <ExecutionRowUnmetListLayerWidget
           workItem={WorkItemStub({
@@ -60,7 +59,7 @@ describe('ExecutionRowUnmetListLayerWidget', () => {
   it('EMPTY: {workItem with only a met observation} => renders nothing', () => {
     ExecutionRowUnmetListLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: (
         <ExecutionRowUnmetListLayerWidget
           workItem={WorkItemStub({ observations: [UnitObservationStub({ mark: 'met' })] })}
@@ -74,7 +73,7 @@ describe('ExecutionRowUnmetListLayerWidget', () => {
   it('EMPTY: {workItem: undefined} => renders nothing', () => {
     ExecutionRowUnmetListLayerWidgetProxy();
 
-    mantineRenderMiddleware({ ui: <ExecutionRowUnmetListLayerWidget workItem={undefined} /> });
+    render({ ui: <ExecutionRowUnmetListLayerWidget workItem={undefined} /> });
 
     expect(screen.queryByTestId('execution-row-unmet-list')).toBe(null);
   });

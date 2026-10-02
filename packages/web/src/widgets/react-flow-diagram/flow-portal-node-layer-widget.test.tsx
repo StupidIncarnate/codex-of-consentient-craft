@@ -1,4 +1,4 @@
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { FlowPortalNodeDataStub } from '../../contracts/flow-portal-node-data/flow-portal-node-data.stub';
 import { FlowPortalNodeLayerWidget } from './flow-portal-node-layer-widget';
 import { FlowPortalNodeLayerWidgetProxy } from './flow-portal-node-layer-widget.proxy';
@@ -12,7 +12,7 @@ describe('FlowPortalNodeLayerWidget', () => {
         label: '↗ compile-flow → compile-entry',
       });
 
-      mantineRenderMiddleware({ ui: <FlowPortalNodeLayerWidget data={data} /> });
+      render({ ui: <FlowPortalNodeLayerWidget data={data} /> });
 
       expect(proxy.getNode()).toBeInTheDocument();
       expect(proxy.getLabel()?.textContent).toBe('↗ compile-flow → compile-entry');
@@ -27,7 +27,7 @@ describe('FlowPortalNodeLayerWidget', () => {
         label: '↗ compile-flow → compile-entry',
       });
 
-      mantineRenderMiddleware({ ui: <FlowPortalNodeLayerWidget data={data} /> });
+      render({ ui: <FlowPortalNodeLayerWidget data={data} /> });
 
       // A portal is a rendering stand-in for a node that lives in another flow, so a comment left
       // here would strand feedback on an artifact instead of the real node.

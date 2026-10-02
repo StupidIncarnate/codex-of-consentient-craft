@@ -2,18 +2,17 @@
  * PURPOSE: Tests for QuestChatWidget — the thin wrapper that reads URL params, looks up the matched guild, and delegates to QuestChatRoutingLayerWidget.
  */
 
-import { waitFor } from '#gateway/npm/testing-library__react';
+import { render, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
 import { QuestChatWidget } from './quest-chat-widget';
 import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';
 
 const renderAt = ({ path, url }: { path: string; url: string }): void => {
-  mantineRenderMiddleware({
+  render({
     ui: (
       <MemoryRouter initialEntries={[url]}>
         <Routes>

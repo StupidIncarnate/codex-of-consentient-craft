@@ -1,15 +1,15 @@
 /**
  * PURPOSE: Every fixed value the npm-gateway sync reads — where dungeonmaster's own npm gateway is
- * found and where the consumer's lives, which package.json field it reads (`dependencies` only: a
- * devDependency is tooling, never imported by shipped code), which dependencies never get a gateway folder, and
- * the one `npm install` the sync runs to bring the lockfile back in step. `dropped` holds names that
- * are never wrapped: `@types/*` carry types only, and `dungeonmaster` / `@dungeonmaster/*` are the
- * tool itself, which a consumer never imports through its own gateway. `ownPackages` is the subset
- * of those a copied wrapper may still import raw (a proxy's `@dungeonmaster/testing/register-mock`),
- * since `init` installs them at the consumer's root. `esmProbe.diagnosticCodes` are the TypeScript
- * errors that mean a CommonJS file cannot `require` what it imports: TS1479 for an `import` or
- * `export ... from`, TS1471 for `import x = require()`. `lockfileInstall.errorLinePrefixes` are how
- * npm starts the lines that say why it failed (`npm error` today, `npm ERR!` before npm 10).
+ * found and where the consumer's lives, which package.json fields it reads (`dependencies` and
+ * `devDependencies`), which dependencies never get a gateway folder, and the one `npm install` the
+ * sync runs to bring the lockfile back in step. `dropped` holds names that are never wrapped:
+ * `@types/*` carry types only, and `dungeonmaster` / `@dungeonmaster/*` are the tool itself, which
+ * a consumer never imports through its own gateway. `ownPackages` is the subset of those a copied
+ * wrapper may still import raw (a proxy's `@dungeonmaster/testing/register-mock`), since `init`
+ * installs them at the consumer's root. `esmProbe.diagnosticCodes` are the TypeScript errors that
+ * mean a CommonJS file cannot `require` what it imports: TS1479 for an `import` or `export ... from`,
+ * TS1471 for `import x = require()`. `lockfileInstall.errorLinePrefixes` are how npm starts the
+ * lines that say why it failed (`npm error` today, `npm ERR!` before npm 10).
  *
  * USAGE:
  * gatewayNpmSyncStatics.ownGateway.specifier;
@@ -30,8 +30,9 @@ export const gatewayNpmSyncStatics = {
   packageJson: {
     fileName: 'package.json',
     nameKey: 'name',
-    dependencyKeys: ['dependencies'],
+    dependencyKeys: ['dependencies', 'devDependencies'],
     recordKey: 'dependencies',
+    devRecordKey: 'devDependencies',
   },
   dropped: {
     names: ['dungeonmaster'],

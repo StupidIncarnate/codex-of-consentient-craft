@@ -1,4 +1,4 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
@@ -7,7 +7,6 @@ import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observa
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
 
@@ -22,7 +21,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -42,7 +41,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -61,7 +60,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -101,7 +100,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -138,7 +137,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -164,7 +163,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -198,7 +197,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -236,7 +235,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -266,7 +265,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -291,7 +290,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -318,7 +317,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -350,7 +349,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const contract = QuestContractEntryStub({ nodeId, name: 'LoginCredentials' });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -372,7 +371,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -395,7 +394,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const comment = QuestCommentStub({ id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479' });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -420,7 +419,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const comment = QuestCommentStub({ id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479' });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -447,7 +446,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}
@@ -469,7 +468,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <FlowNodeDetailPanelLayerWidget
             node={node}

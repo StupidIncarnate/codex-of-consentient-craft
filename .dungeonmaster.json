@@ -2,16 +2,6 @@
   "framework": "monorepo",
   "schema": "zod",
   "orchestrationMode": "node",
-  "gateway": {
-    "restrictedTo": [
-      {
-        "subpath": "#gateway/npm/testing-library__react",
-        "name": "render",
-        "packages": ["@dungeonmaster/testing"],
-        "reason": "widget tests render through @dungeonmaster/testing's render, which wraps MantineProvider"
-      }
-    ]
-  },
   "dungeonmaster": {
     "port": 4800
   },

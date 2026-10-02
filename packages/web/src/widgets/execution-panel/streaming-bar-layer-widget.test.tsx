@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 import { StreamingBarLayerWidgetProxy } from './streaming-bar-layer-widget.proxy';
 
@@ -9,7 +8,7 @@ describe('StreamingBarLayerWidget', () => {
     it('VALID: {no props} => renders streaming text with block characters', () => {
       StreamingBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <StreamingBarLayerWidget />,
       });
 
@@ -23,7 +22,7 @@ describe('StreamingBarLayerWidget', () => {
     it('VALID: {no props} => renders with flex layout', () => {
       StreamingBarLayerWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <StreamingBarLayerWidget />,
       });
 

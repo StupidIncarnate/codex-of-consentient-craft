@@ -2,7 +2,7 @@ import { gatewayNpmDependenciesListBroker } from './gateway-npm-dependencies-lis
 import { gatewayNpmDependenciesListBrokerProxy } from './gateway-npm-dependencies-list-broker.proxy';
 
 describe('gatewayNpmDependenciesListBroker', () => {
-  it('VALID: {root and workspace dependencies} => unions them, first range winning, and skips a devDependency-only package', async () => {
+  it('VALID: {root and workspace dependencies} => unions them, first range winning, and records devDependency location', async () => {
     const proxy = gatewayNpmDependenciesListBrokerProxy();
     proxy.setupRepo({
       repoRoot: '/repo',
@@ -27,8 +27,15 @@ describe('gatewayNpmDependenciesListBroker', () => {
     const result = await gatewayNpmDependenciesListBroker({ repoRoot: '/repo' });
 
     expect(result).toStrictEqual([
-      { name: 'zod', range: '^4.0.0', folder: 'zod' },
-      { name: '@hono/node-server', range: '^1.0.0', folder: 'hono__node-server' },
+      { name: 'zod', range: '^4.0.0', folder: 'zod', location: 'dependencies' },
+      { name: 'left-pad', range: '^1.3.0', folder: 'left-pad', location: 'devDependencies' },
+      {
+        name: '@hono/node-server',
+        range: '^1.0.0',
+        folder: 'hono__node-server',
+        location: 'dependencies',
+      },
+      { name: 'vitest', range: '^3.0.0', folder: 'vitest', location: 'devDependencies' },
     ]);
   });
 
@@ -61,7 +68,9 @@ describe('gatewayNpmDependenciesListBroker', () => {
 
     const result = await gatewayNpmDependenciesListBroker({ repoRoot: '/repo' });
 
-    expect(result).toStrictEqual([{ name: 'elkjs', range: '^0.11.0', folder: 'elkjs' }]);
+    expect(result).toStrictEqual([
+      { name: 'elkjs', range: '^0.11.0', folder: 'elkjs', location: 'dependencies' },
+    ]);
   });
 
   it('EMPTY: {root with no dependency fields, no packages} => returns []', async () => {

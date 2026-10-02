@@ -544,7 +544,7 @@ describe('sessionSnippetStatics', () => {
         'Applies in a consumer repo `dungeonmaster init` has touched',
       ),
       namesEveryTrigger: sessionSnippetStatics.consumerGatewayWrapper.includes(
-        '`dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` entry a folder there',
+        '`dungeonmaster init`, every bare `npm install` (the root `postinstall`), and the agent hook after `npm install <pkg>` give every `dependencies` and `devDependencies` entry a folder there',
       ),
       namesBothFolderSources: sessionSnippetStatics.consumerGatewayWrapper.includes(
         "dungeonmaster's own wrapper when one fits your installed version and compiles, otherwise a one-line passthrough barrel plus its test",

@@ -1,6 +1,6 @@
 import { btoa } from '#gateway/browser/btoa';
 import { Node } from '#gateway/browser/Node';
-import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
+import { act, render, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -14,7 +14,6 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 import { QuestChatContentLayerWidgetProxy } from './quest-chat-content-layer-widget.proxy';
@@ -31,7 +30,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -55,7 +54,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -81,7 +80,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       const guildId = GuildIdStub({ value: '08ad6f48-0b73-7dd8-bf07-7504fecea684' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -113,7 +112,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       const guildId = GuildIdStub({ value: '66666666-7777-8888-9999-aaaaaaaaaaaa' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -139,7 +138,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
       const guildId = GuildIdStub({ value: '55555555-6666-7777-8888-999999999999' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -172,7 +171,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       const guildId = GuildIdStub({ value: 'c6426b96-020d-8c0c-ac3a-dc1cf3952797' });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -200,7 +199,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
       const guildId = GuildIdStub({ value: '6b47438c-b99d-7f75-98d2-6a577c26bc59' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -237,7 +236,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
       const guildId = GuildIdStub({ value: 'efb6d98d-378a-183f-b291-9e1679effb0e' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -268,7 +267,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       const guildId = GuildIdStub({ value: 'cb492421-7f9c-5655-8dae-f823411faa2c' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -292,7 +291,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '68f80191-a1da-26da-83e1-b8ea81b06110' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -322,7 +321,7 @@ describe('QuestChatContentLayerWidget', () => {
         status: 'review_flows',
       });
 
-      const { queryByTestId } = mantineRenderMiddleware({
+      const { queryByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -362,7 +361,7 @@ describe('QuestChatContentLayerWidget', () => {
         status: 'in_progress',
       });
 
-      const { queryByTestId } = mantineRenderMiddleware({
+      const { queryByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -428,7 +427,7 @@ describe('QuestChatContentLayerWidget', () => {
         status: 'in_progress',
       });
 
-      const { queryByTestId, getByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, getByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -480,7 +479,7 @@ describe('QuestChatContentLayerWidget', () => {
       const chatProcessId = 'proc-clarify';
       proxy.setupClarify({ chatProcessId });
 
-      const { findByTestId } = mantineRenderMiddleware({
+      const { findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -540,7 +539,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'c6426b96-020d-8c0c-ac3a-dc1cf3952797' });
       const quest = QuestStub({ id: 'q-hidden', status: 'review_flows' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter initialEntries={['/test-guild/quest/q-hidden?chat=hidden']}>
             <Routes>
@@ -581,7 +580,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '6b47438c-b99d-7f75-98d2-6a577c26bc59' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter initialEntries={['/test-guild/quest/q-loading?chat=hidden']}>
             <Routes>
@@ -616,7 +615,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'efb6d98d-378a-183f-b291-9e1679effb0e' });
       const quest = QuestStub({ id: 'q-visible', status: 'review_flows' });
 
-      const { queryByTestId } = mantineRenderMiddleware({
+      const { queryByTestId } = render({
         ui: (
           <MemoryRouter initialEntries={['/test-guild/quest/q-visible?chat=visible']}>
             <Routes>
@@ -665,7 +664,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupTimestamps({ timestamps: ['2026-05-11T03:59:30.000Z'] });
       proxy.setupUuids({ uuids: ['ddddddd2-dddd-4ddd-8ddd-dddddddddddd'] });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -795,7 +794,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '3ccdd847-717d-635b-a085-21ec23b3b48c' });
       const quest = QuestStub({ id: 'q-complete-summary', status: 'complete' });
 
-      const { findByTestId, getByTestId } = mantineRenderMiddleware({
+      const { findByTestId, getByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -832,7 +831,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '96e2df2b-14e1-8fe2-b12d-b75330714a90' });
       const quest = QuestStub({ id: 'q-followup-chat-panel', status: 'complete' });
 
-      const { findByTestId, getByTestId } = mantineRenderMiddleware({
+      const { findByTestId, getByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -872,7 +871,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '9eadb744-387f-851c-8c16-f756689ab5da' });
       const quest = QuestStub({ id: 'q-followup-post', status: 'complete' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -920,7 +919,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'eec9453b-b09d-8cf1-bfa3-2fc67d7e88c0' });
       const quest = QuestStub({ id: 'q-followup-rejected', status: 'complete' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -988,7 +987,7 @@ describe('QuestChatContentLayerWidget', () => {
         ],
       });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1057,7 +1056,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '40c0a194-6a9c-3b24-a174-685cff60330b' });
       const quest = QuestStub({ id: 'q-followup-stop', status: 'complete' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1110,7 +1109,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '6443ae45-0a94-3efa-9452-75bc2256b8ed' });
       const quest = QuestStub({ id: 'q-merge', status: 'complete' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1150,7 +1149,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '213bfad8-a920-3e62-80c3-c9f0a4148160' });
       const quest = QuestStub({ id: 'q-merging', status: 'merging' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1197,7 +1196,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '40c0a194-6a9c-3b24-a174-685cff60330b' });
       const quest = QuestStub({ id: 'q-begin-rejected', status: 'approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1241,7 +1240,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'c41588d6-b0ca-67a9-80ea-bc7bd1d1fd6d' });
       const quest = QuestStub({ id: 'q-begin-ok', status: 'approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1285,7 +1284,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: '5dfad671-b74b-4b8e-bc94-5be4fbe466b3' });
       const quest = QuestStub({ id: 'q-begin-double-click', status: 'approved' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1326,7 +1325,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'fc536acd-f13f-3c6a-9e11-3b4f3883ca28' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1365,7 +1364,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '56cbc703-8711-29e9-b78d-d68f836d0049' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1399,7 +1398,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'a2da4d64-2b11-58ea-b29a-61a31f3f4d27' });
       const quest = QuestStub({ id: 'q-repaired', status: 'review_flows' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1445,7 +1444,7 @@ describe('QuestChatContentLayerWidget', () => {
       const guildId = GuildIdStub({ value: 'f504ced8-953c-276f-9837-8845ae12a7a3' });
       const quest = QuestStub({ id: 'q-goes-stale', status: 'review_flows' });
 
-      const { queryByTestId, findByTestId } = mantineRenderMiddleware({
+      const { queryByTestId, findByTestId } = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1501,7 +1500,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
       const guildId = GuildIdStub({ value: '4943d44a-c991-2928-80b6-7ef4334d84bb' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1568,7 +1567,7 @@ describe('QuestChatContentLayerWidget', () => {
         PastedImageUploadStub({ mediaType: 'image/png', dataBase64: expectedBase64 }),
       ];
 
-      const createRender = mantineRenderMiddleware({
+      const createRender = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1604,7 +1603,7 @@ describe('QuestChatContentLayerWidget', () => {
       // each render their own CHAT_PANEL/CHAT_INPUT, and getByTestId requires exactly one match.
       createRender.unmount();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1669,7 +1668,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupChat({ chatProcessId: 'proc-dedupe-image' });
       const guildId = GuildIdStub({ value: 'f0299cc2-1a09-8219-a48d-1f4555df225f' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1785,7 +1784,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
       const guildId = GuildIdStub({ value: '88430dc1-49c7-3b3a-9d48-13bc6c85826f' });
 
-      const rendered = mantineRenderMiddleware({
+      const rendered = render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -1904,7 +1903,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupNewQuestError();
       const guildId = GuildIdStub({ value: 'ad38f4e0-5875-5db5-88f6-0514ab5e55dd' });
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget

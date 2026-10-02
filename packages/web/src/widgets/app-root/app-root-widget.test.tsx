@@ -1,5 +1,4 @@
-import { screen } from '#gateway/npm/testing-library__react';
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { AppRootWidget } from './app-root-widget';
 import { AppRootWidgetProxy } from './app-root-widget.proxy';
@@ -9,7 +8,7 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => renders children within provider tree', () => {
       AppRootWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AppRootWidget>
             <span data-testid="CHILD_ELEMENT">Test Content</span>
@@ -23,7 +22,7 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => applies dark background color from theme statics', () => {
       AppRootWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AppRootWidget>
             <span>Content</span>
@@ -39,7 +38,7 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => applies min-height of 100vh', () => {
       AppRootWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AppRootWidget>
             <span>Content</span>
@@ -70,7 +69,7 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => declares palette ::selection, a dimmed React Flow attribution and the narrow-viewport logo rules', () => {
       AppRootWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <AppRootWidget>
             <span>Content</span>

@@ -1,6 +1,6 @@
 import React from '#gateway/npm/react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 
 import { NodeMeasureLayerWidget } from './node-measure-layer-widget';
 import { NodeMeasureLayerWidgetProxy } from './node-measure-layer-widget.proxy';
@@ -11,7 +11,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(NodeMeasureLayerWidget, {
           nodeIds: 'press-begin\nobs:press-begin:one',
         }),
@@ -24,7 +24,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupMeasuredGraph();
 
-      mantineRenderMiddleware({
+      render({
         ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
       });
 
@@ -35,7 +35,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      mantineRenderMiddleware({ ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: '' }) });
+      render({ ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: '' }) });
 
       expect(proxy.getForcedMeasureIds()).toStrictEqual([]);
     });
@@ -44,7 +44,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      const { rerender } = mantineRenderMiddleware({
+      const { rerender } = render({
         ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
       });
       rerender(React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }));
@@ -57,7 +57,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      const { rerender } = mantineRenderMiddleware({
+      const { rerender } = render({
         ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
       });
       rerender(
@@ -74,7 +74,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupMeasuredGraph();
 
-      const { container } = mantineRenderMiddleware({
+      const { container } = render({
         ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
       });
 

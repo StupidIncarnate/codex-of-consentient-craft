@@ -1,7 +1,6 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ClarifyOptionLayerWidget } from './clarify-option-layer-widget';
 import { ClarifyOptionLayerWidgetProxy } from './clarify-option-layer-widget.proxy';
 
@@ -21,7 +20,7 @@ describe('ClarifyOptionLayerWidget', () => {
       });
       const option = parsed.questions[0]!.options[0]!;
 
-      mantineRenderMiddleware({
+      render({
         ui: <ClarifyOptionLayerWidget option={option} onSelect={jest.fn()} />,
       });
 
@@ -45,7 +44,7 @@ describe('ClarifyOptionLayerWidget', () => {
       const option = parsed.questions[0]!.options[0]!;
       const onSelect = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ClarifyOptionLayerWidget option={option} onSelect={onSelect} />,
       });
 

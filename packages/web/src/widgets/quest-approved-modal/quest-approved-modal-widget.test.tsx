@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestApprovedModalWidget } from './quest-approved-modal-widget';
 import { QuestApprovedModalWidgetProxy } from './quest-approved-modal-widget.proxy';
 
@@ -9,7 +8,7 @@ describe('QuestApprovedModalWidget', () => {
     it('VALID: {opened: true} => renders modal with dumpster diving title', () => {
       QuestApprovedModalWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -26,7 +25,7 @@ describe('QuestApprovedModalWidget', () => {
     it('VALID: {opened: true} => renders Begin Quest button', () => {
       QuestApprovedModalWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -43,7 +42,7 @@ describe('QuestApprovedModalWidget', () => {
     it('VALID: {opened: true} => renders Keep Chatting button', () => {
       QuestApprovedModalWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -60,7 +59,7 @@ describe('QuestApprovedModalWidget', () => {
     it('VALID: {opened: true} => does NOT render the "Start a new Quest" button (removed in /dumpster-create pivot)', () => {
       const proxy = QuestApprovedModalWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -77,7 +76,7 @@ describe('QuestApprovedModalWidget', () => {
     it('VALID: {opened: false} => does not render modal title', () => {
       QuestApprovedModalWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={false}
@@ -97,7 +96,7 @@ describe('QuestApprovedModalWidget', () => {
       const proxy = QuestApprovedModalWidgetProxy();
       const onBeginQuest = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -117,7 +116,7 @@ describe('QuestApprovedModalWidget', () => {
       const proxy = QuestApprovedModalWidgetProxy();
       const onKeepChatting = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -138,7 +137,7 @@ describe('QuestApprovedModalWidget', () => {
     it('VALID: {beginQuestPending: true} => renders the Begin Quest button with pointer-events none', () => {
       QuestApprovedModalWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -159,7 +158,7 @@ describe('QuestApprovedModalWidget', () => {
       const proxy = QuestApprovedModalWidgetProxy();
       const onBeginQuest = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
@@ -185,7 +184,7 @@ describe('QuestApprovedModalWidget', () => {
       const proxy = QuestApprovedModalWidgetProxy();
       const onKeepChatting = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <QuestApprovedModalWidget
             opened={true}

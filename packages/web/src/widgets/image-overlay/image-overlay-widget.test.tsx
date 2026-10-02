@@ -1,6 +1,5 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageOverlayWidget } from './image-overlay-widget';
 import { ImageOverlayWidgetProxy } from './image-overlay-widget.proxy';
@@ -29,7 +28,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {opened: true} => renders IMAGE_OVERLAY and IMAGE_OVERLAY_IMAGE with the exact src and alt passed', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
         ),
@@ -44,7 +43,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {opened: false} => renders nothing', () => {
       ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget
             opened={false}
@@ -65,7 +64,7 @@ describe('ImageOverlayWidget', () => {
     it('EMPTY: {opened: true, src: ""} => IMAGE_OVERLAY mounts but IMAGE_OVERLAY_IMAGE does not render', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: <ImageOverlayWidget opened={true} src="" alt={ALT_TEXT} onClose={jest.fn()} />,
       });
       await flushMountTimers();
@@ -77,7 +76,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {opened: true} => a close control is visible on the modal', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
         ),
@@ -92,7 +91,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {opened: false} => no close control renders', () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget
             opened={false}
@@ -112,7 +111,7 @@ describe('ImageOverlayWidget', () => {
       const proxy = ImageOverlayWidgetProxy();
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={onClose} />
         ),
@@ -133,7 +132,7 @@ describe('ImageOverlayWidget', () => {
       const proxy = ImageOverlayWidgetProxy();
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={onClose} />
         ),
@@ -151,7 +150,7 @@ describe('ImageOverlayWidget', () => {
       const proxy = ImageOverlayWidgetProxy();
       const onClose = jest.fn();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={onClose} />
         ),
@@ -172,7 +171,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {src: base64 data URL} => renders unchanged — the composer caller, for an image the server has never seen', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={DATA_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
         ),
@@ -185,7 +184,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {src: http URL} => renders unchanged — the transcript caller, for an image the server serves from disk', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
         ),
@@ -203,7 +202,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {opened: true} => the image is width-constrained and the modal body caps height with scroll', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
         ),
@@ -220,7 +219,7 @@ describe('ImageOverlayWidget', () => {
     it('VALID: {opened: true} => the modal itself is constrained to the configured viewport-width share', async () => {
       const proxy = ImageOverlayWidgetProxy();
 
-      mantineRenderMiddleware({
+      render({
         ui: (
           <ImageOverlayWidget opened={true} src={HTTP_URL_SRC} alt={ALT_TEXT} onClose={jest.fn()} />
         ),

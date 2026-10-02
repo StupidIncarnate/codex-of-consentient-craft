@@ -1,9 +1,8 @@
-import { screen } from '#gateway/npm/testing-library__react';
+import { render, screen } from '#gateway/npm/testing-library__react';
 
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionRowUnitMarksLayerWidget } from './execution-row-unit-marks-layer-widget';
 import { ExecutionRowUnitMarksLayerWidgetProxy } from './execution-row-unit-marks-layer-widget.proxy';
 
@@ -11,7 +10,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('VALID: {3 assigned units, met + cant-meet observed, 1 never observed} => renders the summary and every non-unmet mark', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: (
         <ExecutionRowUnitMarksLayerWidget
           workItem={WorkItemStub({
@@ -50,7 +49,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('VALID: {an unmet observation among the assigned units} => excludes it, leaving the unmet list to show it', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: (
         <ExecutionRowUnitMarksLayerWidget
           workItem={WorkItemStub({
@@ -81,7 +80,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('EMPTY: {workItem assigned no units} => renders nothing', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderMiddleware({
+    render({
       ui: <ExecutionRowUnitMarksLayerWidget workItem={WorkItemStub({ assignedUnitIds: [] })} />,
     });
 
@@ -91,7 +90,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('EMPTY: {workItem: undefined} => renders nothing', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderMiddleware({ ui: <ExecutionRowUnitMarksLayerWidget workItem={undefined} /> });
+    render({ ui: <ExecutionRowUnitMarksLayerWidget workItem={undefined} /> });
 
     expect(screen.queryByTestId('execution-row-unit-marks')).toBe(null);
   });

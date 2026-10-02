@@ -1,4 +1,4 @@
-import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { render } from '#gateway/npm/testing-library__react';
 import { UploadProgressBarWidget } from './upload-progress-bar-widget';
 import { UploadProgressBarWidgetProxy } from './upload-progress-bar-widget.proxy';
 
@@ -7,7 +7,7 @@ describe('UploadProgressBarWidget', () => {
     const proxy = UploadProgressBarWidgetProxy();
     const percent = 0;
 
-    mantineRenderMiddleware({ ui: <UploadProgressBarWidget percent={percent} /> });
+    render({ ui: <UploadProgressBarWidget percent={percent} /> });
 
     expect(proxy.hasBar()).toBe(true);
     expect(proxy.getPercent()).toBe(0);
@@ -17,7 +17,7 @@ describe('UploadProgressBarWidget', () => {
     const proxy = UploadProgressBarWidgetProxy();
     const percent = 50;
 
-    mantineRenderMiddleware({ ui: <UploadProgressBarWidget percent={percent} /> });
+    render({ ui: <UploadProgressBarWidget percent={percent} /> });
 
     expect(proxy.getPercent()).toBe(50);
   });
@@ -26,7 +26,7 @@ describe('UploadProgressBarWidget', () => {
     const proxy = UploadProgressBarWidgetProxy();
     const percent = 100;
 
-    mantineRenderMiddleware({ ui: <UploadProgressBarWidget percent={percent} /> });
+    render({ ui: <UploadProgressBarWidget percent={percent} /> });
 
     expect(proxy.getPercent()).toBe(100);
   });
@@ -35,7 +35,7 @@ describe('UploadProgressBarWidget', () => {
     const proxy = UploadProgressBarWidgetProxy();
     const percent = 37;
 
-    mantineRenderMiddleware({ ui: <UploadProgressBarWidget percent={percent} /> });
+    render({ ui: <UploadProgressBarWidget percent={percent} /> });
 
     expect(proxy.getPercent()).toBe(37);
   });
