@@ -1,6 +1,8 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
+import { DurationSampleStub } from '../../../contracts/duration-sample/duration-sample.stub';
 
 import { multiPackageLayerBroker } from './multi-package-layer-broker';
 import { multiPackageLayerBrokerProxy } from './multi-package-layer-broker.proxy';
@@ -1311,6 +1313,541 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([['run', '--only', 'lint']]);
+    });
+  });
+
+  describe('duration history and dispatch ordering', () => {
+    it('VALID: {two packages, one with longer history} => spawns the package with longest history first in pool', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+      proxy.setupDurationHistory({
+        samples: [
+          DurationSampleStub({
+            repoRoot: rootPath,
+            packageName: 'ward',
+            checkType: 'lint',
+            durationMs: 100,
+          }),
+          DurationSampleStub({
+            repoRoot: rootPath,
+            packageName: 'hooks',
+            checkType: 'lint',
+            durationMs: 900,
+          }),
+        ],
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedCwds()).toStrictEqual([hooksFolder.path, wardFolder.path]);
+    });
+
+    it('VALID: {dispatch order differs from discovery order} => merged summary order matches discovery order', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+      proxy.setupDurationHistory({
+        samples: [
+          DurationSampleStub({
+            repoRoot: rootPath,
+            packageName: 'ward',
+            checkType: 'lint',
+            durationMs: 100,
+          }),
+          DurationSampleStub({
+            repoRoot: rootPath,
+            packageName: 'hooks',
+            checkType: 'lint',
+            durationMs: 900,
+          }),
+        ],
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      const lintCheck = result.checks.find((check) => check.checkType === 'lint');
+
+      expect(lintCheck?.projectResults.map((p) => p.projectFolder.name)).toStrictEqual([
+        'ward',
+        'hooks',
+      ]);
+    });
+
+    it('VALID: {file-scoped run} => writes no duration sample', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: subResult }],
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({
+          only: ['lint'],
+          passthrough: ['packages/ward/src/index.ts'],
+        }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(proxy.getWrittenDurationSamples()).toStrictEqual([]);
+    });
+
+    it('VALID: {onlyTests run} => writes no duration sample', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [wardFolder],
+        subResultContent: subResult,
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({
+          only: ['unit'],
+          onlyTests: 'my-test-name' as ReturnType<typeof WardConfigStub>['onlyTests'],
+        }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(proxy.getWrittenDurationSamples()).toStrictEqual([]);
+    });
+
+    it('VALID: {full run with multiple check types} => writes one sample per package and check type', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 120,
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+          {
+            checkType: 'unit',
+            status: 'pass',
+            durationMs: 340,
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 80,
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+          {
+            checkType: 'unit',
+            status: 'pass',
+            durationMs: 220,
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint', 'unit'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      const written = proxy.getWrittenDurationSamples();
+
+      expect(written).toStrictEqual([
+        {
+          repoRoot: rootPath,
+          packageName: 'ward',
+          checkType: 'lint',
+          durationMs: 120,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1739625600000,
+        },
+        {
+          repoRoot: rootPath,
+          packageName: 'hooks',
+          checkType: 'lint',
+          durationMs: 80,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1739625600000,
+        },
+        {
+          repoRoot: rootPath,
+          packageName: 'ward',
+          checkType: 'unit',
+          durationMs: 340,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1739625600000,
+        },
+        {
+          repoRoot: rootPath,
+          packageName: 'hooks',
+          checkType: 'unit',
+          durationMs: 220,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1739625600000,
+        },
+      ]);
+    });
+
+    it('ERROR: {history write throws} => leaves result unchanged and prints one line to stderr', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [wardFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDurationHistoryWriteThrows({
+        error: NativeErrorStub({ message: 'sqlite database locked' }),
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: duration history unavailable: sqlite database locked\n',
+      ]);
+    });
+
+    it('ERROR: {history read throws} => falls back to discovery order and prints one line to stderr', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+      proxy.setupDurationHistoryThrows({
+        error: NativeErrorStub({ message: 'sqlite table corrupt' }),
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getAllSpawnedCwds()).toStrictEqual([wardFolder.path, hooksFolder.path]);
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: duration history unavailable: sqlite table corrupt\n',
+      ]);
     });
   });
 });

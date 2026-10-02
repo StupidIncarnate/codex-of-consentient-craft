@@ -136,6 +136,10 @@ describe('stream()', () => {
         ['run', '--only', 'unit'],
         ['run', '--only', 'unit', '--', 'src/foo.ts'],
       ]);
+      expect(proxy.getSpawnedCwds({ command: 'dungeonmaster-ward' })).toStrictEqual([
+        '/repo/packages/hooks',
+        '/repo/packages/ward',
+      ]);
     });
   });
 });

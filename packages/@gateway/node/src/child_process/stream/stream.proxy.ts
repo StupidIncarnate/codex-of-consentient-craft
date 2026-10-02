@@ -33,6 +33,7 @@ export const streamProxy = (): {
   // that spawns the SAME command once per item (one child per workspace package, in
   // `multiPackageLayerBroker`) down to a single remembered call.
   getCallsFor: (params: { command: string }) => readonly string[][];
+  getSpawnedCwds: (params: { command: string }) => readonly string[];
 } => {
   const handle = registerMock({ fn: spawn });
 
@@ -123,5 +124,14 @@ export const streamProxy = (): {
 
     getCallsFor: ({ command }: { command: string }): readonly string[][] =>
       handle.callsMatching([command]).map((call) => call[1] as string[]),
+
+    getSpawnedCwds: ({ command }: { command: string }): readonly string[] =>
+      handle.callsMatching([command]).flatMap(([, , options]) => {
+        if (typeof options === 'object' && options !== null && 'cwd' in options) {
+          const rawCwd = (options as { cwd?: unknown }).cwd;
+          return typeof rawCwd === 'string' ? [rawCwd] : [];
+        }
+        return [];
+      }),
   };
 };
