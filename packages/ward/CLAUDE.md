@@ -444,14 +444,17 @@ e2e-eligible — `widgets/` plus either a React dependency or an Ink dependency.
 — that combination is a real gap, not something to skip quietly. Only an eligible package WITH the
 config proceeds to spawn Playwright.
 
-**Every e2e run is isolated from every other one, so SEVERAL browser walks against one package can run at once.**
-Three things carry the run's identity, and all three must stay per-run or the isolation is gone:
+**Every e2e run and shard is isolated from every other one, so SEVERAL browser walks against one package can run at once.**
+Four things carry the run/shard identity, and all must stay per-run and per-shard or the isolation is gone:
 
-| Per-run thing            | Where it comes from                                          | What sharing it costs                                                                                                                                                     |
-|--------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The two ports            | `freePortPair` (`#gateway/node/net`), both sockets held open together | A derived `port + 1` is never checked for being free, so a concurrent run can be handed it — and the `portKillListenersBroker` teardown then kills that run's server mid-suite |
-| The JSON report path     | `.ward-playwright-report-<serverPort>.json`                  | The second run overwrites a report the first is still reading, and both agents read a run describing neither                                                              |
-| Playwright's `outputDir` | `test-results/<port>` in `packages/web/playwright.config.ts` | Playwright clears the folder at run start, so the second run wipes the first's failure traces and screenshots                                                             |
+| Per-run / per-shard thing | Where it comes from                                          | What sharing it costs                                                                                                                                                     |
+|---------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| The two ports             | `freePortPair` (`#gateway/node/net`), both sockets held open together | A derived `port + 1` is never checked for being free, so a concurrent run or shard can be handed it — and the `portKillListenersBroker` teardown then kills that run's server mid-suite |
+| The JSON report path      | `.ward-playwright-report-<serverPort>.json`                  | The second run or shard overwrites a report the first is still reading, and both agents read a run describing neither                                                      |
+| Playwright handle report  | `.ward-playwright-handle-<serverPort>.json`                  | Leaked open handle tracking between shards collides and report reads miss handles from another shard                                                                      |
+| Playwright's `outputDir`  | `test-results/<port>` in `packages/web/playwright.config.ts` | Playwright clears the folder at run start, so the second run or shard wipes the first's failure traces and screenshots                                                    |
+
+With `ward.e2eSharding` enabled, multi-shard runs append `--shard=<i>/<N>` and `--pass-with-no-tests` to Playwright arguments across all parallel shards (`Promise.all`). An `--onlyTests` run or a scoped run of one spec starts exactly 1 shard without `--shard`. `--pass-with-no-tests` ensures Playwright does not fail an individual shard when test distribution results in 0 tests running in that shard.
 
 **Ward must pass `DUNGEONMASTER_WEB_PORT`, not let anything derive it.** The Playwright config and the Vite config each
 fall back to `DUNGEONMASTER_PORT + 1`, and those two fallbacks agree only while one launcher picks both ports. Ward asks

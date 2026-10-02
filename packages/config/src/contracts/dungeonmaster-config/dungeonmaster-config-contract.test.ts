@@ -616,6 +616,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(parsed.ward).toStrictEqual({
         concurrency: 6,
+        e2eSharding: false,
       });
     });
 
@@ -628,7 +629,54 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(parsed.ward).toStrictEqual({
         concurrency: 4,
+        e2eSharding: false,
       });
+    });
+
+    it('VALID: config with ward e2eSharding true => parses successfully', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        ward: {
+          e2eSharding: true,
+        },
+      });
+
+      expect(parsed.ward?.e2eSharding).toBe(true);
+    });
+
+    it('VALID: config with ward e2eSharding false => parses successfully', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        ward: {
+          e2eSharding: false,
+        },
+      });
+
+      expect(parsed.ward?.e2eSharding).toBe(false);
+    });
+
+    it('VALID: config with ward e2eSharding absent => defaults to false', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        ward: {},
+      });
+
+      expect(parsed.ward?.e2eSharding).toBe(false);
+    });
+
+    it('INVALID: non-boolean e2eSharding => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          ward: {
+            e2eSharding: 'yes',
+          },
+        });
+      }).toThrow(/invalid_type/u);
     });
 
     it('VALID: config with minimum concurrency => parses successfully', () => {

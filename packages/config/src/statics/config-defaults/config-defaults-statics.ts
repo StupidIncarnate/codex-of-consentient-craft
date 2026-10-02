@@ -32,6 +32,9 @@ export const configDefaultsStatics = {
       max: 10,
       default: 4,
     },
+    e2eSharding: {
+      default: false,
+    },
   },
   dungeonmaster: {
     port: {

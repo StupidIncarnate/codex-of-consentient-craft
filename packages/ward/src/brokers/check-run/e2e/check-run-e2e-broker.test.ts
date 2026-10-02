@@ -666,4 +666,202 @@ describe('checkRunE2eBroker', () => {
       });
     });
   });
+
+  describe('e2e sharding', () => {
+    it('VALID: {e2eSharding: true, 3 discovered specs} => starts 3 shards with --shard=1/3, 2/3, 3/3 and three different port pairs', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 3,
+        discoveredFiles: ['spec1.e2e.ts', 'spec2.e2e.ts', 'spec3.e2e.ts'],
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', '--shard=1/3', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=2/3', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=3/3', '--pass-with-no-tests'],
+      ]);
+
+      expect({
+        serverPorts: proxy.getAllSpawnedEnvValues({ key: 'DUNGEONMASTER_PORT' }),
+        webPorts: proxy.getAllSpawnedEnvValues({ key: 'DUNGEONMASTER_WEB_PORT' }),
+      }).toStrictEqual({
+        serverPorts: ['40000', '40002', '40004'],
+        webPorts: ['51244', '51246', '51248'],
+      });
+    });
+
+    it('VALID: {e2eSharding: true, scoped run with 1 spec} => starts 1 run with no --shard', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 1,
+        e2eSharding: true,
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: ['packages/web/src/flows/home/login.e2e.ts'],
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', 'packages/web/src/flows/home/login.e2e.ts'],
+      ]);
+    });
+
+    it('VALID: {e2eSharding: true, testNamePattern provided} => starts 1 run with no --shard', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 1,
+        e2eSharding: true,
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'login',
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', '--grep', 'login', '--pass-with-no-tests'],
+      ]);
+    });
+
+    it('VALID: {failure in shard 2} => reports status fail with parsed testFailures from shard 2', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      const shard2Output = [
+        '[2/3] [chromium] › packages/web/src/flows/app/settings.e2e.ts:10:5 › Settings › saves theme',
+        '  1) [chromium] › packages/web/src/flows/app/settings.e2e.ts:10:5 › Settings › saves theme ',
+        '',
+        '    Theme did not update',
+        '',
+        '[2/3] [chromium] › packages/web/src/flows/app/settings.e2e.ts:20:5 › Settings › saves theme',
+      ].join('\n');
+
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 3,
+        discoveredFiles: [
+          'packages/web/src/flows/app/smoke.e2e.ts',
+          'packages/web/src/flows/app/settings.e2e.ts',
+          'packages/web/src/flows/app/profile.e2e.ts',
+        ],
+        shardOutputs: [
+          {
+            stdout: '[1/3] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:1:1 › Smoke › ok\n',
+            exitCode: 0,
+          },
+          { stdout: shard2Output, exitCode: 1 },
+          {
+            stdout:
+              '[3/3] [chromium] › packages/web/src/flows/app/profile.e2e.ts:1:1 › Profile › ok\n',
+            exitCode: 0,
+          },
+        ],
+      });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect({
+        status: result.status,
+        testFailures: result.testFailures,
+      }).toStrictEqual({
+        status: 'fail',
+        testFailures: [
+          TestFailureStub({
+            suitePath: 'packages/web/src/flows/app/settings.e2e.ts',
+            testName: 'Settings › saves theme',
+            message: 'Theme did not update',
+          }),
+        ],
+      });
+    });
+
+    it('VALID: {union of shard files equals discoveredCount} => no mismatch between discovered and processed files', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 3,
+        discoveredFiles: [
+          'packages/web/src/flows/app/smoke.e2e.ts',
+          'packages/web/src/flows/app/settings.e2e.ts',
+          'packages/web/src/flows/app/profile.e2e.ts',
+        ],
+        shardOutputs: [
+          {
+            stdout: '[1/3] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:1:1 › Smoke › ok\n',
+            exitCode: 0,
+          },
+          {
+            stdout:
+              '[2/3] [chromium] › packages/web/src/flows/app/settings.e2e.ts:1:1 › Settings › ok\n',
+            exitCode: 0,
+          },
+          {
+            stdout:
+              '[3/3] [chromium] › packages/web/src/flows/app/profile.e2e.ts:1:1 › Profile › ok\n',
+            exitCode: 0,
+          },
+        ],
+      });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect({
+        status: result.status,
+        filesCount: result.filesCount,
+        discoveredCount: result.discoveredCount,
+        onlyDiscovered: result.onlyDiscovered,
+        onlyProcessed: result.onlyProcessed,
+      }).toStrictEqual({
+        status: 'pass',
+        filesCount: 3,
+        discoveredCount: 3,
+        onlyDiscovered: [],
+        onlyProcessed: [],
+      });
+    });
+
+    it('VALID: {sharded run completes} => each shard server and web port is killed', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 3,
+        discoveredFiles: ['spec1.e2e.ts', 'spec2.e2e.ts', 'spec3.e2e.ts'],
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const killedPorts = proxy.getKilledPorts();
+
+      expect(killedPorts).toStrictEqual([40000, 51244, 40002, 51246, 40004, 51248]);
+    });
+  });
 });
