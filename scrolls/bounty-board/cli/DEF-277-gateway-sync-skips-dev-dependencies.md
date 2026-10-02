@@ -3,9 +3,10 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | ready |
+| Status | needs decision |
 | Package | cli |
 | Found | 2026-09-30, from assayer, a consumer that links dungeonmaster through `file:` |
+| Note | 2026-10-02: User will handle differently; on hold |
 | Moved from | assayer `scrolls/brands-gateways-epic/EPIC.md`, "Upstream reports" item 2, 2026-10-01 |
 
 ## What is wrong
