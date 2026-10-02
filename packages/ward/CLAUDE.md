@@ -7,7 +7,10 @@ It operates in two modes depending on whether the current project has npm worksp
 
 - **Single-package mode** (no workspaces): Runs checks directly in the current working directory.
 - **Multi-package mode** (has workspaces): Spawns a child `dungeonmaster-ward` process in each workspace package —
-  up to 4 concurrently, via a promise pool — and merges their results. Within one package, its own check types
+  via a shared-queue promise pool. Packages are dispatched longest-first by the median of the last 5 samples
+  in the registry's `durations` table, keyed by the main checkout, and results merge in discovery order.
+  Only full-package runs (no explicit `-- <files>` list, `--committed`, `--uncommitted`, or `--onlyTests`) add
+  samples so that recorded durations reflect complete package workloads. Within one package, its own check types
   still run one at a time, in sequence.
 
 **A child ward is the parent ward.** `multiPackageLayerBroker` spawns `process.execPath` with the entry script
@@ -481,7 +484,8 @@ start-ward.ts (entry point)
           -> storage-save-broker / storage-prune-broker
           -> e2e-artifacts-prune-broker (sweeps leaked e2e artifacts, every run, at the END)
         -> multiPackageLayerBroker (workspaces: spawns a child `dungeonmaster-ward` in each
-             matching package — a pool of up to 4 concurrent — and merges their results)
+             matching package via a shared-queue pool dispatched longest-first by median historical duration,
+             merging results in discovery order)
           -> storage-save-broker / storage-prune-broker
 ```
 
@@ -496,6 +500,5 @@ the result file come from the same `wardResult` — and the two paths that retur
 not on disk) write neither, so a missing id means no result of this run exists to merge.
 
 In multi-package mode, `multiPackageLayerBroker` spawns a child `dungeonmaster-ward` process in each matching
-workspace package — up to 4 concurrently, via a promise pool — and aggregates their results; each child still runs
-its own check types one at a time. Results are aggregated into a `WardResult` and saved for later inspection via
+workspace package via a shared-queue promise pool. Packages are dispatched longest-first by the median of the last 5 samples in the registry's `durations` table, keyed by the main checkout, and results merge in discovery order so summary output does not reshuffle across runs. Only full-package runs add duration samples to the registry. Results are aggregated into a `WardResult` and saved for later inspection via
 `list`, `detail`, and `raw` subcommands.

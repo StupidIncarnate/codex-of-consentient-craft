@@ -8,6 +8,7 @@
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import { argv, execPath, stderr } from '#gateway/node/process';
+import { now } from '#gateway/node/Date';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
@@ -30,11 +31,18 @@ import {
 } from '../../../contracts/project-result/project-result-contract';
 import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
+import { isFileScopeRequestedGuard } from '../../../guards/is-file-scope-requested/is-file-scope-requested-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { childCrashLayerBroker } from './child-crash-layer-broker';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
+import { historyRootFindBroker } from '../../history/root-find/history-root-find-broker';
+import { historyReadBroker } from '../../history/read/history-read-broker';
+import { historyWriteBroker } from '../../history/write/history-write-broker';
+import { durationPredictTransformer } from '../../../transformers/duration-predict/duration-predict-transformer';
+import { packageDispatchOrderTransformer } from '../../../transformers/package-dispatch-order/package-dispatch-order-transformer';
+import { durationSamplesBuildTransformer } from '../../../transformers/duration-samples-build/duration-samples-build-transformer';
 
 export const multiPackageLayerBroker = async ({
   config,
@@ -79,6 +87,28 @@ export const multiPackageLayerBroker = async ({
         )
       : projectFolders;
 
+  let repoRoot = rootPath;
+  let dispatchFolders = filteredFolders;
+  let historyAvailable = true;
+
+  if (filteredFolders.length > 0 && checkTypes.length > 0) {
+    try {
+      repoRoot = await historyRootFindBroker({ rootPath });
+      const { samples: historySamples } = historyReadBroker({ repoRoot });
+      const predictions = durationPredictTransformer({ samples: historySamples });
+      dispatchFolders = packageDispatchOrderTransformer({
+        projectFolders: filteredFolders,
+        predictions,
+        checkTypes,
+      });
+    } catch (error: unknown) {
+      historyAvailable = false;
+      const message = error instanceof Error ? error.message : String(error);
+      stderr.write(`ward: duration history unavailable: ${message}\n`);
+      dispatchFolders = filteredFolders;
+    }
+  }
+
   // Resolved ONCE per run, before the promisePoolTransformer loop below spawns any per-folder
   // handler — moving this inside that handler would re-walk the config tree once per workspace
   // instead of once for the whole run. A consumer whose .dungeonmaster.json carries no `ward` key
@@ -95,7 +125,7 @@ export const multiPackageLayerBroker = async ({
   const runStartMs = Date.now();
 
   const subResults = await promisePoolTransformer({
-    items: filteredFolders,
+    items: dispatchFolders,
     concurrency: CONCURRENCY_LIMIT,
     handler: async (folder) => {
       const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
@@ -191,13 +221,21 @@ export const multiPackageLayerBroker = async ({
     },
   });
 
+  const subResultsByPath = new Map(
+    dispatchFolders.map((folder, index) => [folder.path, subResults[index]]),
+  );
+  const orderedSubResults = filteredFolders.flatMap((folder) => {
+    const subResult = subResultsByPath.get(folder.path);
+    return subResult === undefined ? [] : [subResult];
+  });
+
   const allChecksByType = new Map<CheckType, CheckResult[]>();
 
   for (const checkType of checkTypes) {
     allChecksByType.set(checkType, []);
   }
 
-  for (const subResult of subResults) {
+  for (const subResult of orderedSubResults) {
     for (const check of subResult.checks) {
       const bucket = allChecksByType.get(check.checkType);
       if (bucket !== undefined) {
@@ -240,6 +278,28 @@ export const multiPackageLayerBroker = async ({
       ? {}
       : { extraProjectResult: platformDedupeProjectResult }),
   });
+
+  const isEligibleForHistory =
+    historyAvailable && !isFileScopeRequestedGuard({ config }) && config.onlyTests === undefined;
+
+  if (isEligibleForHistory && filteredFolders.length > 0) {
+    const wholePackageNames = filteredFolders.map((folder) => folder.name);
+    const samplesToWrite = durationSamplesBuildTransformer({
+      repoRoot,
+      checks: foldedChecks,
+      wholePackageNames,
+      nowMs: now(),
+    });
+
+    if (samplesToWrite.length > 0) {
+      try {
+        historyWriteBroker({ samples: samplesToWrite });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        stderr.write(`ward: duration history unavailable: ${message}\n`);
+      }
+    }
+  }
 
   const wardResult = wardRunResultContract.parse({
     runId,

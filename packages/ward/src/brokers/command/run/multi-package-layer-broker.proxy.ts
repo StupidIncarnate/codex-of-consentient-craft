@@ -2,7 +2,9 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { argvProxy } from '#gateway/node/process/argv/argv.proxy';
 import { execPathProxy } from '#gateway/node/process/exec-path/exec-path.proxy';
 import { execPath } from '#gateway/node/process';
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { streamProxy } from '#gateway/node/child_process/stream/stream.proxy';
+import { DatabaseSyncStub } from '#gateway/node/sqlite/database-sync.stub';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -13,10 +15,15 @@ import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
+import type { DurationSample } from '../../../contracts/duration-sample/duration-sample-contract';
+import { DurationSampleStub } from '../../../contracts/duration-sample/duration-sample.stub';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.proxy';
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
+import { historyRootFindBrokerProxy } from '../../history/root-find/history-root-find-broker.proxy';
+import { historyReadBrokerProxy } from '../../history/read/history-read-broker.proxy';
+import { historyWriteBrokerProxy } from '../../history/write/history-write-broker.proxy';
 import { childCrashLayerBrokerProxy } from './child-crash-layer-broker.proxy';
 
 export const multiPackageLayerBrokerProxy = (): {
@@ -38,8 +45,13 @@ export const multiPackageLayerBrokerProxy = (): {
   }) => void;
   setupNoSpawns: (params: { rootPath: string }) => void;
   setupWardConcurrency: (params: { rootPath: string; concurrency: number }) => void;
+  setupDurationHistory: (params: { samples: readonly DurationSample[] }) => void;
+  setupDurationHistoryThrows: (params: { error: Error }) => void;
+  setupDurationHistoryWriteThrows: (params: { error: Error }) => void;
+  getWrittenDurationSamples: () => DurationSample[];
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
+  getAllSpawnedCwds: () => string[];
   useBinFallback: () => void;
   wardEntry: string;
 } => {
@@ -49,6 +61,14 @@ export const multiPackageLayerBrokerProxy = (): {
     .calledWith([])
     .returns(runIdMockStatics.randomValue);
   const stderr = stderrProxy();
+  nowProxy();
+
+  const historyRootFindProxy = historyRootFindBrokerProxy();
+  const historyReadProxy = historyReadBrokerProxy();
+  const historyWriteProxy = historyWriteBrokerProxy();
+  const sharedDb = DatabaseSyncStub();
+  historyReadProxy.setupDatabase({ database: sharedDb });
+  historyWriteProxy.setupDatabase({ database: sharedDb });
 
   const stream = streamProxy();
   RunNotFoundErrorProxy();
@@ -96,6 +116,7 @@ export const multiPackageLayerBrokerProxy = (): {
 
   const resolveWardBin = ({ rootPath }: { rootPath: string }): string => {
     stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub() });
+    historyRootFindProxy.setupCommonDirFound({ commonDir: `${rootPath}/.git` });
     if (!mode.binFallback) {
       argvStage.setupArgv({ argv: [execPath, wardEntry] });
       resolvedCommandRef.value = execPath;
@@ -223,6 +244,63 @@ export const multiPackageLayerBrokerProxy = (): {
     },
 
     wardEntry,
+
+    getAllSpawnedCwds: (): string[] => [
+      ...stream.getSpawnedCwds({ command: resolvedCommandRef.value }),
+    ],
+
+    setupDurationHistory: ({ samples }: { samples: readonly DurationSample[] }): void => {
+      const insert = sharedDb.prepare(
+        'INSERT INTO durations (repo_root, package, check_type, duration_ms, peak_rss_mb, shards, recorded_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?);',
+      );
+      for (const sample of samples) {
+        insert.run(
+          sample.repoRoot,
+          sample.packageName,
+          sample.checkType,
+          sample.durationMs,
+          sample.peakRssMB,
+          sample.shards,
+          sample.recordedAtMs,
+        );
+      }
+    },
+
+    setupDurationHistoryThrows: ({ error }: { error: Error }): void => {
+      historyReadProxy.setupThrows({ error });
+    },
+
+    setupDurationHistoryWriteThrows: ({ error }: { error: Error }): void => {
+      const spy = registerSpyOn({ object: sharedDb, method: 'exec', passthrough: true });
+      spy.calledWith(['BEGIN IMMEDIATE;']).throws(error);
+      spy.calledWith(['ROLLBACK;']).returns(undefined);
+    },
+
+    getWrittenDurationSamples: (): DurationSample[] => {
+      const statement = sharedDb.prepare(
+        'SELECT repo_root, package, check_type, duration_ms, peak_rss_mb, shards, recorded_at_ms FROM durations ORDER BY recorded_at_ms ASC;',
+      );
+      const rows = statement.all() as {
+        repo_root: string;
+        package: string;
+        check_type: string;
+        duration_ms: number;
+        peak_rss_mb: number | null;
+        shards: number | null;
+        recorded_at_ms: number;
+      }[];
+      return rows.map((row) =>
+        DurationSampleStub({
+          repoRoot: row.repo_root,
+          packageName: row.package,
+          checkType: row.check_type as DurationSample['checkType'],
+          durationMs: row.duration_ms,
+          peakRssMB: row.peak_rss_mb,
+          shards: row.shards,
+          recordedAtMs: row.recorded_at_ms,
+        }),
+      );
+    },
 
     getStderrCalls: (): unknown[] => [...stderr.getWrites()],
     getAllSpawnedArgs: (): unknown[] => [

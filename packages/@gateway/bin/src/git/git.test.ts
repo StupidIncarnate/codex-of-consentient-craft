@@ -9,6 +9,7 @@ describe('#gateway/bin/git', () => {
       'branchDelete',
       'checkout',
       'commit',
+      'commonDir',
       'currentBranch',
       'detectDefaultBranch',
       'detectOriginDefaultBranch',

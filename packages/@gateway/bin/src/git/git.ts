@@ -11,6 +11,7 @@ export { addAll } from './add-all/add-all';
 export { branchDelete } from './branch-delete/branch-delete';
 export { checkout } from './checkout/checkout';
 export { commit } from './commit/commit';
+export { commonDir } from './common-dir/common-dir';
 export { currentBranch } from './current-branch/current-branch';
 export { detectDefaultBranch } from './detect-default-branch/detect-default-branch';
 export { detectOriginDefaultBranch } from './detect-origin-default-branch/detect-origin-default-branch';

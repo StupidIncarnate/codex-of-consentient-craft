@@ -21,20 +21,27 @@ export const promisePoolTransformer = async <T, R>({
 }): Promise<R[]> => {
   const results: R[] = new Array(items.length) as R[];
   const workerCount = Math.min(concurrency, items.length);
+  let nextIndex = 0;
 
-  const workers = Array.from({ length: workerCount }, async (_unused, workerIndex) =>
-    items.reduce(
-      async (chain, _item, itemIndex) =>
-        itemIndex % workerCount === workerIndex
-          ? chain.then(async () =>
-              handler(items[itemIndex] as T).then((result) => {
-                results[itemIndex] = result;
-              }),
-            )
-          : chain,
-      Promise.resolve(),
-    ),
-  );
+  const pool = {
+    runWorker: async (): Promise<void> => {
+      if (nextIndex >= items.length) {
+        return;
+      }
+
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+
+      const result = await handler(items[currentIndex] as T);
+      results[currentIndex] = result;
+
+      await pool.runWorker();
+    },
+  };
+
+  const workers = Array.from({ length: workerCount }, async () => {
+    await pool.runWorker();
+  });
 
   await Promise.all(workers);
 
