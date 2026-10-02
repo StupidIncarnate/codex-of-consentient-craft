@@ -13,10 +13,11 @@
  */
 import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { readFileSync } from '#gateway/node/fs';
+import { locationsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
+import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
 // A wrapper object, not a bare `let cachedScope: PackageName | undefined`: `no-undef-init`
 // autofixes an explicit `= undefined` initializer away, which then trips
@@ -41,6 +42,24 @@ export const resolveGatewayScopeLayerBroker = ({
 
   if (repoRoot === undefined) {
     return undefined;
+  }
+
+  for (const folder of Object.values(gatewayLocationsStatics.folders)) {
+    const gatewayPackageJsonPath = join(repoRoot, 'packages', '@gateway', folder, 'package.json');
+    if (existsSync(gatewayPackageJsonPath)) {
+      try {
+        const gatewayPackageJsonRaw = readFileSync(gatewayPackageJsonPath);
+        const parsed = gatewayConsumerPackageJsonContract.safeParse(
+          JSON.parse(gatewayPackageJsonRaw),
+        );
+        if (parsed.success && parsed.data.name.startsWith('@')) {
+          scopeCache.value = packageScopeFromNameTransformer({ rootPackageName: parsed.data.name });
+          return scopeCache.value;
+        }
+      } catch {
+        // Fall through
+      }
+    }
   }
 
   const packageJsonRaw = readFileSync(join(repoRoot, 'package.json'));

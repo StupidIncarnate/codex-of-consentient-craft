@@ -6,11 +6,17 @@
  * const proxy = repoScopeResolveBrokerProxy();
  * proxy.setupWorkspaceRoot({ dirPath, packageJson: { name: '@acme/app', workspaces: ['packages/*'] } });
  */
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const repoScopeResolveBrokerProxy = (): {
   setupWorkspaceRoot: (args: { dirPath: string; packageJson: Record<string, unknown> }) => void;
+  setupGatewayPackage: (args: {
+    dirPath: string;
+    folder: string;
+    packageJson: Record<string, unknown>;
+  }) => void;
   setupNonRootPackageJson: (args: {
     dirPath: string;
     packageJson: Record<string, unknown>;
@@ -29,6 +35,29 @@ export const repoScopeResolveBrokerProxy = (): {
       packageJson: Record<string, unknown>;
     }): void => {
       const packageJsonPath = `${dirPath}/package.json`;
+      existsProxy.returns({ path: packageJsonPath, exists: true });
+      readProxy.returns({
+        path: packageJsonPath,
+        contents: JSON.stringify(packageJson),
+      });
+      for (const folder of Object.values(gatewayLocationsStatics.folders)) {
+        existsProxy.returns({
+          path: `${dirPath}/packages/@gateway/${folder}/package.json`,
+          exists: false,
+        });
+      }
+    },
+
+    setupGatewayPackage: ({
+      dirPath,
+      folder,
+      packageJson,
+    }: {
+      dirPath: string;
+      folder: string;
+      packageJson: Record<string, unknown>;
+    }): void => {
+      const packageJsonPath = `${dirPath}/packages/@gateway/${folder}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         path: packageJsonPath,

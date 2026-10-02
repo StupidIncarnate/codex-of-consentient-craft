@@ -30,12 +30,14 @@ import { stylesheetExtensionStatics } from '../../../statics/stylesheet-extensio
 import { isDungeonmasterToolkitImportGuard } from '../../../guards/is-dungeonmaster-toolkit-import/is-dungeonmaster-toolkit-import-guard';
 import { dirname } from '#gateway/node/path';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
+import { configWorkspacePackageNamesBroker } from '../../config/workspace-package-names/config-workspace-package-names-broker';
 
 // Keyed by the linted file's directory. The scope comes from the npm-workspaces root above the
 // FILE being linted, never above this module: through a `file:` link this module sits inside
 // dungeonmaster's checkout, so a walk from here would read dungeonmaster's scope for a consumer's
 // files. A `scope` option skips the walk.
 const defaultScopeCache = new Map<string, string>();
+const defaultWorkspacePackagesCache = new Map<string, string[]>();
 
 export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
   'rawImport' | 'scopedGatewayImport'
@@ -99,6 +101,22 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
       return resolvedScope;
     })();
 
+    const workspacePackages = ((): string[] => {
+      if (optionScope !== undefined) {
+        return [];
+      }
+
+      const fileDir = dirname(filename);
+      const cached = defaultWorkspacePackagesCache.get(fileDir);
+      if (cached !== undefined) {
+        return cached;
+      }
+
+      const packageNames = configWorkspacePackageNamesBroker({ startDir: fileDir });
+      defaultWorkspacePackagesCache.set(fileDir, packageNames);
+      return packageNames;
+    })();
+
     return {
       'ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression': (
         node:
@@ -150,6 +168,9 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         const isWorkspacePackage =
           importSource === scope ||
           importSource.startsWith(`${scope}/`) ||
+          workspacePackages.some(
+            (name) => importSource === name || importSource.startsWith(`${name}/`),
+          ) ||
           importSource === gatewayLocationsStatics.importPrefix ||
           importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
@@ -220,6 +241,9 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         const isWorkspacePackage =
           importSource === scope ||
           importSource.startsWith(`${scope}/`) ||
+          workspacePackages.some(
+            (name) => importSource === name || importSource.startsWith(`${name}/`),
+          ) ||
           importSource === gatewayLocationsStatics.importPrefix ||
           importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
