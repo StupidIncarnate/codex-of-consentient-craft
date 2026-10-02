@@ -9,6 +9,8 @@ import {
 import { chatEntryGroupContract } from './chat-entry-group-contract';
 import type { ChatEntryGroup } from './chat-entry-group-contract';
 
+export { chatEntryGroupContract };
+
 export const SingleGroupStub = ({ ...props }: StubArgument<ChatEntryGroup> = {}): ChatEntryGroup =>
   chatEntryGroupContract.parse({
     kind: 'single',

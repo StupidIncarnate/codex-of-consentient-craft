@@ -6,6 +6,8 @@ import {
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+
+import { chatEntryGroupContract } from '../../contracts/chat-entry-group/chat-entry-group.stub';
 import { collectSubagentChainsTransformer } from './collect-subagent-chains-transformer';
 
 describe('collectSubagentChainsTransformer', () => {
@@ -995,6 +997,123 @@ describe('collectSubagentChainsTransformer', () => {
           contextTokens: null,
         },
       ]);
+    });
+  });
+
+  describe('chatEntryGroupContract validation', () => {
+    it('VALID: {realistic chat with plain messages, nested subagents, notifications, trailing unfinished chain} => every group passes chatEntryGroupContract.parse', () => {
+      const userMessage = UserChatEntryStub({ content: 'Build the new feature' });
+      const assistantInitial = AssistantTextChatEntryStub({ content: 'Starting planning' });
+
+      const outerTask = TaskToolUseChatEntryStub({
+        agentId: 'agent-outer',
+        toolInput: JSON.stringify({ description: 'Plan feature architecture' }),
+      });
+      const outerSubagentEntry = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-outer',
+        content: 'Analyzing requirements',
+      });
+      const nestedTask = TaskToolUseChatEntryStub({
+        agentId: 'agent-nested',
+        parentAgentId: 'agent-outer',
+        source: 'subagent',
+        toolInput: JSON.stringify({ description: 'Investigate existing models' }),
+      });
+      const nestedSubagentEntry = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-nested',
+        content: 'Found existing contract',
+      });
+      const nestedNotification = TaskNotificationChatEntryStub({
+        taskId: 'agent-nested',
+        agentId: 'agent-nested',
+        source: 'subagent',
+        summary: 'Investigation complete',
+      });
+      const outerNotification = TaskNotificationChatEntryStub({
+        taskId: 'agent-outer',
+        agentId: 'agent-outer',
+        summary: 'Planning complete',
+      });
+      const outerToolResult = AssistantToolResultChatEntryStub({
+        agentId: 'agent-outer',
+        durationMs: 42000,
+      });
+
+      const assistantFollowup = AssistantTextChatEntryStub({
+        content: 'Now starting implementation phase',
+      });
+
+      const trailingUnfinishedTask = TaskToolUseChatEntryStub({
+        agentId: 'agent-trailing',
+        toolInput: JSON.stringify({ description: 'Implement code changes' }),
+      });
+      const trailingSubagentEntry = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-trailing',
+        content: 'Writing code...',
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [
+          userMessage,
+          assistantInitial,
+          outerTask,
+          outerSubagentEntry,
+          nestedTask,
+          nestedSubagentEntry,
+          nestedNotification,
+          outerNotification,
+          outerToolResult,
+          assistantFollowup,
+          trailingUnfinishedTask,
+          trailingSubagentEntry,
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        { kind: 'single', entry: userMessage },
+        { kind: 'single', entry: assistantInitial },
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-outer',
+          description: 'Plan feature architecture',
+          taskToolUse: outerTask,
+          innerGroups: [
+            { kind: 'single', entry: outerSubagentEntry },
+            {
+              kind: 'subagent-chain',
+              agentId: 'agent-nested',
+              description: 'Investigate existing models',
+              taskToolUse: nestedTask,
+              innerGroups: [{ kind: 'single', entry: nestedSubagentEntry }],
+              taskNotification: nestedNotification,
+              entryCount: 1,
+              contextTokens: null,
+            },
+          ],
+          taskNotification: outerNotification,
+          completionDurationMs: 42000,
+          entryCount: 1,
+          contextTokens: null,
+        },
+        { kind: 'single', entry: assistantFollowup },
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-trailing',
+          description: 'Implement code changes',
+          taskToolUse: trailingUnfinishedTask,
+          innerGroups: [{ kind: 'single', entry: trailingSubagentEntry }],
+          taskNotification: null,
+          entryCount: 1,
+          contextTokens: null,
+        },
+      ]);
+
+      const parsedGroups = result.map((group) => chatEntryGroupContract.parse(group));
+
+      expect(parsedGroups).toStrictEqual(result);
     });
   });
 });
