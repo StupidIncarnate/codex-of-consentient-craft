@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { eslintIsPathIgnoredBroker } from './eslint-is-path-ignored-broker';
 import { eslintIsPathIgnoredBrokerProxy } from './eslint-is-path-ignored-broker.proxy';
 
@@ -39,7 +40,10 @@ describe('eslintIsPathIgnoredBroker', () => {
 
   it('ERROR: {ESLint throws for a path outside cwd} => returns false so the hook still lints', async () => {
     const proxy = eslintIsPathIgnoredBrokerProxy();
-    proxy.setLookupThrows({ filePath: '/outside/x.ts', error: new Error('outside of base path') });
+    proxy.setLookupThrows({
+      filePath: '/outside/x.ts',
+      error: NativeErrorStub({ message: 'outside of base path' }),
+    });
 
     const result = await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: '/outside/x.ts' });
 

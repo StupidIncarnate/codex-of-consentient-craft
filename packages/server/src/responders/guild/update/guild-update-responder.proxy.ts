@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -32,7 +33,7 @@ export const GuildUpdateResponderProxy = (): {
     }): void => {
       orchestrator.updateGuildThrows({
         guildId,
-        error: error ?? new Error(message ?? 'Failed to update guild'),
+        error: error ?? NativeErrorStub({ message: message ?? 'Failed to update guild' }),
       });
     },
     getUpdateGuildCalls: (): RecordedCalls => orchestrator.updateGuildGetCalls(),
