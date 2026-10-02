@@ -5,6 +5,7 @@
  * import { registryOpenBroker } from '@dungeonmaster/load-balancer/brokers';
  */
 
+export { capacityReadBroker } from './capacity/read/capacity-read-broker';
 export { leaseBeatBroker } from './lease/beat/lease-beat-broker';
 export { leaseListLiveBroker } from './lease/list-live/lease-list-live-broker';
 export { leaseReleaseBroker } from './lease/release/lease-release-broker';
