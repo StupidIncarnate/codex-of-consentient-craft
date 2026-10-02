@@ -65,6 +65,7 @@
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/hooks": "*",
     "@dungeonmaster/hydration": "*",
+    "@dungeonmaster/load-balancer": "*",
     "@dungeonmaster/mcp": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",

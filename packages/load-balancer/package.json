@@ -1,0 +1,52 @@
+{
+  "name": "@dungeonmaster/load-balancer",
+  "version": "0.1.0",
+  "description": "load-balancer package",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "dependencies": {
+    "@dungeonmaster/node": "*",
+    "@dungeonmaster/shared": "*"
+  },
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
+    },
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
+    },
+    "./statics": {
+      "source": "./src/statics/statics.ts",
+      "types": "./dist/src/statics/statics.d.ts",
+      "import": "./dist/src/statics/statics.js",
+      "require": "./dist/src/statics/statics.js"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@types/node": "^24.0.15",
+    "typescript": "^6.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
