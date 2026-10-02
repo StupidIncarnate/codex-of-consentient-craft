@@ -3,7 +3,11 @@ import { PassThrough } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { ChildProcessStub } from '../child-process/child-process.stub';
 
-const createMockChild = (): {
+const createMockChild = ({
+  pid = 1234,
+}: {
+  pid?: number | null;
+} = {}): {
   child: ReturnType<typeof ChildProcessStub>;
   stdout: PassThrough;
   stderr: PassThrough;
@@ -11,6 +15,9 @@ const createMockChild = (): {
   const stdout = new PassThrough();
   const stderr = new PassThrough();
   const child = ChildProcessStub();
+  if (typeof pid === 'number') {
+    Object.assign(child, { pid });
+  }
   child.stdout = stdout;
   child.stderr = stderr;
 
@@ -23,10 +30,21 @@ export const streamProxy = (): {
     exitCode: number;
     stdout: string;
     stderr: string;
+    pid?: number | null;
   }) => void;
-  setupSignalKill: (params: { command: string; signal: NodeJS.Signals; stdout: string }) => void;
-  setupError: (params: { command: string; error: Error; stdout?: string }) => void;
-  setupCloseNull: (params: { command: string; stdout: string }) => void;
+  setupSignalKill: (params: {
+    command: string;
+    signal: NodeJS.Signals;
+    stdout: string;
+    pid?: number | null;
+  }) => void;
+  setupError: (params: {
+    command: string;
+    error: Error;
+    stdout?: string;
+    pid?: number | null;
+  }) => void;
+  setupCloseNull: (params: { command: string; stdout: string; pid?: number | null }) => void;
   getSpawnedArgs: (params: { command: string }) => unknown;
   // Every call's own `args` (spawn's 2nd positional argument), in call order, for calls whose
   // command matches — `getSpawnedArgs` above only reads the LAST one, which collapses a caller
@@ -43,14 +61,20 @@ export const streamProxy = (): {
       exitCode,
       stdout,
       stderr,
+      pid,
     }: {
       command: string;
       exitCode: number;
       stdout: string;
       stderr: string;
+      pid?: number | null;
     }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, stdout: stdoutStream, stderr: stderrStream } = createMockChild();
+        const {
+          child,
+          stdout: stdoutStream,
+          stderr: stderrStream,
+        } = createMockChild(pid === undefined ? {} : { pid });
         process.nextTick(() => {
           if (stdout) {
             stdoutStream.emit('data', Buffer.from(stdout));
@@ -68,13 +92,15 @@ export const streamProxy = (): {
       command,
       signal,
       stdout,
+      pid,
     }: {
       command: string;
       signal: NodeJS.Signals;
       stdout: string;
+      pid?: number | null;
     }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, stdout: stdoutStream } = createMockChild();
+        const { child, stdout: stdoutStream } = createMockChild(pid === undefined ? {} : { pid });
         process.nextTick(() => {
           if (stdout) {
             stdoutStream.emit('data', Buffer.from(stdout));
@@ -89,13 +115,15 @@ export const streamProxy = (): {
       command,
       error,
       stdout,
+      pid,
     }: {
       command: string;
       error: Error;
       stdout?: string;
+      pid?: number | null;
     }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, stdout: stdoutStream } = createMockChild();
+        const { child, stdout: stdoutStream } = createMockChild(pid === undefined ? {} : { pid });
         process.nextTick(() => {
           if (stdout) {
             stdoutStream.emit('data', Buffer.from(stdout));
@@ -106,9 +134,17 @@ export const streamProxy = (): {
       });
     },
 
-    setupCloseNull: ({ command, stdout }: { command: string; stdout: string }): void => {
+    setupCloseNull: ({
+      command,
+      stdout,
+      pid,
+    }: {
+      command: string;
+      stdout: string;
+      pid?: number | null;
+    }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, stdout: stdoutStream } = createMockChild();
+        const { child, stdout: stdoutStream } = createMockChild(pid === undefined ? {} : { pid });
         process.nextTick(() => {
           if (stdout) {
             stdoutStream.emit('data', Buffer.from(stdout));

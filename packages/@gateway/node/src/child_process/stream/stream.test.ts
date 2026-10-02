@@ -142,4 +142,120 @@ describe('stream()', () => {
       ]);
     });
   });
+
+  describe('onSpawn callback', () => {
+    it('VALID: {onSpawn callback provided} => invokes onSpawn with child pid immediately upon spawn', async () => {
+      const proxy = streamProxy();
+      proxy.setupSuccess({ command: 'npm', exitCode: 0, stdout: '', stderr: '', pid: 4821 });
+
+      const spawnedPids: number[] = [];
+      const result = await stream({
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: '/project',
+        onSpawn: ({ pid }: { pid: number }) => {
+          spawnedPids.push(pid);
+        },
+      });
+
+      expect(spawnedPids).toStrictEqual([4821]);
+      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null });
+    });
+
+    it('VALID: {onSpawn omitted} => executes without invoking callback', async () => {
+      const proxy = streamProxy();
+      proxy.setupSuccess({
+        command: 'npm',
+        exitCode: 0,
+        stdout: 'success output',
+        stderr: '',
+        pid: 4821,
+      });
+
+      const result = await stream({
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: '/project',
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: 'success output', signal: null });
+    });
+
+    it('EDGE: {child pid is undefined} => does not invoke onSpawn', async () => {
+      const proxy = streamProxy();
+      proxy.setupSuccess({ command: 'npm', exitCode: 0, stdout: '', stderr: '', pid: null });
+
+      const spawnedPids: number[] = [];
+      const result = await stream({
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: '/project',
+        onSpawn: ({ pid }: { pid: number }) => {
+          spawnedPids.push(pid);
+        },
+      });
+
+      expect(spawnedPids).toStrictEqual([]);
+      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null });
+    });
+
+    it('VALID: {onSpawn, onStderr and stdout} => invokes onSpawn and forwards stderr while buffering stdout', async () => {
+      const proxy = streamProxy();
+      proxy.setupSuccess({
+        command: 'npm',
+        exitCode: 0,
+        stdout: 'captured stdout',
+        stderr: 'live stderr',
+        pid: 7777,
+      });
+
+      const spawnedPids: number[] = [];
+      const stderrChunks: string[] = [];
+      const result = await stream({
+        command: 'npm',
+        args: ['run', 'build'],
+        cwd: '/project',
+        onStderr: (chunk: string) => {
+          stderrChunks.push(chunk);
+        },
+        onSpawn: ({ pid }: { pid: number }) => {
+          spawnedPids.push(pid);
+        },
+      });
+
+      expect(spawnedPids).toStrictEqual([7777]);
+      expect(stderrChunks).toStrictEqual(['live stderr']);
+      expect(result).toStrictEqual({ exitCode: 0, output: 'captured stdout', signal: null });
+    });
+
+    it('ERROR: {onSpawn provided and spawn emits error} => invokes onSpawn with pid before rejecting', async () => {
+      const proxy = streamProxy();
+      proxy.setupError({
+        command: 'failing-cmd',
+        error: Object.assign(new Error('spawn failing-cmd ENOENT'), { code: 'ENOENT' }),
+        pid: 8888,
+      });
+
+      const spawnedPids: number[] = [];
+
+      await expect(
+        stream({
+          command: 'failing-cmd',
+          args: [],
+          cwd: '/project',
+          onSpawn: ({ pid }: { pid: number }) => {
+            spawnedPids.push(pid);
+          },
+        }),
+      ).rejects.toStrictEqual(
+        new RunNotFoundError({
+          command: 'failing-cmd',
+          code: 'ENOENT',
+          message: 'spawn failing-cmd ENOENT',
+        }),
+      );
+
+      expect(spawnedPids).toStrictEqual([8888]);
+    });
+  });
 });

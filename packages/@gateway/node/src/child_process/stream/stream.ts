@@ -13,6 +13,9 @@
  * this wrapper's predecessor did) is what lets a caller tell a SIGKILL apart from a `code: null`
  * it cannot otherwise explain.
  *
+ * `onSpawn` notifies the caller of the child's process ID as soon as it is spawned. The child
+ * stays in the parent's process group (not detached) so interrupts and termination signals reach it.
+ *
  * A spawn that never started (`'error'`) throws `RunNotFoundError` rather than resolving
  * `{exitCode: 1, ...}` — the same fix `run` gets, for the same reason: that shape is indistinguishable
  * from a real command that exits 1 and prints nothing.
@@ -27,14 +30,20 @@ export const stream = async ({
   args,
   cwd,
   onStderr,
+  onSpawn,
 }: {
   command: string;
   args: string[];
   cwd: string;
   onStderr?: (chunk: string) => void;
+  onSpawn?: ({ pid }: { pid: number }) => void;
 }): Promise<{ exitCode: number | null; output: string; signal: NodeJS.Signals | null }> =>
   new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd, stdio: ['inherit', 'pipe', 'pipe'] });
+
+    if (onSpawn && child.pid !== undefined) {
+      onSpawn({ pid: child.pid });
+    }
 
     const stdoutChunks: string[] = [];
 
