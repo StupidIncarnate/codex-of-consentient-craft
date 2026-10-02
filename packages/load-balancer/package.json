@@ -41,6 +41,12 @@
       "types": "./dist/src/brokers/brokers.d.ts",
       "import": "./dist/src/brokers/brokers.js",
       "require": "./dist/src/brokers/brokers.js"
+    },
+    "./transformers": {
+      "source": "./src/transformers/transformers.ts",
+      "types": "./dist/src/transformers/transformers.d.ts",
+      "import": "./dist/src/transformers/transformers.js",
+      "require": "./dist/src/transformers/transformers.js"
     }
   },
   "files": [
