@@ -30,6 +30,30 @@ describe('homeConfigContract', () => {
 
       expect(result.guilds).toStrictEqual([]);
     });
+
+    it('VALID: absent resources => resources is undefined', () => {
+      const config = HomeConfigStub();
+
+      const result = homeConfigContract.parse(config);
+
+      expect(result.resources).toBe(undefined);
+    });
+
+    it('VALID: config with valid resources => parses successfully', () => {
+      const config = HomeConfigStub({
+        resources: {
+          maxMemoryPercent: 75,
+          maxDiskMB: 8192,
+        },
+      });
+
+      const result = homeConfigContract.parse(config);
+
+      expect(result.resources).toStrictEqual({
+        maxMemoryPercent: 75,
+        maxDiskMB: 8192,
+      });
+    });
   });
 
   describe('invalid configs', () => {
@@ -39,6 +63,56 @@ describe('homeConfigContract', () => {
           guilds: [{ id: 'not-a-uuid' }],
         });
       }).toThrow(/Invalid UUID/u);
+    });
+
+    it('INVALID: maxMemoryPercent below min (9) => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxMemoryPercent: 9,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: maxMemoryPercent above max (101) => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxMemoryPercent: 101,
+          },
+        });
+      }).toThrow(/too_big/u);
+    });
+
+    it('INVALID: maxDiskMB below min (1023) => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxDiskMB: 1023,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: non-integer maxMemoryPercent => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxMemoryPercent: 75.5,
+          },
+        });
+      }).toThrow(/expected int/u);
+    });
+
+    it('INVALID: non-integer maxDiskMB => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxDiskMB: 2048.5,
+          },
+        });
+      }).toThrow(/expected int/u);
     });
   });
 });

@@ -98,7 +98,7 @@ export const guildAddBroker = async ({
   });
 
   await homeConfigWriteBroker({
-    config: homeConfigContract.parse({ guilds: [...config.guilds, guild] }),
+    config: homeConfigContract.parse({ ...config, guilds: [...config.guilds, guild] }),
     ...homeOverride,
   });
 

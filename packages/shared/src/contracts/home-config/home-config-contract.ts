@@ -8,11 +8,30 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { machineResourcesStatics } from '../../statics/machine-resources/machine-resources-statics';
 import { guildContract } from '../guild/guild-contract';
 
 export const homeConfigContract = z
   .object({
     guilds: z.array(guildContract).default([]),
+    resources: z
+      .object({
+        maxMemoryPercent: z
+          .number()
+          .int()
+          .min(machineResourcesStatics.maxMemoryPercent.min)
+          .max(machineResourcesStatics.maxMemoryPercent.max)
+          .default(machineResourcesStatics.maxMemoryPercent.default)
+          .brand<'HomeConfigResourcesMaxMemoryPercent'>(),
+        maxDiskMB: z
+          .number()
+          .int()
+          .min(machineResourcesStatics.maxDiskMB.min)
+          .default(machineResourcesStatics.maxDiskMB.default)
+          .brand<'HomeConfigResourcesMaxDiskMB'>(),
+      })
+      .brand<'HomeConfigResources'>()
+      .optional(),
   })
   .brand<'HomeConfig'>();
 

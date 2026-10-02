@@ -97,6 +97,31 @@ describe('homeConfigWriteBroker', () => {
 
       expect(writtenContent).toBe(JSON.stringify({ guilds: [] }, null, 2));
     });
+
+    it('VALID: {config with resources} => writes JSON preserving resources', async () => {
+      const proxy = homeConfigWriteBrokerProxy();
+      const homePath = '/home/user/.dungeonmaster';
+      const configFilePath = '/home/user/.dungeonmaster/config.json';
+      const config = HomeConfigStub({
+        guilds: [],
+        resources: {
+          maxMemoryPercent: 75,
+          maxDiskMB: 8192,
+        },
+      });
+
+      proxy.setupWriteSuccess({
+        homeDir: '/home/user',
+        homePath,
+        configFilePath,
+      });
+
+      await homeConfigWriteBroker({ config });
+
+      const writtenContent = proxy.getWrittenContent();
+
+      expect(writtenContent).toBe(JSON.stringify(config, null, 2));
+    });
   });
 
   describe('write errors', () => {

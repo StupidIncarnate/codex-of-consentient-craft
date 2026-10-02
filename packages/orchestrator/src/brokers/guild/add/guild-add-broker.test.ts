@@ -72,6 +72,58 @@ describe('guildAddBroker', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
       });
     });
+
+    it('VALID: {existing config has resources} => written config retains resources', async () => {
+      const proxy = guildAddBrokerProxy();
+      const name = 'Second App';
+      const path = '/home/user/second-app';
+      const homePath = '/home/user/.dungeonmaster';
+      const guildsPath = '/home/user/.dungeonmaster/guilds';
+      const guildDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+
+      const existingConfig = HomeConfigStub({
+        guilds: [],
+        resources: {
+          maxMemoryPercent: 75,
+          maxDiskMB: 8192,
+        },
+      });
+
+      proxy.setupAddGuild({
+        existingConfig,
+        homeDir: '/home/user',
+        homePath,
+        guildsPath,
+        guildDirPath,
+        questsDirPath,
+      });
+
+      await guildAddBroker({ name, path });
+
+      expect(proxy.getWrittenContent()).toBe(
+        JSON.stringify(
+          HomeConfigStub({
+            guilds: [
+              GuildStub({
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                name: 'Second App',
+                path: '/home/user/second-app',
+                urlSlug: 'second-app',
+                createdAt: '2024-01-15T10:00:00.000Z',
+              }),
+            ],
+            resources: {
+              maxMemoryPercent: 75,
+              maxDiskMB: 8192,
+            },
+          }),
+          null,
+          2,
+        ),
+      );
+    });
   });
 
   describe('duplicate name', () => {

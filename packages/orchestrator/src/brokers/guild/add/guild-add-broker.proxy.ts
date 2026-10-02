@@ -47,6 +47,7 @@ export const guildAddBrokerProxy = (): {
   getCallInputs: () => readonly unknown[];
   dirsCreated: () => readonly unknown[];
   configFilesWritten: () => readonly unknown[];
+  getWrittenContent: () => unknown;
 } => {
   const configReadProxy = homeConfigReadBrokerProxy();
   const configWriteProxy = homeConfigWriteBrokerProxy();
@@ -157,6 +158,7 @@ export const guildAddBrokerProxy = (): {
     dirsCreated: (): readonly unknown[] =>
       ensureDirHandle.getCallsFor({ path: () => true }).map((call) => call[0]),
     configFilesWritten: (): readonly unknown[] => configWriteProxy.configFilesWritten(),
+    getWrittenContent: (): unknown => configWriteProxy.getWrittenContent(),
 
     // Queues ONE further randomUUID call ahead of the sticky default above — a live
     // onceFor outranks it — so a test proving "no supplied id mints a fresh one each call" can

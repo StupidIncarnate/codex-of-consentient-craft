@@ -99,3 +99,6 @@ export * from './port-kill-listener-result/port-kill-listener-result-statics';
 
 // Which package owns each dungeonmaster binary, read by packageBinResolveBroker.
 export * from './dungeonmaster-bin/dungeonmaster-bin-statics';
+
+// Configuration limits and defaults for machine resource consumption (memory and disk).
+export * from './machine-resources/machine-resources-statics';
