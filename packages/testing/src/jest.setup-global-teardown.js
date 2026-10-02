@@ -5,9 +5,9 @@
 // The leak check is deliberately a BEFORE/AFTER diff rather than "does any matching directory exist
 // now": a directory left behind by an earlier, already-reported crash must not be re-blamed on THIS
 // run, and the developer's own live Claude sessions (real repo cwds, encoded the same way) must
-// never be flagged at all — this only ever matches directories whose name encodes a path under the
-// OS tmp dir, or the session-forensics fixture prefix, neither of which a real interactive session
-// ever produces.
+// never be flagged at all — this only ever matches directories whose name encodes this run's
+// sandbox home or subpaths within it, or the session-forensics fixture prefix, neither of which
+// another session or real interactive session ever produces.
 
 const { readdirSync, rmSync } = require('fs');
 const { tmpdir } = require('os');
@@ -17,9 +17,9 @@ const SANDBOX_PREFIX = 'dungeonmaster-jest-sandbox-';
 const CLAUDE_DIR_NAME = '.claude';
 const CLAUDE_PROJECTS_DIR_NAME = 'projects';
 // Mirrors claudePathSlugEncoderTransformer's own encoding rule (every non-alphanumeric character
-// becomes a literal '-'), applied to `os.tmpdir()` itself: every guild/testbed/sandbox directory a
-// test creates lives under the OS tmp dir, so a Claude CLI (real or fake) spawned with one of those
-// as `cwd` writes its transcript under a project directory whose name starts with this prefix.
+// becomes a literal '-'), applied to this run's sandbox home: any process spawned with `sandboxHome`
+// (or a subdirectory under it) as `cwd` writes its transcript under a project directory whose name
+// starts with this prefix.
 const NON_ALPHANUMERIC_PATTERN = /[^a-zA-Z0-9]/gu;
 // `realTranscriptHarness` (session-forensics) writes fixture transcripts directly under the real
 // `~/.claude/projects/`, cleaning up in its own `afterEach` — this is the second name a crashed run
@@ -27,7 +27,7 @@ const NON_ALPHANUMERIC_PATTERN = /[^a-zA-Z0-9]/gu;
 const SESSION_FORENSICS_PREFIX = 'session-forensics-flow-integration-test-';
 
 function globalTeardown() {
-  const sandboxHome = process.env.HOME;
+  const sandboxHome = process.env.DUNGEONMASTER_TEST_SANDBOX_HOME ?? process.env.HOME;
   const realHome = process.env.DUNGEONMASTER_TEST_REAL_HOME;
 
   try {
@@ -50,13 +50,21 @@ function globalTeardown() {
       process.env.DUNGEONMASTER_TEST_REAL_CLAUDE_PROJECTS_BEFORE ?? '[]',
     );
     const beforeSet = new Set(projectsBefore);
-    const tmpSlugPrefix = tmpdir().replace(NON_ALPHANUMERIC_PATTERN, '-');
+    const sandboxSlugPrefix =
+      sandboxHome !== undefined && sandboxHome !== ''
+        ? sandboxHome.replace(NON_ALPHANUMERIC_PATTERN, '-')
+        : undefined;
 
-    const leaked = projectsAfter.filter(
-      (name) =>
-        !beforeSet.has(name) &&
-        (name.startsWith(tmpSlugPrefix) || name.startsWith(SESSION_FORENSICS_PREFIX)),
-    );
+    const leaked = projectsAfter.filter((name) => {
+      if (beforeSet.has(name)) {
+        return false;
+      }
+      const isSandboxLeak =
+        sandboxSlugPrefix !== undefined &&
+        (name === sandboxSlugPrefix || name.startsWith(`${sandboxSlugPrefix}-`));
+      const isForensicsLeak = name.startsWith(SESSION_FORENSICS_PREFIX);
+      return isSandboxLeak || isForensicsLeak;
+    });
 
     if (leaked.length > 0) {
       throw new Error(

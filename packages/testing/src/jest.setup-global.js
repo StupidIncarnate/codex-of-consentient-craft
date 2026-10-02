@@ -83,6 +83,7 @@ module.exports = function globalSetup() {
   // Handed to `jest.setup-global-teardown.js`, which runs in this SAME main Jest process (globalSetup
   // and globalTeardown are never forked into a worker), so a plain `process.env` round-trip is
   // enough — nothing here needs to survive a process boundary.
+  process.env.DUNGEONMASTER_TEST_SANDBOX_HOME = sandboxHome;
   process.env.DUNGEONMASTER_TEST_REAL_HOME = realHome;
   const realProjectsDir = join(realHome, CLAUDE_DIR_NAME, CLAUDE_PROJECTS_DIR_NAME);
   let projectsBefore = [];
