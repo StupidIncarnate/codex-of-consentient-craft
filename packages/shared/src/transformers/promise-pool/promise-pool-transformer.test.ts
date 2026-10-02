@@ -1,72 +1,217 @@
 import { promisePoolTransformer } from './promise-pool-transformer';
-import { setTimeout } from '#gateway/node/setTimeout';
+
+const createDeferred = <T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason?: unknown) => void;
+} => {
+  let resolveHandler: ((value: T) => void) | null = null;
+  let rejectHandler: ((reason?: unknown) => void) | null = null;
+  const promise = new Promise<T>((res, rej) => {
+    resolveHandler = res;
+    rejectHandler = rej;
+  });
+  return {
+    promise,
+    resolve: (value: T): void => {
+      resolveHandler?.(value);
+    },
+    reject: (reason?: unknown): void => {
+      rejectHandler?.(reason);
+    },
+  };
+};
+
+const flushPromises = async (): Promise<void> => {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+};
 
 describe('promisePoolTransformer', () => {
-  describe('result ordering', () => {
-    it('VALID: {items with varying delays} => preserves input order in results', async () => {
-      const items = [30, 10, 20];
-      const handler = async (ms: number): Promise<string> => {
-        await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-        return `done-${String(ms)}`;
+  describe('worker reuse on early completion', () => {
+    it('VALID: {concurrency: 2, items: [long, short, short, short]} => worker that ran first short runs third and fourth while long is pending', async () => {
+      const started: string[] = [];
+
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('long', createDeferred<string>());
+      deferreds.set('short-1', createDeferred<string>());
+      deferreds.set('short-2', createDeferred<string>());
+      deferreds.set('short-3', createDeferred<string>());
+
+      const items = ['long', 'short-1', 'short-2', 'short-3'];
+
+      const handler = async (item: string): Promise<string> => {
+        started.push(item);
+        return deferreds.get(item)!.promise;
       };
 
-      const results = await promisePoolTransformer({ items, concurrency: 3, handler });
+      const poolPromise = promisePoolTransformer({
+        items,
+        concurrency: 2,
+        handler,
+      });
 
-      expect(results).toStrictEqual(['done-30', 'done-10', 'done-20']);
+      expect(started).toStrictEqual(['long', 'short-1']);
+
+      deferreds.get('short-1')!.resolve('done-short-1');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['long', 'short-1', 'short-2']);
+
+      deferreds.get('short-2')!.resolve('done-short-2');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['long', 'short-1', 'short-2', 'short-3']);
+
+      deferreds.get('short-3')!.resolve('done-short-3');
+      deferreds.get('long')!.resolve('done-long');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-long', 'done-short-1', 'done-short-2', 'done-short-3']);
     });
   });
 
   describe('concurrency limiting', () => {
-    it('VALID: {concurrency of 2 with 4 items} => never exceeds concurrency limit', async () => {
-      let active = 0;
-      let maxActive = 0;
-      const items = [1, 2, 3, 4];
+    it('VALID: {concurrency: 2, 4 items} => active handlers in flight never exceed concurrency', async () => {
+      let activeCount = 0;
+      let maxActiveCount = 0;
 
-      const handler = async (item: number): Promise<number> => {
-        active += 1;
-        maxActive = Math.max(maxActive, active);
-        await new Promise((resolve) => {
-          setTimeout(resolve, 10);
-        });
-        active -= 1;
-        return item * 2;
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<number>>>();
+      deferreds.set('item1', createDeferred<number>());
+      deferreds.set('item2', createDeferred<number>());
+      deferreds.set('item3', createDeferred<number>());
+      deferreds.set('item4', createDeferred<number>());
+
+      const items = ['item1', 'item2', 'item3', 'item4'];
+
+      const handler = async (item: string): Promise<number> => {
+        activeCount += 1;
+        maxActiveCount = Math.max(maxActiveCount, activeCount);
+        const result = await deferreds.get(item)!.promise;
+        activeCount -= 1;
+        return result;
       };
 
-      const results = await promisePoolTransformer({ items, concurrency: 2, handler });
-
-      expect(maxActive).toBe(2);
-      expect(results).toStrictEqual([2, 4, 6, 8]);
-    });
-  });
-
-  describe('empty items', () => {
-    it('VALID: {empty array} => returns empty array', async () => {
-      const handler = async (item: number): Promise<number> => Promise.resolve(item);
-
-      const results = await promisePoolTransformer({
-        items: [] as number[],
-        concurrency: 4,
+      const poolPromise = promisePoolTransformer({
+        items,
+        concurrency: 2,
         handler,
       });
 
+      expect(activeCount).toBe(2);
+
+      deferreds.get('item1')!.resolve(10);
+      await flushPromises();
+
+      deferreds.get('item2')!.resolve(20);
+      await flushPromises();
+
+      deferreds.get('item3')!.resolve(30);
+      await flushPromises();
+
+      deferreds.get('item4')!.resolve(40);
+
+      const results = await poolPromise;
+
+      expect(activeCount).toBe(0);
+      expect(maxActiveCount).toBe(2);
+      expect(results).toStrictEqual([10, 20, 30, 40]);
+    });
+  });
+
+  describe('result ordering', () => {
+    it('VALID: {items completing out of order} => returns results in input order', async () => {
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('first', createDeferred<string>());
+      deferreds.set('second', createDeferred<string>());
+      deferreds.set('third', createDeferred<string>());
+
+      const items = ['first', 'second', 'third'];
+
+      const handler = async (item: string): Promise<string> => deferreds.get(item)!.promise;
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        concurrency: 3,
+        handler,
+      });
+
+      deferreds.get('third')!.resolve('done-third');
+      deferreds.get('first')!.resolve('done-first');
+      deferreds.get('second')!.resolve('done-second');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-first', 'done-second', 'done-third']);
+    });
+  });
+
+  describe('boundary item counts', () => {
+    it('EDGE: {concurrency: 5, 2 items} => processes items when concurrency exceeds item count', async () => {
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('item1', createDeferred<string>());
+      deferreds.set('item2', createDeferred<string>());
+
+      const items = ['item1', 'item2'];
+
+      const handler = async (item: string): Promise<string> => deferreds.get(item)!.promise;
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        concurrency: 5,
+        handler,
+      });
+
+      deferreds.get('item1')!.resolve('done-1');
+      deferreds.get('item2')!.resolve('done-2');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-1', 'done-2']);
+    });
+
+    it('EMPTY: {items: []} => returns empty array without calling handler', async () => {
+      let callCount = 0;
+      const handler = async (item: string): Promise<string> => {
+        await Promise.resolve();
+        callCount += 1;
+        return item;
+      };
+
+      const results = await promisePoolTransformer({
+        items: [] as string[],
+        concurrency: 3,
+        handler,
+      });
+
+      expect(callCount).toBe(0);
       expect(results).toStrictEqual([]);
     });
   });
 
   describe('error handling', () => {
-    it('ERROR: {handler throws} => rejects with handler error', async () => {
-      const items = [1, 2, 3];
-      const handler = jest
-        .fn<Promise<number>, [number]>()
-        .mockResolvedValueOnce(1)
-        .mockRejectedValueOnce(new Error('handler-failed'))
-        .mockResolvedValueOnce(3);
+    it('ERROR: {handler rejects} => rejects the pool call with handler error', async () => {
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('failing', createDeferred<string>());
+      deferreds.set('succeeding', createDeferred<string>());
 
-      await expect(promisePoolTransformer({ items, concurrency: 1, handler })).rejects.toThrow(
-        'handler-failed',
-      );
+      const items = ['failing', 'succeeding'];
+
+      const handler = async (item: string): Promise<string> => deferreds.get(item)!.promise;
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        concurrency: 2,
+        handler,
+      });
+
+      deferreds.get('failing')!.reject(new Error('handler-failed'));
+      deferreds.get('succeeding')!.resolve('done-succeeding');
+
+      await expect(poolPromise).rejects.toThrow('handler-failed');
     });
   });
 });
