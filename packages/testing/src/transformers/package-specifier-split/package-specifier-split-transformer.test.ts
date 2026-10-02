@@ -51,8 +51,8 @@ describe('packageSpecifierSplitTransformer', () => {
   });
 
   describe('imports-map specifier', () => {
-    it('INVALID: {importPath: "#gateway/npm/_test_"} => returns null', () => {
-      const importPath = '#gateway/npm/_test_';
+    it('INVALID: {importPath: "#gateway/npm/_test_/glob"} => returns null', () => {
+      const importPath = '#gateway/npm/_test_/glob';
 
       const result = packageSpecifierSplitTransformer({ importPath });
 
