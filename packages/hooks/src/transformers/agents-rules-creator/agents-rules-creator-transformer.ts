@@ -12,9 +12,14 @@
 import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
 export const agentsRulesCreatorTransformer = (): string => {
-  const activeSnippets = Object.values(sessionSnippetStatics).filter(
-    (snippet): snippet is NonNullable<typeof snippet> => snippet !== null,
-  );
+  const activeSnippets = Object.values(sessionSnippetStatics)
+    .filter((snippet): snippet is NonNullable<typeof snippet> => snippet !== null)
+    .map((snippet) =>
+      snippet.replaceAll(
+        '**Never `sleep` on a ward run, and never `tail` its output file.**',
+        "**Never `tail` ward's output.**",
+      ),
+    );
 
   const markdown = `# Dungeonmaster Operating Rules\n\n${activeSnippets.join('\n\n---\n\n')}\n`;
 

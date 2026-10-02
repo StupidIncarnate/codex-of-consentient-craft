@@ -161,7 +161,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **Never `cd` into a package.** Ward runs from the repo root; scope it with paths after `--`. Prefer FILE paths; a bare directory pulls in the package.
 
-**Let it block, with `timeout: 600000`** (the 2-min default kills a repo-wide run). A wide run outlives even that, and the harness then backgrounds it and returns you no result — background-tasks says what to do there, and it is never "end your turn". **Never `sleep` on a ward run, and never `tail` its output file.**
+**Let it block, with `timeout: 600000`** (the 2-min default kills a repo-wide run). A wide run outlives even that, and the harness then backgrounds it and returns you no result — background-tasks says what to do there, and it is never "end your turn". **Never `tail` ward's output.**
 
 **Run it ONCE per tree state, and fix on `--uncommitted`.** Right flags first time; never re-run the same checks hoping for a different answer. A FIX makes a new state, so re-running after one is fine — and a red found by a bare run costs another whole-repo run to confirm, where `--uncommitted` runs only what you touched. Iterate there to exit 0, THEN one bare run as the regression pass. **No typecheck is lost**: `tsc --noEmit` grades a touched package WHOLE whatever paths you pass.
 
