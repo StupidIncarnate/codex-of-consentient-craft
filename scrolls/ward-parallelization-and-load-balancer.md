@@ -402,6 +402,49 @@ S2 & S3 --> S4 --> S5a & S5b --> S6
 
 Units N, B and R start together; A starts when N merges. Inside a unit, tasks joined by `&` run in parallel.
 
+### 8.3a Execution Progress Tracker
+
+```text
+Unit N (Node Floor & SQLite Gateway · worktree wp-unit-n) — [MERGED TO MASTER]
+  #1   N1 [✓]  N2 [✓]  N4 [✓]
+  #2   N6 [✓]  N7 [✓]
+  #3   N3 [✓]
+
+Unit R (Rename Home Config · worktree wp-unit-r) — [MERGED TO MASTER]
+  #1   R1 [✓]
+  #2   R2 [✓]
+
+Unit B (E2E Sharding · worktree wp-unit-b) — [MERGED TO MASTER]
+  #1   B1 [✓]  B2 [✓]  B3 [✓]
+  #2   B4 [✓]
+  #3   B5 [✓]
+  #4   B6 [✓]
+
+Unit A (Duration History & Shared-Queue Pool · worktree wp-unit-a) — [GATING / READY TO MERGE]
+  #1   A1 [✓]  A2 [✓]  A3 [✓]
+  #2   A4 [✓]  A5 [✓]  A6 [✓]
+  #3   A7 [✓]
+  #4   A8 [✓]
+
+Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [NEXT]
+  #1   D1 [ ]  D2 [ ]  D3 [ ]  D4 [ ]  D17 [ ]
+  #2   D5 [ ]  D6 [ ]  D8 [ ]  D19 [ ] D20 [ ]
+  #3   D7 [ ]
+  #4   D9 [ ]  D10 [ ]
+  #5   D11 [ ] D12 [ ]
+  #6   D13 [ ] D14 [ ]
+  #7   D18 [ ]
+  #8   D16 [ ]
+
+Unit S (Disk Budget · worktree wp-unit-s) — [PENDING UNIT D]
+  #1   S0 [ ]
+  #2   S1 [ ]  S2 [ ]
+  #3   S3 [ ]
+  #4   S4 [ ]
+  #5   S5a [ ] S5b [ ]
+  #6   S6 [ ]
+```
+
 ### 8.4 Unit N tasks (worktree `wp-unit-n`)
 
 **Step N-1 — run N1 and N2 in parallel. The orchestrator does N4 at the same time.**
