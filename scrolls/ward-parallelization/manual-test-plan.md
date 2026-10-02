@@ -36,7 +36,7 @@ Ward has no UI, so the verdict is what a ward user sees and what the machine sho
 4.
 **Files.** History, registry and report files must be valid and in the right place. No stray file may appear in the repo (`git status --porcelain` is unchanged except where the case says).
 
-The registry and history files explain a failure. They never pass a case on their own.
+The registry and its history rows explain a failure. They never pass a case on their own.
 
 ### Every case has
 
@@ -216,101 +216,91 @@ This machine has 12 cores and 64 GB of memory. Record the same for any other mac
 
 ### HIST
 
+History is the registry's `durations` table (plan §3). `node tmp/wp-leases.mjs --durations` prints this repo's rows (Appendix A); `--durations-clear <repoRoot>` deletes them.
+
 **WP-HIST-01 · A cold start works.**
-
 - Severity: major · Automatable: integration
-- Steps: `rm -rf .ward/history`, then a bare run.
-- Expect: the run passes; the first wave is the first 4 packages in discovery order; afterwards
-  `.ward/history/durations.json` exists, parses as JSON, holds `"version"` and an entry for every package and check type.
+- Steps: `node tmp/wp-leases.mjs --durations-clear $PWD`, then a bare run, then `--durations`.
+- Expect: the run passes; the first wave is the first 4 packages in discovery order; afterwards there is exactly one row per package and check type, each with `repo_root` equal to this checkout's path.
 
-**WP-HIST-02 · A damaged history file is survived and replaced.**
+**WP-HIST-02 · One slow run does not reorder the next.**
 
-- Severity: blocker · Automatable: unit
-- Steps: for each content below, write it to `.ward/history/durations.json`, run `npm run ward -- --only lint`, then inspect the file. Contents: an empty file; `{`; `null`; `[]`; `{"version":99,"packages":{}}`; a valid file with `"durationMs": "fast"`; a valid file with `"durationMs": -5`; a 50 MB file of spaces.
-- Expect: every run passes with the same verdict as with no file, dispatches in discovery order, and leaves a valid file behind.
-- Failure looks like: a crash, a red run, or the garbage still there afterwards.
+- Severity: major · Automatable: unit
+- Setup: at least 3 full runs' samples present.
+- Steps: insert one sample for a small package's `lint` with a duration 20 times its median (`node tmp/wp-leases.mjs --durations-insert <package> lint <ms>`). Run `npm run ward -- --only lint`.
+- Expect: that package is not in the first wave. The median ignores one outlier.
 
-**WP-HIST-03 · A history file that cannot be written does not redden the run.**
-
-- Severity: blocker · Automatable: unit
-- Steps: `chmod 444 .ward/history/durations.json`, run `npm run ward -- --only lint`; then `chmod 555
-  .ward/history`, run again; restore both with `chmod u+w`.
-- Expect: both runs exit 0 with the same summary as normal, and stderr holds exactly one line starting
-  `ward: duration history unavailable:`.
-
-**WP-HIST-04 · A history folder that cannot be read does not redden the run.**
-
-- Severity: blocker · Automatable: unit
-- Steps: `chmod 000 .ward/history`, run `npm run ward -- --only lint`, restore.
-- Expect: exit 0, discovery order, the one stderr line.
-
-**WP-HIST-05 · A worktree reads and writes the main checkout's history.**
-
-- Severity: major · Automatable: integration
-- Setup: ENV-WT.
-- Steps: note the modification time of the main checkout's `.ward/history/durations.json`. Run
-  `npm run ward -- --only lint` in the worktree.
-- Expect: the main checkout's file is newer; the worktree's own `.ward/` holds run files but no `history/` folder; the worktree's first wave matches the main checkout's lint history.
-
-**WP-HIST-06 · Two parents finishing together leave a valid file.**
+**WP-HIST-03 · An unusable registry does not redden the run.**
 
 - Severity: blocker · Automatable: integration
-- Setup: ENV-MAIN and ENV-WT.
-- Steps: start `npm run ward -- --only lint` in both within one second of each other. Repeat 5 times.
-- Expect: after each pair, the file parses and holds every package. No `.tmp` or partial file is left in
-  `.ward/history/`.
+- Steps: for each setup, run `npm run ward -- --only lint`, then undo it: `DUNGEONMASTER_LOAD_DIR` pointing at a regular file; the load folder at mode `500`; `registry-v1.db` replaced by 4 KB of random bytes.
+- Expect: each run exits 0 with the normal summary, stderr holds exactly one line starting
+  `ward: duration history unavailable:`, and the first wave is in discovery order.
 
-**WP-HIST-07 · Which runs write history.**
+**WP-HIST-04 · Five samples, no more.**
 
 - Severity: major · Automatable: integration
-- Steps: for each command below, record the file's `recordedAtMs` values before and after.
+- Steps: run `npm run ward -- --only lint -- packages/config` 7 times, then `--durations`.
+- Expect: exactly 5 `lint` rows for `@dungeonmaster/config`, the newest 5 by `recorded_at_ms`.
 
-| Command                                                                            | Expect                                                              |
-|------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| `npm run ward -- --only unit -- packages/ward/src/statics/ttl/ttl-statics.test.ts` | no change                                                           |
-| `npm run ward -- --only unit --onlyTests "ttl" -- packages/ward`                   | no change                                                           |
-| `npm run ward -- --uncommitted` with one edited file                               | no change                                                           |
-| `npm run ward -- -- packages/config`                                               | only `@dungeonmaster/config`'s entries change, for every check type |
-| `npm run ward -- --only lint`                                                      | only `lint` entries change, for every package                       |
+**WP-HIST-05 · A worktree shares the main checkout's rows.**
+- Severity: major · Automatable: integration
+- Setup: ENV-WT.
+- Steps: run `npm run ward -- --only lint` in the worktree, then `--durations` from ENV-MAIN.
+- Expect: the new rows carry the MAIN checkout's path as `repo_root`, not the worktree's. The worktree's first wave matched the main checkout's lint predictions. No `.ward/history/` folder exists anywhere.
 
-**WP-HIST-08 · A crashed child writes nothing.**
+**WP-HIST-06 · Two runs finishing together both keep their samples.**
+- Severity: blocker · Automatable: integration
+- Setup: ENV-MAIN and ENV-WT, with fewer than 4 lint samples per package (clear first).
+- Steps: start `npm run ward -- --only lint` in both within one second.
+- Expect: both exit 0; every package gained exactly 2 lint rows; no `database is locked` and no `duration history
+  unavailable` line.
 
+**WP-HIST-07 · Which runs add samples.**
+- Severity: major · Automatable: integration
+- Steps: for each command below, count this repo's rows before and after.
+
+| Command                                                                            | Expect                                                      |
+|------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| `npm run ward -- --only unit -- packages/ward/src/statics/ttl/ttl-statics.test.ts` | no new rows                                                 |
+| `npm run ward -- --only unit --onlyTests "ttl" -- packages/ward`                   | no new rows                                                 |
+| `npm run ward -- --uncommitted` with one edited file                               | no new rows                                                 |
+| `npm run ward -- -- packages/config`                                               | one new row per check type, all for `@dungeonmaster/config` |
+| `npm run ward -- --only lint`                                                      | one new `lint` row per package                              |
+
+**WP-HIST-08 · A crashed child adds nothing.**
 - Severity: major · Automatable: integration
 - Steps: start a bare run. When `wp-procs.sh` shows the `packages/shared` child ward, `kill -9` that child's pid.
-- Expect: the run reports shared as crashed (as it does today) and exits with the crash code; shared's history entries keep their old `recordedAtMs`; every other package's entries are updated.
+- Expect: the run reports shared as crashed (as it does today) and exits with the crash code; shared gains no rows; every other package gains one row per check type.
 
-**WP-HIST-09 · A run interrupted with Ctrl-C leaves the file valid.**
-
+**WP-HIST-09 · Ctrl-C adds nothing.**
 - Severity: major · Automatable: manual-only
 - Steps: start a bare run in a terminal and press Ctrl-C halfway. Repeat 3 times at different points.
-- Expect: the history file is unchanged and valid each time.
+- Expect: no new rows each time, and the registry opens cleanly afterwards.
 
 **WP-HIST-10 · History outside git.**
-
 - Severity: minor · Automatable: unit
 - Setup: ENV-CONS with its `.git` folder moved aside (if the consumer check made one).
 - Steps: `npx dungeonmaster ward -- --only lint`.
-- Expect: the run passes and history is written under the consumer root's own `.ward/history/`.
+- Expect: the run passes and its rows carry the consumer root as `repo_root`.
 
 **WP-HIST-11 · History when git is not on PATH.**
-
 - Severity: minor · Automatable: unit
 - Steps: make a folder holding only symlinks to `node` and `npm`, then run
   `env PATH=<that folder> npm run ward -- --only lint -- packages/config`.
-- Expect: the run passes, using the run root's own `.ward/`. If ward needs git for anything else on this path, record what failed. That is a pre-existing limit, not this plan's.
+- Expect: the run passes, keyed by the run root. If ward needs git for anything else on this path, record what failed. That is a pre-existing limit, not this plan's.
 
-**WP-HIST-12 · History stays out of git.**
+**WP-HIST-12 · A repo moved to a new path.**
+- Severity: minor · Automatable: manual-only
+- Setup: ENV-CONS kept.
+- Steps: run `npx dungeonmaster ward -- --only lint` in the consumer, move its folder, run again.
+- Expect: the second run dispatches in discovery order (no history at the new path) and passes; rows exist under both paths. Record how many rows the old path leaves behind.
 
-- Severity: major · Automatable: manual-only
-- Setup: ENV-MAIN and ENV-CONS.
-- Steps: after a full run in each, `git status --porcelain`.
-- Expect: no `.ward/` path appears. If the consumer's `.gitignore` lacks `.ward/`, that is a blocker for the consumer.
-
-**WP-HIST-13 · History does not grow without bound.**
+**WP-HIST-13 · How large history gets.**
 
 - Severity: minor · Automatable: manual-only
-- Steps: note the file size. Create, run and then delete a probe package, as in WP-POOL-08, 3 times.
-- Expect: record the size. A deleted package's entries stay (the plan does not prune them). Note it as a follow-up if the file exceeds 100 KB.
+- Steps: count this repo's rows and the registry file size after 10 full runs. Then create, run and delete a probe package, as in WP-POOL-08.
+- Expect: at most 5 rows per package and check type. The deleted package's rows remain; record the file size.
 
 ---
 
@@ -515,7 +505,7 @@ This machine has 12 cores and 64 GB of memory. Record the same for any other mac
 **WP-RES-06 · A cap smaller than one package.**
 
 - Severity: blocker · Automatable: unit
-- Setup: ENV-RES with `maxMemoryPercent: 10`, and a history whose web e2e peak is above 10% of memory (edit the history file to make it so).
+- Setup: ENV-RES with `maxMemoryPercent: 10`, and a history whose web e2e peak is above 10% of memory (insert such samples with `wp-leases.mjs --durations-insert`, then set their `peak_rss_mb` by hand).
 - Steps: a bare run.
 - Expect: the run finishes, running one package at a time when nothing else fits. It never stalls waiting for room that can never appear.
 - Failure looks like: ward hangs with no children running.
@@ -709,7 +699,7 @@ This machine has 12 cores and 64 GB of memory. Record the same for any other mac
 **WP-GOV-10 · History records memory.**
 
 - Severity: minor · Automatable: integration
-- Steps: after a bare run, read `peakRssMB` per package from the history file. During the same run, sample the RSS of each child's process tree by hand (`wp-procs.sh` records it).
+- Steps: after a bare run, read `peak_rss_mb` per package from `wp-leases.mjs --durations`. During the same run, sample the RSS of each child's process tree by hand (`wp-procs.sh` records it).
 - Expect: each recorded peak is within 20% of your highest sample for that package; web's e2e peak includes its browsers and servers (it should be the largest).
 - Failure looks like: web's peak about the size of a single Node process. That means the sampler missed Playwright's own process groups.
 
@@ -955,7 +945,7 @@ A unit merges only when every case listed for it passes, or the user accepts a n
 
 | Unit              | Gate cases                                                                                                                           |
 |-------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| N                 | WP-NODE-01, -02, -05, -06, -07, -09                                                                                                  |
+| N                 | WP-NODE-01, -02, -05, -06, -07, -09; WP-REG-01, -02; WP-ISO-01                                                                       |
 | A                 | WP-POOL-01 to -08, WP-HIST-01 to -12                                                                                                 |
 | B                 | WP-SHARD-01 to -19, WP-CFG-01, WP-CFG-02                                                                                             |
 | R                 | WP-REN-01, WP-REN-02                                                                                                                 |
@@ -1029,6 +1019,16 @@ if (flag === '--audit-on') {
     console.table(db.prepare('SELECT * FROM audit').all());
 } else if (flag === '--audit-off') {
     db.exec('DROP TRIGGER IF EXISTS audit_insert; DROP TABLE IF EXISTS audit;');
+} else if (flag === '--durations') {
+  console.table(db.prepare('SELECT * FROM durations WHERE repo_root = ? ORDER BY package, check_type, recorded_at_ms')
+          .all(process.cwd()));
+} else if (flag === '--durations-clear') {
+  const [, repoRoot] = process.argv.slice(2);
+  db.prepare('DELETE FROM durations WHERE repo_root = ?').run(repoRoot);
+} else if (flag === '--durations-insert') {
+  const [, pkg, checkType, ms] = process.argv.slice(2);
+  db.prepare(`INSERT INTO durations (repo_root, package, check_type, duration_ms, peak_rss_mb, shards, recorded_at_ms)
+    VALUES (?, ?, ?, ?, NULL, NULL, ?)`).run(process.cwd(), pkg, checkType, Number(ms), Date.now());
 } else if (flag === '--meta-age') {
     const [, ageMs] = process.argv.slice(2);
     db.prepare(`INSERT INTO meta (key, value) VALUES ('diskBudgetLastRunMs', ?)
@@ -1132,7 +1132,8 @@ Writing these cases exposed gaps in the plan. Each row says what was missing and
 | Leases owned by the parent's pid                                          | A SIGKILLed parent's leases drop while its orphaned children still use the machine                                                    | Leases are owned by the child's pid                                                       | WP-LEASE-04               |
 | No `/proc` (macOS)                                                        | The machine readers throw `ENOENT`, and every macOS consumer's ward run fails                                                         | The governor runs from Node's `os` readings, without memory samples, with one stderr line | WP-PLAT-01                |
 | An unusable registry file or folder                                       | A corrupt or read-only file under the user's home turns every ward run red                                                            | The governor runs without leases, with one stderr line                                    | WP-REG-03, -07            |
-| A history file that cannot be written                                     | A read-only `.ward/` turns a green run red                                                                                            | One stderr line, verdict unchanged                                                        | WP-HIST-03, -04           |
+| History that cannot be read or written                                    | An unusable registry turns a green run red                                                                                            | One stderr line, verdict unchanged, discovery order                                       | WP-HIST-03                |
+| History as one JSON file per repo                                         | Two runs finishing together: the last writer wins and the other's timings are lost; one slow run reorders the next                    | History is samples in the registry, 5 per key, median prediction                          | WP-HIST-02, -06           |
 | Old Node vs the governor's fallback                                       | A blanket "fall back on any error" would quietly run on Node 21 and hide the floor                                                    | `NodeVersionUnsupportedError` is the one error that still stops the run                   | WP-NODE-03, -04           |
 | `--pass-with-no-tests` on every shard                                     | Could hide a spec file that was discovered and never ran                                                                              | The discovery-mismatch check still runs on the merged result; WP-SHARD-15 proves it       | WP-SHARD-15               |
 
@@ -1149,7 +1150,7 @@ Still open, to decide after the cases run:
 | Question                                                                                                      | Why it is open                                                                                                      | Decided by                               |
 |---------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|------------------------------------------|
 | Should ward replace a corrupt registry instead of falling back every run?                                     | Falling back is safe but slow forever; replacing deletes a file in the user's home                                  | WP-REG-03's result, then the user        |
-| Should history drop packages that no longer exist?                                                            | The file grows by a few hundred bytes per deleted package                                                           | WP-HIST-13's measured size               |
+| Should history drop packages, and repo paths, that no longer exist?                                           | Rows stay forever for a deleted package or a moved repo, at most 5 per package and check type                       | WP-HIST-13's measured size               |
 | A heartbeat stamped in the future (clock jumped back) with a live unrelated pid survives until that pid exits | Rare, and self-healing                                                                                              | WP-LEASE-06's result                     |
 | Do shards need duration-balanced file lists?                                                                  | Playwright balances by test count                                                                                   | WP-SHARD-03's measured spread            |
 | Should the registry folder be created mode `700`?                                                             | It records process ids and package names of this user's work                                                        | WP-REG-01's observed mode                |

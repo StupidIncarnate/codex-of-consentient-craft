@@ -74,7 +74,7 @@ The last full run, `.ward/run-1790901309167-9740.json`, took **980s**. All packa
 
 | Question                                        | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |-------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Order of work                                   | N, A, B and R in parallel, then D, then S (§4). C is dropped (§5).                                                                                                                                                                                                                                                                                                                                                                                                                                                        | N, A, B and R touch different files. D needs N's Node floor and SQLite gateway, A's pool and history, B's sharding, and R's renamed contract. S needs D's limits reader.                                                                                                                                                                                                                                                                             |
+| Order of work                                   | N, B and R in parallel; A once N merges; then D, then S (§4). C is dropped (§5).                                                                                                                                                                                                                                                                                                                                                                                                                                          | N, B and R touch different files. A writes history into N's registry. D needs A's pool and history, B's sharding, and R's renamed contract. S needs D's limits reader.                                                                                                                                                                                                                                                                               |
 | Node floor                                      | Unit N raises `engines` to `>=22.16.0` itself. Nothing waits on another project.                                                                                                                                                                                                                                                                                                                                                                                                                                          | `node:sqlite` with its busy-wait option needs Node 22.16. The bump is small and ward owns the need.                                                                                                                                                                                                                                                                                                                                                  |
 | Where `engines` is declared                     | The root `package.json`, plus every package that itself imports `node:sqlite`: `@dungeonmaster/node` and `@dungeonmaster/load-balancer`.                                                                                                                                                                                                                                                                                                                                                                                  | npm checks `engines` on each installed package, so a standalone install of a package that reaches SQLite warns too.                                                                                                                                                                                                                                                                                                                                  |
 | What an old Node does at runtime                | The SQLite gateway throws an error naming Node 22.16 as the minimum before it opens anything.                                                                                                                                                                                                                                                                                                                                                                                                                             | npm only warns on `engines`. A clear refusal beats a `TypeError` from deep inside `node:sqlite`.                                                                                                                                                                                                                                                                                                                                                     |
@@ -84,14 +84,14 @@ The last full run, `.ward/run-1790901309167-9740.json`, took **980s**. All packa
 | How web's e2e runs in parallel                  | Ward-level sharding: ward starts N `playwright test --shard=i/N` processes.                                                                                                                                                                                                                                                                                                                                                                                                                                               | Each shard is its own process, so it already gets its own `dm-e2e-<pid>` home, servers and dispatcher. No harness changes.                                                                                                                                                                                                                                                                                                                           |
 | Shards and `--onlyTests`                        | A run with `--onlyTests` uses 1 shard. Every run with more than 1 shard passes `--pass-with-no-tests` to each shard.                                                                                                                                                                                                                                                                                                                                                                                                      | Playwright filters by `--grep` before it shards, so a shard can end up with no tests and would exit 1 on its own. The discovery-mismatch check still catches a spec file no shard ran.                                                                                                                                                                                                                                                               |
 | Package granularity                             | Keep one child ward process per package. Web's e2e shards run inside web's child.                                                                                                                                                                                                                                                                                                                                                                                                                                         | Splitting checks into separate jobs adds children and Jest contention for little gain once e2e is sharded.                                                                                                                                                                                                                                                                                                                                           |
-| Where duration and memory history lives         | Per repo, in the main checkout's `.ward/history/durations.json`, found through `git rev-parse --git-common-dir`. Every worktree of the repo shares it. Outside git, it falls back to the run root's `.ward/`.                                                                                                                                                                                                                                                                                                             | History is about this repo's packages, and it means nothing in another repo. Deleting `.ward/` resets one repo only. `storagePruneBroker` never touches it.                                                                                                                                                                                                                                                                                          |
-| Writing history safely                          | Read, merge, then `writeFileAtomic`. Two parents finishing together means the last writer wins.                                                                                                                                                                                                                                                                                                                                                                                                                           | Losing one run's timings costs nothing. A half-written JSON file would cost every later run its ordering.                                                                                                                                                                                                                                                                                                                                            |
+| Where duration and memory history lives         | A `durations` table in the machine registry (`registry-v1.db`), one row per sample: repo root, package, check type, duration, peak RSS, shard count, time. The repo root is the main checkout, found through `git rev-parse --git-common-dir`, so every worktree of a repo shares its rows. Outside git, the key is the run root.                                                                                                                                                                                         | One store instead of two. SQLite queues concurrent writers, so two runs finishing together both keep their samples, where a JSON file keeps only the last writer's. Unit D's memory peaks live in the same rows. A repo moved to a new path starts fresh history, which costs one run.                                                                                                                                                               |
+| How history predicts                            | Keep the newest 5 samples per repo, package and check type, in one transaction that inserts the run's samples and deletes older ones. Predict from the median.                                                                                                                                                                                                                                                                                                                                                            | One slow run under load must not reorder the next run. Five samples bound the table.                                                                                                                                                                                                                                                                                                                                                                 |
 | Where the live registry lives                   | `<os.homedir()>/.dungeonmaster/load/`, ignoring `DUNGEONMASTER_HOME`. `DUNGEONMASTER_LOAD_DIR` overrides it, and the Jest global setup sets that variable for every test.                                                                                                                                                                                                                                                                                                                                                 | CPU and memory are shared by every repo, home and agent of this user. A registry per home lets two agents each see an idle machine.                                                                                                                                                                                                                                                                                                                  |
 | Registry file format                            | SQLite through `node:sqlite`, in WAL mode, with the format version in the file name: `registry-v1.db`.                                                                                                                                                                                                                                                                                                                                                                                                                    | SQLite's built-in busy wait replaces siegelense's lock file. A newer format writes a new file instead of corrupting an older version's file.                                                                                                                                                                                                                                                                                                         |
 | Dropping dead leases                            | A lease drops when its owner pid is gone, or when its heartbeat is older than 30s.                                                                                                                                                                                                                                                                                                                                                                                                                                        | A pid check frees a SIGKILLed run's lease at once. The heartbeat covers a pid the OS reused.                                                                                                                                                                                                                                                                                                                                                         |
 | Siegelense's own registry                       | It stays in siegelense, per home, with its lane fields. Siegelense also takes one generic lease per running instance in the machine-wide registry.                                                                                                                                                                                                                                                                                                                                                                        | Lane fields mean nothing to ward. The orchestrator's lane code keeps working unchanged.                                                                                                                                                                                                                                                                                                                                                              |
 | Jest's worker share under D                     | The parent tells each child its Jest share as a percentage: `max(10, floor(100 / packages in flight))`. It replaces the fixed `25%`.                                                                                                                                                                                                                                                                                                                                                                                      | At 6 packages in flight, a fixed 25% each asks for 150% of the cores.                                                                                                                                                                                                                                                                                                                                                                                |
-| History that cannot be read or written          | It never changes the run's verdict. Ward prints one stderr line, `ward: duration history unavailable: <reason>`, and dispatches in discovery order.                                                                                                                                                                                                                                                                                                                                                                       | History is an optimisation. A read-only `.ward/` must not turn a green run red.                                                                                                                                                                                                                                                                                                                                                                      |
+| History that cannot be read or written          | It never changes the run's verdict. Ward prints one stderr line, `ward: duration history unavailable: <reason>`, and dispatches in discovery order.                                                                                                                                                                                                                                                                                                                                                                       | History is an optimisation. An unreadable registry must not turn a green run red.                                                                                                                                                                                                                                                                                                                                                                    |
 | Whether a repo shards e2e                       | A repo key, `ward.e2eSharding` (true or false, default false). This repo sets true. The repo decides only WHETHER; the machine decides how many (Unit D). Until D lands, ward uses a fixed count of 3 from its own statics.                                                                                                                                                                                                                                                                                               | Whether sharding works is a property of the repo: a consumer's Playwright config may hardcode its ports or its home instead of reading ward's env vars, and shards of it would collide. How many shards fit is a property of the machine.                                                                                                                                                                                                            |
 | How many packages run at once                   | Unit D removes `ward.concurrency`. No config sets a count: the governor takes CPU from the core count and load average, and memory from history, free memory and the machine's memory cap.                                                                                                                                                                                                                                                                                                                                | A count in a committed file is right on one machine and wrong on the rest. The history and the machine reading already say what fits. An old `.dungeonmaster.json` that still sets the key loads fine: the `ward` object is a plain zod object, so the key is dropped.                                                                                                                                                                               |
 | Where machine limits live                       | `resources` in the user's own `~/.dungeonmaster/config.json`, found through `os.homedir()`, ignoring `DUNGEONMASTER_HOME`. Two keys: `maxMemoryPercent` (whole number 10 to 100, default 80) and `maxDiskMB` (whole number, at least 1024, default 4096).                                                                                                                                                                                                                                                                 | Machines differ, so these are per machine and never committed. `DUNGEONMASTER_HOME` is repo-local in this repo's `npm run prod` and a temp folder under e2e, so it cannot be the source of a machine setting.                                                                                                                                                                                                                                        |
@@ -116,6 +116,9 @@ The last full run, `.ward/run-1790901309167-9740.json`, took **980s**. All packa
 1. `engines.node` is `>=22.16.0` in the root `package.json`, `packages/@gateway/node/package.json`, and (once Unit D creates it) `packages/load-balancer/package.json`.
 2. A new gateway wrapper, `#gateway/node/sqlite`, opens a database file with a busy wait. It refuses a Node older than 22.16 with an error naming that version, and it drops SQLite's experimental warning.
 3. Any doc that states a minimum Node version says 22.16.
+4. The new `@dungeonmaster/load-balancer` package exists, with one broker that opens the machine registry and creates its tables. Unit N creates the `durations` table that Unit A writes; Unit D adds `leases`; Unit S adds
+   `meta`.
+5. Every Jest run points `DUNGEONMASTER_LOAD_DIR` at its own sandbox, so no test reaches the real registry.
 
 ### Unit A — Shared work queue and longest-job-first
 
@@ -124,11 +127,10 @@ The last full run, `.ward/run-1790901309167-9740.json`, took **980s**. All packa
 **After:**
 
 1. `promisePoolTransformer` keeps its name and signature. Every worker pulls the next item from one shared queue, and results keep input order.
-2. After each run, the parent ward writes each package's duration per check type into
-   `.ward/history/durations.json` in the main checkout.
-3. Before dispatching, the parent sorts packages by predicted total duration, longest first, for the check types this run will execute. A package with no history for any of those check types goes first, since it could be the longest. Ties keep discovery order.
+2. After each run, the parent ward adds one sample per package and check type to a `durations` table in the machine registry (`~/.dungeonmaster/load/registry-v1.db`, created by Unit N), keyed by the main checkout's path. Every worktree of a repo shares those rows. The table keeps the newest 5 samples per package and check type.
+3. Before dispatching, the parent predicts each package's cost as the median of its samples, summed over the check types this run will execute, and sorts longest first. A package with no samples for any of those check types goes first, since it could be the longest. Ties keep discovery order. The median keeps one slow run under load from reordering the next one.
 4. The parent merges results in discovery order, so the summary reads the same as before.
-5. Only whole-package child runs update history. A child handed a file list, or run with `--onlyTests`, never writes it, because its times are not the package's real cost. A crashed child writes nothing.
+5. Only whole-package child runs add samples. A child handed a file list, or run with `--onlyTests`, never does, because its times are not the package's real cost. A crashed child adds nothing.
 
 **Expected
 result:** a full run drops from 980s to about 485s. That is 1,940s of work over 4 workers, with web started at second 0.
@@ -251,7 +253,8 @@ Sharding (Unit B) gets the same parallelism with none of these problems.
 | A    | A full `npm run ward` passes, and web's child starts in the first dispatch wave.                                                                                                     |
 | A    | A worker that finishes early takes the next package; no worker is idle while packages are still queued.                                                                              |
 | A    | The summary lists packages in the same order as before Unit A.                                                                                                                       |
-| A    | `.ward/history/durations.json` exists in the main checkout after a full run, and a worktree's run reads it.                                                                          |
+| A    | After a full run, the registry's `durations` table holds one new sample per package and check type, keyed by the main checkout; a worktree's run reads and adds to the same rows.    |
+| N    | The registry file and its `durations` table are created on first open, and no test writes to `~/.dungeonmaster/load/`.                                                               |
 | A    | A full run is under 600s on this machine. The estimate is about 485s.                                                                                                                |
 | B    | A full web e2e passes with 3 shards and no new slow-test failures.                                                                                                                   |
 | B    | A file-scoped e2e run of one spec starts exactly one Playwright process.                                                                                                             |
@@ -272,33 +275,34 @@ Sharding (Unit B) gets the same parallelism with none of these problems.
 
 ## 7. What this revision changed
 
-| Before (2026-10-01)                                                                     | After (2026-10-02)                                                                                                                                                                                         |
-|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Unit D waited for chronicle-llm to raise `engines` to Node 22.16.                       | Unit N raises it, with no dependency on any other project.                                                                                                                                                 |
-| "A new queue-based pool" in shared.                                                     | `promisePoolTransformer` is fixed in place, because both of its callers move.                                                                                                                              |
-| Sorting packages had no rule for result order.                                          | The parent restores discovery order before merging, so the summary does not reshuffle.                                                                                                                     |
-| "Only full-package runs update history."                                                | Defined per child: no file list, no `--onlyTests`, not crashed.                                                                                                                                            |
-| History writes had no concurrency rule.                                                 | Read, merge, atomic write. Last writer wins.                                                                                                                                                               |
-| Shards with `--onlyTests` were unaddressed.                                             | `--onlyTests` uses 1 shard; every multi-shard run passes `--pass-with-no-tests`.                                                                                                                           |
-| Shard balance was assumed even.                                                         | Playwright balances by test count, so B measures each shard's wall clock and names a follow-up.                                                                                                            |
-| Specs that depend on an earlier file's state were not considered.                       | Task B5 hunts them.                                                                                                                                                                                        |
-| Dead leases dropped only on a stale heartbeat.                                          | A dead pid drops a lease at once; the heartbeat covers pid reuse.                                                                                                                                          |
-| Jest's `--maxWorkers=25%` stayed fixed while D raised concurrency.                      | The parent hands each child a share sized to the live concurrency.                                                                                                                                         |
-| D's peak memory and CPU history had no measuring method.                                | The parent samples the RSS of each child's process tree. CPU is left to the load average, because sampled CPU time misses exited Jest workers.                                                             |
-| `machineReadBroker` would have carried siegelense's home lookup into the new package.   | It takes the path to statfs as a parameter.                                                                                                                                                                |
-| Nothing handled SQLite's experimental warning on Node 22.                               | The gateway drops it.                                                                                                                                                                                      |
-| §5 cited chronicle-llm's home-to-SQLite plan against per-worker homes.                  | Removed. The other two reasons stand on their own.                                                                                                                                                         |
-| `ward.e2eShards` defaulted to 3 for every consumer.                                     | It defaults to 1, and this repo opts in with 3. Found while writing the manual tests.                                                                                                                      |
-| Child wards were to run as their own process groups so the parent could sample memory.  | Children stay in the parent's group, and the parent samples their process tree. A separate group stops Ctrl-C reaching them, and misses the browsers and servers Playwright starts in groups of their own. |
-| The governor's ceiling was `ward.concurrency`, default 4.                               | No count at all. `ward.concurrency` is removed in Unit D; the machine reading, history and the home config's memory cap decide. (An intermediate draft added `ward.maxConcurrency`; it is dropped.)        |
-| Machine limits would have lived in the committed `.dungeonmaster.json`.                 | They live in `~/.dungeonmaster/config.json`, because machines differ.                                                                                                                                      |
-| `ward.e2eShards` set a shard count per repo.                                            | `ward.e2eSharding` says only whether the repo can be sharded; the machine picks the count.                                                                                                                 |
-| Nothing bounded the disk dungeonmaster's own files take.                                | Unit S, driven by `resources.maxDiskMB`, default 4 GB, over the current repo and the guild list.                                                                                                           |
-| Unit S kept its own list of repos in the registry.                                      | It reads the guild list, which already names the user's repos.                                                                                                                                             |
-| The home config's contract was named for guilds.                                        | Unit R renames it `homeConfigContract`.                                                                                                                                                                    |
-| Containers looked like their host.                                                      | The machine reading honours cgroup v2 limits.                                                                                                                                                              |
-| A lease was owned by the parent's pid.                                                  | It is owned by the child's pid.                                                                                                                                                                            |
-| Nothing said what ward does without `/proc`, or with a broken registry or history file. | Each falls back to what is left, with one stderr line. None changes the verdict.                                                                                                                           |
+| Before (2026-10-01)                                                                                      | After (2026-10-02)                                                                                                                                                                                           |
+|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Unit D waited for chronicle-llm to raise `engines` to Node 22.16.                                        | Unit N raises it, with no dependency on any other project.                                                                                                                                                   |
+| "A new queue-based pool" in shared.                                                                      | `promisePoolTransformer` is fixed in place, because both of its callers move.                                                                                                                                |
+| Sorting packages had no rule for result order.                                                           | The parent restores discovery order before merging, so the summary does not reshuffle.                                                                                                                       |
+| "Only full-package runs update history."                                                                 | Defined per child: no file list, no `--onlyTests`, not crashed.                                                                                                                                              |
+| History writes had no concurrency rule.                                                                  | Read, merge, atomic write. Last writer wins.                                                                                                                                                                 |
+| Shards with `--onlyTests` were unaddressed.                                                              | `--onlyTests` uses 1 shard; every multi-shard run passes `--pass-with-no-tests`.                                                                                                                             |
+| Shard balance was assumed even.                                                                          | Playwright balances by test count, so B measures each shard's wall clock and names a follow-up.                                                                                                              |
+| Specs that depend on an earlier file's state were not considered.                                        | Task B5 hunts them.                                                                                                                                                                                          |
+| Dead leases dropped only on a stale heartbeat.                                                           | A dead pid drops a lease at once; the heartbeat covers pid reuse.                                                                                                                                            |
+| Jest's `--maxWorkers=25%` stayed fixed while D raised concurrency.                                       | The parent hands each child a share sized to the live concurrency.                                                                                                                                           |
+| D's peak memory and CPU history had no measuring method.                                                 | The parent samples the RSS of each child's process tree. CPU is left to the load average, because sampled CPU time misses exited Jest workers.                                                               |
+| `machineReadBroker` would have carried siegelense's home lookup into the new package.                    | It takes the path to statfs as a parameter.                                                                                                                                                                  |
+| Nothing handled SQLite's experimental warning on Node 22.                                                | The gateway drops it.                                                                                                                                                                                        |
+| §5 cited chronicle-llm's home-to-SQLite plan against per-worker homes.                                   | Removed. The other two reasons stand on their own.                                                                                                                                                           |
+| `ward.e2eShards` defaulted to 3 for every consumer.                                                      | It defaults to 1, and this repo opts in with 3. Found while writing the manual tests.                                                                                                                        |
+| Child wards were to run as their own process groups so the parent could sample memory.                   | Children stay in the parent's group, and the parent samples their process tree. A separate group stops Ctrl-C reaching them, and misses the browsers and servers Playwright starts in groups of their own.   |
+| The governor's ceiling was `ward.concurrency`, default 4.                                                | No count at all. `ward.concurrency` is removed in Unit D; the machine reading, history and the home config's memory cap decide. (An intermediate draft added `ward.maxConcurrency`; it is dropped.)          |
+| Machine limits would have lived in the committed `.dungeonmaster.json`.                                  | They live in `~/.dungeonmaster/config.json`, because machines differ.                                                                                                                                        |
+| `ward.e2eShards` set a shard count per repo.                                                             | `ward.e2eSharding` says only whether the repo can be sharded; the machine picks the count.                                                                                                                   |
+| Nothing bounded the disk dungeonmaster's own files take.                                                 | Unit S, driven by `resources.maxDiskMB`, default 4 GB, over the current repo and the guild list.                                                                                                             |
+| Unit S kept its own list of repos in the registry.                                                       | It reads the guild list, which already names the user's repos.                                                                                                                                               |
+| History lived in `.ward/history/durations.json`, one value per package and check type, last writer wins. | It lives in the registry's `durations` table: 5 samples each, median prediction, concurrent writers queued. The load-balancer package and the registry move from Unit D into Unit N, and Unit A waits for N. |
+| The home config's contract was named for guilds.                                                         | Unit R renames it `homeConfigContract`.                                                                                                                                                                      |
+| Containers looked like their host.                                                                       | The machine reading honours cgroup v2 limits.                                                                                                                                                                |
+| A lease was owned by the parent's pid.                                                                   | It is owned by the child's pid.                                                                                                                                                                              |
+| Nothing said what ward does without `/proc`, or with a broken registry or history file.                  | Each falls back to what is left, with one stderr line. None changes the verdict.                                                                                                                             |
 
 ## 8. Execution plan for an orchestrator
 
@@ -320,8 +324,8 @@ This section is written for a Sonnet-class orchestrator that dispatches Sonnet-c
    task**, inside that unit's worktree, on the worktree's branch. One commit per task. End the message with the attribution line the session gives you.
 8. **Gate each unit before merging
    it.** In the unit's worktree: `npm run ward -- --committed --uncommitted` until it exits 0, then one bare `npm run ward` (with `timeout: 600000`), then the unit's manual checks (§8.9).
-9. **Merge units into `master` in this order: N, A, B, R; later D, then
-   S.** A and B both edit `packages/ward/CLAUDE.md`; resolve that conflict by keeping both sections. Then create `wp-unit-d` from the merged `master`. After D merges, create `wp-unit-s` from `master`.
+9. **Merge N first, and create `wp-unit-a` from `master` only after N
+   merges**, because A writes into N's registry. Merge B and R whenever their gates pass. Start D once N, A, B and R are all merged; S after D. A and B both edit `packages/ward/CLAUDE.md`; resolve that conflict by keeping both sections. Then create `wp-unit-d` from `master`. After D merges, create `wp-unit-s` from `master`.
 10. **Stop and ask the user** if a gate fails twice on the same cause, or if a task needs a file not on its card.
 
 ### 8.2 Brief template for every worker
@@ -360,10 +364,7 @@ NOTES — anything the orchestrator must know (a decision you made, a file you n
 ```mermaid
 flowchart LR
   subgraph N[Unit N · worktree wp-unit-n]
-    N1 & N2 --> N3
-  end
-  subgraph A[Unit A · worktree wp-unit-a]
-    A1 & A2 & A3 --> A4 & A5 & A6 --> A7 --> A8
+N1 & N2 & N4 --> N6 & N7 --> N3
   end
   subgraph B[Unit B · worktree wp-unit-b]
     B1 & B2 & B3 --> B4 --> B5 --> B6
@@ -371,22 +372,16 @@ flowchart LR
 subgraph R[Unit R · worktree wp-unit-r]
 R1 --> R2
 end
-N --> MERGE[merge N, A, B, R into master]
-R --> MERGE
-  A --> MERGE
-  B --> MERGE
-  MERGE --> D0[D0 create package]
-  D --> MERGE2[merge D into master]
-  MERGE2 --> S0
-  subgraph S[Unit S · worktree wp-unit-s]
-  S0 --> S1 & S2
-  S1 --> S3
-  S2 & S3 --> S4 --> S5a & S5b --> S6
+N --> A
+subgraph A[Unit A · worktree wp-unit-a, after N merges]
+A1 & A2 & A3 --> A4 & A5 & A6 --> A7 --> A8
   end
+  A & B & R --> MERGE[all of N, A, B, R merged]
+MERGE --> D1
   subgraph D[Unit D · worktree wp-unit-d]
-  D0 --> D1 & D2 & D3 & D4 & D17
-  D2 --> D19
-  D17 --> D20
+D1 & D2 & D3 & D4 & D17
+D2 --> D19
+D17 --> D20
     D1 --> D5 & D6
     D2 --> D8
     D6 --> D7
@@ -395,15 +390,21 @@ D5 & D7 & D19 & D20 --> D9
     D9 & D10 --> D11 & D12
     D11 & D12 & D3 & D4 & D8 --> D13 --> D18
     D11 & D12 --> D14
-D18 & D14 --> D15 & D16
+D18 & D14 --> D16
+end
+D --> S0
+subgraph S[Unit S · worktree wp-unit-s]
+S0 --> S1 & S2
+S1 --> S3
+S2 & S3 --> S4 --> S5a & S5b --> S6
   end
 ```
 
-Units N, A, B and R start together. Inside a unit, tasks joined by `&` run in parallel.
+Units N, B and R start together; A starts when N merges. Inside a unit, tasks joined by `&` run in parallel.
 
 ### 8.4 Unit N tasks (worktree `wp-unit-n`)
 
-**Step N-1 — run N1 and N2 in parallel.**
+**Step N-1 — run N1 and N2 in parallel. The orchestrator does N4 at the same time.**
 
 **N1 — Raise the Node floor.**
 
@@ -431,13 +432,47 @@ Units N, A, B and R start together. Inside a unit, tasks joined by `&` run in pa
 
 **Step N-2 — after N1 and N2.**
 
+**N4 — Create the load-balancer package.** (orchestrator only)
+
+- Run `dungeonmaster create-package --name load-balancer --type library` in `wp-unit-n`.
+- Add `"engines": { "node": ">=22.16.0" }` to `packages/load-balancer/package.json`, and add
+  `"@dungeonmaster/node": "*"` and `"@dungeonmaster/shared": "*"` to its dependencies if the scaffold did not.
+- Run `npm install` in the worktree so the workspace link exists. Commit.
+
+**Step N-2 — after N2 and N4, run N6 and N7 in parallel.**
+
+**N6 — Registry statics and open broker.**
+
+- Files: create `packages/load-balancer/src/statics/load-balancer/load-balancer-statics.ts` with `.test.ts`; create
+  `packages/load-balancer/src/brokers/registry/open/registry-open-broker.ts` with `.proxy.ts`, `.test.ts` and
+  `.integration.test.ts`.
+- Statics: `{ registry: { dirEnvVar: 'DUNGEONMASTER_LOAD_DIR', homeRelativeDir: '.dungeonmaster/load', fileName:
+  'registry-v1.db', busyTimeoutMs: 5000 } }`. Unit D adds more sections.
+- Broker: resolve the folder (the env var if set, else `<homedir()>/<homeRelativeDir>`), `ensureDir` it, open
+  `registry-v1.db` through `openSqliteDatabase` from `#gateway/node/sqlite`, and create, `IF NOT EXISTS`:
+    - table `durations`: `repo_root TEXT, package TEXT, check_type TEXT, duration_ms INTEGER, peak_rss_mb INTEGER NULL,
+    shards INTEGER NULL, recorded_at_ms INTEGER`
+    - an index on `(repo_root, package, check_type, recorded_at_ms)`
+      Return the database.
+- Integration test: env var set to a testbed dir → the file is created there and the table and index exist; a second open of the same file succeeds and keeps existing rows.
+
+**N7 — Test isolation.**
+
+- Files: `packages/testing/src/jest.setup-global.js`.
+- Set `DUNGEONMASTER_LOAD_DIR` to a folder inside the sandbox home it already creates, so no test reaches the real registry.
+- Verify by running `npm run ward -- --only integration -- packages/load-balancer` and confirming
+  `~/.dungeonmaster/load/` did not change (`ls -la --time-style=full-iso`).
+
+**Step N-3 — after N-2.**
+
 **N3 — Docs.**
 
-- Files: the docs N1 listed, plus `packages/@gateway/node/CLAUDE.md` if it exists.
+- Files: the docs N1 listed, plus `packages/@gateway/node/CLAUDE.md` if it exists, and a new
+  `packages/load-balancer/CLAUDE.md`.
 - Change every stated Node minimum to 22.16. Add one sentence to the gateway's docs saying `#gateway/node/sqlite`
-  is the only way to open SQLite, and why it filters the warning.
+  is the only way to open SQLite, and why it filters the warning. In the load-balancer's docs: where the registry lives, the `DUNGEONMASTER_LOAD_DIR` override, and that each unit adds its own tables through `registryOpenBroker`.
 
-### 8.5 Unit A tasks (worktree `wp-unit-a`)
+### 8.5 Unit A tasks (worktree `wp-unit-a`, created from `master` after N merges)
 
 **Step A-1 — run A1, A2 and A3 in parallel.**
 
@@ -461,13 +496,14 @@ Units N, A, B and R start together. Inside a unit, tasks joined by `&` run in pa
 - Return an absolute path. Git prints a relative path (often `.git`) in the main checkout, so resolve the output against `cwd`. Return `null` on a non-zero exit or empty output. Let `GitNotInstalledError` propagate as the other wrappers do.
 - Tests: relative output resolved against cwd; absolute output kept; exit 128 is `null`; empty output is `null`.
 
-**A3 — History contract and statics.**
+**A3 — Sample contract and statics.**
 
-- Files: create `packages/ward/src/contracts/duration-history/duration-history-contract.ts` with `.stub.ts` and
+- Files: create `packages/ward/src/contracts/duration-sample/duration-sample-contract.ts` with `.stub.ts` and
   `.test.ts`; create `packages/ward/src/statics/duration-history/duration-history-statics.ts` with `.test.ts`.
-- Contract shape: `{ version: 1, packages: record of package name → partial record of CheckType → { durationMs,
-  recordedAtMs } }`. Reuse the existing `CheckType` contract for the keys. Use the existing `projectFolder` name type for the package key if one exists.
-- Statics: `{ version: 1, dirName: '.ward', subDir: 'history', fileName: 'durations.json' }`.
+- Contract: `{ repoRoot, packageName, checkType, durationMs, peakRssMB: number | null, shards: number | null,
+  recordedAtMs }`. Reuse the existing `CheckType` contract. Use the existing `projectFolder` name type for
+  `packageName` if one exists.
+- Statics: `{ samplesKept: 5 }`.
 
 **Step A-2 — after A-1, run A4, A5 and A6 in parallel.**
 
@@ -479,40 +515,40 @@ Units N, A, B and R start together. Inside a unit, tasks joined by `&` run in pa
 - Tests: main checkout (`/repo/.git` → `/repo`); worktree (`/repo/.git` returned while cwd is `/repo/worktrees/x` →
   `/repo`); not a repo (`null` → rootPath); git missing → rootPath; a bare-repo path not ending in `.git` → rootPath.
 
-**A5 — Read and write history.**
+**A5 — Read and write samples.**
 
 - Files: create `packages/ward/src/brokers/history/read/history-read-broker.ts` and
-  `packages/ward/src/brokers/history/write/history-write-broker.ts`, each with `.proxy.ts` and `.test.ts`.
-- Read: input `{ historyRoot }`. Read `<historyRoot>/.ward/history/durations.json` with `readJsonFileIfExists` from
-  `#gateway/node/fs__promises`. Missing file, a parse failure, or a version other than 1 all return
-  `{ version: 1, packages: {} }`. Use `safeParse`; the architecture bans a silent catch.
-- Write: input `{ historyRoot, history }`. `ensureDir` the history folder, then `writeFileAtomic` the JSON.
-- Tests: missing file; valid file; wrong version; invalid JSON; write path and content.
+  `packages/ward/src/brokers/history/write/history-write-broker.ts`, each with `.proxy.ts`, `.test.ts`, and one
+  `.integration.test.ts` for the pair; add `"@dungeonmaster/load-balancer": "*"` to `packages/ward/package.json`.
+- Read: input `{ repoRoot }`. Open the registry with `registryOpenBroker` from `@dungeonmaster/load-balancer/brokers`
+  and return every `durations` row for that repo root as `DurationSample[]`. Parse each row with the contract; skip a row that fails, and count it in a returned `skipped` number.
+- Write: input `{ samples }`. In one transaction (`BEGIN IMMEDIATE` … `COMMIT`, `ROLLBACK` on a throw), insert every sample, then delete every row of each touched repo, package and check type beyond the newest `samplesKept`.
+- Integration test, with `DUNGEONMASTER_LOAD_DIR` in a testbed: write 7 samples for one key, read back the newest 5; two keys stay separate; a row with a negative duration is skipped and counted.
 
-**A6 — Ordering and merging transformers.**
+**A6 — Prediction, ordering and sample transformers.**
 
-- Files: create `packages/ward/src/transformers/package-dispatch-order/package-dispatch-order-transformer.ts` and
-  `packages/ward/src/transformers/duration-history-merge/duration-history-merge-transformer.ts`, each with `.test.ts`.
-- `packageDispatchOrderTransformer({ projectFolders, history, checkTypes })` returns the folders sorted for dispatch. A folder missing history for any of `checkTypes` comes first. The rest sort by the sum of their durations over
-  `checkTypes`, largest first. Ties and unknowns keep their input order (stable sort).
-- `durationHistoryMergeTransformer({ history, checks, wholePackageNames, nowMs })` returns a new history. For each
-  `CheckResult` in `checks`, for each `ProjectResult` whose `projectFolder.name` is in `wholePackageNames` and which is not crashed (use `isCrashedProjectResultGuard`), set `packages[name][checkType] = { durationMs, recordedAtMs:
-  nowMs }`. Leave every other entry as it was.
-- Tests: unknown first; longest first; only the requested check types count; stable ties; merge overwrites only the measured entries; a crashed result and a non-whole package are skipped.
+- Files: create `packages/ward/src/transformers/duration-predict/duration-predict-transformer.ts`,
+  `packages/ward/src/transformers/package-dispatch-order/package-dispatch-order-transformer.ts` and
+  `packages/ward/src/transformers/duration-samples-build/duration-samples-build-transformer.ts`, each with `.test.ts`.
+- `durationPredictTransformer({ samples })` returns, per package and check type, the median `durationMs` (the mean of the middle two for an even count) and the median `peakRssMB` of samples that have one.
+- `packageDispatchOrderTransformer({ projectFolders, predictions, checkTypes })` returns the folders sorted for dispatch. A folder missing a prediction for any of `checkTypes` comes first. The rest sort by the sum of their predicted durations over `checkTypes`, largest first. Ties and unknowns keep their input order (stable sort).
+- `durationSamplesBuildTransformer({ repoRoot, checks, wholePackageNames, nowMs })` returns one sample per
+  `ProjectResult` whose `projectFolder.name` is in `wholePackageNames` and which is not crashed (use
+  `isCrashedProjectResultGuard`), with `peakRssMB` and `shards` null until Unit D.
+- Tests: median of 1, 2, 5 samples; one outlier among five does not move the median; unknown first; longest first; only the requested check types count; stable ties; a crashed result and a non-whole package give no sample.
 
 **Step A-3 — after A-2.**
 
 **A7 — Wire it into the parent.**
 
 - Files: `packages/ward/src/brokers/command/run/multi-package-layer-broker.ts`, its `.proxy.ts` and `.test.ts`.
-- Before the pool: `historyRoot = await historyRootFindBroker({ rootPath })`, then `historyReadBroker`, then
-  `packageDispatchOrderTransformer` over `filteredFolders` and `checkTypes`.
+- Before the pool: `repoRoot = await historyRootFindBroker({ rootPath })`, then `historyReadBroker({ repoRoot })`, then `durationPredictTransformer`, then `packageDispatchOrderTransformer` over `filteredFolders` and `checkTypes`.
 - Pass the sorted folders to `promisePoolTransformer`. Inside the handler, record whether this child is whole-package:
   `matchingArgs` is empty (or there is no passthrough) and `config.onlyTests` is unset.
 - After the pool, rebuild `subResults` in `filteredFolders` order before the existing merge loop.
-- After the merge and before `storageSaveBroker`, call `durationHistoryMergeTransformer` with the whole-package names and `historyWriteBroker`. Skip both when the set is empty.
+- After the merge and before `storageSaveBroker`, call `durationSamplesBuildTransformer` with the whole-package names and `historyWriteBroker`. Skip both when the set is empty.
 - A thrown error from the root find, the read or the write prints `ward: duration history unavailable: <message>` to stderr once, and the run carries on, in discovery order when the read failed. It never changes the exit code.
-- Tests to add: a package with the longest history is spawned first; the merged summary order matches discovery order; a file-scoped run leaves the history file untouched; an `--onlyTests` run leaves it untouched; a full run writes the measured durations; a write that throws EACCES leaves the result and exit code unchanged and prints the one line.
+- Tests to add: a package with the longest history is spawned first; the merged summary order matches discovery order; a file-scoped run writes no sample; an `--onlyTests` run writes none; a full run writes one sample per package and check type; a write that throws leaves the result and exit code unchanged and prints the one line.
 - Run `npm run ward -- -- packages/ward/src/brokers/command/run/multi-package-layer-broker.ts
   packages/ward/src/brokers/command/run/multi-package-layer-broker.test.ts
   packages/ward/src/brokers/scan/run/scan-run-broker.test.ts`. The scan test covers the pool's other caller.
@@ -522,7 +558,7 @@ Units N, A, B and R start together. Inside a unit, tasks joined by `&` run in pa
 **A8 — Docs.**
 
 - Files: `packages/ward/CLAUDE.md`.
-- Where it says "up to 4 concurrently, via a promise pool", say instead that the pool is a shared queue, packages are dispatched longest-first from `.ward/history/durations.json` in the main checkout, and results merge in discovery order. Say which runs write history and why.
+- Where it says "up to 4 concurrently, via a promise pool", say instead that the pool is a shared queue, packages are dispatched longest-first by the median of the last 5 samples in the registry's `durations` table, keyed by the main checkout, and results merge in discovery order. Say which runs add samples and why.
 
 ### 8.6 Unit B tasks (worktree `wp-unit-b`)
 
@@ -623,15 +659,6 @@ touch every file it lists.**
 
 ### 8.7 Unit D tasks (worktree `wp-unit-d`, created from `master` after N, A and B merge)
 
-**Step D-0 — the orchestrator.**
-
-**D0 — Create the package.**
-
-- Run `dungeonmaster create-package --name load-balancer --type library` in `wp-unit-d`.
-- Add `"engines": { "node": ">=22.16.0" }` to `packages/load-balancer/package.json`, and add
-  `"@dungeonmaster/node": "*"` and `"@dungeonmaster/shared": "*"` to its dependencies if the scaffold did not.
-- Run `npm install` in the worktree so the workspace link exists. Commit.
-
 **Step D-1 — run D1, D2, D3, D4 and D17 in parallel.** Then D19 (needs D2) and D20 (needs D17) in parallel.
 
 **D17 — Machine limits in the home config.**
@@ -654,12 +681,10 @@ touch every file it lists.**
 - Read `<os.homedir()>/.dungeonmaster/config.json` with `readJsonFileIfExists`. Return `{ resources, guildPaths, warning }`. `safeParse` `resources` with the D17 schema: missing file or key gives defaults; invalid gives defaults plus a `warning` string naming the bad key, which the caller prints once. `guildPaths` is every guild's `path` from the same file, or `[]`; Unit S uses it.
 - Tests: missing file; no `resources`; valid; invalid percent; guild paths returned; a file `DUNGEONMASTER_HOME` points at is never read (stage both and assert only the homedir one is).
 
-**D1 — Load-balancer statics and lease contract.**
+**D1 — More load-balancer statics, and the lease contract.**
 
-- Files: create `packages/load-balancer/src/statics/load-balancer/load-balancer-statics.ts` with `.test.ts`; create
-  `packages/load-balancer/src/contracts/lease/lease-contract.ts` with `.stub.ts` and `.test.ts`.
-- Statics: `{ registry: { dirEnvVar: 'DUNGEONMASTER_LOAD_DIR', homeRelativeDir: '.dungeonmaster/load', fileName:
-  'registry-v1.db', busyTimeoutMs: 5000 }, lease: { heartbeatIntervalMs: 5000, staleAfterMs: 30000 }, memory:
+- Files: `packages/load-balancer/src/statics/load-balancer/load-balancer-statics.ts` and its `.test.ts` (created by N6); create `packages/load-balancer/src/contracts/lease/lease-contract.ts` with `.stub.ts` and `.test.ts`.
+- Statics: add `lease: { heartbeatIntervalMs: 5000, staleAfterMs: 30000 }, memory:
   { headroomMB: <copy siegelense capacityStatics.memory.headroomMB> }, cpu: { minAllowed: 1 } }`.
 - Lease: `{ leaseId, tool: 'ward' | 'siegelense', label, ownerPid, state: 'starting' | 'running', expectedPeakMB: number | null, currentRssMB: number | null, startedAtMs, lastBeatMs }`.
 
@@ -699,13 +724,11 @@ Run D5, D6 and D8 in parallel (they need D1 or D2, and their files do not overla
 - Input `{ machine, liveLeases, job: { peakMB: number | null }, maxMemoryPercent }`. CPU allows `max(minAllowed, floor(cores - loadAvg1))`, minus the jobs already in flight that the load average has not caught up with (live leases younger than 60s). Free memory allows `floor((freeMemMB - headroom - sum of starting leases' expectedPeakMB) / job.peakMB)`. The cap allows `floor((totalMemMB × maxMemoryPercent / 100 - sum of live leases' currentRssMB, or expectedPeakMB when that is null) / job.peakMB)`. With no `job.peakMB`, both memory limits are left out. The answer is the smallest limit, never below 0. Return each limit separately so a caller can say which one bound.
 - Tests: CPU binds; free memory binds; the cap binds while free memory is plentiful; a starting lease's peak is debited; a running lease's current RSS is counted against the cap; no job peak; leases younger than 60s reduce the CPU limit.
 
-**D6 — Registry open.**
+**D6 — The leases table.**
 
-- Files: create `packages/load-balancer/src/brokers/registry/open/registry-open-broker.ts` with `.proxy.ts`,
-  `.test.ts` and `.integration.test.ts`.
-- Resolve the folder: the env var from D1 if set, else `<homedir()>/<homeRelativeDir>`. `ensureDir` it. Open
-  `registry-v1.db` through `openSqliteDatabase` from `#gateway/node/sqlite`. Create table `leases` with one column per lease field, `IF NOT EXISTS`. Return the database.
-- Integration test: env var set to a testbed dir → the file is created there and the table exists.
+- Files: `packages/load-balancer/src/brokers/registry/open/registry-open-broker.ts` and its tests (created by N6).
+- Add table `leases`, one column per lease field, `IF NOT EXISTS`, beside `durations`.
+- Integration test: a registry file made by N6's version (only `durations`) gains `leases` on the next open, and keeps its `durations` rows.
 
 **D8 — Process-tree memory sampling.**
 
@@ -758,13 +781,12 @@ Run D5, D6 and D8 in parallel (they need D1 or D2, and their files do not overla
 - Add an optional `limit?: () => Promise<number>`. When given, the pool asks it before each dispatch, and starts the next item only while the in-flight count is below `max(1, await limit())`. When an item finishes, the pool asks again. Without `limit`, behaviour is exactly A1's.
 - Tests: a limit that drops from 3 to 1 mid-run; a limit of 0 still runs one at a time; a limit that rises lets more start at the next completion.
 
-**D12 — History adds peak memory.**
+**D12 — Samples carry peak memory and shard count.**
 
-- Files: `packages/ward/src/contracts/duration-history/duration-history-contract.ts` and stub,
-  `packages/ward/src/transformers/duration-history-merge/duration-history-merge-transformer.ts`, their tests, and
-  `packages/ward/src/statics/duration-history/duration-history-statics.ts`.
-- Each entry gains `peakRssMB: number | null`. Bump the version to 2. The reader returns an empty history for version 1, which is fine: one full run refills it.
-- The merge takes `peakRssByPackage` and writes it onto every check type of that package, since the parent samples the whole child.
+- Files: `packages/ward/src/transformers/duration-samples-build/duration-samples-build-transformer.ts` and its test.
+- Take `peakRssByPackage` (from D13's sampler) and `shardsByPackage` (from the e2e result), and fill `peakRssMB`
+  and `shards` on that package's samples. The parent samples the whole child, so every check type of a package gets the child's peak.
+- Tests: peaks and shard counts land on the right package; a package with no peak keeps `null`.
 
 **Step D-7 — after D11 and D12.**
 
@@ -792,16 +814,9 @@ Run D5, D6 and D8 in parallel (they need D1 or D2, and their files do not overla
 
 **Step D-8 — after D13, D14 and D18.**
 
-**D15 — Test isolation.**
-
-- Files: `packages/testing/src/jest.setup-global.js`.
-- Set `DUNGEONMASTER_LOAD_DIR` to a folder inside the sandbox home it already creates, so no test reaches the real registry.
-- Verify by running `npm run ward -- --only integration -- packages/load-balancer` and confirming
-  `~/.dungeonmaster/load/` did not change (`ls -la --time-style=full-iso`).
-
 **D16 — Docs.**
 
-- Files: `packages/load-balancer/CLAUDE.md` (new), `packages/ward/CLAUDE.md`, `packages/siegelense/CLAUDE.md`, root
+- Files: `packages/load-balancer/CLAUDE.md` (created in N3), `packages/ward/CLAUDE.md`, `packages/siegelense/CLAUDE.md`, root
   `CLAUDE.md` (env var table).
 - Load-balancer: what a lease is, who takes them, the registry path and its override, why the pid check and the heartbeat both exist. Ward: the governor, its fallback line, the Jest share, process-tree memory sampling, and why children stay in the parent's process group. Siegelense: the readers live in load-balancer. Root: add `DUNGEONMASTER_LOAD_DIR` to the env var list, and a short section on `~/.dungeonmaster/config.json` `resources`: what each key does, that it is per machine, and that `DUNGEONMASTER_HOME` does not move it.
 
