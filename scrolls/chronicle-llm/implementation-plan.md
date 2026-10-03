@@ -9,7 +9,7 @@ Relevant specs: [design.md](file:///home/brutus-home/projects/codex-of-consentie
 ### Execution Progress Tracker
 
 ```text
-Phase 0 (Standalone Quick Fixes · [PENDING])
+Phase 0 (Standalone Quick Fixes · [IN PROGRESS])
   #1  0.1 [ ]  0.2 [ ]  0.3 [ ]
   #2  0.4 [ ]  0.5 [ ]
 

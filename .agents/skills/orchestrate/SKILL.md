@@ -7,6 +7,9 @@ description: Orchestrate execution of a plan via dedicated subagents, structured
 
 You are the **Orchestrator**. You coordinate complex plans by dispatching specialized subagents, pacing execution (parallel vs. sequential), tracking state against the plan document, and maintaining context cache warmth.
 
+**Worktree
+Requirement:** Unless the plan document explicitly states otherwise, the orchestrator MUST open a dedicated worktree before starting any work and perform all work inside that worktree.
+
 You
 **NEVER** write code or edit implementation files directly in the orchestrator context. All investigative, implementation, and verification work belongs strictly to subagents.
 
@@ -14,6 +17,10 @@ You
 
 ## 1. The Core Architecture & Roles
 
+### A. The Orchestrator (Parent Session)
+
+* **Opens & Confines to
+  Worktree:** Before starting any work, opens a dedicated worktree via `create-worktree` (`mcp__dungeonmaster__create-worktree({ name })` in Claude Code or `create-worktree` under server `dungeonmaster_dungeonmaster` in Antigravity) and conducts all work inside `worktrees/<name>/` unless the plan document explicitly states otherwise.
 * **Owns the
   Plan:** Reads and updates the plan document (e.g. `scrolls/.../plans/<plan-name>.md` or `scrolls/.../implementation-plan.md`), checking off completed items, recording findings, and maintaining census metrics.
 * **Maintains the Visual Progress
@@ -28,21 +35,22 @@ You
 
 ### B. The Subagents
 
-Subagents do **all** the heavy lifting in isolated contexts with single-purpose roles:
+Subagents do
+**all** the heavy lifting in isolated contexts with single-purpose roles, operating inside the worktree directory (`worktrees/<name>/`) unless the plan document explicitly directs root execution:
 1. **`batch_planner` (Investigation & Architecture):**
-   * Inspects ASTs, contracts, existing tests, and harnesses.
+   * Inspects ASTs, contracts, existing tests, and harnesses within the worktree.
    * Runs MCP tools (`get-architecture`, `get-testing-patterns`, `get-folder-detail`, `discover`).
    * Produces a concrete, step-by-step checklist naming **exact file paths** and edge-case analysis.
 2. **`batch_worker` (Implementation & Local Verification):**
-   * Implements code changes according to the Planner's exact file specifications (1–3 files per worker).
+   * Implements code changes according to the Planner's exact file specifications (1–3 files per worker) within the worktree.
    * Adheres strictly to codebase architectural rules (arrow functions, JSDoc headers, typed branding, `#gateway/` boundaries).
-   * Runs scoped ward checks: `npm run ward -- -- <touched-files>` or `npm run ward -- --uncommitted`.
+   * Runs scoped ward checks: `npm run ward -- -- <touched-files>` or `npm run ward -- --uncommitted` from the worktree root.
    * **Never widens
      scope:** If an unlisted file must be touched, reports back to the orchestrator rather than editing it.
 3. **`batch_reviewer` (Independent Audit & Regression):**
-   * Inspects `git status` and `git diff` to ensure no stray files or unauthorized edits.
+   * Inspects `git status` and `git diff` within the worktree to ensure no stray files or unauthorized edits.
    * Verifies critical invariants (e.g., zero assertion diffs against baseline).
-   * Runs regression suites and updates metrics/census.
+   * Runs regression suites and updates metrics/census within the worktree.
 
 ---
 
@@ -76,8 +84,8 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
    Ownership:** Dispatched subagents never touch the git index (`git add` / `git mv`). The git index is shared across the workspace, and an agent's stray `git add` or `git mv` will pollute or prematurely sweep another unit's work into a commit.
 2. **Explicit Path Staging:** Before every commit, the orchestrator inspects `git diff --cached --stat` and stages
    **explicit paths**, never staging an entire package or directory that another agent may be modifying.
-3. **Dedicated
-   Worktrees:** Complex refactors or migrations are executed in an isolated worktree created via `create-worktree` rather than directly in the root working tree. Dispatched agents never create branches.
+3. **Dedicated Worktree
+   Execution:** Unless the plan document explicitly states otherwise, open a dedicated worktree before starting any work and perform all work inside that worktree. Worktrees are created exclusively via `create-worktree` (`mcp__dungeonmaster__create-worktree({ name })` in Claude Code or `create-worktree` tool under server `dungeonmaster_dungeonmaster` in Antigravity), provisioning `worktrees/<name>/` with hardlinked `node_modules` and compiled output. Never work directly in the root working tree unless the plan explicitly directs it. All dispatched subagents are configured to operate inside the worktree directory. Dispatched agents never create branches.
 4. **Build
    Discipline:** Run builds only when compiled output is required (e.g. running the server, CLI, MCP tools, or ward source changes), following the repo build discipline. Never build in a shared tree while subagents are running checks.
 
@@ -157,18 +165,21 @@ For each batch in the plan:
 [Orchestrator]
       │
       ▼
-1. Dispatch `batch_planner` (Validate explicit file paths, contracts, and boundaries)
+0. Open Worktree (Mandatory unless plan says otherwise: invoke create-worktree({ name }))
+      │
+      ▼
+1. Dispatch `batch_planner` (Validate explicit file paths, contracts, and boundaries inside worktree)
       │
       ▼
 2. Review Planner Report & Update Plan Document
       │
       ▼
-3. Dispatch `batch_worker` (Implement changes on 1–3 files & run scoped ward)
+3. Dispatch `batch_worker` (Implement changes on 1–3 files & run scoped ward in worktree)
       │
       ▼
-4. Dispatch `batch_reviewer` (Audit git diff, check invariants, run regression)
+4. Dispatch `batch_reviewer` (Audit git diff, check invariants, run regression in worktree)
       │
       ▼
-5. Orchestrator Runs `npm run ward -- --uncommitted`, Stages Explicit Files,
-   Updates Plan Document, and Commits Cleanly
+5. Orchestrator Runs `npm run ward -- --uncommitted` in worktree, Stages Explicit Files,
+   Updates Plan Document, and Commits Cleanly in worktree
 ```
