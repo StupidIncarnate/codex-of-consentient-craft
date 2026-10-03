@@ -97,11 +97,11 @@ describe('homeConfigContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID: maxCpuPercent above max (96) => throws validation error', () => {
+    it('INVALID: maxCpuPercent above max (91) => throws validation error', () => {
       expect(() => {
         homeConfigContract.parse({
           resources: {
-            maxCpuPercent: 96,
+            maxCpuPercent: 91,
           },
         });
       }).toThrow(/too_big/u);

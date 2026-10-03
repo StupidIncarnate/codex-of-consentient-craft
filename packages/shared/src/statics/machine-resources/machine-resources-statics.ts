@@ -7,6 +7,6 @@
  */
 export const machineResourcesStatics = {
   maxMemoryPercent: { min: 10, max: 100, default: 80 },
-  maxCpuPercent: { min: 10, max: 95, default: 75 },
+  maxCpuPercent: { min: 10, max: 90, default: 75 },
   maxDiskMB: { min: 1024, default: 16384 },
 } as const;

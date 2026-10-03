@@ -130,7 +130,7 @@ describe('limitsReadBroker', () => {
         },
         guildPaths: [],
         warning:
-          'config.json resources invalid: maxCpuPercent: Too big: expected number to be <=95. Using defaults.',
+          'config.json resources invalid: maxCpuPercent: Too big: expected number to be <=90. Using defaults.',
       });
     });
 
