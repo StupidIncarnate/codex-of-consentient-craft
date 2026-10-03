@@ -6,6 +6,7 @@
  * import { leaseContract, type Lease } from '@dungeonmaster/load-balancer/contracts';
  */
 
+export * from './disk-item/disk-item-contract';
 export * from './lease/lease-contract';
 export * from './load-capacity-suggestion/load-capacity-suggestion-contract';
 export * from './machine-reading/machine-reading-contract';

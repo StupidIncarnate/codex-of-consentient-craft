@@ -6,5 +6,6 @@
  * import { ... } from '@dungeonmaster/load-balancer/statics';
  */
 
+export * from './disk-stores/disk-stores-statics';
 export * from './load-balancer/load-balancer-statics';
 export * from './machine/machine-statics';

@@ -458,7 +458,7 @@ Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [MERGED]
 
 Unit S (Disk Budget · worktree wp-unit-s) — [IN PROGRESS]
   #1   S0 [✓]
-  #2   S1 [ ]  S2 [ ]
+  #2   S1 [✓]  S2 [✓]
   #3   S3 [ ]
   #4   S4 [ ]
   #5   S5a [ ] S5b [ ]
