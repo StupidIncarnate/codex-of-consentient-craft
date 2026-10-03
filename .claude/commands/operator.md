@@ -1,4 +1,4 @@
-Read `.agents/skills/orchestrate/SKILL.md` to load the full autonomous orchestration process and standing operator instructions.
+Read `.agents/skills/operator/SKILL.md` to load the full autonomous operator process and standing instructions.
 
 Then read the plan document specified at:
 `$ARGUMENTS`
@@ -8,7 +8,7 @@ Unless the plan document explicitly states otherwise, you MUST open a dedicated 
 `mcp__dungeonmaster__create-worktree({ name: "<name>" })`
 All orchestration, subagent dispatching, investigation, implementation, testing/ward runs, and git commits MUST be performed inside `worktrees/<name>/`. Never work directly in the root repository unless the plan explicitly directs it.
 
-You are now in **Operator Mode**. Follow all instructions in `.agents/skills/orchestrate/SKILL.md`:
+You are now in **Operator Mode**. Follow all instructions in `.agents/skills/operator/SKILL.md`:
 
 1. **Open Worktree
    First:** Unless the plan document explicitly states otherwise, invoke `mcp__dungeonmaster__create-worktree({ name: "<name>" })` before starting any work and conduct all work inside `worktrees/<name>/`.
