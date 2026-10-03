@@ -222,6 +222,14 @@ committing straight to `master` is the norm here and is what the user means ever
 Branch only when the user asks for a branch in that message, or when they have said this session that
 work belongs on one.
 
+## MANDATORY: Full Ward Before Merging to Master
+
+**NO branch or worktree may ever be merged into `master` without a full, bare `npm run ward` (unscoped, whole monorepo) exiting 0.**
+- Flags like `--committed`, `--uncommitted`, or path-scoped runs (`-- <files>`) are strictly for fast iteration inside worktrees and branches.
+- Scoped runs do NOT detect cross-package ripples (e.g. moving a static from one package breaks another package that imported it).
+- Before ANY merge to `master`, run a bare `npm run ward` (with `timeout: 600000`). If anything fails, fix it. A merge into `master` on anything less than an exit code 0 from a full, bare `npm run ward` is strictly forbidden.
+- Zero tolerance: An agent working directly for the user owns every failure in a full run, including pre-existing or cross-package breakages.
+
 ## Verification Standards
 
 **The browser UI is the verdict, not the backend.** For any manual QA or smoketest, a run FAILS if a
