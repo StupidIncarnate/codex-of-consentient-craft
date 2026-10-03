@@ -52,7 +52,7 @@ import { runEvidenceComputeTransformer } from '../../../transformers/run-evidenc
 import { heartbeatReadBroker } from '../../heartbeat/read/heartbeat-read-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
-import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
+import { machineRssByPgidBroker } from '@dungeonmaster/load-balancer/brokers';
 import { orphanReadBroker } from '../../orphan/read/orphan-read-broker';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { evidenceTreeLayerBroker } from './evidence-tree-layer-broker';

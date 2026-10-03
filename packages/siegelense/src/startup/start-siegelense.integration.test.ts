@@ -3,7 +3,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
-import { machineStatics } from '../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 import { StartSiegelense } from './start-siegelense';
 
 describe('StartSiegelense', () => {

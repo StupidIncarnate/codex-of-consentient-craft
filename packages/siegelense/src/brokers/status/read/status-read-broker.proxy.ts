@@ -28,8 +28,9 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { instanceStateResolveBrokerProxy } from '../../instance/state-resolve/instance-state-resolve-broker.proxy';
-import { machineReadBrokerProxy } from '../../machine/read/machine-read-broker.proxy';
+import { machineReadBrokerProxy } from '@dungeonmaster/load-balancer/brokers/machine/read/machine-read-broker.proxy';
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceEntryLayerBrokerProxy } from './instance-entry-layer-broker.proxy';
 
@@ -37,7 +38,6 @@ type Registry = ReturnType<typeof RegistryStub>;
 
 const HOME_DIR = '/home/user';
 const HOME_PATH = '/home/user/.dungeonmaster';
-const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
 
 export const statusReadBrokerProxy = (): {
   setupRegistryResolution: (params: { registry: Registry }) => void;
@@ -53,6 +53,9 @@ export const statusReadBrokerProxy = (): {
     vmstatContent: string;
   }) => void;
 } & ReturnType<typeof instanceEntryLayerBrokerProxy> => {
+  const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
+  dmHomeProxy.setupHomePath({ homeDir: HOME_DIR, homePath: HOME_PATH });
+
   const registryProxy = registryReadBrokerProxy();
   const stateProxy = instanceStateResolveBrokerProxy();
   const machineProxy = machineReadBrokerProxy();
@@ -87,9 +90,7 @@ export const statusReadBrokerProxy = (): {
       vmstatContent: string;
     }): void => {
       machineProxy.setupMachineReading({
-        homeDir: HOME_DIR,
-        homePath: HOME_PATH,
-        rootPath: ROOT_PATH,
+        diskPath: HOME_PATH,
         ...params,
       });
     },

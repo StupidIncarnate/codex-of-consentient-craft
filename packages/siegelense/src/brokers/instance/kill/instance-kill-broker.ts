@@ -58,6 +58,7 @@ import { instanceReleaseBroker } from '../release/instance-release-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
+import { leaseReleaseBroker } from '@dungeonmaster/load-balancer/brokers';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { shutdownReasonWriteBroker } from '../../shutdown-reason/write/shutdown-reason-write-broker';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -94,6 +95,10 @@ export const instanceKillBroker = async ({
       reapedPgids: [],
       alreadyKilledAtMs: entry.killedAtMs ?? entry.prunedAtMs,
     });
+  }
+
+  if (entry?.leaseId !== undefined && entry.leaseId !== null) {
+    await leaseReleaseBroker({ leaseId: entry.leaseId });
   }
 
   const request = driverRequestContract.parse({

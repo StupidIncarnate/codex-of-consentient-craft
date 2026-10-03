@@ -253,4 +253,40 @@ describe('heartbeatWriteBroker', () => {
       expect(proxy.getRegistryWrittenContent()).toBe(`${JSON.stringify(registry)}\n`);
     });
   });
+
+  describe('lease heartbeat', () => {
+    it('VALID: {instance has leaseId} => calls leaseBeatBroker updating lastBeatMs and state to running', async () => {
+      const proxy = heartbeatWriteBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      const leaseId = 'lease-test-123';
+      const pid = 'proc-12345';
+      const pgids = [4821];
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const nowMs = 1_700_000_500_000;
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const row = RegistryEntryStub({
+        id: instanceId,
+        pid,
+        pgids,
+        leaseId,
+        lastBeatMs: 1_700_000_000_000,
+      });
+      const registry = RegistryStub({ instances: [row] });
+
+      proxy.setupLease({ leaseId });
+      proxy.setupHeartbeatWrite({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+        registryJson: JSON.stringify(registry),
+        nowMs,
+      });
+
+      await heartbeatWriteBroker({ instanceId, pid, pgids, guildId });
+
+      expect(proxy.getLeaseState({ leaseId })).toBe('running');
+    });
+  });
 });

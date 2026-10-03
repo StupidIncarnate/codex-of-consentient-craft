@@ -309,5 +309,26 @@ describe('instanceKillBroker', () => {
 
       expect(result.stopped).toBe(true);
     });
+
+    it('VALID: {kill, instance has leaseId} => releases the lease', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const leaseId = 'lease-to-release';
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: SOCKET_PATH,
+        state: 'alive',
+        leaseId,
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverStops({ socketPath: SOCKET_PATH });
+      proxy.setupLease({ leaseId });
+
+      await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        repoRoot: proxy.repoRoot,
+      });
+
+      expect(proxy.isLeaseReleased({ leaseId })).toBe(true);
+    });
   });
 });

@@ -13,11 +13,12 @@ const initSchema = (database: DatabaseSync): void => {
 };
 
 export const leaseTakeBrokerProxy = (): {
-  setupDatabase: (params?: { database: DatabaseSync }) => { database: DatabaseSync };
+  setupDatabase: (params?: { database?: DatabaseSync; homeDir?: string }) => {
+    database: DatabaseSync;
+  };
   setupUuid: (params: { uuid: string }) => void;
 } => {
   const registryOpenProxy = registryOpenBrokerProxy();
-  const mockFilePath = '/mock/home/.dungeonmaster/load/registry-v1.db';
 
   registryOpenProxy.setupHomeDir({ homeDir: '/mock/home' });
   registryOpenProxy.setupEnv({ name: 'DUNGEONMASTER_LOAD_DIR', value: undefined });
@@ -27,10 +28,22 @@ export const leaseTakeBrokerProxy = (): {
   uuidHandle.calledWith([]).implement(() => realCrypto.randomUUID());
 
   return {
-    setupDatabase: (params?: { database: DatabaseSync }): { database: DatabaseSync } => {
+    setupDatabase: (params?: {
+      database?: DatabaseSync;
+      homeDir?: string;
+    }): { database: DatabaseSync } => {
       const database = params?.database ?? DatabaseSyncStub();
       initSchema(database);
-      registryOpenProxy.setupDatabase({ filePath: mockFilePath, database });
+      const homeDir = params?.homeDir ?? '/mock/home';
+      const filePath = `${homeDir}/.dungeonmaster/load/registry-v1.db`;
+      registryOpenProxy.setupHomeDir({ homeDir });
+      registryOpenProxy.setupDatabase({ filePath, database });
+      if (homeDir !== '/home/user') {
+        registryOpenProxy.setupDatabase({
+          filePath: '/home/user/.dungeonmaster/load/registry-v1.db',
+          database,
+        });
+      }
       return { database };
     },
     setupUuid: ({ uuid }: { uuid: string }): void => {

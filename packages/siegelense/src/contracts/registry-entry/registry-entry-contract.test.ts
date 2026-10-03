@@ -46,6 +46,51 @@ describe('registryEntryContract', () => {
       });
     });
 
+    it('VALID: {leaseId: "lease-123"} => parses a row with leaseId set', () => {
+      const entry = RegistryEntryStub({
+        id: 'inst_7f3a9c21',
+        owner: '42781',
+        questId: null,
+        guildId: null,
+        specName: 'dungeonmaster-stack',
+        specHash: 'a3f9c2e1',
+        pid: 'proc-12345',
+        pgids: [4821],
+        socketPath: null,
+        ports: { api: 34_172, web: 34_173 },
+        state: 'alive',
+        reservedAtMs: 1_700_000_000_000,
+        bootedAtMs: 1_700_000_005_000,
+        lastBeatMs: 1_700_000_010_000,
+        prunedAtMs: null,
+        prunedByRule: null,
+        leaseId: 'lease-123',
+      });
+
+      const result = registryEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        id: 'inst_7f3a9c21',
+        owner: '42781',
+        questId: null,
+        guildId: null,
+        specName: 'dungeonmaster-stack',
+        specHash: 'a3f9c2e1',
+        pid: 'proc-12345',
+        pgids: [4821],
+        socketPath: null,
+        ports: { api: 34_172, web: 34_173 },
+        state: 'alive',
+        reservedAtMs: 1_700_000_000_000,
+        bootedAtMs: 1_700_000_005_000,
+        lastBeatMs: 1_700_000_010_000,
+        prunedAtMs: null,
+        prunedByRule: null,
+        branch: null,
+        leaseId: 'lease-123',
+      });
+    });
+
     it('VALID: {socketPath: a real path} => parses a booted row with its driver socket recorded', () => {
       const entry = RegistryEntryStub({
         id: 'inst_7f3a9c21',

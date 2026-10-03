@@ -12,7 +12,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { machineStatics } from '../../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 
 export const monitoredMetricContract = z.enum(machineStatics.monitored);
 

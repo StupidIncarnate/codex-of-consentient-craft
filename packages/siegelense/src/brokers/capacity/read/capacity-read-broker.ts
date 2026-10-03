@@ -42,7 +42,8 @@ import { capacityStatics } from '../../../statics/capacity/capacity-statics';
 import { capacitySampleSelectTransformer } from '../../../transformers/capacity-sample-select/capacity-sample-select-transformer';
 import { capacitySuggestTransformer } from '../../../transformers/capacity-suggest/capacity-suggest-transformer';
 import { capacityWhyRenderTransformer } from '../../../transformers/capacity-why-render/capacity-why-render-transformer';
-import { machineReadBroker } from '../../machine/read/machine-read-broker';
+import { leaseListLiveBroker, machineReadBroker } from '@dungeonmaster/load-balancer/brokers';
+import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { profileReadBroker } from '../../profile/read/profile-read-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 
@@ -62,11 +63,16 @@ export const capacityReadBroker = async ({
   // of three, and computing against the optimistic figure is the expensive mistake.
   const resolvedPoolSize = poolSize ?? capacityStatics.policy.ceiling;
 
+  const { homePath } = dungeonmasterHomeFindBroker();
   const registry = await registryReadBroker();
-  const machine = await machineReadBroker();
+  const machine = await machineReadBroker({ diskPath: homePath });
+  const nowMs = Date.now();
+  const liveLeases = await leaseListLiveBroker({ nowMs });
   const specProfile = await profileReadBroker({ specName, repoRoot });
 
-  const nowMs = Date.now();
+  const otherToolsStartingPeakMB = liveLeases
+    .filter((lease) => lease.tool !== 'siegelense' && lease.state === 'starting')
+    .reduce((sum, lease) => sum + (lease.expectedPeakMB ?? 0), 0);
   const liveEntries = registry.instances.filter(
     (entry) =>
       entry.state === 'alive' &&
@@ -93,6 +99,7 @@ export const capacityReadBroker = async ({
     reservedInstances,
     cores: machine.cores,
     loadAvg1,
+    otherToolsStartingPeakMB,
   });
 
   return capacityAnswerContract.parse({

@@ -8,7 +8,6 @@
 
 export * from './driver/driver-statics';
 export * from './instance-lifecycle/instance-lifecycle-statics';
-export * from './machine/machine-statics';
 export * from './perception/perception-statics';
 export * from './results/results-statics';
 export * from './siegelense-call/siegelense-call-statics';

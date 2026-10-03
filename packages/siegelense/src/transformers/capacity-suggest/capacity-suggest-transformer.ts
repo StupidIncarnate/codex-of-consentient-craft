@@ -50,6 +50,7 @@ export const capacitySuggestTransformer = ({
   reservedInstances,
   cores,
   loadAvg1,
+  otherToolsStartingPeakMB = 0,
 }: {
   profile: CapacityProfile | null;
   freeMemMB: number;
@@ -57,6 +58,7 @@ export const capacitySuggestTransformer = ({
   reservedInstances: number;
   cores: number;
   loadAvg1: CapacityMeasured['loadAvg1'];
+  otherToolsStartingPeakMB?: number;
 }): CapacitySuggestion => {
   const { ceiling } = capacityStatics.policy;
   const ceilingLeft = Math.max(0, ceiling - siegeInstances);
@@ -69,13 +71,19 @@ export const capacitySuggestTransformer = ({
       memoryAllows: capacityStatics.noProfile.suggested,
       cpuAllows,
       ceilingLeft,
-      availableMB: Math.max(0, freeMemMB - capacityStatics.memory.headroomMB),
+      availableMB: Math.max(
+        0,
+        freeMemMB - capacityStatics.memory.headroomMB - otherToolsStartingPeakMB,
+      ),
     });
   }
 
   const availableMB = Math.max(
     0,
-    freeMemMB - capacityStatics.memory.headroomMB - profile.peakMB * reservedInstances,
+    freeMemMB -
+      capacityStatics.memory.headroomMB -
+      profile.peakMB * reservedInstances -
+      otherToolsStartingPeakMB,
   );
   const steadyDivisorMB = Math.max(profile.steadyMB, MIN_STEADY_DIVISOR_MB);
 

@@ -51,9 +51,6 @@ export * from './cleanup/run/cleanup-run-broker';
 export * from './cleanup/run/lock-release-layer-broker';
 export * from './cleanup/run/stale-reap-layer-broker';
 
-export * from './machine/oom-count/machine-oom-count-broker';
-export * from './machine/read/machine-read-broker';
-export * from './machine/rss-by-pgid/machine-rss-by-pgid-broker';
 export * from './orphan/read/orphan-read-broker';
 
 export * from './status/read/instance-entry-layer-broker';

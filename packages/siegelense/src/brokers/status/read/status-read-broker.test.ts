@@ -7,7 +7,7 @@ import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
-import { machineStatics } from '../../../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 
 import { statusReadBroker } from './status-read-broker';
 import { statusReadBrokerProxy } from './status-read-broker.proxy';

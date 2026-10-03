@@ -11,7 +11,7 @@ export const openSqliteDatabaseProxy = (): {
 
   return {
     returns: ({ filePath, database }: { filePath: string; database: DatabaseSync }): void => {
-      handle.calledWith([{ filePath }]).returns(database);
+      handle.calledWith([{ filePath }]).implement(() => database);
     },
     throws: ({ filePath, error }: { filePath: string; error: Error }): void => {
       handle.calledWith([{ filePath }]).implement((): never => {

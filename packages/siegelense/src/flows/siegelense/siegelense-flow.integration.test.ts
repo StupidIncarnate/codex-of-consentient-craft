@@ -25,7 +25,7 @@ import { CompareQueryStub } from '../../contracts/compare-query/compare-query.st
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
-import { machineStatics } from '../../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';

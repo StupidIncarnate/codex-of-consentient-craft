@@ -11,19 +11,32 @@ const initSchema = (database: DatabaseSync): void => {
 };
 
 export const leaseReleaseBrokerProxy = (): {
-  setupDatabase: (params?: { database: DatabaseSync }) => { database: DatabaseSync };
+  setupDatabase: (params?: { database?: DatabaseSync; homeDir?: string }) => {
+    database: DatabaseSync;
+  };
 } => {
   const registryOpenProxy = registryOpenBrokerProxy();
-  const mockFilePath = '/mock/home/.dungeonmaster/load/registry-v1.db';
 
   registryOpenProxy.setupHomeDir({ homeDir: '/mock/home' });
   registryOpenProxy.setupEnv({ name: 'DUNGEONMASTER_LOAD_DIR', value: undefined });
 
   return {
-    setupDatabase: (params?: { database: DatabaseSync }): { database: DatabaseSync } => {
+    setupDatabase: (params?: {
+      database?: DatabaseSync;
+      homeDir?: string;
+    }): { database: DatabaseSync } => {
       const database = params?.database ?? DatabaseSyncStub();
       initSchema(database);
-      registryOpenProxy.setupDatabase({ filePath: mockFilePath, database });
+      const homeDir = params?.homeDir ?? '/mock/home';
+      const filePath = `${homeDir}/.dungeonmaster/load/registry-v1.db`;
+      registryOpenProxy.setupHomeDir({ homeDir });
+      registryOpenProxy.setupDatabase({ filePath, database });
+      if (homeDir !== '/home/user') {
+        registryOpenProxy.setupDatabase({
+          filePath: '/home/user/.dungeonmaster/load/registry-v1.db',
+          database,
+        });
+      }
       return { database };
     },
   };

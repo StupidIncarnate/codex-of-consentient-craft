@@ -41,6 +41,7 @@ describe('instanceStartBroker', () => {
       expect(proxy.getRegistryAndBootLockWriteOrder()).toStrictEqual([
         '/home/user/.dungeonmaster/siegelense/registry.json.tmp',
         '/home/user/.dungeonmaster/siegelense/boot.lock',
+        '/home/user/.dungeonmaster/siegelense/registry.json.tmp',
       ]);
     });
 
@@ -923,6 +924,33 @@ describe('instanceStartBroker', () => {
       });
 
       expect(result.instanceId).toBe(instanceId);
+    });
+
+    it('VALID: {boot succeeds} => takes a coordination lease and records leaseId on the registry row', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId, pid: '12345' })],
+        }),
+      });
+
+      await instanceStartBroker({
+        specName: 'api',
+        questId: null,
+        guildId: null,
+        seed: null,
+        repoRoot: '/default/cwd',
+      });
+
+      expect(proxy.getLeaseForInstance({ instanceId })).toStrictEqual({
+        tool: 'siegelense',
+        label: instanceId,
+        ownerPid: 12345,
+        state: 'starting',
+      });
     });
   });
 });

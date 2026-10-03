@@ -372,4 +372,48 @@ describe('capacitySuggestTransformer', () => {
       });
     });
   });
+
+  describe('other tools starting peak MB', () => {
+    it('VALID: {otherToolsStartingPeakMB debits available memory} => lowers memoryAllows and suggested', () => {
+      const result = capacitySuggestTransformer({
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        freeMemMB: 5320,
+        siegeInstances: 0,
+        reservedInstances: 0,
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
+        otherToolsStartingPeakMB: 1000,
+      });
+
+      expect(result).toStrictEqual({
+        suggested: 1,
+        ceiling: 3,
+        memoryAllows: 1,
+        cpuAllows: 7,
+        ceilingLeft: 3,
+        availableMB: 3808,
+      });
+    });
+
+    it('EMPTY: {profile: null, otherToolsStartingPeakMB debits} => debits availableMB', () => {
+      const result = capacitySuggestTransformer({
+        profile: null,
+        freeMemMB: 5320,
+        siegeInstances: 0,
+        reservedInstances: 0,
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
+        otherToolsStartingPeakMB: 1000,
+      });
+
+      expect(result).toStrictEqual({
+        suggested: 2,
+        ceiling: 3,
+        memoryAllows: 2,
+        cpuAllows: 7,
+        ceilingLeft: 3,
+        availableMB: 3808,
+      });
+    });
+  });
 });

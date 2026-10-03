@@ -5,10 +5,14 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
-import { machineStatics } from '../../../statics/machine/machine-statics';
+import { leaseBeatBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/beat/lease-beat-broker.proxy';
+import { machineRssByPgidBrokerProxy } from '@dungeonmaster/load-balancer/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
-import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
+
+const DEFAULT_OWNER_PID = 1234;
+const DEFAULT_TIMESTAMP_MS = 1_700_000_000_000;
 
 export const heartbeatWriteBrokerProxy = (): {
   setupHeartbeatWrite: (params: {
@@ -40,6 +44,8 @@ export const heartbeatWriteBrokerProxy = (): {
     pid: string;
     error: Error;
   }) => void;
+  setupLease: (params: { leaseId: string; ownerPid?: number }) => void;
+  getLeaseState: (params: { leaseId: string }) => string | undefined;
   getWrittenHeartbeatPath: (params: { evidencePath: string }) => unknown;
   getWrittenHeartbeatContent: (params: { evidencePath: string }) => unknown;
   getRegistryWrittenContent: () => unknown;
@@ -58,10 +64,13 @@ export const heartbeatWriteBrokerProxy = (): {
   // — addressed below on this file's OWN exact tuple, never a bare `calledWith([])`.
   const joinHandle = registerMock({ fn: join });
   const rssProxy = machineRssByPgidBrokerProxy();
+  const leaseBeatProxy = leaseBeatBrokerProxy();
   const writeProxy = writeFileProxy();
   const registryProxy = registryUpdateBrokerProxy();
   const clockProxy = nowProxy();
   stderrProxy();
+
+  const { database: leaseDatabase } = leaseBeatProxy.setupDatabase();
 
   return {
     setupHeartbeatWrite: ({
@@ -175,6 +184,36 @@ export const heartbeatWriteBrokerProxy = (): {
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
       clockProxy.setupNow({ ms: nowMs });
+    },
+
+    setupLease: ({
+      leaseId,
+      ownerPid = DEFAULT_OWNER_PID,
+    }: {
+      leaseId: string;
+      ownerPid?: number;
+    }): void => {
+      const insert = leaseDatabase.prepare(
+        'INSERT INTO leases (lease_id, tool, label, owner_pid, state, expected_peak_mb, current_rss_mb, started_at_ms, last_beat_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      );
+      insert.run(
+        leaseId,
+        'siegelense',
+        'inst-test',
+        ownerPid,
+        'starting',
+        null,
+        null,
+        DEFAULT_TIMESTAMP_MS,
+        DEFAULT_TIMESTAMP_MS,
+      );
+    },
+
+    getLeaseState: ({ leaseId }: { leaseId: string }): string | undefined => {
+      const row = leaseDatabase
+        .prepare('SELECT state FROM leases WHERE lease_id = ?;')
+        .get(leaseId) as { state: string } | undefined;
+      return row?.state;
     },
 
     // Echoes what setup already computed — self-documenting in a test's assertion, the same role

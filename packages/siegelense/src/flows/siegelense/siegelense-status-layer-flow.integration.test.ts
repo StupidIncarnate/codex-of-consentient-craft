@@ -37,7 +37,7 @@ import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../contracts/registry/registry.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
-import { machineStatics } from '../../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 
 import { SiegelenseStatusLayerFlow } from './siegelense-status-layer-flow';

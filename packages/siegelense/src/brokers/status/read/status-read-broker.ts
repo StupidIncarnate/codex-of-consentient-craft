@@ -36,9 +36,10 @@ import { statusAnswerContract } from '../../../contracts/status-answer/status-an
 import type { StatusAnswer } from '../../../contracts/status-answer/status-answer-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
-import { machineReadBroker } from '../../machine/read/machine-read-broker';
+import { machineReadBroker } from '@dungeonmaster/load-balancer/brokers';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
+import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
-import { machineStatics } from '../../../statics/machine/machine-statics';
 import { instanceEntryLayerBroker } from './instance-entry-layer-broker';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
@@ -109,7 +110,8 @@ export const statusReadBroker = async ({
   const queriedInstanceState: InstanceState | null =
     instanceId === null ? null : (entryStatePairs[0]?.state ?? 'unknown');
 
-  const machine = await machineReadBroker();
+  const { homePath } = dungeonmasterHomeFindBroker();
+  const machine = await machineReadBroker({ diskPath: homePath });
 
   const instances = await Promise.all(
     entryStatePairs.map(async ({ entry, state }) =>

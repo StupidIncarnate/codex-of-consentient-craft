@@ -12,6 +12,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
 import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
+import { leaseTakeBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/take/lease-take-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
 import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
@@ -21,6 +22,7 @@ import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
 import { bootLockReleaseBrokerProxy } from '../../boot-lock/release/boot-lock-release-broker.proxy';
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
+import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
@@ -156,7 +158,14 @@ export const instanceStartBrokerProxy = (): {
   getKillConnectionCountFor: (params: { instanceId: InstanceId }) => number;
   stageShutdownReasonWriteSucceeds: (params: { evidencePath: string }) => void;
   getWrittenShutdownReason: (params: { evidencePath: string }) => unknown;
+  getLeaseForInstance: (params: {
+    instanceId: string;
+  }) => { tool: string; label: string; ownerPid: number; state: string } | undefined;
 } => {
+  const leaseTakeProxy = leaseTakeBrokerProxy();
+  const { database: leaseDatabase } = leaseTakeProxy.setupDatabase({ homeDir: HOME_DIR_VALUE });
+  registryUpdateBrokerProxy();
+
   // Composed (not phantom) — this file stages its own branch answer and port candidates through
   // reserveProxy's own semantic methods below, rather than through a one-shot stub any of these
   // would otherwise queue onto a shared mock.
@@ -170,9 +179,7 @@ export const instanceStartBrokerProxy = (): {
   // underneath, against the same registry mocks reserveProxy.setupRegistry stages.
   const releaseProxy = instanceReleaseBrokerProxy();
   const registryReadProxy = registryReadBrokerProxy();
-  // capacityReadBroker runs for real: its registry read is queued per read in stageRegistryAndLocks,
-  // its machine and profile are staged below.
-  const capacityProxy = capacityReadBrokerProxy();
+  const capacityProxy = capacityReadBrokerProxy({ database: leaseDatabase });
   const bootLockAcquireProxy = bootLockAcquireBrokerProxy();
   const bootLockReleaseProxy = bootLockReleaseBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -189,7 +196,9 @@ export const instanceStartBrokerProxy = (): {
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — this
   // broker's own five joins (driver log, throwaway home, api log, web log) and every join a
   // composed child proxy resolves transitively all share it.
-  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const realPath = requireActual<{ join: typeof join }>({
+    module: 'path',
+  });
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
@@ -208,7 +217,7 @@ export const instanceStartBrokerProxy = (): {
   // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoPgids
   // is what setupStaleReap below reaches for instead of hand-building the socket/registry-pgids/rm
   // mocks a second time.
-  const killProxy = instanceKillBrokerProxy();
+  const killProxy = instanceKillBrokerProxy({ database: leaseDatabase });
 
   const openFdProxy = openForAppendSyncProxy();
   const spawnProxy = spawnDetachedProxy();
@@ -625,5 +634,24 @@ export const instanceStartBrokerProxy = (): {
       killProxy.getWrittenShutdownReason({
         evidencePath,
       }),
+
+    getLeaseForInstance: ({
+      instanceId,
+    }: {
+      instanceId: string;
+    }): { tool: string; label: string; ownerPid: number; state: string } | undefined => {
+      const row = leaseDatabase
+        .prepare('SELECT tool, label, owner_pid, state FROM leases WHERE label = ?;')
+        .get(instanceId) as
+        { tool: string; label: string; owner_pid: number; state: string } | undefined;
+      return row
+        ? {
+            tool: row.tool,
+            label: row.label,
+            ownerPid: row.owner_pid,
+            state: row.state,
+          }
+        : undefined;
+    },
   };
 };

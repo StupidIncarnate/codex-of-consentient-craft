@@ -1,4 +1,4 @@
-import { machineStatics } from '../../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 import { monitoredMetricContract } from './monitored-metric-contract';
 import { MonitoredMetricStub } from './monitored-metric.stub';
 

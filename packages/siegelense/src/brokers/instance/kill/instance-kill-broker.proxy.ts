@@ -7,6 +7,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
+import { leaseReleaseBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/release/lease-release-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
@@ -16,10 +17,12 @@ import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-ali
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
+import type { DatabaseSyncStub } from '#gateway/node/sqlite/database-sync.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
+type DatabaseSync = ReturnType<typeof DatabaseSyncStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 type ProcessGroupId = number;
 
@@ -36,8 +39,14 @@ const TMP_DIR_VALUE = '/tmp';
 const REPO_ROOT_VALUE = '/default/cwd';
 const LINK_PATH_VALUE = `${REPO_ROOT_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 const LINK_PATH_FILE = LINK_PATH_VALUE;
+const DEFAULT_OWNER_PID = 1234;
+const DEFAULT_TIMESTAMP_MS = 1_700_000_000_000;
 
-export const instanceKillBrokerProxy = (): {
+export const instanceKillBrokerProxy = ({
+  database,
+}: {
+  database?: DatabaseSync;
+} = {}): {
   repoRoot: string;
   setupRegistry: (params: { registry: Registry }) => void;
   setupDriverStops: (params: { socketPath: string; killed?: readonly ProcessGroupId[] }) => void;
@@ -60,7 +69,14 @@ export const instanceKillBrokerProxy = (): {
   getKillGroupCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getReleasedRegistry: () => unknown;
   getConnectionCountFor: (params: { socketPath: string }) => number;
+  setupLease: (params: { leaseId: string }) => void;
+  isLeaseReleased: (params: { leaseId: string }) => boolean;
 } => {
+  const leaseReleaseProxy = leaseReleaseBrokerProxy();
+  const { database: leaseDatabase } = leaseReleaseProxy.setupDatabase({
+    ...(database === undefined ? {} : { database }),
+    homeDir: HOME_DIR_VALUE,
+  });
   const registryProxy = registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home without
@@ -251,5 +267,30 @@ export const instanceKillBrokerProxy = (): {
 
     getConnectionCountFor: ({ socketPath }: { socketPath: string }): number =>
       socketProxy.getConnectionCountFor({ socketPath }),
+
+    setupLease: ({ leaseId }: { leaseId: string }): void => {
+      leaseDatabase
+        .prepare(
+          'INSERT INTO leases (lease_id, tool, label, owner_pid, state, expected_peak_mb, current_rss_mb, started_at_ms, last_beat_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+        )
+        .run(
+          leaseId,
+          'siegelense',
+          'inst-test',
+          DEFAULT_OWNER_PID,
+          'running',
+          null,
+          null,
+          DEFAULT_TIMESTAMP_MS,
+          DEFAULT_TIMESTAMP_MS,
+        );
+    },
+
+    isLeaseReleased: ({ leaseId }: { leaseId: string }): boolean => {
+      const row = leaseDatabase
+        .prepare('SELECT lease_id FROM leases WHERE lease_id = ?;')
+        .get(leaseId);
+      return row === undefined;
+    },
   };
 };

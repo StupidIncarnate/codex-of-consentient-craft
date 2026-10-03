@@ -44,7 +44,7 @@ import { writeFile } from '#gateway/node/fs__promises';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
-import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
+import { leaseBeatBroker, machineRssByPgidBroker } from '@dungeonmaster/load-balancer/brokers';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { registryContract } from '../../../contracts/registry/registry-contract';
 
@@ -87,7 +87,7 @@ export const heartbeatWriteBroker = async ({
   // the one state that makes those pgids unreachable.
   await writeFile(heartbeatPath, contents);
 
-  await registryUpdateBroker({
+  const updatedRegistry = await registryUpdateBroker({
     mutate: (current) =>
       registryContract.parse({
         instances: current.instances.map((entry) =>
@@ -95,6 +95,16 @@ export const heartbeatWriteBroker = async ({
         ),
       }),
   });
+
+  const updatedEntry = updatedRegistry.instances.find((entry) => entry.id === instanceId);
+  const leaseId = updatedEntry?.leaseId;
+  if (leaseId !== undefined && leaseId !== null) {
+    await leaseBeatBroker({
+      leaseId,
+      state: 'running',
+      currentRssMB: rssMB,
+    });
+  }
 
   return heartbeat;
 };

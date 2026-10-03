@@ -32,7 +32,7 @@ import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profi
 import { heartbeatReadBrokerProxy } from '../../heartbeat/read/heartbeat-read-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
-import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
+import { machineRssByPgidBrokerProxy } from '@dungeonmaster/load-balancer/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
 import { orphanReadBrokerProxy } from '../../orphan/read/orphan-read-broker.proxy';
 import { shutdownReasonReadBrokerProxy } from '../../shutdown-reason/read/shutdown-reason-read-broker.proxy';
 import { evidenceTreeLayerBrokerProxy } from './evidence-tree-layer-broker.proxy';

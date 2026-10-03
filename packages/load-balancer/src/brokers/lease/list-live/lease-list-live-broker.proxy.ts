@@ -12,7 +12,9 @@ const initSchema = (database: DatabaseSync): void => {
 };
 
 export const leaseListLiveBrokerProxy = (): {
-  setupDatabase: (params?: { database: DatabaseSync }) => { database: DatabaseSync };
+  setupDatabase: (params?: { database?: DatabaseSync; homeDir?: string }) => {
+    database: DatabaseSync;
+  };
   setupProcessAlive: (params: { pid: number }) => void;
   setupProcessDead: (params: { pid: number }) => void;
   setupProcessPermissionDenied: (params: { pid: number }) => void;
@@ -20,16 +22,27 @@ export const leaseListLiveBrokerProxy = (): {
 } => {
   const registryOpenProxy = registryOpenBrokerProxy();
   const procKillProxy = killProxy();
-  const mockFilePath = '/mock/home/.dungeonmaster/load/registry-v1.db';
 
   registryOpenProxy.setupHomeDir({ homeDir: '/mock/home' });
   registryOpenProxy.setupEnv({ name: 'DUNGEONMASTER_LOAD_DIR', value: undefined });
 
   return {
-    setupDatabase: (params?: { database: DatabaseSync }): { database: DatabaseSync } => {
+    setupDatabase: (params?: {
+      database?: DatabaseSync;
+      homeDir?: string;
+    }): { database: DatabaseSync } => {
       const database = params?.database ?? DatabaseSyncStub();
       initSchema(database);
-      registryOpenProxy.setupDatabase({ filePath: mockFilePath, database });
+      const homeDir = params?.homeDir ?? '/mock/home';
+      const filePath = `${homeDir}/.dungeonmaster/load/registry-v1.db`;
+      registryOpenProxy.setupHomeDir({ homeDir });
+      registryOpenProxy.setupDatabase({ filePath, database });
+      if (homeDir !== '/home/user') {
+        registryOpenProxy.setupDatabase({
+          filePath: '/home/user/.dungeonmaster/load/registry-v1.db',
+          database,
+        });
+      }
       return { database };
     },
     setupProcessAlive: ({ pid }: { pid: number }): void => {

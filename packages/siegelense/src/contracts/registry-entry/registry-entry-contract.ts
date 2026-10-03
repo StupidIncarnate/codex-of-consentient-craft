@@ -89,6 +89,7 @@ export const registryEntryContract = z
     prunedAtMs: z.number().int().nonnegative().brand<'RegistryEntryPrunedAtMs'>().nullable(),
     prunedByRule: z.string().brand<'RegistryEntryPrunedByRule'>().nullable(),
     branch: z.string().brand<'RegistryEntryBranch'>().nullish(),
+    leaseId: z.string().brand<'RegistryEntryLeaseId'>().nullish(),
   })
   .brand<'RegistryEntry'>();
 

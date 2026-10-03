@@ -725,4 +725,49 @@ describe('capacityReadBroker', () => {
       });
     });
   });
+
+  describe('other-tool starting leases', () => {
+    it('VALID: {ward starting lease} => debits expectedPeakMB from available memory', async () => {
+      const proxy = capacityReadBrokerProxy();
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupMachineReading({
+        freeMemBytes: 5000 * MB_BYTES,
+        totalMemBytes: 16_000 * MB_BYTES,
+        coreCount: 8,
+        loadAvg: LOAD_AVG,
+        diskBavail: 41_000,
+        diskBsize: MB_BYTES,
+        vmstatContent: VMSTAT_CONTENT,
+      });
+      proxy.setupLeases({
+        leases: [
+          {
+            leaseId: 'ward-lease-1',
+            tool: 'ward',
+            label: '@dungeonmaster/web',
+            ownerPid: 99_999,
+            state: 'starting',
+            expectedPeakMB: 2000,
+          },
+        ],
+      });
+      proxy.setupProfile({
+        profile: SpecProfileStub({
+          specName: 'api',
+          samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
+        }),
+      });
+      proxy.setupNow({ nowMs: NOW_MS });
+
+      const answer = await capacityReadBroker({
+        repoRoot: '/default/cwd',
+        specName: 'api',
+        poolSize: 1,
+      });
+
+      // Free RAM is 5000 - 512 (headroom) - 2000 (ward starting lease) = 2488 MB.
+      // Since 2488 < 2600 (peakMB), memoryAllows is 0, so suggested is 0.
+      expect(answer.suggested).toBe(0);
+    });
+  });
 });

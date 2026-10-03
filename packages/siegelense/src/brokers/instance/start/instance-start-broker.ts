@@ -100,7 +100,10 @@ import { instanceReleaseBroker } from '../release/instance-release-broker';
 import { instanceReserveBroker } from '../reserve/instance-reserve-broker';
 import { profileBootRecordBroker } from '../../profile/boot-record/profile-boot-record-broker';
 import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
+import { leaseTakeBroker } from '@dungeonmaster/load-balancer/brokers';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
+import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { shutdownReasonWriteBroker } from '../../shutdown-reason/write/shutdown-reason-write-broker';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
 import type { InstanceManifest } from '../../../contracts/instance-manifest/instance-manifest-contract';
@@ -375,6 +378,22 @@ export const instanceStartBroker = async ({
           `'dungeonmaster siegelense start'.`,
       );
     }
+
+    const leaseId = await leaseTakeBroker({
+      tool: 'siegelense',
+      label: bootedEntry.id,
+      expectedPeakMB: capacity.profile?.peakMB ?? null,
+      ownerPid: Number(bootedEntry.pid ?? 0),
+    });
+
+    await registryUpdateBroker({
+      mutate: (current) =>
+        registryContract.parse({
+          instances: current.instances.map((entry) =>
+            entry.id === bootedEntry.id ? { ...entry, leaseId } : entry,
+          ),
+        }),
+    });
 
     const homePath = join(tmpdir(), `dm-siege-${reservedEntry.id}`);
     const apiLogPath = join(evidencePath, locationsStatics.siegelense.apiLog);

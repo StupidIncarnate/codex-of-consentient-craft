@@ -23,7 +23,7 @@ import { isNativeError } from '#gateway/node/util__types';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
-import { machineStatics } from '../../../statics/machine/machine-statics';
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
 
 export const orphanReadBroker = async ({
   pgids,
