@@ -13,7 +13,11 @@ Relevant specs: [design.md](file:///home/brutus-home/projects/codex-of-consentie
 - **Completed Work:**
   - **Phase 0:** All tasks (0.1–0.5) complete.
   - **Phase 1 Waves #1–#6:** Complete (`1.1.1` through `1.6.1`). Packages `@dungeonmaster/chronicle-llm`, `@dungeonmaster/chronicle-llm-claude-code`, and `@dungeonmaster/chronicle-llm-antigravity` are scaffolded with tests passing.
-- **Immediate Next Step:** **Phase 1 Wave #7 (Foundation Brokers & Spool Hooks)**:
+- **PRIORITY FIX BEFORE CONTINUING (Vite Browser Build Blocker):**
+  - **Problem:** `npm run build` fails at `@dungeonmaster/web` because Vite externalizes Node built-in `buffer` into `__vite-browser-external`, but `packages/@gateway/node/src/buffer/buffer-schema.ts` has `import { Buffer } from 'buffer'`.
+  - **Cause:** `@dungeonmaster/web` imports from `@dungeonmaster/shared/contracts`. The barrel exports `blobStoreReadResultContract` (added in Task 1.2.2), which transitively imports `bufferSchema` from `#gateway/node/buffer`.
+  - **Fix to Apply First:** Dispatch a worker to fix `bufferSchema` in `packages/@gateway/node/src/buffer/` so Vite bundling does not fail on `import { Buffer } from 'buffer'` (e.g. guard against undefined Buffer / use `Uint8Array` compatible schema for browser builds), and verify `npm run build` succeeds.
+- **Immediate Next Step (After Vite Fix):** **Phase 1 Wave #7 (Foundation Brokers & Spool Hooks)**:
   - Tasks in this wave: `1.7.1`, `1.7.2`, `1.7.3`, `1.8.1`, `1.9.2`.
   - **No Planner Needed:** All tasks and files are fully specified below in this document. Proceed directly to worker dispatch.
   - **Parallel Dispatch:** Dispatch workers up to active concurrency limit in a single `invoke_subagent` call (e.g. 1.7.1, 1.7.2, 1.7.3), then continuously feed in remaining tasks (1.8.1, 1.9.2) as workers complete.
