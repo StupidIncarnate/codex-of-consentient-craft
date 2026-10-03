@@ -79,6 +79,7 @@ All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json`
   picks both ports.** Ward's e2e runner asks the OS for the two independently, so it must pass this explicitly — a run
   where Playwright waits on one port and Vite binds another dies on
   `Timed out waiting 60000ms from config.webServer`.
+- `DUNGEONMASTER_LOAD_DIR` — complete path to the directory where the machine load registry (`registry.sqlite3` / `registry-v1.db`) lives. When unset, resolves to `~/.dungeonmaster/load`.
 - `VERBOSE=1` — gates `[dev]` orchestration event logging. Set inline by this repo's `dev` and `prod` npm scripts.
 - `DUNGEONMASTER_REQUEST_LOG=1` — gates the API server's one `[http]` line per request (method, path, status,
   duration, error detail). Set only in the lane's api env in `.dungeonmaster.json`, so `npm run prod` output is
@@ -87,6 +88,13 @@ All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json`
 **Config file surface:** `.dungeonmaster.json` at repo root — ports, `devCommand`, `buildCommand`, framework, schema.
 Validated by `dungeonmasterConfigContract`. A `zod.refine` rejects `dungeonmaster.port === devServer.port` (siege would
 kill the parent server otherwise).
+
+**Machine hardware configuration (`~/.dungeonmaster/config.json`):**
+Hardware resource boundaries live in `~/.dungeonmaster/config.json` under `resources`:
+- `maxMemoryPercent` — percentage of machine memory ward and siegelense may collectively use (default 80, bounds 10–100).
+- `maxDiskMB` — disk threshold in megabytes for cleanup / retention across dungeonmaster stores (min 1024, default 4096).
+
+This is per-machine hardware configuration in the user's home directory (`os.homedir()`); `DUNGEONMASTER_HOME` does not move or override it.
 
 **Dogfood siege case:** when siegemaster spawns `npm run dev` as a child during a quest run, npm's script-inline env
 (`VAR=val cmd` via `sh -c`) overrides inherited env, so the child uses `<repo>/.dungeonmaster-dev` (not the parent's

@@ -57,3 +57,14 @@ inside this repo.
 
 `--conditions=source` puts every `packages/*/src` file in the watcher's graph; one save anywhere
 restarts the server and Vite's `/api` proxy answers with a bare 500 for ~1.5s.
+
+## Machine readers and lease management live in `@dungeonmaster/load-balancer`
+
+The machine readers (`machineReadBroker`, `machineRssByPgidBroker`, `machineOomCountBroker`) and machine lease management live in `@dungeonmaster/load-balancer`. Siegelense imports them to measure machine load and coordinate capacity with ward.
+
+## Leases track running instances
+
+Siegelense claims and coordinates machine capacity using leases in the load balancer registry:
+- **Instance start** (`instanceStartBroker`): takes a lease (`tool: 'siegelense'`, `label: <instanceId>`, `ownerPid: <instancePid>`, `expectedPeakMB: <profilePeakMB | null>`) and records the lease ID on the instance registry entry.
+- **Heartbeat** (`heartbeatWriteBroker`): beats the lease with `state: 'running'` and current RSS.
+- **Instance kill** (`instanceKillBroker`): releases the lease when the instance terminates.
