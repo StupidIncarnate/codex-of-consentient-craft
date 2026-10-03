@@ -93,7 +93,8 @@ export const diskScanBroker = async ({
           const wardDirName = locationsStatics.repoRoot.wardLocalDir;
           await Promise.all(
             uniqueRoots.map(async (repoRoot) => {
-              const pkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const rawPkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const pkgs = rawPkgs.filter((p) => !p.includes('.'));
               const runDirs = [
                 join(repoRoot, wardDirName),
                 ...pkgs.map((p) => join(repoRoot, 'packages', p, wardDirName)),
@@ -101,8 +102,12 @@ export const diskScanBroker = async ({
 
               const dirFiles = await Promise.all(
                 runDirs.map(async (dir) => {
-                  const files = (await readdirIfExists(dir)) ?? [];
-                  return { dir, files };
+                  try {
+                    const files = (await readdirIfExists(dir)) ?? [];
+                    return { dir, files };
+                  } catch {
+                    return { dir, files: [] };
+                  }
                 }),
               );
 
@@ -154,7 +159,8 @@ export const diskScanBroker = async ({
           const wardDir = locationsStatics.repoRoot.wardLocalDir;
           await Promise.all(
             uniqueRoots.map(async (repoRoot) => {
-              const pkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const rawPkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const pkgs = rawPkgs.filter((p) => !p.includes('.'));
               await Promise.all(
                 pkgs.map(async (pkg) => {
                   const bDir = join(repoRoot, 'packages', pkg, wardDir, 'bundle');
@@ -192,7 +198,8 @@ export const diskScanBroker = async ({
         case 'e2e-test-results': {
           await Promise.all(
             uniqueRoots.map(async (repoRoot) => {
-              const pkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const rawPkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const pkgs = rawPkgs.filter((p) => !p.includes('.'));
               const parents = [
                 join(repoRoot, 'test-results'),
                 ...pkgs.map((p) => join(repoRoot, 'packages', p, 'test-results')),
@@ -252,7 +259,8 @@ export const diskScanBroker = async ({
           const nodeMod = locationsStatics.repoRoot.nodeModules;
           await Promise.all(
             uniqueRoots.map(async (repoRoot) => {
-              const pkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const rawPkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const pkgs = rawPkgs.filter((p) => !p.includes('.'));
               const parents = [
                 join(repoRoot, nodeMod),
                 ...pkgs.map((p) => join(repoRoot, 'packages', p, nodeMod)),
@@ -313,7 +321,8 @@ export const diskScanBroker = async ({
         case 'e2e-playwright-reports': {
           await Promise.all(
             uniqueRoots.map(async (repoRoot) => {
-              const pkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const rawPkgs = (await readdirIfExists(join(repoRoot, 'packages'))) ?? [];
+              const pkgs = rawPkgs.filter((p) => !p.includes('.'));
               const parents = [repoRoot, ...pkgs.map((p) => join(repoRoot, 'packages', p))];
               await Promise.all(
                 parents.map(async (parent) => {
