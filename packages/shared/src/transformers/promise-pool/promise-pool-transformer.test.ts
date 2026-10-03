@@ -27,6 +27,17 @@ const flushPromises = async (): Promise<void> => {
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 };
 
 describe('promisePoolTransformer', () => {
@@ -212,6 +223,280 @@ describe('promisePoolTransformer', () => {
       deferreds.get('succeeding')!.resolve('done-succeeding');
 
       await expect(poolPromise).rejects.toThrow('handler-failed');
+    });
+  });
+
+  describe('dynamic limit', () => {
+    it('VALID: {limit drops from 3 to 1 mid-run} => completes in-flight items then runs one at a time', async () => {
+      let currentLimit = 3;
+      const started: string[] = [];
+
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('item-0', createDeferred<string>());
+      deferreds.set('item-1', createDeferred<string>());
+      deferreds.set('item-2', createDeferred<string>());
+      deferreds.set('item-3', createDeferred<string>());
+      deferreds.set('item-4', createDeferred<string>());
+
+      const items = ['item-0', 'item-1', 'item-2', 'item-3', 'item-4'];
+
+      const handler = async (item: string): Promise<string> => {
+        started.push(item);
+        return deferreds.get(item)!.promise;
+      };
+
+      const limit = async (): Promise<number> => {
+        await Promise.resolve();
+        return currentLimit;
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+        limit,
+      });
+
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2']);
+
+      currentLimit = 1;
+
+      deferreds.get('item-0')!.resolve('done-0');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2']);
+
+      deferreds.get('item-1')!.resolve('done-1');
+      deferreds.get('item-2')!.resolve('done-2');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2', 'item-3']);
+
+      deferreds.get('item-3')!.resolve('done-3');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2', 'item-3', 'item-4']);
+
+      deferreds.get('item-4')!.resolve('done-4');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-0', 'done-1', 'done-2', 'done-3', 'done-4']);
+    });
+
+    it('EDGE: {limit returns 0} => runs one at a time', async () => {
+      const started: string[] = [];
+
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('item-0', createDeferred<string>());
+      deferreds.set('item-1', createDeferred<string>());
+      deferreds.set('item-2', createDeferred<string>());
+
+      const items = ['item-0', 'item-1', 'item-2'];
+
+      const handler = async (item: string): Promise<string> => {
+        started.push(item);
+        return deferreds.get(item)!.promise;
+      };
+
+      const limit = async (): Promise<number> => {
+        await Promise.resolve();
+        return 0;
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+        limit,
+      });
+
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0']);
+
+      deferreds.get('item-0')!.resolve('done-0');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1']);
+
+      deferreds.get('item-1')!.resolve('done-1');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2']);
+
+      deferreds.get('item-2')!.resolve('done-2');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-0', 'done-1', 'done-2']);
+    });
+
+    it('VALID: {limit rises mid-run} => lets more items start at next completion', async () => {
+      let currentLimit = 1;
+      const started: string[] = [];
+
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('item-0', createDeferred<string>());
+      deferreds.set('item-1', createDeferred<string>());
+      deferreds.set('item-2', createDeferred<string>());
+      deferreds.set('item-3', createDeferred<string>());
+      deferreds.set('item-4', createDeferred<string>());
+
+      const items = ['item-0', 'item-1', 'item-2', 'item-3', 'item-4'];
+
+      const handler = async (item: string): Promise<string> => {
+        started.push(item);
+        return deferreds.get(item)!.promise;
+      };
+
+      const limit = async (): Promise<number> => {
+        await Promise.resolve();
+        return currentLimit;
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+        limit,
+      });
+
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0']);
+
+      currentLimit = 3;
+
+      deferreds.get('item-0')!.resolve('done-0');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2', 'item-3']);
+
+      deferreds.get('item-1')!.resolve('done-1');
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1', 'item-2', 'item-3', 'item-4']);
+
+      deferreds.get('item-2')!.resolve('done-2');
+      deferreds.get('item-3')!.resolve('done-3');
+      deferreds.get('item-4')!.resolve('done-4');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-0', 'done-1', 'done-2', 'done-3', 'done-4']);
+    });
+
+    it('ERROR: {handler rejects with limit} => rejects the pool call with handler error', async () => {
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('failing', createDeferred<string>());
+      deferreds.set('succeeding', createDeferred<string>());
+
+      const items = ['failing', 'succeeding'];
+
+      const handler = async (item: string): Promise<string> => deferreds.get(item)!.promise;
+      const limit = async (): Promise<number> => {
+        await Promise.resolve();
+        return 2;
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+        limit,
+      });
+
+      deferreds.get('failing')!.reject(new Error('handler-failed'));
+      deferreds.get('succeeding')!.resolve('done-succeeding');
+
+      await expect(poolPromise).rejects.toThrow('handler-failed');
+    });
+
+    it('ERROR: {limit rejects} => rejects the pool call with limit error', async () => {
+      const items = ['item-0', 'item-1'];
+      const handler = async (item: string): Promise<string> => {
+        await Promise.resolve();
+        return item;
+      };
+      const limit = async (): Promise<number> => {
+        await Promise.resolve();
+        throw new Error('limit-failed');
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+        limit,
+      });
+
+      await expect(poolPromise).rejects.toThrow('limit-failed');
+    });
+
+    it('EMPTY: {items: [], limit} => returns empty array without calling handler or limit', async () => {
+      let handlerCalled = 0;
+      let limitCalled = 0;
+
+      const results = await promisePoolTransformer({
+        items: [] as string[],
+        handler: async (item: string): Promise<string> => {
+          await Promise.resolve();
+          handlerCalled += 1;
+          return item;
+        },
+        limit: async (): Promise<number> => {
+          await Promise.resolve();
+          limitCalled += 1;
+          return 2;
+        },
+      });
+
+      expect(handlerCalled).toBe(0);
+      expect(limitCalled).toBe(0);
+      expect(results).toStrictEqual([]);
+    });
+
+    it('VALID: {concurrency omitted} => defaults concurrency to 4', async () => {
+      let activeCount = 0;
+      let maxActiveCount = 0;
+
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<number>>>();
+      deferreds.set('item1', createDeferred<number>());
+      deferreds.set('item2', createDeferred<number>());
+      deferreds.set('item3', createDeferred<number>());
+      deferreds.set('item4', createDeferred<number>());
+      deferreds.set('item5', createDeferred<number>());
+
+      const items = ['item1', 'item2', 'item3', 'item4', 'item5'];
+
+      const handler = async (item: string): Promise<number> => {
+        activeCount += 1;
+        maxActiveCount = Math.max(maxActiveCount, activeCount);
+        const result = await deferreds.get(item)!.promise;
+        activeCount -= 1;
+        return result;
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+      });
+
+      expect(activeCount).toBe(4);
+
+      deferreds.get('item1')!.resolve(10);
+      await flushPromises();
+
+      expect(activeCount).toBe(4);
+      expect(maxActiveCount).toBe(4);
+
+      deferreds.get('item2')!.resolve(20);
+      deferreds.get('item3')!.resolve(30);
+      deferreds.get('item4')!.resolve(40);
+      deferreds.get('item5')!.resolve(50);
+
+      const results = await poolPromise;
+
+      expect(activeCount).toBe(0);
+      expect(results).toStrictEqual([10, 20, 30, 40, 50]);
     });
   });
 });

@@ -12,16 +12,43 @@ import type { DurationSample } from '../../contracts/duration-sample/duration-sa
 import type { CheckResult } from '../../contracts/check-result/check-result-contract';
 import { isCrashedProjectResultGuard } from '../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 
+const resolveResource = (
+  mapping: ReadonlyMap<string, number | null> | Record<string, number | null> | undefined,
+  packageName: string,
+): number | null => {
+  if (!mapping) {
+    return null;
+  }
+
+  if (mapping instanceof Map) {
+    if (!mapping.has(packageName)) {
+      return null;
+    }
+
+    return mapping.get(packageName) ?? null;
+  }
+
+  if (!Object.hasOwn(mapping, packageName)) {
+    return null;
+  }
+
+  return mapping[packageName] ?? null;
+};
+
 export const durationSamplesBuildTransformer = ({
   repoRoot,
   checks,
   wholePackageNames,
   nowMs,
+  peakRssByPackage,
+  shardsByPackage,
 }: {
   repoRoot: string;
   checks: readonly CheckResult[];
   wholePackageNames: ReadonlySet<string> | readonly string[];
   nowMs: number;
+  peakRssByPackage?: ReadonlyMap<string, number | null> | Record<string, number | null>;
+  shardsByPackage?: ReadonlyMap<string, number | null> | Record<string, number | null>;
 }): DurationSample[] => {
   const wholePackageSet =
     wholePackageNames instanceof Set ? wholePackageNames : new Set(wholePackageNames);
@@ -44,8 +71,8 @@ export const durationSamplesBuildTransformer = ({
           packageName: projectResult.projectFolder.name,
           checkType: check.checkType,
           durationMs: projectResult.durationMs,
-          peakRssMB: null,
-          shards: null,
+          peakRssMB: resolveResource(peakRssByPackage, projectResult.projectFolder.name),
+          shards: resolveResource(shardsByPackage, projectResult.projectFolder.name),
           recordedAtMs: nowMs,
         }),
       );

@@ -167,4 +167,250 @@ describe('durationSamplesBuildTransformer', () => {
       expect(resultEmptyPackages).toStrictEqual([]);
     });
   });
+
+  describe('resource sample assignment', () => {
+    it('VALID: {peaks and shard counts as Map} => lands on the right package across multiple check types', () => {
+      const wardLint = ProjectResultStub({
+        projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+        status: 'pass',
+        durationMs: 300,
+      });
+      const wardUnit = ProjectResultStub({
+        projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+        status: 'pass',
+        durationMs: 800,
+      });
+      const webE2e = ProjectResultStub({
+        projectFolder: { name: 'web', path: '/repo/packages/web' },
+        status: 'pass',
+        durationMs: 4500,
+      });
+
+      const lintCheck = CheckResultStub({
+        checkType: 'lint',
+        status: 'pass',
+        projectResults: [wardLint],
+      });
+      const unitCheck = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [wardUnit],
+      });
+      const e2eCheck = CheckResultStub({
+        checkType: 'e2e',
+        status: 'pass',
+        projectResults: [webE2e],
+      });
+
+      const peakRssByPackage = new Map<string, number | null>([
+        ['ward', 256],
+        ['web', 1024],
+      ]);
+      const shardsByPackage = new Map<string, number | null>([['web', 3]]);
+
+      const result = durationSamplesBuildTransformer({
+        repoRoot: '/repo',
+        checks: [lintCheck, unitCheck, e2eCheck],
+        wholePackageNames: ['ward', 'web'],
+        nowMs: 1700000000000,
+        peakRssByPackage,
+        shardsByPackage,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          repoRoot: '/repo',
+          packageName: 'ward',
+          checkType: 'lint',
+          durationMs: 300,
+          peakRssMB: 256,
+          shards: null,
+          recordedAtMs: 1700000000000,
+        },
+        {
+          repoRoot: '/repo',
+          packageName: 'ward',
+          checkType: 'unit',
+          durationMs: 800,
+          peakRssMB: 256,
+          shards: null,
+          recordedAtMs: 1700000000000,
+        },
+        {
+          repoRoot: '/repo',
+          packageName: 'web',
+          checkType: 'e2e',
+          durationMs: 4500,
+          peakRssMB: 1024,
+          shards: 3,
+          recordedAtMs: 1700000000000,
+        },
+      ]);
+    });
+
+    it('VALID: {peaks and shard counts as Record} => lands on the right package', () => {
+      const wardUnit = ProjectResultStub({
+        projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+        status: 'pass',
+        durationMs: 650,
+      });
+      const webE2e = ProjectResultStub({
+        projectFolder: { name: 'web', path: '/repo/packages/web' },
+        status: 'pass',
+        durationMs: 3200,
+      });
+
+      const unitCheck = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [wardUnit],
+      });
+      const e2eCheck = CheckResultStub({
+        checkType: 'e2e',
+        status: 'pass',
+        projectResults: [webE2e],
+      });
+
+      const result = durationSamplesBuildTransformer({
+        repoRoot: '/repo',
+        checks: [unitCheck, e2eCheck],
+        wholePackageNames: ['ward', 'web'],
+        nowMs: 1700000000000,
+        peakRssByPackage: {
+          ward: 128,
+          web: 512,
+        },
+        shardsByPackage: {
+          web: 2,
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          repoRoot: '/repo',
+          packageName: 'ward',
+          checkType: 'unit',
+          durationMs: 650,
+          peakRssMB: 128,
+          shards: null,
+          recordedAtMs: 1700000000000,
+        },
+        {
+          repoRoot: '/repo',
+          packageName: 'web',
+          checkType: 'e2e',
+          durationMs: 3200,
+          peakRssMB: 512,
+          shards: 2,
+          recordedAtMs: 1700000000000,
+        },
+      ]);
+    });
+
+    it('VALID: {package with no peak} => keeps null peakRssMB', () => {
+      const wardUnit = ProjectResultStub({
+        projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+        status: 'pass',
+        durationMs: 400,
+      });
+      const sharedUnit = ProjectResultStub({
+        projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+        status: 'pass',
+        durationMs: 500,
+      });
+
+      const unitCheck = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [wardUnit, sharedUnit],
+      });
+
+      const result = durationSamplesBuildTransformer({
+        repoRoot: '/repo',
+        checks: [unitCheck],
+        wholePackageNames: ['ward', 'shared'],
+        nowMs: 1700000000000,
+        peakRssByPackage: {
+          shared: null,
+        },
+      });
+
+      expect(result).toStrictEqual([
+        {
+          repoRoot: '/repo',
+          packageName: 'ward',
+          checkType: 'unit',
+          durationMs: 400,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1700000000000,
+        },
+        {
+          repoRoot: '/repo',
+          packageName: 'shared',
+          checkType: 'unit',
+          durationMs: 500,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1700000000000,
+        },
+      ]);
+    });
+
+    it('VALID: {shards for package} => lands on that package while package with no shards keeps null', () => {
+      const webE2e = ProjectResultStub({
+        projectFolder: { name: 'web', path: '/repo/packages/web' },
+        status: 'pass',
+        durationMs: 2000,
+      });
+      const wardUnit = ProjectResultStub({
+        projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+        status: 'pass',
+        durationMs: 450,
+      });
+
+      const e2eCheck = CheckResultStub({
+        checkType: 'e2e',
+        status: 'pass',
+        projectResults: [webE2e],
+      });
+      const unitCheck = CheckResultStub({
+        checkType: 'unit',
+        status: 'pass',
+        projectResults: [wardUnit],
+      });
+
+      const result = durationSamplesBuildTransformer({
+        repoRoot: '/repo',
+        checks: [e2eCheck, unitCheck],
+        wholePackageNames: ['web', 'ward'],
+        nowMs: 1700000000000,
+        shardsByPackage: new Map([
+          ['web', 5],
+          ['ward', null],
+        ]),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          repoRoot: '/repo',
+          packageName: 'web',
+          checkType: 'e2e',
+          durationMs: 2000,
+          peakRssMB: null,
+          shards: 5,
+          recordedAtMs: 1700000000000,
+        },
+        {
+          repoRoot: '/repo',
+          packageName: 'ward',
+          checkType: 'unit',
+          durationMs: 450,
+          peakRssMB: null,
+          shards: null,
+          recordedAtMs: 1700000000000,
+        },
+      ]);
+    });
+  });
 });
