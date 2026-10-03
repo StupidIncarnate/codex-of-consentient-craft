@@ -947,14 +947,14 @@ describe('resultToSummaryTransformer', () => {
                     filePath: 'src/slow-flow.integration.test.ts',
                     durationMs: 8300,
                     testMs: 8100,
-                    slowestTestMs: 4100,
+                    slowestTestMs: 6100,
                     testCount: 2,
                   }),
                   FileTimingStub({
                     filePath: 'src/slow-widget.test.tsx',
-                    durationMs: 5200,
-                    testMs: 2400,
-                    slowestTestMs: 1600,
+                    durationMs: 6200,
+                    testMs: 5400,
+                    slowestTestMs: 4600,
                     testCount: 3,
                   }),
                 ],
@@ -970,7 +970,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/slow-flow.integration.test.ts  4.1s slowest test (2 tests, 8.1s total)\n  src/slow-widget.test.tsx  1.6s slowest test (3 tests, 2.4s total)',
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/slow-flow.integration.test.ts  6.1s slowest test (2 tests, 8.1s total)\n  src/slow-widget.test.tsx  4.6s slowest test (3 tests, 5.4s total)',
       );
     });
 
@@ -995,9 +995,9 @@ describe('resultToSummaryTransformer', () => {
                   }),
                   FileTimingStub({
                     filePath: 'src/really-slow.test.ts',
-                    durationMs: 3500,
-                    testMs: 2900,
-                    slowestTestMs: 2850,
+                    durationMs: 5500,
+                    testMs: 4900,
+                    slowestTestMs: 4850,
                     testCount: 2,
                   }),
                 ],
@@ -1013,7 +1013,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (2 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/really-slow.test.ts  2.9s slowest test (2 tests, 2.9s total)',
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (2 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/really-slow.test.ts  4.8s slowest test (2 tests, 4.9s total)',
       );
     });
 
@@ -1075,8 +1075,8 @@ describe('resultToSummaryTransformer', () => {
                   FileTimingStub({
                     filePath: 'src/widget.test.tsx',
                     durationMs: 6000,
-                    testMs: 1400,
-                    slowestTestMs: 1400,
+                    testMs: 4400,
+                    slowestTestMs: 4400,
                     testCount: 1,
                   }),
                 ],
@@ -1089,8 +1089,8 @@ describe('resultToSummaryTransformer', () => {
                   FileTimingStub({
                     filePath: 'src/broker.test.ts',
                     durationMs: 9000,
-                    testMs: 4200,
-                    slowestTestMs: 4200,
+                    testMs: 5200,
+                    slowestTestMs: 5200,
                     testCount: 1,
                   }),
                 ],
@@ -1106,7 +1106,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/broker.test.ts  4.2s slowest test (1 tests, 4.2s total)\n  src/widget.test.tsx  1.4s slowest test (1 tests, 1.4s total)',
+        'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/broker.test.ts  5.2s slowest test (1 tests, 5.2s total)\n  src/widget.test.tsx  4.4s slowest test (1 tests, 4.4s total)',
       );
     });
 

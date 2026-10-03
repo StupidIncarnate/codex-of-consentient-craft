@@ -14,15 +14,15 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/a.test.ts',
-                durationMs: 2000,
-                testMs: 1400,
-                slowestTestMs: 1400,
+                durationMs: 5000,
+                testMs: 4400,
+                slowestTestMs: 4400,
               }),
               FileTimingStub({
                 filePath: 'src/b.test.ts',
                 durationMs: 9000,
-                testMs: 4200,
-                slowestTestMs: 4200,
+                testMs: 6200,
+                slowestTestMs: 6200,
               }),
             ],
           }),
@@ -52,9 +52,9 @@ describe('slowFileTimingsTransformer', () => {
               }),
               FileTimingStub({
                 filePath: 'src/real.test.ts',
-                durationMs: 3500,
-                testMs: 2900,
-                slowestTestMs: 2900,
+                durationMs: 5500,
+                testMs: 4900,
+                slowestTestMs: 4900,
               }),
             ],
           }),
@@ -76,8 +76,8 @@ describe('slowFileTimingsTransformer', () => {
               FileTimingStub({
                 filePath: 'src/edge.test.ts',
                 durationMs: 9000,
-                testMs: 1000,
-                slowestTestMs: 1000,
+                testMs: 4000,
+                slowestTestMs: 4000,
               }),
             ],
           }),
@@ -97,8 +97,8 @@ describe('slowFileTimingsTransformer', () => {
               FileTimingStub({
                 filePath: 'src/web.test.ts',
                 durationMs: 6000,
-                testMs: 1400,
-                slowestTestMs: 1400,
+                testMs: 4400,
+                slowestTestMs: 4400,
               }),
             ],
           }),
@@ -107,8 +107,8 @@ describe('slowFileTimingsTransformer', () => {
               FileTimingStub({
                 filePath: 'src/cli.test.ts',
                 durationMs: 9000,
-                testMs: 4200,
-                slowestTestMs: 4200,
+                testMs: 5200,
+                slowestTestMs: 5200,
               }),
             ],
           }),
@@ -125,7 +125,7 @@ describe('slowFileTimingsTransformer', () => {
   });
 
   describe('a browser check, held to its own bar', () => {
-    it('VALID: {e2e spec at 1.4s} => not slow, because a browser spec is not a jest suite', () => {
+    it('VALID: {e2e spec at 4.4s} => not slow, because a browser spec is not a jest suite', () => {
       const check = CheckResultStub({
         checkType: 'e2e',
         status: 'pass',
@@ -134,9 +134,9 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/a.e2e.ts',
-                durationMs: 1400,
-                testMs: 1400,
-                slowestTestMs: 1400,
+                durationMs: 4400,
+                testMs: 4400,
+                slowestTestMs: 4400,
               }),
             ],
           }),
@@ -169,7 +169,7 @@ describe('slowFileTimingsTransformer', () => {
       ]);
     });
 
-    it('VALID: {a unit suite at the same 1.4s} => slow, so the two bars really do differ', () => {
+    it('VALID: {a unit suite at the same 4.4s} => slow, so the two bars really do differ', () => {
       const check = CheckResultStub({
         checkType: 'unit',
         status: 'pass',
@@ -178,9 +178,9 @@ describe('slowFileTimingsTransformer', () => {
             fileTimings: [
               FileTimingStub({
                 filePath: 'src/a.test.ts',
-                durationMs: 1400,
-                testMs: 1400,
-                slowestTestMs: 1400,
+                durationMs: 4400,
+                testMs: 4400,
+                slowestTestMs: 4400,
               }),
             ],
           }),
@@ -365,13 +365,13 @@ describe('slowFileTimingsTransformer', () => {
   });
 
   describe('the integration bar', () => {
-    it('VALID: {2.5s of test bodies, integration} => returns nothing, where the unit bar would flag it', () => {
+    it('VALID: {4.5s of test bodies, integration} => returns nothing, where the unit bar would flag it', () => {
       const timings = [
         FileTimingStub({
           filePath: 'src/spawns.integration.test.ts',
-          durationMs: 4000,
-          testMs: 2500,
-          slowestTestMs: 2500,
+          durationMs: 6000,
+          testMs: 4500,
+          slowestTestMs: 4500,
         }),
       ];
 
@@ -473,7 +473,7 @@ describe('slowFileTimingsTransformer', () => {
       expect(slowFileTimingsTransformer({ check })).toStrictEqual([]);
     });
 
-    it('VALID: {3 tests, one of them 2.6s} => returns it, at the same suite total', () => {
+    it('VALID: {3 tests, one of them 4.6s} => returns it, at the same suite total', () => {
       const check = CheckResultStub({
         checkType: 'unit',
         status: 'pass',
@@ -483,9 +483,9 @@ describe('slowFileTimingsTransformer', () => {
               FileTimingStub({
                 filePath:
                   'src/responders/quest/handle/resolve-caller-session-layer-responder.test.ts',
-                durationMs: 5000,
-                testMs: 2754,
-                slowestTestMs: 2600,
+                durationMs: 7000,
+                testMs: 4754,
+                slowestTestMs: 4600,
                 testCount: 3,
               }),
             ],

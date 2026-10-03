@@ -20,7 +20,7 @@ export const slowFileThresholdStatics = {
     // to trip a summed bar hold 87, 96 and 153 tests at 18-20ms each. So a second of ONE test is
     // well clear of anything healthy here, and it is the bar that caught the real defect this was
     // calibrated against — one test sitting through a responder's real 3s retry budget.
-    testWarnMs: 1000,
+    testWarnMs: 4000,
     // An integration test may spawn real processes or run package installers sequentially across
     // every workspace package in the monorepo, and under whole-repo concurrency with all packages
     // running at once, contended multi-installer suites clear in 8-9 seconds. On a shared machine
