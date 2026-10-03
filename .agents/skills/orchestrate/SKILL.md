@@ -66,6 +66,8 @@ Subagents do
    files** for migration work. Name each file explicitly in the prompt.
 4. **Collision
    Avoidance:** Two subagents must never edit the same package at once unless the orchestrator has assigned strictly disjoint file lists to them. An item marked "runs alone" runs with no other agent editing its package.
+5. **Parallel Worker
+   Waves:** Each row in the Execution Progress Tracker (`#1`, `#2`, etc.) represents a parallel dispatch wave. All tasks placed side-by-side in that row MUST be executed concurrently in parallel by worker subagents (up to the 3-subagent concurrency cap). Never serialize tasks that sit side-by-side in the same row.
 
 ### B. Explicit Scope & No Unplanned Dispatches
 
@@ -174,7 +176,7 @@ For each batch in the plan:
 2. Review Planner Report & Update Plan Document
       │
       ▼
-3. Dispatch `batch_worker` (Implement changes on 1–3 files & run scoped ward in worktree)
+3. Dispatch `batch_worker` subagents in parallel for all row items (1–3 files per worker) & run scoped ward in worktree
       │
       ▼
 4. Dispatch `batch_reviewer` (Audit git diff, check invariants, run regression in worktree)

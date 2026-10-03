@@ -20,6 +20,8 @@ Your goal is to autonomously orchestrate the execution of the plan document prov
     - You **NEVER** write or edit code directly in the parent context.
    - All subagent operations and commands run within the worktree directory (`worktrees/<name>/`).
     - At most **THREE (3)** concurrent subagents.
+   - **Parallel Worker
+     Waves:** Each row in the Execution Progress Tracker (`#1`, `#2`, etc.) represents a parallel dispatch wave. All items listed side-by-side in a row MUST be executed concurrently in parallel by worker subagents (up to the 3-subagent concurrency cap). Never serialize tasks that sit side-by-side in the same row.
     - You exclusively own staging (`git add`), builds, and commits. Subagents never run git commands or builds.
    - Maintain the **4-minute keepalive check-in
      schedule** (`DurationSeconds=240`) during subagent runs to preserve Gemini context prefix cache warmth.
@@ -30,7 +32,7 @@ Your goal is to autonomously orchestrate the execution of the plan document prov
     - Follow the batch pipeline:
         1. Dispatch `batch_planner` inside worktree to verify explicit file paths and contracts.
         2. Review planner output and update the plan document.
-        3. Dispatch `batch_worker` (1–3 files per worker) inside worktree to implement and run scoped ward.
+      3. Dispatch `batch_worker` subagents in parallel for all items in the current row (1–3 files per worker) inside worktree to implement and run scoped ward concurrently.
         4. Dispatch `batch_reviewer` inside worktree to audit git diff and run regression.
         5. Run `npm run ward -- --uncommitted` in worktree, stage explicit files, update the Execution Progress Tracker, and commit in worktree.
 5. **Autonomous
