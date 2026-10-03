@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { QuestAbandonResponder } from './quest-abandon-responder';
@@ -35,7 +36,7 @@ export const QuestAbandonResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.abandonQuestThrows({ questId, error: new Error(message) });
+      orchestrator.abandonQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestAbandonResponder,
   };

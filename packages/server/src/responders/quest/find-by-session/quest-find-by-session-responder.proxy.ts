@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { Session } from '@dungeonmaster/shared/contracts';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -21,7 +22,7 @@ export const QuestFindBySessionResponderProxy = (): {
       orchestrator.findQuestBySessionIdReturns({ sessionId, questId: null });
     },
     setupError: ({ sessionId, message }: { sessionId: Session['id']; message: string }): void => {
-      orchestrator.findQuestBySessionIdThrows({ sessionId, error: new Error(message) });
+      orchestrator.findQuestBySessionIdThrows({ sessionId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestFindBySessionResponder,
   };

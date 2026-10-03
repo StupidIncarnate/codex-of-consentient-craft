@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 import { QuestsQueueResponder } from './quests-queue-responder';
@@ -16,7 +17,7 @@ export const QuestsQueueResponderProxy = (): {
       orchestrator.getExecutionQueueReturns({ entries });
     },
     setupQueueError: ({ message }: { message: string }): void => {
-      orchestrator.getExecutionQueueThrows({ error: new Error(message) });
+      orchestrator.getExecutionQueueThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: QuestsQueueResponder,
   };

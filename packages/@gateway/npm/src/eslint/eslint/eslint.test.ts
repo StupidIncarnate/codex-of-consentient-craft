@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 import { ESLint } from '../eslint';
@@ -27,14 +28,20 @@ describe('ESLintProxy', () => {
   describe('construction', () => {
     it('ERROR: {constructionThrows for a cwd} => new ESLint with that cwd throws the staged error', () => {
       const proxy = ESLintProxy();
-      proxy.constructionThrows({ cwd: '/broken', error: new Error('bad options') });
+      proxy.constructionThrows({
+        cwd: '/broken',
+        error: NativeErrorStub({ message: 'bad options' }),
+      });
 
       expect(() => new ESLint({ cwd: '/broken' })).toThrow(/^bad options$/u);
     });
 
     it('ERROR: {constructionThrows for one cwd} => a construction with another cwd throws as unstaged', () => {
       const proxy = ESLintProxy();
-      proxy.constructionThrows({ cwd: '/broken', error: new Error('bad options') });
+      proxy.constructionThrows({
+        cwd: '/broken',
+        error: NativeErrorStub({ message: 'bad options' }),
+      });
 
       expect(() => new ESLint({ cwd: '/fine' })).toThrow(
         /^registerMock: nothing set up for the call ESLint\(\{"cwd":"\/fine"\}\)\. Calls that ARE set up: \(\{"cwd":"\/broken"\}\)$/u,
@@ -121,7 +128,7 @@ describe('ESLintProxy', () => {
 
     it('ERROR: {lintTextRejects} => rejects with the staged error', async () => {
       const proxy = ESLintProxy();
-      proxy.lintTextRejects({ text: 'boom', error: new Error('parse failed') });
+      proxy.lintTextRejects({ text: 'boom', error: NativeErrorStub({ message: 'parse failed' }) });
 
       await expect(new ESLint({ cwd: '/repo' }).lintText('boom')).rejects.toThrow(
         /^parse failed$/u,
@@ -221,7 +228,10 @@ describe('ESLintProxy', () => {
 
     it('ERROR: {outputFixesRejects} => rejects with the staged error', async () => {
       const proxy = ESLintProxy();
-      proxy.outputFixesRejects({ results: [DIRTY_RESULT], error: new Error('disk full') });
+      proxy.outputFixesRejects({
+        results: [DIRTY_RESULT],
+        error: NativeErrorStub({ message: 'disk full' }),
+      });
 
       await expect(ESLint.outputFixes([DIRTY_RESULT])).rejects.toThrow(/^disk full$/u);
     });
@@ -255,7 +265,10 @@ describe('ESLintProxy', () => {
 
     it('ERROR: {isPathIgnoredRejects} => rejects with the staged error', async () => {
       const proxy = ESLintProxy();
-      proxy.isPathIgnoredRejects({ filePath: '/outside.ts', error: new Error('outside cwd') });
+      proxy.isPathIgnoredRejects({
+        filePath: '/outside.ts',
+        error: NativeErrorStub({ message: 'outside cwd' }),
+      });
 
       await expect(new ESLint({ cwd: '/repo' }).isPathIgnored('/outside.ts')).rejects.toThrow(
         /^outside cwd$/u,
@@ -325,7 +338,7 @@ describe('ESLintProxy', () => {
       const proxy = ESLintProxy();
       proxy.calculateConfigForFileRejects({
         filePath: '/repo/bad.ts',
-        error: new Error('bad config'),
+        error: NativeErrorStub({ message: 'bad config' }),
       });
 
       await expect(

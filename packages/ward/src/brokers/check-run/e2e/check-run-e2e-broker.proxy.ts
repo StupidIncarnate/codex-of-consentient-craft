@@ -4,8 +4,10 @@ import { DatabaseSyncStub } from '#gateway/node/sqlite/database-sync.stub';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { capacityReadBrokerProxy } from '@dungeonmaster/load-balancer/brokers/capacity/read/capacity-read-broker.proxy';
 import { MachineReadingStub } from '@dungeonmaster/load-balancer/contracts/machine-reading/machine-reading.stub';
+import { loadBalancerStatics } from '@dungeonmaster/load-balancer/statics';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+import { machineResourcesStatics } from '@dungeonmaster/shared/statics';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { runnerCommandResolveBrokerProxy } from '../../runner-command/resolve/runner-command-resolve-broker.proxy';
@@ -27,6 +29,7 @@ const BUNDLE_HASH = '1d36195dbed4d762ee44bad0c0a391b267a8b412c2832995e82a59b16fe
 const DEFAULT_SERVER_PORT = 40_000;
 const DEFAULT_WEB_PORT = 51_244;
 const PORT_STEP = 2;
+const PERCENT_MULTIPLIER = 100;
 
 const generateShardPortPairs = (count: number): readonly { server: number; web: number }[] =>
   Array.from({ length: count }, (_, index) => ({
@@ -277,10 +280,19 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
 
       const suggestion = capacitySuggestion ?? Math.max(1, shardCount - 1);
+      const cores = Math.max(
+        loadBalancerStatics.cpu.minAllowed,
+        Math.max(
+          suggestion + loadBalancerStatics.cpu.headroomCores,
+          Math.ceil(
+            (suggestion * PERCENT_MULTIPLIER) / machineResourcesStatics.maxCpuPercent.default,
+          ),
+        ),
+      );
       capacityProxy.setupMachine({
         diskPath: projectFolder.path,
         machine: MachineReadingStub({
-          cores: suggestion,
+          cores,
           loadAvg: [0, 0, 0],
           freeMemMB: 100_000,
           totalMemMB: 100_000,
@@ -314,10 +326,19 @@ export const checkRunE2eBrokerProxy = (): {
       projectFolder: ProjectFolder;
       suggestion: number;
     }): void => {
+      const cores = Math.max(
+        loadBalancerStatics.cpu.minAllowed,
+        Math.max(
+          suggestion + loadBalancerStatics.cpu.headroomCores,
+          Math.ceil(
+            (suggestion * PERCENT_MULTIPLIER) / machineResourcesStatics.maxCpuPercent.default,
+          ),
+        ),
+      );
       capacityProxy.setupMachine({
         diskPath: projectFolder.path,
         machine: MachineReadingStub({
-          cores: suggestion,
+          cores,
           loadAvg: [0, 0, 0],
           freeMemMB: 100_000,
           totalMemMB: 100_000,

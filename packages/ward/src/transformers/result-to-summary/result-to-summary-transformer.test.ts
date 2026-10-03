@@ -1124,9 +1124,9 @@ describe('resultToSummaryTransformer', () => {
                 fileTimings: [
                   FileTimingStub({
                     filePath: 'src/big-widget.tsx',
-                    durationMs: 6000,
+                    durationMs: 8000,
                     testMs: 0,
-                    rulesMs: 5600,
+                    rulesMs: 7600,
                   }),
                 ],
               }),
@@ -1141,7 +1141,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  ranked on rule time; wall also carries the TypeScript program build, charged to whichever file the parser reached first\n  src/big-widget.tsx  5.6s in rules (6.0s wall)',
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  ranked on rule time; wall also carries the TypeScript program build, charged to whichever file the parser reached first\n  src/big-widget.tsx  7.6s in rules (8.0s wall)',
       );
     });
 

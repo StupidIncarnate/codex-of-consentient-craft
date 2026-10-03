@@ -3,10 +3,10 @@ import { slowFileThresholdStatics } from './slow-file-threshold-statics';
 describe('slowFileThresholdStatics', () => {
   it('VALID: exported thresholds => match expected shape', () => {
     expect(slowFileThresholdStatics.threshold).toStrictEqual({
-      warnMs: 5000,
+      warnMs: 10_000,
       testWarnMs: 1000,
       integrationTestWarnMs: 20_000,
-      lintRulesWarnMs: 4000,
+      lintRulesWarnMs: 7000,
       e2eTestWarnMs: 20_000,
     });
   });

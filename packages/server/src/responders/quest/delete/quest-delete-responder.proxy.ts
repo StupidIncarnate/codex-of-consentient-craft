@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestDeleteResponder } from './quest-delete-responder';
@@ -36,7 +37,7 @@ export const QuestDeleteResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.deleteQuestThrows({ questId, error: new Error(message) });
+      orchestrator.deleteQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestDeleteResponder,
   };

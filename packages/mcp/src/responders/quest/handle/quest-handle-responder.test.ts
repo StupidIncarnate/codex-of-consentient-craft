@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
@@ -334,7 +335,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetQuestThrows({
         questId: QuestIdStub({ value: 'test-quest-id' }),
-        error: new Error('Quest not found'),
+        error: NativeErrorStub({ message: 'Quest not found' }),
       });
 
       const result = await proxy.callResponder({
@@ -857,7 +858,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupModifyQuestThrows({
         questId: QuestIdStub({ value: 'test-quest-id' }),
-        error: new Error('Modify failed'),
+        error: NativeErrorStub({ message: 'Modify failed' }),
       });
 
       const result = await proxy.callResponder({
@@ -907,7 +908,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupStartQuestThrows({
         questId: QuestIdStub({ value: 'add-auth' }),
-        error: new Error('Start failed'),
+        error: NativeErrorStub({ message: 'Start failed' }),
       });
 
       const result = await proxy.callResponder({
@@ -1021,7 +1022,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupListQuestsThrows({
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
-        error: new Error('List failed'),
+        error: NativeErrorStub({ message: 'List failed' }),
       });
 
       const result = await proxy.callResponder({
@@ -1068,7 +1069,7 @@ describe('QuestHandleResponder', () => {
 
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
-      proxy.setupListGuildsThrows({ error: new Error('Guilds failed') });
+      proxy.setupListGuildsThrows({ error: NativeErrorStub({ message: 'Guilds failed' }) });
 
       const result = await proxy.callResponder({
         tool: 'list-guilds',
@@ -1170,7 +1171,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesThrows({
         questId: QuestIdStub({ value: 'test-quest-id' }),
-        error: new Error('Notes unavailable'),
+        error: NativeErrorStub({ message: 'Notes unavailable' }),
       });
 
       const result = await proxy.callResponder({
@@ -1245,7 +1246,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetBlightChecklistThrows({
         questId: QuestIdStub({ value: 'test-quest-id' }),
-        error: new Error('Quest not found'),
+        error: NativeErrorStub({ message: 'Quest not found' }),
       });
 
       const result = await proxy.callResponder({
@@ -1311,7 +1312,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupCreateWorktreeThrows({
         name: 'probe',
-        error: new Error('Base branch not found'),
+        error: NativeErrorStub({ message: 'Base branch not found' }),
       });
 
       const result = await proxy.callResponder({
@@ -1404,7 +1405,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetQuestSummaryThrows({
         questId: QuestIdStub({ value: 'test-quest-id' }),
-        error: new Error('Quest not found'),
+        error: NativeErrorStub({ message: 'Quest not found' }),
       });
 
       const result = await proxy.callResponder({
@@ -1507,7 +1508,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupCreateQuestThrows({
         userRequest: 'Build the login flow',
-        error: new Error('No guild available'),
+        error: NativeErrorStub({ message: 'No guild available' }),
       });
 
       const result = await proxy.callResponder({
@@ -1558,7 +1559,9 @@ describe('QuestHandleResponder', () => {
 
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
-      proxy.setupGetServerConfigThrows({ error: new Error('Config unavailable') });
+      proxy.setupGetServerConfigThrows({
+        error: NativeErrorStub({ message: 'Config unavailable' }),
+      });
 
       const result = await proxy.callResponder({
         tool: 'get-server-config',

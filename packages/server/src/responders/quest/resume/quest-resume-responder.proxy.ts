@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
@@ -47,7 +48,7 @@ export const QuestResumeResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
+      orchestrator.resumeQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
 
     // The Node dispatcher starts — the ordinary case.
@@ -55,7 +56,7 @@ export const QuestResumeResponderProxy = (): {
       orchestrator.playDispatchReturns({ state: DispatchStateStub({ mode: 'node-playing' }) });
     },
     setupDispatchError: ({ message }: { message: string }): void => {
-      orchestrator.playDispatchThrows({ error: new Error(message) });
+      orchestrator.playDispatchThrows({ error: NativeErrorStub({ message }) });
     },
     getDispatchPlayCalls: (): readonly unknown[] => orchestrator.playDispatchGetCalls(),
 

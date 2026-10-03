@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
@@ -90,7 +91,7 @@ describe('runExecuteStepLayerBroker', () => {
     it('ERROR: {goto rejects, expect ok} => an ok:false reading and a stoppedAt naming the step and verb', async () => {
       const proxy = runExecuteStepLayerBrokerProxy();
       const lane = proxy.laneGotoRejects({
-        error: new Error('page.goto: Timeout 30000ms exceeded.'),
+        error: NativeErrorStub({ message: 'page.goto: Timeout 30000ms exceeded.' }),
       });
       const step = StepStub({ step: 'goto', path: '/guilds' });
 
@@ -139,7 +140,7 @@ describe('runExecuteStepLayerBroker', () => {
     it('ERROR: {goto rejects for real, shotPath non-null, capture succeeds} => the reading carries the shot path, not null', async () => {
       const proxy = runExecuteStepLayerBrokerProxy();
       const lane = proxy.laneGotoRejects({
-        error: new Error('page.goto: Timeout 30000ms exceeded.'),
+        error: NativeErrorStub({ message: 'page.goto: Timeout 30000ms exceeded.' }),
       });
       const step = StepStub({ step: 'goto', path: '/guilds' });
       const shotPath =
@@ -470,7 +471,7 @@ describe('runExecuteStepLayerBroker', () => {
   describe('an expect: error step that throws as intended', () => {
     it('VALID: {goto rejects, expect error} => an ok:true reading and no stoppedAt', async () => {
       const proxy = runExecuteStepLayerBrokerProxy();
-      const lane = proxy.laneGotoRejects({ error: new Error('boom') });
+      const lane = proxy.laneGotoRejects({ error: NativeErrorStub({ message: 'boom' }) });
       const step = StepStub({
         step: 'goto',
         path: '/guilds',

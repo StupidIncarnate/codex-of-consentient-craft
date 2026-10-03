@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
@@ -136,7 +137,7 @@ describe('QuestSummaryLayerResponder', () => {
       const proxy = QuestSummaryLayerResponderProxy();
       proxy.setupThrows({
         questId: QuestIdStub({ value: 'add-auth' }),
-        error: new Error('Quest not found: add-auth'),
+        error: NativeErrorStub({ message: 'Quest not found: add-auth' }),
       });
 
       const result = await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });

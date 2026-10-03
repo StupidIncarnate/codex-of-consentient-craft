@@ -3,6 +3,7 @@ import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { homedir } from '#gateway/node/os';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statProxy } from '#gateway/node/fs__promises/stat/stat.proxy';
@@ -144,7 +145,9 @@ export const sessionListBrokerProxy = (): {
       for (const quest of quests) {
         orchestrator.loadQuestThrows({
           questId: quest.id,
-          error: new Error(`sessionListBrokerProxy: no loadQuest scenario staged for ${quest.id}`),
+          error: NativeErrorStub({
+            message: `sessionListBrokerProxy: no loadQuest scenario staged for ${quest.id}`,
+          }),
         });
       }
     },
@@ -155,7 +158,10 @@ export const sessionListBrokerProxy = (): {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupGuildNotFound: ({ guildId }: { guildId: Guild['id'] }): void => {
-      orchestrator.getGuildThrows({ guildId, error: new Error(`Guild not found: ${guildId}`) });
+      orchestrator.getGuildThrows({
+        guildId,
+        error: NativeErrorStub({ message: `Guild not found: ${guildId}` }),
+      });
     },
   };
 };

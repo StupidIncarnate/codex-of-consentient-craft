@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
 import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
 
@@ -44,7 +45,10 @@ describe('CreateWorktreeLayerResponder', () => {
   describe('adapter failures', () => {
     it('ERROR: {orchestrator throws} => returns the JSON error shape with isError', async () => {
       const proxy = CreateWorktreeLayerResponderProxy();
-      proxy.setupThrows({ name: 'probe', error: new Error('Base branch not found') });
+      proxy.setupThrows({
+        name: 'probe',
+        error: NativeErrorStub({ message: 'Base branch not found' }),
+      });
 
       const result = await CreateWorktreeLayerResponder({ args: { name: 'probe' } });
 

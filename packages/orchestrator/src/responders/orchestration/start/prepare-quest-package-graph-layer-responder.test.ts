@@ -251,6 +251,7 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
         'hooks=1',
         'hydration=1',
         'hydration-recipes=3',
+        'load-balancer=1',
         'local-eslint=2',
         'mcp=3',
         'orchestrator=2',

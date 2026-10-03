@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -30,7 +31,7 @@ export const QuestPauseResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.pauseQuestThrows({ questId, error: new Error(message) });
+      orchestrator.pauseQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestPauseResponder,
   };

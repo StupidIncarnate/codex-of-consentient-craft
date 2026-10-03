@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -58,7 +59,7 @@ export const QuestClarifyResponderProxy = (): {
       orchestrator.clarifyAnswerReturns({ questId, chatProcessId });
     },
     setupClarifyError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
-      orchestrator.clarifyAnswerThrows({ questId, error: new Error(message) });
+      orchestrator.clarifyAnswerThrows({ questId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestClarifyResponder,
   };

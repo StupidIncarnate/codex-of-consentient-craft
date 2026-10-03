@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questHumanVerdictRecordBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/human-verdict-record/quest-human-verdict-record-broker.proxy';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -29,7 +30,7 @@ export const QuestHumanVerdictResponderProxy = (): {
     setupThrows: ({ message }: { message: string }): void => {
       verdictProxy.setupRejects({
         input: { questId: QUEST_ID, unitId: UNIT_ID, outcome: OUTCOME, reason: REASON },
-        error: new Error(message),
+        error: NativeErrorStub({ message }),
       });
     },
     callResponder: QuestHumanVerdictResponder,

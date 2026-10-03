@@ -49,8 +49,10 @@ export const durationPredictTransformer = ({
       const medianDuration =
         sortedDurations.length % divisor === 1
           ? (sortedDurations[midDuration] ?? 0)
-          : ((sortedDurations[midDuration - 1] ?? 0) + (sortedDurations[midDuration] ?? 0)) /
-            divisor;
+          : Math.round(
+              ((sortedDurations[midDuration - 1] ?? 0) + (sortedDurations[midDuration] ?? 0)) /
+                divisor,
+            );
 
       const nonNullRssValues = sampleList
         .flatMap((sample) => (sample.peakRssMB === null ? [] : [sample.peakRssMB]))
@@ -62,7 +64,9 @@ export const durationPredictTransformer = ({
           ? null
           : nonNullRssValues.length % divisor === 1
             ? (nonNullRssValues[midRss] ?? null)
-            : ((nonNullRssValues[midRss - 1] ?? 0) + (nonNullRssValues[midRss] ?? 0)) / divisor;
+            : Math.round(
+                ((nonNullRssValues[midRss - 1] ?? 0) + (nonNullRssValues[midRss] ?? 0)) / divisor,
+              );
 
       packagePredictions.set(checkType, {
         durationMs: medianDuration,

@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { OrchestrationDispatchNormalizeBootResponder } from './orchestration-dispatch-normalize-boot-responder';
@@ -16,7 +17,7 @@ export const OrchestrationDispatchNormalizeBootResponderProxy = (): {
       orchestrator.normalizeDispatchBootReturns({ state });
     },
     setupError: ({ message }: { message: string }): void => {
-      orchestrator.normalizeDispatchBootThrows({ error: new Error(message) });
+      orchestrator.normalizeDispatchBootThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: OrchestrationDispatchNormalizeBootResponder,
   };

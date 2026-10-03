@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -85,7 +86,7 @@ export const QuestCommentBatchResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.commentBatchThrows({ questId, error: new Error(message) });
+      orchestrator.commentBatchThrows({ questId, error: NativeErrorStub({ message }) });
     },
     getDeliveredBatch: ({ questId }: { questId: Quest['id'] }): unknown =>
       [...orchestrator.commentBatchGetCalls({ questId })].at(-1)?.[0],

@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
@@ -68,7 +69,9 @@ describe('GetQuestWorkLayerResponder', () => {
       const proxy = GetQuestWorkLayerResponderProxy();
       proxy.setupThrows({
         questId: QUEST_ID,
-        error: new Error('get-quest-work: work item is not on quest add-auth'),
+        error: NativeErrorStub({
+          message: 'get-quest-work: work item is not on quest add-auth',
+        }),
       });
 
       const response = await GetQuestWorkLayerResponder({

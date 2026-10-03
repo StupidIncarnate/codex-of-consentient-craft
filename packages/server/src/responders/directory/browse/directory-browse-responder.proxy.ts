@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import { DirectoryBrowseResponder } from './directory-browse-responder';
@@ -19,7 +20,7 @@ export const DirectoryBrowseResponderProxy = (): {
       orchestrator.browseDirectoriesReturns({ entries });
     },
     setupBrowseError: ({ message }: { message: string }): void => {
-      orchestrator.browseDirectoriesThrows({ error: new Error(message) });
+      orchestrator.browseDirectoriesThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: DirectoryBrowseResponder,
   };

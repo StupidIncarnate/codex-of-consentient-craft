@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -37,7 +38,7 @@ export const QuestMergeResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.mergeQuestThrows({ questId, error: new Error(message) });
+      orchestrator.mergeQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     // Every call StartOrchestrator.mergeQuest received, so a rejected-status test can prove it
     // received NONE — not just that the responder's own return value looks right.

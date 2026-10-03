@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
 import { FocusedElementStub } from '../../../contracts/focused-element/focused-element.stub';
@@ -238,7 +239,7 @@ describe('browserSessionLaunchBroker', () => {
       const proxy = browserSessionLaunchBrokerProxy();
       proxy.setWaitForFunctionRejects({
         source: 'false',
-        error: new Error('Timeout 30000ms exceeded'),
+        error: NativeErrorStub({ message: 'Timeout 30000ms exceeded' }),
       });
       const session = await browserSessionLaunchBroker({
         baseUrl: BASE_URL,
@@ -1124,7 +1125,7 @@ describe('browserSessionLaunchBroker', () => {
       proxy.setLocatorActionRejects({
         action: 'focus',
         selector: '[siege-target]',
-        error: new Error('Timeout 4000ms exceeded'),
+        error: NativeErrorStub({ message: 'Timeout 4000ms exceeded' }),
       });
       const session = await browserSessionLaunchBroker({
         baseUrl: BASE_URL,
@@ -1147,7 +1148,7 @@ describe('browserSessionLaunchBroker', () => {
       proxy.setLocatorActionRejects({
         action: 'click',
         selector: '[siege-target]',
-        error: new Error('Timeout 5000ms exceeded'),
+        error: NativeErrorStub({ message: 'Timeout 5000ms exceeded' }),
       });
       const session = await browserSessionLaunchBroker({
         baseUrl: BASE_URL,

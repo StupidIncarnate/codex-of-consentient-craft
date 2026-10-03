@@ -1,5 +1,6 @@
+import { machineStatics } from '@dungeonmaster/load-balancer/statics';
+import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';

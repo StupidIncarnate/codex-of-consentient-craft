@@ -295,7 +295,8 @@ export const multiPackageLayerBroker = async ({
                 if (degraded.has('leases')) {
                   return;
                 }
-                const expectedPeakMB = expectedPeakByPackage.get(folder.name) ?? null;
+                const rawPeakMB = expectedPeakByPackage.get(folder.name) ?? null;
+                const expectedPeakMB = typeof rawPeakMB === 'number' ? Math.round(rawPeakMB) : null;
                 spawnState.leaseId = await leaseTakeBroker({
                   tool: 'ward',
                   label: folder.name,

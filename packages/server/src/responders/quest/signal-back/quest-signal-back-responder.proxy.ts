@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
@@ -33,7 +34,11 @@ export const QuestSignalBackResponderProxy = (): {
       workItemId: WorkItem['id'];
       message: string;
     }): void => {
-      orchestrator.handleSignalBackThrows({ questId, workItemId, error: new Error(message) });
+      orchestrator.handleSignalBackThrows({
+        questId,
+        workItemId,
+        error: NativeErrorStub({ message }),
+      });
     },
     callResponder: QuestSignalBackResponder,
   };

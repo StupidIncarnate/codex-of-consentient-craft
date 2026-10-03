@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { OrchestrationDispatchPauseResponder } from './orchestration-dispatch-pause-responder';
@@ -16,7 +17,7 @@ export const OrchestrationDispatchPauseResponderProxy = (): {
       orchestrator.pauseDispatchReturns({ state });
     },
     setupError: ({ message }: { message: string }): void => {
-      orchestrator.pauseDispatchThrows({ error: new Error(message) });
+      orchestrator.pauseDispatchThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: OrchestrationDispatchPauseResponder,
   };

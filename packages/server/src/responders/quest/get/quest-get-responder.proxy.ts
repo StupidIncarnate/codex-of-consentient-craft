@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestGetResponder } from './quest-get-responder';
@@ -23,7 +24,7 @@ export const QuestGetResponderProxy = (): {
       return { expectedData: result };
     },
     setupGetQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
-      orchestrator.getQuestThrows({ questId, error: new Error(message) });
+      orchestrator.getQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     // questGetBroker catches its own failures and RETURNS `{ success: false, error }` rather than
     // throwing, so this — not `setupGetQuestError` — is the shape a missing or unparseable quest

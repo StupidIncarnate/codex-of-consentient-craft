@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
 import type { Guild } from '@dungeonmaster/shared/contracts';
@@ -17,7 +18,7 @@ export const QuestUserAddResponderProxy = (): {
       return { expectedData: result };
     },
     setupAddQuestError: ({ guildId, message }: { guildId: Guild['id']; message: string }): void => {
-      orchestrator.addQuestThrows({ guildId, error: new Error(message) });
+      orchestrator.addQuestThrows({ guildId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestUserAddResponder,
   };

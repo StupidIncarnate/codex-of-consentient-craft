@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
 import { ProcessStatusResponder } from './process-status-responder';
@@ -16,7 +17,7 @@ export const ProcessStatusResponderProxy = (): {
       orchestrator.getQuestStatusReturns({ processId: status.processId, status });
     },
     setupGetStatusError: ({ processId, message }: { processId: string; message: string }): void => {
-      orchestrator.getQuestStatusThrows({ processId, error: new Error(message) });
+      orchestrator.getQuestStatusThrows({ processId, error: NativeErrorStub({ message }) });
     },
     callResponder: ProcessStatusResponder,
   };

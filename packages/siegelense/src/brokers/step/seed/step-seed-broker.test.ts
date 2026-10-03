@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
@@ -198,9 +199,10 @@ describe('stepSeedBroker', () => {
         ],
       });
       proxy.stagesSeedRunThrows({
-        error: new Error(
-          "recipesSeedRunBroker: recipe 'session-with-nested-chain' refused params — guildPath: Expected string, received number — this recipe takes: guildPath",
-        ),
+        error: NativeErrorStub({
+          message:
+            "recipesSeedRunBroker: recipe 'session-with-nested-chain' refused params — guildPath: Expected string, received number — this recipe takes: guildPath",
+        }),
       });
       const lane = LaneSessionStub();
       const step = StepStub({

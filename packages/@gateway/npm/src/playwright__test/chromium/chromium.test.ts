@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { chromium } from './chromium';
 import { chromiumProxy } from './chromium.proxy';
 
@@ -125,7 +126,7 @@ describe('chromiumProxy', () => {
       proxy.launchResolves({ options: { headless: true } });
       proxy.evaluateRejects({
         source: /removeAttribute/u,
-        error: new Error('Execution context was destroyed'),
+        error: NativeErrorStub({ message: 'Execution context was destroyed' }),
       });
       const page = await (await (await chromium.launch({ headless: true })).newContext()).newPage();
 
@@ -189,7 +190,7 @@ describe('chromiumProxy', () => {
       proxy.locatorActionRejects({
         action: 'click',
         selector: '[siege-target]',
-        error: new Error('strict mode violation'),
+        error: NativeErrorStub({ message: 'strict mode violation' }),
       });
       const page = await (await (await chromium.launch({ headless: true })).newContext()).newPage();
 
@@ -241,7 +242,7 @@ describe('chromiumProxy', () => {
       proxy.launchResolves({ options: { headless: true } });
       proxy.waitForFunctionRejects({
         source: 'window.never === true',
-        error: new Error('Timeout 30000ms exceeded.'),
+        error: NativeErrorStub({ message: 'Timeout 30000ms exceeded.' }),
       });
       const page = await (await (await chromium.launch({ headless: true })).newContext()).newPage();
 

@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { configRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/config-root/find/config-root-find-broker.proxy';
 import type { SmoketestSuite } from '@dungeonmaster/shared/contracts';
@@ -24,7 +25,9 @@ export const ToolingSmoketestRunResponderProxy = (): {
     setupAlreadyRunning: ({ runId, suite }: { runId: string; suite: SmoketestSuite }): void => {
       orchestrator.runSmoketestThrows({
         suite,
-        error: new Error(`Smoketest already running (runId=${runId}, suite=${suite})`),
+        error: NativeErrorStub({
+          message: `Smoketest already running (runId=${runId}, suite=${suite})`,
+        }),
       });
     },
     setupRejectsWith: ({ suite, error }: { suite: SmoketestSuite; error: Error }): void => {

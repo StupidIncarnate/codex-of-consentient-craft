@@ -1,3 +1,5 @@
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { findNearestPackageJsonLayerBrokerProxy } from './find-nearest-package-json-layer-broker.proxy';
 
 export const validateGatewaySpecifierLayerBrokerProxy = (): {
@@ -7,6 +9,8 @@ export const validateGatewaySpecifierLayerBrokerProxy = (): {
   }) => void;
   setupNoPackageJsonAt: (args: { dirPath: string }) => void;
 } => {
+  existsSyncProxy();
+  readFileSyncProxy();
   const nearestPackageJsonProxy = findNearestPackageJsonLayerBrokerProxy();
 
   return {

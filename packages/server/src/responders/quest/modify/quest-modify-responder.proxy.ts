@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
@@ -27,7 +28,7 @@ export const QuestModifyResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.modifyQuestThrows({ questId, error: new Error(message) });
+      orchestrator.modifyQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestModifyResponder,
   };

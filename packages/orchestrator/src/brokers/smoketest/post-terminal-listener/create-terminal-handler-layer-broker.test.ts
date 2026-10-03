@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { SmoketestListenerEntryStub } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry.stub';
@@ -94,7 +95,7 @@ describe('createTerminalHandlerLayerBroker', () => {
 
     it('VALID: {dispatched processTerminalEventLayerBroker rejects} => handler swallows rejection, logs to stderr', async () => {
       const proxy = createTerminalHandlerLayerBrokerProxy();
-      proxy.setupProcessRejects({ error: new Error('boom') });
+      proxy.setupProcessRejects({ error: NativeErrorStub({ message: 'boom' }) });
       const stderrCapture = proxy.silenceStderrAndCaptureLogs();
       const entry = SmoketestListenerEntryStub();
       const meta = SmoketestScenarioMetaStub();
@@ -119,7 +120,7 @@ describe('createTerminalHandlerLayerBroker', () => {
 
     it('VALID: {dispatched broker rejects with entry.stopDriver present} => catch block stops driver and unregisters (defensive drain)', async () => {
       const proxy = createTerminalHandlerLayerBrokerProxy();
-      proxy.setupProcessRejects({ error: new Error('unexpected') });
+      proxy.setupProcessRejects({ error: NativeErrorStub({ message: 'unexpected' }) });
       proxy.silenceStderrAndCaptureLogs();
       const stopDriver = jest.fn();
       const entry = SmoketestListenerEntryStub({ stopDriver });
@@ -147,7 +148,7 @@ describe('createTerminalHandlerLayerBroker', () => {
 
     it('VALID: {dispatched broker rejects with entry.stopDriver undefined} => catch block still unregisters (no crash on missing stopDriver)', async () => {
       const proxy = createTerminalHandlerLayerBrokerProxy();
-      proxy.setupProcessRejects({ error: new Error('unexpected') });
+      proxy.setupProcessRejects({ error: NativeErrorStub({ message: 'unexpected' }) });
       proxy.silenceStderrAndCaptureLogs();
       const entry = SmoketestListenerEntryStub();
       const meta = SmoketestScenarioMetaStub();

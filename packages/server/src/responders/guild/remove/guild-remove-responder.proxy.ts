@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { GuildRemoveResponder } from './guild-remove-responder';
@@ -20,7 +21,7 @@ export const GuildRemoveResponderProxy = (): {
       guildId: Guild['id'];
       message: string;
     }): void => {
-      orchestrator.removeGuildThrows({ guildId, error: new Error(message) });
+      orchestrator.removeGuildThrows({ guildId, error: NativeErrorStub({ message }) });
     },
     callResponder: GuildRemoveResponder,
   };

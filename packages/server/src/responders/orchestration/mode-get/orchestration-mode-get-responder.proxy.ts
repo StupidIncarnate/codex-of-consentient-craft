@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
 
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
@@ -17,7 +18,7 @@ export const OrchestrationModeGetResponderProxy = (): {
       orchestrator.getOrchestrationModeReturns({ mode });
     },
     setupError: ({ message }: { message: string }): void => {
-      orchestrator.getOrchestrationModeThrows({ error: new Error(message) });
+      orchestrator.getOrchestrationModeThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: OrchestrationModeGetResponder,
   };

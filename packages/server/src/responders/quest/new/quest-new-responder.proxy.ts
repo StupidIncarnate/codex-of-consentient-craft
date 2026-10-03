@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { randomUUID } from '#gateway/node/crypto';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
@@ -85,7 +86,7 @@ export const QuestNewResponderProxy = (): {
       });
     },
     setupError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      orchestrator.startChatThrows({ guildId, error: new Error(message) });
+      orchestrator.startChatThrows({ guildId, error: NativeErrorStub({ message }) });
     },
     // The raw first-argument object of the most recent startChat call — the only way to prove
     // questType/questId reached the orchestrator, since `returns` addresses on guildId alone and

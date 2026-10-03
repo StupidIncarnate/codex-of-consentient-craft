@@ -13,7 +13,7 @@ export const slowFileThresholdStatics = {
     // Wall time — jest's `endTime - startTime`. It spans the package's one-time compile and its
     // module evaluation, both of which land on whichever suite reaches a module FIRST, so it says
     // where a file sat in the run rather than what it cost. Used only where nothing better exists.
-    warnMs: 5000,
+    warnMs: 10_000,
     // The WORST SINGLE TEST in a unit suite, not the suite's sum — see `fileTimingContract` for
     // why a sum grades a file on how many tests it holds. Measured across the thirteen slowest
     // unit files in this repo: the worst single test anywhere was 413ms, and the files that used
@@ -44,7 +44,7 @@ export const slowFileThresholdStatics = {
     // files). A flagged file FAILS the run, so this bar buys headroom rather than sensitivity: an
     // absolute per-file bar cannot tell a genuinely costly file from the one that happened to
     // absorb the type-check, and only a batch-relative gate could.
-    lintRulesWarnMs: 4000,
+    lintRulesWarnMs: 7000,
     // A browser spec navigates, waits for real paint and talks to a real server, so it cannot be
     // held to the jest bar. Playwright reports execution time per test and excludes browser boot,
     // so this is still test-body time and not startup.

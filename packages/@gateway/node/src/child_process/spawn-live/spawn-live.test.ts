@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { ChildProcessStub } from '../child-process/child-process.stub';
 import { spawnLive } from './spawn-live';
 import { spawnLiveProxy } from './spawn-live.proxy';
@@ -157,7 +158,10 @@ describe('spawnLive()', () => {
 
   it('ERROR: {sticky throw} => every spawn of the command throws the staged error', () => {
     const proxy = spawnLiveProxy();
-    proxy.setupSpawnThrows({ command: 'claude', error: new Error('spawn boom') });
+    proxy.setupSpawnThrows({
+      command: 'claude',
+      error: NativeErrorStub({ message: 'spawn boom' }),
+    });
 
     expect(() => spawnLive({ command: 'claude', args: [] })).toThrow(new Error('spawn boom'));
     expect(() => spawnLive({ command: 'claude', args: [] })).toThrow(new Error('spawn boom'));

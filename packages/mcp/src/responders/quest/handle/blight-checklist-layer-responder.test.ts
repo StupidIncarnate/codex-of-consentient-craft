@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
@@ -109,7 +110,10 @@ describe('BlightChecklistLayerResponder', () => {
   describe('adapter failures', () => {
     it('ERROR: {orchestrator throws} => returns the JSON error shape with isError', async () => {
       const proxy = BlightChecklistLayerResponderProxy();
-      proxy.setupThrows({ questId: QuestIdStub({ value: 'add-auth' }), error: new Error('boom') });
+      proxy.setupThrows({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        error: NativeErrorStub({ message: 'boom' }),
+      });
 
       const result = await BlightChecklistLayerResponder({ args: { questId: 'add-auth' } });
 

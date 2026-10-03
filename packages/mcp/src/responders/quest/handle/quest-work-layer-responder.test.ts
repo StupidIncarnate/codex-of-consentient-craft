@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { QuestWorkRecordResultStub } from '@dungeonmaster/orchestrator/contracts/quest-work-record-result/quest-work-record-result.stub';
@@ -69,9 +70,10 @@ describe('QuestWorkLayerResponder', () => {
       proxy.setupThrows({
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        error: new Error(
-          'quest-work: work item f47ac10b-58cc-4372-a567-0e02b2c3d479 is not on quest add-auth — nothing was recorded',
-        ),
+        error: NativeErrorStub({
+          message:
+            'quest-work: work item f47ac10b-58cc-4372-a567-0e02b2c3d479 is not on quest add-auth — nothing was recorded',
+        }),
       });
 
       const result = await QuestWorkLayerResponder({

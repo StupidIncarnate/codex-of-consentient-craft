@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { directoryBrowseBroker } from './directory-browse-broker';
 import { directoryBrowseBrokerProxy } from './directory-browse-broker.proxy';
 
@@ -95,7 +96,7 @@ describe('directoryBrowseBroker', () => {
 
       proxy.setupThrows({
         targetPath: '/nonexistent',
-        error: new Error('ENOENT: no such file or directory'),
+        error: NativeErrorStub({ message: 'ENOENT: no such file or directory' }),
       });
 
       expect(() => directoryBrowseBroker({ path })).toThrow(/ENOENT/u);

@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { join } from '#gateway/node/path';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -113,7 +114,7 @@ export const QuestChatResponderProxy = (): {
       orchestrator.startChatReturns({ guildId, chatProcessId });
     },
     setupStartChatError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      orchestrator.startChatThrows({ guildId, error: new Error(message) });
+      orchestrator.startChatThrows({ guildId, error: NativeErrorStub({ message }) });
     },
     // Explicit staging for the "quest was paused" path — resumeQuest genuinely gets called for
     // that questId before start-chat, so the mock must be told what it resolves to instead of
@@ -136,7 +137,7 @@ export const QuestChatResponderProxy = (): {
       questId: Quest['id'];
       message: string;
     }): void => {
-      orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
+      orchestrator.resumeQuestThrows({ questId, error: NativeErrorStub({ message }) });
     },
     getResumeQuestCalls: (): readonly unknown[] => {
       const resumeFn = StartOrchestrator.resumeQuest as jest.MockedFunction<

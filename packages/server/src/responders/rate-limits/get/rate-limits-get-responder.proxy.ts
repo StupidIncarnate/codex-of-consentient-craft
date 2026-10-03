@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
@@ -17,7 +18,7 @@ export const RateLimitsGetResponderProxy = (): {
       orchestrator.getRateLimitsReturns({ snapshot });
     },
     setupError: ({ message }: { message: string }): void => {
-      orchestrator.getRateLimitsThrows({ error: new Error(message) });
+      orchestrator.getRateLimitsThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: RateLimitsGetResponder,
   };

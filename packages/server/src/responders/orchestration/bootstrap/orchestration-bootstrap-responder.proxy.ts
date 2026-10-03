@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
@@ -18,7 +19,7 @@ export const OrchestrationBootstrapResponderProxy = (): {
       orchestrator.bootstrapSucceeds();
     },
     setupError: ({ message }: { message: string }): void => {
-      orchestrator.bootstrapThrows({ error: new Error(message) });
+      orchestrator.bootstrapThrows({ error: NativeErrorStub({ message }) });
     },
     callResponder: OrchestrationBootstrapResponder,
     getBootstrapCalls: (): RecordedCalls => orchestrator.bootstrapGetCalls(),

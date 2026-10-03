@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -89,7 +90,7 @@ describe('GetQuestLayerResponder', () => {
       const proxy = GetQuestLayerResponderProxy();
       proxy.setupThrows({
         questId: QuestIdStub({ value: 'add-auth' }),
-        error: new Error('Quest not found'),
+        error: NativeErrorStub({ message: 'Quest not found' }),
       });
 
       const result = await GetQuestLayerResponder({ args: { questId: 'add-auth' } });

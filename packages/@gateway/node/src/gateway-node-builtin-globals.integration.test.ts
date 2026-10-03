@@ -59,6 +59,7 @@ const readOwnSrcFolders = (): string[] =>
     .map((entry) => entry.name);
 
 const folderNamesABuiltinModule = ({ folderName }: { folderName: string }): boolean =>
+  folderName === 'sqlite' ||
   builtinModules.some(
     (moduleName) =>
       folderName === moduleName || folderName.startsWith(`${moduleName}${SUBPATH_JOIN}`),

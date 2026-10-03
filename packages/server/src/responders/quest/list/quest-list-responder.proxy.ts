@@ -1,3 +1,4 @@
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
@@ -47,7 +48,7 @@ export const QuestListResponderProxy = (): {
       guildId: Guild['id'];
       message: string;
     }): void => {
-      orchestrator.listQuestsWithSkipsThrows({ guildId, error: new Error(message) });
+      orchestrator.listQuestsWithSkipsThrows({ guildId, error: NativeErrorStub({ message }) });
     },
     callResponder: QuestListResponder,
   };
