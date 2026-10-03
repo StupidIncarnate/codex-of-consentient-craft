@@ -6,6 +6,22 @@ Relevant specs: [design.md](file:///home/brutus-home/projects/codex-of-consentie
 
 ---
 
+### Session Hand-off State (Read First)
+
+- **Active Worktree:** `/home/brutus-home/projects/codex-of-consentient-craft/worktrees/chronicle-llm` on branch `chronicle-llm`.
+- **Master Merge Status:** `master` has been merged into `chronicle-llm` (`898f78823`).
+- **Completed Work:**
+  - **Phase 0:** All tasks (0.1–0.5) complete.
+  - **Phase 1 Waves #1–#6:** Complete (`1.1.1` through `1.6.1`). Packages `@dungeonmaster/chronicle-llm`, `@dungeonmaster/chronicle-llm-claude-code`, and `@dungeonmaster/chronicle-llm-antigravity` are scaffolded with tests passing.
+- **Immediate Next Step:** **Phase 1 Wave #7 (Foundation Brokers & Spool Hooks)**:
+  - Tasks in this wave: `1.7.1`, `1.7.2`, `1.7.3`, `1.8.1`, `1.9.2`.
+  - **No Planner Needed:** All tasks and files are fully specified below in this document. Proceed directly to worker dispatch.
+  - **Parallel Dispatch:** Dispatch workers up to active concurrency limit in a single `invoke_subagent` call (e.g. 1.7.1, 1.7.2, 1.7.3), then continuously feed in remaining tasks (1.8.1, 1.9.2) as workers complete.
+  - **No Per-Row Reviewer:** Commit row atomically once all 5 tasks pass scoped ward.
+- **Standing Operator Rules:** Strict adherence to [`.agents/skills/operator/SKILL.md`](file:///home/brutus-home/projects/codex-of-consentient-craft/.agents/skills/operator/SKILL.md). Parent is strictly administrative. Workers must call `get-architecture`, `get-testing-patterns`, and `get-folder-detail` before writing code. Full bare `npm run ward` runs only at Level 3 feature completion before merging into master.
+
+---
+
 ### Execution Progress Tracker
 
 ```text
