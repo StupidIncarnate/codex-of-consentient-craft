@@ -40,7 +40,7 @@ describe('registryOpenBroker', () => {
 
       const rawTables = database
         .prepare(
-          "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases') ORDER BY name ASC",
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases', 'meta') ORDER BY name ASC",
         )
         .all();
       const tables = rawTables.map((row) => ({ ...row }));
@@ -68,12 +68,17 @@ describe('registryOpenBroker', () => {
           1790900000000,
         );
 
+      database.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('test-key', 'test-value');
+
       const rawLeaseRows = database
         .prepare('SELECT * FROM leases WHERE lease_id = ?')
         .all('lease-unit-1');
       const leaseRows = rawLeaseRows.map((row) => ({ ...row }));
 
-      expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }]);
+      const rawMetaRows = database.prepare('SELECT * FROM meta WHERE key = ?').all('test-key');
+      const metaRows = rawMetaRows.map((row) => ({ ...row }));
+
+      expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }, { name: 'meta' }]);
       expect(indices).toStrictEqual([
         { name: 'idx_durations_lookup' },
         { name: 'idx_leases_tool_state' },
@@ -89,6 +94,12 @@ describe('registryOpenBroker', () => {
           current_rss_mb: 256,
           started_at_ms: 1790900000000,
           last_beat_ms: 1790900000000,
+        },
+      ]);
+      expect(metaRows).toStrictEqual([
+        {
+          key: 'test-key',
+          value: 'test-value',
         },
       ]);
     });

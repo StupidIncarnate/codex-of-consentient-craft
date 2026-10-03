@@ -6,6 +6,7 @@
  */
 
 export { capacityReadBroker } from './capacity/read/capacity-read-broker';
+export { diskBudgetEnforceBroker } from './disk/budget-enforce/disk-budget-enforce-broker';
 export { diskScanBroker } from './disk/scan/disk-scan-broker';
 export { leaseBeatBroker } from './lease/beat/lease-beat-broker';
 export { leaseListLiveBroker } from './lease/list-live/lease-list-live-broker';
