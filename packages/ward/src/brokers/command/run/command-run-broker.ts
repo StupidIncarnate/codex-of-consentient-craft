@@ -7,6 +7,9 @@
  */
 
 import { setExitCode, stderr, stdout } from '#gateway/node/process';
+import { diskBudgetEnforceBroker } from '@dungeonmaster/load-balancer/brokers';
+import type { DiskItem } from '@dungeonmaster/load-balancer/contracts';
+import { diskStoresStatics, machineStatics } from '@dungeonmaster/load-balancer/statics';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
@@ -42,6 +45,78 @@ export const commandRunBroker = async ({
   config: WardConfig;
   rootPath: string;
 }): Promise<void> => {
+  // A prune request is a standalone disk budget maintenance pass that never executes check suites.
+  if (config.prune !== undefined) {
+    const pruneResult = await diskBudgetEnforceBroker({
+      currentRepoRoot: rootPath,
+      mode: config.prune,
+    });
+
+    const { bytesPerMegabyte } = machineStatics.units;
+    const lines: string[] = [];
+    lines.push(`=== Dungeonmaster Disk Budget Prune (${config.prune} mode) ===`);
+    lines.push('');
+    lines.push('Scanned stores:');
+
+    const itemsByStore = new Map<string, DiskItem[]>();
+    for (const item of pruneResult.scannedItems) {
+      const list = itemsByStore.get(item.storeId) ?? [];
+      list.push(item);
+      itemsByStore.set(item.storeId, list);
+    }
+
+    for (const store of diskStoresStatics.stores) {
+      const items = itemsByStore.get(store.storeId) ?? [];
+      const totalBytes = items.reduce((sum, item) => sum + item.bytes, 0);
+      const totalMB = Math.round(totalBytes / bytesPerMegabyte);
+      lines.push(
+        `  - ${store.storeId} (${store.pathPattern}): ${items.length} items, ${totalMB} MB (${totalBytes} bytes)`,
+      );
+    }
+
+    const freedMB = Math.round(pruneResult.deletedBytes / bytesPerMegabyte);
+    lines.push('');
+    lines.push(
+      `Deleted: ${pruneResult.deletedCount} items, freed ${freedMB} MB (${pruneResult.deletedBytes} bytes)`,
+    );
+
+    const deletedPathSet = new Set(pruneResult.deletedItems.map((item) => item.path));
+    const keptItems = pruneResult.scannedItems.filter((item) => !deletedPathSet.has(item.path));
+    lines.push('');
+    lines.push(`Kept items (${keptItems.length}):`);
+    if (keptItems.length === 0) {
+      lines.push('  none');
+    } else {
+      const now = Date.now();
+      for (const item of keptItems) {
+        const reason =
+          item.protectedReason === null
+            ? now - item.mtimeMs < diskStoresStatics.minAgeMs
+              ? 'young (<10m)'
+              : 'within budget'
+            : item.protectedReason;
+        const itemMB = Math.round(item.bytes / bytesPerMegabyte);
+        lines.push(`  - ${item.path} (${itemMB} MB) [${reason}]`);
+      }
+    }
+
+    if (pruneResult.shortfallBytes > 0) {
+      const shortfallMB = Math.round(pruneResult.shortfallBytes / bytesPerMegabyte);
+      lines.push('');
+      lines.push(`Shortfall: ${shortfallMB} MB (${pruneResult.shortfallBytes} bytes)`);
+    }
+
+    const totalScannedBytes = pruneResult.scannedItems.reduce((sum, item) => sum + item.bytes, 0);
+    const remainingBytes = totalScannedBytes - pruneResult.deletedBytes;
+    const remainingMB = Math.round(remainingBytes / bytesPerMegabyte);
+    lines.push('');
+    lines.push(`Remaining footprint: ${remainingMB} MB (${remainingBytes} bytes)`);
+
+    stdout.write(`${lines.join('\n')}\n`);
+    setExitCode(wardExitCodeStatics.exitCodes.pass);
+    return;
+  }
+
   const gitScopedConfig = await gitScopeLayerBroker({ config, rootPath });
 
   // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE, and every consumer below this line reads it as one:

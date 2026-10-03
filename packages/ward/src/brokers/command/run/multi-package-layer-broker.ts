@@ -15,12 +15,13 @@ import { NodeVersionUnsupportedError } from '#gateway/node/sqlite';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import {
   capacityReadBroker,
+  diskBudgetEnforceBroker,
   leaseTakeBroker,
   leaseBeatBroker,
   leaseReleaseBroker,
   memoryPeakSampleBroker,
 } from '@dungeonmaster/load-balancer/brokers';
-import { loadBalancerStatics } from '@dungeonmaster/load-balancer/statics';
+import { loadBalancerStatics, machineStatics } from '@dungeonmaster/load-balancer/statics';
 
 import {
   wardRunResultContract,
@@ -501,6 +502,29 @@ export const multiPackageLayerBroker = async ({
 
   await storageSaveBroker({ rootPath, wardResult });
   await storagePruneBroker({ rootPath });
+
+  try {
+    const diskBudgetResult = await diskBudgetEnforceBroker({ currentRepoRoot: repoRoot });
+    if (diskBudgetResult.ran) {
+      if (diskBudgetResult.deletedCount > 0) {
+        const freedMB = Math.round(
+          diskBudgetResult.deletedBytes / machineStatics.units.bytesPerMegabyte,
+        );
+        stderr.write(
+          `ward: disk budget freed ${freedMB} MB (${diskBudgetResult.deletedCount} items)\n`,
+        );
+      }
+      if (diskBudgetResult.shortfallBytes > 0) {
+        const shortfallMB = Math.round(
+          diskBudgetResult.shortfallBytes / machineStatics.units.bytesPerMegabyte,
+        );
+        stderr.write(`ward: disk budget shortfall: ${shortfallMB} MB\n`);
+      }
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    stderr.write(`ward: disk budget unavailable: ${message}\n`);
+  }
 
   return wardResult;
 };

@@ -70,6 +70,26 @@ The last full run, `.ward/run-1790901309167-9740.json`, took **980s**. All packa
 | `@types/node` 24.0.15 ships `sqlite.d.ts`.                                                                                                                  | `node_modules/@types/node/sqlite.d.ts`                                            |
 | npm only warns on an `engines` mismatch unless the user sets `engine-strict`.                                                                               | npm's documented behaviour                                                        |
 
+### 2.6 Where dungeonmaster's files live
+
+Measured on this machine across all stores: **1,673,937,224 bytes (~1,596 MB / ~1.56 GB)** across 616 items.
+A full scan via `time du -sb <paths>` takes **0.386s** (386 ms), well below the 2s threshold. The scan is fast enough that it does not stall ward or cleanup invocations, though Unit S's rate limit (`runEveryMs: 600_000` / 10 minutes) keeps repeated runs from thrashing disk I/O.
+
+| Store (`storeId`) | What it holds | Path pattern | Scope | Deletable item | Existing pruner & retention rules | In-use rule | Measured size on this machine |
+|---|---|---|---|---|---|---|---|
+| `ward-run-results` | Raw JSON outputs of ward runs (timings, check status, verbatim stdout/stderr) | `<repo>/.ward/run-*.json` and `<repo>/packages/*/.ward/run-*.json` | repo | file | `storagePruneBroker` runs at start/end of ward runs; deletes files older than `ttlStatics.runResultTtl` (2 days / 172.8M ms) by name timestamp or mtime; caps total folder bytes to `storageBudgetStatics.limits.runResultsPerFolderBytes` (500 MiB), deleting oldest survivors | `newest-per-repo` (newest run file is unconditionally kept; active runs write current timestamp/mtime) | Root: 147,583,779 B (140.75 MB, 107 files); packages: 176,965,941 B (168.77 MB, 239 files). Total: 324,549,720 B (309.51 MB, 346 files) |
+| `ward-bundle-cache` | Prebuilt web UI production bundle directories keyed by input hash, plus temporary build directories (`.tmp-<pid>`) | `<repo>/packages/web/.ward/bundle/*` | repo | folder | `e2eArtifactsPruneBroker` sweeps at end of ward run; removes entries older than `e2eArtifactsStatics.artifacts` TTL (7 days / 604.8M ms) via `rm` | `none` (hash-keyed reuse cache, guarded by 7-day TTL and 10-minute `minAgeMs`) | 24,375,048 B (23.25 MB, 9 bundle folders) |
+| `e2e-test-results` | Playwright test artifacts (traces, videos, screenshots) from failed/retried tests, nested by server port | `<package>/test-results/<port>/` | repo | folder | `e2eArtifactsPruneBroker` sweeps at end of ward run; deletes directories older than `EVIDENCE_TTL_MS` (2 days / 172.8M ms) if port has no listener (`listeningPids({ port }) === 0`) | `pid-in-name` (port listener check in existing pruner; PID/listener active) | 225 B across 3 packages (web: 180 B across 4 port dirs; testing: 45 B; cli: 0 B) |
+| `e2e-vite-cache` | Per-run Vite pre-bundling dependency caches created during web e2e runs, keyed by server port | `<package>/node_modules/.vite-<port>/` | repo | folder | `e2eArtifactsRemoveBroker` removes at normal run end; `e2eArtifactsPruneBroker` sweeps at ward end if older than `CACHE_TTL_MS` (1 day / 86.4M ms) and port is not listening | `none` (spillage cache; port listener check in existing pruner) | 0 B (0 directories currently) |
+| `e2e-playwright-reports` | Playwright per-run JSON reports named by server port | `<package>/.ward-playwright-report-<port>.json` | repo | file | Unlinked best-effort at end of e2e run by `checkRunE2eBroker`; swept by `e2eArtifactsPruneBroker` if older than 2 days and port is not listening | `none` (short-lived report; port listener check in existing pruner) | 0 B (0 files currently) |
+| `jest-transform-cache` | Jest shared Babel/TypeScript transform cache files across all test runs, packages, and worktrees | `/tmp/jest_<uid>/` (on this machine: `/tmp/jest_rt/`) | user | folder | `jestCachePruneBroker` runs at start of ward run with `unit` or `integration`; removes top-level entries older than `jestCacheStatics.prune.maxAgeMs` (7 days / 604.8M ms) | `none` (regenerable transform cache, bounded by mtime) | 1,296,738,874 B (1,236.67 MB, 23 top-level hash folders) |
+| `e2e-sandboxes` | Isolated `DUNGEONMASTER_HOME` test sandboxes and throwaway fixture git repos (`<guildPath>-origin.git`) created for web E2E tests | `/tmp/dm-e2e-*` | user | folder | `global-teardown.js` removes `TEST_HOME` (`dm-e2e-<pid>`) at clean suite completion; `global-setup.js` sweeps entries older than `STALE_SANDBOX_MS` (6 hours / 21.6M ms) at suite start | `pid-in-name` (folder name contains creator PID; active process verified via `kill(pid, 0)`) | 7,125,374 B (6.80 MB, 258 directories) |
+| `jest-test-sandboxes` | Isolated `$HOME` sandboxes (`dungeonmaster-jest-sandbox-<pid>`) and `$DUNGEONMASTER_HOME` directories (`dungeonmaster-jest-home-<pid>`) for Jest workers and runner | `/tmp/dungeonmaster-jest-sandbox-*`, `/tmp/dungeonmaster-jest-home-*` | user | folder | `jest.setup-global-teardown.js` removes sandbox home on exit; `jest.setup-home.js` sweeps stale homes whose owning PID is dead on worker init | `pid-in-name` (creator PID in folder name; checked via `process.kill(pid, 0)`) | 335 B (3 directories) |
+| `siegelense-sandboxes` | Throwaway lane homes and domain sockets for active siegelense driver sessions | `/tmp/dm-siege-*` (e.g. `/tmp/dm-siege-<instanceId>`, `/tmp/dm-siege-sockets`) | user | folder | `laneTeardownBroker` unlinks home on lane teardown; `global-setup.js` in e2e sweeps entries older than 6 hours | `siegelense-instance-alive` (instance active in siegelense registry) | 0 B (1 empty directory `/tmp/dm-siege-sockets`) |
+| `siegelense-evidence` | Instance recordings, logs (`api/web/driver.log`), transcripts (`console/network/ws.jsonl`), video (`video/*.webm`), and screenshots (`runs/<runId>/shots/*.png`) | `<dungeonmasterHome>/siegelense/{guilds/<guildId>\|unowned}/instances/<instanceId>/` | user | folder | `cleanupRunBroker` (`assetsAgeLayerBroker`) ages out non-video assets at 7 days (`defaultOlderThan: '7d'`) and video at 2 days (`videoOlderThan: '2d'`); `pruneRunBroker` (`pruneInstanceReclaimBroker`) refuses if instance is alive or cited by open quest / issue (`citationResolveBroker`) | `siegelense-instance-alive` (instance alive with recent heartbeat in `registry.json`) | 20,993,113 B (20.02 MB across 140 instance dirs; entire `siegelense/` folder is 21,112,827 B / 20.13 MB) |
+| `dungeonmaster-home` | Registered guilds, quests (`quest.json`, ward/riftcarver results), dispatch state, event outbox, rate limit logs, usage ledger | `<dungeonmasterHome>/guilds/` and `<dungeonmasterHome>/*.{json,jsonl}` | user | folder | Guilds explicitly deleted via `guild-delete` command; state files append or overwrite; no automatic age-based pruner | `none` (persistent user data, protected from automatic disk budget eviction) | Guilds: 10,245 B (0.01 MB); entire home: 25,620,535 B (24.43 MB including siegelense and rate-limits log) |
+| `load-balancer-registry` | SQLite coordination database (`registry-v1.db`, `-wal`, `-shm`) holding process leases and duration/memory history samples | `<os.homedir()>/.dungeonmaster/load/registry-v1.db*` | user | file | Transaction-level self-pruning on each write: durations kept to newest 5 samples per repo+pkg+check; dead leases dropped on process exit or 30s heartbeat expiry | `none` (coordination database, protected from filesystem deletion) | 24,576 B (0.02 MB, 1 database file) |
+
 ## 3. Decisions
 
 | Question                                        | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -436,13 +456,13 @@ Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [MERGED]
   #7   D18 [✓]
   #8   D16 [✓]
 
-Unit S (Disk Budget · worktree wp-unit-s) — [IN PROGRESS]
-  #1   S0 [ ]
-  #2   S1 [ ]  S2 [ ]
-  #3   S3 [ ]
-  #4   S4 [ ]
-  #5   S5a [ ] S5b [ ]
-  #6   S6 [ ]
+Unit S (Disk Budget · worktree wp-unit-s) — [COMPLETE]
+  #1   S0 [✓]
+  #2   S1 [✓]  S2 [✓]
+  #3   S3 [✓]
+  #4   S4 [✓]
+  #5   S5a [✓] S5b [✓]
+  #6   S6 [✓]
 ```
 
 ### 8.4 Unit N tasks (worktree `wp-unit-n`)

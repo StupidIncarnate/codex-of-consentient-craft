@@ -24,6 +24,8 @@
  */
 
 import { now } from '#gateway/node/Date';
+import { stderr } from '#gateway/node/process';
+import { diskBudgetEnforceBroker } from '@dungeonmaster/load-balancer/brokers';
 
 import { cleanupAnswerContract } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import type { CleanupAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
@@ -88,6 +90,13 @@ export const cleanupRunBroker = async ({
     entries: registry.instances.filter((entry) => !leftAloneIds.has(String(entry.id))),
     nowMs,
   });
+
+  try {
+    await diskBudgetEnforceBroker({ currentRepoRoot: repoRoot });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    stderr.write(`siegelense: disk budget unavailable: ${message}\n`);
+  }
 
   return cleanupAnswerContract.parse({
     reaped: reapResults.map((result) => result.reaped),

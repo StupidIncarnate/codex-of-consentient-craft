@@ -21,6 +21,7 @@ export const wardConfigContract = z
     committed: z.boolean().optional(),
     uncommitted: z.boolean().optional(),
     passthrough: z.array(z.string().brand<'WardConfigPassthrough'>()).optional(),
+    prune: z.enum(['default', 'all']).optional(),
   })
   .brand<'WardConfig'>();
 

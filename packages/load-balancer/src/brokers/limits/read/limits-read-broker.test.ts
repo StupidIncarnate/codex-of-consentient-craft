@@ -15,7 +15,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
-          maxDiskMB: 4096,
+          maxDiskMB: 16384,
         },
         guildPaths: [],
         warning: null,
@@ -31,7 +31,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
-          maxDiskMB: 4096,
+          maxDiskMB: 16384,
         },
         guildPaths: [],
         warning:
@@ -52,7 +52,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
-          maxDiskMB: 4096,
+          maxDiskMB: 16384,
         },
         guildPaths: ['/repo/guild-alpha'],
         warning: null,
@@ -98,7 +98,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
-          maxDiskMB: 4096,
+          maxDiskMB: 16384,
         },
         guildPaths: [],
         warning:
@@ -119,7 +119,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
-          maxDiskMB: 4096,
+          maxDiskMB: 16384,
         },
         guildPaths: [],
         warning:
@@ -145,7 +145,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
-          maxDiskMB: 4096,
+          maxDiskMB: 16384,
         },
         guildPaths: ['/repo/valid-guild-1', '/repo/valid-guild-2'],
         warning: null,

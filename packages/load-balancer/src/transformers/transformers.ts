@@ -7,3 +7,4 @@
  */
 
 export * from './capacity-suggest/capacity-suggest-transformer';
+export * from './disk-budget-plan/disk-budget-plan-transformer';

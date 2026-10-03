@@ -10,6 +10,8 @@ import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-
 import type { PlatformCrossingViolation } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
 import { jestCacheStatics } from '../../../statics/jest-cache/jest-cache-statics';
 import { jestCachePruneBrokerProxy } from '../../jest-cache/prune/jest-cache-prune-broker.proxy';
+import { diskBudgetEnforceBrokerProxy } from '@dungeonmaster/load-balancer/brokers/disk/budget-enforce/disk-budget-enforce-broker.proxy';
+import type { DiskItem } from '@dungeonmaster/load-balancer/contracts';
 import { folderResolveLayerBrokerProxy } from './folder-resolve-layer-broker.proxy';
 import { gitScopeLayerBrokerProxy } from './git-scope-layer-broker.proxy';
 import { pathCheckLayerBrokerProxy } from './path-check-layer-broker.proxy';
@@ -50,10 +52,13 @@ export const commandRunBrokerProxy = (): {
   getStdoutCalls: () => readonly unknown[];
   setupStaleCacheEntry: (params: { name: string }) => void;
   getRemovedCachePaths: () => readonly unknown[];
+  setupDiskBudgetScannedItems: (params: { items: readonly DiskItem[]; maxDiskMB?: number }) => void;
 } => {
   setExitCodeProxy();
   const stdout = stdoutProxy();
   stderrProxy();
+
+  const diskBudgetProxy = diskBudgetEnforceBrokerProxy();
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   const gitScopeProxy = gitScopeLayerBrokerProxy();
@@ -258,5 +263,18 @@ export const commandRunBrokerProxy = (): {
       jestCacheProxy.setupRemovable({ path });
     },
     getRemovedCachePaths: (): readonly unknown[] => jestCacheProxy.getRemovedPaths(),
+    setupDiskBudgetScannedItems: ({
+      items,
+      maxDiskMB,
+    }: {
+      items: readonly DiskItem[];
+      maxDiskMB?: number;
+    }): void => {
+      if (maxDiskMB === undefined) {
+        diskBudgetProxy.setupScannedItems({ items });
+      } else {
+        diskBudgetProxy.setupScannedItems({ items, maxDiskMB });
+      }
+    },
   };
 };

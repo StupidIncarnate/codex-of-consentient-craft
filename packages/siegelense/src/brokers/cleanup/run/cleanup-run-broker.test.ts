@@ -293,4 +293,41 @@ describe('cleanupRunBroker', () => {
       });
     });
   });
+
+  describe('disk budget enforcement', () => {
+    it('VALID: {a run completes} => diskBudgetEnforceBroker is called with the repo root', async () => {
+      const proxy = cleanupRunBrokerProxy();
+
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupNoLocks();
+
+      expect(proxy.getLastDiskBudgetRunMs()).toBe(null);
+
+      await cleanupRunBroker({ repoRoot: proxy.repoRoot });
+
+      expect(proxy.getLastDiskBudgetRunMs()).toBe(NOW_MS);
+      expect(proxy.getStderrText()).toBe('');
+    });
+
+    it('ERROR: {diskBudgetEnforceBroker throws} => the error is reported to stderr and cleanupRunBroker does not throw', async () => {
+      const proxy = cleanupRunBrokerProxy();
+
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupNoLocks();
+      proxy.setupDiskBudgetFails();
+
+      const result = await cleanupRunBroker({ repoRoot: proxy.repoRoot });
+
+      expect(result).toStrictEqual({
+        reaped: [],
+        portsReleased: [],
+        lockReleaseOutcome: 'none-held',
+        assetsAged: { instances: 0, freedMB: 0 },
+        leftAlone: [],
+      });
+      expect(proxy.getStderrText()).toBe(
+        'siegelense: disk budget unavailable: Error: database is not open\n',
+      );
+    });
+  });
 });

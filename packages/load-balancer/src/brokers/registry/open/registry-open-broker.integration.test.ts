@@ -19,7 +19,7 @@ describe('registryOpenBroker integration', () => {
 
     const rawTables = database
       .prepare(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases') ORDER BY name ASC",
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases', 'meta') ORDER BY name ASC",
       )
       .all();
     const tables = rawTables.map((row) => ({ ...row }));
@@ -68,7 +68,7 @@ describe('registryOpenBroker integration', () => {
     deleteEnv(loadBalancerStatics.registry.dirEnvVar);
 
     expect(fileExists).toBe(true);
-    expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }]);
+    expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }, { name: 'meta' }]);
     expect(indices).toStrictEqual([
       { name: 'idx_durations_lookup' },
       { name: 'idx_leases_tool_state' },
@@ -127,7 +127,7 @@ describe('registryOpenBroker integration', () => {
 
     const rawTables = migratedDatabase
       .prepare(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases') ORDER BY name ASC",
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('durations', 'leases', 'meta') ORDER BY name ASC",
       )
       .all();
     const tables = rawTables.map((row) => ({ ...row }));
@@ -168,7 +168,7 @@ describe('registryOpenBroker integration', () => {
     rmSync(tempDir, { recursive: true, force: true });
     deleteEnv(loadBalancerStatics.registry.dirEnvVar);
 
-    expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }]);
+    expect(tables).toStrictEqual([{ name: 'durations' }, { name: 'leases' }, { name: 'meta' }]);
     expect(indices).toStrictEqual([
       { name: 'idx_durations_lookup' },
       { name: 'idx_leases_tool_state' },

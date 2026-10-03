@@ -63,7 +63,15 @@ All flags apply to the `run` subcommand.
 | `--onlyTests <regex>`                        | Filter tests by name pattern. Requires a `-- <files>` scope. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
 | `--committed`                                | Run every check type over the files this branch has COMMITTED on top of `origin/main`.  |
 | `--uncommitted`                              | Run every check type over the working tree — staged, unstaged AND untracked files.      |
+| `--prune [default\|all]`                      | Run disk budget inspection and eviction pass across tracked stores. Defaults to `default`.|
 | `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths.                  |
+
+### Manual Pruning (`--prune`)
+
+`npm run ward -- --prune` surveys all tracked repository and user-level stores against `resources.maxDiskMB` (default 16384 MB / 16 GB), prints an itemized survey table with size breakdowns, evicted items, and protected items with retention reasons, then exits 0 without running check suites.
+- `--prune` / `--prune default`: respects the 10-minute rate limit and minimum age boundaries.
+- `--prune all`: forces a run bypassing the rate limit, evicting all eligible unprotected items down to the budget limit.
+
 
 ### The two git scope flags take no narrowing companions — but they do take each other
 

@@ -33,6 +33,7 @@ const PATH_ORIGIN_BY_FIELD = {
   committed: 'gitDerived',
   uncommitted: 'gitDerived',
   passthrough: 'callerTyped',
+  prune: 'notAFileScope',
 } as const satisfies Record<Exclude<keyof WardConfig, symbol>, WardPathOrigin>;
 
 const FIELDS = Object.keys(PATH_ORIGIN_BY_FIELD) as Exclude<keyof WardConfig, symbol>[];
