@@ -22,7 +22,7 @@ Your goal is to autonomously orchestrate the plan document provided at `$ARGUMEN
 ### B. Banned Anti-Patterns (Zero Tolerance)
 * ❌ **NO PER-ROW / PER-STEP PLANNERS:** NEVER dispatch a planner for an individual row, sub-batch, or task. Planning happens **ONCE** at the start of a Phase (Level 1), and is completely skipped if the plan already contains task specifications. Spawning a planner for every step is wasteful and strictly forbidden.
 * ❌ **NO SEQUENTIAL EXECUTION OF ROW ITEMS:** Tasks placed side-by-side in a row (e.g. `1.1.1` and `1.1.2`, or `1.7.1`, `1.7.2`, and `1.7.3`) **MUST** be dispatched concurrently in parallel within a **SINGLE `invoke_subagent` tool call**. Never run them one at a time.
-* ❌ **NO MID-ROW REVIEWERS:** Never dispatch a reviewer while worker subagents in that row are still running. The reviewer runs once after **ALL** workers in the row finish.
+* ❌ **NO PER-ROW REVIEWERS:** NEVER dispatch a reviewer between rows. Calling a reviewer per row is banned and slows down execution. The `batch_reviewer` runs **ONCE at the end of a Phase** to conduct a comprehensive code review ensuring adherence to standards.
 * ❌ **NO INTERMEDIATE BUILDS:** Never run `npm run build` between rows or during normal development. Ward resolves TypeScript from source. Builds run only after merging master or at Level 3 feature completion.
 * ❌ **NO PREMATURE FULL WARD SWEEPS:** Never run bare `npm run ward` during intermediate development. Intermediate checks use file-scoped paths (workers) or `--uncommitted` (reviewer & operator). Bare ward runs **ONLY** at Level 3 feature completion before merging to `master`.
 * ❌ **NO IGNORING USER INTERRUPTIONS:** When the user sends a message, asks a question, or commands a stop, halt all background tasks immediately and respond directly. Never continue background execution past a user intervention.
@@ -63,15 +63,20 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
    * **Never widens scope:** If an unlisted file must be touched, reports back to the operator rather than editing it.
    * **Never touches git or builds:** Dispatched workers never run `git add`, `git commit`, or `npm run build`.
 
-3. **`batch_reviewer` (Independent Audit & Regression):**
-   * Runs **ONCE per completed worker wave (row)**, after all workers in that wave finish.
+3. **`batch_reviewer` (End-of-Phase Automated Code Review):**
+   * Runs **ONCE at the end of each Phase**, after all implementation rows in that phase are complete.
+   * **Separate from Manual Review Rows:** This is an automated code review to ensure adherence to standards, completely separate from any manual verification rows (e.g. `1.11 DQ Review`, `1b.3 Manual Verification Gate`).
    * **MANDATORY Pre-Flight Tool Calls:** Before auditing, the reviewer MUST call:
      1. `get-architecture`
      2. `get-testing-patterns`
-     3. `get-folder-detail({ folderType })` for all folder types touched in that row/wave to verify compliance against the exact rules for those folders.
-   * Inspects `git status` and `git diff` within the worktree to ensure no stray files or unauthorized edits.
-   * Verifies critical invariants (strict assertions `toStrictEqual`/`toBe`, zero conditionals in tests, JSDoc, branded contracts, companion files).
-   * Runs scoped ward (`npm run ward -- --uncommitted`) and reports audit findings.
+     3. `get-folder-detail({ folderType })` for all folder types touched throughout the phase to verify compliance against the exact rules for those folders.
+   * Inspects the cumulative phase diff across all files touched within the worktree to ensure strict adherence to standards:
+     - Exact folder placement and file naming.
+     - Required companion files (proxies, stubs, tests).
+     - Arrow functions, JSDoc headers above imports, branded types.
+     - Strict test invariants (`toStrictEqual`/`toBe`, zero conditionals in tests).
+     - Zero unexpected diffs or stray files.
+   * Runs scoped ward on the phase changes (`npm run ward -- --uncommitted` or scoped) and reports code review findings.
 
 ---
 
@@ -134,10 +139,11 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
 4. **Full Monorepo Sweep (`npm run ward` with no args):** **STRICTLY FORBIDDEN** during intermediate row commits! Only run bare `npm run ward` at Level 3 (Feature Completion) before merging into `master`.
 5. **Zero Tolerance for Failures:** Fix every failure encountered within scope. `npm run ward -- --uncommitted` must exit 0 before any row commit.
 
-### E. Reviewer Scope & Timing
-1. **Runs Once per Completed Row:** Dispatch ONE `batch_reviewer` **AFTER ALL parallel workers in a row finish**.
-2. **Never Review Mid-Row:** Never dispatch a reviewer while worker subagents in that row are still active. Wait for all row workers to complete, then audit the full diff of that row together.
-3. **Audit Responsibilities:** Verifies `git status` and `git diff`, ensures no stray files, checks strict test invariants (`toStrictEqual`/`toBe`, zero conditionals in tests), and confirms `npm run ward -- --uncommitted` passes with exit code 0.
+### E. Reviewer Scope & Timing (End-of-Phase Code Review)
+1. **Runs Once at Phase Completion:** Dispatch ONE `batch_reviewer` **AFTER ALL implementation rows in a phase are complete**.
+2. **Never Review Per-Row:** Do NOT dispatch reviewers between rows. Rows are committed directly by the operator as soon as worker ward checks pass.
+3. **Automated Code Review for Standards:** Verifies that all code written across the entire phase complies with codebase standards (`get-architecture`, `get-testing-patterns`, and `get-folder-detail` for all touched folder types).
+4. **Distinct from Manual Review Gates:** This automated code review is strictly separate from any manual test or DQ review rows (e.g. `1.11 DQ Review`, `1b.3 Manual Verification Gate`), which are executed after the automated code review passes.
 
 ### F. Safe File Deletions (Move to `tmp/deletions/`)
 1. **Never `rm` or `unlink` repository files:** Deleting files triggers user confirmation prompts that stall autonomous subagents.
@@ -225,21 +231,31 @@ LEVEL 2: PARALLEL ROW EXECUTION (Repeats for each row #1, #2, ... in Tracker)
       - In a SINGLE `invoke_subagent` call, dispatch workers for items in this row (up to concurrency cap).
       - Worker prompts MUST mandate calling `get-architecture`, `get-testing-patterns`, and `get-folder-detail` for their assigned folders before editing code.
       - Workers implement files and run local scoped ward (`npm run ward -- -- <files>`).
-   c. Dispatch ONE `batch_reviewer`:
-      - Reviewer prompt MUST mandate calling `get-architecture`, `get-testing-patterns`, and `get-folder-detail` for all touched folder types.
-      - Audits `git status`, `git diff`, invariants, and runs `npm run ward -- --uncommitted`.
-   d. Operator Commits Row:
+      - As workers complete, feed in any remaining tasks from that same wave until all tasks in the row are done.
+   c. Operator Commits Row:
       - Runs `npm run ward -- --uncommitted` in worktree.
       - Stages explicit files and updates tracker row checkboxes `[✓]`.
       - Commits row atomically: `git commit -m "..."`.
       - Emits `✅ Task <ID>: <Description> [commit <SHA>]` for each completed task.
-   e. Proceed directly to the next row. NEVER spawn a planner between rows!
+   d. Proceed directly to the next row. (NO reviewer between rows!)
+   │
+   ▼
+================================================================================
+LEVEL 2.5: PHASE CODE REVIEW (Runs ONCE when all implementation rows in Phase finish)
+================================================================================
+4. Automated Standards Review:
+   a. Dispatch ONE `batch_reviewer` for the entire Phase.
+   b. Reviewer calls `get-architecture`, `get-testing-patterns`, and `get-folder-detail` for all touched folder types.
+   c. Audits cumulative Phase diff to verify strict adherence to codebase standards (naming, companion files, proxy pattern, exact assertions, branded types).
+   d. Runs regression ward check on Phase changes (`npm run ward -- --uncommitted` or scoped).
+   e. If standards violations are found: dispatch a worker to fix them before proceeding.
+   f. (If Phase has a dedicated manual review/DQ row, e.g. Task 1.11, execute that gate after code review passes).
    │
    ▼
 ================================================================================
 LEVEL 3: FEATURE COMPLETION & MASTER MERGE (Runs ONCE when all Phases finish)
 ================================================================================
-4. Once the entire feature / epic is fully complete:
+5. Once the entire feature / epic is fully complete:
    a. Merge latest `master` into the feature branch in the worktree (`git merge master`).
    b. Run `npm run build` in the worktree.
    c. Run bare `npm run ward` (unscoped, full monorepo sweep).
