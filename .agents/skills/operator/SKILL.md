@@ -29,11 +29,20 @@ Your goal is to autonomously orchestrate the execution of the plan document prov
     - Emit **visible announcements** on every item start and finish:
         * Start: `▶️ Task <ID>: <Description>`
         * Finish: `✅ Task <ID>: <Description> [commit <SHA>]`
-    - Follow the batch pipeline:
-        1. Dispatch `batch_planner` inside worktree to verify explicit file paths and contracts.
-        2. Review planner output and update the plan document.
-      3. Dispatch `batch_worker` subagents in parallel for all items in the current row (1–3 files per worker) inside worktree to implement and run scoped ward concurrently.
-        4. Dispatch `batch_reviewer` inside worktree to audit git diff and run regression.
-        5. Run `npm run ward -- --uncommitted` in worktree, stage explicit files, update the Execution Progress Tracker, and commit in worktree.
-5. **Autonomous
-   Pacing:** The user gives no input until the plan is finished. If an item is blocked, investigate; if it cannot be cleared, record the blocker reason in the plan and pivot to unblocked items. Never halt the run because one item is stuck.
+    - Follow the 3-level execution lifecycle:
+        * **Level 1 (Phase Planning - ONCE per Phase/Major Wave):**
+            - Dispatch ONE `batch_planner` inside worktree to blueprint the entire Phase up front.
+            - Review planner blueprint and confirm progress tracker rows.
+            - **NEVER spawn planners per sub-batch or per row.**
+        * **Level 2 (Parallel Row Execution - Loops per Tracker Row):**
+            - Announce start: `▶️ Task <ID>: <Description>` for all items in the row.
+            - Dispatch parallel `batch_worker` subagents (up to 3 concurrent) for all items in the current row in a SINGLE `invoke_subagent` call.
+            - Dispatch ONE `batch_reviewer` inside worktree to audit git diff, check invariants, and run scoped ward (`npm run ward -- --uncommitted`).
+            - Run `npm run ward -- --uncommitted` in worktree, stage explicit files, update the Execution Progress Tracker row checkboxes `[✓]`, commit row atomically, and announce finish: `✅ Task <ID>: <Description> [commit <SHA>]`.
+            - Move directly to the next row. **NEVER call a planner between rows.**
+        * **Level 3 (Feature Completion & Master Merge):**
+            - After all phases in the plan are complete, merge latest `master` into the feature branch in the worktree.
+            - Run `npm run build` in the worktree.
+            - Run bare `npm run ward` (unscoped, full monorepo sweep).
+            - Only merge into `master` when full ward passes 100% green (exit code 0).
+5. **Autonomous Pacing:** The user gives no input until the entire plan is finished. If an item is blocked, investigate; if it cannot be cleared, record the blocker reason in the plan and pivot to unblocked items. Never halt the run because one item is stuck.
