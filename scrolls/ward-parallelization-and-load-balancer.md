@@ -426,7 +426,7 @@ Unit A (Duration History & Shared-Queue Pool · worktree wp-unit-a) — [MERGED 
   #3   A7 [✓]
   #4   A8 [✓]
 
-Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [COMPLETE]
+Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [MERGED]
   #1   D1 [✓]  D2 [✓]  D3 [✓]  D4 [✓]  D17 [✓]
   #2   D5 [✓]  D6 [✓]  D8 [✓]  D19 [✓] D20 [✓]
   #3   D7 [✓]
@@ -436,7 +436,7 @@ Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [COMPLETE
   #7   D18 [✓]
   #8   D16 [✓]
 
-Unit S (Disk Budget · worktree wp-unit-s) — [NEXT]
+Unit S (Disk Budget · worktree wp-unit-s) — [IN PROGRESS]
   #1   S0 [ ]
   #2   S1 [ ]  S2 [ ]
   #3   S3 [ ]
