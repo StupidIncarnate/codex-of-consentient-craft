@@ -54,15 +54,23 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
 
 2. **`batch_worker` (Implementation & Local Verification):**
    * Dispatched in parallel waves per row. Implements code changes according to the Phase Blueprint (1–3 files per worker) within the worktree.
-   * Adheres strictly to codebase architectural rules (arrow functions, JSDoc headers, typed branding, `#gateway/` boundaries).
+   * **MANDATORY Pre-Flight Tool Calls:** Before writing or editing any code, the worker MUST call:
+     1. `get-architecture`
+     2. `get-testing-patterns`
+     3. `get-folder-detail({ folderType })` for EVERY folder type of the files assigned to it (e.g. `contracts`, `brokers`, `transformers`, `statics`).
+   * Adheres strictly to codebase architectural rules (arrow functions, JSDoc headers above imports, typed branding, `#gateway/` boundaries).
    * Runs scoped ward checks: `npm run ward -- -- <touched-files>`.
    * **Never widens scope:** If an unlisted file must be touched, reports back to the operator rather than editing it.
    * **Never touches git or builds:** Dispatched workers never run `git add`, `git commit`, or `npm run build`.
 
 3. **`batch_reviewer` (Independent Audit & Regression):**
    * Runs **ONCE per completed worker wave (row)**, after all workers in that wave finish.
+   * **MANDATORY Pre-Flight Tool Calls:** Before auditing, the reviewer MUST call:
+     1. `get-architecture`
+     2. `get-testing-patterns`
+     3. `get-folder-detail({ folderType })` for all folder types touched in that row/wave to verify compliance against the exact rules for those folders.
    * Inspects `git status` and `git diff` within the worktree to ensure no stray files or unauthorized edits.
-   * Verifies critical invariants (strict assertions `toStrictEqual`/`toBe`, zero conditionals in tests, JSDoc, branded contracts).
+   * Verifies critical invariants (strict assertions `toStrictEqual`/`toBe`, zero conditionals in tests, JSDoc, branded contracts, companion files).
    * Runs scoped ward (`npm run ward -- --uncommitted`) and reports audit findings.
 
 ---
@@ -214,9 +222,11 @@ LEVEL 2: PARALLEL ROW EXECUTION (Repeats for each row #1, #2, ... in Tracker)
 3. For the current row:
    a. Announce Start: Emit `▶️ Task <ID>: <Description>` for all tasks in this row.
    b. Dispatch Parallel `batch_worker` Subagents:
-      - In a SINGLE `invoke_subagent` call, dispatch workers for all items side-by-side in this row (up to 3 concurrent).
+      - In a SINGLE `invoke_subagent` call, dispatch workers for items in this row (up to concurrency cap).
+      - Worker prompts MUST mandate calling `get-architecture`, `get-testing-patterns`, and `get-folder-detail` for their assigned folders before editing code.
       - Workers implement files and run local scoped ward (`npm run ward -- -- <files>`).
    c. Dispatch ONE `batch_reviewer`:
+      - Reviewer prompt MUST mandate calling `get-architecture`, `get-testing-patterns`, and `get-folder-detail` for all touched folder types.
       - Audits `git status`, `git diff`, invariants, and runs `npm run ward -- --uncommitted`.
    d. Operator Commits Row:
       - Runs `npm run ward -- --uncommitted` in worktree.
