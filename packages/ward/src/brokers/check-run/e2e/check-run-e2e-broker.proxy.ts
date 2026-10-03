@@ -105,7 +105,6 @@ export const checkRunE2eBrokerProxy = (): {
       filePath: `${projectFolder.path}/package.json`,
       config: DungeonmasterConfigStub({
         ward: {
-          concurrency: 4,
           e2eSharding,
         },
       }),

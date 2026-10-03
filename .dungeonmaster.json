@@ -9,7 +9,6 @@
     "slotCount": 1
   },
   "ward": {
-    "concurrency": 4,
     "e2eSharding": true
   },
   "devServer": {

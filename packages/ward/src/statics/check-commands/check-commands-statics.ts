@@ -41,12 +41,9 @@ const integrationDiscoverPatterns = allExts.flatMap((ext) => [
 // Regex alternation for all extensions: ts|tsx|js|jsx
 const extRegex = allExts.join('|');
 
-// Jest resolves the percentage against the machine's cores, so this multiplies with ward's OWN
-// package concurrency rather than replacing it: `configDefaultsStatics.ward.concurrency.default`
-// packages in flight, this share of the cores each, lands on the whole machine and no more.
-// A repo that lowers `ward.concurrency` leaves cores idle and may raise it to compensate.
+// Jest resolves the percentage against the machine's cores when no dynamic share is passed.
 // Percentage, never a count: every worker builds its own ts-jest LanguageService and TypeScript
-// program, so a count that suits a 12-core box exhausts memory on a laptop.
+// program, so a count that suits a multi-core machine exhausts memory on a laptop.
 const maxWorkersBudget = '--maxWorkers=25%';
 
 export const checkCommandsStatics = {

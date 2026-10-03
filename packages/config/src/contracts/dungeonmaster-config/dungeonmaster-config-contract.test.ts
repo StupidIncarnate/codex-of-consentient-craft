@@ -605,7 +605,7 @@ describe('dungeonmaster-config-contract', () => {
       expect(config.ward).toBe(undefined);
     });
 
-    it('VALID: config with ward concurrency => parses successfully', () => {
+    it('VALID: config with legacy ward concurrency => strips unrecognized concurrency key', () => {
       const parsed = dungeonmasterConfigContract.parse({
         framework: 'react',
         schema: 'zod',
@@ -615,7 +615,6 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(parsed.ward).toStrictEqual({
-        concurrency: 6,
         e2eSharding: false,
       });
     });
@@ -628,7 +627,6 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(parsed.ward).toStrictEqual({
-        concurrency: 4,
         e2eSharding: false,
       });
     });
@@ -674,66 +672,6 @@ describe('dungeonmaster-config-contract', () => {
           schema: 'zod',
           ward: {
             e2eSharding: 'yes',
-          },
-        });
-      }).toThrow(/invalid_type/u);
-    });
-
-    it('VALID: config with minimum concurrency => parses successfully', () => {
-      const parsed = dungeonmasterConfigContract.parse({
-        framework: 'react',
-        schema: 'zod',
-        ward: {
-          concurrency: 1,
-        },
-      });
-
-      expect(parsed.ward?.concurrency).toBe(1);
-    });
-
-    it('VALID: config with maximum concurrency => parses successfully', () => {
-      const parsed = dungeonmasterConfigContract.parse({
-        framework: 'react',
-        schema: 'zod',
-        ward: {
-          concurrency: 10,
-        },
-      });
-
-      expect(parsed.ward?.concurrency).toBe(10);
-    });
-
-    it('INVALID: concurrency below minimum => throws validation error', () => {
-      expect(() => {
-        return dungeonmasterConfigContract.parse({
-          framework: 'react',
-          schema: 'zod',
-          ward: {
-            concurrency: 0,
-          },
-        });
-      }).toThrow(/too_small/u);
-    });
-
-    it('INVALID: concurrency above maximum => throws validation error', () => {
-      expect(() => {
-        return dungeonmasterConfigContract.parse({
-          framework: 'react',
-          schema: 'zod',
-          ward: {
-            concurrency: 11,
-          },
-        });
-      }).toThrow(/too_big/u);
-    });
-
-    it('INVALID: non-integer concurrency => throws validation error', () => {
-      expect(() => {
-        return dungeonmasterConfigContract.parse({
-          framework: 'react',
-          schema: 'zod',
-          ward: {
-            concurrency: 2.5,
           },
         });
       }).toThrow(/invalid_type/u);

@@ -75,13 +75,6 @@ export const dungeonmasterConfigContract = z
       .optional(),
     ward: z
       .object({
-        concurrency: z
-          .number()
-          .int()
-          .min(configDefaultsStatics.ward.concurrency.min)
-          .max(configDefaultsStatics.ward.concurrency.max)
-          .default(configDefaultsStatics.ward.concurrency.default)
-          .brand<'DungeonmasterConfigWardConcurrency'>(),
         e2eSharding: z.boolean().default(configDefaultsStatics.ward.e2eSharding.default),
       })
       .brand<'DungeonmasterConfigWard'>()
