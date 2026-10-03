@@ -43,12 +43,14 @@ Your goal is to autonomously orchestrate the plan document provided at `$ARGUMEN
 ### B. The Subagents
 Subagents do **all** the heavy lifting in isolated contexts with single-purpose roles, operating inside the worktree directory (`worktrees/<name>/`) unless the plan document explicitly directs root execution:
 
-1. **`batch_planner` (Phase/Wave Architecture & Blueprint):**
+1. **`batch_planner` (Phase Architecture & Blueprint):**
    * Runs **ONCE per Phase (or major wave)** up front to plan all tasks and rows across that entire phase.
-   * **NEVER dispatch a planner per sub-batch or per row.** Spawning planners for every individual step is forbidden and wasteful.
-   * If the plan document already specifies the exact files, contracts, and requirements for the phase, the planner is skipped entirely.
-   * Inspects ASTs, contracts, existing tests, and harnesses within the worktree for the entire phase at once.
-   * Produces a concrete checklist naming **exact file paths**, contracts, and edge cases for all rows in the phase.
+   * **Core Duties of the Phase Planner:**
+     1. **Loads Architecture & Folder Rules:** Calls `get-architecture`, `get-testing-patterns`, and `get-folder-detail` for all folder types touched across the entire phase.
+     2. **Maps the True Dependency Graph:** Identifies which tasks produce foundation contracts/types that downstream tasks consume, establishing the genuine parallel dependency waves.
+     3. **Emits the Phase Blueprint:** For every task in the phase, specifies exact file paths to create/edit, Zod schemas and branded types, gateway boundaries (`#gateway/node/*`), and strict test specifications (`toStrictEqual`/`toBe` without conditionals).
+   * **Skip Rule:** If the implementation plan (`scrolls/.../implementation-plan.md`) or design doc already contains explicit file lists, contract definitions, and specifications for that phase, **no planner is dispatched**. Proceed directly to worker dispatch.
+   * **NEVER dispatch a planner per sub-batch, per row, or per task.**
 
 2. **`batch_worker` (Implementation & Local Verification):**
    * Dispatched in parallel waves per row. Implements code changes according to the Phase Blueprint (1–3 files per worker) within the worktree.
@@ -58,7 +60,7 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
    * **Never touches git or builds:** Dispatched workers never run `git add`, `git commit`, or `npm run build`.
 
 3. **`batch_reviewer` (Independent Audit & Regression):**
-   * Runs **ONCE per completed worker row**, after all workers in that row finish.
+   * Runs **ONCE per completed worker wave (row)**, after all workers in that wave finish.
    * Inspects `git status` and `git diff` within the worktree to ensure no stray files or unauthorized edits.
    * Verifies critical invariants (strict assertions `toStrictEqual`/`toBe`, zero conditionals in tests, JSDoc, branded contracts).
    * Runs scoped ward (`npm run ward -- --uncommitted`) and reports audit findings.
@@ -67,16 +69,19 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
 
 ## 2. Standing Operational Rules
 
-### A. Subagent Concurrency & Parallel Row Execution
-1. **Concurrency Cap:** At most **THREE (3)** subagents active concurrently.
-2. **Model Selection:**
-   - Lighter/faster models (e.g. `flash_lite` or `flash`) for simple, mechanical work: applying contracts, lint fixes, mass mechanical fan-outs.
-   - Reasoning models (e.g. `pro` or `inherit`) for nebulous tasks: conflict resolution needing judgment, complex debugging, and architectural planning.
-3. **Batch Sizing:** Hand each worker **1 to 3 files** for cleanup/creation, or **2 to 4 files** for migration work. Name each file explicitly in the prompt.
-4. **Parallel Worker Waves (Single-Call Dispatch):**
-   - Each row in the Execution Progress Tracker (`#1`, `#2`, etc.) represents a parallel dispatch wave.
-   - All tasks placed side-by-side in that row **MUST** be dispatched concurrently in parallel to worker subagents (up to the 3-subagent concurrency cap).
-   - **All workers in a row MUST be launched in a SINGLE `invoke_subagent` call** containing all worker definitions in the `Subagents` array. Example:
+### A. Subagent Concurrency & Parallel Dependency Waves
+1. **Tracker Rows Represent True Architectural Dependency Waves:**
+   - Rows in the Execution Progress Tracker (`#1`, `#2`, etc.) represent **genuine architectural barriers**, NOT arbitrary agent concurrency limits.
+   - All tasks side-by-side in a row are mutually independent and belong to the same dependency wave.
+2. **Scheduling Waves Across Concurrency Limits:**
+   - The active subagent concurrency limit (default: **3 concurrent subagents**) governs how many workers can be running at the same moment.
+   - If a wave has more tasks than the concurrency limit (e.g. Wave #7 has 5 independent tasks: `1.7.1`, `1.7.2`, `1.7.3`, `1.8.1`, `1.9.2`):
+     * The operator launches the first batch of workers (up to the concurrency cap) in a single `invoke_subagent` call.
+     * As workers complete, the operator continuously dispatches remaining workers from that **same wave**.
+     * Tasks in the same wave do **not** depend on each other and do **not** trigger intermediate reviews or commits.
+     * Once **ALL** tasks in the wave finish, a single `batch_reviewer` audits the cumulative diff of the wave, the operator commits the wave atomically, and moves to the next row.
+3. **Single-Call Worker Dispatch:**
+   - When launching parallel workers for a wave, always dispatch them in a **SINGLE `invoke_subagent` tool call** with multiple entries in the `Subagents` array. Example:
      ```json
      {
        "Subagents": [
@@ -86,7 +91,10 @@ Subagents do **all** the heavy lifting in isolated contexts with single-purpose 
        ]
      }
      ```
-   - Never serialize tasks that sit side-by-side in the same row.
+4. **Batch Sizing:** Hand each worker **1 to 3 files** for cleanup/creation, or **2 to 4 files** for migration work. Name each file explicitly in the prompt.
+5. **Model Selection:**
+   - Lighter/faster models (e.g. `flash_lite` or `flash`) for simple, mechanical work: applying contracts, lint fixes, mass mechanical fan-outs.
+   - Reasoning models (e.g. `pro` or `inherit`) for nebulous tasks: conflict resolution needing judgment, complex debugging, and architectural planning.
 
 ### B. Explicit Scope & Phase-Wide Planning
 1. **No item is dispatched without a plan that names its exact files:**

@@ -9,38 +9,47 @@ Relevant specs: [design.md](file:///home/brutus-home/projects/codex-of-consentie
 ### Execution Progress Tracker
 
 ```text
-Phase 0 (Standalone Quick Fixes · [IN PROGRESS])
-  #1  0.1 [ ]  0.2 [ ]  0.3 [ ]
-  #2  0.4 [ ]  0.5 [ ]
+Phase 0 (Standalone Quick Fixes · [COMPLETE])
+  #1  0.1 [✓]  0.2 [✓]  0.3 [✓]
+  #2  0.4 [✓]  0.5 [✓]
 
-Phase 1 (The Core Data Layer · [PENDING])
-  #1  1.1.1 [ ]  1.1.2 [ ]
-  #2  1.2.1 [ ]  1.2.2 [ ]
-  #3  1.3.1 [ ]  1.3.2 [ ]
-  #4  1.4.1 [ ]  1.4.2 [ ]
-  #5  1.5.1 [ ]  1.5.2 [ ]
-  #6  1.6.1 [ ]
-  #7  1.7.1 [ ]  1.7.2 [ ]  1.7.3 [ ]
-  #8  1.8.1 [ ]  1.8.2 [ ]
-  #9  1.9.1 [ ]  1.9.2 [ ]
+Phase 1 (The Core Data Layer · [IN PROGRESS])
+  #1  1.1.1 [✓]  1.1.2 [✓]
+  #2  1.2.1 [✓]  1.2.2 [✓]
+  #3  1.3.1 [✓]  1.3.2 [✓]
+  #4  1.4.1 [✓]  1.4.2 [✓]
+  #5  1.5.1 [✓]  1.5.2 [✓]
+  #6  1.6.1 [✓]
+  #7  1.7.1 [ ]  1.7.2 [ ]  1.7.3 [ ]  1.8.1 [ ]  1.9.2 [ ]
+  #8  1.8.2 [ ]
+  #9  1.9.1 [ ]
   #10 1.10.1 [ ] 1.10.2 [ ]
   #11 1.11 (DQ Review) [ ]
 
 Phase 1b (Reasoning Effort Migration · [PENDING])
-  #1  1b.1 [ ]  1b.2 [ ]  1b.3 [ ]
+  #1  1b.1 [ ]
+  #2  1b.2 [ ]
+  #3  1b.3 [ ]
 
 Phase 2 (Server Reads, Quest Health & View Context · [PENDING])
-  #1  2.1 [ ]  2.2 [ ]  2.3 [ ]
-  #2  2.4 [ ]  2.5 [ ]  2.6 [ ]
+  #1  2.1 [ ]
+  #2  2.2 [ ]
+  #3  2.3 [ ]  2.5 [ ]
+  #4  2.4 [ ]
+  #5  2.6 [ ]
 
 Phase 3 (Chat UI Migration · [PENDING])
-  #1  3.1 [ ]  3.2 [ ]  3.3 [ ]
+  #1  3.1 [ ]
+  #2  3.2 [ ]
+  #3  3.3 [ ]
 
 Phase 4 (Timeline & Command Center · [PENDING])
-  #1  4.1 [ ]  4.2 [ ]  4.3 [ ]
+  #1  4.1 [ ]  4.2 [ ]
+  #2  4.3 [ ]
 
 Phase 5 (First-Party Sources & Rate Limits · [PENDING])
-  #1  5.1 [ ]  5.2 [ ]  5.3 [ ]
+  #1  5.1 [ ]  5.2 [ ]
+  #2  5.3 [ ]
 
 Phase 6 (Next Harness Pluggability · [PENDING])
   #1  6.1 [ ]
