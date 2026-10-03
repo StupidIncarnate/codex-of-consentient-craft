@@ -40,11 +40,29 @@ describe('wardConfigContract', () => {
 
       expect(result).toStrictEqual({ passthrough: [] });
     });
+
+    it('VALID: {prune: "default"} => parses prune default mode', () => {
+      const result = wardConfigContract.parse({ prune: 'default' });
+
+      expect(result).toStrictEqual({ prune: 'default' });
+    });
+
+    it('VALID: {prune: "all"} => parses prune all mode', () => {
+      const result = wardConfigContract.parse({ prune: 'all' });
+
+      expect(result).toStrictEqual({ prune: 'all' });
+    });
   });
 
   describe('invalid inputs', () => {
     it('INVALID: {only: ["bad"]} => throws for invalid check type', () => {
       expect(() => wardConfigContract.parse({ only: ['bad'] })).toThrow(/Invalid option/u);
+    });
+
+    it('INVALID: {prune: "invalid"} => throws for invalid prune mode', () => {
+      expect(() => wardConfigContract.parse({ prune: 'invalid' as unknown as 'default' })).toThrow(
+        /Invalid option/u,
+      );
     });
 
     it('VALID: {only: ["e2e"]} => parses e2e check type', () => {

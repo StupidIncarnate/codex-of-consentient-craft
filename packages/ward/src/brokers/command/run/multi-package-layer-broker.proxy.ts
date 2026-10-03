@@ -11,6 +11,8 @@ import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/c
 import { NodeVersionUnsupportedErrorProxy } from '#gateway/node/sqlite/node-version-unsupported.error.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { capacityReadBrokerProxy } from '@dungeonmaster/load-balancer/brokers/capacity/read/capacity-read-broker.proxy';
+import { diskBudgetEnforceBrokerProxy } from '@dungeonmaster/load-balancer/brokers/disk/budget-enforce/disk-budget-enforce-broker.proxy';
+import { DiskItemStub } from '@dungeonmaster/load-balancer/contracts/disk-item/disk-item.stub';
 import { leaseTakeBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/take/lease-take-broker.proxy';
 import { leaseBeatBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/beat/lease-beat-broker.proxy';
 import { leaseReleaseBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/release/lease-release-broker.proxy';
@@ -102,6 +104,13 @@ export const multiPackageLayerBrokerProxy = (): {
   setupDurationHistory: (params: { samples: readonly DurationSample[] }) => void;
   setupDurationHistoryThrows: (params: { error: Error }) => void;
   setupDurationHistoryWriteThrows: (params: { error: Error }) => void;
+  setupDiskBudgetResult: (params?: {
+    ran?: boolean;
+    deletedBytes?: number;
+    deletedCount?: number;
+    shortfallBytes?: number;
+  }) => void;
+  setupDiskBudgetThrows: (params: { error: Error }) => void;
   getWrittenDurationSamples: () => DurationSample[];
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
@@ -137,6 +146,11 @@ export const multiPackageLayerBrokerProxy = (): {
   leaseBeatProxy.setupDatabase({ database: sharedDb });
   leaseReleaseProxy.setupDatabase({ database: sharedDb });
   NodeVersionUnsupportedErrorProxy();
+
+  const diskBudgetProxy = diskBudgetEnforceBrokerProxy();
+  diskBudgetProxy.setupDatabase({ database: sharedDb });
+  diskBudgetProxy.setupRepoRoot({ path: '/project', exists: false });
+  diskBudgetProxy.setupRepoRoot({ path: '/home/user/project', exists: false });
 
   const stream = streamProxy();
   RunNotFoundErrorProxy();
@@ -458,6 +472,52 @@ export const multiPackageLayerBrokerProxy = (): {
       const spy = registerSpyOn({ object: sharedDb, method: 'exec', passthrough: true });
       spy.calledWith(['BEGIN IMMEDIATE;']).throws(error);
       spy.calledWith(['ROLLBACK;']).returns(undefined);
+    },
+
+    setupDiskBudgetResult: (params?: {
+      ran?: boolean;
+      deletedBytes?: number;
+      deletedCount?: number;
+      shortfallBytes?: number;
+    }): void => {
+      if (params?.ran === false) {
+        diskBudgetProxy.setLastRunMs({ lastRunMs: runIdMockStatics.timestamp });
+        return;
+      }
+      const deletedCount = params?.deletedCount ?? 0;
+      const totalDeleted = params?.deletedBytes ?? 0;
+      const baseBytes = deletedCount > 0 ? Math.floor(totalDeleted / deletedCount) : 0;
+      const remainder = deletedCount > 0 ? totalDeleted - baseBytes * (deletedCount - 1) : 0;
+
+      const deletedItems = Array.from({ length: deletedCount }, (_, i) =>
+        DiskItemStub({
+          storeId: 'ward-run-results',
+          path: `/project/.ward/run-${i}.json`,
+          bytes: i === deletedCount - 1 ? remainder : baseBytes,
+          mtimeMs: 1_000_000,
+          protectedReason: null,
+        }),
+      );
+
+      const shortfallItems =
+        params?.shortfallBytes !== undefined && params.shortfallBytes > 0
+          ? [
+              DiskItemStub({
+                storeId: 'ward-run-results',
+                path: '/project/.ward/run-protected.json',
+                bytes: params.shortfallBytes,
+                mtimeMs: 1_000_000,
+                protectedReason: 'newest-per-repo',
+              }),
+            ]
+          : [];
+
+      const items = [...deletedItems, ...shortfallItems];
+      diskBudgetProxy.setupScannedItems({ items, maxDiskMB: 0 });
+    },
+
+    setupDiskBudgetThrows: ({ error }: { error: Error }): void => {
+      diskBudgetProxy.setupThrows({ error });
     },
 
     getWrittenDurationSamples: (): DurationSample[] => {

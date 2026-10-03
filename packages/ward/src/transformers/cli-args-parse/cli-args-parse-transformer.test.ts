@@ -866,8 +866,74 @@ describe('cliArgsParseTransformer', () => {
           args: ['--unknown'],
         }),
       ).toThrow(
-        /^Unknown flag: --unknown\n\nWard accepts only: --only, --onlyTests, --committed, --uncommitted\n\n/u,
+        /^Unknown flag: --unknown\n\nWard accepts only: --only, --onlyTests, --committed, --uncommitted, --prune\n\n/u,
       );
+    });
+  });
+
+  describe('--prune flag', () => {
+    it('VALID: {args: ["--prune"]} => defaults to prune mode "default"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune'] });
+
+      expect(result).toStrictEqual({ prune: 'default' });
+    });
+
+    it('VALID: {args: ["--prune", "default"]} => returns prune mode "default"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune', 'default'] });
+
+      expect(result).toStrictEqual({ prune: 'default' });
+    });
+
+    it('VALID: {args: ["--prune", "all"]} => returns prune mode "all"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune', 'all'] });
+
+      expect(result).toStrictEqual({ prune: 'all' });
+    });
+
+    it('VALID: {args: ["--prune=all"]} => returns prune mode "all"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune=all'] });
+
+      expect(result).toStrictEqual({ prune: 'all' });
+    });
+
+    it('VALID: {args: ["--prune=default"]} => returns prune mode "default"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune=default'] });
+
+      expect(result).toStrictEqual({ prune: 'default' });
+    });
+
+    it('VALID: {args: ["--prune", "invalid"]} => defaults to prune mode "default"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune', 'invalid'] });
+
+      expect(result).toStrictEqual({ prune: 'default' });
+    });
+
+    it('VALID: {args: ["--prune=invalid"]} => defaults to prune mode "default"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune=invalid'] });
+
+      expect(result).toStrictEqual({ prune: 'default' });
+    });
+
+    it('VALID: {args: ["--prune", "--only", "lint"]} => preserves following flags and defaults to prune mode "default"', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({ args: ['--prune', '--only', 'lint'] });
+
+      expect(result).toStrictEqual({ prune: 'default', only: ['lint'] });
     });
   });
 });

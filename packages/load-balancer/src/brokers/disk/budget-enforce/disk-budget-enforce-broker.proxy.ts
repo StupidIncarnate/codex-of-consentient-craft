@@ -3,7 +3,11 @@ import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.prox
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { dirname } from '#gateway/node/path';
 import { DatabaseSyncStub } from '#gateway/node/sqlite/database-sync.stub';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import type { DiskItem } from '../../../contracts/disk-item/disk-item-contract';
+import { diskScanBroker } from '../scan/disk-scan-broker';
 import { diskScanBrokerProxy } from '../scan/disk-scan-broker.proxy';
+import { limitsReadBroker } from '../../limits/read/limits-read-broker';
 import { limitsReadBrokerProxy } from '../../limits/read/limits-read-broker.proxy';
 import { registryOpenBrokerProxy } from '../../registry/open/registry-open-broker.proxy';
 
@@ -26,8 +30,14 @@ const initSchema = (database: DatabaseSync): void => {
   database.exec('CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);');
 };
 
-export const diskBudgetEnforceBrokerProxy = (): {
-  setupDatabase: (params?: { homeDir?: string }) => { database: DatabaseSync };
+export const diskBudgetEnforceBrokerProxy = ({
+  homeDir = MOCK_HOME,
+}: {
+  homeDir?: string;
+} = {}): {
+  setupDatabase: (params?: { database?: DatabaseSync; homeDir?: string }) => {
+    database: DatabaseSync;
+  };
   setLastRunMs: (params: { lastRunMs: number }) => void;
   getLastRunMs: () => number | null;
   setupLimits: (params: { maxDiskMB?: number; guildPaths?: readonly string[] }) => void;
@@ -40,6 +50,8 @@ export const diskBudgetEnforceBrokerProxy = (): {
   setupRm: (params: { path: string }) => void;
   setupRmError: (params: { path: string; error: FsError }) => void;
   getRmCallsFor: (params: { path: string }) => readonly unknown[][];
+  setupThrows: (params: { error: Error }) => void;
+  setupScannedItems: (params: { items: readonly DiskItem[]; maxDiskMB?: number }) => void;
 } => {
   const limitsProxy = limitsReadBrokerProxy();
   const registryOpenProxy = registryOpenBrokerProxy();
@@ -50,29 +62,57 @@ export const diskBudgetEnforceBrokerProxy = (): {
   const database = DatabaseSyncStub();
   initSchema(database);
 
-  limitsProxy.setupHomeDir({ homeDir: MOCK_HOME });
-  registryOpenProxy.setupHomeDir({ homeDir: MOCK_HOME });
+  const realScan = requireActual<{ diskScanBroker: typeof diskScanBroker }>({
+    module: '../scan/disk-scan-broker',
+  });
+  const scanHandle = registerMock({ fn: diskScanBroker });
+  scanHandle
+    .calledWith([{ repoRoots: () => true }])
+    .implement(async (...args: unknown[]) =>
+      realScan.diskScanBroker(...(args as unknown as Parameters<typeof diskScanBroker>)),
+    );
+
+  const limitsHandle = registerMock({ fn: limitsReadBroker });
+  limitsHandle.calledWith([]).resolves({
+    resources: { maxDiskMB: 4096, maxMemoryPercent: 80 },
+    guildPaths: [],
+    warning: null,
+  });
+
+  limitsProxy.setupHomeDir({ homeDir });
+  registryOpenProxy.setupHomeDir({ homeDir });
   registryOpenProxy.setupEnv({ name: 'DUNGEONMASTER_LOAD_DIR', value: undefined });
   registryOpenProxy.setupDatabase({
-    filePath: `${MOCK_HOME}/.dungeonmaster/load/registry-v1.db`,
+    filePath: `${homeDir}/.dungeonmaster/load/registry-v1.db`,
     database,
   });
 
   limitsProxy.setupValidConfig({
-    homeDir: MOCK_HOME,
+    homeDir,
     resources: { maxDiskMB: 4096, maxMemoryPercent: 80 },
     guilds: [],
   });
 
   return {
-    setupDatabase: (params?: { homeDir?: string }): { database: DatabaseSync } => {
-      const homeDir = params?.homeDir ?? MOCK_HOME;
-      registryOpenProxy.setupHomeDir({ homeDir });
+    setupDatabase: (params?: {
+      database?: DatabaseSync;
+      homeDir?: string;
+    }): { database: DatabaseSync } => {
+      const db = params?.database ?? database;
+      initSchema(db);
+      const targetHome = params?.homeDir ?? homeDir;
+      registryOpenProxy.setupHomeDir({ homeDir: targetHome });
       registryOpenProxy.setupDatabase({
-        filePath: `${homeDir}/.dungeonmaster/load/registry-v1.db`,
-        database,
+        filePath: `${targetHome}/.dungeonmaster/load/registry-v1.db`,
+        database: db,
       });
-      return { database };
+      if (targetHome !== '/home/user') {
+        registryOpenProxy.setupDatabase({
+          filePath: '/home/user/.dungeonmaster/load/registry-v1.db',
+          database: db,
+        });
+      }
+      return { database: db };
     },
     setLastRunMs: ({ lastRunMs }: { lastRunMs: number }): void => {
       database
@@ -96,9 +136,14 @@ export const diskBudgetEnforceBrokerProxy = (): {
       guildPaths?: readonly string[];
     }): void => {
       limitsProxy.setupValidConfig({
-        homeDir: MOCK_HOME,
+        homeDir,
         resources: { maxDiskMB, maxMemoryPercent: 80 },
         guilds: guildPaths.map((p) => ({ path: p })),
+      });
+      limitsHandle.calledWith([]).resolves({
+        resources: { maxDiskMB, maxMemoryPercent: 80 },
+        guildPaths: guildPaths.map((p) => ({ path: p })),
+        warning: null,
       });
     },
     setupRepoRoot: ({ path, exists = true }: { path: string; exists?: boolean }): void => {
@@ -145,5 +190,37 @@ export const diskBudgetEnforceBrokerProxy = (): {
     },
     getRmCallsFor: ({ path }: { path: string }): readonly unknown[][] =>
       rmGatewayProxy.getCallsFor({ path }),
+    setupThrows: ({ error }: { error: Error }): void => {
+      scanHandle.calledWith([{ repoRoots: () => true }]).rejects(error);
+    },
+    setupScannedItems: ({
+      items,
+      maxDiskMB,
+    }: {
+      items: readonly DiskItem[];
+      maxDiskMB?: number;
+    }): void => {
+      if (maxDiskMB !== undefined) {
+        limitsProxy.setupValidConfig({
+          homeDir,
+          resources: { maxDiskMB, maxMemoryPercent: 80 },
+          guilds: [],
+        });
+        limitsHandle.calledWith([]).resolves({
+          resources: { maxDiskMB, maxMemoryPercent: 80 },
+          guildPaths: [],
+          warning: null,
+        });
+      }
+      for (const item of items) {
+        const parent = dirname(item.path);
+        realPathProxy.returns({ path: parent, resolved: parent });
+        realPathProxy.returns({ path: item.path, resolved: item.path });
+        rmGatewayProxy.succeeds({ path: item.path });
+      }
+      scanHandle
+        .calledWith([{ repoRoots: () => true }])
+        .resolves({ items: [...items], skipped: 0 });
+    },
   };
 };

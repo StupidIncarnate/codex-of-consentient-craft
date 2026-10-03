@@ -1,4 +1,6 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { diskBudgetEnforceBrokerProxy } from '@dungeonmaster/load-balancer/brokers/disk/budget-enforce/disk-budget-enforce-broker.proxy';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { assetsAgeLayerBrokerProxy } from './assets-age-layer-broker.proxy';
@@ -32,6 +34,9 @@ export const cleanupRunBrokerProxy = (): {
   setupFile: ReturnType<typeof assetsAgeLayerBrokerProxy>['setupFile'];
   setupDeleteSucceeds: ReturnType<typeof assetsAgeLayerBrokerProxy>['setupDeleteSucceeds'];
   getDeletedPaths: ReturnType<typeof assetsAgeLayerBrokerProxy>['getDeletedPaths'];
+  setupDiskBudgetFails: () => void;
+  getLastDiskBudgetRunMs: () => number | null;
+  getStderrText: () => string;
 } => {
   // The age proxy is constructed FIRST, and the order is load-bearing. Its chain reaches
   // `pathJoinAdapterProxy` and `osHomedirAdapterProxy`, and constructing either re-stamps that
@@ -45,6 +50,9 @@ export const cleanupRunBrokerProxy = (): {
   const reapProxy = staleReapLayerBrokerProxy();
   const clockProxy = nowProxy();
   clockProxy.setupNow({ ms: CLEANUP_NOW_MS });
+  const stderrGatewayProxy = stderrProxy();
+  const diskBudgetProxy = diskBudgetEnforceBrokerProxy({ homeDir: '/home/user' });
+  diskBudgetProxy.setupRepoRoot({ path: reapProxy.repoRoot, exists: true });
 
   return {
     repoRoot: reapProxy.repoRoot,
@@ -69,5 +77,11 @@ export const cleanupRunBrokerProxy = (): {
     setupFile: ageProxy.setupFile,
     setupDeleteSucceeds: ageProxy.setupDeleteSucceeds,
     getDeletedPaths: ageProxy.getDeletedPaths,
+    setupDiskBudgetFails: (): void => {
+      const { database } = diskBudgetProxy.setupDatabase({ homeDir: '/home/user' });
+      database.close();
+    },
+    getLastDiskBudgetRunMs: diskBudgetProxy.getLastRunMs,
+    getStderrText: stderrGatewayProxy.getWrittenText,
   };
 };

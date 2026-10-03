@@ -1,5 +1,7 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
 
+import { DiskItemStub } from '@dungeonmaster/load-balancer/contracts/disk-item/disk-item.stub';
+
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 import { PlatformCrossingViolationStub } from '../../../contracts/platform-crossing-violation/platform-crossing-violation.stub';
 import { fileScopeEmptyStatics } from '../../../statics/file-scope-empty/file-scope-empty-statics';
@@ -7,6 +9,7 @@ import { gitScopeDroppedPathsStatics } from '../../../statics/git-scope-dropped-
 import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-files-processed-statics';
 import { pathNotFoundStatics } from '../../../statics/path-not-found/path-not-found-statics';
 import { platformCrossingViolationDisplayTransformer } from '../../../transformers/platform-crossing-violation-display/platform-crossing-violation-display-transformer';
+import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
 
 import { commandRunBroker } from './command-run-broker';
 import { commandRunBrokerProxy } from './command-run-broker.proxy';
@@ -547,6 +550,198 @@ describe('commandRunBroker', () => {
           '\nFull error details: npm run ward -- detail 1739625600000-a38e <filePath>\n',
         ],
         exitCode: 1,
+      });
+    });
+  });
+
+  describe('manual disk budget prune', () => {
+    it('VALID: {prune: "default"} => runs prune in default mode, prints report, and exits 0 without check suites', async () => {
+      setExitCode(0);
+      const proxy = commandRunBrokerProxy();
+
+      const deletedItem = DiskItemStub({
+        storeId: 'ward-run-results',
+        path: '/project/.ward/run-old.json',
+        bytes: 2_097_152,
+        mtimeMs: runIdMockStatics.timestamp - 1_000_000,
+        protectedReason: null,
+      });
+      const protectedItem = DiskItemStub({
+        storeId: 'e2e-sandboxes',
+        path: '/tmp/dm-e2e-1234',
+        bytes: 1_048_576,
+        mtimeMs: runIdMockStatics.timestamp - 1_000_000,
+        protectedReason: 'in-use: PID 1234',
+      });
+      const youngItem = DiskItemStub({
+        storeId: 'ward-run-results',
+        path: '/project/.ward/run-young.json',
+        bytes: 1_048_576,
+        mtimeMs: runIdMockStatics.timestamp - 60_000,
+        protectedReason: null,
+      });
+      const budgetItem = DiskItemStub({
+        storeId: 'ward-run-results',
+        path: '/project/.ward/run-budget.json',
+        bytes: 1_048_576,
+        mtimeMs: runIdMockStatics.timestamp - 900_000,
+        protectedReason: null,
+      });
+
+      proxy.setupDiskBudgetScannedItems({
+        items: [deletedItem, protectedItem, youngItem, budgetItem],
+        maxDiskMB: 3,
+      });
+
+      const rootPath = '/project';
+      const config = WardConfigStub({ prune: 'default' });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: getExitCode(),
+      }).toStrictEqual({
+        stdoutCalls: [
+          [
+            '=== Dungeonmaster Disk Budget Prune (default mode) ===',
+            '',
+            'Scanned stores:',
+            '  - ward-run-results (.ward/run-*.json): 3 items, 4 MB (4194304 bytes)',
+            '  - ward-bundle-cache (packages/*/.ward/bundle/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-test-results (test-results/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-vite-cache (node_modules/.vite-*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-playwright-reports (.ward-playwright-report-*.json): 0 items, 0 MB (0 bytes)',
+            '  - jest-transform-cache (/tmp/jest_*/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-sandboxes (/tmp/dm-e2e-*): 1 items, 1 MB (1048576 bytes)',
+            '  - jest-test-sandboxes (/tmp/dungeonmaster-jest-*): 0 items, 0 MB (0 bytes)',
+            '  - siegelense-sandboxes (/tmp/dm-siege-*): 0 items, 0 MB (0 bytes)',
+            '  - siegelense-evidence (siegelense/**/instances/*): 0 items, 0 MB (0 bytes)',
+            '',
+            'Deleted: 1 items, freed 2 MB (2097152 bytes)',
+            '',
+            'Kept items (3):',
+            '  - /tmp/dm-e2e-1234 (1 MB) [in-use: PID 1234]',
+            '  - /project/.ward/run-young.json (1 MB) [young (<10m)]',
+            '  - /project/.ward/run-budget.json (1 MB) [within budget]',
+            '',
+            'Remaining footprint: 3 MB (3145728 bytes)',
+            '',
+          ].join('\n'),
+        ],
+        exitCode: 0,
+      });
+    });
+
+    it('VALID: {prune: "all", shortfallBytes > 0} => reports shortfall in all mode and exits 0', async () => {
+      setExitCode(0);
+      const proxy = commandRunBrokerProxy();
+
+      const protectedItem = DiskItemStub({
+        storeId: 'ward-run-results',
+        path: '/project/.ward/run-1.json',
+        bytes: 1_048_576,
+        mtimeMs: runIdMockStatics.timestamp - 1_000_000,
+        protectedReason: 'newest-per-repo',
+      });
+
+      proxy.setupDiskBudgetScannedItems({
+        items: [protectedItem],
+        maxDiskMB: 0,
+      });
+
+      const rootPath = '/project';
+      const config = WardConfigStub({ prune: 'all' });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: getExitCode(),
+      }).toStrictEqual({
+        stdoutCalls: [
+          [
+            '=== Dungeonmaster Disk Budget Prune (all mode) ===',
+            '',
+            'Scanned stores:',
+            '  - ward-run-results (.ward/run-*.json): 1 items, 1 MB (1048576 bytes)',
+            '  - ward-bundle-cache (packages/*/.ward/bundle/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-test-results (test-results/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-vite-cache (node_modules/.vite-*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-playwright-reports (.ward-playwright-report-*.json): 0 items, 0 MB (0 bytes)',
+            '  - jest-transform-cache (/tmp/jest_*/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-sandboxes (/tmp/dm-e2e-*): 0 items, 0 MB (0 bytes)',
+            '  - jest-test-sandboxes (/tmp/dungeonmaster-jest-*): 0 items, 0 MB (0 bytes)',
+            '  - siegelense-sandboxes (/tmp/dm-siege-*): 0 items, 0 MB (0 bytes)',
+            '  - siegelense-evidence (siegelense/**/instances/*): 0 items, 0 MB (0 bytes)',
+            '',
+            'Deleted: 0 items, freed 0 MB (0 bytes)',
+            '',
+            'Kept items (1):',
+            '  - /project/.ward/run-1.json (1 MB) [newest-per-repo]',
+            '',
+            'Shortfall: 1 MB (1048576 bytes)',
+            '',
+            'Remaining footprint: 1 MB (1048576 bytes)',
+            '',
+          ].join('\n'),
+        ],
+        exitCode: 0,
+      });
+    });
+
+    it('VALID: {prune: "default", 0 kept items} => reports "none" under kept items', async () => {
+      setExitCode(0);
+      const proxy = commandRunBrokerProxy();
+
+      const deletedItem = DiskItemStub({
+        storeId: 'ward-run-results',
+        path: '/project/.ward/run-1.json',
+        bytes: 1_048_576,
+        mtimeMs: runIdMockStatics.timestamp - 1_000_000,
+        protectedReason: null,
+      });
+
+      proxy.setupDiskBudgetScannedItems({
+        items: [deletedItem],
+        maxDiskMB: 0,
+      });
+
+      const rootPath = '/project';
+      const config = WardConfigStub({ prune: 'default' });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: getExitCode(),
+      }).toStrictEqual({
+        stdoutCalls: [
+          [
+            '=== Dungeonmaster Disk Budget Prune (default mode) ===',
+            '',
+            'Scanned stores:',
+            '  - ward-run-results (.ward/run-*.json): 1 items, 1 MB (1048576 bytes)',
+            '  - ward-bundle-cache (packages/*/.ward/bundle/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-test-results (test-results/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-vite-cache (node_modules/.vite-*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-playwright-reports (.ward-playwright-report-*.json): 0 items, 0 MB (0 bytes)',
+            '  - jest-transform-cache (/tmp/jest_*/*): 0 items, 0 MB (0 bytes)',
+            '  - e2e-sandboxes (/tmp/dm-e2e-*): 0 items, 0 MB (0 bytes)',
+            '  - jest-test-sandboxes (/tmp/dungeonmaster-jest-*): 0 items, 0 MB (0 bytes)',
+            '  - siegelense-sandboxes (/tmp/dm-siege-*): 0 items, 0 MB (0 bytes)',
+            '  - siegelense-evidence (siegelense/**/instances/*): 0 items, 0 MB (0 bytes)',
+            '',
+            'Deleted: 1 items, freed 1 MB (1048576 bytes)',
+            '',
+            'Kept items (0):',
+            '  none',
+            '',
+            'Remaining footprint: 0 MB (0 bytes)',
+            '',
+          ].join('\n'),
+        ],
+        exitCode: 0,
       });
     });
   });

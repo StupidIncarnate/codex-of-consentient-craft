@@ -22,7 +22,7 @@
 
 import type { WardConfig } from '../../contracts/ward-config/ward-config-contract';
 
-type WardScopeKind = 'fileScope' | 'typeFilter' | 'testNameFilter';
+type WardScopeKind = 'fileScope' | 'typeFilter' | 'testNameFilter' | 'maintenance';
 
 const SCOPE_KIND_BY_FIELD = {
   only: 'typeFilter',
@@ -30,6 +30,7 @@ const SCOPE_KIND_BY_FIELD = {
   committed: 'fileScope',
   uncommitted: 'fileScope',
   passthrough: 'fileScope',
+  prune: 'maintenance',
 } as const satisfies Record<Exclude<keyof WardConfig, symbol>, WardScopeKind>;
 
 const FILE_SCOPE_FIELDS = (

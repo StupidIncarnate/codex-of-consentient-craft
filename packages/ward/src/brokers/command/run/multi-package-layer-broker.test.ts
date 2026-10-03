@@ -1870,6 +1870,7 @@ describe('multiPackageLayerBroker', () => {
       expect(proxy.getStderrCalls()).toStrictEqual([
         'ward: duration history unavailable: sqlite table corrupt\n',
         'ward: load balancing degraded: sqlite table corrupt\n',
+        'ward: disk budget unavailable: sqlite table corrupt\n',
       ]);
     });
   });
@@ -2209,6 +2210,7 @@ describe('multiPackageLayerBroker', () => {
       ]);
       expect(proxy.getStderrCalls()).toStrictEqual([
         'ward: load balancing degraded: capacity calculation failed\n',
+        'ward: disk budget unavailable: capacity calculation failed\n',
       ]);
     });
 
@@ -2363,6 +2365,296 @@ describe('multiPackageLayerBroker', () => {
       expect(proxy.getStderrCalls()).toStrictEqual([
         'ward: load balancing degraded: Error: sqlite busy\n',
       ]);
+    });
+  });
+
+  describe('disk budget enforce pass', () => {
+    it('ERROR: {diskBudgetEnforceBroker throws} => prints unavailable message to stderr and preserves run result', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDiskBudgetThrows({ error: NativeErrorStub({ message: 'sqlite locked' }) });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: disk budget unavailable: sqlite locked\n',
+      ]);
+    });
+
+    it('VALID: {diskBudgetEnforceBroker deleted items} => prints freed megabytes and count to stderr', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDiskBudgetResult({
+        ran: true,
+        deletedBytes: 15_728_640,
+        deletedCount: 3,
+        shortfallBytes: 0,
+      });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual(['ward: disk budget freed 15 MB (3 items)\n']);
+    });
+
+    it('VALID: {diskBudgetEnforceBroker has shortfall} => prints shortfall megabytes to stderr', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDiskBudgetResult({
+        ran: true,
+        deletedBytes: 0,
+        deletedCount: 0,
+        shortfallBytes: 104_857_600,
+      });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual(['ward: disk budget shortfall: 100 MB\n']);
+    });
+
+    it('VALID: {diskBudgetEnforceBroker deleted items and has shortfall} => prints both freed and shortfall lines to stderr', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDiskBudgetResult({
+        ran: true,
+        deletedBytes: 20_971_520,
+        deletedCount: 2,
+        shortfallBytes: 52_428_800,
+      });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: disk budget freed 20 MB (2 items)\n',
+        'ward: disk budget shortfall: 50 MB\n',
+      ]);
+    });
+
+    it('VALID: {diskBudgetEnforceBroker ran but deleted 0 and no shortfall} => prints nothing to stderr', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDiskBudgetResult({
+        ran: true,
+        deletedBytes: 0,
+        deletedCount: 0,
+        shortfallBytes: 0,
+      });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual([]);
+    });
+
+    it('VALID: {diskBudgetEnforceBroker did not run (ran: false)} => prints nothing to stderr', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupDiskBudgetResult({
+        ran: false,
+        deletedBytes: 0,
+        deletedCount: 0,
+        shortfallBytes: 0,
+      });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('pass');
+      expect(proxy.getStderrCalls()).toStrictEqual([]);
     });
   });
 });

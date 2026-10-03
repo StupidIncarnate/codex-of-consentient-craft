@@ -23,9 +23,16 @@ import {
 import { checkTypeContract } from '../../contracts/check-type/check-type-contract';
 import { wardSpawnCommandStatics } from '../../statics/ward-spawn-command/ward-spawn-command-statics';
 
-const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--committed', '--uncommitted', '--']);
+const KNOWN_FLAGS = new Set([
+  '--only',
+  '--onlyTests',
+  '--committed',
+  '--uncommitted',
+  '--prune',
+  '--',
+]);
 
-const USAGE = `Usage: npm run ward -- [--only <check-types>] [-- <files>]\n       npm run ward -- [--only <check-types>] --onlyTests <regex> -- <files>\n       npm run ward -- --committed\n       npm run ward -- --uncommitted\n       npm run ward -- --committed --uncommitted`;
+const USAGE = `Usage: npm run ward -- [--only <check-types>] [-- <files>]\n       npm run ward -- [--only <check-types>] --onlyTests <regex> -- <files>\n       npm run ward -- --committed\n       npm run ward -- --uncommitted\n       npm run ward -- --committed --uncommitted\n       npm run ward -- --prune [default|all]`;
 
 export const cliArgsParseTransformer = ({
   args,
@@ -47,6 +54,22 @@ export const cliArgsParseTransformer = ({
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+
+    if (arg === '--prune' || (typeof arg === 'string' && arg.startsWith('--prune='))) {
+      if (typeof arg === 'string' && arg.startsWith('--prune=')) {
+        const mode = arg.slice('--prune='.length);
+        parsed.prune = mode === 'all' ? 'all' : 'default';
+      } else {
+        const nextArg = args[i + 1];
+        if (nextArg !== undefined && !nextArg.startsWith('-')) {
+          parsed.prune = nextArg === 'all' ? 'all' : 'default';
+          i++;
+        } else {
+          parsed.prune = 'default';
+        }
+      }
+      continue;
+    }
 
     if (arg === '--') {
       const rest = args.slice(i + 1).map(String);
