@@ -382,7 +382,7 @@ included at 570 files, runs on the worker budget.
 count tuned for a 12-core box exhausts memory on a laptop. Jest resolves the percentage against the
 machine. Concurrency is governed dynamically; `ward.concurrency` is not a config setting. In multi-package
 mode, the parent calculates Jest's worker share dynamically per child at dispatch as
-`max(10, floor(100 / inFlight))` and passes `--jestWorkers <percentage>`. When absent, `--maxWorkers=25%` is used.
+`max(10, floor(maxCpuPercent / inFlight))` based on `resources.maxCpuPercent` (default 75%) rather than unbounded 100%, ensuring child tests never exhaust all machine cores, and passes `--jestWorkers <percentage>`. When absent, `--maxWorkers=25%` is used.
 
 ### Leak detection rides the in-band branch, and only that branch
 
@@ -476,8 +476,9 @@ the OS for the two independently, so a run that fails to pass the web port expli
 In multi-package mode, concurrency is governed dynamically rather than configured statically:
 
 - **Dynamic governor**: `multiPackageLayerBroker` governs concurrency using `capacityReadBroker` from `@dungeonmaster/load-balancer`. Before each package dispatch, the promise pool limit is sized dynamically based on available system memory, cgroup limits, CPU cores, load average, and active leases across the machine. Package concurrency is not configured statically; `ward.concurrency` is not a valid setting.
+- **Pool ramp-up**: Concurrency starts with `loadBalancerStatics.cpu.ramp.initialLimit` (2) and steps up by `stepCount` (1) every 2 seconds (`stepIntervalMs: 2000`) up to capacity. The shared promise pool uses `pollIntervalMs: 1000` to wake up and dispatch newly eligible packages as the ramp limit expands, without waiting for running packages to complete.
 - **Degraded fallback**: If capacity estimation or lease operations degrade or encounter an error (other than `NodeVersionUnsupportedError`), ward falls back to limit 1 for the rest of the run and logs `ward: load balancing degraded: <message>` once to stderr.
-- **Dynamic Jest share**: The parent computes child `--jestWorkers` percentage dynamically at dispatch as `max(10, floor(100 / inFlight))` based on packages currently in flight, scaling CPU worker allocation to avoid CPU oversubscription.
+- **Dynamic Jest share**: The parent computes child `--jestWorkers` percentage dynamically at dispatch as `max(10, floor(maxCpuPercent / inFlight))` based on packages currently in flight and `resources.maxCpuPercent` (default 75%) rather than unbounded 100%, ensuring child tests never exhaust all machine cores.
 - **Process-tree memory sampling**: The parent samples each child's memory usage via `memoryPeakSampleBroker`, which reads `/proc` and sums the RSS across the root child pid and all its descendant processes (including browsers and servers that run in their own process groups). The peak RSS is recorded in the machine registry's `durations` table.
 - **Process group discipline**: Child ward processes stay in the parent's process group rather than running detached, ensuring SIGINT and Ctrl-C signals cleanly reach all subprocesses.
 

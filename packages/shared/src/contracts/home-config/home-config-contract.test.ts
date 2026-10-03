@@ -43,6 +43,7 @@ describe('homeConfigContract', () => {
       const config = HomeConfigStub({
         resources: {
           maxMemoryPercent: 75,
+          maxCpuPercent: 70,
           maxDiskMB: 8192,
         },
       });
@@ -51,6 +52,7 @@ describe('homeConfigContract', () => {
 
       expect(result.resources).toStrictEqual({
         maxMemoryPercent: 75,
+        maxCpuPercent: 70,
         maxDiskMB: 8192,
       });
     });
@@ -80,6 +82,26 @@ describe('homeConfigContract', () => {
         homeConfigContract.parse({
           resources: {
             maxMemoryPercent: 101,
+          },
+        });
+      }).toThrow(/too_big/u);
+    });
+
+    it('INVALID: maxCpuPercent below min (9) => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxCpuPercent: 9,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: maxCpuPercent above max (96) => throws validation error', () => {
+      expect(() => {
+        homeConfigContract.parse({
+          resources: {
+            maxCpuPercent: 96,
           },
         });
       }).toThrow(/too_big/u);

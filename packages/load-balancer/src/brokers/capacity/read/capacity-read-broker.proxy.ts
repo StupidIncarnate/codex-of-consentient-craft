@@ -9,6 +9,7 @@
  * proxy.setupLeasesFailure({ error: 'sqlite locked' });
  */
 
+import { machineResourcesStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type { LeaseStub } from '../../../contracts/lease/lease.stub';
@@ -25,7 +26,7 @@ type MachineReading = ReturnType<typeof MachineReadingStub>;
 
 export const capacityReadBrokerProxy = (): {
   setupLimits: (params?: {
-    resources?: { maxMemoryPercent: number; maxDiskMB: number };
+    resources?: { maxMemoryPercent: number; maxCpuPercent?: number; maxDiskMB: number };
     guildPaths?: readonly string[];
     warning?: string | null;
   }) => void;
@@ -36,7 +37,7 @@ export const capacityReadBrokerProxy = (): {
     diskPath?: string;
     machine?: MachineReading;
     leases?: readonly Lease[];
-    resources?: { maxMemoryPercent: number; maxDiskMB: number };
+    resources?: { maxMemoryPercent: number; maxCpuPercent?: number; maxDiskMB: number };
     warning?: string | null;
   }) => void;
   setupThrows: (params: { error: Error | string }) => void;
@@ -50,14 +51,17 @@ export const capacityReadBrokerProxy = (): {
   const leaseHandle = registerMock({ fn: leaseListLiveBroker });
 
   const setupLimits = (params?: {
-    resources?: { maxMemoryPercent: number; maxDiskMB: number };
+    resources?: { maxMemoryPercent: number; maxCpuPercent?: number; maxDiskMB: number };
     guildPaths?: readonly string[];
     warning?: string | null;
   }): void => {
     limitsHandle.calledWith([]).resolves({
-      resources: params?.resources ?? {
-        maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+      resources: {
+        maxMemoryPercent:
+          params?.resources?.maxMemoryPercent ?? machineResourcesStatics.maxMemoryPercent.default,
+        maxCpuPercent:
+          params?.resources?.maxCpuPercent ?? machineResourcesStatics.maxCpuPercent.default,
+        maxDiskMB: params?.resources?.maxDiskMB ?? machineResourcesStatics.maxDiskMB.default,
       },
       guildPaths: params?.guildPaths ?? [],
       warning: params?.warning ?? null,

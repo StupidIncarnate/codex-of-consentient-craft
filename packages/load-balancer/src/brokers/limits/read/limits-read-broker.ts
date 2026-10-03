@@ -15,15 +15,18 @@ import { dungeonmasterHomeStatics, machineResourcesStatics } from '@dungeonmaste
 
 const DEFAULT_RESOURCES: {
   maxMemoryPercent: number;
+  maxCpuPercent: number;
   maxDiskMB: number;
 } = {
   maxMemoryPercent: machineResourcesStatics.maxMemoryPercent.default,
+  maxCpuPercent: machineResourcesStatics.maxCpuPercent.default,
   maxDiskMB: machineResourcesStatics.maxDiskMB.default,
 };
 
 export const limitsReadBroker = async (): Promise<{
   resources: {
     maxMemoryPercent: number;
+    maxCpuPercent: number;
     maxDiskMB: number;
   };
   guildPaths: readonly string[];
@@ -70,6 +73,7 @@ export const limitsReadBroker = async (): Promise<{
     if (validation.success) {
       resources = {
         maxMemoryPercent: validation.data.maxMemoryPercent,
+        maxCpuPercent: validation.data.maxCpuPercent,
         maxDiskMB: validation.data.maxDiskMB,
       };
     } else {

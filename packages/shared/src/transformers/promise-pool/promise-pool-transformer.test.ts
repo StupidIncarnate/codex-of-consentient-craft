@@ -1,3 +1,5 @@
+import { setTimeout } from '#gateway/node/setTimeout';
+
 import { promisePoolTransformer } from './promise-pool-transformer';
 
 const createDeferred = <T>(): {
@@ -384,6 +386,52 @@ describe('promisePoolTransformer', () => {
       const results = await poolPromise;
 
       expect(results).toStrictEqual(['done-0', 'done-1', 'done-2', 'done-3', 'done-4']);
+    });
+
+    it('VALID: {limit rises while items pending, pollIntervalMs} => wakes up and dispatches next item without waiting for completion', async () => {
+      let currentLimit = 1;
+      const started: string[] = [];
+      const deferreds = new Map<string, ReturnType<typeof createDeferred<string>>>();
+      deferreds.set('item-0', createDeferred<string>());
+      deferreds.set('item-1', createDeferred<string>());
+
+      const items = ['item-0', 'item-1'];
+      const handler = async (item: string): Promise<string> => {
+        started.push(item);
+        return deferreds.get(item)!.promise;
+      };
+
+      const limit = async (): Promise<number> => {
+        await Promise.resolve();
+        return currentLimit;
+      };
+
+      const poolPromise = promisePoolTransformer({
+        items,
+        handler,
+        limit,
+        pollIntervalMs: 50,
+      });
+
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0']);
+
+      currentLimit = 2;
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 80);
+      });
+      await flushPromises();
+
+      expect(started).toStrictEqual(['item-0', 'item-1']);
+
+      deferreds.get('item-0')!.resolve('done-0');
+      deferreds.get('item-1')!.resolve('done-1');
+
+      const results = await poolPromise;
+
+      expect(results).toStrictEqual(['done-0', 'done-1']);
     });
 
     it('ERROR: {handler rejects with limit} => rejects the pool call with handler error', async () => {

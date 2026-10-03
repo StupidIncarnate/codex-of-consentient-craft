@@ -10,16 +10,21 @@
  * // Returns: [2, 4, 6]
  */
 
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { setTimeout } from '#gateway/node/setTimeout';
+
 export const promisePoolTransformer = async <T, R>({
   items,
   concurrency = 4,
   handler,
   limit,
+  pollIntervalMs = 0,
 }: {
   items: T[];
   concurrency?: number;
   handler: (item: T) => Promise<R>;
   limit?: () => Promise<number>;
+  pollIntervalMs?: number;
 }): Promise<R[]> => {
   if (items.length === 0) {
     return [];
@@ -61,11 +66,20 @@ export const promisePoolTransformer = async <T, R>({
     let inFlightCount = 0;
     let hasSettled = false;
     let dispatchQueue: Promise<void> = Promise.resolve();
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
     const pool = {
+      clearPollTimer: (): void => {
+        if (pollTimer !== null) {
+          clearTimeout(pollTimer);
+          pollTimer = null;
+        }
+      },
+
       handleFailure: (error: unknown): void => {
         if (!hasSettled) {
           hasSettled = true;
+          pool.clearPollTimer();
           const rejection = error instanceof Error ? error : new Error(String(error));
           reject(rejection);
         }
@@ -82,6 +96,7 @@ export const promisePoolTransformer = async <T, R>({
 
           if (nextIndex >= items.length && inFlightCount === 0) {
             hasSettled = true;
+            pool.clearPollTimer();
             resolve(results);
             return;
           }
@@ -94,12 +109,14 @@ export const promisePoolTransformer = async <T, R>({
 
       dispatch: async (): Promise<void> => {
         if (hasSettled || nextIndex >= items.length) {
+          pool.clearPollTimer();
           return;
         }
 
         const limitCount = Math.max(1, await limit());
 
         if (inFlightCount < limitCount && nextIndex < items.length) {
+          pool.clearPollTimer();
           const currentIndex = nextIndex;
           nextIndex += 1;
           inFlightCount += 1;
@@ -107,6 +124,13 @@ export const promisePoolTransformer = async <T, R>({
           pool.runItem(currentIndex).catch(pool.handleFailure);
 
           await pool.dispatch();
+        } else if (inFlightCount >= limitCount && nextIndex < items.length && pollIntervalMs > 0) {
+          pool.clearPollTimer();
+          pollTimer = setTimeout(() => {
+            if (!hasSettled && nextIndex < items.length) {
+              pool.queueDispatch();
+            }
+          }, pollIntervalMs);
         }
       },
 

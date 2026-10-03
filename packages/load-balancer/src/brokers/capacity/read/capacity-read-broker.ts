@@ -27,6 +27,7 @@ export const capacityReadBroker = async ({
   liveLeases: readonly Lease[];
   resources: {
     maxMemoryPercent: number;
+    maxCpuPercent: number;
     maxDiskMB: number;
   };
   warnings: readonly string[];
@@ -48,6 +49,7 @@ export const capacityReadBroker = async ({
     liveLeases,
     job: job ?? { peakMB: null },
     maxMemoryPercent: resources.maxMemoryPercent,
+    maxCpuPercent: resources.maxCpuPercent,
   });
 
   const warnings: string[] = [];

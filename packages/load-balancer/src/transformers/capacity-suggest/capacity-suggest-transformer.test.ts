@@ -10,7 +10,7 @@ describe('capacitySuggestTransformer', () => {
   describe('resource limits and binding', () => {
     it('VALID: {high memory, constrained cores} => CPU binds', () => {
       const machine = MachineReadingStub({
-        cores: 4,
+        cores: 6,
         loadAvg: [2.0, 1.0, 1.0],
         freeMemMB: 8000,
         totalMemMB: 16_000,
@@ -50,7 +50,7 @@ describe('capacitySuggestTransformer', () => {
 
       expect(result).toStrictEqual({
         suggestion: 2,
-        cpuLimit: 8,
+        cpuLimit: 6,
         freeMemoryLimit: 2,
         capMemoryLimit: 25,
       });
@@ -79,7 +79,7 @@ describe('capacitySuggestTransformer', () => {
 
       expect(result).toStrictEqual({
         suggestion: 2,
-        cpuLimit: 8,
+        cpuLimit: 6,
         freeMemoryLimit: 14,
         capMemoryLimit: 2,
       });
@@ -109,7 +109,7 @@ describe('capacitySuggestTransformer', () => {
 
       expect(result).toStrictEqual({
         suggestion: 2,
-        cpuLimit: 8,
+        cpuLimit: 6,
         freeMemoryLimit: 2,
         capMemoryLimit: 23,
       });
@@ -139,7 +139,7 @@ describe('capacitySuggestTransformer', () => {
 
       expect(result).toStrictEqual({
         suggestion: 3,
-        cpuLimit: 8,
+        cpuLimit: 6,
         freeMemoryLimit: 18,
         capMemoryLimit: 3,
       });
@@ -162,8 +162,8 @@ describe('capacitySuggestTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        suggestion: 3,
-        cpuLimit: 3,
+        suggestion: 2,
+        cpuLimit: 2,
         freeMemoryLimit: null,
         capMemoryLimit: null,
       });
@@ -184,8 +184,8 @@ describe('capacitySuggestTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        suggestion: 3,
-        cpuLimit: 3,
+        suggestion: 2,
+        cpuLimit: 2,
         freeMemoryLimit: null,
         capMemoryLimit: null,
       });
@@ -211,8 +211,8 @@ describe('capacitySuggestTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        suggestion: 7,
-        cpuLimit: 7,
+        suggestion: 5,
+        cpuLimit: 5,
         freeMemoryLimit: null,
         capMemoryLimit: null,
       });
@@ -236,8 +236,8 @@ describe('capacitySuggestTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        suggestion: 8,
-        cpuLimit: 8,
+        suggestion: 6,
+        cpuLimit: 6,
         freeMemoryLimit: null,
         capMemoryLimit: null,
       });
@@ -298,7 +298,7 @@ describe('capacitySuggestTransformer', () => {
 
       expect(result).toStrictEqual({
         suggestion: 0,
-        cpuLimit: 8,
+        cpuLimit: 6,
         freeMemoryLimit: 0,
         capMemoryLimit: 24,
       });
@@ -327,7 +327,7 @@ describe('capacitySuggestTransformer', () => {
 
       expect(result).toStrictEqual({
         suggestion: 0,
-        cpuLimit: 8,
+        cpuLimit: 6,
         freeMemoryLimit: 14,
         capMemoryLimit: 0,
       });
@@ -347,11 +347,66 @@ describe('capacitySuggestTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        suggestion: 3,
-        cpuLimit: 3,
+        suggestion: 2,
+        cpuLimit: 2,
         freeMemoryLimit: null,
         capMemoryLimit: null,
       });
+    });
+  });
+
+  describe('cpu headroom and maxCpuPercent', () => {
+    it('VALID: {12 cores, default 75% maxCpuPercent} => targets 9 cores, leaves 3 cores free', () => {
+      const machine = MachineReadingStub({
+        cores: 12,
+        loadAvg: [0.0, 0.0, 0.0],
+      });
+
+      const result = capacitySuggestTransformer({
+        machine,
+        liveLeases: [],
+        job: { peakMB: null },
+        maxMemoryPercent: 80,
+        nowMs: BASE_NOW_MS,
+      });
+
+      expect(result.cpuLimit).toBe(9);
+    });
+
+    it('VALID: {12 cores, 100% maxCpuPercent} => headroom preserves at least 1 core free', () => {
+      const machine = MachineReadingStub({
+        cores: 12,
+        loadAvg: [0.0, 0.0, 0.0],
+      });
+
+      const result = capacitySuggestTransformer({
+        machine,
+        liveLeases: [],
+        job: { peakMB: null },
+        maxMemoryPercent: 80,
+        maxCpuPercent: 100,
+        nowMs: BASE_NOW_MS,
+      });
+
+      expect(result.cpuLimit).toBe(11);
+    });
+
+    it('VALID: {8 cores, explicit 50% maxCpuPercent} => caps target cores to 4', () => {
+      const machine = MachineReadingStub({
+        cores: 8,
+        loadAvg: [0.0, 0.0, 0.0],
+      });
+
+      const result = capacitySuggestTransformer({
+        machine,
+        liveLeases: [],
+        job: { peakMB: null },
+        maxMemoryPercent: 80,
+        maxCpuPercent: 50,
+        nowMs: BASE_NOW_MS,
+      });
+
+      expect(result.cpuLimit).toBe(4);
     });
   });
 });

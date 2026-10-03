@@ -23,5 +23,11 @@ export const loadBalancerStatics = {
   },
   cpu: {
     minAllowed: 1,
+    headroomCores: 1,
+    ramp: {
+      initialLimit: 2,
+      stepIntervalMs: 2000,
+      stepCount: 1,
+    },
   },
 } as const;

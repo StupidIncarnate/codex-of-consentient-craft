@@ -25,7 +25,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: [],
     });
@@ -51,8 +52,8 @@ describe('capacityReadBroker', () => {
 
     expect(result).toStrictEqual({
       suggestion: {
-        suggestion: 7,
-        cpuLimit: 7,
+        suggestion: 5,
+        cpuLimit: 5,
         freeMemoryLimit: 17,
         capMemoryLimit: 32,
       },
@@ -60,7 +61,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: [],
     });
@@ -97,8 +99,8 @@ describe('capacityReadBroker', () => {
 
     expect(result).toStrictEqual({
       suggestion: {
-        suggestion: 7,
-        cpuLimit: 7,
+        suggestion: 5,
+        cpuLimit: 5,
         freeMemoryLimit: 12,
         capMemoryLimit: 27,
       },
@@ -106,7 +108,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [lease],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: [],
     });
@@ -132,7 +135,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: [limitsWarning],
     });
@@ -160,7 +164,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: ['node:sqlite needs Node 22.16 or newer (running 20.0.0)'],
     });
@@ -186,7 +191,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: ['corrupt registry'],
     });
@@ -213,7 +219,8 @@ describe('capacityReadBroker', () => {
       liveLeases: [],
       resources: {
         maxMemoryPercent: 80,
-        maxDiskMB: 4096,
+        maxCpuPercent: 75,
+        maxDiskMB: 16384,
       },
       warnings: [limitsWarning, 'registry missing'],
     });

@@ -13,6 +13,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { capacityReadBrokerProxy } from '@dungeonmaster/load-balancer/brokers/capacity/read/capacity-read-broker.proxy';
 import { diskBudgetEnforceBrokerProxy } from '@dungeonmaster/load-balancer/brokers/disk/budget-enforce/disk-budget-enforce-broker.proxy';
 import { DiskItemStub } from '@dungeonmaster/load-balancer/contracts/disk-item/disk-item.stub';
+import { machineResourcesStatics } from '@dungeonmaster/shared/statics';
 import { leaseTakeBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/take/lease-take-broker.proxy';
 import { leaseBeatBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/beat/lease-beat-broker.proxy';
 import { leaseReleaseBrokerProxy } from '@dungeonmaster/load-balancer/brokers/lease/release/lease-release-broker.proxy';
@@ -80,6 +81,12 @@ export const multiPackageLayerBrokerProxy = (): {
   setupNoSpawns: (params: { rootPath: string }) => void;
   setupWardConcurrency: (params: { rootPath: string; concurrency: number }) => void;
   setupCapacitySuggestion: (params: { suggestion: number; diskPath?: string }) => void;
+  setupCapacityLimits: (params?: {
+    maxMemoryPercent?: number;
+    maxCpuPercent?: number;
+    maxDiskMB?: number;
+  }) => void;
+  setupRampElapsedMs: (params: { elapsedMs: number }) => void;
   setupCapacityReadThrows: (params: { error: Error }) => void;
   setupCapacityWarning: (params: { warning: string }) => void;
   setupMemoryPeak: (params: { peakMB: number | null; pid?: number }) => void;
@@ -119,7 +126,8 @@ export const multiPackageLayerBrokerProxy = (): {
   wardEntry: string;
 } => {
   // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
-  registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(runIdMockStatics.timestamp);
+  const dateSpy = registerSpyOn({ object: Date, method: 'now' });
+  dateSpy.calledWith([]).returns(runIdMockStatics.timestamp);
   registerSpyOn({ object: Math, method: 'random' })
     .calledWith([])
     .returns(runIdMockStatics.randomValue);
@@ -351,6 +359,34 @@ export const multiPackageLayerBrokerProxy = (): {
           totalMemMB: 100000,
         }),
       });
+    },
+
+    setupCapacityLimits: (params?: {
+      maxMemoryPercent?: number;
+      maxCpuPercent?: number;
+      maxDiskMB?: number;
+    }): void => {
+      capacityProxy.setupLimits(
+        params === undefined
+          ? {}
+          : {
+              resources: {
+                maxMemoryPercent:
+                  params.maxMemoryPercent ?? machineResourcesStatics.maxMemoryPercent.default,
+                ...(params.maxCpuPercent === undefined
+                  ? {}
+                  : { maxCpuPercent: params.maxCpuPercent }),
+                maxDiskMB: params.maxDiskMB ?? machineResourcesStatics.maxDiskMB.default,
+              },
+            },
+      );
+    },
+
+    setupRampElapsedMs: ({ elapsedMs }: { elapsedMs: number }): void => {
+      dateSpy.onceFor([]).returns(runIdMockStatics.timestamp);
+      dateSpy.onceFor([]).returns(runIdMockStatics.timestamp);
+      dateSpy.onceFor([]).returns(runIdMockStatics.timestamp);
+      dateSpy.calledWith([]).returns(runIdMockStatics.timestamp + elapsedMs);
     },
 
     setupCapacityReadThrows: ({ error }: { error: Error }): void => {

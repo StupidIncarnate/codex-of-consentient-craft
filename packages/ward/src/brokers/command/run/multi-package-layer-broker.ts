@@ -13,6 +13,7 @@ import { setInterval } from '#gateway/node/setInterval';
 import { clearInterval } from '#gateway/node/clearInterval';
 import { NodeVersionUnsupportedError } from '#gateway/node/sqlite';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
+import { machineResourcesStatics } from '@dungeonmaster/shared/statics';
 import {
   capacityReadBroker,
   diskBudgetEnforceBroker,
@@ -151,9 +152,11 @@ export const multiPackageLayerBroker = async ({
 
   const unstartedPackages = new Set(dispatchFolders.map((folder) => folder.name));
   const runStartMs = Date.now();
+  let currentMaxCpuPercent: number = machineResourcesStatics.maxCpuPercent.default;
 
   const subResults = await promisePoolTransformer({
     items: dispatchFolders,
+    pollIntervalMs: 1000,
     limit: async (): Promise<number> => {
       if (degraded.has('capacity')) {
         return 1;
@@ -173,6 +176,8 @@ export const multiPackageLayerBroker = async ({
           job: { peakMB: maxExpectedPeak },
         });
 
+        currentMaxCpuPercent = capacity.resources.maxCpuPercent;
+
         for (const warning of capacity.warnings) {
           if (!printedWarnings.has(warning)) {
             printedWarnings.add(warning);
@@ -180,7 +185,17 @@ export const multiPackageLayerBroker = async ({
           }
         }
 
-        return inFlightCount + capacity.suggestion.suggestion;
+        const nowMs = Date.now();
+        const elapsedMs = nowMs - runStartMs;
+        const steps = Math.floor(
+          Math.max(0, elapsedMs) / loadBalancerStatics.cpu.ramp.stepIntervalMs,
+        );
+        const rampLimit =
+          loadBalancerStatics.cpu.ramp.initialLimit +
+          steps * loadBalancerStatics.cpu.ramp.stepCount;
+        const capacityLimit = inFlightCount + capacity.suggestion.suggestion;
+
+        return Math.max(1, Math.min(capacityLimit, rampLimit));
       } catch (error: unknown) {
         if (error instanceof NodeVersionUnsupportedError) {
           throw error;
@@ -199,7 +214,7 @@ export const multiPackageLayerBroker = async ({
 
       const jestWorkerLimits = {
         minPercent: 10,
-        totalPercent: 100,
+        totalPercent: currentMaxCpuPercent,
       };
       const jestWorkers = Math.max(
         jestWorkerLimits.minPercent,

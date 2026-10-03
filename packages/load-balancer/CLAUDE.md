@@ -40,6 +40,47 @@ Active leases are inspected and reaped by `leaseListLiveBroker` using two mechan
 1. **Pid liveness check (`kill(pid, 0)`)**: reaps the lease immediately when the owning process exits or crashes.
 2. **Heartbeat (`leaseBeatBroker`)**: marks a lease stale after 30 seconds (`loadBalancerStatics.lease.staleAfterMs`). This handles ungraceful termination or cross-container pid recycling where pid liveness might be ambiguous.
 
+## CPU Capacity, Headroom, and Ramp-Up
+
+Dungeonmaster manages CPU allocation through capacity suggestions, headroom reservation, and gradual pool ramp-up.
+
+### Headroom Protection
+
+CPU headroom is configured via `loadBalancerStatics.cpu.headroomCores` (default `1`). The balancer always leaves at least 1 core unallocated for the operating system, IDE, and user workflows.
+
+### Capacity Estimation
+
+`capacitySuggestTransformer` calculates the target allowable cores by clamping available cores to `maxCpuPercent` (default 75%, configured under `resources.maxCpuPercent` in `~/.dungeonmaster/config.json`) and reserving `headroomCores`:
+
+```typescript
+const targetCores = Math.max(
+  loadBalancerStatics.cpu.minAllowed,
+  Math.min(
+    machine.cores - loadBalancerStatics.cpu.headroomCores,
+    Math.floor((machine.cores * maxCpuPercent) / PERCENT_DIVISOR),
+  ),
+);
+```
+
+The transformer derives `cpuLimit` by subtracting the 1-minute load average (`loadAvg1`) and recent in-flight leases from `targetCores`, bounded below by `loadBalancerStatics.cpu.minAllowed` (1 core).
+
+### CPU Ramp-Up
+
+To avoid CPU spikes at dispatch start, `loadBalancerStatics.cpu.ramp` defines a stepped concurrency warmup:
+- `initialLimit`: 2 concurrent items
+- `stepIntervalMs`: 2000 ms per step
+- `stepCount`: 1 additional item per step
+
+Consumers such as ward's `multiPackageLayerBroker` combine the ramp limit with the dynamic capacity limit:
+
+```typescript
+const elapsedMs = nowMs - runStartMs;
+const steps = Math.floor(Math.max(0, elapsedMs) / loadBalancerStatics.cpu.ramp.stepIntervalMs);
+const rampLimit = loadBalancerStatics.cpu.ramp.initialLimit + steps * loadBalancerStatics.cpu.ramp.stepCount;
+const capacityLimit = inFlightCount + capacity.suggestion.suggestion;
+return Math.max(1, Math.min(capacityLimit, rampLimit));
+```
+
 ## Disk Budget
 
 Dungeonmaster bounds its cumulative disk usage across repositories and temp environments to `maxDiskMB` (default 16384 MB / 16 GB), configured under `resources.maxDiskMB` in `~/.dungeonmaster/config.json`.

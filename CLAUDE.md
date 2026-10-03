@@ -92,6 +92,7 @@ kill the parent server otherwise).
 **Machine hardware configuration (`~/.dungeonmaster/config.json`):**
 Hardware resource boundaries live in `~/.dungeonmaster/config.json` under `resources`:
 - `maxMemoryPercent` — percentage of machine memory ward and siegelense may collectively use (default 80, bounds 10–100).
+- `maxCpuPercent` — percentage of machine CPU capacity ward and siegelense may collectively target (default 75, bounds 10–95). Dungeonmaster always reserves at least 1 core for the OS and IDE.
 - `maxDiskMB` — disk threshold in megabytes for cleanup / retention across dungeonmaster stores (min 1024, default 16384 / 16 GB).
 
 Dungeonmaster automatically balances its cumulative footprint across repo stores (`.ward/run-*.json`, `.ward/bundle/*`, `test-results/*`, `node_modules/.vite-*`, `.ward-playwright-report-*.json`) and user stores (`/tmp/jest_*/*`, `/tmp/dm-e2e-*`, `/tmp/dungeonmaster-jest-*`, `/tmp/dm-siege-*`, `<dungeonmasterHome>/siegelense/**/instances/*`), deleting the oldest eligible items first. Protected items (live process PIDs, newest ward run result per repo, items <10m old, ports <24h old, symlink targets) are never deleted.

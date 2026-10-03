@@ -23,6 +23,13 @@ export const homeConfigContract = z
           .max(machineResourcesStatics.maxMemoryPercent.max)
           .default(machineResourcesStatics.maxMemoryPercent.default)
           .brand<'HomeConfigResourcesMaxMemoryPercent'>(),
+        maxCpuPercent: z
+          .number()
+          .int()
+          .min(machineResourcesStatics.maxCpuPercent.min)
+          .max(machineResourcesStatics.maxCpuPercent.max)
+          .default(machineResourcesStatics.maxCpuPercent.default)
+          .brand<'HomeConfigResourcesMaxCpuPercent'>(),
         maxDiskMB: z
           .number()
           .int()

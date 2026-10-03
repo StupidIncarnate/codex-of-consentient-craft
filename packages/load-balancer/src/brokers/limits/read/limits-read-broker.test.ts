@@ -15,6 +15,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
+          maxCpuPercent: 75,
           maxDiskMB: 16384,
         },
         guildPaths: [],
@@ -31,6 +32,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
+          maxCpuPercent: 75,
           maxDiskMB: 16384,
         },
         guildPaths: [],
@@ -52,6 +54,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
+          maxCpuPercent: 75,
           maxDiskMB: 16384,
         },
         guildPaths: ['/repo/guild-alpha'],
@@ -61,11 +64,12 @@ describe('limitsReadBroker', () => {
   });
 
   describe('valid config with resources', () => {
-    it('VALID: {config: {resources: {maxMemoryPercent: 75, maxDiskMB: 8192}}} => returns parsed resources with null warning', async () => {
+    it('VALID: {config: {resources: {maxMemoryPercent: 75, maxCpuPercent: 70, maxDiskMB: 8192}}} => returns parsed resources with null warning', async () => {
       const proxy = limitsReadBrokerProxy();
       proxy.setupValidConfig({
         resources: {
           maxMemoryPercent: 75,
+          maxCpuPercent: 70,
           maxDiskMB: 8192,
         },
         guilds: [{ path: '/repo/guild-beta' }],
@@ -76,6 +80,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 75,
+          maxCpuPercent: 70,
           maxDiskMB: 8192,
         },
         guildPaths: ['/repo/guild-beta'],
@@ -98,11 +103,34 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
+          maxCpuPercent: 75,
           maxDiskMB: 16384,
         },
         guildPaths: [],
         warning:
           'config.json resources invalid: maxMemoryPercent: Too big: expected number to be <=100. Using defaults.',
+      });
+    });
+
+    it('INVALID: {config: {resources: {maxCpuPercent: 200}}} => returns defaults and warning naming cpu percent issue', async () => {
+      const proxy = limitsReadBrokerProxy();
+      proxy.setupInvalidResources({
+        resources: {
+          maxCpuPercent: 200,
+        },
+      });
+
+      const result = await limitsReadBroker();
+
+      expect(result).toStrictEqual({
+        resources: {
+          maxMemoryPercent: 80,
+          maxCpuPercent: 75,
+          maxDiskMB: 16384,
+        },
+        guildPaths: [],
+        warning:
+          'config.json resources invalid: maxCpuPercent: Too big: expected number to be <=95. Using defaults.',
       });
     });
 
@@ -119,6 +147,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
+          maxCpuPercent: 75,
           maxDiskMB: 16384,
         },
         guildPaths: [],
@@ -145,6 +174,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 80,
+          maxCpuPercent: 75,
           maxDiskMB: 16384,
         },
         guildPaths: ['/repo/valid-guild-1', '/repo/valid-guild-2'],
@@ -164,6 +194,7 @@ describe('limitsReadBroker', () => {
         homeDir: testHome,
         resources: {
           maxMemoryPercent: 65,
+          maxCpuPercent: 70,
           maxDiskMB: 2048,
         },
         guilds: [{ path: '/repo/real-guild' }],
@@ -179,6 +210,7 @@ describe('limitsReadBroker', () => {
         rawContents: JSON.stringify({
           resources: {
             maxMemoryPercent: 95,
+            maxCpuPercent: 70,
             maxDiskMB: 16384,
           },
           guilds: [{ path: '/repo/env-guild' }],
@@ -192,6 +224,7 @@ describe('limitsReadBroker', () => {
       expect(result).toStrictEqual({
         resources: {
           maxMemoryPercent: 65,
+          maxCpuPercent: 70,
           maxDiskMB: 2048,
         },
         guildPaths: ['/repo/real-guild'],

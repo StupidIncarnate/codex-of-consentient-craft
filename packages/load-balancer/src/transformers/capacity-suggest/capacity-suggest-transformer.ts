@@ -13,6 +13,8 @@
  * // Returns: LoadCapacitySuggestion
  */
 
+import { machineResourcesStatics } from '@dungeonmaster/shared/statics';
+
 import { loadCapacitySuggestionContract } from '../../contracts/load-capacity-suggestion/load-capacity-suggestion-contract';
 import type { LoadCapacitySuggestion } from '../../contracts/load-capacity-suggestion/load-capacity-suggestion-contract';
 import type { Lease } from '../../contracts/lease/lease-contract';
@@ -28,12 +30,14 @@ export const capacitySuggestTransformer = ({
   liveLeases,
   job,
   maxMemoryPercent,
+  maxCpuPercent = machineResourcesStatics.maxCpuPercent.default,
   nowMs = Date.now(),
 }: {
   machine: MachineReading;
   liveLeases: readonly Lease[];
   job: { peakMB: number | null };
   maxMemoryPercent: number;
+  maxCpuPercent?: number;
   nowMs?: number;
 }): LoadCapacitySuggestion => {
   const [loadAvg1] = machine.loadAvg;
@@ -42,8 +46,16 @@ export const capacitySuggestTransformer = ({
     (lease) => nowMs - lease.startedAtMs < RECENT_LEASE_WINDOW_MS,
   ).length;
 
+  const targetCores = Math.max(
+    loadBalancerStatics.cpu.minAllowed,
+    Math.min(
+      machine.cores - loadBalancerStatics.cpu.headroomCores,
+      Math.floor((machine.cores * maxCpuPercent) / PERCENT_DIVISOR),
+    ),
+  );
+
   const rawCpuLimit =
-    Math.max(loadBalancerStatics.cpu.minAllowed, Math.floor(machine.cores - loadAvg1)) -
+    Math.max(loadBalancerStatics.cpu.minAllowed, Math.floor(targetCores - loadAvg1)) -
     recentInFlightLeases;
   const cpuLimit = Math.max(FLOOR_MINIMUM, rawCpuLimit);
 
