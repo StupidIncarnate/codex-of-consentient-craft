@@ -1,4 +1,5 @@
 ---
+name: operator
 description: Enter operator mode to autonomously orchestrate an implementation plan via the orchestrate skill
 ---
 
@@ -20,8 +21,8 @@ Your goal is to autonomously orchestrate the execution of the plan document prov
    - All subagent operations and commands run within the worktree directory (`worktrees/<name>/`).
     - At most **THREE (3)** concurrent subagents.
     - You exclusively own staging (`git add`), builds, and commits. Subagents never run git commands or builds.
-    - Maintain the **4-minute keepalive check-in
-      schedule** (`DurationSeconds=240`) during subagent runs to preserve Gemini context prefix cache warmth.
+   - Maintain the **4-minute keepalive check-in
+     schedule** (`DurationSeconds=240`) during subagent runs to preserve Gemini context prefix cache warmth.
     - Maintain the **compact Execution Progress Tracker** in the plan document, checking off `[✓]` as items finish.
     - Emit **visible announcements** on every item start and finish:
         * Start: `▶️ Task <ID>: <Description>`
