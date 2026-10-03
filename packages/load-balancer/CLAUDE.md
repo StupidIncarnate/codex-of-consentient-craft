@@ -39,3 +39,38 @@ A lease is an active claim on machine capacity:
 Active leases are inspected and reaped by `leaseListLiveBroker` using two mechanisms:
 1. **Pid liveness check (`kill(pid, 0)`)**: reaps the lease immediately when the owning process exits or crashes.
 2. **Heartbeat (`leaseBeatBroker`)**: marks a lease stale after 30 seconds (`loadBalancerStatics.lease.staleAfterMs`). This handles ungraceful termination or cross-container pid recycling where pid liveness might be ambiguous.
+
+## Disk Budget
+
+Dungeonmaster bounds its cumulative disk usage across repositories and temp environments to `maxDiskMB` (default 16384 MB / 16 GB), configured under `resources.maxDiskMB` in `~/.dungeonmaster/config.json`.
+
+### Tracked Stores
+
+Stores are scanned across the current repository, registered guilds in `config.json`, and user directories:
+- **Repo stores**:
+  - `ward-run-results`: `.ward/run-*.json` (newest per repo is protected)
+  - `ward-bundle-cache`: `packages/*/.ward/bundle/*`
+  - `e2e-test-results`: `test-results/*` (listening ports <24h old are protected)
+  - `e2e-vite-cache`: `node_modules/.vite-*`
+  - `e2e-playwright-reports`: `.ward-playwright-report-*.json`
+- **User stores**:
+  - `jest-transform-cache`: `/tmp/jest_*/*`
+  - `e2e-sandboxes`: `/tmp/dm-e2e-*` (live PIDs are protected)
+  - `jest-test-sandboxes`: `/tmp/dungeonmaster-jest-*` (live PIDs are protected)
+  - `siegelense-sandboxes`: `/tmp/dm-siege-*` (active instances are protected)
+  - `siegelense-evidence`: `<dungeonmasterHome>/siegelense/**/instances/*` (active instances and cited quests are protected)
+
+### Protection Constraints
+
+The budget enforcer (`diskBudgetEnforceBroker`) deletes the oldest eligible items first, but never touches:
+- Active processes: folders with a live PID (`dm-e2e-<pid>`, `dungeonmaster-jest-<pid>`, active siegelense instances).
+- Young items: items modified within `minAgeMs` (10 minutes).
+- Repository head: the single newest ward run file in each repo (`newest-per-repo`).
+- Active or recent test ports: ports listening or active within `orphanedPortTimeoutMs` (24 hours).
+- Symlink traversal: symlinks are never followed out of their stores; only the link itself is counted or removed.
+
+### Execution Cadence
+
+- **Background pass**: executes after existing store-specific pruners (`storagePruneBroker`, `jestCachePruneBroker`) in `multiPackageLayerBroker` and `cleanupRunBroker`. Rate-limited to run at most once every `runEveryMs` (10 minutes).
+- **Manual CLI pass**: `npm run ward -- --prune` or `npm run ward -- --prune all` prints an itemized inventory and eviction report.
+

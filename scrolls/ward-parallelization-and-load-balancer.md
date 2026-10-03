@@ -456,13 +456,13 @@ Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [MERGED]
   #7   D18 [✓]
   #8   D16 [✓]
 
-Unit S (Disk Budget · worktree wp-unit-s) — [IN PROGRESS]
+Unit S (Disk Budget · worktree wp-unit-s) — [COMPLETE]
   #1   S0 [✓]
   #2   S1 [✓]  S2 [✓]
   #3   S3 [✓]
   #4   S4 [✓]
   #5   S5a [✓] S5b [✓]
-  #6   S6 [ ]
+  #6   S6 [✓]
 ```
 
 ### 8.4 Unit N tasks (worktree `wp-unit-n`)
