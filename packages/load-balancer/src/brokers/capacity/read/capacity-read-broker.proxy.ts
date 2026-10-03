@@ -39,6 +39,7 @@ export const capacityReadBrokerProxy = (): {
     resources?: { maxMemoryPercent: number; maxDiskMB: number };
     warning?: string | null;
   }) => void;
+  setupThrows: (params: { error: Error | string }) => void;
 } => {
   leaseListLiveBrokerProxy();
   limitsReadBrokerProxy();
@@ -101,11 +102,16 @@ export const capacityReadBrokerProxy = (): {
     });
   };
 
+  const setupThrows = ({ error }: { error: Error | string }): void => {
+    limitsHandle.calledWith([]).rejects(error);
+  };
+
   return {
     setupLimits,
     setupMachine,
     setupLeases,
     setupLeasesFailure,
+    setupThrows,
     setupDefaults,
   };
 };

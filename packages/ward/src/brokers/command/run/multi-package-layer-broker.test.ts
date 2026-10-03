@@ -1,4 +1,5 @@
 import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
+import { NodeVersionUnsupportedError } from '#gateway/node/sqlite';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
@@ -366,7 +367,7 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -448,8 +449,8 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
-        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/bar.test.ts'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint', '--', 'src/foo.test.ts'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '50', '--only', 'lint', '--', 'src/bar.test.ts'],
       ]);
     });
 
@@ -539,7 +540,9 @@ describe('multiPackageLayerBroker', () => {
         rootPath,
       });
 
-      expect(proxy.getAllSpawnedArgs()).toStrictEqual([[proxy.wardEntry, 'run', '--only', 'lint']]);
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+      ]);
     });
 
     it('VALID: {passthrough is bare package path with --onlyTests} => child is told the parent already scoped it', async () => {
@@ -598,7 +601,17 @@ describe('multiPackageLayerBroker', () => {
       // `--onlyTests` without a `-- <files>` scope the parser rejects. The marker says the parent
       // already narrowed the run to this one package.
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        [proxy.wardEntry, 'run', '--only', 'unit', '--onlyTests', 'my test', '--parentScoped'],
+        [
+          proxy.wardEntry,
+          'run',
+          '--jestWorkers',
+          '100',
+          '--only',
+          'unit',
+          '--onlyTests',
+          'my test',
+          '--parentScoped',
+        ],
       ]);
     });
 
@@ -680,8 +693,8 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        [proxy.wardEntry, 'run', '--only', 'lint'],
-        [proxy.wardEntry, 'run', '--only', 'lint', '--', 'src/foo.test.ts'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '50', '--only', 'lint', '--', 'src/foo.test.ts'],
       ]);
     });
 
@@ -760,8 +773,8 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        [proxy.wardEntry, 'run', '--only', 'lint'],
-        [proxy.wardEntry, 'run', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '50', '--only', 'lint'],
       ]);
     });
   });
@@ -1283,7 +1296,14 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
-        ['/home/user/project/packages/ward/dist/bin/ward-entry.js', 'run', '--only', 'lint'],
+        [
+          '/home/user/project/packages/ward/dist/bin/ward-entry.js',
+          'run',
+          '--jestWorkers',
+          '100',
+          '--only',
+          'lint',
+        ],
       ]);
     });
 
@@ -1312,7 +1332,9 @@ describe('multiPackageLayerBroker', () => {
         rootPath,
       });
 
-      expect(proxy.getAllSpawnedArgs()).toStrictEqual([['run', '--only', 'lint']]);
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        ['run', '--jestWorkers', '100', '--only', 'lint'],
+      ]);
     });
   });
 
@@ -1847,6 +1869,499 @@ describe('multiPackageLayerBroker', () => {
       expect(proxy.getAllSpawnedCwds()).toStrictEqual([wardFolder.path, hooksFolder.path]);
       expect(proxy.getStderrCalls()).toStrictEqual([
         'ward: duration history unavailable: sqlite table corrupt\n',
+        'ward: load balancing degraded: sqlite table corrupt\n',
+      ]);
+    });
+  });
+
+  describe('governor and machine load balancing', () => {
+    it('VALID: {child process runs} => takes lease on spawn and releases on finish', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+
+      await multiPackageLayerBroker({ config, projectFolders: [projectFolder], rootPath });
+
+      expect(proxy.getActiveLeases()).toStrictEqual([]);
+
+      const events = proxy.getLeaseAuditEvents();
+
+      expect(
+        events.map((event) => ({
+          action: event.action,
+          tool: event.tool,
+          label: event.label,
+          ownerPid: event.ownerPid,
+          expectedPeakMB: event.expectedPeakMB,
+        })),
+      ).toStrictEqual([
+        {
+          action: 'insert',
+          tool: 'ward',
+          label: 'ward',
+          ownerPid: 1234,
+          expectedPeakMB: null,
+        },
+        {
+          action: 'delete',
+          tool: 'ward',
+          label: 'ward',
+          ownerPid: 1234,
+          expectedPeakMB: null,
+        },
+      ]);
+      expect(events[0]?.leaseId).toBe(events[1]?.leaseId);
+    });
+
+    it('VALID: {child crashes} => releases lease in finally', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnWithNullLoad({ rootPath, projectFolder });
+
+      const result = await multiPackageLayerBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
+
+      expect(result.checks[0]?.status).toBe('fail');
+      expect(proxy.getActiveLeases()).toStrictEqual([]);
+
+      const events = proxy.getLeaseAuditEvents();
+
+      expect(
+        events.map((event) => ({
+          action: event.action,
+          tool: event.tool,
+          label: event.label,
+          ownerPid: event.ownerPid,
+          expectedPeakMB: event.expectedPeakMB,
+        })),
+      ).toStrictEqual([
+        {
+          action: 'insert',
+          tool: 'ward',
+          label: 'ward',
+          ownerPid: 1234,
+          expectedPeakMB: null,
+        },
+        {
+          action: 'delete',
+          tool: 'ward',
+          label: 'ward',
+          ownerPid: 1234,
+          expectedPeakMB: null,
+        },
+      ]);
+      expect(events[0]?.leaseId).toBe(events[1]?.leaseId);
+    });
+
+    it('VALID: {multiple concurrent packages} => calculates jestWorkers based on inFlightCount', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '50', '--only', 'lint'],
+      ]);
+    });
+
+    it('VALID: {capacity suggestion is zero} => restricts pool concurrency to 1 and runs packages sequentially', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+      proxy.setupCapacitySuggestion({ suggestion: 0, diskPath: rootPath });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+      ]);
+    });
+
+    it('ERROR: {capacityReadBroker throws non-NodeVersionUnsupportedError} => falls back to limit 1 and prints warning once', async () => {
+      const rootPath = '/home/user/project';
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const hooksFolder = ProjectFolderStub({
+        name: 'hooks',
+        path: '/home/user/project/packages/hooks',
+      });
+
+      const wardSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+      const hooksSubResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'hooks', path: '/home/user/project/packages/hooks' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
+      proxy.setupCapacityReadThrows({
+        error: NativeErrorStub({ message: 'capacity calculation failed' }),
+      });
+
+      await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder, hooksFolder],
+        rootPath,
+      });
+
+      expect(proxy.getAllSpawnedArgs()).toStrictEqual([
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+        [proxy.wardEntry, 'run', '--jestWorkers', '100', '--only', 'lint'],
+      ]);
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: load balancing degraded: capacity calculation failed\n',
+      ]);
+    });
+
+    it('ERROR: {capacityReadBroker throws NodeVersionUnsupportedError} => propagates error', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupNoSpawns({ rootPath });
+      proxy.setupCapacityReadThrows({
+        error: new NodeVersionUnsupportedError({ runningVersion: '20.0.0' }),
+      });
+
+      await expect(
+        multiPackageLayerBroker({
+          config,
+          projectFolders: [projectFolder],
+          rootPath,
+        }),
+      ).rejects.toThrow(NodeVersionUnsupportedError);
+    });
+
+    it('VALID: {capacityReadBroker returns warnings} => prints each warning once to stderr', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupCapacityWarning({ warning: 'memory cap tight' });
+
+      await multiPackageLayerBroker({ config, projectFolders: [projectFolder], rootPath });
+
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: load balancing degraded: memory cap tight\n',
+      ]);
+    });
+
+    it('VALID: {memoryPeakSampleBroker measures peak} => records peak RSS on duration samples', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/project/packages/ward',
+      });
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 120,
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+                durationMs: 120,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupMemoryPeak({ peakMB: 512 });
+
+      await multiPackageLayerBroker({ config, projectFolders: [projectFolder], rootPath });
+
+      expect(proxy.getWrittenDurationSamples()).toStrictEqual([
+        {
+          repoRoot: rootPath,
+          packageName: 'ward',
+          checkType: 'lint',
+          durationMs: 120,
+          peakRssMB: 512,
+          shards: null,
+          recordedAtMs: 1739625600000,
+        },
+      ]);
+    });
+
+    it('ERROR: {leaseTakeBroker throws} => sets degraded and prints warning once', async () => {
+      const rootPath = '/project';
+      const projectFolder = ProjectFolderStub();
+      const config = WardConfigStub({ only: ['lint'] });
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoad({
+        rootPath,
+        projectFolders: [projectFolder],
+        subResultContent: subResult,
+      });
+      proxy.setupLeaseTakeThrows({ message: 'sqlite busy' });
+
+      await multiPackageLayerBroker({ config, projectFolders: [projectFolder], rootPath });
+
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'ward: load balancing degraded: Error: sqlite busy\n',
       ]);
     });
   });

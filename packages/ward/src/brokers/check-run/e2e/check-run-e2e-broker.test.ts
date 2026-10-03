@@ -1,10 +1,12 @@
 import { execPath, getEnv } from '#gateway/node/process';
+import { NativeErrorStub } from '#gateway/node/util__types/is-native-error/native-error.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
+import { DurationSampleStub } from '../../../contracts/duration-sample/duration-sample.stub';
 
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { checkRunE2eBroker } from './check-run-e2e-broker';
@@ -862,6 +864,170 @@ describe('checkRunE2eBroker', () => {
       const killedPorts = proxy.getKilledPorts();
 
       expect(killedPorts).toStrictEqual([40000, 51244, 40002, 51246, 40004, 51248]);
+    });
+
+    it('VALID: {shardingEnabled: true, capacity suggests 3} => requested is 4 (3 + 1), bounded by 8 and spec file count', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 4,
+        capacitySuggestion: 3,
+        discoveredFiles: ['spec1.e2e.ts', 'spec2.e2e.ts', 'spec3.e2e.ts', 'spec4.e2e.ts'],
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', '--shard=1/4', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=2/4', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=3/4', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=4/4', '--pass-with-no-tests'],
+      ]);
+    });
+
+    it('VALID: {shardingEnabled: true, capacity suggests 10} => requested is capped at 8', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      const discoveredFiles = [
+        's1.e2e.ts',
+        's2.e2e.ts',
+        's3.e2e.ts',
+        's4.e2e.ts',
+        's5.e2e.ts',
+        's6.e2e.ts',
+        's7.e2e.ts',
+        's8.e2e.ts',
+        's9.e2e.ts',
+        's10.e2e.ts',
+      ];
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 8,
+        capacitySuggestion: 10,
+        discoveredFiles,
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', '--shard=1/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=2/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=3/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=4/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=5/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=6/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=7/8', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=8/8', '--pass-with-no-tests'],
+      ]);
+    });
+
+    it('ERROR: {capacityReadBroker throws} => prints warning line to stderr once and falls back to e2eShardStatics.defaultCount', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 3,
+        discoveredFiles: ['spec1.e2e.ts', 'spec2.e2e.ts', 'spec3.e2e.ts'],
+      });
+      proxy.setupCapacityFailure({
+        projectFolder,
+        error: NativeErrorStub({ message: 'sqlite locked' }),
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', '--shard=1/3', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=2/3', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=3/3', '--pass-with-no-tests'],
+      ]);
+
+      expect(proxy.getStderrText()).toBe('ward: load balancing degraded: sqlite locked\n');
+    });
+
+    it('VALID: {shardingEnabled: false} => behaves as before without querying capacity', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+      proxy.setupCapacityFailure({
+        projectFolder,
+        error: NativeErrorStub({ message: 'capacity should not be queried' }),
+      });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.status).toBe('pass');
+      expect(proxy.getStderrText()).toBe('');
+    });
+
+    it('VALID: {historical e2e samples} => limits shards according to historical peak per shard', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupShardedPass({
+        projectFolder,
+        shardCount: 8,
+        discoveredFiles: [
+          's1.e2e.ts',
+          's2.e2e.ts',
+          's3.e2e.ts',
+          's4.e2e.ts',
+          's5.e2e.ts',
+          's6.e2e.ts',
+          's7.e2e.ts',
+          's8.e2e.ts',
+        ],
+      });
+      // Headroom is 512 MB. Setting freeMemMB = 512 + 400 = 912 gives availableFreeMB = 400.
+      // With peakPerShard = 1200 / 3 = 400, freeMemoryLimit = 400 / 400 = 1.
+      // Capacity suggests 1, so requested is 1 + 1 = 2 shards.
+      proxy.setupCapacityMachine({
+        projectFolder,
+        cores: 8,
+        freeMemMB: 912,
+      });
+      proxy.setupDurationHistory({
+        samples: [
+          DurationSampleStub({
+            repoRoot: projectFolder.path,
+            packageName: projectFolder.name,
+            checkType: 'e2e',
+            peakRssMB: 1200,
+            shards: 3,
+            recordedAtMs: 1700000000000,
+          }),
+        ],
+      });
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const allArgs = proxy.getAllSpawnedArgs();
+
+      expect(allArgs).toStrictEqual([
+        ['test', '--reporter=line,json', '--shard=1/2', '--pass-with-no-tests'],
+        ['test', '--reporter=line,json', '--shard=2/2', '--pass-with-no-tests'],
+      ]);
     });
   });
 });

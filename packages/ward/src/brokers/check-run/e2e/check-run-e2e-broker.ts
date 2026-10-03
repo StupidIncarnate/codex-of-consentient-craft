@@ -8,7 +8,9 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
+import { stderr } from '#gateway/node/process';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
+import { capacityReadBroker } from '@dungeonmaster/load-balancer/brokers';
 import { configResolveBroker } from '@dungeonmaster/config';
 
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -31,7 +33,12 @@ import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test
 import { bundleBuildBroker } from '../../bundle/build/bundle-build-broker';
 import { runnerCommandResolveBroker } from '../../runner-command/resolve/runner-command-resolve-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
+import { historyRootFindBroker } from '../../history/root-find/history-root-find-broker';
+import { historyReadBroker } from '../../history/read/history-read-broker';
 import { runShardLayerBroker } from './run-shard-layer-broker';
+
+const MAX_REQUESTED_SHARDS = 8;
+const MIN_REQUESTED_SHARDS = 1;
 
 export const checkRunE2eBroker = async ({
   projectFolder,
@@ -113,10 +120,52 @@ export const checkRunE2eBroker = async ({
     filePath: `${projectFolder.path}/package.json`,
   });
   const shardingEnabled = config.ward?.e2eSharding ?? false;
+
+  let requested: number = e2eShardStatics.defaultCount;
+  if (shardingEnabled) {
+    let peakPerShard: number | null = null;
+    try {
+      const repoRoot = await historyRootFindBroker({ rootPath: projectFolder.path });
+      const { samples } = historyReadBroker({ repoRoot });
+      const matchingSamples = samples.filter(
+        (sample) =>
+          sample.packageName === projectFolder.name &&
+          sample.checkType === 'e2e' &&
+          sample.peakRssMB !== null &&
+          sample.shards !== null &&
+          Number(sample.shards) > 0,
+      );
+
+      if (matchingSamples.length > 0) {
+        const mostRecent = matchingSamples.reduce((latest, current) =>
+          Number(current.recordedAtMs) > Number(latest.recordedAtMs) ? current : latest,
+        );
+        peakPerShard = Math.floor(Number(mostRecent.peakRssMB) / Number(mostRecent.shards));
+      }
+    } catch {
+      peakPerShard = null;
+    }
+
+    try {
+      const capacity = await capacityReadBroker({
+        diskPath: projectFolder.path,
+        job: { peakMB: peakPerShard },
+      });
+      requested = Math.min(
+        MAX_REQUESTED_SHARDS,
+        Math.max(MIN_REQUESTED_SHARDS, Number(capacity.suggestion.suggestion) + 1),
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      stderr.write(`ward: load balancing degraded: ${message}\n`);
+      requested = e2eShardStatics.defaultCount;
+    }
+  }
+
   const specFileCount = fileList.length > 0 ? e2eFiles.length : discoveredCount;
   const shardCount = e2eShardCountTransformer({
     shardingEnabled,
-    requested: e2eShardStatics.defaultCount,
+    requested,
     specFileCount,
     testNamePattern,
   });
@@ -200,7 +249,7 @@ export const checkRunE2eBroker = async ({
     // No spec in this package carries a name the pattern matches. Report discoveredCount 0 with the
     // skip: a nonzero count here would trip the discovery-mismatch detector even though skipping is
     // the correct behavior.
-    return projectResultContract.parse({
+    const skipResult = projectResultContract.parse({
       projectFolder,
       status: 'skip',
       testNamePatternMatch: 'unmatched',
@@ -214,6 +263,12 @@ export const checkRunE2eBroker = async ({
         signal,
       }),
     });
+
+    if (shardingEnabled) {
+      return Object.assign(skipResult, { shards: shardCount });
+    }
+
+    return skipResult;
   }
 
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
@@ -222,7 +277,7 @@ export const checkRunE2eBroker = async ({
     cwd,
   });
 
-  return projectResultContract.parse({
+  const finalResult = projectResultContract.parse({
     projectFolder,
     status,
     ...(testNamePattern === undefined ? {} : { testNamePatternMatch: 'matched' }),
@@ -245,4 +300,10 @@ export const checkRunE2eBroker = async ({
       signal,
     }),
   });
+
+  if (shardingEnabled) {
+    return Object.assign(finalResult, { shards: shardCount });
+  }
+
+  return finalResult;
 };

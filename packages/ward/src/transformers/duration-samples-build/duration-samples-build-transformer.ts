@@ -12,29 +12,6 @@ import type { DurationSample } from '../../contracts/duration-sample/duration-sa
 import type { CheckResult } from '../../contracts/check-result/check-result-contract';
 import { isCrashedProjectResultGuard } from '../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 
-const resolveResource = (
-  mapping: ReadonlyMap<string, number | null> | Record<string, number | null> | undefined,
-  packageName: string,
-): number | null => {
-  if (!mapping) {
-    return null;
-  }
-
-  if (mapping instanceof Map) {
-    if (!mapping.has(packageName)) {
-      return null;
-    }
-
-    return mapping.get(packageName) ?? null;
-  }
-
-  if (!Object.hasOwn(mapping, packageName)) {
-    return null;
-  }
-
-  return mapping[packageName] ?? null;
-};
-
 export const durationSamplesBuildTransformer = ({
   repoRoot,
   checks,
@@ -47,8 +24,8 @@ export const durationSamplesBuildTransformer = ({
   checks: readonly CheckResult[];
   wholePackageNames: ReadonlySet<string> | readonly string[];
   nowMs: number;
-  peakRssByPackage?: ReadonlyMap<string, number | null> | Record<string, number | null>;
-  shardsByPackage?: ReadonlyMap<string, number | null> | Record<string, number | null>;
+  peakRssByPackage?: Map<string, number | null> | Record<string, number | null>;
+  shardsByPackage?: Map<string, number | null> | Record<string, number | null>;
 }): DurationSample[] => {
   const wholePackageSet =
     wholePackageNames instanceof Set ? wholePackageNames : new Set(wholePackageNames);
@@ -65,14 +42,32 @@ export const durationSamplesBuildTransformer = ({
         continue;
       }
 
+      let peakRssMB: number | null = null;
+      if (peakRssByPackage) {
+        if (peakRssByPackage instanceof Map) {
+          peakRssMB = peakRssByPackage.get(projectResult.projectFolder.name) ?? null;
+        } else if (Object.hasOwn(peakRssByPackage, projectResult.projectFolder.name)) {
+          peakRssMB = peakRssByPackage[projectResult.projectFolder.name] ?? null;
+        }
+      }
+
+      let shards: number | null = null;
+      if (shardsByPackage) {
+        if (shardsByPackage instanceof Map) {
+          shards = shardsByPackage.get(projectResult.projectFolder.name) ?? null;
+        } else if (Object.hasOwn(shardsByPackage, projectResult.projectFolder.name)) {
+          shards = shardsByPackage[projectResult.projectFolder.name] ?? null;
+        }
+      }
+
       samples.push(
         durationSampleContract.parse({
           repoRoot,
           packageName: projectResult.projectFolder.name,
           checkType: check.checkType,
           durationMs: projectResult.durationMs,
-          peakRssMB: resolveResource(peakRssByPackage, projectResult.projectFolder.name),
-          shards: resolveResource(shardsByPackage, projectResult.projectFolder.name),
+          peakRssMB,
+          shards,
           recordedAtMs: nowMs,
         }),
       );

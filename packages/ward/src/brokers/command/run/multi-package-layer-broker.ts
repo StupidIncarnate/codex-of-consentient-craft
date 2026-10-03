@@ -9,8 +9,18 @@
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import { argv, execPath, stderr } from '#gateway/node/process';
 import { now } from '#gateway/node/Date';
+import { setInterval } from '#gateway/node/setInterval';
+import { clearInterval } from '#gateway/node/clearInterval';
+import { NodeVersionUnsupportedError } from '#gateway/node/sqlite';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
-import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
+import {
+  capacityReadBroker,
+  leaseTakeBroker,
+  leaseBeatBroker,
+  leaseReleaseBroker,
+  memoryPeakSampleBroker,
+} from '@dungeonmaster/load-balancer/brokers';
+import { loadBalancerStatics } from '@dungeonmaster/load-balancer/statics';
 
 import {
   wardRunResultContract,
@@ -40,7 +50,10 @@ import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
 import { historyRootFindBroker } from '../../history/root-find/history-root-find-broker';
 import { historyReadBroker } from '../../history/read/history-read-broker';
 import { historyWriteBroker } from '../../history/write/history-write-broker';
-import { durationPredictTransformer } from '../../../transformers/duration-predict/duration-predict-transformer';
+import {
+  durationPredictTransformer,
+  type DurationPredictions,
+} from '../../../transformers/duration-predict/duration-predict-transformer';
 import { packageDispatchOrderTransformer } from '../../../transformers/package-dispatch-order/package-dispatch-order-transformer';
 import { durationSamplesBuildTransformer } from '../../../transformers/duration-samples-build/duration-samples-build-transformer';
 
@@ -90,15 +103,16 @@ export const multiPackageLayerBroker = async ({
   let repoRoot = rootPath;
   let dispatchFolders = filteredFolders;
   let historyAvailable = true;
+  const predictionsRef: { value?: DurationPredictions } = {};
 
   if (filteredFolders.length > 0 && checkTypes.length > 0) {
     try {
       repoRoot = await historyRootFindBroker({ rootPath });
       const { samples: historySamples } = historyReadBroker({ repoRoot });
-      const predictions = durationPredictTransformer({ samples: historySamples });
+      predictionsRef.value = durationPredictTransformer({ samples: historySamples });
       dispatchFolders = packageDispatchOrderTransformer({
         projectFolders: filteredFolders,
-        predictions,
+        predictions: predictionsRef.value,
         checkTypes,
       });
     } catch (error: unknown) {
@@ -109,26 +123,89 @@ export const multiPackageLayerBroker = async ({
     }
   }
 
-  // Resolved ONCE per run, before the promisePoolTransformer loop below spawns any per-folder
-  // handler — moving this inside that handler would re-walk the config tree once per workspace
-  // instead of once for the whole run. A consumer whose .dungeonmaster.json carries no `ward` key
-  // at all gets `ward: undefined` back (zod never fills a default for an absent PARENT key, only
-  // for fields inside one that's present), so the fallback to configDefaultsStatics is load-bearing,
-  // not decorative.
-  const dungeonmasterConfig = await configResolveBroker({
-    filePath: `${rootPath}/package.json`,
-  });
-  const CONCURRENCY_LIMIT = Number(
-    dungeonmasterConfig.ward?.concurrency ?? configDefaultsStatics.ward.concurrency.default,
-  );
+  const expectedPeakByPackage = new Map<string, number | null>();
+  if (predictionsRef.value !== undefined) {
+    for (const folder of dispatchFolders) {
+      const packagePreds = predictionsRef.value.get(folder.name);
+      if (!packagePreds) {
+        expectedPeakByPackage.set(folder.name, null);
+        continue;
+      }
+      let maxPeak: number | null = null;
+      for (const checkType of checkTypes) {
+        const peak = packagePreds.get(checkType)?.peakRssMB;
+        if (typeof peak === 'number') {
+          maxPeak = maxPeak === null ? peak : Math.max(maxPeak, peak);
+        }
+      }
+      expectedPeakByPackage.set(folder.name, maxPeak);
+    }
+  }
 
+  let inFlightCount = 0;
+  const peakRssByPackage = new Map<string, number | null>();
+  const shardsByPackage = new Map<string, number | null>();
+  const printedWarnings = new Set<string>();
+  const degraded = new Set<'capacity' | 'leases'>();
+
+  const unstartedPackages = new Set(dispatchFolders.map((folder) => folder.name));
   const runStartMs = Date.now();
 
   const subResults = await promisePoolTransformer({
     items: dispatchFolders,
-    concurrency: CONCURRENCY_LIMIT,
+    limit: async (): Promise<number> => {
+      if (degraded.has('capacity')) {
+        return 1;
+      }
+
+      let maxExpectedPeak: number | null = null;
+      for (const packageName of unstartedPackages) {
+        const peak = expectedPeakByPackage.get(packageName) ?? null;
+        if (typeof peak === 'number') {
+          maxExpectedPeak = maxExpectedPeak === null ? peak : Math.max(maxExpectedPeak, peak);
+        }
+      }
+
+      try {
+        const capacity = await capacityReadBroker({
+          diskPath: rootPath,
+          job: { peakMB: maxExpectedPeak },
+        });
+
+        for (const warning of capacity.warnings) {
+          if (!printedWarnings.has(warning)) {
+            printedWarnings.add(warning);
+            stderr.write(`ward: load balancing degraded: ${warning}\n`);
+          }
+        }
+
+        return inFlightCount + capacity.suggestion.suggestion;
+      } catch (error: unknown) {
+        if (error instanceof NodeVersionUnsupportedError) {
+          throw error;
+        }
+
+        degraded.add('capacity');
+        const message = error instanceof Error ? error.message : String(error);
+        stderr.write(`ward: load balancing degraded: ${message}\n`);
+
+        return 1;
+      }
+    },
     handler: async (folder) => {
-      const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
+      unstartedPackages.delete(folder.name);
+      inFlightCount += 1;
+
+      const jestWorkerLimits = {
+        minPercent: 10,
+        totalPercent: 100,
+      };
+      const jestWorkers = Math.max(
+        jestWorkerLimits.minPercent,
+        Math.floor(jestWorkerLimits.totalPercent / inFlightCount),
+      );
+      const spawnArgs = [...wardSpawnCommandStatics.baseArgs.map(String)];
+      spawnArgs.push(wardSpawnCommandStatics.jestWorkersFlag, String(jestWorkers));
 
       if (config.only) {
         spawnArgs.push('--only', config.only.join(','));
@@ -164,60 +241,162 @@ export const multiPackageLayerBroker = async ({
         }
       }
 
-      const cwd = folder.path;
-      // A missing `dungeonmaster-ward` binary rejects `stream` with RunNotFoundError rather than
-      // resolving a result — caught here and folded into the same failed-spawn shape the old
-      // spawn-stream adapter resolved for an ENOENT, so a machine without the resolved bin reads
-      // as a crashed child below, exactly as it always has.
-      const spawnResult = await stream({
-        command: childCommand.command,
-        args: [...childCommand.leadingArgs, ...spawnArgs],
-        cwd,
-        onStderr: (line: string) => {
-          stderr.write(line);
-        },
-      }).catch((error: unknown) => {
-        if (!(error instanceof RunNotFoundError)) {
-          throw error;
-        }
-        return { exitCode: null, output: '', signal: null };
-      });
-
-      const pkgRootPath = folder.path;
-      const childRunId = extractChildRunIdTransformer({ output: spawnResult.output });
-
-      // ONLY THIS RUN'S ID MAY BE LOADED. `storageLoadBroker` with no `runId` returns the NEWEST
-      // file in the package's `.ward/`, which is the PREVIOUS run — so a child that died before
-      // printing its `run: <id>` summary line was reported as whatever that package last managed
-      // to do, at exit 0. Reproduced live with a child killed at CLI-parse time: `unit: PASS 1
-      // packages (163 discovered) 2.0s` for a run whose whole wall clock was 0.2s, byte-identical
-      // across consecutive invocations. It also defeats `hasNoFilesProcessedGuard`, because the
-      // stale result claims files were processed.
-      //
-      // A child that reached its summary ALWAYS printed the line — `commandRunBroker` writes the
-      // summary and the result file from the same `wardResult`, and the two paths that return
-      // before it (an empty file scope, a path not on disk) write neither, so a missing id means
-      // no result of this run's exists to merge. `stdout` alone is captured, on `close` rather
-      // than `exit`, so nothing colours or truncates the line out from under the match.
-      const result =
-        childRunId === null
-          ? null
-          : await storageLoadBroker({ rootPath: pkgRootPath, runId: childRunId });
-
-      if (result !== null) {
-        return result;
-      }
-
-      // The child wrote no readable result. Its checks cannot be merged, so report the package as
-      // crashed — silently dropping it would render the whole package as passing.
-      return {
-        checks: childCrashLayerBroker({
-          projectFolder: folder,
-          checkTypes,
-          exitCode: spawnResult.exitCode === null ? null : spawnResult.exitCode,
-          output: spawnResult.output,
-        }),
+      const spawnState: {
+        sampler: {
+          stop: () => Promise<number | null>;
+          getCurrentPeak: () => number | null;
+        } | null;
+        leaseId: string | null;
+        heartbeatTimer: NodeJS.Timeout | null;
+        onSpawnPromise: Promise<void> | null;
+      } = {
+        sampler: null,
+        leaseId: null,
+        heartbeatTimer: null,
+        onSpawnPromise: null,
       };
+
+      try {
+        const cwd = folder.path;
+        // A missing `dungeonmaster-ward` binary rejects `stream` with RunNotFoundError rather than
+        // resolving a result — caught here and folded into the same failed-spawn shape the old
+        // spawn-stream adapter resolved for an ENOENT, so a machine without the resolved bin reads
+        // as a crashed child below, exactly as it always has.
+        const spawnResult = await stream({
+          command: childCommand.command,
+          args: [...childCommand.leadingArgs, ...spawnArgs],
+          cwd,
+          onStderr: (line: string) => {
+            stderr.write(line);
+          },
+          onSpawn: ({ pid }: { pid: number }) => {
+            if (degraded.has('leases')) {
+              return;
+            }
+            spawnState.onSpawnPromise = (async (): Promise<void> => {
+              try {
+                spawnState.sampler = await memoryPeakSampleBroker({ rootPid: pid });
+                if (degraded.has('leases')) {
+                  return;
+                }
+                const expectedPeakMB = expectedPeakByPackage.get(folder.name) ?? null;
+                spawnState.leaseId = await leaseTakeBroker({
+                  tool: 'ward',
+                  label: folder.name,
+                  ownerPid: pid,
+                  expectedPeakMB,
+                });
+                spawnState.heartbeatTimer = setInterval(() => {
+                  if (degraded.has('leases') || spawnState.leaseId === null) {
+                    if (spawnState.heartbeatTimer !== null) {
+                      clearInterval(spawnState.heartbeatTimer);
+                      spawnState.heartbeatTimer = null;
+                    }
+                    return;
+                  }
+                  leaseBeatBroker({
+                    leaseId: spawnState.leaseId,
+                    currentRssMB: spawnState.sampler?.getCurrentPeak() ?? null,
+                  }).catch((error: unknown) => {
+                    if (!degraded.has('leases')) {
+                      degraded.add('leases');
+                      const message = error instanceof Error ? error.message : String(error);
+                      stderr.write(`ward: load balancing degraded: ${message}\n`);
+                    }
+                    if (spawnState.heartbeatTimer !== null) {
+                      clearInterval(spawnState.heartbeatTimer);
+                      spawnState.heartbeatTimer = null;
+                    }
+                  });
+                }, loadBalancerStatics.lease.heartbeatIntervalMs);
+              } catch (error: unknown) {
+                if (!degraded.has('leases')) {
+                  degraded.add('leases');
+                  const message = error instanceof Error ? error.message : String(error);
+                  stderr.write(`ward: load balancing degraded: ${message}\n`);
+                }
+              }
+            })();
+          },
+        }).catch((error: unknown) => {
+          if (!(error instanceof RunNotFoundError)) {
+            throw error;
+          }
+          return { exitCode: null, output: '', signal: null };
+        });
+
+        const pkgRootPath = folder.path;
+        const childRunId = extractChildRunIdTransformer({ output: spawnResult.output });
+
+        // ONLY THIS RUN'S ID MAY BE LOADED. `storageLoadBroker` with no `runId` returns the NEWEST
+        // file in the package's `.ward/`, which is the PREVIOUS run — so a child that died before
+        // printing its `run: <id>` summary line was reported as whatever that package last managed
+        // to do, at exit 0. Reproduced live with a child killed at CLI-parse time: `unit: PASS 1
+        // packages (163 discovered) 2.0s` for a run whose whole wall clock was 0.2s, byte-identical
+        // across consecutive invocations. It also defeats `hasNoFilesProcessedGuard`, because the
+        // stale result claims files were processed.
+        //
+        // A child that reached its summary ALWAYS printed the line — `commandRunBroker` writes the
+        // summary and the result file from the same `wardResult`, and the two paths that return
+        // before it (an empty file scope, a path not on disk) write neither, so a missing id means
+        // no result of this run's exists to merge. `stdout` alone is captured, on `close` rather
+        // than `exit`, so nothing colours or truncates the line out from under the match.
+        const result =
+          childRunId === null
+            ? null
+            : await storageLoadBroker({ rootPath: pkgRootPath, runId: childRunId });
+
+        if (result !== null) {
+          return result;
+        }
+
+        // The child wrote no readable result. Its checks cannot be merged, so report the package as
+        // crashed — silently dropping it would render the whole package as passing.
+        return {
+          checks: childCrashLayerBroker({
+            projectFolder: folder,
+            checkTypes,
+            exitCode: spawnResult.exitCode === null ? null : spawnResult.exitCode,
+            output: spawnResult.output,
+          }),
+        };
+      } finally {
+        inFlightCount -= 1;
+        if (spawnState.onSpawnPromise !== null) {
+          try {
+            await spawnState.onSpawnPromise;
+          } catch {
+            // Handled inside onSpawnPromise
+          }
+        }
+        if (spawnState.heartbeatTimer !== null) {
+          clearInterval(spawnState.heartbeatTimer);
+          spawnState.heartbeatTimer = null;
+        }
+        if (spawnState.sampler !== null) {
+          try {
+            const peak = await spawnState.sampler.stop();
+            peakRssByPackage.set(folder.name, peak);
+          } catch (error: unknown) {
+            if (!degraded.has('leases')) {
+              degraded.add('leases');
+              const message = error instanceof Error ? error.message : String(error);
+              stderr.write(`ward: load balancing degraded: ${message}\n`);
+            }
+          }
+        }
+        if (!degraded.has('leases') && spawnState.leaseId !== null) {
+          try {
+            await leaseReleaseBroker({ leaseId: spawnState.leaseId });
+          } catch (error: unknown) {
+            if (!degraded.has('leases')) {
+              degraded.add('leases');
+              const message = error instanceof Error ? error.message : String(error);
+              stderr.write(`ward: load balancing degraded: ${message}\n`);
+            }
+          }
+        }
+      }
     },
   });
 
@@ -289,6 +468,8 @@ export const multiPackageLayerBroker = async ({
       checks: foldedChecks,
       wholePackageNames,
       nowMs: now(),
+      peakRssByPackage,
+      shardsByPackage,
     });
 
     if (samplesToWrite.length > 0) {

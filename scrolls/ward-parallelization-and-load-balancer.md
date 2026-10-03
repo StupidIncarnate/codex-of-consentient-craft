@@ -432,7 +432,7 @@ Unit D (Load Balancer & Dynamic Concurrency · worktree wp-unit-d) — [IN PROGR
   #3   D7 [✓]
   #4   D9 [✓]  D10 [✓]
   #5   D11 [✓] D12 [✓]
-  #6   D13 [ ] D14 [ ]
+  #6   D13 [✓] D14 [✓]
   #7   D18 [ ]
   #8   D16 [ ]
 
